@@ -267,6 +267,21 @@ export const initializeApp = (payload: { environment: string }) => ({
 });
 
 /**
+ * Indicate that there are unsaved edits for non-AICS data sources
+ */
+export const SET_HAS_UNSAVED_CHANGES = makeConstant(STATE_BRANCH_NAME, "set-has-unsaved-changes");
+
+export interface SetHasUnsavedChanges {
+    type: string;
+}
+
+export function setHasUnsavedChanges(): SetHasUnsavedChanges {
+    return {
+        type: SET_HAS_UNSAVED_CHANGES,
+    };
+}
+
+/**
  * Edit the currently selected files with the given metadata
  */
 export const EDIT_FILES = makeConstant(STATE_BRANCH_NAME, "edit-files");
@@ -379,6 +394,36 @@ export function promptUserToUpdateApp(processId: string, msg: string): PromptUse
                 msg,
             },
             processId,
+        },
+    };
+}
+
+/**
+ * INFO MESSAGE
+ *
+ * Intention to provide user with general info about a (potentially long-running) process.
+ */
+export interface ProcessInfoAction {
+    type: string;
+    payload: StatusUpdate;
+}
+
+export function processInfo(
+    processId: string,
+    msg: string,
+    onCancel?: () => void,
+    fileId?: string[]
+): ProcessStartAction {
+    return {
+        type: SET_STATUS,
+        payload: {
+            data: {
+                fileId,
+                msg,
+                status: ProcessStatus.NOT_SET,
+            },
+            processId,
+            onCancel,
         },
     };
 }

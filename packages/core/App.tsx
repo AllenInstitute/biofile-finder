@@ -47,6 +47,7 @@ export default function App(props: AppProps) {
 
     const dispatch = useDispatch();
     const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);
+    const hasUnsavedChanges = useSelector(interaction.selectors.getHasUnsavedChanges);
     const requiresDataSourceReload = useSelector(selection.selectors.getRequiresDataSourceReload);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const platformDependentServices = useSelector(
@@ -55,6 +56,23 @@ export default function App(props: AppProps) {
     const [measuredNodeRef, _measuredHeight, measuredWidth] = useLayoutMeasurements<
         HTMLDivElement
     >();
+
+    React.useEffect(() => {
+        const beforeUnloadHandler = (event: BeforeUnloadEvent) => {
+            // Modern browser alert: Does not allow custom messages
+            event.preventDefault();
+
+            // Legacy support (e.g. Chrome/Edge < 119): Allows custom messages
+            event.returnValue =
+                "Edits to external data sources will not be saved. Make sure to download the result in order to keep your changes";
+        };
+
+        if (hasUnsavedChanges) window.addEventListener("beforeunload", beforeUnloadHandler);
+        // remove the event listener
+        return () => {
+            window.removeEventListener("beforeunload", beforeUnloadHandler);
+        };
+    }, [hasUnsavedChanges]);
 
     // Check for updates to the application on startup
     React.useEffect(() => {

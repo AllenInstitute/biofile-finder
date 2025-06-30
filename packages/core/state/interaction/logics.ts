@@ -7,6 +7,7 @@ import {
     DOWNLOAD_MANIFEST,
     DownloadManifestAction,
     processError,
+    processInfo,
     processProgress,
     processStart,
     processSuccess,
@@ -26,6 +27,7 @@ import {
     PROMPT_FOR_NEW_EXECUTABLE,
     setUserSelectedApplication,
     INITIALIZE_APP,
+    setHasUnsavedChanges,
     setIsAicsEmployee,
     SET_IS_SMALL_SCREEN,
     SetIsSmallScreenAction,
@@ -551,6 +553,8 @@ const editFilesLogic = createLogic({
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
         const sortColumn = selection.selectors.getSortColumn(deps.getState());
+        const hasUnsavedChanges = interaction.selectors.getHasUnsavedChanges(deps.getState());
+        const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
         const annotationNameToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
             deps.getState()
         );
@@ -622,6 +626,15 @@ const editFilesLogic = createLogic({
             }
             dispatch(refresh); // Sync state to pull updated files
             dispatch(processSuccess(editRequestId, "Successfully edited files."));
+            if (!hasUnsavedChanges && !isQueryingAicsFms) {
+                dispatch(setHasUnsavedChanges());
+                dispatch(
+                    processInfo(
+                        "edit-info-msg",
+                        "Edits made to external data sources are not permanent. Make sure to save/download data to keep your edited versions."
+                    )
+                );
+            }
         } catch (err) {
             // Dispatch an event to alert the user of the failure
             const errorMsg = `Failed to finish editing files, some may have been edited. Details:<br/>${

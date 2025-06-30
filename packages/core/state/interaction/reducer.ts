@@ -20,6 +20,7 @@ import {
     MARK_AS_USED_APPLICATION_BEFORE,
     MARK_AS_DISMISSED_SMALL_SCREEN_WARNING,
     ShowManifestDownloadDialogAction,
+    SET_HAS_UNSAVED_CHANGES,
     SET_IS_AICS_EMPLOYEE,
     PROMPT_FOR_DATA_SOURCE,
     DownloadManifestAction,
@@ -56,6 +57,7 @@ export interface InteractionStateBranch {
     fileFiltersForVisibleModal: FileFilter[];
     environment: "LOCALHOST" | "PRODUCTION" | "STAGING" | "TEST";
     hasDismissedSmallScreenWarning: boolean;
+    hasUnsavedChanges: boolean;
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;
     isOnWeb: boolean;
@@ -80,6 +82,7 @@ export const initialState: InteractionStateBranch = {
     fileFiltersForVisibleModal: [],
     fileTypeForVisibleModal: "csv",
     hasDismissedSmallScreenWarning: false,
+    hasUnsavedChanges: false,
     hasUsedApplicationBefore: false,
     isOnWeb: false,
     platformDependentServices: {
@@ -143,6 +146,10 @@ export default makeReducer<InteractionStateBranch>(
         [SET_USER_SELECTED_APPLICATIONS]: (state, action) => ({
             ...state,
             userSelectedApplications: action.payload,
+        }),
+        [SET_HAS_UNSAVED_CHANGES]: (state) => ({
+            ...state,
+            hasUnsavedChanges: true,
         }),
         [SET_IS_AICS_EMPLOYEE]: (state, action) => ({
             ...state,

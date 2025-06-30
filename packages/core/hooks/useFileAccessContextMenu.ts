@@ -104,27 +104,23 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                     },
                     subMenuProps: { items: saveAsSubMenuItems },
                 },
-                ...(isQueryingAicsFms
-                    ? [
-                          {
-                              key: "edit",
-                              text: "Edit metadata",
-                              title: "Edit metadata for selected files",
-                              disabled: !folderFilters && fileSelection.count() === 0,
-                              iconProps: {
-                                  iconName: "Edit",
-                              },
-                              onClick() {
-                                  dispatch(
-                                      interaction.actions.setVisibleModal(
-                                          ModalType.EditMetadata,
-                                          folderFilters
-                                      )
-                                  );
-                              },
-                          },
-                      ]
-                    : []),
+                {
+                    key: "edit",
+                    text: "Edit metadata",
+                    title: "Edit metadata for selected files",
+                    disabled: !folderFilters && fileSelection.count() === 0,
+                    iconProps: {
+                        iconName: "Edit",
+                    },
+                    onClick() {
+                        dispatch(
+                            interaction.actions.setVisibleModal(
+                                ModalType.EditMetadata,
+                                folderFilters
+                            )
+                        );
+                    },
+                },
                 ...(isQueryingAicsFms && !isOnWeb
                     ? [
                           {
