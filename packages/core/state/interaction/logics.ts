@@ -42,21 +42,21 @@ import {
     DeleteMetadataAction,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
+import { ModalType } from "../../components/Modal";
 import { UNSAVED_DATA_WARNING } from "../../constants";
-import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
+import FileDetail from "../../entity/FileDetail";
 import FileSet from "../../entity/FileSet";
+import FileSelection from "../../entity/FileSelection";
+import NumericRange from "../../entity/NumericRange";
+import SearchParams, { DEFAULT_AICS_FMS_QUERY } from "../../entity/SearchParams";
 import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "../../services/ExecutionEnvService";
+import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
-import FileDetail from "../../entity/FileDetail";
-import AnnotationName from "../../entity/Annotation/AnnotationName";
-import FileSelection from "../../entity/FileSelection";
-import NumericRange from "../../entity/NumericRange";
-import SearchParams, { DEFAULT_AICS_FMS_QUERY } from "../../entity/SearchParams";
-import { ModalType } from "../../components/Modal";
 
 export const DEFAULT_QUERY_NAME = "New Query";
 
