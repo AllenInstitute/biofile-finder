@@ -7,6 +7,7 @@ import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import { Environment } from "../util/constants";
+import { UNSAVED_DATA_WARNING } from "../../../core/constants";
 import { PersistedConfigKeys } from "../../../core/services";
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -116,8 +117,7 @@ const createMainWindow = () => {
             type: "question",
             buttons: ["Leave", "Cancel"],
             message: "Leave site?",
-            detail:
-                "Edits to external data sources may not be saved. Download query results to save edits.",
+            detail: UNSAVED_DATA_WARNING,
         };
         if (mainWindow) {
             const shouldLeave = dialog.showMessageBoxSync(mainWindow, options) === 0;

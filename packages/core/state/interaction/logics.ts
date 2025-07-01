@@ -42,6 +42,7 @@ import {
     DeleteMetadataAction,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
+import { UNSAVED_DATA_WARNING } from "../../constants";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileSet from "../../entity/FileSet";
@@ -640,12 +641,7 @@ const editFilesLogic = createLogic({
             dispatch(processSuccess(editRequestId, "Successfully edited files."));
             if (!hasUnsavedChanges && !isQueryingAicsFms) {
                 dispatch(setHasUnsavedChanges());
-                dispatch(
-                    processInfo(
-                        "edit-info-message",
-                        "Edits made to external data sources are not permanent. Make sure to save/download data to keep your edited versions."
-                    )
-                );
+                dispatch(processInfo("edit-info-message", UNSAVED_DATA_WARNING));
             }
         } catch (err) {
             // Dispatch an event to alert the user of the failure

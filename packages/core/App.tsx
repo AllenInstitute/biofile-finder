@@ -14,7 +14,7 @@ import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
 import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
 import QuerySidebar from "./components/QuerySidebar";
-import { Environment } from "./constants";
+import { Environment, UNSAVED_DATA_WARNING } from "./constants";
 import { interaction, selection } from "./state";
 import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
 
@@ -64,8 +64,7 @@ export default function App(props: AppProps) {
 
             // Legacy support (e.g. Chrome/Edge < 119): Allows custom messages
             // Deprecated, does not affect modern browsers
-            event.returnValue =
-                "Edits to external data sources will not be saved. Make sure to download the result in order to keep your changes";
+            event.returnValue = UNSAVED_DATA_WARNING;
         };
 
         if (hasUnsavedChanges) window.addEventListener("beforeunload", beforeUnloadHandler);
