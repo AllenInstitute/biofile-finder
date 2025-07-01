@@ -7,6 +7,7 @@ import {
     DOWNLOAD_MANIFEST,
     DownloadManifestAction,
     processError,
+    processInfo,
     processProgress,
     processStart,
     processSuccess,
@@ -26,6 +27,7 @@ import {
     PROMPT_FOR_NEW_EXECUTABLE,
     setUserSelectedApplication,
     INITIALIZE_APP,
+    setHasUnsavedChanges,
     setIsAicsEmployee,
     SET_IS_SMALL_SCREEN,
     SetIsSmallScreenAction,
@@ -40,20 +42,21 @@ import {
     DeleteMetadataAction,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
-import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
+import { ModalType } from "../../components/Modal";
+import { UNSAVED_DATA_WARNING } from "../../constants";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
+import FileDetail from "../../entity/FileDetail";
 import FileSet from "../../entity/FileSet";
+import FileSelection from "../../entity/FileSelection";
+import NumericRange from "../../entity/NumericRange";
+import SearchParams, { DEFAULT_AICS_FMS_QUERY } from "../../entity/SearchParams";
 import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "../../services/ExecutionEnvService";
+import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
-import FileDetail from "../../entity/FileDetail";
-import AnnotationName from "../../entity/Annotation/AnnotationName";
-import FileSelection from "../../entity/FileSelection";
-import NumericRange from "../../entity/NumericRange";
-import SearchParams, { DEFAULT_AICS_FMS_QUERY } from "../../entity/SearchParams";
-import { ModalType } from "../../components/Modal";
 
 export const DEFAULT_QUERY_NAME = "New Query";
 
@@ -562,6 +565,8 @@ const editFilesLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const hasUnsavedChanges = interaction.selectors.getHasUnsavedChanges(deps.getState());
+        const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
         const sortColumn = selection.selectors.getSortColumn(deps.getState());
         const annotationNameToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
             deps.getState()
@@ -634,6 +639,10 @@ const editFilesLogic = createLogic({
             }
             dispatch(refresh); // Sync state to pull updated files
             dispatch(processSuccess(editRequestId, "Successfully edited files."));
+            if (!hasUnsavedChanges && !isQueryingAicsFms) {
+                dispatch(setHasUnsavedChanges());
+                dispatch(processInfo("edit-info-message", UNSAVED_DATA_WARNING));
+            }
         } catch (err) {
             // Dispatch an event to alert the user of the failure
             const errorMsg = `Failed to finish editing files, some may have been edited. Details:<br/>${

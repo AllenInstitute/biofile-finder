@@ -14,7 +14,7 @@ import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
 import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
 import QuerySidebar from "./components/QuerySidebar";
-import { Environment } from "./constants";
+import { Environment, UNSAVED_DATA_WARNING } from "./constants";
 import { interaction, selection } from "./state";
 import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
 
@@ -47,6 +47,7 @@ export default function App(props: AppProps) {
 
     const dispatch = useDispatch();
     const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);
+    const hasUnsavedChanges = useSelector(interaction.selectors.getHasUnsavedChanges);
     const requiresDataSourceReload = useSelector(selection.selectors.getRequiresDataSourceReload);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const platformDependentServices = useSelector(
@@ -55,6 +56,23 @@ export default function App(props: AppProps) {
     const [measuredNodeRef, _measuredHeight, measuredWidth] = useLayoutMeasurements<
         HTMLDivElement
     >();
+
+    React.useEffect(() => {
+        const beforeUnloadHandler = (event: BeforeUnloadEvent) => {
+            // Modern browser alert: Does not allow custom messages
+            event.preventDefault();
+
+            // Legacy support (e.g. Chrome/Edge < 119): Allows custom messages
+            // Deprecated, does not affect modern browsers
+            event.returnValue = UNSAVED_DATA_WARNING;
+        };
+
+        if (hasUnsavedChanges) window.addEventListener("beforeunload", beforeUnloadHandler);
+        // remove the event listener
+        return () => {
+            window.removeEventListener("beforeunload", beforeUnloadHandler);
+        };
+    }, [hasUnsavedChanges]);
 
     // Check for updates to the application on startup
     React.useEffect(() => {

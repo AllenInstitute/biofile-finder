@@ -89,3 +89,6 @@ export enum DatasetBucketUrl {
     PRODUCTION = "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com",
     TEST = "http://test-aics.corp.alleninstitute.org",
 }
+
+export const UNSAVED_DATA_WARNING =
+    "Edits to data source files are not preserved by this app. Download to save a copy with your changes.";

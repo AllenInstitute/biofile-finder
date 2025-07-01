@@ -7,6 +7,7 @@ import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import { Environment } from "../util/constants";
+import { UNSAVED_DATA_WARNING } from "../../../core/constants";
 import { PersistedConfigKeys } from "../../../core/services";
 
 const isDevelopment = process.env.NODE_ENV === "development";
@@ -105,6 +106,23 @@ const createMainWindow = () => {
         });
         // Prevent default behavior, avoid duplicate windows
         return { action: "deny" };
+    });
+
+    /***
+     * Catch 'beforeunload' events since Electron handles these differently from browser
+     * Similar to above, but for main window instead of child window
+     */
+    mainWindow.webContents.on("will-prevent-unload", (ev: Event) => {
+        const options = {
+            type: "question",
+            buttons: ["Leave", "Cancel"],
+            message: "Leave site?",
+            detail: UNSAVED_DATA_WARNING,
+        };
+        if (mainWindow) {
+            const shouldLeave = dialog.showMessageBoxSync(mainWindow, options) === 0;
+            if (shouldLeave) ev.preventDefault(); // Unblock & perform the blocked action (e.g., leave, reload)
+        }
     });
 
     if (isDevelopment) {
