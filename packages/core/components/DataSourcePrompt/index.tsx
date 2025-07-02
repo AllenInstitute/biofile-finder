@@ -178,11 +178,19 @@ export default function DataSourcePrompt(props: Props) {
                 </div>
             )}
             <hr className={styles.divider} />
-            <FilePrompt onSelectFile={setDataSource} selectedFile={dataSource} />
+            <FilePrompt
+                onSelectFile={setDataSource}
+                selectedFile={dataSource}
+                parentId={`file-prompt-${props.hideTitle ? "modal" : "main"}`}
+            />
             {showAdvancedOptions ? (
                 <>
                     <h4 className={styles.advancedOptionsTitle}>(Optional) Add metadata source</h4>
-                    <FilePrompt onSelectFile={setMetadataSource} selectedFile={metadataSource} />
+                    <FilePrompt
+                        onSelectFile={setMetadataSource}
+                        selectedFile={metadataSource}
+                        parentId={`file-prompt-metadata-${props.hideTitle ? "modal" : "main"}`}
+                    />
                 </>
             ) : (
                 <LinkLikeButton

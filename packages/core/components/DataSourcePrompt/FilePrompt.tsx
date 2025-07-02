@@ -13,6 +13,7 @@ interface Props {
     className?: string;
     onSelectFile: (file?: Source) => void;
     selectedFile?: Source;
+    parentId: string; // Distinguish between multiple file prompt elements
 }
 
 /**
@@ -72,7 +73,7 @@ export default function FilePrompt(props: Props) {
             <form>
                 <label
                     aria-label="Browse for a file on your machine"
-                    htmlFor="data-source-selector"
+                    htmlFor={`data-source-selector-${props.parentId}`}
                 >
                     <SecondaryButton
                         iconName="DocumentSearch"
@@ -84,8 +85,8 @@ export default function FilePrompt(props: Props) {
                     hidden
                     accept=".csv,.json,.parquet"
                     type="file"
-                    id="data-source-selector"
-                    name="data-source-selector"
+                    id={`data-source-selector-${props.parentId}`}
+                    name={`data-source-selector-${props.parentId}`}
                     onChange={onChooseFile}
                 />
             </form>
