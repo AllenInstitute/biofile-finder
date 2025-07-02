@@ -11,6 +11,12 @@
     display: none;
 }
 
+.file-prompt-wrapper {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
 .load-button-container {
     display: flex;
     margin-top: 20px;
@@ -44,26 +50,35 @@
     color: var(--highlight-hover-background-color);
 }
 
-.subtitle-button-container {
-    display: flex;
-    justify-content: center;
-}
 
 .left-align {
     justify-content: left;
 }
 
+.table-example {
+    width: 100%;
+}
+
+.table-example > thead {
+    background-color: var(--primary-background-color);
+}
+
+.table-example tr > :is(th) {
+    font-weight: 600 !important;
+    text-align: left;
+}
+
 .table-example, .table-example tr > :is(th, td) {
-    border: 2px solid var(--secondary-background-color);
+    border: 1px solid var(--border-color);
     border-collapse: collapse;
 }
 
 .table-example tr > :is(th, td) {
-    padding: 5px;
+    padding: 8px;
 }
 
 .light-border.table-example, .light-border.table-example tr > :is(th, td) {
-    border: 2px solid var(--primary-background-color);
+    border: 1px solid var(--border-color);
 }
 
 .left-text-align {
@@ -77,7 +92,6 @@
 .datasource-subhead {
     margin-bottom: 13px !important;
     text-align: left;
-    font-weight: 600;
 }
 
 .text {
@@ -96,9 +110,28 @@
     margin-top: 0;
 }
 
+.details-list {
+    margin: 0;
+    padding-left: 16px;
+    line-height: 1.5;
+}
+
+h4.subheader {
+    line-height: 26px;
+    margin: 16px 0 12px;
+}
+
 h4.details {
     font-size: 14px;
     margin-top: 5px;
+}
+
+.hidden {
+    display: none;
+}
+
+.load-button {
+    width: fit-content;
 }
 
 .text, .title, .warning {
