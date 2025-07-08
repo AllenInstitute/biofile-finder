@@ -64,7 +64,7 @@
     "resize-observer": "1.0.x",
     "rimraf": "3.0.x",
     "sinon": "12.x",
-    "typescript": "4.x"
+    "typescript": "4.7.x"
   },
   "dependencies": {
     "@aics/frontend-insights": "0.2.x",
