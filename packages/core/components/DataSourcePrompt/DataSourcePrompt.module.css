@@ -6,28 +6,18 @@
     align-items: center;
 }
 
-.advanced-options-wrapper {
-    /* max-width: var(--max-width);
-    min-width: var(--min-width); */
-    width: 100%;
-}
-
-.advanced-options-wrapper-empty {
+.advanced-options-empty {
     border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 30px;
 }
 
-.advanced-options-wrapper-full {
+.advanced-options-filled {
     justify-content: center;
     align-content: center;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-}
-
-.advanced-options-title {
-    width: 100%;
 }
 
 .advanced-options-header {
@@ -40,10 +30,6 @@
 
 .divider {
     border-color: var(--border-color) !important;
-}
-
-.file-input {
-    display: none;
 }
 
 .file-prompt-wrapper, .file-prompt-outer-wrapper {
@@ -72,18 +58,23 @@
     width: 100%;
     max-width: none;
 }
+
 .guidance {
     align-self: flex-start;
+    width: 100%;
 }
+
 .icon-button {
     background-color: transparent;
     color: var(--primary-text-color);
     top: -6px;
 }
+
 .icon-button i {
     font-size: 18px;
     height: 18px;
 }
+
 .icon-button:hover {
     background-color: transparent;
     color: var(--highlight-text-color);
@@ -117,7 +108,7 @@
     justify-content: left;
 }
 
-.table-example {
+.table-example, .full-width {
     width: 100%;
 }
 
@@ -141,10 +132,6 @@
 
 .light-border.table-example, .light-border.table-example tr > :is(th, td) {
     border: 1px solid var(--border-color);
-}
-
-.left-text-align {
-    text-align: left !important;
 }
 
 .title {

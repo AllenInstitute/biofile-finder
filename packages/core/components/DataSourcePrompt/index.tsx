@@ -68,16 +68,14 @@ export default function DataSourcePrompt(props: Props) {
 
     const advancedOptions = (
         <div
-            className={classNames(styles.advancedOptionsWrapper, {
-                [styles.advancedOptionsWrapperEmpty]: !metadataSource,
-                [styles.advancedOptionsWrapperFull]: !!metadataSource,
+            className={classNames(styles.fullWidth, {
+                [styles.advancedOptionsEmpty]: !metadataSource,
+                [styles.advancedOptionsFilled]: !!metadataSource,
             })}
         >
             {!metadataSource ? (
                 <div className={styles.advancedOptionsHeader}>
-                    <h4 className={styles.advancedOptionsTitle}>
-                        Add metadata descriptor file (optional)
-                    </h4>
+                    <h4 className={styles.fullWidth}>Add metadata descriptor file (optional)</h4>
                     <IconButton
                         className={styles.iconButton}
                         iconProps={{ iconName: "Cancel" }}
@@ -135,7 +133,7 @@ export default function DataSourcePrompt(props: Props) {
                         className={classNames(styles.loadButton, {
                             [styles.hidden]: !dataSource && !metadataSource,
                         })}
-                        disabled={!dataSource}
+                        disabled={!dataSource && !metadataSource}
                         text="LOAD"
                         onClick={() => dataSource && onSubmit(dataSource, metadataSource)}
                     />
