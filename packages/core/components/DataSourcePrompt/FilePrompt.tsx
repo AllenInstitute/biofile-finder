@@ -54,21 +54,24 @@ export default function FilePrompt(props: Props) {
         noDragEventsBubbling: true,
     });
 
-    const listFormatter = new Intl.ListFormat("en", {
-        style: "long",
-    });
-    const fileRejectionMap = fileRejections.reduce((accum, { file, errors }) => {
-        errors.forEach((error) => {
-            accum[error.code] = [...(accum[error.code as string] || []), file.name];
-        });
-        return accum;
-    }, {} as { [errorCode: string]: string[] });
-    const fileRejectionError = Object.keys(fileRejectionMap).map((errorCode) => (
-        <div className={styles.fileSelectionError} key={errorCode}>
-            {listFormatter.format(fileRejectionMap[errorCode])} could not be selected:{" "}
-            {errorCode === "file-invalid-type" ? "Invalid file type" : "Too many files"}.
-        </div>
-    ));
+    // Convert an array of strings into a list with Oxford comma formatting
+    const listFormatter = new Intl.ListFormat("en", { style: "long" });
+    // Format file rejection error codes into readable messages
+    const fileErrorMessage: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
+        const fileRejectionMap = fileRejections.reduce((accum, { file, errors }) => {
+            // Group together files that have the same error code
+            errors.forEach((error) => {
+                accum[error.code] = [...(accum[error.code as string] || []), file.name];
+            });
+            return accum;
+        }, {} as { [errorCode: string]: string[] });
+        return Object.keys(fileRejectionMap).map((errorCode) => (
+            <div className={styles.fileSelectionError} key={errorCode}>
+                {listFormatter.format(fileRejectionMap[errorCode])} could not be selected:{" "}
+                {errorCode === "too-many-files" ? "Too many files" : "Invalid file type"}.
+            </div>
+        ));
+    }, [fileRejections]);
 
     const onEnterURL = throttle(
         (evt: React.FormEvent) => {
@@ -99,14 +102,14 @@ export default function FilePrompt(props: Props) {
                         onClick={() => props.onSelectFile(undefined)}
                     />
                 </div>
-                {fileRejections.length > 0 && fileRejectionError}
+                {fileRejections.length > 0 && fileErrorMessage}
             </div>
         );
     }
 
     return (
         <div className={classNames(props.className, styles.actionsContainer)}>
-            {fileRejections.length > 0 && fileRejectionError}
+            {fileRejections.length > 0 && fileErrorMessage}
             <form className={styles.urlForm} onSubmit={onEnterURL}>
                 <TextField
                     onChange={(_, newValue) => setDataSourceURL(newValue || "")}
