@@ -51,9 +51,9 @@
     "chai": "4.2.x",
     "css-modules-require-hook": "4.2.x",
     "eslint": "8.57.x",
-    "eslint-config-prettier": "8.10.x",
+    "eslint-config-prettier": "10.1.x",
     "eslint-plugin-react": "7.37.x",
-    "eslint-plugin-react-hooks": "4.6.x",
+    "eslint-plugin-react-hooks": "5.2.x",
     "husky": "3.1.0",
     "jsdom": "19.x",
     "lint-staged": "10.4.x",
@@ -64,7 +64,7 @@
     "resize-observer": "1.0.x",
     "rimraf": "3.0.x",
     "sinon": "12.x",
-    "typescript": "4.8.x"
+    "typescript": "4.9.x"
   },
   "dependencies": {
     "@aics/frontend-insights": "0.2.x",
