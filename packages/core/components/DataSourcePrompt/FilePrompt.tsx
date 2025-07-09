@@ -51,6 +51,7 @@ export default function FilePrompt(props: Props) {
             "text/csv": [".csv"],
         },
         multiple: false,
+        noDragEventsBubbling: true,
     });
 
     const listFormatter = new Intl.ListFormat("en", {
@@ -124,8 +125,8 @@ export default function FilePrompt(props: Props) {
             </form>
             <div className={styles.orDivider}>OR</div>
             <div
-                id={`data-source-selector-${props.parentId}`}
                 {...getRootProps({
+                    name: `data-source-selector-${props.parentId}`,
                     className: classNames(styles.dropzone, {
                         [styles.dropzoneDark]: props.lightBackground,
                         [styles.dropzoneActive]: isDragActive && !props.lightBackground,
@@ -133,7 +134,9 @@ export default function FilePrompt(props: Props) {
                     }),
                 })}
             >
-                <input name={`data-source-selector-input-${props.parentId}`} {...getInputProps()} />
+                <input
+                    {...getInputProps({ name: `data-source-selector-input-${props.parentId}` })}
+                />
                 {isDragActive ? (
                     <p>Drop here</p>
                 ) : (
