@@ -17,12 +17,21 @@
     padding: 5px 0 19px;
     min-height: 105px;
     font-size: var(--s-paragraph-size);
-    max-width: 640px;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px;
 }
 
 .dropzone-active, .dropzone:hover {
     background-color: var(--primary-dark);
+    border: 1px dashed var(--aqua);
+}
+
+.dropzone-active-dark, .dropzone-dark:hover {
+    background-color: var(--secondary-dark);
     border: 1px dashed var(--aqua);
 }
 
@@ -34,6 +43,12 @@
 .dropzone-button {
     width: fit-content;
     display: flex;
+}
+
+.dropzone-button:hover {
+    background-color: transparent !important;
+    color: var(--aqua) !important;
+    border-color: var(--aqua);
 }
 
 .dropzone-icon {
@@ -69,11 +84,16 @@
     color: var(--highlight-text-color);
 }
 
-.selected-file-container {
+.selected-files {
     display: flex;
+    padding-bottom: 10px
 }
 
-.submit-icon {
+.selected-file-container {
+    width: 100%;
+}
+
+.cancel-icon {
     align-items: center;
     border-radius: var(--small-border-radius);
     cursor: pointer;
@@ -81,14 +101,20 @@
     padding: 0 0.5em;
 }
 
-.submit-icon.disabled {
+.cancel-icon.disabled {
     cursor: default;
     opacity: 0.8;
 }
 
-.submit-icon:hover:not(.disabled), .submit-icon:focus:not(.disabled) {
-    background-color: var(--highlight-background-color);
+.cancel-icon:hover:not(.disabled), .cancel-icon:focus:not(.disabled) {
     color: var(--highlight-text-color);
+}
+
+.file-selection-error {
+    color: var(--error-status-text-color);
+    font-size: var(--s-paragraph-size);
+    align-self: flex-start;
+    margin: 0 0 10px;
 }
 
 .url-form {
@@ -106,7 +132,6 @@
 
 .url-form input::placeholder {
     font-style: italic;
-    text-align: center;
 }
 
 .url-form input::after {
@@ -119,4 +144,13 @@
 
 .url-form > div > div > div::after {
     border: 1px solid var(--aqua);
+}
+
+.url-form > .cancel-icon:hover {
+    background-color: transparent;
+    color: var(--highlight-text-color);
+}
+
+.hidden {
+    display: none;
 }

@@ -15,6 +15,7 @@ interface Props {
     onSelectFile: (file?: Source) => void;
     selectedFile?: Source;
     parentId: string; // Distinguish between multiple file prompt elements
+    lightBackground?: boolean;
 }
 
 /**
@@ -42,7 +43,31 @@ export default function FilePrompt(props: Props) {
         },
         [onSelectFile]
     );
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+    const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
+        onDrop,
+        accept: {
+            "application/vnd.apache.parquet": [".parquet"],
+            "application/json": [".json"],
+            "text/csv": [".csv"],
+        },
+        multiple: false,
+    });
+
+    const listFormatter = new Intl.ListFormat("en", {
+        style: "long",
+    });
+    const fileRejectionMap = fileRejections.reduce((accum, { file, errors }) => {
+        errors.forEach((error) => {
+            accum[error.code] = [...(accum[error.code as string] || []), file.name];
+        });
+        return accum;
+    }, {} as { [errorCode: string]: string[] });
+    const fileRejectionError = Object.keys(fileRejectionMap).map((errorCode) => (
+        <div className={styles.fileSelectionError} key={errorCode}>
+            {listFormatter.format(fileRejectionMap[errorCode])} could not be selected:{" "}
+            {errorCode === "file-invalid-type" ? "Invalid file type" : "Too many files"}.
+        </div>
+    ));
 
     const onEnterURL = throttle(
         (evt: React.FormEvent) => {
@@ -61,38 +86,54 @@ export default function FilePrompt(props: Props) {
     if (props.selectedFile) {
         return (
             <div className={styles.selectedFileContainer}>
-                <Tooltip content={props.selectedFile.name}>
-                    <p className={styles.selectedFile}>
-                        {props.selectedFile.name}.{props.selectedFile.type}
-                    </p>
-                </Tooltip>
-                <IconButton
-                    className={styles.selectedFileButton}
-                    iconProps={{ iconName: "Cancel" }}
-                    onClick={() => props.onSelectFile(undefined)}
-                />
+                <div className={styles.selectedFiles}>
+                    <Tooltip content={props.selectedFile.name}>
+                        <p className={styles.selectedFile}>
+                            {props.selectedFile.name}.{props.selectedFile.type}
+                        </p>
+                    </Tooltip>
+                    <IconButton
+                        className={styles.selectedFileButton}
+                        iconProps={{ iconName: "Cancel" }}
+                        onClick={() => props.onSelectFile(undefined)}
+                    />
+                </div>
+                {fileRejections.length > 0 && fileRejectionError}
             </div>
         );
     }
 
     return (
         <div className={classNames(props.className, styles.actionsContainer)}>
+            {fileRejections.length > 0 && fileRejectionError}
             <form className={styles.urlForm} onSubmit={onEnterURL}>
                 <TextField
                     onChange={(_, newValue) => setDataSourceURL(newValue || "")}
                     placeholder="Paste URL (i.e. S3, Azure)..."
                     value={dataSourceURL}
+                    iconProps={{
+                        className: classNames(styles.cancelIcon, {
+                            [styles.hidden]: !dataSourceURL,
+                        }),
+                        iconName: "Cancel",
+                        onClick: () => {
+                            dataSourceURL.length > 0 ? setDataSourceURL("") : undefined;
+                        },
+                    }}
                 />
             </form>
             <div className={styles.orDivider}>OR</div>
             <div
+                id={`data-source-selector-${props.parentId}`}
                 {...getRootProps({
                     className: classNames(styles.dropzone, {
-                        [styles.dropzoneActive]: isDragActive,
+                        [styles.dropzoneDark]: props.lightBackground,
+                        [styles.dropzoneActive]: isDragActive && !props.lightBackground,
+                        [styles.dropzoneActiveDark]: isDragActive && props.lightBackground,
                     }),
                 })}
             >
-                <input {...getInputProps()} />
+                <input name={`data-source-selector-input-${props.parentId}`} {...getInputProps()} />
                 {isDragActive ? (
                     <p>Drop here</p>
                 ) : (
@@ -105,7 +146,7 @@ export default function FilePrompt(props: Props) {
                             className={styles.dropzoneButton}
                             iconName=""
                             text="Choose file"
-                            title="Browse for a file on your machine"
+                            title=""
                         />
                     </>
                 )}

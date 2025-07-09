@@ -1,6 +1,41 @@
+.root {
+    --max-width: 640px;
+    --min-width: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.advanced-options-wrapper {
+    /* max-width: var(--max-width);
+    min-width: var(--min-width); */
+    width: 100%;
+}
+
+.advanced-options-wrapper-empty {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 30px;
+}
+
+.advanced-options-wrapper-full {
+    justify-content: center;
+    align-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
 .advanced-options-title {
-    margin: 30px 0 15px 0;
-    text-align: center;
+    width: 100%;
+}
+
+.advanced-options-header {
+    display: flex;
+}
+
+.advanced-options-button {
+    align-self: flex-start;
 }
 
 .divider {
@@ -11,25 +46,53 @@
     display: none;
 }
 
-.file-prompt-wrapper {
+.file-prompt-wrapper, .file-prompt-outer-wrapper {
     align-items: center;
     display: flex;
     flex-direction: column;
 }
 
-.load-button-container {
+.file-prompt-outer-wrapper {
+    margin-bottom: 32px;
+    min-width: var(--min-width);
+    max-width: var(--max-width);
+}
+
+.file-prompt {
+    align-items: center;
     display: flex;
+    flex-direction: column;
+    justify-content: center;
     margin-top: 20px;
     width: 100%;
 }
 
-.load-button-container > * {
-    margin-left: 10px;
-    width: min-content;
+.file-prompt-wide {
+    margin-top: 10px;
+    width: 100%;
+    max-width: none;
+}
+.guidance {
+    align-self: flex-start;
+}
+.icon-button {
+    background-color: transparent;
+    color: var(--primary-text-color);
+    top: -6px;
+}
+.icon-button i {
+    font-size: 18px;
+    height: 18px;
+}
+.icon-button:hover {
+    background-color: transparent;
+    color: var(--highlight-text-color);
 }
 
-.load-button-container > *:first-child {
-    margin-left: auto;
+.load-button-container {
+    display: flex;
+    margin-top: 18px;
+    width: 100%;
 }
 
 .link-like-button {
@@ -49,7 +112,6 @@
     background-color: unset;
     color: var(--highlight-hover-background-color);
 }
-
 
 .left-align {
     justify-content: left;
@@ -92,6 +154,8 @@
 .datasource-subhead {
     margin-bottom: 13px !important;
     text-align: left;
+    max-width: var(--max-width);
+    min-width: var(--min-width);
 }
 
 .text {

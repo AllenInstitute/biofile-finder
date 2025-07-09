@@ -1,4 +1,4 @@
-import { DefaultButton, Icon } from "@fluentui/react";
+import { DefaultButton, Icon, IconButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -66,8 +66,44 @@ export default function DataSourcePrompt(props: Props) {
         onDismiss();
     };
 
+    const advancedOptions = (
+        <div
+            className={classNames(styles.advancedOptionsWrapper, {
+                [styles.advancedOptionsWrapperEmpty]: !metadataSource,
+                [styles.advancedOptionsWrapperFull]: !!metadataSource,
+            })}
+        >
+            {!metadataSource ? (
+                <div className={styles.advancedOptionsHeader}>
+                    <h4 className={styles.advancedOptionsTitle}>
+                        Add metadata descriptor file (optional)
+                    </h4>
+                    <IconButton
+                        className={styles.iconButton}
+                        iconProps={{ iconName: "Cancel" }}
+                        onClick={() => {
+                            setMetadataSource(undefined);
+                            setShowAdvancedOptions(false);
+                        }}
+                    />
+                </div>
+            ) : (
+                <h4 className={styles.advancedOptionsHeader}> Metadata descriptor file </h4>
+            )}
+            <div className={styles.filePromptWrapper}>
+                <FilePrompt
+                    className={classNames(styles.filePrompt, styles.filePromptWide)}
+                    onSelectFile={setMetadataSource}
+                    selectedFile={metadataSource}
+                    parentId={`file-prompt-metadata-${props.hideTitle ? "modal" : "main"}`}
+                    lightBackground={props.hideTitle}
+                />
+            </div>
+        </div>
+    );
+
     return (
-        <div className={props.className}>
+        <div className={classNames(props.className, styles.root)}>
             {!props.hideTitle && <h2 className={styles.title}>Choose a data source</h2>}
             <p
                 className={classNames(styles.text, {
@@ -77,112 +113,124 @@ export default function DataSourcePrompt(props: Props) {
                 Load a CSV, Parquet, or JSON file containing the metadata key-value pairs
                 (annotations) associated with your files.
             </p>
-            <div className={styles.filePromptWrapper}>
+            <div className={styles.filePromptOuterWrapper}>
                 <FilePrompt
+                    className={styles.filePrompt}
                     onSelectFile={setDataSource}
                     selectedFile={dataSource}
                     parentId={`file-prompt-${props.hideTitle ? "modal" : "main"}`}
+                    lightBackground={props.hideTitle}
                 />
-                <PrimaryButton
-                    className={classNames(styles.loadButton, { [styles.hidden]: !dataSource })}
-                    disabled={!dataSource}
-                    text="LOAD"
-                    onClick={() => dataSource && onSubmit(dataSource, metadataSource)}
-                />
+                {showAdvancedOptions ? (
+                    advancedOptions
+                ) : (
+                    <LinkLikeButton
+                        className={styles.advancedOptionsButton}
+                        onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                        text="Add metadata descriptor file (optional)"
+                    />
+                )}
+                <div className={styles.loadButtonContainer}>
+                    <PrimaryButton
+                        className={classNames(styles.loadButton, {
+                            [styles.hidden]: !dataSource && !metadataSource,
+                        })}
+                        disabled={!dataSource}
+                        text="LOAD"
+                        onClick={() => dataSource && onSubmit(dataSource, metadataSource)}
+                    />
+                </div>
             </div>
-            {showAdvancedOptions ? (
-                <>
-                    <h4 className={styles.advancedOptionsTitle}>
-                        Add metadata descriptors (optional)
-                    </h4>
-                    <div className={styles.filePromptWrapper}>
-                        <FilePrompt
-                            onSelectFile={setMetadataSource}
-                            selectedFile={metadataSource}
-                            parentId={`file-prompt-metadata-${props.hideTitle ? "modal" : "main"}`}
-                        />
-                    </div>
-                </>
-            ) : (
-                <LinkLikeButton
-                    onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                    text="Add metadata descriptors (optional)"
-                />
-            )}
-            <hr className={styles.divider} />
-            <h4 className={styles.subheader}>Getting started guidance and example CSV</h4>
-            <table
-                className={classNames(styles.tableExample, {
-                    [styles.lightBorder]: !props?.hideTitle,
-                })}
-            >
-                <thead>
-                    <tr>
-                        <th>
-                            File Path <i>(required metadata key)</i>
-                        </th>
-                        <th>
-                            Gene <i>(example metadata key)</i>
-                        </th>
-                        <th>
-                            Color <i>(example metadata key)</i>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>/folder/folder/my_storage/filename.zarr</td>
-                        <td>CDH2</td>
-                        <td>Blue</td>
-                    </tr>
-                    <tr>
-                        <td>/folder/my_storage/filename.txt</td>
-                        <td>VIM</td>
-                        <td>Green</td>
-                    </tr>
-                </tbody>
-            </table>
-            <h4 className={styles.subheader}>Minimum requirements</h4>
-            <ul className={styles.detailsList}>
-                <li>
-                    The first row should contain metadata keys (i.e., column headers), with
-                    &quot;File Path&quot; being the only required key.
-                </li>
-                <li>
-                    Each subsequent row should contain the values of corresponding keys for each
-                    file.
-                </li>
-            </ul>
+            <div className={styles.guidance}>
+                <hr className={styles.divider} />
+                <h4 className={styles.subheader}>Getting started guidance and example CSV</h4>
+                <table
+                    className={classNames(styles.tableExample, {
+                        [styles.lightBorder]: !props?.hideTitle,
+                    })}
+                >
+                    <thead>
+                        <tr>
+                            <th>
+                                File Path <i>(required metadata key)</i>
+                            </th>
+                            <th>
+                                Gene <i>(example metadata key)</i>
+                            </th>
+                            <th>
+                                Color <i>(example metadata key)</i>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/folder/folder/my_storage/filename.zarr</td>
+                            <td>CDH2</td>
+                            <td>Blue</td>
+                        </tr>
+                        <tr>
+                            <td>/folder/my_storage/filename.txt</td>
+                            <td>VIM</td>
+                            <td>Green</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h4 className={styles.subheader}>Minimum requirements</h4>
+                <ul className={styles.detailsList}>
+                    <li>
+                        The first row should contain metadata keys (i.e., column headers), with
+                        &quot;File Path&quot; being the only required key.
+                    </li>
+                    <li>
+                        Each subsequent row should contain the values of corresponding keys for each
+                        file.
+                    </li>
+                </ul>
 
-            {isDataSourceDetailExpanded ? (
-                <>
-                    <h4 className={styles.subheader}>Advanced:</h4>
-                    <ul className={styles.detailsList}>
-                        <li>
-                            Data source files can be generated by this application by selecting some
-                            files, right-clicking, and selecting one of the &quot;Save metadata
-                            as&quot; options.
-                        </li>
-                        <li>
-                            The following are optional pre-defined columns that are handled as
-                            special cases:
-                        </li>
+                {isDataSourceDetailExpanded ? (
+                    <>
+                        <h4 className={styles.subheader}>Advanced:</h4>
                         <ul className={styles.detailsList}>
-                            {ADDITIONAL_COLUMN_DETAILS.map((text) => (
-                                <li key={text} className={styles.details}>
-                                    {text}
-                                </li>
-                            ))}
+                            <li>
+                                Data source files can be generated by this application by selecting
+                                some files, right-clicking, and selecting one of the &quot;Save
+                                metadata as&quot; options.
+                            </li>
+                            <li>
+                                The following are optional pre-defined columns that are handled as
+                                special cases:
+                            </li>
+                            <ul className={styles.detailsList}>
+                                {ADDITIONAL_COLUMN_DETAILS.map((text) => (
+                                    <li key={text} className={styles.details}>
+                                        {text}
+                                    </li>
+                                ))}
+                            </ul>
+                            <li className={styles.details}>
+                                Optionally, you can supply an additional metadata descriptor file to
+                                add more information about the data source. This file should have a
+                                header row column named &quot;Column Name&quot; and another column
+                                named &quot;Description&quot;. Each subsequent row should contain
+                                the details for any columns present in the actual data source you
+                                would like to describe.
+                            </li>
                         </ul>
-                        <li className={styles.details}>
-                            Optionally, you can supply an additional metadata descriptor file to add
-                            more information about the data source. This file should have a header
-                            row column named &quot;Column Name&quot; and another column named
-                            &quot;Description&quot;. Each subsequent row should contain the details
-                            for any columns present in the actual data source you would like to
-                            describe.
-                        </li>
-                    </ul>
+                        <div
+                            className={classNames(styles.subtitleButtonContainer, {
+                                [styles.leftAlign]: props.hideTitle,
+                            })}
+                        >
+                            <DefaultButton
+                                className={styles.linkLikeButton}
+                                onClick={() => setIsDataSourceDetailExpanded(false)}
+                            >
+                                Show less&nbsp;&nbsp;
+                                <Icon iconName="ChevronUp" />
+                            </DefaultButton>
+                        </div>
+                    </>
+                ) : (
                     <div
                         className={classNames(styles.subtitleButtonContainer, {
                             [styles.leftAlign]: props.hideTitle,
@@ -190,28 +238,14 @@ export default function DataSourcePrompt(props: Props) {
                     >
                         <DefaultButton
                             className={styles.linkLikeButton}
-                            onClick={() => setIsDataSourceDetailExpanded(false)}
+                            onClick={() => setIsDataSourceDetailExpanded(true)}
                         >
-                            Show less&nbsp;&nbsp;
-                            <Icon iconName="ChevronUp" />
+                            Show more&nbsp;&nbsp;
+                            <Icon iconName="ChevronDown" />
                         </DefaultButton>
                     </div>
-                </>
-            ) : (
-                <div
-                    className={classNames(styles.subtitleButtonContainer, {
-                        [styles.leftAlign]: props.hideTitle,
-                    })}
-                >
-                    <DefaultButton
-                        className={styles.linkLikeButton}
-                        onClick={() => setIsDataSourceDetailExpanded(true)}
-                    >
-                        Show more&nbsp;&nbsp;
-                        <Icon iconName="ChevronDown" />
-                    </DefaultButton>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }
