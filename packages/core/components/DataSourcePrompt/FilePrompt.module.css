@@ -120,6 +120,7 @@
 .url-form {
     background-color: var(--secondary-background-color);
     width: 100%;
+    border-radius: var(--small-border-radius);
 }
 
 .url-form :is(input, input::placeholder) {
@@ -140,10 +141,16 @@
 
 .url-form > div > div > div {
     background-color: unset;
+    border-radius: var(--small-border-radius)
+}
+
+.url-form > div > div > div:hover {
+    border: 1px solid var(--accent-dark);
 }
 
 .url-form > div > div > div::after {
     border: 1px solid var(--aqua);
+    border-radius: var(--small-border-radius)
 }
 
 .url-form > .cancel-icon:hover {
