@@ -1,5 +1,10 @@
 module.exports = {
-    extends: ["plugin:@typescript-eslint/recommended", "plugin:react/recommended", "prettier"],
+    extends: [
+        "plugin:@typescript-eslint/recommended",
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended-legacy",
+        "prettier",
+    ],
     env: {
         mocha: true,
     },
