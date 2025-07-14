@@ -32,12 +32,8 @@ export default function FilePrompt(props: Props) {
                 // Grab name minus extension
                 const nameAndExtension = selectedFile.name.split(".");
                 const name = nameAndExtension.slice(0, -1).join("");
+                // Extension validation is handled by the component itself
                 const extension = nameAndExtension.pop();
-                if (!(extension === "csv" || extension === "json" || extension === "parquet")) {
-                    alert("Invalid file type. Please select a .csv, .json, or .parquet file.");
-                    return;
-                }
-
                 onSelectFile({ name, type: extension, uri: selectedFile });
             }
         },
@@ -153,8 +149,8 @@ export default function FilePrompt(props: Props) {
                 ) : (
                     <>
                         <p>
-                            <Icon className={styles.dropzoneIcon} iconName="CloudUpload" /> Drag and
-                            drop or click to browse
+                            <Icon className={styles.dropzoneIcon} iconName="CloudUpload" />
+                            Drag and drop or click to browse
                         </p>
                         <SecondaryButton
                             className={styles.dropzoneButton}
