@@ -43,6 +43,7 @@ export default function FilePrompt(props: Props) {
         },
         [onSelectFile]
     );
+
     const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
         onDrop,
         accept: {
@@ -54,8 +55,6 @@ export default function FilePrompt(props: Props) {
         noDragEventsBubbling: true,
     });
 
-    // Convert an array of strings into a list with Oxford comma formatting
-    const listFormatter = new Intl.ListFormat("en", { style: "long" });
     // Format file rejection error codes into readable messages
     const fileErrorMessage: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
         const fileRejectionMap = fileRejections.reduce((accum, { file, errors }) => {
@@ -65,6 +64,10 @@ export default function FilePrompt(props: Props) {
             });
             return accum;
         }, {} as { [errorCode: string]: string[] });
+
+        // Convert an array of strings into a list with Oxford comma formatting
+        const listFormatter = new Intl.ListFormat("en", { style: "long" });
+
         return Object.keys(fileRejectionMap).map((errorCode) => (
             <div className={styles.fileSelectionError} key={errorCode}>
                 {listFormatter.format(fileRejectionMap[errorCode])} could not be selected:{" "}
@@ -110,7 +113,11 @@ export default function FilePrompt(props: Props) {
     return (
         <div className={classNames(props.className, styles.actionsContainer)}>
             {fileRejections.length > 0 && fileErrorMessage}
-            <form className={styles.urlForm} onSubmit={onEnterURL}>
+            <form
+                className={styles.urlForm}
+                data-testid={`urlform-${props.parentId}`}
+                onSubmit={onEnterURL}
+            >
                 <TextField
                     onChange={(_, newValue) => setDataSourceURL(newValue || "")}
                     placeholder="Paste URL (i.e. S3, Azure)..."
@@ -129,6 +136,7 @@ export default function FilePrompt(props: Props) {
             <div className={styles.orDivider}>OR</div>
             <div
                 {...getRootProps({
+                    "data-testid": "dropzone",
                     name: `data-source-selector-${props.parentId}`,
                     className: classNames(styles.dropzone, {
                         [styles.dropzoneDark]: props.lightBackground,
