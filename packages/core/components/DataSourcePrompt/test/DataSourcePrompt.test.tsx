@@ -62,13 +62,13 @@ describe("<DataSourcePrompt />", () => {
 
         // Two separate prompts render
         expect(getAllByText(/click to browse/).length).to.equal(2);
-        expect(getAllByRole("textbox").length).to.equal(2);
+        expect(getByTestId("urlform-file-prompt-main")).to.exist;
         expect(getByTestId("urlform-file-prompt-metadata-main")).to.exist;
 
         const urlForm = getAllByRole("textbox").at(1);
         // Enter values in the second form
         if (urlForm) {
-            // Check is necessary in order to fire event
+            // Existence check is necessary in order to fire event
             fireEvent.change(urlForm, {
                 target: {
                     value: "testFile.csv",

@@ -115,9 +115,6 @@ export default function FilePrompt(props: Props) {
                 onSubmit={onEnterURL}
             >
                 <TextField
-                    onChange={(_, newValue) => setDataSourceURL(newValue || "")}
-                    placeholder="Paste URL (i.e. S3, Azure)..."
-                    value={dataSourceURL}
                     iconProps={{
                         className: classNames(styles.cancelIcon, {
                             [styles.hidden]: !dataSourceURL,
@@ -127,6 +124,9 @@ export default function FilePrompt(props: Props) {
                             dataSourceURL.length > 0 ? setDataSourceURL("") : undefined;
                         },
                     }}
+                    onChange={(_, newValue) => setDataSourceURL(newValue || "")}
+                    placeholder="Paste URL (i.e. S3, Azure)..."
+                    value={dataSourceURL}
                 />
             </form>
             <div className={styles.orDivider}>OR</div>

@@ -9,7 +9,7 @@ import { initialState } from "../../../state";
 
 import FilePrompt from "..";
 
-// NodeJS < v20 does not provide support for the WebAPI File class
+// NodeJS < v20 does not provide support for the built-in File class
 interface MockFile {
     name: string;
     type: string;
@@ -43,7 +43,11 @@ describe("<FilePrompt />", () => {
             type: "image/png",
         };
         const data = mockFileData([file]);
+
+        // Act
         fireEvent.drop(getByTestId("dropzone"), data);
+
+        // Assert
         const errorMessage = await findByText(/Invalid file type/);
         expect(errorMessage).to.exist;
         expect(errorMessage.textContent).to.contain("test.png");
@@ -65,7 +69,11 @@ describe("<FilePrompt />", () => {
                 };
             })
         );
+
+        // Act
         fireEvent.drop(getByTestId("dropzone"), data);
+
+        // Assert
         const errorMessage = await findByText(/Too many files/);
         expect(errorMessage).to.exist;
         range(3).forEach((index) => {

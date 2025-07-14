@@ -13,7 +13,7 @@ import styles from "./DataSourcePrompt.module.css";
 
 interface Props {
     className?: string;
-    hideTitle?: boolean;
+    isModal?: boolean;
 }
 
 const ADDITIONAL_COLUMN_DETAILS = [
@@ -68,10 +68,10 @@ export default function DataSourcePrompt(props: Props) {
 
     const advancedOptions = (
         <div
-            className={classNames(styles.fullWidth, {
-                [styles.advancedOptionsEmpty]: !metadataSource,
-                [styles.advancedOptionsFilled]: !!metadataSource,
-            })}
+            className={classNames(
+                styles.fullWidth,
+                metadataSource ? styles.advancedOptionsEmpty : styles.advancedOptionsFilled
+            )}
         >
             {!metadataSource ? (
                 <div className={styles.advancedOptionsHeader}>
@@ -93,8 +93,8 @@ export default function DataSourcePrompt(props: Props) {
                     className={classNames(styles.filePrompt, styles.filePromptWide)}
                     onSelectFile={setMetadataSource}
                     selectedFile={metadataSource}
-                    parentId={`file-prompt-metadata-${props.hideTitle ? "modal" : "main"}`}
-                    lightBackground={props.hideTitle}
+                    parentId={`file-prompt-metadata-${props.isModal ? "modal" : "main"}`}
+                    lightBackground={props.isModal}
                 />
             </div>
         </div>
@@ -102,10 +102,10 @@ export default function DataSourcePrompt(props: Props) {
 
     return (
         <div className={classNames(props.className, styles.root)}>
-            {!props.hideTitle && <h2 className={styles.title}>Choose a data source</h2>}
+            {!props.isModal && <h2 className={styles.title}>Choose a data source</h2>}
             <p
                 className={classNames(styles.text, {
-                    [styles.datasourceSubhead]: !props?.hideTitle,
+                    [styles.datasourceSubhead]: !props?.isModal,
                 })}
             >
                 Load a CSV, Parquet, or JSON file containing the metadata key-value pairs
@@ -116,8 +116,8 @@ export default function DataSourcePrompt(props: Props) {
                     className={styles.filePrompt}
                     onSelectFile={setDataSource}
                     selectedFile={dataSource}
-                    parentId={`file-prompt-${props.hideTitle ? "modal" : "main"}`}
-                    lightBackground={props.hideTitle}
+                    parentId={`file-prompt-${props.isModal ? "modal" : "main"}`}
+                    lightBackground={props.isModal}
                 />
                 {showAdvancedOptions ? (
                     advancedOptions
@@ -144,7 +144,7 @@ export default function DataSourcePrompt(props: Props) {
                 <h4 className={styles.subheader}>Getting started guidance and example CSV</h4>
                 <table
                     className={classNames(styles.tableExample, {
-                        [styles.lightBorder]: !props?.hideTitle,
+                        [styles.lightBorder]: !props?.isModal,
                     })}
                 >
                     <thead>
@@ -216,7 +216,7 @@ export default function DataSourcePrompt(props: Props) {
                         </ul>
                         <div
                             className={classNames(styles.subtitleButtonContainer, {
-                                [styles.leftAlign]: props.hideTitle,
+                                [styles.leftAlign]: props.isModal,
                             })}
                         >
                             <DefaultButton
@@ -231,7 +231,7 @@ export default function DataSourcePrompt(props: Props) {
                 ) : (
                     <div
                         className={classNames(styles.subtitleButtonContainer, {
-                            [styles.leftAlign]: props.hideTitle,
+                            [styles.leftAlign]: props.isModal,
                         })}
                     >
                         <DefaultButton
