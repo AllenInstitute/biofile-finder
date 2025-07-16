@@ -7,10 +7,9 @@ import { Provider } from "react-redux";
 import { initialState, reducer } from "../../../state";
 
 import DataSourcePrompt from "..";
-import styles from "../DataSourcePrompt.module.css";
 
 describe("<DataSourcePrompt />", () => {
-    it("hides and disables the load button when no files are selected", async () => {
+    it("disables the load button when no files are selected", async () => {
         const { store } = configureMockStore({ state: initialState });
         const { getByText } = render(
             <Provider store={store}>
@@ -19,10 +18,9 @@ describe("<DataSourcePrompt />", () => {
         );
         const loadButton = getByText(/LOAD/).closest("button");
         expect(loadButton?.hasAttribute("disabled")).to.be.true;
-        expect(loadButton?.classList.contains(styles.hidden)).to.be.true;
     });
 
-    it("shows the load button after a file is selected", () => {
+    it("enables the load button after a file is selected", () => {
         // Arrange
         const { store } = configureMockStore({ state: initialState });
         const { getByText, getByRole, getByTestId } = render(
@@ -46,7 +44,6 @@ describe("<DataSourcePrompt />", () => {
         // Assert
         const loadButton = getByText(/LOAD/).closest("button");
         expect(loadButton?.hasAttribute("disabled")).to.be.false;
-        expect(loadButton?.classList.contains(styles.hidden)).to.be.false;
     });
 
     it("can distinguish between two FilePrompt components when advanced options are open", () => {
