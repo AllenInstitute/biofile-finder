@@ -12,10 +12,11 @@ import styles from "./FilePrompt.module.css";
 
 interface Props {
     className?: string;
-    onSelectFile: (file?: Source) => void;
-    selectedFile?: Source;
-    parentId: string; // Distinguish between multiple file prompt elements
+    fileLabel?: string;
     lightBackground?: boolean;
+    onSelectFile: (file?: Source) => void;
+    parentId: string; // Distinguish between multiple file prompt elements
+    selectedFile?: Source;
 }
 
 /**
@@ -92,6 +93,7 @@ export default function FilePrompt(props: Props) {
                 <div className={styles.selectedFiles}>
                     <Tooltip content={props.selectedFile.name}>
                         <p className={styles.selectedFile}>
+                            {props?.fileLabel}
                             {props.selectedFile.name}.{props.selectedFile.type}
                         </p>
                     </Tooltip>

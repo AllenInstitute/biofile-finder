@@ -65,13 +65,11 @@
 }
 
 .selected-file {
-    align-items: center;
-    display: flex;
     margin: 0;
     height: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: min-content;
+    max-width: var(--max-width);
     white-space: nowrap;
     font-weight: 600;
 }
@@ -87,6 +85,7 @@
 }
 
 .selected-files {
+    align-items: center;
     display: flex;
     padding-bottom: 10px
 }

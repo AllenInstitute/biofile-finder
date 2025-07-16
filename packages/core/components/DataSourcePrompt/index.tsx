@@ -73,7 +73,7 @@ export default function DataSourcePrompt(props: Props) {
                 metadataSource ? styles.advancedOptionsFilled : styles.advancedOptionsEmpty
             )}
         >
-            {!metadataSource ? (
+            {!metadataSource && (
                 <div className={styles.advancedOptionsHeader}>
                     <h4 className={styles.fullWidth}>Add metadata descriptor file (optional)</h4>
                     <IconButton
@@ -85,8 +85,6 @@ export default function DataSourcePrompt(props: Props) {
                         }}
                     />
                 </div>
-            ) : (
-                <h4 className={styles.advancedOptionsHeader}> Metadata descriptor file </h4>
             )}
             <div className={styles.filePromptWrapper}>
                 <FilePrompt
@@ -94,6 +92,7 @@ export default function DataSourcePrompt(props: Props) {
                     onSelectFile={setMetadataSource}
                     selectedFile={metadataSource}
                     parentId={`file-prompt-metadata-${props.isModal ? "modal" : "main"}`}
+                    fileLabel={"Metadata descriptor file: "}
                     lightBackground={props.isModal}
                 />
             </div>
