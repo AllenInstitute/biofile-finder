@@ -45,7 +45,7 @@
     display: flex;
 }
 
-.dropzone-button:hover {
+.dropzone-button:hover, .dropzone:hover > .dropzone-button {
     background-color: var(--aqua-secondary-hover) !important;
     color: var(--bright-aqua) !important;
     border-color: var(--bright-aqua);
