@@ -4,7 +4,7 @@ import { throttle } from "lodash";
 import * as React from "react";
 import { useDropzone } from "react-dropzone";
 
-import { SecondaryButton } from "../Buttons";
+import { SecondaryButton, TertiaryButton } from "../Buttons";
 import Tooltip from "../Tooltip";
 import { Source, getNameAndTypeFromSourceUrl } from "../../entity/SearchParams";
 
@@ -74,8 +74,8 @@ export default function FilePrompt(props: Props) {
     }, [fileRejections]);
 
     const onEnterURL = throttle(
-        (evt: React.FormEvent) => {
-            evt.preventDefault();
+        (evt?: React.FormEvent) => {
+            evt?.preventDefault();
             if (dataSourceURL) {
                 props.onSelectFile({
                     ...getNameAndTypeFromSourceUrl(dataSourceURL),
@@ -128,6 +128,13 @@ export default function FilePrompt(props: Props) {
                     onChange={(_, newValue) => setDataSourceURL(newValue || "")}
                     placeholder="Paste URL (i.e. S3, Azure)..."
                     value={dataSourceURL}
+                />
+                <TertiaryButton
+                    className={styles.enterButton}
+                    disabled={!dataSourceURL}
+                    iconName="ReturnKey"
+                    onClick={() => onEnterURL()}
+                    title="Select URL"
                 />
             </form>
             <div className={styles.orDivider}>OR</div>

@@ -129,9 +129,7 @@ export default function DataSourcePrompt(props: Props) {
                 )}
                 <div className={styles.loadButtonContainer}>
                     <PrimaryButton
-                        className={classNames(styles.loadButton, {
-                            [styles.hidden]: !dataSource && !metadataSource,
-                        })}
+                        className={classNames(styles.loadButton)}
                         disabled={!dataSource}
                         text="LOAD"
                         onClick={() => dataSource && onSubmit(dataSource, metadataSource)}
