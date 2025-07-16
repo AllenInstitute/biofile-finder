@@ -70,7 +70,7 @@ export default function DataSourcePrompt(props: Props) {
         <div
             className={classNames(
                 styles.fullWidth,
-                metadataSource ? styles.advancedOptionsEmpty : styles.advancedOptionsFilled
+                metadataSource ? styles.advancedOptionsFilled : styles.advancedOptionsEmpty
             )}
         >
             {!metadataSource ? (
@@ -143,9 +143,10 @@ export default function DataSourcePrompt(props: Props) {
                 <hr className={styles.divider} />
                 <h4 className={styles.subheader}>Getting started guidance and example CSV</h4>
                 <table
-                    className={classNames(styles.tableExample, {
-                        [styles.lightBorder]: !props?.isModal,
-                    })}
+                    className={classNames(
+                        styles.tableExample,
+                        props?.isModal ? styles.darkHeader : styles.lightBorder
+                    )}
                 >
                     <thead>
                         <tr>

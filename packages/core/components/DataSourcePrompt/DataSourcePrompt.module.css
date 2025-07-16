@@ -116,6 +116,10 @@
     background-color: var(--primary-background-color);
 }
 
+.table-example.dark-header > thead {
+    background-color: var(--accent-dark);
+}
+
 .table-example tr > :is(th) {
     font-weight: 600 !important;
     text-align: left;

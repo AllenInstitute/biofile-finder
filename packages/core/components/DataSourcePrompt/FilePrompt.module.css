@@ -46,14 +46,15 @@
 }
 
 .dropzone-button:hover {
-    background-color: transparent !important;
-    color: var(--aqua) !important;
-    border-color: var(--aqua);
+    background-color: var(--aqua-secondary-hover) !important;
+    color: var(--bright-aqua) !important;
+    border-color: var(--bright-aqua);
 }
 
 .dropzone-icon {
     top: 2px;
     position: relative;
+    margin-right: 5px;
 }
 
 .or-divider {
@@ -72,6 +73,7 @@
     text-overflow: ellipsis;
     width: min-content;
     white-space: nowrap;
+    font-weight: 600;
 }
 
 .selected-file-button {

@@ -108,7 +108,6 @@ export default function FilePrompt(props: Props) {
 
     return (
         <div className={classNames(props.className, styles.actionsContainer)}>
-            {fileRejections.length > 0 && fileErrorMessage}
             <form
                 className={styles.urlForm}
                 data-testid={`urlform-${props.parentId}`}
@@ -161,6 +160,7 @@ export default function FilePrompt(props: Props) {
                     </>
                 )}
             </div>
+            {fileRejections.length > 0 && fileErrorMessage}
         </div>
     );
 }
