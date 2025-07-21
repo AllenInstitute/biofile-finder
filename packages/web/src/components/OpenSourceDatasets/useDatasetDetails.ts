@@ -22,6 +22,7 @@ export default function useDatasetDetails(
     const publicDatasetListService = useSelector(
         interaction.selectors.getPublicDatasetManifestService
     );
+    console.log("sadiofjasdfojiasdfiosadfjo")
 
     const fileSet = React.useMemo(() => {
         if (!publicDatasetListService) return;
@@ -32,6 +33,7 @@ export default function useDatasetDetails(
         });
     }, [publicDatasetListService, filters, fileSort]);
     React.useEffect(() => {
+        console.log("in this...?")
         setIsLoading(true);
         if (!!publicDatasetListService && !!fileSet) {
             publicDatasetListService

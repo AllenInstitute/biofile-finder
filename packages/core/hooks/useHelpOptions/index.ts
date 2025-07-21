@@ -141,12 +141,12 @@ export default function useHelpOptions(
             href: "https://github.com/AllenInstitute/biofile-finder/issues",
             target: "_blank",
         },
-        {
-            key: "allen-cell-discussion-forum",
-            text: "Allen Cell Discussion Forum",
-            title: "Opens allen cell discussion forum in new window",
-            href: "https://forum.allencell.org/c/software-code/11",
-            target: "_blank",
-        },
+        // {
+        //     key: "allen-cell-discussion-forum",
+        //     text: "Allen Cell Discussion Forum",
+        //     title: "Opens allen cell discussion forum in new window",
+        //     href: "https://forum.allencell.org/c/software-code/11",
+        //     target: "_blank",
+        // },
     ];
 }

@@ -16,7 +16,7 @@ describe("<OpenSourceDatasets />", () => {
             element: <OpenSourceDatasets />,
         },
     ]);
-    it("renders separate tables for internal and external datasets", () => {
+    it("renders one big table for all datasets", () => {
         // Arrange
         const { store } = configureMockStore({
             state: mergeState(initialState, {
@@ -33,8 +33,7 @@ describe("<OpenSourceDatasets />", () => {
                 <RouterProvider router={mockRouter} />
             </Provider>
         );
-        expect(getByText(/Allen Institute for Cell Science/)).to.exist;
-        expect(getByText(/Additional contributed datasets/)).to.exist;
-        expect(getAllByRole("grid").length).to.equal(2);
+        expect(getByText(/Open-source datasets/)).to.exist;
+        expect(getAllByRole("grid").length).to.equal(1);
     });
 });

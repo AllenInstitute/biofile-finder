@@ -34,8 +34,8 @@ export default function Home() {
         },
         {
             header: "OUR open source datasets and additional contributors",
-            body: `Use BioFile Finder to view and access datasets from
-            the Allen Institute for Cell Science and other contributors.`,
+            body: `Use BioFile Finder to view and access open source datasets
+            from various contributors.`,
             action: (
                 <Link to="datasets">
                     <PrimaryButton

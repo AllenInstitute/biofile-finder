@@ -57,12 +57,17 @@ export default class DatabaseServiceWeb extends DatabaseService {
         const connection = await this.database.connect();
         try {
             const result = await connection.query(sql);
-            const resultAsArray = result.toArray();
-            const resultAsJSONString = JSON.stringify(
-                resultAsArray,
-                (_, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
-            );
-            return JSON.parse(resultAsJSONString);
+            return result
+                .toArray()
+                .map((row) => row.toJSON());
+
+            // const resultAsArray = result.toArray();
+            // console.log(result.data);
+            // const resultAsJSONString = JSON.stringify(
+            //     resultAsArray,
+            //     (_, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
+            // );
+            // return JSON.parse(resultAsJSONString);
         } catch (err) {
             throw new Error(
                 `${(err as Error).message}. \nThe above error occured while executing query: ${sql}`
@@ -107,7 +112,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
         } else {
             // Default to CSV
             await this.execute(
-                `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
+                `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true);`
             );
         }
     }

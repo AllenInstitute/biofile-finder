@@ -18,18 +18,17 @@ import PublicDataset, {
     DATASET_TABLE_FIELDS,
     DatasetAnnotations,
 } from "../../entity/PublicDataset";
-import FileFilter from "../../../../core/entity/FileFilter";
 import FileSort, { SortOrder } from "../../../../core/entity/FileSort";
 
 import styles from "./DatasetTable.module.css";
 
 interface DatasetTableProps {
-    filters?: FileFilter[];
     onLoadDataset: (dataset: PublicDataset) => void;
 }
 
 export default function DatasetTable(props: DatasetTableProps) {
-    const [sortColumn, setSortColumn] = React.useState<FileSort | undefined>(undefined);
+    const [sortColumn, setSortColumn] = React.useState<FileSort | undefined>();
+    // const [sortColumn, setSortColumn] = React.useState<FileSort | undefined>(new FileSort(DatasetAnnotations.CREATION_DATE.name));
     const columns = DATASET_TABLE_FIELDS.map(
         (value, index): IColumn => {
             return {
@@ -44,7 +43,7 @@ export default function DatasetTable(props: DatasetTableProps) {
             };
         }
     );
-    const [datasetDetails, isLoading, error] = useDatasetDetails(props?.filters || [], sortColumn);
+    const [datasetDetails, isLoading, error] = useDatasetDetails([], sortColumn);
     const items = React.useMemo(() => {
         return datasetDetails?.map((detail) => detail.details);
     }, [datasetDetails]);
@@ -102,11 +101,13 @@ export default function DatasetTable(props: DatasetTableProps) {
 
     function onColumnClick(columnName: string) {
         let sortOrder = SortOrder.ASC;
-        if (sortColumn?.annotationName == columnName)
-            sortOrder = sortColumn.order == SortOrder.DESC ? SortOrder.ASC : SortOrder.DESC;
+        if (sortColumn?.annotationName === columnName)
+            sortOrder = sortColumn.order === SortOrder.DESC ? SortOrder.ASC : SortOrder.DESC;
         const newSortColumn = new FileSort(columnName, sortOrder);
         setSortColumn(newSortColumn);
     }
+
+    console.log(isLoading, items, error);
 
     return (
         <div className={styles.table}>

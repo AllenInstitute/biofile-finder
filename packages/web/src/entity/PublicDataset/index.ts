@@ -53,7 +53,6 @@ export const DatasetAnnotations = {
     DATASET_DESCRIPTION: new DatasetAnnotation("Short description", "description", 200),
     DOI: new DatasetAnnotation("DOI", "doi"),
     FILE_COUNT: new DatasetAnnotation("File count", "file_count", 89),
-    PUBLICATION_DATE: new DatasetAnnotation("Publication date", "published", 128),
     RELATED_PUBLICATON: new DatasetAnnotation("Related publication", "related_publication", 178),
     RELATED_PUBLICATION_LINK: new DatasetAnnotation(
         "Related publication link",
@@ -66,10 +65,11 @@ export const DatasetAnnotations = {
 
 // Limited set used for the details panel
 export const DATASET_DISPLAY_FIELDS = [
+    DatasetAnnotations.VERSION,
+    DatasetAnnotations.SOURCE,
     DatasetAnnotations.CREATION_DATE,
     DatasetAnnotations.RELATED_PUBLICATON,
     DatasetAnnotations.DATASET_SIZE,
-    DatasetAnnotations.PUBLICATION_DATE,
     DatasetAnnotations.FILE_COUNT,
     DatasetAnnotations.DOI,
 ];
@@ -77,9 +77,9 @@ export const DATASET_DISPLAY_FIELDS = [
 // Limited set used for the table header
 export const DATASET_TABLE_FIELDS = [
     DatasetAnnotations.DATASET_NAME,
+    DatasetAnnotations.SOURCE,
     DatasetAnnotations.CREATION_DATE,
     DatasetAnnotations.RELATED_PUBLICATON,
-    DatasetAnnotations.PUBLICATION_DATE,
     DatasetAnnotations.FILE_COUNT,
     DatasetAnnotations.DATASET_SIZE,
     DatasetAnnotations.DATASET_DESCRIPTION,

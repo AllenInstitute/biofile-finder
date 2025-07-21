@@ -4,16 +4,15 @@ import { useNavigate } from "react-router-dom";
 
 import DatasetTable from "./DatasetTable";
 import DatasetDetails from "../DatasetDetails";
-import PublicDataset, { DatasetAnnotations } from "../../entity/PublicDataset";
-import { metadata, selection } from "../../../../core/state";
-import FileFilter from "../../../../core/entity/FileFilter";
-
-import styles from "./OpenSourceDatasets.module.css";
+import PublicDataset from "../../entity/PublicDataset";
 import {
     SearchParamsComponents,
     getNameAndTypeFromSourceUrl,
     Source,
 } from "../../../../core/entity/SearchParams";
+import { metadata, selection } from "../../../../core/state";
+
+import styles from "./OpenSourceDatasets.module.css";
 
 /**
  * Page for displaying public-facing datasets
@@ -61,14 +60,7 @@ export default function OpenSourceDatasets() {
         );
     };
 
-    const internalDatasetFilter = new FileFilter(
-        DatasetAnnotations.SOURCE.displayLabel,
-        "internal"
-    );
-    const externalDatasetFilter = new FileFilter(
-        DatasetAnnotations.SOURCE.displayLabel,
-        "external"
-    );
+    console.log("RENDERING OpenSourceDatasets");
 
     return (
         <>
@@ -76,10 +68,10 @@ export default function OpenSourceDatasets() {
                 <div className={styles.banner}>
                     <div className={styles.bannerContent}>
                         <div className={styles.bannerContentText}>
-                            <div className={styles.bannerHeader}> Open-source datasets</div>
+                            <div className={styles.bannerHeader}>Open-source datasets</div>
                             <div className={styles.bannerBody}>
-                                The tables below contain examples of internally (AICS) and
-                                externally contributed datasets that are available for exploration.
+                                The tables below contain examples of contributed datasets
+                                that are freely available for exploration.
                             </div>
                             <div className={styles.bannerBody}>
                                 Select a dataset to view more information, or click LOAD to open it
@@ -89,12 +81,7 @@ export default function OpenSourceDatasets() {
                     </div>
                 </div>
                 <div className={styles.content}>
-                    <div className={styles.tableTitle}>
-                        Datasets from the Allen Institute for Cell Science
-                    </div>
-                    <DatasetTable filters={[internalDatasetFilter]} onLoadDataset={loadDataset} />
-                    <div className={styles.tableTitle}>Additional contributed datasets</div>
-                    <DatasetTable filters={[externalDatasetFilter]} onLoadDataset={loadDataset} />
+                    <DatasetTable onLoadDataset={loadDataset} />
                     <p>
                         Want to include your dataset? Send us a request on
                         <a

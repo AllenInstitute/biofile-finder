@@ -78,16 +78,3 @@
   justify-content: right;
   align-items: center;
 }
-
-/** Toggle logo type depending on screen size.
- */
-@media screen and (min-width: 1024px) {
-  .logo {
-    display: none;
-  }
-}
-@media screen and (max-width: 1023px) {
-  .logoWithName {
-    display: none;
-  }
-}

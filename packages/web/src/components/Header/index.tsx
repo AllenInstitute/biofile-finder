@@ -27,20 +27,11 @@ export default function Header() {
                 <div className={styles.left}>
                     {/* Toggle logo style per screen size */}
                     <a
-                        className={styles.logo}
                         href="https://www.allencell.org/"
                         target="_blank"
                         rel="noreferrer"
                     >
                         <AICSLogo />
-                    </a>
-                    <a
-                        className={styles.logoWithName}
-                        href="https://www.allencell.org/"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <AICSLogoWithName />
                     </a>
                     <Link
                         to="/"
@@ -49,6 +40,7 @@ export default function Header() {
                         rel="noreferrer"
                     >
                         <h4>{APPLICATION_NAME}</h4>
+                        <h5>Powered by BigFile Finder</h5>
                     </Link>
                 </div>
                 <Stack

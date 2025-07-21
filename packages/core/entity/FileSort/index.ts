@@ -13,7 +13,7 @@ export default class FileSort {
     public readonly annotationName: string;
     public readonly order: SortOrder;
 
-    constructor(annotationName: string, order: SortOrder) {
+    constructor(annotationName: string, order: SortOrder = SortOrder.DESC) {
         this.annotationName = annotationName;
         this.order = order;
     }
