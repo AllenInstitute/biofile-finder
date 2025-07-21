@@ -18,18 +18,18 @@ import PublicDataset, {
     DATASET_TABLE_FIELDS,
     DatasetAnnotations,
 } from "../../entity/PublicDataset";
-import FileFilter from "../../../../core/entity/FileFilter";
 import FileSort, { SortOrder } from "../../../../core/entity/FileSort";
 
 import styles from "./DatasetTable.module.css";
 
 interface DatasetTableProps {
-    filters?: FileFilter[];
     onLoadDataset: (dataset: PublicDataset) => void;
 }
 
 export default function DatasetTable(props: DatasetTableProps) {
-    const [sortColumn, setSortColumn] = React.useState<FileSort | undefined>(undefined);
+    const [sortColumn, setSortColumn] = React.useState<FileSort | undefined>(
+        new FileSort(DatasetAnnotations.INDEX.displayLabel, SortOrder.ASC)
+    );
     const columns = DATASET_TABLE_FIELDS.map(
         (value, index): IColumn => {
             return {
@@ -44,10 +44,7 @@ export default function DatasetTable(props: DatasetTableProps) {
             };
         }
     );
-    const [datasetDetails, isLoading, error] = useDatasetDetails(props?.filters || [], sortColumn);
-    const items = React.useMemo(() => {
-        return datasetDetails?.map((detail) => detail.details);
-    }, [datasetDetails]);
+    const [items, isLoading, error] = useDatasetDetails(sortColumn);
 
     const renderRow = (
         rowProps: IDetailsRowProps | undefined,

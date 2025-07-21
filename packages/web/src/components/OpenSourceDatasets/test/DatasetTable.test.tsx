@@ -28,7 +28,7 @@ describe("<DatasetTable />", () => {
         },
     ]);
     const mockIdList = ["abc123", "def456", "ghi789"];
-    const mockDatasetList = mockIdList.map((id) => makePublicDatasetMock(id));
+    const mockDatasetList = mockIdList.map((id) => makePublicDatasetMock(id).details);
 
     const { store } = configureMockStore({
         state: mergeState(initialState, {
@@ -129,10 +129,10 @@ describe("<DatasetTable />", () => {
 
         // Act / Assert
         fireEvent.click(getByText(/Dataset Name/i));
-        expect(getSpy.calledWith([], mockFileSortAsc)).to.be.true;
+        expect(getSpy.calledWith(mockFileSortAsc)).to.be.true;
         fireEvent.click(getByText(/Dataset Name/i));
-        expect(getSpy.calledWith([], mockFileSortDesc)).to.be.true;
+        expect(getSpy.calledWith(mockFileSortDesc)).to.be.true;
         fireEvent.click(getByText(/File count/i));
-        expect(getSpy.calledWith([], mockFileSortAscCount)).to.be.true;
+        expect(getSpy.calledWith(mockFileSortAscCount)).to.be.true;
     });
 });

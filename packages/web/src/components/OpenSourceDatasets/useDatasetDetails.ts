@@ -1,11 +1,10 @@
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import PublicDataset from "../../entity/PublicDataset";
 import FileSet from "../../../../core/entity/FileSet";
 import { interaction } from "../../../../core/state";
-import FileFilter from "../../../../core/entity/FileFilter";
 import FileSort from "../../../../core/entity/FileSort";
+import PublicDataset, { PublicDatasetProps } from "../../entity/PublicDataset";
 
 /**
  * Custom React hook to accomplish storing and fetching details of datasets (i.e., dataset metadata).
@@ -13,12 +12,11 @@ import FileSort from "../../../../core/entity/FileSort";
  * of the return array will be true.
  */
 export default function useDatasetDetails(
-    filters: FileFilter[],
     fileSort?: FileSort | undefined
-): [PublicDataset[] | null, boolean, string | undefined] {
+): [PublicDatasetProps[] | null, boolean, string | undefined] {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState<string>();
-    const [items, setItems] = React.useState<PublicDataset[]>([]);
+    const [items, setItems] = React.useState<PublicDatasetProps[]>([]);
     const publicDatasetListService = useSelector(
         interaction.selectors.getPublicDatasetManifestService
     );
@@ -27,10 +25,9 @@ export default function useDatasetDetails(
         if (!publicDatasetListService) return;
         return new FileSet({
             fileService: publicDatasetListService,
-            filters,
             sort: fileSort,
         });
-    }, [publicDatasetListService, filters, fileSort]);
+    }, [publicDatasetListService, fileSort]);
     React.useEffect(() => {
         setIsLoading(true);
         if (!!publicDatasetListService && !!fileSet) {
@@ -41,11 +38,15 @@ export default function useDatasetDetails(
                     fileSet: fileSet,
                 })
                 .then((itemList) => {
-                    const datasetMap = itemList.map(
-                        (dataset) =>
-                            new PublicDataset({ dataset_name: dataset.name }, dataset.annotations)
+                    setItems(
+                        itemList.map(
+                            (dataset) =>
+                                new PublicDataset(
+                                    { dataset_name: dataset.name },
+                                    dataset.annotations
+                                ).details
+                        )
                     );
-                    setItems(datasetMap);
                     setIsLoading(false);
                 })
                 .catch((error) => {
