@@ -558,7 +558,7 @@ const selectNearbyFile = createLogic({
                 return;
             }
         }
-        next(selection.actions.setFileSelection(newFileSelection));
+        next(setFileSelection(newFileSelection));
     },
     type: [SELECT_NEARBY_FILE],
 });

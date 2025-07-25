@@ -134,8 +134,8 @@ describe("DatabaseFileService", () => {
             const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
 
             // Assert
-            expect(modifiedSQL).to.include("OFFSET 0 LIMIT 1");
-            expect(modifiedSQL).to.include("OFFSET 2 LIMIT 1");
+            expect(modifiedSQL).to.include("LIMIT 1 OFFSET 0");
+            expect(modifiedSQL).to.include("LIMIT 1 OFFSET 2");
         });
 
         it("correctly modifies SQLBuilder for contiguous range selections (Shift selection)", () => {
@@ -153,7 +153,7 @@ describe("DatabaseFileService", () => {
             const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
 
             // Assert
-            expect(modifiedSQL).to.include("OFFSET 0 LIMIT 3");
+            expect(modifiedSQL).to.include("LIMIT 3 OFFSET 0");
         });
 
         it("correctly applies AND vs OR clauses", () => {
@@ -189,11 +189,11 @@ describe("DatabaseFileService", () => {
 
             // Assert
             // Uses OR within single filter type
-            expect(modifiedSQLWithOR).to.include("OR");
-            expect(modifiedSQLWithOR).not.to.include("AND");
+            expect(modifiedSQLWithOR).to.include(" OR ");
+            expect(modifiedSQLWithOR).not.to.include(" AND ");
             // Uses AND between different filter types
-            expect(modifiedSQLWithAND).to.include("AND");
-            expect(modifiedSQLWithAND).not.to.include("OR");
+            expect(modifiedSQLWithAND).to.include(" AND ");
+            expect(modifiedSQLWithAND).not.to.include(" OR ");
         });
     });
 
