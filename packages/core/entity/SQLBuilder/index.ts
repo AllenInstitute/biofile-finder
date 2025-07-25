@@ -95,10 +95,11 @@ export default class SQLBuilder {
             throw new Error("Unable to build SQL without a FROM statement");
         }
         // LIMIT is non-deterministic without sorting
-        // So even if there is already an "order by" clause, secondarily sort on unique ID
+        // So even if there is already an "order by" clause, secondarily sort on unique ID.
+        // Exception: COUNT(*) queries should not require sorting
         let orderByString = "";
-        if (this.orderByClause || this.limitNum) {
-            orderByString = `ORDER BY ${this.orderByClause}${
+        if (this.orderByClause || (this.limitNum && !this.selectStatement.includes("COUNT(*)"))) {
+            orderByString = `ORDER BY ${this.orderByClause || ""}${
                 this.orderByClause && this.limitNum ? ", " : ""
             }${DatabaseService.HIDDEN_UID_ANNOTATION}`;
         }
