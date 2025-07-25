@@ -132,3 +132,17 @@ p {
 a {
     text-decoration: none;
 }
+
+/* Chrome autocomplete changes the background of inputs */
+input:-internal-autofill-selected {
+    background: transparent !important;
+}
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active{
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: var(--primary-text-color);
+    transition: background-color 5000s ease-in-out 0s;
+    caret-color: var(--primary-text-color);
+}

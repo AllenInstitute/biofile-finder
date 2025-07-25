@@ -12,7 +12,7 @@ import styles from "./DataSource.module.css";
 export default function DataSource(props: ModalProps) {
     return (
         <BaseModal
-            body={<DataSourcePrompt className={styles.content} hideTitle />}
+            body={<DataSourcePrompt className={styles.content} isModal />}
             title="Choose a data source"
             onDismiss={props.onDismiss}
         />
