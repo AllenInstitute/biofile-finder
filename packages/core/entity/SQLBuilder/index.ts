@@ -1,4 +1,5 @@
 import { castArray } from "lodash";
+import { DatabaseService } from "../../services";
 
 /**
  * A simple SQL query builder.
@@ -93,14 +94,23 @@ export default class SQLBuilder {
         if (!this.fromStatement) {
             throw new Error("Unable to build SQL without a FROM statement");
         }
+        // LIMIT is non-deterministic without sorting
+        // So even if there is already an "order by" clause, secondarily sort on unique ID.
+        // Exception: COUNT(*) queries should not require sorting
+        let orderByString = "";
+        if (this.orderByClause || (this.limitNum && !this.selectStatement.includes("COUNT(*)"))) {
+            orderByString = `ORDER BY ${this.orderByClause || ""}${
+                this.orderByClause && this.limitNum ? ", " : ""
+            }${DatabaseService.HIDDEN_UID_ANNOTATION}`;
+        }
         return `
             ${this.isSummarizing ? "SUMMARIZE" : ""}
             SELECT ${this.selectStatement}
             FROM "${this.fromStatement}"
             ${this.whereClauses.length ? `WHERE (${this.whereClauses.join(") AND (")})` : ""}
-            ${this.orderByClause ? `ORDER BY ${this.orderByClause}` : ""}
-            ${this.offsetNum !== undefined ? `OFFSET ${this.offsetNum}` : ""}
+            ${orderByString}
             ${this.limitNum !== undefined ? `LIMIT ${this.limitNum}` : ""}
+            ${this.offsetNum !== undefined ? `OFFSET ${this.offsetNum}` : ""}
         `;
     }
 }
