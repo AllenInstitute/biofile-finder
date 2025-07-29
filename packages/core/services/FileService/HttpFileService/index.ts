@@ -140,6 +140,25 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         );
     }
 
+    public async getManifest(
+        annotations: string[],
+        selections: Selection[],
+        format: "csv" | "json" | "parquet"
+    ): Promise<File> {
+        if (format !== "csv") {
+            throw new Error(
+                "Only CSV manifest is supported at this time for downloading from AICS FMS"
+            );
+        }
+
+        const postData = JSON.stringify({ annotations, selections });
+        const url = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
+
+        const response = await this.downloadService.prepareHttpResourceForDownload(url, postData);
+        const name = `file-manifest-${new Date()}.csv`;
+        return new File([response], name, { type: "text/csv" });
+    }
+
     public async editFile(
         fileId: string,
         annotationNameToValuesMap: AnnotationNameToValuesMap,

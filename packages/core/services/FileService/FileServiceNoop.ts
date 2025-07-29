@@ -3,6 +3,7 @@ import { DownloadResolution, DownloadResult } from "../FileDownloadService";
 import FileDetail from "../../entity/FileDetail";
 
 export default class FileServiceNoop implements FileService {
+    fileExplorerServiceBaseUrl?: string | undefined;
     public getCountOfMatchingFiles(): Promise<number> {
         return Promise.resolve(0);
     }
@@ -13,6 +14,10 @@ export default class FileServiceNoop implements FileService {
 
     public getFiles(): Promise<FileDetail[]> {
         return Promise.resolve([]);
+    }
+
+    public getManifest(): Promise<File> {
+        return Promise.resolve(new File([], "manifest", { type: "text/csv" }));
     }
 
     public download(): Promise<DownloadResult> {

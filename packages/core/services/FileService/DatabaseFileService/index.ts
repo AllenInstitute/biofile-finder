@@ -238,6 +238,28 @@ export default class DatabaseFileService implements FileService {
         );
     }
 
+    public async getManifest(
+        annotations: string[],
+        selections: Selection[],
+        format: "csv" | "json" | "parquet"
+    ): Promise<File> {
+        if (format !== "csv") {
+            throw new Error(
+                "Only CSV manifest is supported at this time for downloading from Database"
+            );
+        }
+        const sqlBuilder = new SQLBuilder()
+            .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
+            .from(this.dataSourceNames);
+
+        DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
+
+        const sql = sqlBuilder.toSQL();
+        const buffer = await this.databaseService.saveQuery(uniqueId(), sql, format);
+        const name = `file-manifest-${new Date()}.${format}`;
+        return new File([buffer], name, { type: `text/${format}` });
+    }
+
     public editFile(fileId: string, annotations: AnnotationNameToValuesMap): Promise<void> {
         const tableName = this.dataSourceNames.sort().join(", ");
         const columnAssignments = Object.entries(annotations).map(([name, values]) => {
