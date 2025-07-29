@@ -73,7 +73,7 @@ function resizeHandleDoubleClick() {
  */
 export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
-    const [fileDetails, isLoading] = useFileDetails();
+    const [fileDetails, isLoading, fileSelection] = useFileDetails();
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
     const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
     const stackTokens: IStackTokens = { childrenGap: 12 + " " + 20 };
@@ -111,7 +111,7 @@ export default function FileDetails(props: Props) {
     }, [fileDetails, fileDownloadService, isOnWeb, isZarr]);
 
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
-    const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
+    const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined, fileSelection);
 
     // Disable download of large Zarrs ( > 2GB).
     const isDownloadDisabled = fileDetails
