@@ -66,10 +66,20 @@ export default abstract class FileDownloadService extends HttpServiceBase {
     /**
      * Break down S3 URL to Host and Path.
      */
-    public parseS3Url(url: string): { hostname: string; key: string } {
+    public parseS3Url(url: string): { hostname: string; key: string; bucket: string } {
         const { hostname, pathname } = new URL(url);
-        const key = pathname.slice(1);
-        return { hostname, key };
+        let host = hostname;
+        let bucket;
+        let key = "";
+        const _bucketMatch = url.match(/^https?:\/\/([^.]+).s3/);
+        if (_bucketMatch) {
+            bucket = _bucketMatch[1];
+            key = pathname.slice(1);
+            host = hostname.slice(bucket.length + 1); // remove . after bucket
+        } else {
+            [bucket, key] = pathname.slice(1).split(/\/(.*)/s);
+        }
+        return { hostname: host, key, bucket };
     }
 
     /**
@@ -94,11 +104,17 @@ export default abstract class FileDownloadService extends HttpServiceBase {
     /**
      * Calculate the total size of all files in an S3 directory (or zarr file).
      */
-    public async calculateS3DirectorySize(hostname: string, prefix: string): Promise<number> {
+    public async calculateS3DirectorySize(
+        hostname: string,
+        prefix: string,
+        bucket: string
+    ): Promise<number> {
         let totalSize = 0;
         let continuationToken: string | undefined = undefined;
 
-        const url = `https://${hostname}?list-type=2&prefix=${encodeURIComponent(prefix)}`;
+        const url = `https://${hostname}/${bucket}/?list-type=2&prefix=${encodeURIComponent(
+            prefix
+        )}`;
 
         do {
             const listUrl = continuationToken

@@ -407,8 +407,9 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        const { hostname, key } = this.parseS3Url(fileInfo.path);
-        const fileSize = fileInfo.size || (await this.calculateS3DirectorySize(hostname, key));
+        const { hostname, key, bucket } = this.parseS3Url(fileInfo.path);
+        const fileSize =
+            fileInfo.size || (await this.calculateS3DirectorySize(hostname, key, bucket));
 
         destination = destination || (await this.getDefaultDownloadDirectory());
 
