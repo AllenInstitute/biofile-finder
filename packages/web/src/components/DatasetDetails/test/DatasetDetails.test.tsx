@@ -90,8 +90,8 @@ describe("<DatasetDetails />", () => {
                 </Provider>
             );
 
-            expect(getAllByRole("link").length).to.equal(2);
-            expect(getAllByRole("link").at(0)?.getAttribute("href")).to.equal(
+            expect(getAllByRole("link").length).to.equal(3);
+            expect(getAllByRole("link").at(1)?.getAttribute("href")).to.equal(
                 mockDataset.details.doi
             );
         });
@@ -253,11 +253,11 @@ describe("<DatasetDetails />", () => {
             );
 
             // consistency checks, button exists & no actions fired
-            expect(getByLabelText(/^Load dataset/)).to.exist;
+            expect(getByLabelText(/^View/)).to.exist;
             expect(onLoadDataset.called).to.equal(false);
 
             // Act
-            fireEvent.click(getByLabelText(/^Load dataset/));
+            fireEvent.click(getByLabelText(/^View/));
 
             // Assert
             expect(onLoadDataset.called).to.equal(true);
