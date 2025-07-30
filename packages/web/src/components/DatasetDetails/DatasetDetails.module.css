@@ -88,12 +88,19 @@ hr {
 }
 
 .button-wrapper {
-  width: fit-content;
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  width: 100%;
+}
+
+.button-wrapper > * {
+  margin: 6px 10px;
 }
 
 .button {
   height: 33px;
-  margin: var(--margin) 0;
+  min-width: 115px;
 }
 
 .secondary-close-button {
