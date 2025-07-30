@@ -14,7 +14,9 @@ export interface PublicDatasetProps {
     description?: string;
     doi?: string;
     file_count?: string;
+    index?: string;
     created?: string;
+    organization?: string;
     published?: string;
     related_publication?: string;
     related_publication_link?: string;
@@ -73,7 +75,6 @@ export const DATASET_DISPLAY_FIELDS = [
     DatasetAnnotations.DOI,
     DatasetAnnotations.PUBLICATION_DATE,
     DatasetAnnotations.CREATION_DATE,
-    DatasetAnnotations.DATASET_SIZE,
     DatasetAnnotations.FILE_COUNT,
     DatasetAnnotations.DATASET_SIZE,
 ];
