@@ -425,7 +425,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             // Backfill missing directories from path.
             fs.mkdirSync(fullDestination, { recursive: true });
 
-            const keys = await this.listS3Objects(hostname, key);
+            const keys = await this.listS3Objects(hostname, key, bucket);
 
             if (keys.length === 0) {
                 throw new Error("No files found in the specified S3 directory.");

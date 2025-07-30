@@ -97,7 +97,7 @@ Please navigate to this directory manually, or upload files to a remote address 
             );
         }
 
-        const keys = await this.listS3Objects(hostname, key);
+        const keys = await this.listS3Objects(hostname, key, bucket);
         if (keys.length === 0) {
             throw new Error("No files found in the specified S3 directory.");
         }
@@ -112,7 +112,7 @@ Please navigate to this directory manually, or upload files to a remote address 
 
         // Download each file and add it to the ZIP archive
         for (const fileKey of keys) {
-            const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
+            const fileUrl = `https://${hostname}/${bucket}/${encodeURIComponent(fileKey)}`;
             const fileName = fileKey.replace(`${key}/`, ""); // Local file name in zip
 
             let fileBytesDownloaded = 0; // Track the bytes for the current file
