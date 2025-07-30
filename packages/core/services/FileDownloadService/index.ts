@@ -90,7 +90,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
         prefix: string,
         bucket: string
     ): Promise<string[]> {
-        const url = `https://${hostname}/${bucket}/?list-type=2&prefix=${encodeURIComponent(
+        const url = `https://${hostname}/${bucket}?list-type=2&prefix=${encodeURIComponent(
             prefix
         )}`;
         const response = await axios.get(url);
@@ -118,7 +118,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
         let totalSize = 0;
         let continuationToken: string | undefined = undefined;
 
-        const url = `https://${hostname}/${bucket}/?list-type=2&prefix=${encodeURIComponent(
+        const url = `https://${hostname}/${bucket}?list-type=2&prefix=${encodeURIComponent(
             prefix
         )}`;
 
