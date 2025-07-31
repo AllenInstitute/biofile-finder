@@ -99,6 +99,7 @@ describe("<DatasetDetails />", () => {
             const sparseDataset = new PublicDataset({
                 dataset_name: "Sparse Dataset",
                 dataset_size: "100",
+                dataset_path: "anything",
             });
 
             // Arrange
@@ -150,6 +151,7 @@ describe("<DatasetDetails />", () => {
             const mockDataset = new PublicDataset({
                 dataset_name: "Mock Dataset",
                 description: mockDescriptionShort,
+                dataset_path: "anything",
             });
 
             const { store } = configureMockStore({
@@ -177,6 +179,7 @@ describe("<DatasetDetails />", () => {
             const mockDataset = new PublicDataset({
                 dataset_name: "Mock Dataset",
                 description: mockDescriptionLong,
+                dataset_path: "anything",
             });
 
             const { store } = configureMockStore({
@@ -204,6 +207,7 @@ describe("<DatasetDetails />", () => {
             const mockDataset = new PublicDataset({
                 dataset_name: "Mock Dataset",
                 description: mockDescriptionLong,
+                dataset_path: "anything",
             });
 
             const { store } = configureMockStore({
