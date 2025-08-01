@@ -16,7 +16,7 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
         // and use exponential backoff when the server is not reachable.
         const checkRemoteServer = async () => {
             try {
-                const response = await fetch(`http://${REMOTE_SERVER_URL}${API_PING}`);
+                const response = await fetch(`${REMOTE_SERVER_URL}${API_PING}`);
                 if (response.ok) {
                     setHasRemoteServer(true);
                 } else {
@@ -37,7 +37,7 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
             }
             const formData = new FormData();
             formData.append("file", file);
-            const response = await fetch(`http://${REMOTE_SERVER_URL}${API_UPLOAD}`, {
+            const response = await fetch(`${REMOTE_SERVER_URL}${API_UPLOAD}`, {
                 method: "POST",
                 body: formData,
             });
@@ -48,7 +48,7 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
             const jsonResponse = await response.json();
             return {
                 id: jsonResponse.id,
-                url: `http://${REMOTE_SERVER_URL}${API_GET_FILE}/${jsonResponse.id}`,
+                url: `${REMOTE_SERVER_URL}${API_GET_FILE}/${jsonResponse.id}`,
             } as UploadResponse;
         },
         [hasRemoteServer]
