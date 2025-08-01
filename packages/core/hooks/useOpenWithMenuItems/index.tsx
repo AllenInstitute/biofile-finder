@@ -295,9 +295,10 @@ export default (
                 fileSelection.toCompactSelectionList(),
                 "csv"
             );
-            console.log("File to upload:", file);
-            const { id } = await uploadCsv(file);
-            window.open(`${CFE_URL}?fileId=${id}`, "_blank");
+            const { url } = await uploadCsv(file);
+            const cfeUrl = `${CFE_URL}?dataset=csv&csvUrl=${encodeURIComponent(url)}`;
+            console.log("CFE URL:", cfeUrl);
+            window.open(cfeUrl, "_blank");
         }
     }, [hasRemoteServer, fileSelection, fileService]);
 

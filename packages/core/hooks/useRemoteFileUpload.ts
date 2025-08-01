@@ -3,8 +3,9 @@ import React, { useCallback, useEffect } from "react";
 const REMOTE_SERVER_URL = "127.0.0.1:5000";
 const API_PING = "/ping";
 const API_UPLOAD = "/upload";
+const API_GET_FILE = "/get-file";
 
-type UploadResponse = { id: string };
+type UploadResponse = { id: string; url: string };
 type UploadFileCallback = (file: File) => Promise<UploadResponse>;
 
 const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFileCallback] => {
@@ -44,7 +45,11 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
                 // TODO: Add error handling (see BFF's native error messaging?)
                 throw new Error("Failed to upload file");
             }
-            return (await response.json()) as UploadResponse;
+            const jsonResponse = await response.json();
+            return {
+                id: jsonResponse.id,
+                url: `http://${REMOTE_SERVER_URL}${API_GET_FILE}/${jsonResponse.id}`,
+            } as UploadResponse;
         },
         [hasRemoteServer]
     );
