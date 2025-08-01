@@ -12,7 +12,7 @@ import styles from "./useOpenWithMenuItems.module.css";
 import FileSelection from "../../entity/FileSelection";
 import useRemoteFileUpload from "../useRemoteFileUpload";
 
-const CFE_URL = "http://localhost:9002/";
+const CFE_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist/";
 
 enum AppKeys {
     AGAVE = "agave",

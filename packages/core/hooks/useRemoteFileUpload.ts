@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from "react";
 
-const REMOTE_SERVER_URL = "127.0.0.1:5000";
+const REMOTE_SERVER_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080";
 const API_PING = "/ping";
 const API_UPLOAD = "/upload";
 const API_GET_FILE = "/get-file";
