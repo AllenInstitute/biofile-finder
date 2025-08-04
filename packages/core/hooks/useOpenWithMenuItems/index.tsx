@@ -273,6 +273,7 @@ export default (
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
+    const annotations = useSelector(metadata.selectors.getAnnotations);
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
     const fileService = useSelector(interaction.selectors.getFileService);
 
@@ -280,18 +281,11 @@ export default (
     const openInCfeCallback = React.useCallback(async () => {
         console.log("Opening in CFE...");
         if (hasRemoteServer) {
-            const allDetails = await fileSelection.fetchAllDetails();
             // TODO: Filter to just Zarr/JSON/TIFF files
-            console.log(allDetails);
-            const annotations = new Set<string>();
-            allDetails.forEach((detail) => {
-                detail.annotations.forEach((annotation) => {
-                    annotations.add(annotation.name);
-                });
-            });
-
+            const stringAnnotations = annotations.map((annotation) => annotation.name);
+            stringAnnotations.sort();
             const file = await fileService.getManifest(
-                Array.from(annotations),
+                stringAnnotations,
                 fileSelection.toCompactSelectionList(),
                 "csv"
             );
@@ -300,7 +294,7 @@ export default (
             console.log("CFE URL:", cfeUrl);
             window.open(cfeUrl, "_blank");
         }
-    }, [hasRemoteServer, fileSelection, fileService]);
+    }, [hasRemoteServer, fileSelection, fileService, annotations]);
 
     const openInCfe = hasRemoteServer ? openInCfeCallback : undefined;
 
