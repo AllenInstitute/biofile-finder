@@ -1,3 +1,4 @@
+import { parseS3Url, isS3Url } from "amazon-s3-url";
 import axios from "axios";
 import HttpServiceBase from "../HttpServiceBase";
 
@@ -56,30 +57,26 @@ export default abstract class FileDownloadService extends HttpServiceBase {
      */
     public isS3Url(url: string): boolean {
         try {
-            const { protocol, hostname } = new URL(url);
-            return protocol === "https:" && hostname.endsWith(".amazonaws.com");
+            return isS3Url(url);
         } catch (error) {
             return false;
         }
     }
 
     /**
-     * Break down S3 URL to Host and Path.
+     * Break down S3 URL to host, bucket, and path (key).
      */
-    public parseS3Url(url: string): { hostname: string; key: string; bucket: string } {
-        const { hostname, pathname } = new URL(url);
-        let host = hostname;
-        let bucket;
-        let key = "";
-        const _bucketMatch = url.match(/^https?:\/\/([^.]+).s3/);
-        if (_bucketMatch) {
-            bucket = _bucketMatch[1];
-            key = pathname.slice(1);
-            host = hostname.slice(bucket.length + 1); // remove . after bucket
-        } else {
-            [bucket, key] = pathname.slice(1).split(/\/(.*)/s);
+    public parseS3Url(url: string): { hostname: string; bucket: string; key: string } {
+        const { protocol, hostname } = new URL(url);
+        const { region, bucket, key } = parseS3Url(url);
+        let parsedHost = hostname;
+        // CORS does not work with s3: protocol urls, so convert to a standard http host
+        if (protocol === "s3:") {
+            parsedHost = `s3.${region ? `${region}.` : ""}amazonaws.com`;
+        } else if (bucket && hostname.startsWith(bucket)) {
+            parsedHost = hostname.slice(bucket.length + 1);
         }
-        return { hostname: host, key, bucket };
+        return { hostname: parsedHost, bucket, key };
     }
 
     /**
@@ -93,9 +90,10 @@ export default abstract class FileDownloadService extends HttpServiceBase {
         const url = `https://${hostname}/${bucket}?list-type=2&prefix=${encodeURIComponent(
             prefix
         )}`;
-        const response = await axios.get(url);
+        this.removeCustomHeaders();
+        const result = await this.httpClient.get(url);
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(response.data, "text/xml");
+        const xmlDoc = parser.parseFromString(result.data, "text/xml");
 
         const keys: string[] = [];
         const contents = xmlDoc.getElementsByTagName("Key");
@@ -128,7 +126,8 @@ export default abstract class FileDownloadService extends HttpServiceBase {
                 : url;
 
             try {
-                const response = await axios.get(listUrl);
+                this.removeCustomHeaders();
+                const response = await this.httpClient.get(listUrl);
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(response.data, "text/xml");
                 const nextToken = xmlDoc.getElementsByTagName("NextContinuationToken")[0];

@@ -366,6 +366,12 @@ export default class HttpServiceBase {
         }
     }
 
+    public removeCustomHeaders() {
+        delete this.httpClient.defaults.headers.common["X-Application-Version"];
+        delete this.httpClient.defaults.headers.common["X-Client"];
+        delete this.httpClient.defaults.headers.common["X-User-Id"];
+    }
+
     public setLoadBalancerBaseUrl(loadBalancerBaseUrl: LoadBalancerBaseUrl) {
         if (this.loadBalancerBaseUrl !== loadBalancerBaseUrl) {
             // bust cache when base url changes
