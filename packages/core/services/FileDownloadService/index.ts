@@ -91,9 +91,9 @@ export default abstract class FileDownloadService extends HttpServiceBase {
             prefix
         )}`;
         this.removeCustomHeaders();
-        const result = await this.httpClient.get(url);
+        const response = await this.httpClient.get(url);
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(result.data, "text/xml");
+        const xmlDoc = parser.parseFromString(response.data, "text/xml");
 
         const keys: string[] = [];
         const contents = xmlDoc.getElementsByTagName("Key");
@@ -102,6 +102,8 @@ export default abstract class FileDownloadService extends HttpServiceBase {
             keys.push(contents[i].textContent || "");
         }
 
+        // Reset custom headers
+        this.setHttpClient(this.httpClient);
         return keys;
     }
 
@@ -149,6 +151,8 @@ export default abstract class FileDownloadService extends HttpServiceBase {
             }
         } while (continuationToken);
 
+        // Reset custom headers
+        this.setHttpClient(this.httpClient);
         return totalSize;
     }
 
