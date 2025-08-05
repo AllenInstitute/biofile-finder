@@ -90,6 +90,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
         const url = `https://${hostname}/${bucket}?list-type=2&prefix=${encodeURIComponent(
             prefix
         )}`;
+        // Remove FMS-specific custom headers (can interfere with CORS)
         this.removeCustomHeaders();
         const response = await this.httpClient.get(url);
         const parser = new DOMParser();
@@ -128,6 +129,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
                 : url;
 
             try {
+                // Remove FMS-specific custom headers (can interfere with CORS)
                 this.removeCustomHeaders();
                 const response = await this.httpClient.get(listUrl);
                 const parser = new DOMParser();

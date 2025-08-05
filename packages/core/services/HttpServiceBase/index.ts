@@ -366,6 +366,10 @@ export default class HttpServiceBase {
         }
     }
 
+    /**
+     * Removes headers that are specific to FMS services
+     * since they can interfere with CORS for external requests
+     */
     public removeCustomHeaders() {
         delete this.httpClient.defaults.headers.common["X-Application-Version"];
         delete this.httpClient.defaults.headers.common["X-Client"];
