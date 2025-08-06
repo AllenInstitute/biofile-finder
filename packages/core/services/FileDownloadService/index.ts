@@ -1,5 +1,6 @@
+import { parseS3Url, isS3Url } from "amazon-s3-url";
 import axios from "axios";
-import HttpServiceBase from "../HttpServiceBase";
+import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
 export enum DownloadResolution {
     CANCELLED = "CANCELLED",
@@ -21,6 +22,10 @@ export interface FileInfo {
 }
 
 export default abstract class FileDownloadService extends HttpServiceBase {
+    constructor(config: ConnectionConfig = {}) {
+        super({ ...config, includeCustomHeaders: false });
+    }
+
     abstract isFileSystemAccessible: boolean;
 
     /**
@@ -56,28 +61,40 @@ export default abstract class FileDownloadService extends HttpServiceBase {
      */
     public isS3Url(url: string): boolean {
         try {
-            const { protocol, hostname } = new URL(url);
-            return protocol === "https:" && hostname.endsWith(".amazonaws.com");
+            return isS3Url(url);
         } catch (error) {
             return false;
         }
     }
 
     /**
-     * Break down S3 URL to Host and Path.
+     * Break down S3 URL to host, bucket, and path (key).
      */
-    public parseS3Url(url: string): { hostname: string; key: string } {
-        const { hostname, pathname } = new URL(url);
-        const key = pathname.slice(1);
-        return { hostname, key };
+    public parseS3Url(url: string): { hostname: string; bucket: string; key: string } {
+        const { protocol, hostname } = new URL(url);
+        const { region, bucket, key } = parseS3Url(url);
+        let parsedHost = hostname;
+        // CORS does not work with s3: protocol urls, so convert to a standard http host
+        if (protocol === "s3:") {
+            parsedHost = `s3.${region ? `${region}.` : ""}amazonaws.com`;
+        } else if (bucket && hostname.startsWith(bucket)) {
+            parsedHost = hostname.slice(bucket.length + 1);
+        }
+        return { hostname: parsedHost, bucket, key };
     }
 
     /**
      * List components of S3 directory.
      */
-    public async listS3Objects(hostname: string, prefix: string): Promise<string[]> {
-        const url = `https://${hostname}?list-type=2&prefix=${encodeURIComponent(prefix)}`;
-        const response = await axios.get(url);
+    public async listS3Objects(
+        hostname: string,
+        prefix: string,
+        bucket: string
+    ): Promise<string[]> {
+        const url = `https://${hostname}/${bucket}?list-type=2&prefix=${encodeURIComponent(
+            prefix
+        )}`;
+        const response = await this.httpClient.get(url);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(response.data, "text/xml");
 
@@ -94,11 +111,17 @@ export default abstract class FileDownloadService extends HttpServiceBase {
     /**
      * Calculate the total size of all files in an S3 directory (or zarr file).
      */
-    public async calculateS3DirectorySize(hostname: string, prefix: string): Promise<number> {
+    public async calculateS3DirectorySize(
+        hostname: string,
+        prefix: string,
+        bucket: string
+    ): Promise<number> {
         let totalSize = 0;
         let continuationToken: string | undefined = undefined;
 
-        const url = `https://${hostname}?list-type=2&prefix=${encodeURIComponent(prefix)}`;
+        const url = `https://${hostname}/${bucket}?list-type=2&prefix=${encodeURIComponent(
+            prefix
+        )}`;
 
         do {
             const listUrl = continuationToken
@@ -106,7 +129,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
                 : url;
 
             try {
-                const response = await axios.get(listUrl);
+                const response = await this.httpClient.get(listUrl);
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(response.data, "text/xml");
                 const nextToken = xmlDoc.getElementsByTagName("NextContinuationToken")[0];

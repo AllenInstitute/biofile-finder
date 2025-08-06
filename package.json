@@ -71,6 +71,7 @@
     "@aics/redux-utils": "0.6.0",
     "@fluentui/react": "8.67",
     "@tippyjs/react": "4.2.x",
+    "amazon-s3-url": "^1.0.3",
     "axios": "0.21.x",
     "classnames": "2.2.x",
     "cockatiel": "2.0.x",
