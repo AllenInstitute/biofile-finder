@@ -1,6 +1,6 @@
 import { parseS3Url, isS3Url } from "amazon-s3-url";
 import axios from "axios";
-import HttpServiceBase from "../HttpServiceBase";
+import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
 export enum DownloadResolution {
     CANCELLED = "CANCELLED",
@@ -22,6 +22,10 @@ export interface FileInfo {
 }
 
 export default abstract class FileDownloadService extends HttpServiceBase {
+    constructor(config: ConnectionConfig = {}) {
+        super({ ...config, includeCustomHeaders: false });
+    }
+
     abstract isFileSystemAccessible: boolean;
 
     /**
@@ -90,8 +94,6 @@ export default abstract class FileDownloadService extends HttpServiceBase {
         const url = `https://${hostname}/${bucket}?list-type=2&prefix=${encodeURIComponent(
             prefix
         )}`;
-        // Remove FMS-specific custom headers (can interfere with CORS)
-        this.removeCustomHeaders();
         const response = await this.httpClient.get(url);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(response.data, "text/xml");
@@ -103,8 +105,6 @@ export default abstract class FileDownloadService extends HttpServiceBase {
             keys.push(contents[i].textContent || "");
         }
 
-        // Reset custom headers
-        this.setHttpClient(this.httpClient);
         return keys;
     }
 
@@ -129,8 +129,6 @@ export default abstract class FileDownloadService extends HttpServiceBase {
                 : url;
 
             try {
-                // Remove FMS-specific custom headers (can interfere with CORS)
-                this.removeCustomHeaders();
                 const response = await this.httpClient.get(listUrl);
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(response.data, "text/xml");
@@ -153,8 +151,6 @@ export default abstract class FileDownloadService extends HttpServiceBase {
             }
         } while (continuationToken);
 
-        // Reset custom headers
-        this.setHttpClient(this.httpClient);
         return totalSize;
     }
 

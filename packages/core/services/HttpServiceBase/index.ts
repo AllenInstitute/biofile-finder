@@ -9,6 +9,7 @@ export interface ConnectionConfig {
     applicationVersion?: string;
     fileExplorerServiceBaseUrl?: FESBaseUrl;
     httpClient?: AxiosInstance;
+    includeCustomHeaders?: boolean;
     loadBalancerBaseUrl?: LoadBalancerBaseUrl;
     metadataManagementServiceBaseURl?: MMSBaseUrl;
     pathSuffix?: string;
@@ -17,7 +18,7 @@ export interface ConnectionConfig {
 
 export const DEFAULT_CONNECTION_CONFIG = {
     fileExplorerServiceBaseUrl: FESBaseUrl.PRODUCTION,
-    httpClient: axios.create(),
+    includeCustomHeaders: true, // Whether to include FMS-specific headers in http calls
     loadBalancerBaseUrl: LoadBalancerBaseUrl.PRODUCTION,
     metadataManagementServiceBaseURl: MMSBaseUrl.PRODUCTION,
 };
@@ -101,11 +102,13 @@ export default class HttpServiceBase {
     public metadataManagementServiceBaseURl: string =
         DEFAULT_CONNECTION_CONFIG.metadataManagementServiceBaseURl;
 
-    protected httpClient = DEFAULT_CONNECTION_CONFIG.httpClient;
+    // Create an object-specific axios instance so that can use different header configs
+    protected httpClient = axios.create();
     private applicationVersion = "NOT SET";
     protected userName?: string;
     protected readonly pathSuffix: string = "";
     private readonly urlToResponseDataCache = new LRUCache<string, any>({ max: MAX_CACHE_SIZE });
+    private includeCustomHeaders = DEFAULT_CONNECTION_CONFIG.includeCustomHeaders;
 
     constructor(config: ConnectionConfig = {}) {
         if (config.applicationVersion) {
@@ -134,6 +137,12 @@ export default class HttpServiceBase {
 
         if (config.pathSuffix) {
             this.pathSuffix = config.pathSuffix;
+        }
+
+        // Undefined should default to true
+        if (config.includeCustomHeaders === false) {
+            this.includeCustomHeaders = false;
+            this.removeCustomHeaders();
         }
     }
 
@@ -333,7 +342,9 @@ export default class HttpServiceBase {
 
     public setApplicationVersion(applicationVersion: string) {
         this.applicationVersion = applicationVersion;
-        this.setHeaders();
+        if (this.includeCustomHeaders) {
+            this.setHeaders();
+        }
     }
 
     public setFileExplorerServiceBaseUrl(fileExplorerServiceBaseUrl: FESBaseUrl) {
@@ -352,7 +363,9 @@ export default class HttpServiceBase {
         }
 
         this.httpClient = client;
-        this.setHeaders();
+        if (this.includeCustomHeaders) {
+            this.setHeaders();
+        }
     }
 
     private setHeaders() {
@@ -396,6 +409,8 @@ export default class HttpServiceBase {
 
     public setUserName(userName?: string) {
         this.userName = userName;
-        this.setHeaders();
+        if (this.includeCustomHeaders) {
+            this.setHeaders();
+        }
     }
 }
