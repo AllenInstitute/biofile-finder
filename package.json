@@ -1,6 +1,6 @@
 {
   "name": "root",
-  "version": "6.5.1",
+  "version": "8.5.1",
   "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "engines": {
     "node": "18.x",
@@ -22,8 +22,8 @@
   "devDependencies": {
     "@babel/cli": "7.x",
     "@babel/core": "7.x",
-    "@babel/plugin-proposal-class-properties": "7.x",
-    "@babel/plugin-proposal-optional-chaining": "7.x",
+    "@babel/plugin-transform-class-properties": "7.x",
+    "@babel/plugin-transform-optional-chaining": "7.x",
     "@babel/preset-env": "7.x",
     "@babel/preset-react": "7.x",
     "@babel/preset-typescript": "7.x",

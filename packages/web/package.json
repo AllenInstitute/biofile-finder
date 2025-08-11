@@ -1,5 +1,4 @@
 {
-
   "name": "biofile-finder",
   "description": "A web application for organizing that data, and provide simple hooks for incorporating that data into both programmatic and non-programmatic workflows",
   "main": "src/index.tsx",
