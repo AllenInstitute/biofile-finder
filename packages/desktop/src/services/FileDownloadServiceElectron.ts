@@ -407,8 +407,9 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        const { hostname, key } = this.parseS3Url(fileInfo.path);
-        const fileSize = fileInfo.size || (await this.calculateS3DirectorySize(hostname, key));
+        const { hostname, key, bucket } = this.parseS3Url(fileInfo.path);
+        const fileSize =
+            fileInfo.size || (await this.calculateS3DirectorySize(hostname, key, bucket));
 
         destination = destination || (await this.getDefaultDownloadDirectory());
 
@@ -424,7 +425,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             // Backfill missing directories from path.
             fs.mkdirSync(fullDestination, { recursive: true });
 
-            const keys = await this.listS3Objects(hostname, key);
+            const keys = await this.listS3Objects(hostname, key, bucket);
 
             if (keys.length === 0) {
                 throw new Error("No files found in the specified S3 directory.");
@@ -450,7 +451,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
 
                 const relativePath = path.relative(key, fileKey);
                 const destinationPath = path.join(fullDestination, relativePath);
-                const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
+                const fileUrl = `https://${hostname}/${bucket}/${encodeURIComponent(fileKey)}`;
 
                 // Backfill missing directories from path.
                 fs.mkdirSync(path.dirname(destinationPath), { recursive: true });

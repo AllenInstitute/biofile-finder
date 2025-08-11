@@ -75,10 +75,10 @@ Please navigate to this directory manually, or upload files to a remote address 
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        const { hostname, key } = this.parseS3Url(fileInfo.path);
+        const { hostname, key, bucket } = this.parseS3Url(fileInfo.path);
 
         // Calculate the total size of the S3 directory
-        const totalSize = await this.calculateS3DirectorySize(hostname, key);
+        const totalSize = await this.calculateS3DirectorySize(hostname, key, bucket);
 
         // Check if the total size exceeds 2 GB.
         // Most modern web browsers have memory constraints that limit them to using approximately 2 GB of RAM.
@@ -97,7 +97,7 @@ Please navigate to this directory manually, or upload files to a remote address 
             );
         }
 
-        const keys = await this.listS3Objects(hostname, key);
+        const keys = await this.listS3Objects(hostname, key, bucket);
         if (keys.length === 0) {
             throw new Error("No files found in the specified S3 directory.");
         }
@@ -112,7 +112,7 @@ Please navigate to this directory manually, or upload files to a remote address 
 
         // Download each file and add it to the ZIP archive
         for (const fileKey of keys) {
-            const fileUrl = `https://${hostname}/${encodeURIComponent(fileKey)}`;
+            const fileUrl = `https://${hostname}/${bucket}/${encodeURIComponent(fileKey)}`;
             const fileName = fileKey.replace(`${key}/`, ""); // Local file name in zip
 
             let fileBytesDownloaded = 0; // Track the bytes for the current file

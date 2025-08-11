@@ -250,10 +250,11 @@ const downloadFilesLogic = createLogic({
                 // Handle S3 zarr files
                 if (file.path.includes("amazonaws.com") && file.path.endsWith(".zarr")) {
                     try {
-                        const { hostname, key } = fileDownloadService.parseS3Url(file.path);
+                        const { hostname, key, bucket } = fileDownloadService.parseS3Url(file.path);
                         file.size = await fileDownloadService.calculateS3DirectorySize(
                             hostname,
-                            key
+                            key,
+                            bucket
                         );
                     } catch (err) {
                         console.error(
