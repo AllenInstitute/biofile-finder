@@ -22,8 +22,8 @@
   "devDependencies": {
     "@babel/cli": "7.x",
     "@babel/core": "7.x",
-    "@babel/plugin-transform-class-properties": "7.x",
-    "@babel/plugin-transform-optional-chaining": "7.x",
+    "@babel/plugin-proposal-class-properties": "7.x",
+    "@babel/plugin-proposal-optional-chaining": "7.x",
     "@babel/preset-env": "7.x",
     "@babel/preset-react": "7.x",
     "@babel/preset-typescript": "7.x",
