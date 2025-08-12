@@ -251,7 +251,6 @@ export default class DatabaseFileService implements FileService {
         const sqlBuilder = new SQLBuilder()
             .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
             .from(this.dataSourceNames);
-
         DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
 
         const sql = sqlBuilder.toSQL();

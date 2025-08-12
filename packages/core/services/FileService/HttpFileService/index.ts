@@ -150,7 +150,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
                 "Only CSV manifest is supported at this time for downloading from AICS FMS"
             );
         }
-
         const postData = JSON.stringify({ annotations, selections });
         const url = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
 

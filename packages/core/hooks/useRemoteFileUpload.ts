@@ -17,7 +17,8 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
     const dispatch = useDispatch();
     const [hasRemoteServer, setHasRemoteServer] = React.useState(false);
 
-    // Only check for remote server connection initially.
+    // Note: this only checks for changes to the remote server availability
+    // on initialization and does not poll the server continuously.
     useEffect(() => {
         let attempt = 1;
         let timeoutId: NodeJS.Timeout | null = null;
