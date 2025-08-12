@@ -1,5 +1,5 @@
 import { ContextualMenuItemType, DefaultButton, Icon, IContextualMenuItem } from "@fluentui/react";
-import { isEmpty } from "lodash";
+import { isEmpty, uniqueId } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -168,10 +168,9 @@ const APPS = (fileDetails: FileDetail | undefined, openInCfe: (() => void) | und
     [AppKeys.CFE]: {
         key: AppKeys.CFE,
         text: "Cell Feature Explorer",
-        // TODO: include reasons for why a resource is disabled via tooltip?
         title: `Open files with CFE`,
         onClick: openInCfe,
-        disabled: openInCfe === undefined || !fileDetails?.path,
+        hidden: openInCfe === undefined || !fileDetails?.path,
         onRenderContent(props, defaultRenders) {
             return (
                 <>
@@ -207,7 +206,6 @@ function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenu
     const isLikelyLocalFile = fileDetails.isLikelyLocalFile;
 
     const fileExt = getFileExtension(fileDetails);
-    // const apps = APPS(fileDetails);
 
     // Check for common file extensions first
 
@@ -266,7 +264,6 @@ export default (
 ): IContextualMenuItem[] => {
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
-    // TODO: only show CFE if AICS employee?
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
@@ -279,21 +276,52 @@ export default (
 
     const [hasRemoteServer, uploadCsv] = useRemoteFileUpload();
     const openInCfeCallback = React.useCallback(async () => {
-        console.log("Opening in CFE...");
-        if (hasRemoteServer) {
-            // TODO: Filter to just Zarr/JSON/TIFF files
-            const stringAnnotations = annotations.map((annotation) => annotation.name);
-            stringAnnotations.sort();
-            const file = await fileService.getManifest(
+        const processId = uniqueId();
+        if (!hasRemoteServer) {
+            dispatch(
+                interaction.actions.processError(
+                    processId,
+                    "The integration with Cell Feature Explorer is currently not available. Please try again later."
+                )
+            );
+        }
+        const stringAnnotations = annotations.map((annotation) => annotation.name);
+        stringAnnotations.sort();
+
+        let file: File;
+        let cfeUrl: string;
+        try {
+            file = await fileService.getManifest(
                 stringAnnotations,
                 fileSelection.toCompactSelectionList(),
                 "csv"
             );
-            const { url } = await uploadCsv(file);
-            const cfeUrl = `${CFE_URL}?dataset=csv&csvUrl=${encodeURIComponent(url)}`;
-            console.log("CFE URL:", cfeUrl);
-            window.open(cfeUrl, "_blank");
+        } catch (error) {
+            console.error("Error getting manifest for CFE: ", error);
+            dispatch(
+                interaction.actions.processError(
+                    processId,
+                    "Could not generate manifest for Cell Feature Explorer. Error: " +
+                        (error as Error).message
+                )
+            );
+            return;
         }
+        try {
+            const { url } = await uploadCsv(file);
+            cfeUrl = `${CFE_URL}?dataset=csv&csvUrl=${encodeURIComponent(url)}`;
+        } catch (error) {
+            console.error("Error uploading CSV for CFE: ", error);
+            dispatch(
+                interaction.actions.processError(
+                    processId,
+                    "Could not upload CSV to Cell Feature Explorer. Error: " +
+                        (error as Error).message
+                )
+            );
+            return;
+        }
+        window.open(cfeUrl, "_blank");
     }, [hasRemoteServer, fileSelection, fileService, annotations]);
 
     const openInCfe = hasRemoteServer ? openInCfeCallback : undefined;
