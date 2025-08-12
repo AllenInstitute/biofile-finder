@@ -209,7 +209,6 @@ function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenu
 
     // Check for common file extensions first
 
-    // TODO: Enable/disable CFE based on whether the remote server is reachable
     switch (fileExt) {
         case "bmp":
         case "html":
@@ -322,7 +321,7 @@ export default (
             return;
         }
         window.open(cfeUrl, "_blank");
-    }, [hasRemoteServer, fileSelection, fileService, annotations]);
+    }, [hasRemoteServer, fileSelection, fileService, annotations, dispatch, uploadCsv]);
 
     const openInCfe = hasRemoteServer ? openInCfeCallback : undefined;
 

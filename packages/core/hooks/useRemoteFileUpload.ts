@@ -17,10 +17,13 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
     const dispatch = useDispatch();
     const [hasRemoteServer, setHasRemoteServer] = React.useState(false);
 
+    // Only check for remote server connection initially.
     useEffect(() => {
-        // TODO: Have the check perform on a regular interval
+        let attempt = 1;
+        let timeoutId: NodeJS.Timeout | null = null;
         const checkRemoteServer = async () => {
-            for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+            if (attempt <= MAX_FETCH_ATTEMPTS) {
+                attempt++;
                 try {
                     const response = await fetch(`${REMOTE_SERVER_URL}${API_PING}`);
                     if (response.ok) {
@@ -28,15 +31,21 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
                         return;
                     }
                 } catch (_error) {}
-                await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 500));
+                timeoutId = setTimeout(checkRemoteServer, Math.pow(2, attempt) * 500);
+            } else {
+                setHasRemoteServer(false);
+                console.warn(
+                    `Could not connect to remote file upload server after ${MAX_FETCH_ATTEMPTS} attempts. Certain viewer integrations may be disabled.`
+                );
             }
-            setHasRemoteServer(false);
-            console.warn(
-                `Could not connect to remote file upload server after ${MAX_FETCH_ATTEMPTS} attempts. Certain viewer integrations may be disabled.`
-            );
         };
 
-        checkRemoteServer();
+        timeoutId = setTimeout(checkRemoteServer, 10);
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
     }, []);
 
     const uploadCsv: UploadFileCallback = useCallback(
@@ -55,7 +64,6 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
                 body: formData,
             });
             if (!response.ok) {
-                // TODO: Add error handling (see BFF's native error messaging?)
                 throw new Error("Failed to upload file: " + response.statusText);
             }
             const jsonResponse = await response.json();
@@ -64,7 +72,7 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
                 url: `${REMOTE_SERVER_URL}${API_GET_FILE}/${jsonResponse.id}`,
             } as UploadResponse;
         },
-        [hasRemoteServer]
+        [hasRemoteServer, dispatch]
     );
 
     return [hasRemoteServer, uploadCsv];
