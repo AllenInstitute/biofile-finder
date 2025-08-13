@@ -72,11 +72,16 @@
     justify-content: space-between;
 }
 
-.header > h4 {
+.header h4 {
     overflow: hidden;
     text-overflow: ellipsis;
     width: 100%;
     white-space: nowrap;
+    line-height: 1.5;
+}
+
+.header-collapsed > div {
+    width: calc(100% - 42px);
 }
 
 .loading-container {
