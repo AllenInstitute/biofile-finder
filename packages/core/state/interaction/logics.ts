@@ -78,12 +78,21 @@ const initializeApp = createLogic({
         // into the query to render (ex. when refreshing a page)
         if (isOnWeb && window.location.search) {
             try {
-                dispatch(
-                    selection.actions.addQuery({
-                        name: DEFAULT_QUERY_NAME,
-                        parts: SearchParams.decode(window.location.search),
-                    })
-                );
+                // If the query is already present, we shouldn't add it again, just refresh it
+                const equivalentExists = queries.some((query) => {
+                    return `?${SearchParams.encode(query?.parts)}` === window.location.search;
+                });
+                // Refresh existing query
+                if (queries.length && equivalentExists) {
+                    dispatch(refresh);
+                } else {
+                    dispatch(
+                        selection.actions.addQuery({
+                            name: DEFAULT_QUERY_NAME,
+                            parts: SearchParams.decode(window.location.search),
+                        })
+                    );
+                }
             } catch (err) {
                 // Parsing error from SearchParams.decode
                 dispatch(
