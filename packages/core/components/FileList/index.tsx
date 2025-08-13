@@ -131,6 +131,8 @@ export default function FileList(props: FileListProps) {
 
     // Get a count of all files in the FileList, but don't wait on it
     React.useEffect(() => {
+        // Show loading state in UI instead of stale count (could be from unrelated query set)
+        setTotalCount(null);
         let cancel = false;
         fileSet
             .fetchTotalCount()
