@@ -4,13 +4,14 @@ import { useSelector } from "react-redux";
 
 import FileDetail from "../../entity/FileDetail";
 import { selection } from "../../state";
+import FileSelection from "../../entity/FileSelection";
 
 /**
  * Custom React hook to accomplish storing and fetching details of files (i.e., complex file metadata).
  * This hook exposes loading state: if a network request is in flight for file details the second element
  * of the return array will be true.
  */
-export default function useFileDetails(): [FileDetail | null, boolean] {
+export default function useFileDetails(): [FileDetail | null, boolean, FileSelection] {
     const fileSelection = useSelector(selection.selectors.getFileSelection);
 
     const [fileDetails, setFileDetails] = React.useState<FileDetail | null>(null);
@@ -48,5 +49,5 @@ export default function useFileDetails(): [FileDetail | null, boolean] {
         };
     }, [fileSelection]);
 
-    return [fileDetails, isLoading];
+    return [fileDetails, isLoading, fileSelection];
 }

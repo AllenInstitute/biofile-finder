@@ -51,6 +51,11 @@ export default interface FileService {
         selections: Selection[],
         format: "csv" | "json" | "parquet"
     ): Promise<DownloadResult>;
+    getManifest(
+        annotations: string[],
+        selections: Selection[],
+        format: "csv" | "json" | "parquet"
+    ): Promise<File>;
     editFile(
         fileId: string,
         annotations: AnnotationNameToValuesMap,

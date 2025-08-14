@@ -15,6 +15,10 @@ export default class FileServiceNoop implements FileService {
         return Promise.resolve([]);
     }
 
+    public getManifest(): Promise<File> {
+        return Promise.resolve(new File([], "manifest", { type: "text/csv" }));
+    }
+
     public download(): Promise<DownloadResult> {
         return Promise.resolve({ downloadRequestId: "", resolution: DownloadResolution.CANCELLED });
     }

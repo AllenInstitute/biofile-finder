@@ -9,6 +9,8 @@ import FileFilter from "../../entity/FileFilter";
 import { interaction, metadata } from "../../state";
 
 import styles from "./useOpenWithMenuItems.module.css";
+import FileSelection from "../../entity/FileSelection";
+import { useOpenInCfe } from "./useOpenInCfe";
 
 enum AppKeys {
     AGAVE = "agave",
@@ -18,6 +20,7 @@ enum AppKeys {
     VALIDATOR = "validator",
     VOLE = "vole",
     VOLVIEW = "volview",
+    CFE = "cfe",
 }
 
 interface Apps {
@@ -28,6 +31,7 @@ interface Apps {
     [AppKeys.VALIDATOR]: IContextualMenuItem;
     [AppKeys.VOLE]: IContextualMenuItem;
     [AppKeys.VOLVIEW]: IContextualMenuItem;
+    [AppKeys.CFE]: IContextualMenuItem;
 }
 
 const SUPPORTED_APPS_HEADER = {
@@ -44,7 +48,7 @@ const UNSUPPORTED_APPS_HEADER = {
     itemType: ContextualMenuItemType.Header,
 };
 
-const APPS = (fileDetails?: FileDetail): Apps => ({
+const APPS = (fileDetails: FileDetail | undefined, openInCfe: (() => void) | undefined): Apps => ({
     [AppKeys.AGAVE]: {
         key: AppKeys.AGAVE,
         // TODO: Upgrade styling here
@@ -159,6 +163,21 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
             );
         },
     } as IContextualMenuItem,
+    [AppKeys.CFE]: {
+        key: AppKeys.CFE,
+        text: "Cell Feature Explorer",
+        title: `Open files with CFE`,
+        onClick: openInCfe,
+        hidden: openInCfe === undefined || !fileDetails?.path,
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
     [AppKeys.VOLVIEW]: {
         key: AppKeys.VOLVIEW,
         text: "VolView",
@@ -177,15 +196,14 @@ const APPS = (fileDetails?: FileDetail): Apps => ({
     } as IContextualMenuItem,
 });
 
-function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
+function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenuItem[] {
     if (!fileDetails) {
         return [];
     }
 
     const isLikelyLocalFile = fileDetails.isLikelyLocalFile;
 
-    const fileExt = fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
-    const apps = APPS(fileDetails);
+    const fileExt = getFileExtension(fileDetails);
 
     // Check for common file extensions first
 
@@ -208,12 +226,12 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
         case "dvi":
         case "tif":
         case "tiff":
-            return [apps.agave];
+            return [apps.agave, apps.cfe];
         case "zarr":
         case "": // No extension
             return isLikelyLocalFile
-                ? [apps.agave, apps.neuroglancer, apps.vole]
-                : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
+                ? [apps.agave, apps.neuroglancer, apps.vole, apps.cfe]
+                : [apps.vole, apps.neuroglancer, apps.agave, apps.cfe, apps.validator];
     }
 
     // Now check for special cases where the path may include a subpath into the container
@@ -231,7 +249,16 @@ function getSupportedApps(fileDetails?: FileDetail): IContextualMenuItem[] {
     return [];
 }
 
-export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
+function getFileExtension(fileDetails: FileDetail): string {
+    return fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
+}
+
+export default (
+    fileDetails: FileDetail | undefined,
+    // TODO: Get directly? `const fileSelection = useSelector(...);`
+    fileSelection: FileSelection,
+    filters?: FileFilter[]
+): IContextualMenuItem[] => {
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
@@ -240,7 +267,17 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
+    const annotations = useSelector(metadata.selectors.getAnnotations);
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
+    const fileService = useSelector(interaction.selectors.getFileService);
+
+    const [hasRemoteServer, openInCfeCallback] = useOpenInCfe();
+    const openInCfe = React.useMemo(() => {
+        if (!hasRemoteServer) {
+            return undefined;
+        }
+        return () => openInCfeCallback(fileSelection, annotations, fileService);
+    }, [hasRemoteServer, openInCfeCallback, fileSelection, annotations, fileService]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
@@ -308,9 +345,10 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const supportedApps = [...getSupportedApps(fileDetails), ...userApps];
+    const apps = APPS(fileDetails, openInCfe);
+    const supportedApps = [...getSupportedApps(apps, fileDetails), ...userApps];
     // Grab every other known app
-    const unsupportedApps = Object.values(APPS(fileDetails))
+    const unsupportedApps = Object.values(apps)
         .filter((app) => supportedApps.every((item) => item.key !== app.key))
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
