@@ -125,6 +125,30 @@ export default class DatabaseFileService implements FileService {
         return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
     }
 
+    private getSelectionSql(annotations: string[], selections: Selection[]): string {
+        const sqlBuilder = new SQLBuilder()
+            .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
+            .from(this.dataSourceNames);
+        DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
+        return sqlBuilder.toSQL();
+    }
+
+    public async getManifest(
+        annotations: string[],
+        selections: Selection[],
+        format: "csv" | "json" | "parquet"
+    ): Promise<File> {
+        if (format !== "csv") {
+            throw new Error(
+                "Only CSV manifest is supported at this time for downloading from Database"
+            );
+        }
+        const sql = this.getSelectionSql(annotations, selections);
+        const buffer = await this.databaseService.saveQuery(uniqueId(), sql, format);
+        const name = `file-manifest-${new Date()}.${format}`;
+        return new File([buffer], name, { type: `text/${format}` });
+    }
+
     /**
      * Download file selection as a file in the specified format.
      */
@@ -133,13 +157,7 @@ export default class DatabaseFileService implements FileService {
         selections: Selection[],
         format: "csv" | "json" | "parquet"
     ): Promise<DownloadResult> {
-        const sqlBuilder = new SQLBuilder()
-            .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
-            .from(this.dataSourceNames);
-
-        DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
-
-        return this.handleFileDownload(sqlBuilder.toSQL(), format);
+        return this.handleFileDownload(this.getSelectionSql(annotations, selections), format);
     }
 
     /**
@@ -236,27 +254,6 @@ export default class DatabaseFileService implements FileService {
             },
             uniqueId()
         );
-    }
-
-    public async getManifest(
-        annotations: string[],
-        selections: Selection[],
-        format: "csv" | "json" | "parquet"
-    ): Promise<File> {
-        if (format !== "csv") {
-            throw new Error(
-                "Only CSV manifest is supported at this time for downloading from Database"
-            );
-        }
-        const sqlBuilder = new SQLBuilder()
-            .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
-            .from(this.dataSourceNames);
-        DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
-
-        const sql = sqlBuilder.toSQL();
-        const buffer = await this.databaseService.saveQuery(uniqueId(), sql, format);
-        const name = `file-manifest-${new Date()}.${format}`;
-        return new File([buffer], name, { type: `text/${format}` });
     }
 
     public editFile(fileId: string, annotations: AnnotationNameToValuesMap): Promise<void> {
