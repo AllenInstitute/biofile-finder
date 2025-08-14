@@ -1,5 +1,5 @@
 import { ContextualMenuItemType, DefaultButton, Icon, IContextualMenuItem } from "@fluentui/react";
-import { isEmpty, uniqueId } from "lodash";
+import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -10,9 +10,7 @@ import { interaction, metadata } from "../../state";
 
 import styles from "./useOpenWithMenuItems.module.css";
 import FileSelection from "../../entity/FileSelection";
-import useRemoteFileUpload from "../useRemoteFileUpload";
-
-const CFE_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist/";
+import { useOpenInCfe } from "./useOpenInCfe";
 
 enum AppKeys {
     AGAVE = "agave",
@@ -273,57 +271,13 @@ export default (
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
     const fileService = useSelector(interaction.selectors.getFileService);
 
-    const [hasRemoteServer, uploadCsv] = useRemoteFileUpload();
-    const openInCfeCallback = React.useCallback(async () => {
-        const processId = uniqueId();
+    const [hasRemoteServer, openInCfeCallback] = useOpenInCfe();
+    const openInCfe = React.useMemo(() => {
         if (!hasRemoteServer) {
-            dispatch(
-                interaction.actions.processError(
-                    processId,
-                    "The integration with Cell Feature Explorer is currently not available. Please try again later."
-                )
-            );
+            return undefined;
         }
-        const stringAnnotations = annotations.map((annotation) => annotation.name);
-        stringAnnotations.sort();
-
-        let file: File;
-        let cfeUrl: string;
-        try {
-            file = await fileService.getManifest(
-                stringAnnotations,
-                fileSelection.toCompactSelectionList(),
-                "csv"
-            );
-        } catch (error) {
-            console.error("Error getting manifest for CFE: ", error);
-            dispatch(
-                interaction.actions.processError(
-                    processId,
-                    "Could not generate manifest for Cell Feature Explorer. Error: " +
-                        (error as Error).message
-                )
-            );
-            return;
-        }
-        try {
-            const { url } = await uploadCsv(file);
-            cfeUrl = `${CFE_URL}?dataset=csv&csvUrl=${encodeURIComponent(url)}`;
-        } catch (error) {
-            console.error("Error uploading CSV for CFE: ", error);
-            dispatch(
-                interaction.actions.processError(
-                    processId,
-                    "Could not upload CSV to Cell Feature Explorer. Error: " +
-                        (error as Error).message
-                )
-            );
-            return;
-        }
-        window.open(cfeUrl, "_blank");
-    }, [hasRemoteServer, fileSelection, fileService, annotations, dispatch, uploadCsv]);
-
-    const openInCfe = hasRemoteServer ? openInCfeCallback : undefined;
+        return () => openInCfeCallback(fileSelection, annotations, fileService);
+    }, [hasRemoteServer, openInCfeCallback, fileSelection, annotations, fileService]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(

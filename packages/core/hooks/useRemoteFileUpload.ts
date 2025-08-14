@@ -49,7 +49,7 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
         };
     }, []);
 
-    const uploadCsv: UploadFileCallback = useCallback(
+    const uploadFile: UploadFileCallback = useCallback(
         async (file: File): Promise<UploadResponse> => {
             const processId = uniqueId();
             if (!hasRemoteServer) {
@@ -76,7 +76,7 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
         [hasRemoteServer, dispatch]
     );
 
-    return [hasRemoteServer, uploadCsv];
+    return [hasRemoteServer, uploadFile];
 };
 
 export default useRemoteFileUpload;
