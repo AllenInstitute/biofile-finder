@@ -101,9 +101,11 @@ export default function FileDetails(props: Props) {
                     setCalculatedSize(fileDetails.size);
                 } else if (fileDownloadService.isS3Url(fileDetails.path)) {
                     // Currently unable to calculate file size for local, non-s3 zarr files
-                    const { hostname, key } = fileDownloadService.parseS3Url(fileDetails.path);
+                    const { hostname, key, bucket } = fileDownloadService.parseS3Url(
+                        fileDetails.path
+                    );
                     fileDownloadService
-                        .calculateS3DirectorySize(hostname, key)
+                        .calculateS3DirectorySize(hostname, key, bucket)
                         .then(setCalculatedSize);
                 }
             }

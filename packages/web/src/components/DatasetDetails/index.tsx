@@ -105,11 +105,19 @@ export default function DatasetDetails(props: DatasetDetailsProps) {
                 <div className={styles.buttonWrapper}>
                     <PrimaryButton
                         className={styles.button}
-                        iconName="Upload"
-                        title="Load dataset in the app"
-                        text="LOAD DATASET"
+                        iconName="View"
+                        title="View dataset in the app"
+                        text="VIEW"
                         onClick={() => props.onLoadDataset(datasetDetails)}
                     />
+                    <a href={datasetDetails?.path} target="_blank" rel="noreferrer">
+                        <SecondaryButton
+                            className={styles.button}
+                            iconName="Download"
+                            title="Download dataset"
+                            text="DOWNLOAD"
+                        />
+                    </a>
                 </div>
                 <hr></hr>
                 <div className={styles.content}>

@@ -9,6 +9,8 @@ export function makePublicDatasetMock(id: string): PublicDataset {
         dataset_size: "10000",
         description: `This is a test description for dataset ID: ${id}`,
         file_count: "200000",
+        organization: "Anyone",
+        index: "1",
         created: "Jan-02-2023",
         published: "Jan-04-2023",
         related_publication:

@@ -14,7 +14,9 @@ export interface PublicDatasetProps {
     description?: string;
     doi?: string;
     file_count?: string;
+    index?: string;
     created?: string;
+    organization?: string;
     published?: string;
     related_publication?: string;
     related_publication_link?: string;
@@ -49,10 +51,12 @@ export const DatasetAnnotations = {
     DATASET_ID: new DatasetAnnotation("Dataset ID", "dataset_id"),
     DATASET_NAME: new DatasetAnnotation("Dataset name", "dataset_name", 50),
     DATASET_PATH: new DatasetAnnotation("File Path", "dataset_path"),
+    INDEX: new DatasetAnnotation("Index", "index", 1),
     DATASET_SIZE: new DatasetAnnotation("Size", "dataset_size", 78),
     DATASET_DESCRIPTION: new DatasetAnnotation("Short description", "description", 200),
     DOI: new DatasetAnnotation("DOI", "doi"),
     FILE_COUNT: new DatasetAnnotation("File count", "file_count", 89),
+    ORGANIZATION: new DatasetAnnotation("Organization", "organization", 114),
     PUBLICATION_DATE: new DatasetAnnotation("Publication date", "published", 128),
     RELATED_PUBLICATON: new DatasetAnnotation("Related publication", "related_publication", 178),
     RELATED_PUBLICATION_LINK: new DatasetAnnotation(
@@ -66,23 +70,24 @@ export const DatasetAnnotations = {
 
 // Limited set used for the details panel
 export const DATASET_DISPLAY_FIELDS = [
-    DatasetAnnotations.CREATION_DATE,
+    DatasetAnnotations.ORGANIZATION,
     DatasetAnnotations.RELATED_PUBLICATON,
-    DatasetAnnotations.DATASET_SIZE,
-    DatasetAnnotations.PUBLICATION_DATE,
-    DatasetAnnotations.FILE_COUNT,
     DatasetAnnotations.DOI,
+    DatasetAnnotations.PUBLICATION_DATE,
+    DatasetAnnotations.CREATION_DATE,
+    DatasetAnnotations.FILE_COUNT,
+    DatasetAnnotations.DATASET_SIZE,
 ];
 
 // Limited set used for the table header
 export const DATASET_TABLE_FIELDS = [
     DatasetAnnotations.DATASET_NAME,
+    DatasetAnnotations.DATASET_DESCRIPTION,
     DatasetAnnotations.CREATION_DATE,
     DatasetAnnotations.RELATED_PUBLICATON,
-    DatasetAnnotations.PUBLICATION_DATE,
+    DatasetAnnotations.ORGANIZATION,
     DatasetAnnotations.FILE_COUNT,
     DatasetAnnotations.DATASET_SIZE,
-    DatasetAnnotations.DATASET_DESCRIPTION,
 ];
 
 /**
