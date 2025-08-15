@@ -11,6 +11,8 @@ import { interaction, metadata, selection } from "../../state";
 import styles from "./useOpenWithMenuItems.module.css";
 import useOpenInCfe from "./useOpenInCfe";
 import useRemoteFileUpload from "../useRemoteFileUpload";
+import { getFileExtension } from "./utils";
+import useOpenInVole from "./useOpenInVole";
 
 enum AppKeys {
     AGAVE = "agave",
@@ -36,6 +38,7 @@ interface Apps {
 
 type AppOptions = {
     openInCfe: () => void;
+    openInVole: () => void;
 };
 
 const SUPPORTED_APPS_HEADER = {
@@ -52,10 +55,7 @@ const UNSUPPORTED_APPS_HEADER = {
     itemType: ContextualMenuItemType.Header,
 };
 
-const APPS = (
-    fileDetails: FileDetail | undefined,
-    options: Partial<AppOptions> | undefined
-): Apps => ({
+const APPS = (fileDetails: FileDetail | undefined, options: Partial<AppOptions>): Apps => ({
     [AppKeys.AGAVE]: {
         key: AppKeys.AGAVE,
         // TODO: Upgrade styling here
@@ -158,9 +158,10 @@ const APPS = (
         key: AppKeys.VOLE,
         text: "Vol-E",
         title: `Open files with Vol-E`,
-        href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.path}/`,
+        // href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.path}/`,
+        // target: "_blank",
         disabled: !fileDetails?.path,
-        target: "_blank",
+        onClick: options.openInVole,
         onRenderContent(props, defaultRenders) {
             return (
                 <>
@@ -174,8 +175,8 @@ const APPS = (
         key: AppKeys.CFE,
         text: "Cell Feature Explorer",
         title: `Open files with CFE`,
-        onClick: options?.openInCfe,
-        hidden: options?.openInCfe === undefined || !fileDetails?.path,
+        onClick: options.openInCfe,
+        hidden: options.openInCfe === undefined || !fileDetails?.path,
         onRenderContent(props, defaultRenders) {
             return (
                 <>
@@ -256,10 +257,6 @@ function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenu
     return [];
 }
 
-function getFileExtension(fileDetails: FileDetail): string {
-    return fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
-}
-
 export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
@@ -285,6 +282,13 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         annotationNames,
         fileService
     );
+
+    const openInVoleCallback = useOpenInVole(remoteServerConnection);
+    const openInVole = React.useMemo(() => () => openInVoleCallback(fileSelection, fileDetails), [
+        openInVoleCallback,
+        fileSelection,
+        fileDetails,
+    ]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
@@ -352,7 +356,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const apps = APPS(fileDetails, { openInCfe });
+    const apps = APPS(fileDetails, { openInCfe, openInVole });
     const supportedApps = [...getSupportedApps(apps, fileDetails), ...userApps];
     // Grab every other known app
     const unsupportedApps = Object.values(apps)
