@@ -1,5 +1,5 @@
 import * as React from "react";
-import useRemoteFileUpload from "../useRemoteFileUpload";
+import { RemoteFileUploadServerConnection } from "../useRemoteFileUpload";
 import { uniqueId } from "lodash";
 import Annotation from "../../entity/Annotation";
 import FileSelection from "../../entity/FileSelection";
@@ -8,6 +8,12 @@ import { interaction } from "../../state";
 import { useDispatch } from "react-redux";
 
 const CFE_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist/";
+
+type OpenInCfeCallback = (
+    fileSelection: FileSelection,
+    annotations: Annotation[],
+    fileService: FileService
+) => Promise<void>;
 
 /**
  * Opens a file selection in Cell Feature Explorer, using a remote server to
@@ -19,16 +25,11 @@ const CFE_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-ex
  *   Explorer, if the remote server is available. If the server is not
  *   available, dispatches an error.
  */
-export const useOpenInCfe = (): [
-    hasRemoteServer: boolean,
-    openInCfe: (
-        fileSelection: FileSelection,
-        annotations: Annotation[],
-        fileService: FileService
-    ) => Promise<void>
-] => {
+const useOpenInCfe = (
+    remoteServerConnection: RemoteFileUploadServerConnection
+): OpenInCfeCallback => {
+    const { hasRemoteServer, uploadFile } = remoteServerConnection;
     const dispatch = useDispatch();
-    const [hasRemoteServer, uploadCsv] = useRemoteFileUpload();
     const openInCfe = React.useCallback(
         async (
             fileSelection: FileSelection,
@@ -67,7 +68,7 @@ export const useOpenInCfe = (): [
                 return;
             }
             try {
-                const { url } = await uploadCsv(file);
+                const { url } = await uploadFile(file);
                 cfeUrl = `${CFE_URL}?dataset=csv&csvUrl=${encodeURIComponent(url)}`;
             } catch (error) {
                 console.error("Error uploading CSV for CFE: ", error);
@@ -82,7 +83,9 @@ export const useOpenInCfe = (): [
             }
             window.open(cfeUrl, "_blank");
         },
-        [hasRemoteServer, dispatch, uploadCsv]
+        [hasRemoteServer, dispatch, uploadFile]
     );
-    return [hasRemoteServer, openInCfe];
+    return openInCfe;
 };
+
+export default useOpenInCfe;

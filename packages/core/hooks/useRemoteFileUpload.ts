@@ -1,7 +1,5 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { interaction } from "../state";
-import { uniqueId } from "lodash";
 
 const REMOTE_SERVER_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080";
 const API_PING = "/ping";
@@ -11,9 +9,14 @@ const API_GET_FILE = "/get-file";
 type UploadResponse = { id: string; url: string };
 type UploadFileCallback = (file: File) => Promise<UploadResponse>;
 
+export type RemoteFileUploadServerConnection = {
+    hasRemoteServer: boolean;
+    uploadFile: UploadFileCallback;
+};
+
 const MAX_FETCH_ATTEMPTS = 5;
 
-const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFileCallback] => {
+const useRemoteFileUpload = (): RemoteFileUploadServerConnection => {
     const dispatch = useDispatch();
     const [hasRemoteServer, setHasRemoteServer] = React.useState(false);
 
@@ -51,13 +54,9 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
 
     const uploadFile: UploadFileCallback = useCallback(
         async (file: File): Promise<UploadResponse> => {
-            const processId = uniqueId();
             if (!hasRemoteServer) {
                 throw new Error("Remote server is not available");
             }
-            dispatch(
-                interaction.actions.processStart(processId, "Opening in Cell Feature Explorer.")
-            );
             const formData = new FormData();
             formData.append("file", file);
             const response = await fetch(`${REMOTE_SERVER_URL}${API_UPLOAD}`, {
@@ -76,7 +75,8 @@ const useRemoteFileUpload = (): [hasRemoteServer: boolean, uploadCsv: UploadFile
         [hasRemoteServer, dispatch]
     );
 
-    return [hasRemoteServer, uploadFile];
+    const status = useMemo(() => ({ hasRemoteServer, uploadFile }), [hasRemoteServer, uploadFile]);
+    return status;
 };
 
 export default useRemoteFileUpload;
