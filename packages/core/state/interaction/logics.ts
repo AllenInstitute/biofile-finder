@@ -70,15 +70,16 @@ const initializeApp = createLogic({
         const isOnWeb = interactionSelectors.isOnWeb(deps.getState());
         const fileService = interactionSelectors.getHttpFileService(deps.getState());
 
-        // Redimentary check to see if the user is an AICS Employee by
+        // Rudimentary check to see if the user is an AICS employee by
         // checking if the AICS network is accessible
         const isAicsEmployee = await fileService.isNetworkAccessible();
 
-        // If there are query args representing a query we can extract that
-        // into the query to render (ex. when refreshing a page)
+        // If the url has search params representing a query, we can extract those
+        // into a query object to render (ex. when refreshing a page)
         if (isOnWeb && window.location.search) {
             try {
-                // If the query is already present, we shouldn't add it again, just refresh it
+                // If the exact query already exists in state on initialization,
+                // we shouldn't add it again, just refresh it
                 const equivalentExists = queries.some((query) => {
                     return `?${SearchParams.encode(query?.parts)}` === window.location.search;
                 });
