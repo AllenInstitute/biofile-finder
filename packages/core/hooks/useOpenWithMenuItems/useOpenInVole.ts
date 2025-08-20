@@ -12,7 +12,7 @@ type OpenInVoleCallback = (
 ) => Promise<void>;
 
 // const VOLE_BASE_URL = "https://volumeviewer.allencell.org/viewer";
-const VOLE_BASE_URL = "http://localhost:9020/viewer";
+const VOLE_BASE_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org/website-3d-cell-viewer";
 
 /**
  * Hook that returns a callback to open one or more files in Vol-E.
