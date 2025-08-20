@@ -45,6 +45,9 @@ const useOpenInCfe = (
                     )
                 );
             }
+            dispatch(
+                interaction.actions.processStart(processId, "Opening in Cell Feature Explorer...")
+            );
             const stringAnnotations = annotations.map((annotation) => annotation.name);
             stringAnnotations.sort();
 
@@ -82,6 +85,13 @@ const useOpenInCfe = (
                 return;
             }
             window.open(cfeUrl, "_blank");
+            // TODO: Include link here in the popup in case the new tab didn't open?
+            dispatch(
+                interaction.actions.processSuccess(
+                    processId,
+                    "Launched Cell Feature Explorer in a new tab."
+                )
+            );
         },
         [hasRemoteServer, dispatch, uploadFile]
     );

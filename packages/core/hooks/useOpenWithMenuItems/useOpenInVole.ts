@@ -40,7 +40,7 @@ const useOpenInVole = (remoteConnection: RemoteFileUploadServerConnection): Open
                 throw new Error("Could not open Vol-E: no file details provided.");
             }
         }
-        dispatch(interaction.actions.processStart(processId, "Opening in Vol-E."));
+        dispatch(interaction.actions.processStart(processId, "Opening in Vol-E..."));
 
         const allDetails = await fileSelection.fetchAllDetails();
         const details = allDetails.filter((detail) => {
@@ -75,7 +75,8 @@ const useOpenInVole = (remoteConnection: RemoteFileUploadServerConnection): Open
 
         const manifestUrl = response.url;
         window.open(`${VOLE_BASE_URL}?manifest=${manifestUrl}${sceneStr}`);
-        dispatch(interaction.actions.processSuccess(processId, "Launched Vol-E."));
+        // TODO: Include link here in the popup in case the new tab didn't open?
+        dispatch(interaction.actions.processSuccess(processId, "Launched Vol-E in a new tab."));
     };
 
     return openInVole;
