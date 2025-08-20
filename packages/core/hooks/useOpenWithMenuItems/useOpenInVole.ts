@@ -74,9 +74,13 @@ const useOpenInVole = (remoteConnection: RemoteFileUploadServerConnection): Open
         const response = await uploadFile(file);
 
         const manifestUrl = response.url;
-        window.open(`${VOLE_BASE_URL}?manifest=${manifestUrl}${sceneStr}`);
-        // TODO: Include link here in the popup in case the new tab didn't open?
-        dispatch(interaction.actions.processSuccess(processId, "Launched Vol-E in a new tab."));
+        const voleUrl = `${VOLE_BASE_URL}?manifest=${manifestUrl}${sceneStr}`;
+        window.open(voleUrl, "_blank", "noopener,noreferrer");
+        // TODO: Include link here in the popup in case the new tab didn't open
+        console.log(voleUrl);
+        dispatch(
+            interaction.actions.processSuccess(processId, "Launched Vol-E in a new tab: " + voleUrl)
+        );
     };
 
     return openInVole;

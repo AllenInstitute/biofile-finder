@@ -84,12 +84,16 @@ const useOpenInCfe = (
                 );
                 return;
             }
-            window.open(cfeUrl, "_blank");
-            // TODO: Include link here in the popup in case the new tab didn't open?
+            // NOTE: In certain async contexts, window.open will not open after a delay
+            // that is too long. The confirmation popup needs to include a clickable link
+            // if this happens.
+            window.open(cfeUrl, "_blank", "noopener,noreferrer");
+            console.log(cfeUrl);
+            // TODO: Include link here in the popup in case the new tab didn't open
             dispatch(
                 interaction.actions.processSuccess(
                     processId,
-                    "Launched Cell Feature Explorer in a new tab."
+                    "Launched Cell Feature Explorer in a new tab: " + cfeUrl
                 )
             );
         },
