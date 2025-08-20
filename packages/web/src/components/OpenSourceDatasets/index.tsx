@@ -6,14 +6,13 @@ import DatasetTable from "./DatasetTable";
 import DatasetDetails from "../DatasetDetails";
 import PublicDataset from "../../entity/PublicDataset";
 import { metadata, selection } from "../../../../core/state";
-
-import styles from "./OpenSourceDatasets.module.css";
 import SearchParams, {
     SearchParamsComponents,
     getNameAndTypeFromSourceUrl,
     Source,
 } from "../../../../core/entity/SearchParams";
 
+import styles from "./OpenSourceDatasets.module.css";
 /**
  * Page for displaying public-facing datasets
  * Currently using placeholder text and data
