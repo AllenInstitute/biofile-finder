@@ -10,7 +10,8 @@ import { interaction, metadata } from "../../state";
 
 import styles from "./useOpenWithMenuItems.module.css";
 import FileSelection from "../../entity/FileSelection";
-import { useOpenInCfe } from "./useOpenInCfe";
+import useOpenInCfe from "./useOpenInCfe";
+import useRemoteFileUpload from "../useRemoteFileUpload";
 
 enum AppKeys {
     AGAVE = "agave",
@@ -34,6 +35,10 @@ interface Apps {
     [AppKeys.CFE]: IContextualMenuItem;
 }
 
+type AppOptions = {
+    openInCfe: () => void;
+};
+
 const SUPPORTED_APPS_HEADER = {
     key: "supported-apps-headers",
     text: "SUPPORT FILE TYPE",
@@ -48,7 +53,10 @@ const UNSUPPORTED_APPS_HEADER = {
     itemType: ContextualMenuItemType.Header,
 };
 
-const APPS = (fileDetails: FileDetail | undefined, openInCfe: (() => void) | undefined): Apps => ({
+const APPS = (
+    fileDetails: FileDetail | undefined,
+    options: Partial<AppOptions> | undefined
+): Apps => ({
     [AppKeys.AGAVE]: {
         key: AppKeys.AGAVE,
         // TODO: Upgrade styling here
@@ -167,8 +175,8 @@ const APPS = (fileDetails: FileDetail | undefined, openInCfe: (() => void) | und
         key: AppKeys.CFE,
         text: "Cell Feature Explorer",
         title: `Open files with CFE`,
-        onClick: openInCfe,
-        hidden: openInCfe === undefined || !fileDetails?.path,
+        onClick: options?.openInCfe,
+        hidden: options?.openInCfe === undefined || !fileDetails?.path,
         onRenderContent(props, defaultRenders) {
             return (
                 <>
@@ -271,13 +279,20 @@ export default (
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
     const fileService = useSelector(interaction.selectors.getFileService);
 
-    const [hasRemoteServer, openInCfeCallback] = useOpenInCfe();
+    const remoteServerConnection = useRemoteFileUpload();
+    const openInCfeCallback = useOpenInCfe(remoteServerConnection);
     const openInCfe = React.useMemo(() => {
-        if (!hasRemoteServer) {
+        if (!remoteServerConnection.hasRemoteServer) {
             return undefined;
         }
         return () => openInCfeCallback(fileSelection, annotations, fileService);
-    }, [hasRemoteServer, openInCfeCallback, fileSelection, annotations, fileService]);
+    }, [
+        remoteServerConnection.hasRemoteServer,
+        openInCfeCallback,
+        fileSelection,
+        annotations,
+        fileService,
+    ]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
@@ -345,7 +360,7 @@ export default (
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const apps = APPS(fileDetails, openInCfe);
+    const apps = APPS(fileDetails, { openInCfe });
     const supportedApps = [...getSupportedApps(apps, fileDetails), ...userApps];
     // Grab every other known app
     const unsupportedApps = Object.values(apps)

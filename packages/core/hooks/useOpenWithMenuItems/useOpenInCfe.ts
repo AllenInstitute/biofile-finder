@@ -1,5 +1,5 @@
 import * as React from "react";
-import useRemoteFileUpload from "../useRemoteFileUpload";
+import { RemoteFileUploadServerConnection } from "../useRemoteFileUpload";
 import { uniqueId } from "lodash";
 import Annotation from "../../entity/Annotation";
 import FileSelection from "../../entity/FileSelection";
@@ -8,6 +8,12 @@ import { interaction } from "../../state";
 import { useDispatch } from "react-redux";
 
 const CFE_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist/";
+
+type OpenInCfeCallback = (
+    fileSelection: FileSelection,
+    annotations: Annotation[],
+    fileService: FileService
+) => Promise<void>;
 
 /**
  * Opens a file selection in Cell Feature Explorer, using a remote server to
@@ -19,16 +25,11 @@ const CFE_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-ex
  *   Explorer, if the remote server is available. If the server is not
  *   available, dispatches an error.
  */
-export const useOpenInCfe = (): [
-    hasRemoteServer: boolean,
-    openInCfe: (
-        fileSelection: FileSelection,
-        annotations: Annotation[],
-        fileService: FileService
-    ) => Promise<void>
-] => {
+const useOpenInCfe = (
+    remoteServerConnection: RemoteFileUploadServerConnection
+): OpenInCfeCallback => {
+    const { hasRemoteServer, uploadFile } = remoteServerConnection;
     const dispatch = useDispatch();
-    const [hasRemoteServer, uploadCsv] = useRemoteFileUpload();
     const openInCfe = React.useCallback(
         async (
             fileSelection: FileSelection,
@@ -44,6 +45,9 @@ export const useOpenInCfe = (): [
                     )
                 );
             }
+            dispatch(
+                interaction.actions.processStart(processId, "Opening in Cell Feature Explorer...")
+            );
             const stringAnnotations = annotations.map((annotation) => annotation.name);
             stringAnnotations.sort();
 
@@ -67,7 +71,7 @@ export const useOpenInCfe = (): [
                 return;
             }
             try {
-                const { url } = await uploadCsv(file);
+                const { url } = await uploadFile(file);
                 cfeUrl = `${CFE_URL}?dataset=csv&csvUrl=${encodeURIComponent(url)}`;
             } catch (error) {
                 console.error("Error uploading CSV for CFE: ", error);
@@ -80,9 +84,22 @@ export const useOpenInCfe = (): [
                 );
                 return;
             }
-            window.open(cfeUrl, "_blank");
+            // NOTE: In certain async contexts, window.open will not open after a delay
+            // that is too long. The confirmation popup needs to include a clickable link
+            // if this happens.
+            window.open(cfeUrl, "_blank", "noopener,noreferrer");
+            console.log(cfeUrl);
+            // TODO: Include link here in the popup in case the new tab didn't open
+            dispatch(
+                interaction.actions.processSuccess(
+                    processId,
+                    "Launched Cell Feature Explorer in a new tab: " + cfeUrl
+                )
+            );
         },
-        [hasRemoteServer, dispatch, uploadCsv]
+        [hasRemoteServer, dispatch, uploadFile]
     );
-    return [hasRemoteServer, openInCfe];
+    return openInCfe;
 };
+
+export default useOpenInCfe;
