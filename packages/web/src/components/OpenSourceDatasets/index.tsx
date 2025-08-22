@@ -1,19 +1,18 @@
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import DatasetTable from "./DatasetTable";
 import DatasetDetails from "../DatasetDetails";
 import PublicDataset from "../../entity/PublicDataset";
 import { metadata, selection } from "../../../../core/state";
-
-import styles from "./OpenSourceDatasets.module.css";
-import {
+import SearchParams, {
     SearchParamsComponents,
     getNameAndTypeFromSourceUrl,
     Source,
 } from "../../../../core/entity/SearchParams";
 
+import styles from "./OpenSourceDatasets.module.css";
 /**
  * Page for displaying public-facing datasets
  * Currently using placeholder text and data
@@ -21,7 +20,6 @@ import {
 export default function OpenSourceDatasets() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const currentGlobalURL = useSelector(selection.selectors.getEncodedSearchParams);
 
     // Begin request action so dataset manifest is ready for table child component
     React.useEffect(() => {
@@ -39,9 +37,15 @@ export default function OpenSourceDatasets() {
                 parts: { ...url, sources: [source] },
             })
         );
+
+        // The initialization function automatically parses and adds queries from the
+        // url search params
         navigate({
             pathname: "/app",
-            search: `?${currentGlobalURL}`,
+            search: `?${SearchParams.encode({
+                ...url,
+                sources: [source],
+            })}`,
         });
     };
 

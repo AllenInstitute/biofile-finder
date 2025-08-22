@@ -56,7 +56,7 @@ const UNSUPPORTED_APPS_HEADER = {
     itemType: ContextualMenuItemType.Header,
 };
 
-const APPS = (fileDetails: FileDetail | undefined, options: Partial<AppOptions>): Apps => ({
+const APPS = (fileDetails: FileDetail | undefined, options: Partial<AppOptions> = {}): Apps => ({
     [AppKeys.AGAVE]: {
         key: AppKeys.AGAVE,
         // TODO: Upgrade styling here
@@ -278,7 +278,6 @@ export default (
 
     const remoteServerConnection = useRemoteFileUpload();
     const openInCfeCallback = useOpenInCfe(remoteServerConnection);
-
     const openInCfe = React.useMemo(() => {
         if (!remoteServerConnection.hasRemoteServer) {
             return undefined;
