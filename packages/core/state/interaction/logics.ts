@@ -79,15 +79,13 @@ const initializeApp = createLogic({
         if (isOnWeb && window.location.search) {
             try {
                 // If the exact query already exists in state on initialization,
-                // we shouldn't add it again-- just refresh the existing query
+                // we shouldn't add it again
                 if (
-                    queries.some(
+                    !queries.some(
                         (query) =>
                             `?${SearchParams.encode(query?.parts)}` === window.location.search
                     )
                 ) {
-                    dispatch(refresh);
-                } else {
                     dispatch(
                         selection.actions.addQuery({
                             name: DEFAULT_QUERY_NAME,
