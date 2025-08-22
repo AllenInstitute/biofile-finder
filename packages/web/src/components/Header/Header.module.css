@@ -6,7 +6,7 @@
   overflow: hidden;
   width: 100%;
   padding: 8px 10px;
-  height: 60px;
+  min-height: 60px;
   filter: drop-shadow(black 0px 4px 8px);
 }
 
