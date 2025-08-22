@@ -11,8 +11,8 @@ import styles from "./About.module.css";
  */
 export default function About({ onDismiss }: ModalProps) {
     const body = (
-        <>
-            <p>
+        <div className={styles.container}>
+            <p className={styles.text}>
                 BioFile Finder is an open‑use web application developed by the Allen Institute for
                 Cell Science, designed to streamline how you search, access, and visualize imaging
                 datasets. With powerful metadata search, filtering, and sorting capabilities, you
@@ -26,7 +26,7 @@ export default function About({ onDismiss }: ModalProps) {
                 <AICSLogo />
             </div>
             <h4>Want to become a contributor or sponsor?</h4>
-            <p>
+            <p className={styles.text}>
                 To contribute,&nbsp;
                 <a
                     href="https://github.com/AllenInstitute/biofile-finder"
@@ -38,14 +38,14 @@ export default function About({ onDismiss }: ModalProps) {
                 </a>
                 &nbsp;and either submit a feature or reach out to us.
             </p>
-            <p>
+            <p className={styles.text}>
                 To sponsor, reach out to us at&nbsp;
                 <a href="mailto:aics_software_support@alleninstitute.org" className={styles.link}>
                     aics_software_support@alleninstitute.org
                 </a>
                 .
             </p>
-        </>
+        </div>
     );
 
     return <BaseModal body={body} onDismiss={onDismiss} title="About" />;
