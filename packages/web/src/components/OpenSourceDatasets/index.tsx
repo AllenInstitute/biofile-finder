@@ -81,14 +81,12 @@ export default function OpenSourceDatasets() {
                 <div className={styles.content}>
                     <DatasetTable onLoadDataset={loadDataset} />
                     <p>
-                        Want to include your dataset? Send us a request on
+                        Want to include your dataset? Send us a request at
                         <a
                             className={styles.link}
-                            href="https://github.com/AllenInstitute/biofile-finder/issues"
-                            target="_blank"
-                            rel="noreferrer"
+                            href="mailto:aics_software_support@alleninstitute.org"
                         >
-                            &nbsp;our GitHub page&nbsp;
+                            &nbsp;aics_software_support@alleninstitute.org&nbsp;
                         </a>
                         and we can discuss including your data. Please note that your image data
                         would need to be stored in a public location like

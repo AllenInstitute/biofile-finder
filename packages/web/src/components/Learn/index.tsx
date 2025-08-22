@@ -120,15 +120,13 @@ export default function Learn() {
                 </p>
                 <h3>Can BioFile Finder store my data to make it public?</h3>
                 <p>
-                    Sort of. We, at the Allen Institute for Cell Science, are working on a way to
-                    allow users to store their .csv with us to make it public. In the meantime, use
+                    Sort of. We are working on a way to allow users to store their .csv with us to
+                    make it public. In the meantime, email us at
                     <a
                         className={styles.link}
-                        href="https://github.com/AllenInstitute/biofile-finder/issues"
-                        target="_blank"
-                        rel="noreferrer"
+                        href="mailto:aics_software_support@alleninstitute.org"
                     >
-                        &nbsp;this link
+                        &nbsp;aics_software_support@alleninstitute.org
                     </a>
                     , to request your data be included with our own collection of open-source
                     datasets. Please note, your image data would need to be stored in a public
@@ -154,14 +152,12 @@ export default function Learn() {
             <div className={styles.section}>
                 <h2>Have questions, ideas, requests, or want help getting started?</h2>
                 <p>
-                    Please reach out to us on
+                    Please reach out to us at
                     <a
                         className={styles.link}
-                        href="https://github.com/AllenInstitute/biofile-finder/issues"
-                        target="_blank"
-                        rel="noreferrer"
+                        href="mailto:aics_software_support@alleninstitute.org"
                     >
-                        &nbsp;our GitHub page here
+                        &nbsp;aics_software_support@alleninstitute.org
                     </a>
                     .
                 </p>

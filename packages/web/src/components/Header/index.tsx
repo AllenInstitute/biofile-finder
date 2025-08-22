@@ -4,10 +4,9 @@ import { useDispatch } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 
 import { APPLICATION_NAME } from "../../constants";
+import SiteLogo from "../../../assets/site-logo.png";
 import { SecondaryButton, useButtonMenu } from "../../../../core/components/Buttons";
 import useHelpOptions from "../../../../core/hooks/useHelpOptions";
-import AICSLogo from "../../../assets/AICS-logo-white.svg";
-import AICSLogoWithName from "../../../assets/AICS-logo-and-name.svg";
 
 import styles from "./Header.module.css";
 
@@ -24,33 +23,18 @@ export default function Header() {
     return (
         <>
             <div className={styles.header}>
-                <div className={styles.left}>
-                    {/* Toggle logo style per screen size */}
-                    <a
-                        className={styles.logo}
-                        href="https://www.allencell.org/"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <AICSLogo />
-                    </a>
-                    <a
-                        className={styles.logoWithName}
-                        href="https://www.allencell.org/"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <AICSLogoWithName />
-                    </a>
-                    <Link
-                        to="/"
-                        className={styles.title}
-                        target={isApp ? "_blank" : "_self"}
-                        rel="noreferrer"
-                    >
+                <Link
+                    to="/"
+                    className={styles.title}
+                    target={isApp ? "_blank" : "_self"}
+                    rel="noreferrer"
+                >
+                    <img alt="BioFile Finder Logo" height={36} src={SiteLogo} />
+                    <div>
                         <h4>{APPLICATION_NAME}</h4>
-                    </Link>
-                </div>
+                        <h6>Powered by BigFile Finder</h6>
+                    </div>
+                </Link>
                 <Stack
                     reversed
                     horizontal

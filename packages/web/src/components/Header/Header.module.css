@@ -6,6 +6,7 @@
   overflow: hidden;
   width: 100%;
   padding: 8px 10px;
+  height: 60px;
   filter: drop-shadow(black 0px 4px 8px);
 }
 
@@ -28,18 +29,25 @@
 }
 
 .title {
-  border-left: 1px solid var(--secondary-text-color);
+  /* Bring element to the left of screen */
+  display: flex;
+  flex: none;
+
   color: var(--highlight-text-color);
-  height: 24px;
-  padding: 2px 0 0 1em;
-  margin: 6px 0 0 1em;
+  height: 100%;
+  align-items: center;
   text-decoration: none;
 }
 
-.left {
-  display: flex;
-  flex: none;
-  padding-top: 4px;
+.title > img {
+  margin: 0 12px 0 0;
+}
+
+.title > div > h6 {
+  color: var(--light-grey);
+  font-style: italic;
+  font-weight: 100;
+  margin: 0;
 }
 
 .right {
@@ -77,17 +85,4 @@
   display: flex;
   justify-content: right;
   align-items: center;
-}
-
-/** Toggle logo type depending on screen size.
- */
-@media screen and (min-width: 1024px) {
-  .logo {
-    display: none;
-  }
-}
-@media screen and (max-width: 1023px) {
-  .logoWithName {
-    display: none;
-  }
 }
