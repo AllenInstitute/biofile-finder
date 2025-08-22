@@ -125,7 +125,6 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         selections: Selection[],
         format: "csv" | "json" | "parquet"
     ): Promise<File> {
-        // TODO: Cleanup redundant code in download and getManifest
         if (format !== "csv") {
             throw new Error(
                 "Only CSV manifest is supported at this time for downloading from AICS FMS"

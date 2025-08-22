@@ -23,7 +23,7 @@ type OpenInCfeCallback = (
  * - `hasRemoteServer`: boolean indicating if the remote server is available
  * - `openInCfe`: a function that opens the provided selections in Cell Feature
  *   Explorer, if the remote server is available. If the server is not
- *   available, dispatches an error.
+ *   available, shows an onscreen error.
  */
 const useOpenInCfe = (
     remoteServerConnection: RemoteFileUploadServerConnection
@@ -48,14 +48,14 @@ const useOpenInCfe = (
             dispatch(
                 interaction.actions.processStart(processId, "Opening in Cell Feature Explorer...")
             );
-            const stringAnnotations = annotations.map((annotation) => annotation.name);
-            stringAnnotations.sort();
+            const annotationNames = annotations.map((annotation) => annotation.name);
+            annotationNames.sort();
 
             let file: File;
             let cfeUrl: string;
             try {
                 file = await fileService.getManifest(
-                    stringAnnotations,
+                    annotationNames,
                     fileSelection.toCompactSelectionList(),
                     "csv"
                 );
@@ -89,7 +89,7 @@ const useOpenInCfe = (
             // if this happens.
             window.open(cfeUrl, "_blank", "noopener,noreferrer");
             console.log(cfeUrl);
-            // TODO: Include link here in the popup in case the new tab didn't open
+            // TODO: Include clickable link here in the popup in case the new tab didn't open
             dispatch(
                 interaction.actions.processSuccess(
                     processId,
