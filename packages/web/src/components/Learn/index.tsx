@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import LearnDiagramBFF from "../../../assets/learn-diagram-bff.png";
 import LearnDiagramCSV from "../../../assets/learn-diagram-csv.png";
 import LearnDiagramViewer from "../../../assets/learn-diagram-viewer.png";
+import Modal from "../../../../core/components/Modal";
 
 import styles from "./Learn.module.css";
 
@@ -162,6 +163,7 @@ export default function Learn() {
                     .
                 </p>
             </div>
+            <Modal />
         </div>
     );
 }

@@ -17,7 +17,7 @@ export default function About({ onDismiss }: ModalProps) {
                 Cell Science, designed to streamline how you search, access, and visualize imaging
                 datasets. With powerful metadata search, filtering, and sorting capabilities, you
                 can easily locate datasets and view them directly in industry-standard tools—or
-                explore them immediately in your browser using the integrated 3D Volume Viewer.
+                explore them immediately in your browser or desktop through compatible viewers.
                 Whether you&apos;re working with programmatic workflows or manual exploration,
                 BioFile Finder simplifies the process of organizing and accessing imaging data.
             </p>

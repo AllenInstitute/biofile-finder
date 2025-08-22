@@ -145,14 +145,14 @@ export default function useHelpOptions(
         },
         {
             key: "support-forum",
-            text: "Support Forum",
+            text: "Support forum",
             title: "Opens support forum in new window",
             href: "https://github.com/AllenInstitute/biofile-finder/discussions/categories/q-a",
             target: "_blank",
         },
         {
             key: "contact-us",
-            text: "Contact Us",
+            text: "Contact us",
             title: "Email us directly",
             href: "mailto:aics_software_support@alleninstitute.org",
         },

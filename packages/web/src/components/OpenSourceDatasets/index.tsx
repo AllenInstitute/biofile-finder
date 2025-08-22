@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import DatasetTable from "./DatasetTable";
 import DatasetDetails from "../DatasetDetails";
 import PublicDataset from "../../entity/PublicDataset";
+import Modal from "../../../../core/components/Modal";
 import { metadata, selection } from "../../../../core/state";
 import SearchParams, {
     SearchParamsComponents,
@@ -107,6 +108,7 @@ export default function OpenSourceDatasets() {
                 </div>
             </div>
             <DatasetDetails onLoadDataset={loadDataset} />
+            <Modal />
         </>
     );
 }
