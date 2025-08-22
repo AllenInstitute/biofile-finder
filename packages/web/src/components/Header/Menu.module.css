@@ -33,9 +33,6 @@
     color: var(--secondary-text-color);
     font-size: var(--l-paragraph-size);
     font-weight: 400;
-}
-  
-.route-link:not(:last-of-type) {
     margin: 0 8px;
 }
   

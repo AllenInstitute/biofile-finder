@@ -27,22 +27,20 @@ export default function About({ onDismiss }: ModalProps) {
             </div>
             <h4>Want to become a contributor or sponsor?</h4>
             <p>
-                To contribute,
+                To contribute,&nbsp;
                 <a
                     href="https://github.com/AllenInstitute/biofile-finder"
                     className={styles.link}
                     target="_blank"
                     rel="noreferrer"
                 >
-                    {" "}
-                    visit our GitHub page{" "}
+                    visit our GitHub page
                 </a>
-                and either submit a feature or reach out to us.
+                &nbsp;and either submit a feature or reach out to us.
             </p>
             <p>
-                To sponsor, reach out to us at
+                To sponsor, reach out to us at&nbsp;
                 <a href="mailto:aics_software_support@alleninstitute.org" className={styles.link}>
-                    {" "}
                     aics_software_support@alleninstitute.org
                 </a>
                 .
