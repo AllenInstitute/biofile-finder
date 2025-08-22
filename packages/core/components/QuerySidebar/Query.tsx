@@ -127,7 +127,7 @@ export default function Query(props: QueryProps) {
                 }
                 onContextMenu={onContextMenu}
             >
-                <div className={styles.header}>
+                <div className={classNames(styles.header, styles.headerCollapsed)}>
                     <Tooltip content={props.query.name}>
                         <h4>{props.query.name}</h4>
                     </Tooltip>
