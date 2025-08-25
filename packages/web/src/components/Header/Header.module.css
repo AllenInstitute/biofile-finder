@@ -19,6 +19,7 @@
   height: 100%;
   align-items: center;
   text-decoration: none;
+  margin: auto 0;
 }
 
 .title > img {
