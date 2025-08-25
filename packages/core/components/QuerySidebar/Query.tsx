@@ -20,6 +20,7 @@ import styles from "./Query.module.css";
 interface QueryProps {
     isSelected: boolean;
     query: QueryType;
+    loading?: boolean;
 }
 
 /**
@@ -37,7 +38,8 @@ export default function Query(props: QueryProps) {
     const hasReloadError = useSelector(selection.selectors.getRequiresDataSourceReload);
     const isLoading =
         (shouldHaveDataSource && !hasDataSource && !hasReloadError) ||
-        props.query.name === AICS_FMS_DATA_SOURCE_NAME;
+        props.query.name === AICS_FMS_DATA_SOURCE_NAME ||
+        props?.loading;
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
@@ -109,6 +111,11 @@ export default function Query(props: QueryProps) {
     if (isLoading) {
         return (
             <div className={styles.container}>
+                {props?.query?.name && (
+                    <Tooltip content={props.query.name}>
+                        <h4>{props.query.name}</h4>
+                    </Tooltip>
+                )}
                 <div className={styles.loadingContainer}>
                     <LoadingIcon size={SpinnerSize.medium} data-testid="query-spinner" />
                 </div>

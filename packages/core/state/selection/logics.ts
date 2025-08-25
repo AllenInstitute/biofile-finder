@@ -715,6 +715,7 @@ const changeQueryLogic = createLogic({
                 query.name === deps.ctx.previouslySelectedQueryName
                     ? currentQueryParts
                     : query.parts,
+            loading: false,
         }));
 
         if (newlySelectedQuery) {
