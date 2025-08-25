@@ -8,7 +8,8 @@ import { OPEN_FILES_TUTORIAL } from "./OpenFiles";
 import { ORGANIZE_FILES_TUTORIAL } from "./OrganizeFiles";
 import { SHARE_VIEW_TUTORIAL } from "./ShareView";
 import { SORT_FILES_TUTORIAL } from "./SortFiles";
-import { selection } from "../../state";
+import { interaction, selection } from "../../state";
+import { ModalType } from "../../components/Modal";
 
 export default function useHelpOptions(
     dispatch: Dispatch,
@@ -129,24 +130,31 @@ export default function useHelpOptions(
                   },
               ]),
         {
-            key: "github",
-            text: `Visit GitHub page`,
-            href: "https://github.com/AllenInstitute/biofile-finder",
-            target: "_blank",
+            key: "about",
+            text: `About`,
+            onClick: () => {
+                dispatch(interaction.actions.setVisibleModal(ModalType.About));
+            },
         },
         {
-            key: "gh-issues-page",
-            text: "Report issue in GitHub",
+            key: "issues-page",
+            text: "Report issue",
             title: "Opens the BioFile Finder GitHub issues page",
             href: "https://github.com/AllenInstitute/biofile-finder/issues",
             target: "_blank",
         },
         {
-            key: "allen-cell-discussion-forum",
-            text: "Allen Cell Discussion Forum",
-            title: "Opens allen cell discussion forum in new window",
-            href: "https://forum.allencell.org/c/software-code/11",
+            key: "support-forum",
+            text: "Support forum",
+            title: "Opens support forum in new window",
+            href: "https://github.com/AllenInstitute/biofile-finder/discussions/categories/q-a",
             target: "_blank",
+        },
+        {
+            key: "contact-us",
+            text: "Contact us",
+            title: "Email us directly",
+            href: "mailto:aics_software_support@alleninstitute.org",
         },
     ];
 }

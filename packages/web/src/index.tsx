@@ -16,7 +16,7 @@ import Learn from "./components/Learn";
 import Home from "./components/Home";
 import Layout from "./components/Layout";
 import OpenSourceDatasets from "./components/OpenSourceDatasets";
-import BFFLogo from "../assets/bff-logo.png";
+import SiteLogo from "../assets/site-logo.png";
 import FmsFileExplorer from "../../core/App";
 import { createReduxStore } from "../../core/state";
 
@@ -80,8 +80,8 @@ async function asyncRender() {
     );
 
     try {
-        (document.getElementById("og-image") as any).content = BFFLogo;
-        (document.getElementById("tw-image") as any).content = BFFLogo;
+        (document.getElementById("og-image") as any).content = SiteLogo;
+        (document.getElementById("tw-image") as any).content = SiteLogo;
     } catch (err) {
         console.error("Failed to set <head /> meta tags", err);
     }
