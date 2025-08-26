@@ -140,8 +140,8 @@ export default abstract class DatabaseService {
             }
         } catch (err) {
             let formattedError = (err as Error).message;
-            // DuckDB does not provide informative server errors, so
-            // send a separate check for what the error was
+            // DuckDB does not provide informative server errors, so send a
+            // separate 'get' call to retrieve error messages for URL data sources
             if (!(uri instanceof File)) {
                 await axios.get(uri).catch((error) => {
                     // Error responses can be formatted differently

@@ -804,12 +804,14 @@ const setDataSourceReloadErrorLogic = createLogic({
             const {
                 payload: { dataSourceName, error },
             } = deps.action as AddDataSourceReloadError;
+            // Trim error message to only the first few lines
+            const truncatedError = error.length > 200 ? error.substring(0, 200) + "..." : error;
             const datasourceErrorDefaultMessage = `
                 The following error occurred while loading the data source
                 &quot;${dataSourceName}&quot;:
                 </br>
                 </br>
-                ${error}
+                ${truncatedError}
                 </br>
                 </br>
                 Please re-select the data source or a replacement.
