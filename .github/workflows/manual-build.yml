@@ -23,7 +23,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Build/release Electron app
         uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
