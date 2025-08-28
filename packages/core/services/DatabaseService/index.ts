@@ -1,3 +1,4 @@
+import axios from "axios";
 import { isEmpty } from "lodash";
 
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
@@ -138,8 +139,27 @@ export default abstract class DatabaseService {
                 await this.addRequiredColumns(dataSource.name);
             }
         } catch (err) {
+            let formattedError = (err as Error).message;
+            // DuckDB does not provide informative server errors, so send a
+            // separate 'get' call to retrieve error messages for URL data sources
+            if (!(uri instanceof File)) {
+                await axios.get(uri).catch((error) => {
+                    // Error responses can be formatted differently
+                    // Get progressively less specific in where we look for the message
+                    if (error?.response) {
+                        formattedError = `Request failed with status ${error.response.status}: ${
+                            error.response?.data?.error ||
+                            error.response?.data?.message ||
+                            error.response?.statusText ||
+                            error.response.data
+                        }`;
+                    } else if (error?.message) {
+                        formattedError = error.message;
+                    } // else use default error message
+                });
+            }
             await this.deleteDataSource(name);
-            throw new DataSourcePreparationError((err as Error).message, name);
+            throw new DataSourcePreparationError(formattedError, name);
         }
     }
 
