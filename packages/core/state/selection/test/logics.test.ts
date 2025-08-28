@@ -30,6 +30,7 @@ import {
     SET_OPEN_FILE_FOLDERS,
     SET_SORT_COLUMN,
     Query,
+    addDataSourceReloadError,
 } from "../actions";
 import { initialState, interaction } from "../../";
 import { FESBaseUrl } from "../../../constants";
@@ -855,6 +856,61 @@ describe("Selection logics", () => {
                     },
                 })
             ).to.be.true;
+        });
+    });
+
+    describe("setDataSourceReloadErrorLogic", () => {
+        const state = mergeState(initialState, {
+            interaction: {
+                platformDependentServices: {
+                    databaseService: new DatabaseServiceNoop(),
+                },
+            },
+        });
+
+        it("truncates long errors", async () => {
+            const errorSubstring = "This is a string containing exactly 50 characters.";
+            const fullErrorMessage = errorSubstring.repeat(5); // 250 characters
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+            });
+
+            // Act
+            // addQuery will fail since addDataSource is set to reject in MockDatabaseService
+            store.dispatch(addDataSourceReloadError("Mock Data Source", fullErrorMessage));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch({ type: interaction.actions.SET_STATUS })).to.be.true;
+            const dispatchedErrorMessage = actions.list
+                .filter((action) => action.type === interaction.actions.SET_STATUS)
+                .at(0)?.payload?.data?.msg;
+            expect(dispatchedErrorMessage.includes(fullErrorMessage)).to.be.false;
+            // Truncate replaces the last three characters with an ellipsis to mantain a total of `length` (200)
+            expect(dispatchedErrorMessage.includes(errorSubstring.repeat(4).slice(0, -3) + "..."))
+                .to.be.true;
+        });
+
+        it("displays the full error when less than or equal to truncation length", async () => {
+            const errorSubstring = "This is a string containing exactly 50 characters.";
+            const fullErrorMessage = errorSubstring.repeat(4); // 200 characters
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+            });
+
+            // Act
+            // addQuery will fail since addDataSource is set to reject in MockDatabaseService
+            store.dispatch(addDataSourceReloadError("Mock Data Source", fullErrorMessage));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch({ type: interaction.actions.SET_STATUS })).to.be.true;
+            const dispatchedErrorMessage = actions.list
+                .filter((action) => action.type === interaction.actions.SET_STATUS)
+                .at(0)?.payload?.data?.msg;
+            expect(dispatchedErrorMessage.includes(fullErrorMessage)).to.be.true;
         });
     });
 
