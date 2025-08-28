@@ -860,24 +860,15 @@ describe("Selection logics", () => {
     });
 
     describe("setDataSourceReloadErrorLogic", () => {
-        const state = mergeState(initialState, {
-            interaction: {
-                platformDependentServices: {
-                    databaseService: new DatabaseServiceNoop(),
-                },
-            },
-        });
-
         it("truncates long errors", async () => {
             const errorSubstring = "This is a string containing exactly 50 characters.";
             const fullErrorMessage = errorSubstring.repeat(5); // 250 characters
             const { store, logicMiddleware, actions } = configureMockStore({
-                state,
+                state: initialState,
                 logics: selectionLogics,
             });
 
             // Act
-            // addQuery will fail since addDataSource is set to reject in MockDatabaseService
             store.dispatch(addDataSourceReloadError("Mock Data Source", fullErrorMessage));
             await logicMiddleware.whenComplete();
 
@@ -896,12 +887,11 @@ describe("Selection logics", () => {
             const errorSubstring = "This is a string containing exactly 50 characters.";
             const fullErrorMessage = errorSubstring.repeat(4); // 200 characters
             const { store, logicMiddleware, actions } = configureMockStore({
-                state,
+                state: initialState,
                 logics: selectionLogics,
             });
 
             // Act
-            // addQuery will fail since addDataSource is set to reject in MockDatabaseService
             store.dispatch(addDataSourceReloadError("Mock Data Source", fullErrorMessage));
             await logicMiddleware.whenComplete();
 
