@@ -146,16 +146,16 @@ export default abstract class DatabaseService {
                 await axios.get(uri).catch((error) => {
                     // Error responses can be formatted differently
                     // Get progressively less specific in where we look for the message
-                    if (error.response) {
+                    if (error?.response) {
                         formattedError = `Request failed with status ${error.response.status}: ${
                             error.response?.data?.error ||
                             error.response?.data?.message ||
                             error.response?.statusText ||
                             error.response.data
                         }`;
-                    } else {
+                    } else if (error?.message) {
                         formattedError = error.message;
-                    }
+                    } // else use default error message
                 });
             }
             await this.deleteDataSource(name);
