@@ -74,6 +74,7 @@
     "mini-css-extract-plugin": "2.x",
     "nock": "13.0.x",
     "null-loader": "4.0.x",
+    "react-svg-loader": "3.0.x",
     "postcss-loader": "6.x",
     "postcss-preset-env": "7.x",
     "webpack": "5.x",
