@@ -90,5 +90,22 @@ export enum DatasetBucketUrl {
     TEST = "http://test-aics.corp.alleninstitute.org",
 }
 
+export enum CellFeatureExplorerBaseUrl {
+    LOCALHOST = "http://localhost:9002",
+    // TODO: Update this once the public build of CFE includes support for the
+    // csvUrl param, e.g.:
+    // STAGING = "https://cfe.allencell.org"
+    STAGING = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist",
+    PRODUCTION = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist",
+    TEST = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist",
+}
+
+export enum TemporaryFileServiceBaseUrl {
+    LOCALHOST = "http://localhost:5000",
+    STAGING = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080",
+    PRODUCTION = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080",
+    TEST = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080",
+}
+
 export const UNSAVED_DATA_WARNING =
     "Edits to data source files are not preserved by this app. Download to save a copy with your changes.";

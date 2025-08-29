@@ -125,6 +125,32 @@ export default class DatabaseFileService implements FileService {
         return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
     }
 
+    private getSelectionSql(annotations: string[], selections: Selection[]): string {
+        const sqlBuilder = new SQLBuilder()
+            .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
+            .from(this.dataSourceNames);
+        DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
+        return sqlBuilder.toSQL();
+    }
+
+    public async getManifest(
+        annotations: string[],
+        selections: Selection[],
+        format: "csv" | "json" | "parquet"
+    ): Promise<File> {
+        if (format !== "csv") {
+            throw new Error(
+                "Only CSV manifest is supported at this time for downloading from Database"
+            );
+        }
+        const sql = this.getSelectionSql(annotations, selections);
+        const buffer = await this.databaseService.saveQuery(uniqueId(), sql, format);
+        // ISOString is `YYYY-MM-DDTHH:mm:ss.sssZ`
+        const dateTime = new Date().toISOString().replaceAll(":", "-");
+        const name = `file-manifest-${dateTime}.${format}`;
+        return new File([new Uint8Array(buffer)], name, { type: `text/${format}` });
+    }
+
     /**
      * Download file selection as a file in the specified format.
      */
@@ -133,13 +159,7 @@ export default class DatabaseFileService implements FileService {
         selections: Selection[],
         format: "csv" | "json" | "parquet"
     ): Promise<DownloadResult> {
-        const sqlBuilder = new SQLBuilder()
-            .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
-            .from(this.dataSourceNames);
-
-        DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
-
-        return this.handleFileDownload(sqlBuilder.toSQL(), format);
+        return this.handleFileDownload(this.getSelectionSql(annotations, selections), format);
     }
 
     /**
