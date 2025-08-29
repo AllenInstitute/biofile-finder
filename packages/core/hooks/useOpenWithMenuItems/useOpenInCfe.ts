@@ -1,17 +1,17 @@
 import * as React from "react";
-import { RemoteFileUploadServerConnection } from "../useRemoteFileUpload";
+import { useDispatch } from "react-redux";
 import { uniqueId } from "lodash";
-import Annotation from "../../entity/Annotation";
+
+import { RemoteFileUploadServerConnection } from "../useRemoteFileUpload";
 import FileSelection from "../../entity/FileSelection";
 import { FileService } from "../../services";
 import { interaction } from "../../state";
-import { useDispatch } from "react-redux";
 
 const CFE_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist/";
 
 type OpenInCfeCallback = (
     fileSelection: FileSelection,
-    annotations: Annotation[],
+    annotationNames: string[],
     fileService: FileService
 ) => Promise<void>;
 
@@ -31,7 +31,7 @@ const useOpenInCfe = (
     const openInCfe = React.useCallback(
         async (
             fileSelection: FileSelection,
-            annotations: Annotation[],
+            annotationNames: string[],
             fileService: FileService
         ) => {
             const processId = uniqueId();
@@ -47,8 +47,6 @@ const useOpenInCfe = (
             dispatch(
                 interaction.actions.processStart(processId, "Opening in Cell Feature Explorer...")
             );
-            const annotationNames = annotations.map((annotation) => annotation.name);
-            annotationNames.sort();
 
             let file: File;
             let cfeUrl: string;

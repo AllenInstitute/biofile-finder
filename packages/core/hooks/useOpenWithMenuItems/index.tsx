@@ -275,9 +275,12 @@ export default (
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
-    const annotations = useSelector(metadata.selectors.getAnnotations);
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
     const fileService = useSelector(interaction.selectors.getFileService);
+    const annotationNames = React.useMemo(
+        () => Array.from(Object.keys(annotationNameToAnnotationMap)),
+        [annotationNameToAnnotationMap]
+    );
 
     const remoteServerConnection = useRemoteFileUpload();
     const openInCfeCallback = useOpenInCfe(remoteServerConnection);
@@ -285,12 +288,12 @@ export default (
         if (!remoteServerConnection.hasRemoteServer) {
             return undefined;
         }
-        return () => openInCfeCallback(fileSelection, annotations, fileService);
+        return () => openInCfeCallback(fileSelection, annotationNames, fileService);
     }, [
         remoteServerConnection.hasRemoteServer,
         openInCfeCallback,
         fileSelection,
-        annotations,
+        annotationNames,
         fileService,
     ]);
 
