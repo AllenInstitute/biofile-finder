@@ -145,8 +145,10 @@ export default class DatabaseFileService implements FileService {
         }
         const sql = this.getSelectionSql(annotations, selections);
         const buffer = await this.databaseService.saveQuery(uniqueId(), sql, format);
-        const name = `file-manifest-${new Date()}.${format}`;
-        return new File([buffer], name, { type: `text/${format}` });
+        // ISOString is `YYYY-MM-DDTHH:mm:ss.sssZ`
+        const dateTime = new Date().toISOString().replaceAll(":", "-");
+        const name = `file-manifest-${dateTime}.${format}`;
+        return new File([new Uint8Array(buffer)], name, { type: `text/${format}` });
     }
 
     /**
