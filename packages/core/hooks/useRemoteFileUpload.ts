@@ -13,7 +13,29 @@ export type RemoteFileUploadServerConnection = {
     uploadFile: UploadFileCallback;
 };
 
-const MAX_FETCH_ATTEMPTS = 5;
+async function fetchWithTimeout(
+    url: string,
+    options: RequestInit = {},
+    timeoutMs = 5000
+): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    let response: Response;
+    try {
+        response = await fetch(url, { ...options, signal: controller.signal });
+    } catch (error) {
+        if ((error as Error).name === "AbortError") {
+            throw new Error(`Request timed out after ${timeoutMs} ms`);
+        }
+        throw error;
+    } finally {
+        clearTimeout(timeoutId);
+    }
+    return response;
+}
+
+const MAX_FETCH_ATTEMPTS = 3;
+const FETCH_TIMEOUT_MS = 5000;
 
 const useRemoteFileUpload = (): RemoteFileUploadServerConnection => {
     const [hasRemoteServer, setHasRemoteServer] = React.useState(false);
@@ -28,7 +50,11 @@ const useRemoteFileUpload = (): RemoteFileUploadServerConnection => {
             if (attempt <= MAX_FETCH_ATTEMPTS) {
                 attempt++;
                 try {
-                    const response = await fetch(`${REMOTE_SERVER_URL}${API_PING}`);
+                    const response = await fetchWithTimeout(
+                        `${REMOTE_SERVER_URL}${API_PING}`,
+                        {},
+                        FETCH_TIMEOUT_MS
+                    );
                     if (response.ok) {
                         setHasRemoteServer(true);
                         return;
@@ -61,10 +87,14 @@ const useRemoteFileUpload = (): RemoteFileUploadServerConnection => {
             }
             const formData = new FormData();
             formData.append("file", file);
-            const response = await fetch(`${REMOTE_SERVER_URL}${API_UPLOAD}`, {
-                method: "POST",
-                body: formData,
-            });
+            const response = await fetchWithTimeout(
+                `${REMOTE_SERVER_URL}${API_UPLOAD}`,
+                {
+                    method: "POST",
+                    body: formData,
+                },
+                FETCH_TIMEOUT_MS
+            );
             if (!response.ok) {
                 throw new Error("Failed to upload file: " + response.statusText);
             }

@@ -19,11 +19,9 @@ type OpenInCfeCallback = (
  * Opens a file selection in Cell Feature Explorer, using a remote server to
  * temporarily upload the file and generate a URL for CFE for cross-site access.
  *
- * @returns a tuple containing:
- * - `hasRemoteServer`: boolean indicating if the remote server is available
- * - `openInCfe`: a function that opens the provided selections in Cell Feature
- *   Explorer, if the remote server is available. If the server is not
- *   available, shows an onscreen error.
+ * @returns a callback that takes a file selection, annotations, and file
+ * service, and attempts to open CFE in a new tab with the selected files
+ * loaded.
  */
 const useOpenInCfe = (
     remoteServerConnection: RemoteFileUploadServerConnection
@@ -44,6 +42,7 @@ const useOpenInCfe = (
                         "The integration with Cell Feature Explorer is currently not available. Please try again later."
                     )
                 );
+                return;
             }
             dispatch(
                 interaction.actions.processStart(processId, "Opening in Cell Feature Explorer...")
@@ -84,11 +83,10 @@ const useOpenInCfe = (
                 );
                 return;
             }
-            // NOTE: In certain async contexts, window.open will not open after a delay
-            // that is too long. The confirmation popup needs to include a clickable link
-            // if this happens.
+            // NOTE: In certain async contexts, window.open will not open after
+            // a delay that is too long. The confirmation popup needs to include
+            // a clickable link if this happens.
             window.open(cfeUrl, "_blank", "noopener,noreferrer");
-            console.log(cfeUrl);
             // TODO: Include clickable link here in the popup in case the new tab didn't open
             dispatch(
                 interaction.actions.processSuccess(
