@@ -1,13 +1,12 @@
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { uniqueId } from "lodash";
 
 import { RemoteFileUploadServerConnection } from "../useRemoteFileUpload";
 import FileSelection from "../../entity/FileSelection";
 import { FileService } from "../../services";
 import { interaction } from "../../state";
-
-const CFE_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist/";
+import { getCellFeatureExplorerBaseUrl } from "../../state/interaction/selectors";
 
 type OpenInCfeCallback = (
     fileSelection: FileSelection,
@@ -28,6 +27,8 @@ const useOpenInCfe = (
 ): OpenInCfeCallback => {
     const { hasRemoteServer, uploadFile } = remoteServerConnection;
     const dispatch = useDispatch();
+    const cfeBaseUrl = useSelector(getCellFeatureExplorerBaseUrl);
+
     const openInCfe = React.useCallback(
         async (
             fileSelection: FileSelection,
@@ -69,7 +70,7 @@ const useOpenInCfe = (
             }
             try {
                 const { url } = await uploadFile(file);
-                cfeUrl = `${CFE_URL}?dataset=csv&csvUrl=${encodeURIComponent(url)}`;
+                cfeUrl = `${cfeBaseUrl}/?dataset=csv&csvUrl=${encodeURIComponent(url)}`;
             } catch (error) {
                 console.error("Error uploading CSV for CFE: ", error);
                 dispatch(
@@ -93,7 +94,7 @@ const useOpenInCfe = (
                 )
             );
         },
-        [hasRemoteServer, dispatch, uploadFile]
+        [hasRemoteServer, cfeBaseUrl, dispatch, uploadFile]
     );
     return openInCfe;
 };

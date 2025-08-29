@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react";
+import { useSelector } from "react-redux";
+import { getTemporaryFileServiceBaseUrl } from "../state/interaction/selectors";
 
-const REMOTE_SERVER_URL = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080";
 const API_PING = "/ping";
 const API_UPLOAD = "/upload";
 const API_GET_FILE = "/get-file";
@@ -39,6 +40,7 @@ const FETCH_TIMEOUT_MS = 5000;
 
 const useRemoteFileUpload = (): RemoteFileUploadServerConnection => {
     const [hasRemoteServer, setHasRemoteServer] = React.useState(false);
+    const remoteUploadBaseUrl = useSelector(getTemporaryFileServiceBaseUrl);
 
     // Note: this only checks for changes to the remote server availability
     // on initialization and does not poll the server continuously.
@@ -51,7 +53,7 @@ const useRemoteFileUpload = (): RemoteFileUploadServerConnection => {
                 attempt++;
                 try {
                     const response = await fetchWithTimeout(
-                        `${REMOTE_SERVER_URL}${API_PING}`,
+                        `${remoteUploadBaseUrl}${API_PING}`,
                         {},
                         FETCH_TIMEOUT_MS
                     );
@@ -88,7 +90,7 @@ const useRemoteFileUpload = (): RemoteFileUploadServerConnection => {
             const formData = new FormData();
             formData.append("file", file);
             const response = await fetchWithTimeout(
-                `${REMOTE_SERVER_URL}${API_UPLOAD}`,
+                `${remoteUploadBaseUrl}${API_UPLOAD}`,
                 {
                     method: "POST",
                     body: formData,
@@ -101,7 +103,7 @@ const useRemoteFileUpload = (): RemoteFileUploadServerConnection => {
             const jsonResponse = await response.json();
             return {
                 id: jsonResponse.id,
-                url: `${REMOTE_SERVER_URL}${API_GET_FILE}/${jsonResponse.id}`,
+                url: `${remoteUploadBaseUrl}${API_GET_FILE}/${jsonResponse.id}`,
             } as UploadResponse;
         },
         [hasRemoteServer]
