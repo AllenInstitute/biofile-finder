@@ -2,6 +2,15 @@
     line-height: 1.5;
 }
 
+.container > h3 {
+    margin-top: 36px;
+}
+
+.contact-list {
+    margin: 10px 0 0 0;
+    padding-left: 24px;
+}
+
 .link {
     color: var(--aqua);
 }
@@ -13,10 +22,11 @@
 
 .logo-container {
     display: flex;
-    justify-content: center;
-    margin: 15px;
+    padding: 0 16px;
+    margin: 24px 0;
 }
 
 .text {
     font-size: 16px;
+    margin: 22px 0 0 0;
 }

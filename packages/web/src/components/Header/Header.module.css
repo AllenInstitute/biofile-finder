@@ -19,16 +19,23 @@
   height: 100%;
   align-items: center;
   text-decoration: none;
-  margin: auto 0;
+  margin: auto 0 auto 1.5px;
 }
 
 .title > img {
-  margin: 0 12px 0 0;
+  margin: 0 10px 0 0;
+}
+
+.title > div {
+  display: flex;
+  flex-direction: column;
+  height: 36px;
+  justify-content: space-between;
+  padding-bottom: 1px;
 }
 
 .title > div > h6 {
   color: var(--light-grey);
-  font-style: italic;
   font-weight: 100;
   margin: 0;
 }

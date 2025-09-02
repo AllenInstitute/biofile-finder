@@ -26,25 +26,30 @@ export default function About({ onDismiss }: ModalProps) {
                 <AICSLogo />
             </div>
             <h4>Want to become a contributor or sponsor?</h4>
-            <p className={styles.text}>
-                To contribute,&nbsp;
-                <a
-                    href="https://github.com/AllenInstitute/biofile-finder"
-                    className={styles.link}
-                    target="_blank"
-                    rel="noreferrer"
-                >
-                    visit our GitHub page
-                </a>
-                &nbsp;and either submit a feature or reach out to us.
-            </p>
-            <p className={styles.text}>
-                To sponsor, reach out to us at&nbsp;
-                <a href="mailto:aics_software_support@alleninstitute.org" className={styles.link}>
-                    aics_software_support@alleninstitute.org
-                </a>
-                .
-            </p>
+            <ul className={styles.contactList}>
+                <li>
+                    To contribute, visit&nbsp;
+                    <a
+                        href="https://github.com/AllenInstitute/biofile-finder"
+                        className={styles.link}
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        our GitHub page
+                    </a>
+                    &nbsp;to submit a feature or get in touch.
+                </li>
+                <li>
+                    To sponsor, contact us at&nbsp;
+                    <a
+                        href="mailto:aics_software_support@alleninstitute.org"
+                        className={styles.link}
+                    >
+                        aics_software_support@alleninstitute.org
+                    </a>
+                    .
+                </li>
+            </ul>
         </div>
     );
 

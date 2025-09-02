@@ -23,7 +23,9 @@ export default function Header() {
                     <img alt="BioFile Finder Logo" height={36} src={SiteLogo} />
                     <div>
                         <h4>{APPLICATION_NAME}</h4>
-                        <h6>Powered by BigFile Finder</h6>
+                        <h6>
+                            Powered by <strong>BigFile Finder</strong>
+                        </h6>
                     </div>
                 </Link>
                 <Menu />
