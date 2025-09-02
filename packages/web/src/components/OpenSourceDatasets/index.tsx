@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import DatasetTable from "./DatasetTable";
 import DatasetDetails from "../DatasetDetails";
 import PublicDataset from "../../entity/PublicDataset";
+import Modal from "../../../../core/components/Modal";
 import { metadata, selection } from "../../../../core/state";
 import SearchParams, {
     SearchParamsComponents,
@@ -85,14 +86,12 @@ export default function OpenSourceDatasets() {
                 <div className={styles.content}>
                     <DatasetTable onLoadDataset={loadDataset} />
                     <p>
-                        Want to include your dataset? Send us a request on
+                        Want to include your dataset? Send us a request at
                         <a
                             className={styles.link}
-                            href="https://github.com/AllenInstitute/biofile-finder/issues"
-                            target="_blank"
-                            rel="noreferrer"
+                            href="mailto:aics_software_support@alleninstitute.org"
                         >
-                            &nbsp;our GitHub page&nbsp;
+                            &nbsp;aics_software_support@alleninstitute.org&nbsp;
                         </a>
                         and we can discuss including your data. Please note that your image data
                         would need to be stored in a public location like
@@ -109,6 +108,7 @@ export default function OpenSourceDatasets() {
                 </div>
             </div>
             <DatasetDetails onLoadDataset={loadDataset} />
+            <Modal />
         </>
     );
 }

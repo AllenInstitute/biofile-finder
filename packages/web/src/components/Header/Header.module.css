@@ -6,88 +6,36 @@
   overflow: hidden;
   width: 100%;
   padding: 8px 10px;
+  min-height: 60px;
   filter: drop-shadow(black 0px 4px 8px);
 }
 
-.help-menu-button {
-  background-color: var(--primary-dark);
-  color: var(--secondary-text-color);
-  border: none;
-  border-radius: 4px;
-}
-
-.help-menu-button:hover, .help-menu-button:focus {
-  background-color: var(--accent-dark);
-  border: none;
-  color: var(--highlight-text-color);
-}
-
-.help-menu-label {
-  font-weight: 400;
-  font-size: 16px;
-}
-
 .title {
-  border-left: 1px solid var(--secondary-text-color);
+  /* Bring element to the left of screen */
+  display: flex;
+  flex: none;
+
   color: var(--highlight-text-color);
-  height: 24px;
-  padding: 2px 0 0 1em;
-  margin: 6px 0 0 1em;
-  text-decoration: none;
-}
-
-.left {
-  display: flex;
-  flex: none;
-  padding-top: 4px;
-}
-
-.right {
-  display: flex;
-  flex: none;
-  justify-content: flex-end;
+  height: 100%;
   align-items: center;
-}
-
-.route-link {
   text-decoration: none;
-  color: var(--secondary-text-color);
-  font-size: var(--l-paragraph-size);
-  font-weight: 400;
+  margin: auto 0 auto 1.5px;
 }
 
-.route-link:not(:last-of-type) {
-  margin-right: 16px;
+.title > img {
+  margin: 0 10px 0 0;
 }
 
-.route-link:hover, .route-link:focus  {
-  color: var(--white)
-}
-
-.start-button {
-  width: 126px;
-}
-
-.stack {
-  width: 100%;
-  margin-left: 20px;
-}
-
-.stack-item {
+.title > div {
   display: flex;
-  justify-content: right;
-  align-items: center;
+  flex-direction: column;
+  height: 36px;
+  justify-content: space-between;
+  padding-bottom: 1px;
 }
 
-/** Toggle logo type depending on screen size.
- */
-@media screen and (min-width: 1024px) {
-  .logo {
-    display: none;
-  }
-}
-@media screen and (max-width: 1023px) {
-  .logoWithName {
-    display: none;
-  }
+.title > div > h6 {
+  color: #7C7D7F;
+  font-weight: 100;
+  margin: 0;
 }
