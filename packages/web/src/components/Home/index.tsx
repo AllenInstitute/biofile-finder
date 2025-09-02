@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import Features from "./Features";
 import { APPLICATION_NAME } from "../../constants";
 import { PrimaryButton } from "../../../../core/components/Buttons";
-import Modal from "../../../../core/components/Modal";
 
 import styles from "./Home.module.css";
 
@@ -33,7 +32,7 @@ export default function Home() {
             ),
         },
         {
-            header: "OUR open source datasets and additional contributors",
+            header: "OUR open source datasets",
             body: `Use BioFile Finder to view and access datasets from
             contributors.`,
             action: (
@@ -118,7 +117,6 @@ export default function Home() {
                         ))}
                     </Stack>
                 </div>
-                <Modal />
             </div>
         </div>
     );

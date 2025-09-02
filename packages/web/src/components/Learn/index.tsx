@@ -129,16 +129,16 @@ export default function Learn() {
                     >
                         &nbsp;aics_software_support@alleninstitute.org
                     </a>
-                    , to request your data be included with our own collection of open-source
+                    to request your data be included with our own collection of open-source
                     datasets. Please note, your image data would need to be stored in a public
-                    location like on
+                    location like
                     <a
                         className={styles.link}
                         href="https://idr.openmicroscopy.org/"
                         target="_blank"
                         rel="noreferrer"
                     >
-                        &nbsp;on Image Data Registry&nbsp;
+                        &nbsp;Image Data Registry&nbsp;
                     </a>
                     or AWS.
                 </p>
