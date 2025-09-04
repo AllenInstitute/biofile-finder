@@ -65,7 +65,7 @@ export interface InteractionStateBranch {
     isAicsEmployee?: boolean;
     isOnWeb: boolean;
     isOverlayVisible: boolean;
-    overlayContent?: string;
+    overlayText?: string;
     platformDependentServices: PlatformDependentServices;
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
@@ -190,12 +190,12 @@ export default makeReducer<InteractionStateBranch>(
         [SHOW_OVERLAY]: (state, action: ShowOverlayAction) => ({
             ...state,
             isOverlayVisible: true,
-            overlayContent: action.payload,
+            overlayText: action.payload,
         }),
         [HIDE_OVERLAY]: (state) => ({
             ...state,
             isOverlayVisible: false,
-            overlayContent: undefined,
+            overlayText: undefined,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action: ShowManifestDownloadDialogAction) => ({
             ...state,

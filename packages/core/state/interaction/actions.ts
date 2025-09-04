@@ -760,7 +760,7 @@ export function showDatasetDetailsPanel(): ShowDatasetDetailsPanelAction {
 /**
  * SHOW_OVERLAY
  *
- * Intention to display a screen overlay with message `content` which
+ * Intention to display a screen overlay with message `text` which
  * prevents users from interacting with the app (e.g., while data loads)
  */
 export const SHOW_OVERLAY = makeConstant(STATE_BRANCH_NAME, "show-overlay");
@@ -770,10 +770,10 @@ export interface ShowOverlayAction {
     payload: string;
 }
 
-export function showOverlay(content: string): ShowOverlayAction {
+export function showOverlay(text: string): ShowOverlayAction {
     return {
         type: SHOW_OVERLAY,
-        payload: content,
+        payload: text,
     };
 }
 

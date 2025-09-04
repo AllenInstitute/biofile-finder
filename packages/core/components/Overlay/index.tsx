@@ -9,13 +9,13 @@ import styles from "./Overlay.module.css";
 
 export default function BaseOverlay() {
     const isOverlayVisible = useSelector(interaction.selectors.getIsOverlayVisible);
-    const overlayContent = useSelector(interaction.selectors.getOverlayContent);
+    const overlayText = useSelector(interaction.selectors.getOverlayText);
     return (
         <>
             {isOverlayVisible && (
                 <Overlay isDarkThemed={true} styles={{ root: styles.overlayRoot }}>
                     <div>
-                        {overlayContent}
+                        {overlayText}
                         <LoadingIcon className={styles.spinner} size={2} highlightColor />
                     </div>
                 </Overlay>

@@ -41,7 +41,7 @@ export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 export const getFileTypeForVisibleModal = (state: State) =>
     state.interaction.fileTypeForVisibleModal;
 export const getIsOverlayVisible = (state: State) => state.interaction.isOverlayVisible;
-export const getOverlayContent = (state: State) => state.interaction.overlayContent;
+export const getOverlayText = (state: State) => state.interaction.overlayText;
 export const getHasDismissedSmallScreenWarning = (state: State) =>
     state.interaction.hasDismissedSmallScreenWarning;
 export const getHasUnsavedChanges = (state: State) => state.interaction.hasUnsavedChanges;
