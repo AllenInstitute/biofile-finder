@@ -283,13 +283,11 @@ export const ADD_QUERY = makeConstant(STATE_BRANCH_NAME, "add-query");
 export interface Query {
     name: string;
     parts: SearchParamsComponents;
-    loading?: boolean;
 }
 
 interface PartialQuery {
     name: string;
     parts: Partial<SearchParamsComponents>;
-    loading?: boolean;
 }
 
 export interface AddQuery {

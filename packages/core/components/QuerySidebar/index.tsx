@@ -137,7 +137,6 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                             key={query.name}
                             isSelected={query.name === selectedQuery || queries.length === 1}
                             query={query}
-                            loading={query?.loading}
                         />
                     ))
                 ) : (

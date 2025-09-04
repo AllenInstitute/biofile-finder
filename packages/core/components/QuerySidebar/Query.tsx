@@ -20,7 +20,6 @@ import styles from "./Query.module.css";
 interface QueryProps {
     isSelected: boolean;
     query: QueryType;
-    loading?: boolean;
 }
 
 /**
@@ -38,8 +37,7 @@ export default function Query(props: QueryProps) {
     const hasReloadError = useSelector(selection.selectors.getRequiresDataSourceReload);
     const isLoading =
         (shouldHaveDataSource && !hasDataSource && !hasReloadError) ||
-        props.query.name === AICS_FMS_DATA_SOURCE_NAME ||
-        props?.loading;
+        props.query.name === AICS_FMS_DATA_SOURCE_NAME;
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
