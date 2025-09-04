@@ -2,6 +2,16 @@ import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
+import { ModalType } from "../../components/Modal";
+import {
+    AICS_FMS_DATA_SOURCE_NAME,
+    DatasetBucketUrl,
+    FESBaseUrl,
+    MMSBaseUrl,
+    LoadBalancerBaseUrl,
+    CellFeatureExplorerBaseUrl,
+    TemporaryFileServiceBaseUrl,
+} from "../../constants";
 import { getDatasetManifestSource, getDataSources } from "../metadata/selectors";
 import { getSelectedDataSources, getPythonConversion } from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
@@ -13,14 +23,6 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
-import { ModalType } from "../../components/Modal";
-import {
-    AICS_FMS_DATA_SOURCE_NAME,
-    DatasetBucketUrl,
-    FESBaseUrl,
-    MMSBaseUrl,
-    LoadBalancerBaseUrl,
-} from "../../constants";
 
 // BASIC SELECTORS
 export const getEnvironment = (state: State) => state.interaction.environment;
@@ -75,6 +77,16 @@ export const getLoadBalancerBaseUrl = createSelector(
 export const getMetadataManagementServiceBaseUrl = createSelector(
     [getEnvironment],
     (environment) => MMSBaseUrl[environment]
+);
+
+export const getCellFeatureExplorerBaseUrl = createSelector(
+    [getEnvironment],
+    (environment) => CellFeatureExplorerBaseUrl[environment]
+);
+
+export const getTemporaryFileServiceBaseUrl = createSelector(
+    [getEnvironment],
+    (environment) => TemporaryFileServiceBaseUrl[environment]
 );
 
 // COMPOSED SELECTORS
