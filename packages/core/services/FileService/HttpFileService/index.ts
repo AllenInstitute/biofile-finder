@@ -110,6 +110,36 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         return response.data.map((file) => new FileDetail(file, env));
     }
 
+    private async getSelectionsCsv(
+        annotations: string[],
+        selections: Selection[]
+    ): Promise<{ url: string; data: Blob }> {
+        const postData = JSON.stringify({ annotations, selections });
+        const url = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
+        const data = await this.downloadService.prepareHttpResourceForDownload(url, postData);
+        return { url, data };
+    }
+
+    public async getManifest(
+        annotations: string[],
+        selections: Selection[],
+        format: "csv" | "json" | "parquet"
+    ): Promise<File> {
+        if (format !== "csv") {
+            throw new Error(
+                "Only CSV manifest is supported at this time for downloading from AICS FMS"
+            );
+        }
+        const { data } = await this.getSelectionsCsv(annotations, selections);
+        const name = `file-manifest-${new Date()}.csv`;
+        const formatToMimeType = {
+            csv: "text/csv",
+            // json: "application/json",
+            // parquet: "application/octet-stream",
+        };
+        return new File([data], name, { type: formatToMimeType[format] });
+    }
+
     /**
      * Download the given file selection query to local storage in the given format
      */
@@ -123,18 +153,14 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
                 "Only CSV download is supported at this time for downloading from AICS FMS"
             );
         }
-
-        const postData = JSON.stringify({ annotations, selections });
-        const url = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
-
-        const manifest = await this.downloadService.prepareHttpResourceForDownload(url, postData);
+        const { url, data } = await this.getSelectionsCsv(annotations, selections);
         const name = `file-manifest-${new Date()}.csv`;
         return this.downloadService.download(
             {
                 name,
                 id: name,
                 path: url,
-                data: manifest,
+                data,
             },
             uniqueId()
         );
