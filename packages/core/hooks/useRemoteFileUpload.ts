@@ -80,7 +80,7 @@ const useRemoteFileUpload = (): RemoteFileUploadServerConnection => {
                 clearTimeout(timeoutId);
             }
         };
-    }, []);
+    }, [remoteUploadBaseUrl, setHasRemoteServer]);
 
     const uploadFile: UploadFileCallback = useCallback(
         async (file: File): Promise<UploadResponse> => {
@@ -106,7 +106,7 @@ const useRemoteFileUpload = (): RemoteFileUploadServerConnection => {
                 url: `${remoteUploadBaseUrl}${API_GET_FILE}/${jsonResponse.id}`,
             } as UploadResponse;
         },
-        [hasRemoteServer]
+        [hasRemoteServer, remoteUploadBaseUrl]
     );
 
     const status = useMemo(() => ({ hasRemoteServer, uploadFile }), [hasRemoteServer, uploadFile]);

@@ -132,7 +132,12 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         }
         const { data } = await this.getSelectionsCsv(annotations, selections);
         const name = `file-manifest-${new Date()}.csv`;
-        return new File([data], name, { type: "text/csv" });
+        const formatToMimeType = {
+            csv: "text/csv",
+            json: "application/json",
+            parquet: "application/octet-stream",
+        };
+        return new File([data], name, { type: formatToMimeType[format] });
     }
 
     /**
