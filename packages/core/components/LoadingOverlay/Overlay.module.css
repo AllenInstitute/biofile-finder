@@ -1,0 +1,15 @@
+.overlay-root {
+  font-size: var(--l-paragraph-size);
+  font-weight: 400;
+  background-color: rgba(0, 0, 0, 0.7);
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  z-index: 100000;
+}
+
+.spinner {
+  padding: 10px;
+}

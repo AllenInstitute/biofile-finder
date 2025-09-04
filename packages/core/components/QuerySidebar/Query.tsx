@@ -109,6 +109,11 @@ export default function Query(props: QueryProps) {
     if (isLoading) {
         return (
             <div className={styles.container}>
+                {props?.query?.name && (
+                    <Tooltip content={props.query.name}>
+                        <h4>{props.query.name}</h4>
+                    </Tooltip>
+                )}
                 <div className={styles.loadingContainer}>
                     <LoadingIcon size={SpinnerSize.medium} data-testid="query-spinner" />
                 </div>

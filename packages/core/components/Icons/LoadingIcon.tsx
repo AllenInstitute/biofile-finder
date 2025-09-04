@@ -8,7 +8,6 @@ interface Props {
     className?: string;
     invertColor?: boolean;
     size?: SpinnerSize;
-
     "data-testid"?: string;
 }
 

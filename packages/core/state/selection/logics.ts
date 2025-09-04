@@ -54,6 +54,7 @@ import {
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
+import { hideOverlay } from "../interaction/actions";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import Annotation from "../../entity/Annotation";
@@ -664,6 +665,7 @@ const addQueryLogic = createLogic({
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
+            dispatch(hideOverlay());
             const errMsg = (err as Error).message || "Unknown error while adding query";
             console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
@@ -722,6 +724,7 @@ const changeQueryLogic = createLogic({
                 decodeSearchParams(SearchParams.encode(newlySelectedQuery.parts)) as AnyAction
             );
         }
+        dispatch(hideOverlay());
         dispatch(setQueries(updatedQueries));
         done();
     },
@@ -761,6 +764,7 @@ const replaceDataSourceLogic = createLogic({
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
+            dispatch(hideOverlay());
             const errMsg = (err as Error).message || "Unknown error while replacing data source";
             console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
@@ -770,6 +774,7 @@ const replaceDataSourceLogic = createLogic({
             }
         }
 
+        dispatch(hideOverlay());
         dispatch(interaction.actions.refresh() as AnyAction);
         done();
     },
