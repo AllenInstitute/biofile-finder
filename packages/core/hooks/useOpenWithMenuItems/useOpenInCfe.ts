@@ -8,23 +8,23 @@ import { FileService } from "../../services";
 import { interaction } from "../../state";
 import { getCellFeatureExplorerBaseUrl } from "../../state/interaction/selectors";
 
-type OpenInCfeCallback = (
+/**
+ * Returns a callback to open the current file selection in Cell Feature
+ * Explorer, using a remote server to temporarily upload the file and generate a
+ * URL for CFE for cross-site access.
+ *
+ * @returns
+ * - If the remote server connection is not available, returns undefined.
+ * - If the remote server connection is available, returns a callback that opens
+ *   the provided file selection, annotations, and file service, and attempts to
+ *   open CFE in a new tab with the selected files loaded.
+ */
+const useOpenInCfe = (
+    remoteServerConnection: RemoteFileUploadServerConnection,
     fileSelection: FileSelection,
     annotationNames: string[],
     fileService: FileService
-) => Promise<void>;
-
-/**
- * Opens a file selection in Cell Feature Explorer, using a remote server to
- * temporarily upload the file and generate a URL for CFE for cross-site access.
- *
- * @returns a callback that takes a file selection, annotations, and file
- * service, and attempts to open CFE in a new tab with the selected files
- * loaded.
- */
-const useOpenInCfe = (
-    remoteServerConnection: RemoteFileUploadServerConnection
-): OpenInCfeCallback => {
+): (() => Promise<void>) | undefined => {
     const { hasRemoteServer, uploadFile } = remoteServerConnection;
     const dispatch = useDispatch();
     const cfeBaseUrl = useSelector(getCellFeatureExplorerBaseUrl);
@@ -96,7 +96,12 @@ const useOpenInCfe = (
         },
         [hasRemoteServer, cfeBaseUrl, dispatch, uploadFile]
     );
-    return openInCfe;
+
+    const openCurrentSelectionInCfe = React.useCallback(() => {
+        return openInCfe(fileSelection, annotationNames, fileService);
+    }, [openInCfe, fileSelection, annotationNames, fileService]);
+
+    return hasRemoteServer ? openCurrentSelectionInCfe : undefined;
 };
 
 export default useOpenInCfe;

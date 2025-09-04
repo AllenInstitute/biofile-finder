@@ -24,7 +24,7 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
 
     const [fileDetails, setFileDetails] = React.useState<FileDetail>();
 
-    const openWithSubMenuItems = useOpenWithMenuItems(fileDetails, fileSelection, folderFilters);
+    const openWithSubMenuItems = useOpenWithMenuItems(fileDetails, folderFilters);
     const saveAsSubMenuItems = useSaveMetadataOptions(folderFilters);
 
     fileSelection.fetchFocusedItemDetails().then((fileDetails) => {

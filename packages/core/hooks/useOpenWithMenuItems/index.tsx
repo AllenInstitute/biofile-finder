@@ -6,10 +6,9 @@ import { useDispatch, useSelector } from "react-redux";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
-import { interaction, metadata } from "../../state";
+import { interaction, metadata, selection } from "../../state";
 
 import styles from "./useOpenWithMenuItems.module.css";
-import FileSelection from "../../entity/FileSelection";
 import useOpenInCfe from "./useOpenInCfe";
 import useRemoteFileUpload from "../useRemoteFileUpload";
 
@@ -261,12 +260,7 @@ function getFileExtension(fileDetails: FileDetail): string {
     return fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
 }
 
-export default (
-    fileDetails: FileDetail | undefined,
-    // TODO: Get directly? `const fileSelection = useSelector(...);`
-    fileSelection: FileSelection,
-    filters?: FileFilter[]
-): IContextualMenuItem[] => {
+export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
@@ -277,25 +271,20 @@ export default (
     );
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
     const fileService = useSelector(interaction.selectors.getFileService);
+
+    const fileSelection = useSelector(selection.selectors.getFileSelection);
     const annotationNames = React.useMemo(
-        () => Array.from(Object.keys(annotationNameToAnnotationMap)),
+        () => Array.from(Object.keys(annotationNameToAnnotationMap)).sort(),
         [annotationNameToAnnotationMap]
     );
 
     const remoteServerConnection = useRemoteFileUpload();
-    const openInCfeCallback = useOpenInCfe(remoteServerConnection);
-    const openInCfe = React.useMemo(() => {
-        if (!remoteServerConnection.hasRemoteServer) {
-            return undefined;
-        }
-        return () => openInCfeCallback(fileSelection, annotationNames, fileService);
-    }, [
-        remoteServerConnection.hasRemoteServer,
-        openInCfeCallback,
+    const openInCfe = useOpenInCfe(
+        remoteServerConnection,
         fileSelection,
         annotationNames,
-        fileService,
-    ]);
+        fileService
+    );
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(

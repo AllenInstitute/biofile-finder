@@ -134,8 +134,8 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         const name = `file-manifest-${new Date()}.csv`;
         const formatToMimeType = {
             csv: "text/csv",
-            json: "application/json",
-            parquet: "application/octet-stream",
+            // json: "application/json",
+            // parquet: "application/octet-stream",
         };
         return new File([data], name, { type: formatToMimeType[format] });
     }
