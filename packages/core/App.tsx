@@ -11,6 +11,7 @@ import Modal from "./components/Modal";
 import DirectoryTree from "./components/DirectoryTree";
 import FileDetails from "./components/FileDetails";
 import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
+import Overlay from "./components/Overlay";
 import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
 import QuerySidebar from "./components/QuerySidebar";
@@ -143,6 +144,7 @@ export default function App(props: AppProps) {
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />
+            <Overlay />
             <Modal />
             <TutorialTooltip />
         </div>

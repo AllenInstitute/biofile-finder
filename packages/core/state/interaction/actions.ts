@@ -758,6 +758,44 @@ export function showDatasetDetailsPanel(): ShowDatasetDetailsPanelAction {
 }
 
 /**
+ * SHOW_OVERLAY
+ *
+ * Intention to display a screen overlay with message `content` which
+ * prevents users from interacting with the app (e.g., while data loads)
+ */
+export const SHOW_OVERLAY = makeConstant(STATE_BRANCH_NAME, "show-overlay");
+
+export interface ShowOverlayAction {
+    type: string;
+    payload: string;
+}
+
+export function showOverlay(content: string): ShowOverlayAction {
+    return {
+        type: SHOW_OVERLAY,
+        payload: content,
+    };
+}
+
+/**
+ * HIDE_OVERLAY
+ *
+ * Intention to hide the screen overlay in the app and reset
+ * its content to undefined
+ */
+export const HIDE_OVERLAY = makeConstant(STATE_BRANCH_NAME, "hide-overlay");
+
+export interface HideOverlayAction {
+    type: string;
+}
+
+export function hideOverlay(): HideOverlayAction {
+    return {
+        type: HIDE_OVERLAY,
+    };
+}
+
+/**
  * SET_SELECTED_PUBLIC_DATASET
  *
  * Intention to select an open-source dataset to view.

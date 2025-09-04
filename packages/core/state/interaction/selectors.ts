@@ -37,8 +37,11 @@ export const getDatasetDetailsVisibility = (state: State) =>
 export const getSelectedPublicDataset = (state: State) => state.interaction.selectedPublicDataset;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
+export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 export const getFileTypeForVisibleModal = (state: State) =>
     state.interaction.fileTypeForVisibleModal;
+export const getIsOverlayVisible = (state: State) => state.interaction.isOverlayVisible;
+export const getOverlayContent = (state: State) => state.interaction.overlayContent;
 export const getHasDismissedSmallScreenWarning = (state: State) =>
     state.interaction.hasDismissedSmallScreenWarning;
 export const getHasUnsavedChanges = (state: State) => state.interaction.hasUnsavedChanges;
@@ -51,7 +54,6 @@ export const getProcessStatuses = (state: State) => state.interaction.status;
 export const getRefreshKey = (state: State) => state.interaction.refreshKey;
 export const getUserSelectedApplications = (state: State) =>
     state.interaction.userSelectedApplications;
-export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee;
 
 // URL Mapping Selectors

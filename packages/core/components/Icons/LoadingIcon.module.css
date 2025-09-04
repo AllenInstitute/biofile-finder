@@ -5,3 +5,7 @@
 .invert-color > div {
     border-color: var(--secondary-text-color) var(--secondary-background-color) var(--secondary-background-color);
 }
+
+.highlight-color > div {
+    border-color: var(--bright-aqua) var(--bright-aqua) var(--primary-background-color);
+}

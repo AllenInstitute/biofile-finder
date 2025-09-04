@@ -29,6 +29,9 @@ import {
     PromptForDataSource,
     SET_SELECTED_PUBLIC_DATASET,
     SetVisibleModalAction,
+    SHOW_OVERLAY,
+    ShowOverlayAction,
+    HIDE_OVERLAY,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -61,6 +64,8 @@ export interface InteractionStateBranch {
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;
     isOnWeb: boolean;
+    isOverlayVisible: boolean;
+    overlayContent?: string;
     platformDependentServices: PlatformDependentServices;
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
@@ -85,6 +90,7 @@ export const initialState: InteractionStateBranch = {
     hasUnsavedChanges: false,
     hasUsedApplicationBefore: false,
     isOnWeb: false,
+    isOverlayVisible: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         databaseService: new DatabaseServiceNoop(),
@@ -180,6 +186,16 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             fileFiltersForVisibleModal: action.payload.fileFiltersForVisibleModal,
             visibleModal: action.payload.visibleModal,
+        }),
+        [SHOW_OVERLAY]: (state, action: ShowOverlayAction) => ({
+            ...state,
+            isOverlayVisible: true,
+            overlayContent: action.payload,
+        }),
+        [HIDE_OVERLAY]: (state) => ({
+            ...state,
+            isOverlayVisible: false,
+            overlayContent: undefined,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action: ShowManifestDownloadDialogAction) => ({
             ...state,
