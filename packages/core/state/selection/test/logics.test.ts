@@ -4,28 +4,33 @@ import {
     mergeState,
     ResponseStub,
 } from "@aics/redux-utils";
+import axios from "axios";
 import { expect } from "chai";
 import { get as _get, shuffle } from "lodash";
 import sinon from "sinon";
 
 import {
     addFileFilter,
-    selectFile,
+    addQuery,
+    changeDataSources,
+    changeSourceMetadata,
+    decodeSearchParams,
+    expandAllFileFolders,
     reorderAnnotationHierarchy,
     removeFileFilter,
     removeFromAnnotationHierarchy,
+    setAnnotationHierarchy,
+    selectFile,
+    selectNearbyFile,
+    ADD_DATASOURCE_RELOAD_ERROR,
     SET_ANNOTATION_HIERARCHY,
     SET_AVAILABLE_ANNOTATIONS,
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
-    decodeSearchParams,
-    setAnnotationHierarchy,
-    selectNearbyFile,
     SET_SORT_COLUMN,
-    changeDataSources,
-    changeSourceMetadata,
-    expandAllFileFolders,
+    Query,
+    addDataSourceReloadError,
 } from "../actions";
 import { initialState, interaction } from "../../";
 import { FESBaseUrl } from "../../../constants";
@@ -40,7 +45,7 @@ import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
-import { DatasetService } from "../../../services";
+import { DatabaseService, DatasetService } from "../../../services";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../../services/DataSourceService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
@@ -677,6 +682,225 @@ describe("Selection logics", () => {
                     type: interaction.actions.REFRESH,
                 })
             ).to.be.true;
+        });
+    });
+
+    describe("addQueryLogic", () => {
+        // Custom mock to stub `addDataSource` and keep `prepareDataSources`
+        class MockDatabaseService extends DatabaseService {
+            protected addDataSource(): Promise<void> {
+                return Promise.reject("MockDatabaseService:addDataSource");
+            }
+
+            public execute(): Promise<void> {
+                return Promise.resolve();
+            }
+
+            public saveQuery(): Promise<Uint8Array> {
+                return Promise.reject("MockDatabaseService:saveQuery");
+            }
+
+            public query(): Promise<{ [key: string]: string }[]> {
+                return Promise.reject("MockDatabaseService:query");
+            }
+        }
+        const state = mergeState(initialState, {
+            interaction: {
+                platformDependentServices: {
+                    databaseService: new MockDatabaseService(),
+                },
+            },
+        });
+        const mockQuery = (dataSourceName: string, uri: string | File): Query => {
+            return {
+                name: dataSourceName,
+                parts: {
+                    hierarchy: [],
+                    filters: [],
+                    openFolders: [],
+                    sources: [{ name: dataSourceName, type: "csv", uri }],
+                },
+            };
+        };
+
+        afterEach(() => {
+            sinon.resetHistory();
+            sinon.restore();
+        });
+
+        it("dispatches data source error for 404 status response", async () => {
+            // Arrange
+            const dataSourceName = "Mock Dataset 404";
+            const response = { status: 404, data: "Not Found" };
+            sinon.stub(axios, "get").returns(Promise.reject({ response }));
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(addQuery(mockQuery(dataSourceName, "http://fake-uri.test/404")));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: ADD_DATASOURCE_RELOAD_ERROR,
+                    payload: {
+                        dataSourceName,
+                        error: "Request failed with status 404: Not Found",
+                    },
+                })
+            ).to.be.true;
+        });
+
+        it("dispatches data source error for 500 status response object", async () => {
+            // Arrange
+            const dataSourceName = "Mock Dataset 500";
+            const errorMessage = "A differently formatted error message";
+            // Intentionally using a different error message format for testing
+            const response = { status: 500, data: { message: errorMessage } };
+            sinon.stub(axios, "get").returns(Promise.reject({ response }));
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(addQuery(mockQuery(dataSourceName, "http://fake-uri.test/500")));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: ADD_DATASOURCE_RELOAD_ERROR,
+                    payload: {
+                        dataSourceName,
+                        error: `Request failed with status 500: ${errorMessage}`,
+                    },
+                })
+            ).to.be.true;
+        });
+
+        it("dispatches data source error when no response object is provided", async () => {
+            // Arrange
+            const dataSourceName = "Mock Dataset with error";
+            const errorMessage = "Something went wrong";
+            sinon.stub(axios, "get").returns(Promise.reject({ message: errorMessage }));
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(addQuery(mockQuery(dataSourceName, "http://fake-uri.test/some/error")));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: ADD_DATASOURCE_RELOAD_ERROR,
+                    payload: {
+                        dataSourceName,
+                        error: `${errorMessage}`,
+                    },
+                })
+            ).to.be.true;
+        });
+
+        it("dispatches the default data source error message if axios does not return info", async () => {
+            // Arrange
+            const dataSourceName = "Mock Dataset";
+            sinon.stub(axios, "get").returns(Promise.reject());
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+            });
+
+            // Act
+            // addQuery will fail since addDataSource is set to reject in MockDatabaseService
+            store.dispatch(addQuery(mockQuery(dataSourceName, "http://fake-uri.test/error")));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: ADD_DATASOURCE_RELOAD_ERROR,
+                    payload: {
+                        dataSourceName,
+                        error: "Unknown error while adding query",
+                    },
+                })
+            ).to.be.true;
+        });
+
+        it("dispatches the default data source error message for File type sources", async () => {
+            const dataSourceName = "Mock Data Source";
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+            });
+
+            // Act
+            // addQuery will fail since addDataSource is set to reject in MockDatabaseService
+            store.dispatch(addQuery(mockQuery(dataSourceName, new File([], "Mock Data Source"))));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: ADD_DATASOURCE_RELOAD_ERROR,
+                    payload: {
+                        dataSourceName,
+                        error: "Unknown error while adding query",
+                    },
+                })
+            ).to.be.true;
+        });
+    });
+
+    describe("setDataSourceReloadErrorLogic", () => {
+        it("truncates long errors", async () => {
+            const errorSubstring = "This is a string containing exactly 50 characters.";
+            const fullErrorMessage = errorSubstring.repeat(5); // 250 characters
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: initialState,
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(addDataSourceReloadError("Mock Data Source", fullErrorMessage));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch({ type: interaction.actions.SET_STATUS })).to.be.true;
+            const dispatchedErrorMessage = actions.list
+                .filter((action) => action.type === interaction.actions.SET_STATUS)
+                .at(0)?.payload?.data?.msg;
+            expect(dispatchedErrorMessage.includes(fullErrorMessage)).to.be.false;
+            // Truncate replaces the last three characters with an ellipsis to mantain a total of `length` (200)
+            expect(dispatchedErrorMessage.includes(errorSubstring.repeat(4).slice(0, -3) + "..."))
+                .to.be.true;
+        });
+
+        it("displays the full error when less than or equal to truncation length", async () => {
+            const errorSubstring = "This is a string containing exactly 50 characters.";
+            const fullErrorMessage = errorSubstring.repeat(4); // 200 characters
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: initialState,
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(addDataSourceReloadError("Mock Data Source", fullErrorMessage));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch({ type: interaction.actions.SET_STATUS })).to.be.true;
+            const dispatchedErrorMessage = actions.list
+                .filter((action) => action.type === interaction.actions.SET_STATUS)
+                .at(0)?.payload?.data?.msg;
+            expect(dispatchedErrorMessage.includes(fullErrorMessage)).to.be.true;
         });
     });
 

@@ -88,6 +88,20 @@ module.exports = ({ analyze, production } = {}) => ({
                 include: /node_modules/,
                 use: [{ loader: MiniCssExtractPlugin.loader }, { loader: "css-loader" }],
             },
+            {
+                test: /\.svg$/,
+                use: [
+                    {
+                        loader: "babel-loader",
+                    },
+                    {
+                        loader: "react-svg-loader",
+                        options: {
+                            tsx: true, // true outputs tags
+                        },
+                    },
+                ],
+            },
         ],
     },
     output: {

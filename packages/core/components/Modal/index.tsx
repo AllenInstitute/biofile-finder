@@ -2,6 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
+import About from "./About";
 import CodeSnippet from "./CodeSnippet";
 import DataSource from "./DataSource";
 import EditMetadata from "./EditMetadata";
@@ -14,12 +15,13 @@ export interface ModalProps {
 }
 
 export enum ModalType {
-    CodeSnippet = 1,
-    CopyFileManifest = 2,
-    DataSource = 3,
-    EditMetadata = 4,
-    MetadataManifest = 5,
-    SmallScreenWarning = 6,
+    About = 1,
+    CodeSnippet = 2,
+    CopyFileManifest = 3,
+    DataSource = 4,
+    EditMetadata = 5,
+    MetadataManifest = 6,
+    SmallScreenWarning = 7,
 }
 
 /**
@@ -34,6 +36,8 @@ export default function Modal() {
     };
 
     switch (visibleModal) {
+        case ModalType.About:
+            return <About onDismiss={onDismiss} />;
         case ModalType.CodeSnippet:
             return <CodeSnippet onDismiss={onDismiss} />;
         case ModalType.CopyFileManifest:
