@@ -16,7 +16,7 @@ export default function BaseOverlay() {
                 <Overlay isDarkThemed={true} styles={{ root: styles.overlayRoot }}>
                     <div>
                         {overlayText}
-                        <LoadingIcon className={styles.spinner} size={2} highlightColor />
+                        <LoadingIcon className={styles.spinner} size={2} />
                     </div>
                 </Overlay>
             )}
