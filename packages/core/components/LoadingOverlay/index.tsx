@@ -7,19 +7,18 @@ import { interaction } from "../../state";
 
 import styles from "./Overlay.module.css";
 
-export default function BaseOverlay() {
+export default function LoadingOverlay() {
     const isOverlayVisible = useSelector(interaction.selectors.getIsOverlayVisible);
     const overlayText = useSelector(interaction.selectors.getOverlayText);
+    if (!isOverlayVisible) {
+        return null;
+    }
     return (
-        <>
-            {isOverlayVisible && (
-                <Overlay isDarkThemed={true} styles={{ root: styles.overlayRoot }}>
-                    <div>
-                        {overlayText}
-                        <LoadingIcon className={styles.spinner} size={2} />
-                    </div>
-                </Overlay>
-            )}
-        </>
+        <Overlay isDarkThemed={true} styles={{ root: styles.overlayRoot }}>
+            <div>
+                {overlayText || "Loading..."}
+                <LoadingIcon className={styles.spinner} size={2} />
+            </div>
+        </Overlay>
     );
 }
