@@ -11,9 +11,10 @@ const FILE_TYPE_FOR_OS = {
 };
 const INSTRUCTIONS_FOR_OS = {
     [OS.WINDOWS]: [
-        "Click the 'Download' button to the left",
-        "Move the downloaded executable from your Downloads folder to a more durable location. Note that ITO prevents executables from being stored <i>directly</i> on either your Desktop or in your Documents folder. The executable can, however, be placed within a folder in either location (e.g. <code>Desktop\\FMS Explorer\\explorer.exe</code>).",
-        '<strong>Recommendation:</strong> store the executable in someplace like <code>C:\\Users\\someuser\\FMS Explorer\\</code>. Once there, you can right-click on the .exe and select "Send to" -> "Desktop (create shortcut)"  to make it more convenient to find.',
+        "Click the 'Download' button to the left.",
+        '<strong>If on Windows 11:</strong> Your browser may block the download. If so, click the "..." button next to the .exe file in the downloads tab of your browser to show more options, then select "Keep." If you see a second warning, select "Keep anyway."',
+        "Move the downloaded executable from your Downloads folder to a more durable location. Note that ITO prevents executables from being stored <i>directly</i> on either your Desktop or in your Documents folder. The executable can, however, be placed within a folder in either location (e.g., <code>Desktop\\BioFile Finder\\explorer.exe</code>).",
+        '<strong>Recommendation:</strong> store the executable in someplace like <code>C:\\Users\\someuser\\BioFile Finder\\</code>. Once there, you can right-click on the .exe and select "Send to" -> "Desktop (create shortcut)"  to make it more convenient to find.',
         '<strong>If on Windows 10:</strong> the <i>first</i> time you run the application, you\'ll see a blue pop-up warning that "Windows protected your PC." To continue, click "More Info," then press the "Run anyway" button.',
     ],
     [OS.MAC]: [
