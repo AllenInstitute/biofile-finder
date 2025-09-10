@@ -261,10 +261,10 @@ const downloadFilesLogic = createLogic({
                 if (file.path.endsWith(".zarr")) {
                     if (!isStandardS3Url) {
                         // Only check for virtualized URLs if not already an S3 URL
-                        const isVirtualized = await fileDownloadService.canUseDirectoryArguments(
+                        const canUseDirectoryArgs = await fileDownloadService.canUseDirectoryArguments(
                             file.path
                         );
-                        if (!isVirtualized) return; // Can't calculate size
+                        if (!canUseDirectoryArgs) return; // Can't calculate size
                     }
                     const parsingFunc = isStandardS3Url
                         ? fileDownloadService.parseS3Url
