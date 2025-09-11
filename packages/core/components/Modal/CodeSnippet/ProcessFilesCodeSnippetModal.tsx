@@ -60,7 +60,8 @@ export default function ProcessFiles({ onDismiss }: ModalProps) {
 pip install ${allDeps.join(" ")}
 # Run this with Python 3.10+`;
 
-                const code = `import pandas as pd
+                const code = `import sys
+import pandas as pd
 from bioio import BioImage
 
 selected_files = [
