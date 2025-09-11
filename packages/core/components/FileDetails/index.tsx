@@ -146,7 +146,7 @@ export default function FileDetails(props: Props) {
         if (!isDownloadDisabled) return;
         if (isZarr && isOnWeb) {
             if (calculatedSize === null) {
-                return "Unable to determine zarr size";
+                return "Unable to determine size of .zarr file. Upload files to an AWS S3 bucket to enable .zarr downloads.";
             } else if (calculatedSize > MAX_DOWNLOAD_SIZE_WEB) {
                 const downloadSizeString = annotationFormatterFactory(
                     AnnotationType.NUMBER
