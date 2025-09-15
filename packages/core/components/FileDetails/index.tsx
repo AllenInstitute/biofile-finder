@@ -141,20 +141,23 @@ export default function FileDetails(props: Props) {
               // meaning that if the size cannot be determined, the download is also not possible.
               (calculatedSize === null || calculatedSize > MAX_DOWNLOAD_SIZE_WEB))
         : true;
-
+    // Display a tooltip if download is disabled
     const downloadDisabledMessage = React.useMemo(() => {
         if (!isDownloadDisabled) return;
+        if (!fileDetails) return "File details not available";
         if (isZarr && isOnWeb) {
             if (calculatedSize === null) {
-                return "Unable to determine size of .zarr file. Upload files to an AWS S3 bucket to enable .zarr downloads.";
+                return "Unable to determine size of .zarr file";
             } else if (calculatedSize > MAX_DOWNLOAD_SIZE_WEB) {
                 const downloadSizeString = annotationFormatterFactory(
                     AnnotationType.NUMBER
                 ).displayValue(MAX_DOWNLOAD_SIZE_WEB, "bytes");
                 return "File exceeds maximum download size of " + downloadSizeString;
             }
+            return "Unable to download file. Upload files to an AWS S3 bucket to enable .zarr downloads";
         }
-        return "Unable to download file";
+        // Otherwise, fileId is in processStatuses and details are visible to user there
+        return "Download disabled";
     }, [isDownloadDisabled, isZarr, isOnWeb, calculatedSize]);
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
