@@ -1,22 +1,22 @@
-import "normalize.css";
 import { initializeIcons, loadTheme } from "@fluentui/react";
 import classNames from "classnames";
 import { uniqueId } from "lodash";
+import "normalize.css";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ContextMenu from "./components/ContextMenu";
 import DataSourcePrompt from "./components/DataSourcePrompt";
-import Modal from "./components/Modal";
 import DirectoryTree from "./components/DirectoryTree";
 import FileDetails from "./components/FileDetails";
 import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
+import Modal from "./components/Modal";
+import QuerySidebar from "./components/QuerySidebar";
 import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
-import QuerySidebar from "./components/QuerySidebar";
 import { Environment, UNSAVED_DATA_WARNING } from "./constants";
-import { interaction, selection } from "./state";
 import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
+import { interaction, selection } from "./state";
 
 import styles from "./App.module.css";
 
@@ -53,9 +53,8 @@ export default function App(props: AppProps) {
     const platformDependentServices = useSelector(
         interaction.selectors.getPlatformDependentServices
     );
-    const [measuredNodeRef, _measuredHeight, measuredWidth] = useLayoutMeasurements<
-        HTMLDivElement
-    >();
+    const [measuredNodeRef, _measuredHeight, measuredWidth] =
+        useLayoutMeasurements<HTMLDivElement>();
 
     React.useEffect(() => {
         const beforeUnloadHandler = (event: BeforeUnloadEvent) => {
@@ -78,7 +77,8 @@ export default function App(props: AppProps) {
     React.useEffect(() => {
         const checkForUpdates = async () => {
             try {
-                const isUpdateAvailable = await platformDependentServices.applicationInfoService.updateAvailable();
+                const isUpdateAvailable =
+                    await platformDependentServices.applicationInfoService.updateAvailable();
                 if (isUpdateAvailable) {
                     const homepage = "https://alleninstitute.github.io/biofile-finder/";
                     const msg = `A new version of the application is available!<br/>
