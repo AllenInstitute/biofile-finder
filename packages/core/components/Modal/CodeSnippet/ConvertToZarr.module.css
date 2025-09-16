@@ -1,0 +1,203 @@
+/* ===========================
+   Layout: snippet | params
+   =========================== */
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px; /* LEFT: snippet | RIGHT: params */
+  gap: 16px;
+  min-height: 480px;
+  height: 100%;
+  width: 100%;
+}
+
+/* LEFT COLUMN (snippet) */
+.content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  background: var(--primary-background-color) !important; /* theme */
+}
+
+/* RIGHT COLUMN (params) */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-left: 1px solid var(--divider, #e5e7eb);
+  overflow: auto;
+  background: var(--primary-background-color, #fff);
+  position: relative;
+  z-index: 2;
+}
+
+/* Optional small section title */
+.sectionTitle {
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  color: var(--primary-text-color);
+}
+
+/* ===========================
+   PasswordForm-like fields
+   =========================== */
+.fieldLabel {
+  padding-bottom: 6px;
+  color: var(--primary-text-color) !important;
+  font-size: var(--l-paragraph-size);
+  margin: 8px 0 0;
+}
+
+/* Attach to TextField wrapper */
+.fieldInput {
+  padding-bottom: var(--margin);
+}
+
+/* Fluent TextField internals */
+.fieldInput > div > label,
+.fieldInput > div > label::after {
+  color: var(--primary-text-color) !important;
+  font-size: var(--l-paragraph-size);
+}
+
+.fieldInput input {
+  background-color: var(--secondary-background-color) !important;
+  color: var(--primary-text-color) !important;
+  border-radius: 4px;
+}
+
+.fieldInput input:disabled {
+  cursor: not-allowed;
+}
+
+.fieldInput > div:focus,
+.fieldInput div:focus-visible,
+.fieldInput > div:active {
+  outline: none;
+}
+
+.fieldInput > div > div {
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--secondary-background-color) !important;
+  color: var(--secondary-text-color) !important;
+}
+
+.fieldInput > div > div::after {
+  border: 1px solid var(--aqua);
+  border-radius: 4px;
+  outline: none;
+}
+
+.fieldInput > div > div > *::placeholder {
+  color: var(--secondary-text-color);
+  font-style: italic;
+}
+
+.fieldInput > div > div:hover {
+  border: 1px solid var(--border-color);
+}
+
+/* Dropdown styled similarly */
+.dropdownInput {
+  padding-bottom: var(--margin);
+}
+/* Fluent UI title area in Dropdown (css-modules global) */
+.dropdownInput :global(.ms-Dropdown-title) {
+  background-color: var(--secondary-background-color) !important;
+  color: var(--primary-text-color) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 4px !important;
+}
+
+/* Checkbox spacing */
+.checkboxRow {
+  margin-top: 8px;
+}
+
+/* Footer buttons (match PasswordForm) */
+.footer {
+  margin-top: 20px;
+  width: 100%;
+}
+.footerAlignRight {
+  width: 100%;
+  display: flex;
+}
+.footerAlignRight > * {
+  margin-left: 10px;
+  width: min-content;
+}
+.footerAlignRight > *:first-child {
+  margin-left: auto;
+}
+
+/* ===========================
+   Embedded snippet styles
+   =========================== */
+.snippetWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  overflow: auto;
+  width: 100%;
+  background: transparent; /* inherit modal bg */
+}
+
+.snippetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.snippetTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-text-color);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.blockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--primary-text-color);
+}
+
+.copyBtn {
+  border: 1px solid var(--border-color);
+  background: var(--secondary-background-color);
+  color: var(--primary-text-color);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.copyBtn:hover {
+  filter: brightness(1.05);
+}
+
+/* Code block uses theme vars with sensible fallbacks */
+.pre {
+  margin: 0;
+  padding: 12px;
+  background: var(--code-background-color, #0b1020);
+  color: var(--code-foreground-color, #e6edf3);
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow: auto;
+  max-height: 60vh;
+  white-space: pre;
+}

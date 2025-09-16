@@ -10,6 +10,7 @@ import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
 import CopyFileManifest from "./CopyFileManifest";
 import ProcessFilesCodeSnippet from "./CodeSnippet/ProcessFilesCodeSnippetModal";
+import ConvertFiles from "./CodeSnippet/ConvertToZarr";
 
 export interface ModalProps {
     onDismiss: () => void;
@@ -24,6 +25,7 @@ export enum ModalType {
     MetadataManifest = 6,
     SmallScreenWarning = 7,
     ProcessFilesCodeSnippet = 8,
+    ConvertFiles = 9,
 }
 
 /**
@@ -54,6 +56,8 @@ export default function Modal() {
             return <SmallScreenWarning onDismiss={onDismiss} />;
         case ModalType.ProcessFilesCodeSnippet:
             return <ProcessFilesCodeSnippet onDismiss={onDismiss} />;
+        case ModalType.ConvertFiles:
+            return <ConvertFiles onDismiss={onDismiss} />;
         default:
             return null;
     }

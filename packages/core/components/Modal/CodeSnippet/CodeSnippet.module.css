@@ -28,3 +28,15 @@
 .language-button {
     width: 200px;
 }
+/* CodeSnippet.module.css */
+.embeddedRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  overflow: auto;
+  min-height: 0;
+}
+.title {
+  margin: 0;
+}

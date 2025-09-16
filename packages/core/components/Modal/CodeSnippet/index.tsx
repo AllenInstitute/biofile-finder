@@ -18,14 +18,18 @@ export interface CodeSnippetProps {
 }
 
 /**
- * Dialog meant to show the user a Code snippet
+ * Body-only variant, suitable for embedding inside other modals/layouts.
+ * (No BaseModal wrapper here.)
  */
-export default function CodeSnippet({
-    onDismiss,
+export function CodeSnippetBody({
     code,
     setup,
     title = "Code snippet",
-}: CodeSnippetProps) {
+}: {
+    code?: string;
+    setup?: string;
+    title?: string;
+}) {
     const [isSetupCopied, setSetupCopied] = React.useState(false);
     const [isCodeCopied, setCodeCopied] = React.useState(false);
     const [language, setLanguage] = React.useState(PYTHON_PANDAS_MINIMUM);
@@ -33,7 +37,6 @@ export default function CodeSnippet({
     const onCopySetup = () => {
         if (setup) {
             navigator.clipboard.writeText(setup);
-            // Provide feedback to user about what is copied to their clipboard
             setSetupCopied(true);
             setCodeCopied(false);
         }
@@ -41,21 +44,18 @@ export default function CodeSnippet({
     const onCopyCode = () => {
         if (code) {
             navigator.clipboard.writeText(code);
-            // Provide feedback to user about what is copied to their clipboard
             setSetupCopied(false);
             setCodeCopied(true);
         }
     };
 
-    // Prevent an event from bubbling up to its parent; useful because Modal will
-    // default to interpreting mousedown/move/up events as intentions to move the modal,
-    // which prevents being able to select text
+    // Prevent BaseModal drag behavior from interfering with code selection
     const stopPropagationHandler = (evt: MouseEvent) => {
         evt.stopPropagation();
     };
 
-    const body = (
-        <>
+    return (
+        <div className={styles.embeddedRoot}>
             <div className={styles.languageButtonContainer}>
                 <PrimaryButton
                     className={styles.languageButton}
@@ -75,14 +75,11 @@ export default function CodeSnippet({
                     title="Select language to display code snippet for"
                 />
             </div>
+
             <div className={styles.header}>
-                <h4>Setup</h4>
+                <h4 className={styles.title}>{title} — Setup</h4>
                 <TooltipHost content={isSetupCopied ? "Copied to clipboard!" : undefined}>
-                    <TertiaryButton
-                        iconName="Copy"
-                        onClick={onCopySetup}
-                        title="Copy to clipboard"
-                    />
+                    <TertiaryButton iconName="Copy" onClick={onCopySetup} title="Copy to clipboard" />
                 </TooltipHost>
             </div>
             <SyntaxHighlighter
@@ -94,14 +91,11 @@ export default function CodeSnippet({
             >
                 {setup || ""}
             </SyntaxHighlighter>
-            <div className={styles.header}>
-                <h4>Code</h4>
+
+            <div className={styles.header} style={{ marginTop: 12 }}>
+                <h4 className={styles.title}>{title} — Code</h4>
                 <TooltipHost content={isCodeCopied ? "Copied to clipboard!" : undefined}>
-                    <TertiaryButton
-                        iconName="Copy"
-                        onClick={onCopyCode}
-                        title="Copy to clipboard"
-                    />
+                    <TertiaryButton iconName="Copy" onClick={onCopyCode} title="Copy to clipboard" />
                 </TooltipHost>
             </div>
             <SyntaxHighlighter
@@ -117,8 +111,24 @@ export default function CodeSnippet({
             >
                 {code || ""}
             </SyntaxHighlighter>
-        </>
+        </div>
     );
+}
 
-    return <BaseModal body={body} onDismiss={onDismiss} title={title} />;
+/**
+ * Default export remains a full modal wrapper for backwards compatibility.
+ */
+export default function CodeSnippet({
+    onDismiss,
+    code,
+    setup,
+    title = "Code snippet",
+}: CodeSnippetProps) {
+    return (
+        <BaseModal
+            body={<CodeSnippetBody code={code} setup={setup} title={title} />}
+            onDismiss={onDismiss}
+            title={title}
+        />
+    );
 }

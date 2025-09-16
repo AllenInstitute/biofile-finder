@@ -856,3 +856,52 @@ export function setProcessFilesPythonSnippet(payload?: {
 }): SetProcessFilesPythonSnippetAction {
     return { type: SET_PROCESS_FILES_PYTHON_SNIPPET, payload };
 }
+
+
+
+/**
+ * SHOW_CONVERT_FILES
+ *
+ * Action to show the Convert Files dialog.
+ * This modal will allow users to generate a Python snippet for converting files.
+ */
+export const SHOW_CONVERT_FILES = makeConstant(STATE_BRANCH_NAME, "show-convert-files");
+
+export interface ShowConvertFilesAction {
+    type: string;
+}
+
+export function showConvertFiles(): ShowConvertFilesAction {
+    return {
+        type: SHOW_CONVERT_FILES,
+    };
+}
+
+/**
+ * SET_CONVERT_FILES_SNIPPET
+ *
+ * Stores the Python snippet and any user-supplied options for the Convert Files modal.
+ * Pass `{}` to clear the snippet. Options are stored as a dict of strings; only
+ * keys/values provided by the user are persisted (OmeZarrConverter handles defaults).
+ */
+export const SET_CONVERT_FILES_SNIPPET = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-convert-files-snippet"
+);
+
+export interface SetConvertFilesSnippetAction {
+    type: string;
+    payload?: {
+        setup?: string;
+        code?: string;
+        options?: Record<string, string>;
+    };
+}
+
+export function setConvertFilesSnippet(payload?: {
+    setup?: string;
+    code?: string;
+    options?: Record<string, string>;
+}): SetConvertFilesSnippetAction {
+    return { type: SET_CONVERT_FILES_SNIPPET, payload };
+}

@@ -29,7 +29,9 @@ import {
     PromptForDataSource,
     SET_SELECTED_PUBLIC_DATASET,
     SET_PROCESS_FILES_PYTHON_SNIPPET,
+    SET_CONVERT_FILES_SNIPPET,
     SHOW_PROCESS_FILES,
+    SHOW_CONVERT_FILES,
     SetVisibleModalAction,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
@@ -65,6 +67,11 @@ export interface InteractionStateBranch {
     isOnWeb: boolean;
     platformDependentServices: PlatformDependentServices;
     processFilesPythonSnippet?: { setup: string; code: string };
+    convertFilesSnippet: {
+        setup: string,
+        code: string,
+        options?: {},
+    }
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
@@ -104,6 +111,7 @@ export const initialState: InteractionStateBranch = {
         notificationService: new NotificationServiceNoop(),
     },
     processFilesPythonSnippet: { setup: "", code: "" },
+    convertFilesSnippet: { setup: "", code: "", options: {} },
     status: [],
 };
 
@@ -222,6 +230,21 @@ export default makeReducer<InteractionStateBranch>(
             processFilesPythonSnippet: {
                 setup: action.payload?.setup ?? "",
                 code: action.payload?.code ?? "",
+            },
+        }),
+        [SHOW_CONVERT_FILES]: (state) => ({
+            ...state,
+            visibleModal: ModalType.ConvertFiles,
+        }),
+        [SET_CONVERT_FILES_SNIPPET]: (state, action) => ({
+            ...state,
+            convertFilesSnippet: {
+                setup: action.payload?.setup ?? state.convertFilesSnippet?.setup ?? "",
+                code: action.payload?.code ?? state.convertFilesSnippet?.code ?? "",
+                options: {
+                ...(state.convertFilesSnippet?.options || {}),
+                ...(action.payload?.options || {}),
+                },
             },
         }),
     },

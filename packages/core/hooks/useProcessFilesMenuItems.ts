@@ -31,5 +31,20 @@ export default function useProcessMenuItems(
                 );
             },
         },
+        {
+            key: "convert-files-python",
+            text: "Convert files to OME-ZARR (BioIO)",
+            title:
+                "Create a Python snippet that converts with BioIO",
+            iconProps: { iconName: "CodeEdit" },
+            onClick() {
+                dispatch(
+                    interaction.actions.setVisibleModal(
+                        ModalType.ConvertFiles,
+                        folderFilters
+                    )
+                );
+            },
+        },
     ];
 }

@@ -52,6 +52,8 @@ export const getPlatformDependentServices = (state: State) =>
 export const getProcessStatuses = (state: State) => state.interaction.status;
 export const getProcessedFilesPythonSnippetFromState = (state: State) =>
     state.interaction.processFilesPythonSnippet;
+export const getConvertFilesSnippetFromState = (state: State) =>
+    state.interaction.convertFilesSnippet;
 export const getRefreshKey = (state: State) => state.interaction.refreshKey;
 export const getUserSelectedApplications = (state: State) =>
     state.interaction.userSelectedApplications;
@@ -121,6 +123,9 @@ export const getAllDataSources = createSelector(
 
 export const getProcessFilesPythonSnippet = (state: State) =>
     state.interaction.processFilesPythonSnippet;
+
+export const getConvertFilesSnippet = (state: State) =>
+    state.interaction.convertFilesSnippet;
 
 export const getPythonSnippet = createSelector(
     [getPythonConversion],
