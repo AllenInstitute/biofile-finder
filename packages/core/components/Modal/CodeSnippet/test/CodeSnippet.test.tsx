@@ -10,7 +10,7 @@ import { initialState } from "../../../../state";
 describe("<CodeSnippet />", () => {
     const visibleDialogState = mergeState(initialState, {
         interaction: {
-            visibleModal: ModalType.CodeSnippet,
+            visibleModal: ModalType.QueryCodeSnippet,
         },
         selection: {
             dataSources: [

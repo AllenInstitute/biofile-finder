@@ -1,38 +1,49 @@
 import { DirectionalHint, TooltipHost } from "@fluentui/react";
 import * as React from "react";
-import { useSelector } from "react-redux";
 import SyntaxHighlighter from "react-syntax-highlighter";
 
-import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { PrimaryButton, TertiaryButton } from "../../Buttons";
-import { interaction } from "../../../state";
 
 import styles from "./CodeSnippet.module.css";
 
 const PYTHON_PANDAS_MINIMUM = "Python 3.8+ (pandas)";
 
+export interface CodeSnippetProps {
+    onDismiss: () => void;
+    code?: string;
+    setup?: string;
+    title?: string;
+}
+
 /**
  * Dialog meant to show the user a Code snippet
  */
-export default function CodeSnippet({ onDismiss }: ModalProps) {
-    const { code, setup } = useSelector(interaction.selectors.getPythonSnippet);
-
+export default function CodeSnippet({
+    onDismiss,
+    code,
+    setup,
+    title = "Code snippet",
+}: CodeSnippetProps) {
     const [isSetupCopied, setSetupCopied] = React.useState(false);
     const [isCodeCopied, setCodeCopied] = React.useState(false);
     const [language, setLanguage] = React.useState(PYTHON_PANDAS_MINIMUM);
 
     const onCopySetup = () => {
-        setup && navigator.clipboard.writeText(setup);
-        // Provide feedback to user about what is copied to their clipboard
-        setSetupCopied(true);
-        setCodeCopied(false);
+        if (setup) {
+            navigator.clipboard.writeText(setup);
+            // Provide feedback to user about what is copied to their clipboard
+            setSetupCopied(true);
+            setCodeCopied(false);
+        }
     };
     const onCopyCode = () => {
-        code && navigator.clipboard.writeText(code);
-        // Provide feedback to user about what is copied to their clipboard
-        setSetupCopied(false);
-        setCodeCopied(true);
+        if (code) {
+            navigator.clipboard.writeText(code);
+            // Provide feedback to user about what is copied to their clipboard
+            setSetupCopied(false);
+            setCodeCopied(true);
+        }
     };
 
     // Prevent an event from bubbling up to its parent; useful because Modal will
@@ -108,5 +119,5 @@ export default function CodeSnippet({ onDismiss }: ModalProps) {
         </>
     );
 
-    return <BaseModal body={body} onDismiss={onDismiss} title="Code snippet" />;
+    return <BaseModal body={body} onDismiss={onDismiss} title={title} />;
 }

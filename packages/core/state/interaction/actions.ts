@@ -815,3 +815,44 @@ export function copyFiles(fileDetails: FileDetail[]): CopyFilesAction {
         },
     };
 }
+
+/**
+ * SHOW_PROCESS_FILES
+ *
+ * Action to show the Process Files dialog.
+ * This modal will allow users to generate a Python snippet for processing files.
+ */
+export const SHOW_PROCESS_FILES = makeConstant(STATE_BRANCH_NAME, "show-process-files");
+
+export interface ShowProcessFilesAction {
+    type: string;
+}
+
+export function showProcessFiles(): ShowProcessFilesAction {
+    return {
+        type: SHOW_PROCESS_FILES,
+    };
+}
+
+/**
+ * SET_PROCESS_FILES_PYTHON_SNIPPET
+ *
+ * Stores the Python snippet specifically for the Process Files modal.
+ * Pass `{}` to clear the snippet.
+ */
+export const SET_PROCESS_FILES_PYTHON_SNIPPET = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-python-snippet"
+);
+
+export interface SetProcessFilesPythonSnippetAction {
+    type: string;
+    payload?: { setup?: string; code?: string };
+}
+
+export function setProcessFilesPythonSnippet(payload?: {
+    setup?: string;
+    code?: string;
+}): SetProcessFilesPythonSnippetAction {
+    return { type: SET_PROCESS_FILES_PYTHON_SNIPPET, payload };
+}
