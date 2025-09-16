@@ -20,6 +20,7 @@ import styles from "./Query.module.css";
 interface QueryProps {
     isSelected: boolean;
     query: QueryType;
+    loading?: boolean;
 }
 
 /**
@@ -37,7 +38,8 @@ export default function Query(props: QueryProps) {
     const hasReloadError = useSelector(selection.selectors.getRequiresDataSourceReload);
     const isLoading =
         (shouldHaveDataSource && !hasDataSource && !hasReloadError) ||
-        props.query.name === AICS_FMS_DATA_SOURCE_NAME;
+        props.query.name === AICS_FMS_DATA_SOURCE_NAME ||
+        props?.loading;
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
@@ -54,25 +56,28 @@ export default function Query(props: QueryProps) {
 
     const condensedFilterString = React.useMemo(() => {
         return Object.entries(
-            queryComponents.filters.reduce((accum, filter) => {
-                let value = "";
-                switch (filter.type) {
-                    case FilterType.ANY:
-                        value = "any value";
-                        break;
-                    case FilterType.EXCLUDE:
-                        value = "no value";
-                        break;
-                    default:
-                        value = ((Number(accum[filter.name]) || 0) + 1).toString();
-                }
-                // Special case for ranges since we don't know the exact count
-                if (filter.value.toString().match(/^RANGE\((.*)\)$/)) value = "range";
-                return {
-                    ...accum,
-                    [filter.name]: value,
-                };
-            }, {} as { [index: string]: string })
+            queryComponents.filters.reduce(
+                (accum, filter) => {
+                    let value = "";
+                    switch (filter.type) {
+                        case FilterType.ANY:
+                            value = "any value";
+                            break;
+                        case FilterType.EXCLUDE:
+                            value = "no value";
+                            break;
+                        default:
+                            value = ((Number(accum[filter.name]) || 0) + 1).toString();
+                    }
+                    // Special case for ranges since we don't know the exact count
+                    if (filter.value.toString().match(/^RANGE\((.*)\)$/)) value = "range";
+                    return {
+                        ...accum,
+                        [filter.name]: value,
+                    };
+                },
+                {} as { [index: string]: string }
+            )
         )
             .map(([name, value]) => {
                 if (value === "") return name;
@@ -109,8 +114,27 @@ export default function Query(props: QueryProps) {
     if (isLoading) {
         return (
             <div className={styles.container}>
+                <div className={classNames(styles.header, styles.headerCollapsed)}>
+                    <Tooltip content="Uploading file and creating table...">
+                        <h4>
+                            <i>Building new query...</i>
+                        </h4>
+                    </Tooltip>
+                    <IconButton
+                        ariaDescription="Expand view details"
+                        ariaLabel="Expand"
+                        className={styles.expandButton}
+                        disabled
+                        iconProps={{ iconName: "ChevronDownMed" }}
+                    />
+                </div>
+                <hr className={styles.divider}></hr>
                 <div className={styles.loadingContainer}>
-                    <LoadingIcon size={SpinnerSize.medium} data-testid="query-spinner" />
+                    <LoadingIcon
+                        size={SpinnerSize.medium}
+                        data-testid="query-spinner"
+                        invertColor
+                    />
                 </div>
             </div>
         );
