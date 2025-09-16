@@ -115,11 +115,8 @@ export default function FileDetails(props: Props) {
                         .canUseDirectoryArguments(fileDetails.path)
                         .then((canUse) => {
                             if (!canUse) return;
-                            const {
-                                hostname,
-                                bucket,
-                                key,
-                            } = fileDownloadService.parseVirtualizedUrl(fileDetails.path);
+                            const { hostname, bucket, key } =
+                                fileDownloadService.parseVirtualizedUrl(fileDetails.path);
                             fileDownloadService
                                 .calculateS3DirectorySize(hostname, key, bucket)
                                 .then(setCalculatedSize);
@@ -158,7 +155,7 @@ export default function FileDetails(props: Props) {
         }
         // Otherwise, fileId is in processStatuses and details are visible to user there
         return "Download disabled";
-    }, [isDownloadDisabled, isZarr, isOnWeb, calculatedSize]);
+    }, [calculatedSize, fileDetails, isDownloadDisabled, isZarr, isOnWeb]);
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
     const onDownload = React.useMemo(() => {
