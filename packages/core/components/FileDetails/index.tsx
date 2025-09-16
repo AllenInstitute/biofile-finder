@@ -8,14 +8,16 @@ import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
 import useFileDetails from "./useFileDetails";
 import { PrimaryButton } from "../Buttons";
-import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
+import Tooltip from "../Tooltip";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
+import AnnotationName from "../../entity/Annotation/AnnotationName";
+import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
+import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
+import { MAX_DOWNLOAD_SIZE_WEB } from "../../services/FileDownloadService";
 import { interaction } from "../../state";
 
 import styles from "./FileDetails.module.css";
-import { MAX_DOWNLOAD_SIZE_WEB } from "../../services/FileDownloadService";
-import AnnotationName from "../../entity/Annotation/AnnotationName";
 
 interface Props {
     className?: string;
@@ -107,6 +109,18 @@ export default function FileDetails(props: Props) {
                     fileDownloadService
                         .calculateS3DirectorySize(hostname, key, bucket)
                         .then(setCalculatedSize);
+                } else {
+                    // Check if able to use list-type query arguments to calculate size
+                    fileDownloadService
+                        .canUseDirectoryArguments(fileDetails.path)
+                        .then((canUse) => {
+                            if (!canUse) return;
+                            const { hostname, bucket, key } =
+                                fileDownloadService.parseVirtualizedUrl(fileDetails.path);
+                            fileDownloadService
+                                .calculateS3DirectorySize(hostname, key, bucket)
+                                .then(setCalculatedSize);
+                        });
                 }
             }
         }
@@ -124,6 +138,24 @@ export default function FileDetails(props: Props) {
               // meaning that if the size cannot be determined, the download is also not possible.
               (calculatedSize === null || calculatedSize > MAX_DOWNLOAD_SIZE_WEB))
         : true;
+    // Display a tooltip if download is disabled
+    const downloadDisabledMessage = React.useMemo(() => {
+        if (!isDownloadDisabled) return;
+        if (!fileDetails) return "File details not available";
+        if (isZarr && isOnWeb) {
+            if (calculatedSize === null) {
+                return "Unable to determine size of .zarr file";
+            } else if (calculatedSize > MAX_DOWNLOAD_SIZE_WEB) {
+                const downloadSizeString = annotationFormatterFactory(
+                    AnnotationType.NUMBER
+                ).displayValue(MAX_DOWNLOAD_SIZE_WEB, "bytes");
+                return "File exceeds maximum download size of " + downloadSizeString;
+            }
+            return "Unable to download file. Upload files to an AWS S3 bucket to enable .zarr downloads";
+        }
+        // Otherwise, fileId is in processStatuses and details are visible to user there
+        return "Download disabled";
+    }, [calculatedSize, fileDetails, isDownloadDisabled, isZarr, isOnWeb]);
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
     const onDownload = React.useMemo(() => {
@@ -182,14 +214,16 @@ export default function FileDetails(props: Props) {
                                 tokens={stackTokens}
                             >
                                 <StackItem>
-                                    <PrimaryButton
-                                        className={styles.primaryButton}
-                                        disabled={isDownloadDisabled}
-                                        iconName="Download"
-                                        text="Download"
-                                        title="Download file to local system"
-                                        onClick={onDownload}
-                                    />
+                                    <Tooltip content={downloadDisabledMessage}>
+                                        <PrimaryButton
+                                            className={styles.primaryButton}
+                                            disabled={isDownloadDisabled}
+                                            iconName="Download"
+                                            text="Download"
+                                            title="Download file to local system"
+                                            onClick={onDownload}
+                                        />
+                                    </Tooltip>
                                 </StackItem>
                                 <StackItem>
                                     <PrimaryButton
