@@ -330,7 +330,7 @@ if __name__ == "__main__":
 `;
 
     dispatch(setConvertFilesSnippet({ setup, code, options: buildOptionsDict(ui) }));
-  }, [dispatch, buildDefaultsPy]);
+  }, [dispatch]);
 
   React.useEffect(() => {
     if (detailsRef.current.length) regenerate(detailsRef.current, opts);
@@ -397,12 +397,7 @@ if __name__ == "__main__":
         <TextField className={styles.fieldInput} value={opts.shardFactor} onChange={onChangeText("shardFactor")} placeholder="e.g. 1,1,1,1,1" />
 
         <h4 className={styles.fieldLabel}>compressor (Python expr)</h4>
-        <TextField
-          className={styles.fieldInput}
-          value={opts.compressor}
-          onChange={onChangeText("compressor")}
-          placeholder={'numcodecs.Blosc(cname="zstd", clevel=5)'}
-        />
+        <TextField className={styles.fieldInput} value={opts.compressor} onChange={onChangeText("compressor")} placeholder="numcodecs.Blosc(cname='zstd', clevel=5)" />
 
         <h4 className={styles.fieldLabel}>Zarr format</h4>
         <Dropdown
