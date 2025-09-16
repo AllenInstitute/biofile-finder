@@ -86,6 +86,17 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                 );
             }
 
+            const canUseDirectoryArgs = await this.canUseDirectoryArguments(fileInfo.path);
+            if (canUseDirectoryArgs) {
+                return this.downloadS3Directory(
+                    fileInfo,
+                    downloadRequestId,
+                    onProgress,
+                    destination,
+                    this.parseVirtualizedUrl
+                );
+            }
+
             throw new DownloadFailure(
                 `Unsupported path for ".zarr":  ${fileInfo.path}. Currently only support AWS S3 or locally stored files.`,
                 downloadRequestId
@@ -405,9 +416,12 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
-        destination?: string
+        destination?: string,
+        parsingMethod?: (url: string) => { hostname: string; bucket: string; key: string }
     ): Promise<DownloadResult> {
-        const { hostname, key, bucket } = this.parseS3Url(fileInfo.path);
+        const { hostname, key, bucket } = parsingMethod
+            ? parsingMethod(fileInfo.path)
+            : this.parseS3Url(fileInfo.path);
         const fileSize =
             fileInfo.size || (await this.calculateS3DirectorySize(hostname, key, bucket));
 
@@ -451,7 +465,8 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
 
                 const relativePath = path.relative(key, fileKey);
                 const destinationPath = path.join(fullDestination, relativePath);
-                const fileUrl = `https://${hostname}/${bucket}/${encodeURIComponent(fileKey)}`;
+                const bucketString = bucket.length > 0 ? `${bucket}/` : "";
+                const fileUrl = `https://${hostname}/${bucketString}${encodeURIComponent(fileKey)}`;
 
                 // Backfill missing directories from path.
                 fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
