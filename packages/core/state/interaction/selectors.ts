@@ -117,6 +117,9 @@ export const getAllDataSources = createSelector(
             : dataSources
 );
 
+export const getProcessFilesPythonSnippet = (state: State) =>
+    state.interaction.processFilesPythonSnippet;
+
 export const getPythonSnippet = createSelector(
     [getPythonConversion],
     (pythonQuery): PythonicDataAccessSnippet => {

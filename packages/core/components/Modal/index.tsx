@@ -3,12 +3,13 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 import About from "./About";
-import CodeSnippet from "./CodeSnippet";
+import QueryCodeSnippet from "./CodeSnippet/QueryCodeSnippetModal";
 import DataSource from "./DataSource";
 import EditMetadata from "./EditMetadata";
 import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
 import CopyFileManifest from "./CopyFileManifest";
+import ProcessFilesCodeSnippet from "./CodeSnippet/ProcessFilesCodeSnippetModal";
 
 export interface ModalProps {
     onDismiss: () => void;
@@ -16,12 +17,13 @@ export interface ModalProps {
 
 export enum ModalType {
     About = 1,
-    CodeSnippet = 2,
+    QueryCodeSnippet = 2,
     CopyFileManifest = 3,
     DataSource = 4,
     EditMetadata = 5,
     MetadataManifest = 6,
     SmallScreenWarning = 7,
+    ProcessFilesCodeSnippet = 8,
 }
 
 /**
@@ -38,8 +40,8 @@ export default function Modal() {
     switch (visibleModal) {
         case ModalType.About:
             return <About onDismiss={onDismiss} />;
-        case ModalType.CodeSnippet:
-            return <CodeSnippet onDismiss={onDismiss} />;
+        case ModalType.QueryCodeSnippet:
+            return <QueryCodeSnippet onDismiss={onDismiss} />;
         case ModalType.CopyFileManifest:
             return <CopyFileManifest onDismiss={onDismiss} />;
         case ModalType.DataSource:
@@ -50,6 +52,8 @@ export default function Modal() {
             return <MetadataManifest onDismiss={onDismiss} />;
         case ModalType.SmallScreenWarning:
             return <SmallScreenWarning onDismiss={onDismiss} />;
+        case ModalType.ProcessFilesCodeSnippet:
+            return <ProcessFilesCodeSnippet onDismiss={onDismiss} />;
         default:
             return null;
     }

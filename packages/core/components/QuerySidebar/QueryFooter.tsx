@@ -88,7 +88,7 @@ export default function QueryFooter(props: Props) {
             text: "Code snippet",
             iconProps: { iconName: "Code" },
             onClick: () => {
-                dispatch(interaction.actions.setVisibleModal(ModalType.CodeSnippet));
+                dispatch(interaction.actions.setVisibleModal(ModalType.QueryCodeSnippet));
             },
         },
         {
