@@ -46,7 +46,7 @@ export default function Query(props: QueryProps) {
     React.useEffect(() => {
         if (isLoadingNewQuery && isExpanded) setIsExpanded(false);
         else setIsExpanded(props.isSelected);
-    }, [props.isSelected, isLoadingNewQuery]);
+    }, [isExpanded, isLoadingNewQuery, props.isSelected]);
 
     const queryComponents = React.useMemo(
         () =>
