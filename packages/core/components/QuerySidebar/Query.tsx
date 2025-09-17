@@ -40,11 +40,17 @@ export default function Query(props: QueryProps) {
         (shouldHaveDataSource && !hasDataSource && !hasReloadError) ||
         props.query.name === AICS_FMS_DATA_SOURCE_NAME ||
         props?.loading;
+    const isLoadingNewQuery = useSelector(selection.selectors.getLoadingNewQuery);
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
         setIsExpanded(props.isSelected);
     }, [props.isSelected]);
+
+    // Collapse open queries while a new query is actively loading
+    React.useEffect(() => {
+        if (isLoadingNewQuery) setIsExpanded(false);
+    }, [isLoadingNewQuery]);
 
     const queryComponents = React.useMemo(
         () =>
