@@ -490,4 +490,34 @@ describe("<DirectoryTree />", () => {
         header = await findByTestId(directoryTreeNodes[0], "treeitemheader"); // refresh node
         expect(header.classList.contains(styles.focused)).to.be.true;
     });
+
+    it("displays root loading indicator when new query is in loading state", async () => {
+        // Arrange
+        const state = mergeState(initialState, {
+            selection: {
+                queries: [
+                    {
+                        name: "Test Query",
+                        parts: {
+                            hierarchy: [],
+                            filters: [],
+                            sources: [],
+                            openFolders: [],
+                        },
+                        loading: true,
+                    },
+                ],
+            },
+        });
+        const { store } = configureMockStore({ state });
+
+        const { getByTestId } = render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // Assert
+        expect(getByTestId("root-loading-indicator")).to.exist;
+    });
 });

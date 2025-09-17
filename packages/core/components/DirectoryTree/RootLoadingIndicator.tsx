@@ -10,7 +10,10 @@ interface LoadingIndicatorProps {
 
 export default function RootLoadingIndicator({ visible }: LoadingIndicatorProps) {
     return (
-        <div className={classNames(styles.loadingIndicator, { [styles.hidden]: !visible })}>
+        <div
+            className={classNames(styles.loadingIndicator, { [styles.hidden]: !visible })}
+            data-testid={"root-loading-indicator"}
+        >
             <ProgressIndicator
                 className={styles.indeterminateProgressBar}
                 progressHidden={!visible}

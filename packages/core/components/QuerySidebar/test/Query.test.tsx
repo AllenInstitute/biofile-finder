@@ -48,6 +48,36 @@ describe("<Query />", () => {
         expect(() => getByTestId("expand-button")).to.throw();
     });
 
+    it("renders spinner and loading header when new query is in loading state", () => {
+        // Arrange
+        const { store } = configureMockStore({
+            state: initialState,
+        });
+
+        // Act
+        const { getByTestId, getByText } = render(
+            <Provider store={store}>
+                <Query
+                    isSelected
+                    query={{
+                        name: "Test Data Source",
+                        parts: {
+                            filters: [],
+                            hierarchy: [],
+                            sources: [],
+                            openFolders: [],
+                        },
+                        loading: true,
+                    }}
+                />
+            </Provider>
+        );
+
+        // Assert
+        expect(getByText(/Building new query/)).to.exist;
+        expect(getByTestId("query-spinner")).to.exist;
+    });
+
     it("renders spinner when loading an FMS source", () => {
         // Arrange
         const { store } = configureMockStore({
