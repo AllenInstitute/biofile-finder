@@ -44,13 +44,9 @@ export default function Query(props: QueryProps) {
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
-        setIsExpanded(props.isSelected);
-    }, [props.isSelected]);
-
-    // Collapse open queries while a new query is actively loading
-    React.useEffect(() => {
-        if (isLoadingNewQuery) setIsExpanded(false);
-    }, [isLoadingNewQuery]);
+        if (isLoadingNewQuery && isExpanded) setIsExpanded(false);
+        else setIsExpanded(props.isSelected);
+    }, [props.isSelected, isLoadingNewQuery]);
 
     const queryComponents = React.useMemo(
         () =>

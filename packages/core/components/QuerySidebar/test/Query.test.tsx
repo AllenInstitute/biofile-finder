@@ -67,8 +67,8 @@ describe("<Query />", () => {
                             sources: [],
                             openFolders: [],
                         },
-                        loading: true,
                     }}
+                    loading={true}
                 />
             </Provider>
         );
