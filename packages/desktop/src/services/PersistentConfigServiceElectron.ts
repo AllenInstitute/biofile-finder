@@ -1,4 +1,5 @@
 import Store, { Options } from "electron-store";
+import { find } from "lodash";
 
 import {
     PersistentConfigService,
@@ -6,7 +7,6 @@ import {
     PersistedConfigKeys,
     UserSelectedApplication,
 } from "../../../core/services";
-import { find } from "lodash";
 
 const OPTIONS: Options<Record<string, unknown>> = {
     // Defines a validation schema for data inserted into the persistent storage

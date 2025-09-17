@@ -52,8 +52,8 @@ import {
     EXPAND_ALL_FILE_FOLDERS,
     toggleNullValueGroups,
 } from "./actions";
-import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
+import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import Annotation from "../../entity/Annotation";

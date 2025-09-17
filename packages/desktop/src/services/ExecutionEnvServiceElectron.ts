@@ -4,13 +4,13 @@ import * as path from "path";
 
 import { dialog, ipcMain, ipcRenderer } from "electron";
 
+import NotificationServiceElectron from "./NotificationServiceElectron";
+import FmsFilePath from "../domain/FmsFilePath";
 import {
     ExecutionEnvService,
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "../../../core/services";
-import FmsFilePath from "../domain/FmsFilePath";
-import NotificationServiceElectron from "./NotificationServiceElectron";
 
 // Output of os.type()
 type OSType = "Linux" | "Darwin" | "Windows_NT";

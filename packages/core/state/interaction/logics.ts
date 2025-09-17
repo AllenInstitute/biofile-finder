@@ -2,7 +2,6 @@ import { chunk, isEmpty, noop, sumBy, throttle, uniq, uniqueId } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import {
     DOWNLOAD_MANIFEST,
     DownloadManifestAction,
@@ -42,6 +41,7 @@ import {
     DeleteMetadataAction,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
+import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import { ModalType } from "../../components/Modal";
 import { UNSAVED_DATA_WARNING } from "../../constants";
 import AnnotationName from "../../entity/Annotation/AnnotationName";

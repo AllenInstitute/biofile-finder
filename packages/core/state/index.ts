@@ -6,12 +6,12 @@ import { createLogicMiddleware } from "redux-logic";
 import interaction, { InteractionStateBranch } from "./interaction";
 import metadata, { MetadataStateBranch } from "./metadata";
 import selection, { SelectionStateBranch } from "./selection";
+import { Query } from "./selection/actions";
 import { PlatformDependentServices } from "../services";
 import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
 import FileSort from "../entity/FileSort";
 import FileFilter from "../entity/FileFilter";
 import FileFolder from "../entity/FileFolder";
-import { Query } from "./selection/actions";
 
 export { interaction, metadata, selection };
 

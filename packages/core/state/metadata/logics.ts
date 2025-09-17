@@ -1,7 +1,6 @@
 import { uniqBy } from "lodash";
 import { createLogic } from "redux-logic";
 
-import { interaction, metadata, ReduxLogicDeps, selection } from "..";
 import {
     CREATE_ANNOTATION,
     CreateAnnotationAction,
@@ -21,6 +20,7 @@ import {
     StoreNewAnnotationAction,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
+import { interaction, metadata, ReduxLogicDeps, selection } from "..";
 import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationFormatter";

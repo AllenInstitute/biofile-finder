@@ -1,12 +1,12 @@
 import * as os from "os";
 
-import { FileViewerService, SystemDefaultAppLocation } from "../../../core/services";
 import NotificationServiceElectron from "./NotificationServiceElectron";
 import defaultViewerStrategy from "./file-viewer-strategy/defaultViewerStrategy";
 import fijiViewerStrategy from "./file-viewer-strategy/fijiViewerStrategy";
 import ViewerStrategy from "./file-viewer-strategy/ViewerStrategy";
 import macViewerStrategy from "./file-viewer-strategy/macViewerStrategy";
 import systemDefaultViewerStrategy from "./file-viewer-strategy/systemDefaultViewerStrategy";
+import { FileViewerService, SystemDefaultAppLocation } from "../../../core/services";
 
 export default class FileViewerServiceElectron implements FileViewerService {
     private notificationService: NotificationServiceElectron;

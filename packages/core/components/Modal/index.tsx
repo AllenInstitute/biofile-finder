@@ -1,7 +1,6 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { interaction } from "../../state";
 import About from "./About";
 import CodeSnippet from "./CodeSnippet";
 import DataSource from "./DataSource";
@@ -9,6 +8,7 @@ import EditMetadata from "./EditMetadata";
 import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
 import CopyFileManifest from "./CopyFileManifest";
+import { interaction } from "../../state";
 
 export interface ModalProps {
     onDismiss: () => void;

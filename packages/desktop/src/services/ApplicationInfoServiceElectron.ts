@@ -1,7 +1,8 @@
 import * as os from "os";
 
 import axios from "axios";
-const httpAdapter = require("axios/lib/adapters/http"); // exported from lib, but not typed (can't be fixed through typing augmentation)
+// exported from lib, but not typed (can't be fixed through typing augmentation)
+const httpAdapter = require("axios/lib/adapters/http"); // eslint-disable-line import/order
 import gt from "semver/functions/gt";
 
 import { ApplicationInfoService } from "../../../core/services";

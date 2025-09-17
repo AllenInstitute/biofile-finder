@@ -2,11 +2,11 @@ import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import { TertiaryButton } from "../Buttons";
 import { selection } from "../../state";
 import { FocusDirective } from "../../entity/FileSelection";
 
 import styles from "./Pagination.module.css";
-import { TertiaryButton } from "../Buttons";
 
 interface PaginationProps {
     className?: string;

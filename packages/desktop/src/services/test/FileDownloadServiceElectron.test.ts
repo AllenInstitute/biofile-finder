@@ -7,6 +7,7 @@ import * as util from "util";
 
 import { expect } from "chai";
 import { ipcRenderer } from "electron";
+import { noop } from "lodash";
 import nock from "nock";
 import sinon from "sinon";
 
@@ -14,7 +15,6 @@ import { DownloadFailure } from "../../../../core/errors";
 import { DownloadResolution } from "../../../../core/services";
 import { RUN_IN_RENDERER } from "../../util/constants";
 import FileDownloadServiceElectron from "../FileDownloadServiceElectron";
-import { noop } from "lodash";
 
 function parseRangeHeader(rangeHeader: string): { start: number; end: number } {
     const [, range] = rangeHeader.split("=");

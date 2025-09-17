@@ -2,8 +2,9 @@ import { Modal } from "@fluentui/react";
 import { noop } from "lodash";
 import * as React from "react";
 
-import styles from "./BaseModal.module.css";
 import { TertiaryButton } from "../../Buttons";
+
+import styles from "./BaseModal.module.css";
 
 interface BaseModalProps {
     body: React.ReactNode;
