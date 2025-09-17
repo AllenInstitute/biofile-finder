@@ -50,7 +50,7 @@
     width: calc(100% - 5px);
 }
 
-.container:hover:not(.selected) {
+.container:hover:not(.selected):not(.disabled) {
     background-color: var(--highlight-background-color);
     color: var(--highlight-text-color);
     cursor: pointer;
@@ -61,7 +61,7 @@
     background: none;
 }
 
-.container:hover:not(.selected) .divider {
+.container:hover:not(.selected):not(.disabled) .divider {
     background: var(--highlight-text-color);
 }
 

@@ -119,7 +119,7 @@ export default function Query(props: QueryProps) {
 
     if (isLoading) {
         return (
-            <div className={styles.container}>
+            <div className={classNames(styles.container, styles.disabled)}>
                 <div className={classNames(styles.header, styles.headerCollapsed)}>
                     <Tooltip content="Uploading file and creating table...">
                         <h4>
