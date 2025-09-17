@@ -41,8 +41,8 @@ export default function DirectoryTree(props: FileListProps) {
     const globalFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const visibleModal = useSelector(interaction.selectors.getVisibleModal);
-    // If user is loading a new query, show root loading state in file list
-    // since it may take some time for the view to update with new query results
+    // If user is loading a new data source, show root loading state in file list
+    // since it may take time for the view to update with new query results
     const isLoadingNewQuery = useSelector(selection.selectors.getLoadingNewQuery);
     const fileSet = React.useMemo(() => {
         return new FileSet({
