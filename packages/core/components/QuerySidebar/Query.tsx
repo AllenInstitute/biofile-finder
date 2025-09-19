@@ -44,9 +44,9 @@ export default function Query(props: QueryProps) {
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
-        if (isLoadingNewQuery && isExpanded) setIsExpanded(false);
+        if (isLoadingNewQuery) setIsExpanded(false);
         else setIsExpanded(props.isSelected);
-    }, [isExpanded, isLoadingNewQuery, props.isSelected]);
+    }, [isLoadingNewQuery, props.isSelected]);
 
     const queryComponents = React.useMemo(
         () =>
@@ -58,28 +58,25 @@ export default function Query(props: QueryProps) {
 
     const condensedFilterString = React.useMemo(() => {
         return Object.entries(
-            queryComponents.filters.reduce(
-                (accum, filter) => {
-                    let value = "";
-                    switch (filter.type) {
-                        case FilterType.ANY:
-                            value = "any value";
-                            break;
-                        case FilterType.EXCLUDE:
-                            value = "no value";
-                            break;
-                        default:
-                            value = ((Number(accum[filter.name]) || 0) + 1).toString();
-                    }
-                    // Special case for ranges since we don't know the exact count
-                    if (filter.value.toString().match(/^RANGE\((.*)\)$/)) value = "range";
-                    return {
-                        ...accum,
-                        [filter.name]: value,
-                    };
-                },
-                {} as { [index: string]: string }
-            )
+            queryComponents.filters.reduce((accum, filter) => {
+                let value = "";
+                switch (filter.type) {
+                    case FilterType.ANY:
+                        value = "any value";
+                        break;
+                    case FilterType.EXCLUDE:
+                        value = "no value";
+                        break;
+                    default:
+                        value = ((Number(accum[filter.name]) || 0) + 1).toString();
+                }
+                // Special case for ranges since we don't know the exact count
+                if (filter.value.toString().match(/^RANGE\((.*)\)$/)) value = "range";
+                return {
+                    ...accum,
+                    [filter.name]: value,
+                };
+            }, {} as { [index: string]: string })
         )
             .map(([name, value]) => {
                 if (value === "") return name;
