@@ -59,6 +59,7 @@ export default function DataSourcePrompt(props: Props) {
                 selection.actions.addQuery({
                     name: `New ${dataSource.name} Query`,
                     parts: { sources: [dataSource], sourceMetadata: metadataSource },
+                    loading: true,
                 })
             );
         }
