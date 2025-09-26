@@ -28,6 +28,8 @@ import {
     DataSourcePromptInfo,
     PromptForDataSource,
     SET_SELECTED_PUBLIC_DATASET,
+    SET_PROCESS_FILES_PYTHON_SNIPPET,
+    SHOW_PROCESS_FILES,
     SetVisibleModalAction,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
@@ -62,6 +64,7 @@ export interface InteractionStateBranch {
     isAicsEmployee?: boolean;
     isOnWeb: boolean;
     platformDependentServices: PlatformDependentServices;
+    processFilesPythonSnippet?: { setup: string; code: string };
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
@@ -100,6 +103,7 @@ export const initialState: InteractionStateBranch = {
         executionEnvService: new ExecutionEnvServiceNoop(),
         notificationService: new NotificationServiceNoop(),
     },
+    processFilesPythonSnippet: { setup: "", code: "" },
     status: [],
 };
 
@@ -207,6 +211,18 @@ export default makeReducer<InteractionStateBranch>(
         [SHOW_COPY_FILE_MANIFEST]: (state) => ({
             ...state,
             visibleModal: ModalType.CopyFileManifest,
+        }),
+        [SHOW_PROCESS_FILES]: (state) => ({
+            ...state,
+            visibleModal: ModalType.ProcessFilesCodeSnippet,
+        }),
+
+        [SET_PROCESS_FILES_PYTHON_SNIPPET]: (state, action) => ({
+            ...state,
+            processFilesPythonSnippet: {
+                setup: action.payload?.setup ?? "",
+                code: action.payload?.code ?? "",
+            },
         }),
     },
     initialState

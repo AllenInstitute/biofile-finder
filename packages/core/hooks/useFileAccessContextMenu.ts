@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import useOpenWithMenuItems from "./useOpenWithMenuItems";
 import useSaveMetadataOptions from "./useSaveMetadataOptions";
+import useProcessMenuItems from "./useProcessFilesMenuItems";
 import { ModalType } from "../components/Modal";
 import FileDetail from "../entity/FileDetail";
 import FileFilter from "../entity/FileFilter";
@@ -26,6 +27,7 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
 
     const openWithSubMenuItems = useOpenWithMenuItems(fileDetails, folderFilters);
     const saveAsSubMenuItems = useSaveMetadataOptions(folderFilters);
+    const processFilesSubMenuItems = useProcessMenuItems(fileDetails, folderFilters);
 
     fileSelection.fetchFocusedItemDetails().then((fileDetails) => {
         setFileDetails(fileDetails);
@@ -105,6 +107,16 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                     subMenuProps: { items: saveAsSubMenuItems },
                 },
                 {
+                    key: "process-files",
+                    text: "Process files",
+                    title: "Process selected files (generate scripts/manifests)",
+                    disabled:
+                        processFilesSubMenuItems.length === 0 ||
+                        (!folderFilters && fileSelection.count() === 0),
+                    iconProps: { iconName: "CodeEdit" },
+                    subMenuProps: { items: processFilesSubMenuItems },
+                },
+                {
                     key: "edit",
                     text: "Edit metadata",
                     title: "Edit metadata for selected files",
@@ -163,6 +175,7 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
             onDismiss,
             openWithSubMenuItems,
             saveAsSubMenuItems,
+            processFilesSubMenuItems,
         ]
     );
 };
