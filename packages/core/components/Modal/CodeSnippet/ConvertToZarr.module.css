@@ -1,203 +1,131 @@
-/* ===========================
-   Layout: snippet | params
-   =========================== */
-.grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px; /* LEFT: snippet | RIGHT: params */
-  gap: 16px;
-  min-height: 480px;
-  height: 100%;
+:global(.ms-Dialog-content) {
+  container-type: inline-size;
+  container-name: modal;
+}
+
+:global(.ms-Modal-scrollableContent) {
   width: 100%;
+  max-width: 100%;
 }
 
-/* LEFT COLUMN (snippet) */
-.content {
-  min-width: 0;
+.shell {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 180px 1px minmax(0, 1fr);
+  grid-template-areas: "left divider right";
+  column-gap: 24px;
+  width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.leftCol  { grid-area: left;   min-width: 0; }
+.vDivider { grid-area: divider; }
+.rightCol { grid-area: right;  min-width: 0; }
+
+.vDivider {
+  width: 1px;
+  background: var(--primary-text-color);
+}
+
+.leftCol {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  position: relative;
-  z-index: 1;
-  background: var(--primary-background-color) !important; /* theme */
+  row-gap: 24px;
 }
 
-/* RIGHT COLUMN (params) */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  border-left: 1px solid var(--divider, #e5e7eb);
-  overflow: auto;
-  background: var(--primary-background-color, #fff);
-  position: relative;
-  z-index: 2;
-}
+.section { display: flex; flex-direction: column; }
 
-/* Optional small section title */
-.sectionTitle {
-  font-weight: 600;
-  margin: 0 0 6px 0;
-  color: var(--primary-text-color);
-}
-
-/* ===========================
-   PasswordForm-like fields
-   =========================== */
-.fieldLabel {
-  padding-bottom: 6px;
-  color: var(--primary-text-color) !important;
+.label {
   font-size: var(--l-paragraph-size);
-  margin: 8px 0 0;
+  margin-bottom: 8px;
 }
 
-/* Attach to TextField wrapper */
-.fieldInput {
-  padding-bottom: var(--margin);
-}
+.destChipRow { display: flex; align-items: center; gap: 8px; }
 
-/* Fluent TextField internals */
-.fieldInput > div > label,
-.fieldInput > div > label::after {
-  color: var(--primary-text-color) !important;
-  font-size: var(--l-paragraph-size);
-}
+.browseBtn { height: 30px; padding: 0 12px; width: 160px; }
 
-.fieldInput input {
-  background-color: var(--secondary-background-color) !important;
-  color: var(--primary-text-color) !important;
-  border-radius: 4px;
+.choiceGroup :global(.ms-ChoiceFieldGroup-flexContainer) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start;
+  row-gap: 6px;
 }
+.choiceGroup :global(.ms-ChoiceField) { margin: 0 !important; }
 
-.fieldInput input:disabled {
-  cursor: not-allowed;
-}
-
-.fieldInput > div:focus,
-.fieldInput div:focus-visible,
-.fieldInput > div:active {
-  outline: none;
-}
-
-.fieldInput > div > div {
-  border-radius: 4px;
-  border: 1px solid var(--border-color);
+.searchBox { flex-grow: 1; }
+.searchBox :global(input.ms-TextField-field) {
   background-color: var(--secondary-background-color) !important;
   color: var(--secondary-text-color) !important;
 }
 
-.fieldInput > div > div::after {
-  border: 1px solid var(--aqua);
-  border-radius: 4px;
-  outline: none;
-}
-
-.fieldInput > div > div > *::placeholder {
-  color: var(--secondary-text-color);
-  font-style: italic;
-}
-
-.fieldInput > div > div:hover {
-  border: 1px solid var(--border-color);
-}
-
-/* Dropdown styled similarly */
-.dropdownInput {
-  padding-bottom: var(--margin);
-}
-/* Fluent UI title area in Dropdown (css-modules global) */
-.dropdownInput :global(.ms-Dropdown-title) {
-  background-color: var(--secondary-background-color) !important;
-  color: var(--primary-text-color) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: 4px !important;
-}
-
-/* Checkbox spacing */
-.checkboxRow {
-  margin-top: 8px;
-}
-
-/* Footer buttons (match PasswordForm) */
-.footer {
-  margin-top: 20px;
-  width: 100%;
-}
-.footerAlignRight {
-  width: 100%;
-  display: flex;
-}
-.footerAlignRight > * {
-  margin-left: 10px;
-  width: min-content;
-}
-.footerAlignRight > *:first-child {
-  margin-left: auto;
-}
-
-/* ===========================
-   Embedded snippet styles
-   =========================== */
-.snippetWrap {
+.rightCol {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-  overflow: auto;
-  width: 100%;
-  background: transparent; /* inherit modal bg */
+  row-gap: 12px;
+  min-height: 0;
+  position: relative;
 }
 
-.snippetHeader {
+.snipHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.snippetTitle {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--primary-text-color);
-}
-
-.block {
-  display: flex;
-  flex-direction: column;
   gap: 8px;
 }
+.snipTitle { font-weight: 600; opacity: 0.95; }
+.snipCopyBtn { margin-left: auto; }
 
-.blockHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 600;
-  color: var(--primary-text-color);
-}
-
-.copyBtn {
-  border: 1px solid var(--border-color);
-  background: var(--secondary-background-color);
-  color: var(--primary-text-color);
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.copyBtn:hover {
-  filter: brightness(1.05);
-}
-
-/* Code block uses theme vars with sensible fallbacks */
-.pre {
+.codeBox {
   margin: 0;
-  padding: 12px;
-  background: var(--code-background-color, #0b1020);
-  color: var(--code-foreground-color, #e6edf3);
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.30);
+  border: 1px solid rgba(255,255,255,0.10);
   border-radius: 8px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 12px;
-  line-height: 1.4;
+  max-height: 100%;
   overflow: auto;
-  max-height: 60vh;
   white-space: pre;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: block;
+}
+.codeBox > code {
+  display: block;
+}
+
+.footerButtons {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.closeButton { width: min-content; }
+
+@container modal (min-width: 1221px) {
+  .leftCol {
+    width: 180px;
+  }
+  .vDivider { display: block; }
+}
+
+@media (max-width: 1220px) {
+  .columns {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "left"
+      "right";
+    grid-auto-rows: auto;
+  }
+  .vDivider { display: none; }
+  .leftCol { width: auto; min-width: 0; max-width: none; }
+  .rightCol { min-width: 0; }
 }
