@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import FilePrompt from "./FilePrompt";
 import { LinkLikeButton, PrimaryButton } from "../Buttons";
 import { Source } from "../../entity/SearchParams";
-import { interaction, selection } from "../../state";
+import { interaction, provenance, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
 
 import styles from "./DataSourcePrompt.module.css";
@@ -23,6 +23,12 @@ const ADDITIONAL_COLUMN_DETAILS = [
     'If an "Uploaded" column is present, it should contain the date the file was uploaded to the storage and be formatted as YYYY-MM-DD HH:MM:SS.Z where Z is a timezone offset. ',
 ];
 
+export enum DataSourceType {
+    default = 0,
+    metadata = 1,
+    provenance = 2,
+}
+
 /**
  * Dialog meant to prompt user to select a data source option
  */
@@ -31,7 +37,8 @@ export default function DataSourcePrompt(props: Props) {
 
     const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
     const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
-    const { query } = dataSourceInfo || ({} as DataSourcePromptInfo);
+    const { query, sourceType = DataSourceType.default } =
+        dataSourceInfo || ({} as DataSourcePromptInfo);
     const requiresDataSourceReload = useSelector(selection.selectors.getRequiresDataSourceReload);
 
     const [dataSource, setDataSource] = React.useState<Source>();
@@ -44,6 +51,13 @@ export default function DataSourcePrompt(props: Props) {
     };
 
     const onSubmit = (dataSource: Source, metadataSource?: Source) => {
+        if (sourceType === DataSourceType.provenance) {
+            if (dataSource) {
+                dispatch(provenance.actions.changeSourceProvenance(dataSource));
+            }
+            // To do: include provenance source in query as with metadatasource
+            return onDismiss();
+        }
         if (requiresDataSourceReload || query) {
             if (metadataSource) {
                 dispatch(selection.actions.changeSourceMetadata(metadataSource));
@@ -119,100 +133,116 @@ export default function DataSourcePrompt(props: Props) {
                     parentId={`file-prompt-${props.isModal ? "modal" : "main"}`}
                     lightBackground={props.isModal}
                 />
-                {showAdvancedOptions ? (
-                    advancedOptions
-                ) : (
-                    <LinkLikeButton
-                        className={styles.advancedOptionsButton}
-                        onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                        text="Add metadata descriptor file (optional)"
-                    />
-                )}
+                {showAdvancedOptions
+                    ? advancedOptions
+                    : sourceType === DataSourceType.default && (
+                          <LinkLikeButton
+                              className={styles.advancedOptionsButton}
+                              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                              text="Add metadata descriptor file (optional)"
+                          />
+                      )}
                 <div className={styles.loadButtonContainer}>
                     <PrimaryButton
                         className={classNames(styles.loadButton)}
-                        disabled={!dataSource}
+                        disabled={!dataSource && !metadataSource}
                         text="LOAD"
                         onClick={() => dataSource && onSubmit(dataSource, metadataSource)}
                     />
                 </div>
             </div>
-            <div className={styles.guidance}>
-                <hr className={styles.divider} />
-                <h4 className={styles.subheader}>Getting started guidance and example CSV</h4>
-                <table
-                    className={classNames(
-                        styles.tableExample,
-                        props?.isModal ? styles.darkHeader : styles.lightBorder
-                    )}
-                >
-                    <thead>
-                        <tr>
-                            <th>
-                                File Path <i>(required metadata key)</i>
-                            </th>
-                            <th>
-                                Gene <i>(example metadata key)</i>
-                            </th>
-                            <th>
-                                Color <i>(example metadata key)</i>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>/folder/folder/my_storage/filename.zarr</td>
-                            <td>CDH2</td>
-                            <td>Blue</td>
-                        </tr>
-                        <tr>
-                            <td>/folder/my_storage/filename.txt</td>
-                            <td>VIM</td>
-                            <td>Green</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <h4 className={styles.subheader}>Minimum requirements</h4>
-                <ul className={styles.detailsList}>
-                    <li>
-                        The first row should contain metadata keys (i.e., column headers), with
-                        &quot;File Path&quot; being the only required key.
-                    </li>
-                    <li>
-                        Each subsequent row should contain the values of corresponding keys for each
-                        file.
-                    </li>
-                </ul>
+            {sourceType === DataSourceType.default && (
+                <div className={styles.guidance}>
+                    <hr className={styles.divider} />
+                    <h4 className={styles.subheader}>Getting started guidance and example CSV</h4>
+                    <table
+                        className={classNames(
+                            styles.tableExample,
+                            props?.isModal ? styles.darkHeader : styles.lightBorder
+                        )}
+                    >
+                        <thead>
+                            <tr>
+                                <th>
+                                    File Path <i>(required metadata key)</i>
+                                </th>
+                                <th>
+                                    Gene <i>(example metadata key)</i>
+                                </th>
+                                <th>
+                                    Color <i>(example metadata key)</i>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>/folder/folder/my_storage/filename.zarr</td>
+                                <td>CDH2</td>
+                                <td>Blue</td>
+                            </tr>
+                            <tr>
+                                <td>/folder/my_storage/filename.txt</td>
+                                <td>VIM</td>
+                                <td>Green</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4 className={styles.subheader}>Minimum requirements</h4>
+                    <ul className={styles.detailsList}>
+                        <li>
+                            The first row should contain metadata keys (i.e., column headers), with
+                            &quot;File Path&quot; being the only required key.
+                        </li>
+                        <li>
+                            Each subsequent row should contain the values of corresponding keys for
+                            each file.
+                        </li>
+                    </ul>
 
-                {isDataSourceDetailExpanded ? (
-                    <>
-                        <h4 className={styles.subheader}>Advanced:</h4>
-                        <ul className={styles.detailsList}>
-                            <li>
-                                Data source files can be generated by this application by selecting
-                                some files, right-clicking, and selecting one of the &quot;Save
-                                metadata as&quot; options.
-                            </li>
-                            <li>
-                                The following are optional pre-defined columns that are handled as
-                                special cases:
-                            </li>
+                    {isDataSourceDetailExpanded ? (
+                        <>
+                            <h4 className={styles.subheader}>Advanced:</h4>
                             <ul className={styles.detailsList}>
-                                {ADDITIONAL_COLUMN_DETAILS.map((text) => (
-                                    <li key={text} className={styles.details}>
-                                        {text}
-                                    </li>
-                                ))}
+                                <li>
+                                    Data source files can be generated by this application by
+                                    selecting some files, right-clicking, and selecting one of the
+                                    &quot;Save metadata as&quot; options.
+                                </li>
+                                <li>
+                                    The following are optional pre-defined columns that are handled
+                                    as special cases:
+                                </li>
+                                <ul className={styles.detailsList}>
+                                    {ADDITIONAL_COLUMN_DETAILS.map((text) => (
+                                        <li key={text} className={styles.details}>
+                                            {text}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <li className={styles.details}>
+                                    Optionally, you can supply an additional metadata descriptor
+                                    file to add more information about the data source. This file
+                                    should have a header row column named &quot;Column Name&quot;
+                                    and another column named &quot;Description&quot;. Each
+                                    subsequent row should contain the details for any columns
+                                    present in the actual data source you would like to describe.
+                                </li>
                             </ul>
-                            <li className={styles.details}>
-                                Optionally, you can supply an additional metadata descriptor file to
-                                add more information about the data source. This file should have a
-                                header row column named &quot;Column Name&quot; and another column
-                                named &quot;Description&quot;. Each subsequent row should contain
-                                the details for any columns present in the actual data source you
-                                would like to describe.
-                            </li>
-                        </ul>
+                            <div
+                                className={classNames(styles.subtitleButtonContainer, {
+                                    [styles.leftAlign]: props.isModal,
+                                })}
+                            >
+                                <DefaultButton
+                                    className={styles.linkLikeButton}
+                                    onClick={() => setIsDataSourceDetailExpanded(false)}
+                                >
+                                    Show less&nbsp;&nbsp;
+                                    <Icon iconName="ChevronUp" />
+                                </DefaultButton>
+                            </div>
+                        </>
+                    ) : (
                         <div
                             className={classNames(styles.subtitleButtonContainer, {
                                 [styles.leftAlign]: props.isModal,
@@ -220,29 +250,15 @@ export default function DataSourcePrompt(props: Props) {
                         >
                             <DefaultButton
                                 className={styles.linkLikeButton}
-                                onClick={() => setIsDataSourceDetailExpanded(false)}
+                                onClick={() => setIsDataSourceDetailExpanded(true)}
                             >
-                                Show less&nbsp;&nbsp;
-                                <Icon iconName="ChevronUp" />
+                                Show more&nbsp;&nbsp;
+                                <Icon iconName="ChevronDown" />
                             </DefaultButton>
                         </div>
-                    </>
-                ) : (
-                    <div
-                        className={classNames(styles.subtitleButtonContainer, {
-                            [styles.leftAlign]: props.isModal,
-                        })}
-                    >
-                        <DefaultButton
-                            className={styles.linkLikeButton}
-                            onClick={() => setIsDataSourceDetailExpanded(true)}
-                        >
-                            Show more&nbsp;&nbsp;
-                            <Icon iconName="ChevronDown" />
-                        </DefaultButton>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

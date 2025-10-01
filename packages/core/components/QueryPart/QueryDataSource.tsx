@@ -3,6 +3,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
+import { DataSourceType } from "../DataSourcePrompt";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Source } from "../../entity/SearchParams";
 import { interaction, metadata, selection } from "../../state";
@@ -74,7 +75,26 @@ export default function QueryDataSource(props: Props) {
                     text: "New data source",
                     iconProps: { iconName: "NewFolder" },
                     onClick: () => {
-                        dispatch(interaction.actions.promptForDataSource({ query: selectedQuery }));
+                        dispatch(
+                            interaction.actions.promptForDataSource({
+                                query: selectedQuery,
+                                source: selectedDataSources[0],
+                            })
+                        );
+                    },
+                },
+                // Temporary menu item for adding provenance data
+                {
+                    key: "New Provenance Data Source",
+                    text: "New provenance data source",
+                    onClick: () => {
+                        dispatch(
+                            interaction.actions.promptForDataSource({
+                                query: selectedQuery,
+                                source: selectedDataSources[0],
+                                sourceType: DataSourceType.provenance,
+                            })
+                        );
                     },
                 },
             ]}
