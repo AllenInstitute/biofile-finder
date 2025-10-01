@@ -681,10 +681,13 @@ const addQueryLogic = createLogic({
         const { payload: newQuery } = deps.action as AddQuery;
         // Map the query names to their occurrences so that queries with the same name
         // have their occurences appended to their name to make them unique
-        const queryNameToOccurrence = queries.reduce((acc, query) => {
-            const nameWithoutOccurence = query.name.replace(/ \(\d+\)$/, "");
-            return { ...acc, [nameWithoutOccurence]: (acc[nameWithoutOccurence] || 0) + 1 };
-        }, {} as Record<string, number>);
+        const queryNameToOccurrence = queries.reduce(
+            (acc, query) => {
+                const nameWithoutOccurence = query.name.replace(/ \(\d+\)$/, "");
+                return { ...acc, [nameWithoutOccurence]: (acc[nameWithoutOccurence] || 0) + 1 };
+            },
+            {} as Record<string, number>
+        );
 
         const newQueryName = newQuery.name.replace(/ \(\d+\)$/, "");
         next({
@@ -715,6 +718,7 @@ const changeQueryLogic = createLogic({
                 query.name === deps.ctx.previouslySelectedQueryName
                     ? currentQueryParts
                     : query.parts,
+            loading: false,
         }));
 
         if (newlySelectedQuery) {

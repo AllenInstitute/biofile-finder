@@ -50,6 +50,17 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
             return this.handleLocalZarrFile(fileInfo);
         }
 
+        const canUseDirectoryArgs = await this.canUseDirectoryArguments(fileInfo.path);
+        if (canUseDirectoryArgs) {
+            return await this.downloadS3Directory(
+                fileInfo,
+                downloadRequestId,
+                onProgress,
+                destination,
+                this.parseVirtualizedUrl
+            );
+        }
+
         const message = `The file path "${fileInfo.path}" is not supported for Zarr downloads in the web environment. 
 Only S3 URLs are supported. Please upload your files to an S3 bucket for web-based downloads.`;
         throw new Error(message);
@@ -73,9 +84,12 @@ Please navigate to this directory manually, or upload files to a remote address 
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
-        destination?: string
+        destination?: string,
+        parsingMethod?: (url: string) => { hostname: string; bucket: string; key: string }
     ): Promise<DownloadResult> {
-        const { hostname, key, bucket } = this.parseS3Url(fileInfo.path);
+        const { hostname, key, bucket } = parsingMethod
+            ? parsingMethod(fileInfo.path)
+            : this.parseS3Url(fileInfo.path);
 
         // Calculate the total size of the S3 directory
         const totalSize = await this.calculateS3DirectorySize(hostname, key, bucket);
@@ -112,7 +126,8 @@ Please navigate to this directory manually, or upload files to a remote address 
 
         // Download each file and add it to the ZIP archive
         for (const fileKey of keys) {
-            const fileUrl = `https://${hostname}/${bucket}/${encodeURIComponent(fileKey)}`;
+            const bucketString = bucket.length > 0 ? `${bucket}/` : "";
+            const fileUrl = `https://${hostname}/${bucketString}${encodeURIComponent(fileKey)}`;
             const fileName = fileKey.replace(`${key}/`, ""); // Local file name in zip
 
             let fileBytesDownloaded = 0; // Track the bytes for the current file

@@ -115,6 +115,10 @@ export const getEncodedSearchParams = createSelector([getCurrentQueryParts], (qu
     SearchParams.encode(queryParts)
 );
 
+export const getLoadingNewQuery = createSelector([getQueries], (queries): boolean =>
+    queries.some((q) => q.loading)
+);
+
 export const getPythonConversion = createSelector(
     [
         getPlatformDependentServices,

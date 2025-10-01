@@ -63,4 +63,16 @@ describe("FileDownloadService", () => {
             });
         });
     });
+
+    describe("parseVirtualizedUrl", () => {
+        const fileDownloadService = new FileDownloadServiceNoop();
+        it("parses url correctly", () => {
+            const { hostname, key, bucket } = fileDownloadService.parseVirtualizedUrl(
+                "https://example.com/directory-name/path/to/file.zarr"
+            );
+            expect(hostname).to.equal("example.com");
+            expect(key).to.equal("directory-name/path/to/file.zarr");
+            expect(bucket).to.equal("");
+        });
+    });
 });

@@ -84,6 +84,16 @@ export default abstract class FileDownloadService extends HttpServiceBase {
     }
 
     /**
+     * Parse a potentially virtualized S3 URL that would not be identifiable by parseS3Url
+     */
+    public parseVirtualizedUrl(url: string): { hostname: string; bucket: string; key: string } {
+        const urlObj = new URL(url);
+        const hostname = urlObj.hostname;
+        const key = urlObj.pathname.startsWith("/") ? urlObj.pathname.slice(1) : urlObj.pathname;
+        return { hostname, bucket: "", key };
+    }
+
+    /**
      * List components of S3 directory.
      */
     public async listS3Objects(
@@ -106,6 +116,23 @@ export default abstract class FileDownloadService extends HttpServiceBase {
         }
 
         return keys;
+    }
+
+    /**
+     * Not all S3 URLs are identifiable from their structure (e.g. some virtualized URLs),
+     * but we may still be able to support zarr downloads if the bucket accepts directory list arguments
+     *
+     * If the get call throws an error, return false
+     */
+    public async canUseDirectoryArguments(url: string): Promise<boolean> {
+        const { hostname, key } = this.parseVirtualizedUrl(url);
+        const directoryUrl = `https://${hostname}?list-type=2&prefix=${encodeURIComponent(key)}`;
+        try {
+            await this.httpClient.get(directoryUrl);
+            return true;
+        } catch (error) {
+            return false;
+        }
     }
 
     /**

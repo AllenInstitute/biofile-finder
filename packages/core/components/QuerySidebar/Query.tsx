@@ -20,6 +20,7 @@ import styles from "./Query.module.css";
 interface QueryProps {
     isSelected: boolean;
     query: QueryType;
+    loading?: boolean;
 }
 
 /**
@@ -37,12 +38,15 @@ export default function Query(props: QueryProps) {
     const hasReloadError = useSelector(selection.selectors.getRequiresDataSourceReload);
     const isLoading =
         (shouldHaveDataSource && !hasDataSource && !hasReloadError) ||
-        props.query.name === AICS_FMS_DATA_SOURCE_NAME;
+        props.query.name === AICS_FMS_DATA_SOURCE_NAME ||
+        props?.loading;
+    const isLoadingNewQuery = useSelector(selection.selectors.getLoadingNewQuery);
 
     const [isExpanded, setIsExpanded] = React.useState(false);
     React.useEffect(() => {
-        setIsExpanded(props.isSelected);
-    }, [props.isSelected]);
+        if (isLoadingNewQuery) setIsExpanded(false);
+        else setIsExpanded(props.isSelected);
+    }, [isLoadingNewQuery, props.isSelected]);
 
     const queryComponents = React.useMemo(
         () =>
@@ -108,9 +112,28 @@ export default function Query(props: QueryProps) {
 
     if (isLoading) {
         return (
-            <div className={styles.container}>
+            <div className={classNames(styles.container, styles.disabled)}>
+                <div className={classNames(styles.header, styles.headerCollapsed)}>
+                    <Tooltip content="Uploading file and creating table...">
+                        <h4>
+                            <i>Building new query...</i>
+                        </h4>
+                    </Tooltip>
+                    <IconButton
+                        ariaDescription="Expand view details"
+                        ariaLabel="Expand"
+                        className={styles.expandButton}
+                        disabled
+                        iconProps={{ iconName: "ChevronDownMed" }}
+                    />
+                </div>
+                <hr className={styles.divider}></hr>
                 <div className={styles.loadingContainer}>
-                    <LoadingIcon size={SpinnerSize.medium} data-testid="query-spinner" />
+                    <LoadingIcon
+                        size={SpinnerSize.medium}
+                        data-testid="query-spinner"
+                        invertColor
+                    />
                 </div>
             </div>
         );
