@@ -1,5 +1,5 @@
 import axios from "axios";
-import { isEmpty } from "lodash";
+import { isEmpty, uniqWith } from "lodash";
 
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import Annotation from "../../entity/Annotation";
@@ -7,6 +7,7 @@ import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
+import { EdgeDefinition } from "../../state/provenance/reducer";
 
 enum PreDefinedColumn {
     FILE_ID = "File ID",
@@ -26,6 +27,7 @@ export default abstract class DatabaseService {
     // Name of the hidden column BFF uses to uniquely identify rows
     public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
+    protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
     // "Open file link" as a datatype must be hardcoded, and CAN NOT change
     // without BREAKING visibility in the dataset released in 2024 as part
     // of the EMT Data Release paper
@@ -35,10 +37,12 @@ export default abstract class DatabaseService {
         DatabaseService.OPEN_FILE_LINK_TYPE,
     ]);
     private sourceMetadataName?: string;
+    private sourceProvenanceName?: string;
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
     private readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
+    private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
 
     public abstract saveQuery(
         _destination: string,
@@ -178,6 +182,27 @@ export default abstract class DatabaseService {
             true
         );
         this.sourceMetadataName = sourceMetadata.name;
+    }
+
+    public async prepareSourceProvenance(sourceProvenance: Source): Promise<void> {
+        const isPreviousSource = sourceProvenance.name === this.sourceProvenanceName;
+        if (isPreviousSource) {
+            return;
+        }
+        await this.deleteSourceProvenance();
+        await this.prepareDataSource(
+            {
+                ...sourceProvenance,
+                name: this.SOURCE_PROVENANCE_TABLE,
+            },
+            true
+        );
+        this.sourceProvenanceName = sourceProvenance.name;
+    }
+
+    public async deleteSourceProvenance(): Promise<void> {
+        await this.deleteDataSource(this.SOURCE_PROVENANCE_TABLE);
+        this.dataSourceToProvenanceMap.clear();
     }
 
     public async deleteSourceMetadata(): Promise<void> {
@@ -459,6 +484,50 @@ export default abstract class DatabaseService {
 
         // Reset hidden UID to avoid conflicts in previous auto-generation
         await this.execute(this.getUpdateHiddenUIDSQL(viewName));
+    }
+
+    public async processProvenance(dataSourceNames: string[]) {
+        // no provenance data
+        if (!this.existingDataSources.has(this.SOURCE_PROVENANCE_TABLE)) {
+            return {};
+        }
+        const aggregateDataSourceName = dataSourceNames.sort().join(", ");
+        // To do: situation where this would be true/action to take?
+        // const hasEdgeDefinitions = this.dataSourceToProvenanceMap.has(aggregateDataSourceName);
+        const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
+        const edges: EdgeDefinition[] = [];
+        try {
+            const rows = await this.query(sql);
+            rows.forEach((row) => {
+                const parent = row?.["Subject"];
+                const child = row?.["Object"];
+                // fully defined
+                // To do: Are there situations where we'd want to process a row that only has a parent and no child?
+                if (parent && child && row?.["Predicate"]) {
+                    const newEdge = {
+                        parent,
+                        child,
+                        label: row?.["Predicate"],
+                    };
+                    edges.push(newEdge);
+                }
+            });
+            this.dataSourceToProvenanceMap.set(aggregateDataSourceName, uniqWith(edges));
+        } catch (err) {
+            // Source provenance file may not have been supplied
+            // and/or the columns may not exist
+            const errMsg = typeof err === "string" ? err : err instanceof Error ? err.message : "";
+            if (errMsg.includes("does not exist") || errMsg.includes("not found in FROM clause")) {
+                return {};
+            }
+            throw err;
+        }
+        return this.dataSourceToProvenanceMap.get(aggregateDataSourceName) || [];
+    }
+
+    public async fetchProvenanceDefinitions(dataSourceNames: string[]): Promise<EdgeDefinition[]> {
+        const aggregateDataSourceName = dataSourceNames.sort().join(", ");
+        return this.dataSourceToProvenanceMap.get(aggregateDataSourceName) || [];
     }
 
     public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
