@@ -1,0 +1,6 @@
+.network-graph-container {
+  position: relative;
+  width: 80vw;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}

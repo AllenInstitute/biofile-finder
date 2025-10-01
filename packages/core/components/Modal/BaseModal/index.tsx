@@ -1,4 +1,5 @@
 import { Modal } from "@fluentui/react";
+import classNames from "classnames";
 import { noop } from "lodash";
 import * as React from "react";
 
@@ -11,6 +12,7 @@ interface BaseModalProps {
     onDismiss?: () => void;
     title?: string;
     isStatic?: boolean; // Not draggable
+    isFullScreen?: boolean; // Override width constraints
 }
 
 /**
@@ -25,7 +27,9 @@ export default function BaseModal(props: BaseModalProps) {
         <Modal
             isOpen
             onDismiss={onDismiss}
-            containerClassName={styles.container}
+            containerClassName={classNames(styles.container, {
+                [styles.fullScreen]: props.isFullScreen,
+            })}
             titleAriaId={titleId}
             overlay={{ className: styles.overlay }}
         >
@@ -47,4 +51,5 @@ BaseModal.defaultProps = {
     footer: null,
     onDismiss: noop,
     isStatic: false,
+    isFullScreen: false,
 };
