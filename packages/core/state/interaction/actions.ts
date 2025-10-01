@@ -3,6 +3,7 @@ import { uniqueId } from "lodash";
 
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import FileFilter from "../../entity/FileFilter";
+import { DataSourceType } from "../../components/DataSourcePrompt";
 import { ModalType } from "../../components/Modal";
 import { AnnotationValue } from "../../services/AnnotationService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
@@ -26,6 +27,7 @@ type PartialSource = Omit<Source, "type">;
 export interface DataSourcePromptInfo {
     source?: PartialSource;
     query?: string;
+    sourceType?: DataSourceType;
 }
 
 export interface PromptForDataSource {
