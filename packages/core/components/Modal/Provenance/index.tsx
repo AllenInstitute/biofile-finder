@@ -9,8 +9,8 @@ import { provenance } from "../../../state";
 import styles from "./Provenance.module.css";
 
 /**
- * Modal overlay for selecting columns to be included in a metadata manifest download of
- * files previously selected.
+ * Modal overlay for displaying a provenance network graph
+ * Should use as much of the screen as possible
  */
 export default function Provenance({ onDismiss }: ModalProps) {
     const nodes = useSelector(provenance.selectors.getNodesForModal);
