@@ -34,12 +34,15 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
  * Main function to attempt to render a usable thumbnail using the lowest
  * resolution present in a zarr image's metadata.
  */
-export async function renderZarrThumbnailURL(zarrUrl: string): Promise<string | undefined> {
+export async function renderZarrThumbnailURL(
+    zarrUrl: string,
+    targetSize: number | undefined
+): Promise<string | undefined> {
     try {
         return await retryWithTimeout(
             async () => {
-                // read base image into store
-                return omezarr.renderThumbnail(zarrUrl);
+                // if targetSize is undefined, the smallest resolution will be used
+                return omezarr.renderThumbnail(zarrUrl, targetSize, true);
             },
             3,
             5000

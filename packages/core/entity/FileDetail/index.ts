@@ -186,7 +186,7 @@ export default class FileDetail {
         return this.fileDetail.annotations.find((annotation) => annotation.name === annotationName);
     }
 
-    public async getPathToThumbnail(): Promise<string | undefined> {
+    public async getPathToThumbnail(targetSize: number | undefined): Promise<string | undefined> {
         // If the thumbnail is a relative path on the allen drive then preprend it to
         // the AICS FMS NGINX server path
         if (this.thumbnail?.startsWith("/allen")) {
@@ -200,7 +200,7 @@ export default class FileDetail {
         if (!this.thumbnail) {
             // Cannot currently read locally stored zarrs on web
             if (this.path.includes(".zarr") && !this.isLikelyLocalFile) {
-                return renderZarrThumbnailURL(this.path);
+                return renderZarrThumbnailURL(this.path, targetSize);
             }
 
             const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
