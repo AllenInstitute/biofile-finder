@@ -186,7 +186,7 @@ export default class FileDetail {
         return this.fileDetail.annotations.find((annotation) => annotation.name === annotationName);
     }
 
-    public async getPathToThumbnail(targetSize: number | undefined): Promise<string | undefined> {
+    public async getPathToThumbnail(targetSize?: number): Promise<string | undefined> {
         // If the thumbnail is a relative path on the allen drive then preprend it to
         // the AICS FMS NGINX server path
         if (this.thumbnail?.startsWith("/allen")) {
