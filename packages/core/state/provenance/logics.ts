@@ -1,61 +1,18 @@
-import { Edge, Node } from "@xyflow/react";
+import { Edge } from "@xyflow/react";
 import { createLogic } from "redux-logic";
 
 import {
-    CHANGE_SOURCE_PROVENANCE,
-    ChangeSourceProvenanceAction,
     CONSTRUCT_PROVENANCE_GRAPH,
     ConstructProvenanceGraph,
     setGraphEdges,
     setGraphNodes,
 } from "./actions";
-import { EdgeDefinition } from "./reducer";
+import { EdgeDefinition, ProvenanceNode } from "./reducer";
 import { ReduxLogicDeps, selection } from "../";
 import interaction from "../interaction";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
-import { FmsFileAnnotation } from "../../services/FileService";
-
-interface ProvenanceNode extends Node {
-    data: {
-        label: string;
-        annotation?: FmsFileAnnotation;
-        isCurrentFile?: boolean;
-    };
-}
-
-/**
- * Interceptor responsible for passing the CHANGE_SOURCE_PROVENANCE action to the database service.
- *
- * To do: This currently does not use dispatch so technically doesn't need to be in redux logic,
- * but may after we incorporate provenance in to query object
- */
-const changeSourceProvenanceLogic = createLogic({
-    type: CHANGE_SOURCE_PROVENANCE,
-    async process(deps: ReduxLogicDeps, _dispatch, done) {
-        const { payload: selectedSourceProvenance } = deps.action as ChangeSourceProvenanceAction;
-        const { databaseService } = interaction.selectors.getPlatformDependentServices(
-            deps.getState()
-        );
-        if (selectedSourceProvenance) {
-            await databaseService.prepareSourceProvenance(selectedSourceProvenance);
-        } else {
-            await databaseService.deleteSourceProvenance();
-        }
-        const existingDataSources = selection.selectors.getSelectedDataSources(deps.getState());
-
-        try {
-            await databaseService.processProvenance(
-                existingDataSources.map((source) => source.name)
-            );
-        } catch (err) {
-            // To do: error handling
-            console.error("Failed to fetch provenance", err);
-        }
-        done();
-    },
-});
 
 /**
  * Interceptor responsible for responding to CONSTRUCT_PROVENANCE_GRAPH actions
@@ -231,4 +188,4 @@ function constructGraphForFile(
     return { nodeMap, edges, parentMap };
 }
 
-export default [changeSourceProvenanceLogic, constructProvenanceLogic];
+export default [constructProvenanceLogic];

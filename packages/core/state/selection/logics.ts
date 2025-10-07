@@ -40,6 +40,9 @@ import {
     CHANGE_SOURCE_METADATA,
     ChangeSourceMetadataAction,
     changeSourceMetadata,
+    CHANGE_SOURCE_PROVENANCE,
+    ChangeSourceProvenanceAction,
+    changeSourceProvenance,
     setRequiresDataSourceReload,
     addDataSourceReloadError,
     removeDataSourceReloadError,
@@ -428,10 +431,12 @@ const decodeSearchParamsLogics = createLogic({
             sortColumn,
             sources,
             sourceMetadata,
+            sourceProvenance,
         } = SearchParams.decode(encodedURL);
 
         batch(() => {
             dispatch(changeSourceMetadata(sourceMetadata));
+            dispatch(changeSourceProvenance(sourceProvenance));
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
             columns && dispatch(setColumns(columns));
@@ -644,6 +649,35 @@ const changeSourceMetadataLogic = createLogic({
 });
 
 /**
+ * Interceptor responsible for passing the CHANGE_SOURCE_PROVENANCE action to the database service.
+ */
+const changeSourceProvenanceLogic = createLogic({
+    type: CHANGE_SOURCE_PROVENANCE,
+    async process(deps: ReduxLogicDeps, _dispatch, done) {
+        const { payload: selectedSourceProvenance } = deps.action as ChangeSourceProvenanceAction;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+        if (selectedSourceProvenance) {
+            await databaseService.prepareSourceProvenance(selectedSourceProvenance);
+        } else {
+            await databaseService.deleteSourceProvenance();
+        }
+        const existingDataSources = selection.selectors.getSelectedDataSources(deps.getState());
+
+        try {
+            await databaseService.processProvenance(
+                existingDataSources.map((source) => source.name)
+            );
+        } catch (err) {
+            // To do: error handling
+            console.error("Failed to fetch provenance", err);
+        }
+        done();
+    },
+});
+
+/**
  * Interceptor responsible for processing the added query to accurate/unique names
  */
 const addQueryLogic = createLogic({
@@ -681,13 +715,10 @@ const addQueryLogic = createLogic({
         const { payload: newQuery } = deps.action as AddQuery;
         // Map the query names to their occurrences so that queries with the same name
         // have their occurences appended to their name to make them unique
-        const queryNameToOccurrence = queries.reduce(
-            (acc, query) => {
-                const nameWithoutOccurence = query.name.replace(/ \(\d+\)$/, "");
-                return { ...acc, [nameWithoutOccurence]: (acc[nameWithoutOccurence] || 0) + 1 };
-            },
-            {} as Record<string, number>
-        );
+        const queryNameToOccurrence = queries.reduce((acc, query) => {
+            const nameWithoutOccurence = query.name.replace(/ \(\d+\)$/, "");
+            return { ...acc, [nameWithoutOccurence]: (acc[nameWithoutOccurence] || 0) + 1 };
+        }, {} as Record<string, number>);
 
         const newQueryName = newQuery.name.replace(/ \(\d+\)$/, "");
         next({
@@ -844,6 +875,7 @@ export default [
     setAvailableAnnotationsLogic,
     changeDataSourceLogic,
     changeSourceMetadataLogic,
+    changeSourceProvenanceLogic,
     addQueryLogic,
     replaceDataSourceLogic,
     setDataSourceReloadErrorLogic,

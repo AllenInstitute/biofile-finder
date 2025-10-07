@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import FilePrompt from "./FilePrompt";
 import { LinkLikeButton, PrimaryButton } from "../Buttons";
 import { Source } from "../../entity/SearchParams";
-import { interaction, provenance, selection } from "../../state";
+import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
 
 import styles from "./DataSourcePrompt.module.css";
@@ -53,7 +53,7 @@ export default function DataSourcePrompt(props: Props) {
     const onSubmit = (dataSource: Source, metadataSource?: Source) => {
         if (sourceType === DataSourceType.provenance) {
             if (dataSource) {
-                dispatch(provenance.actions.changeSourceProvenance(dataSource));
+                dispatch(selection.actions.changeSourceProvenance(dataSource));
             }
             // To do: include provenance source in query as with metadatasource
             return onDismiss();

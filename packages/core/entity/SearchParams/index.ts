@@ -28,6 +28,7 @@ export interface SearchParamsComponents {
     fileView?: FileView;
     sources: Source[];
     sourceMetadata?: Source;
+    sourceProvenance?: Source;
     filters: FileFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
@@ -170,6 +171,19 @@ export default class SearchParams {
                 })
             );
         }
+        if (urlComponents.sourceProvenance) {
+            params.append(
+                "sourceProvenance",
+                JSON.stringify({
+                    ...urlComponents.sourceProvenance,
+                    uri:
+                        typeof urlComponents.sourceProvenance.uri === "string" ||
+                        urlComponents.sourceProvenance.uri instanceof String
+                            ? urlComponents.sourceProvenance.uri
+                            : undefined,
+                })
+            );
+        }
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
         }
@@ -206,6 +220,7 @@ export default class SearchParams {
 
     private static decodeComplexParams(params: URLSearchParams): SearchParamsComponents {
         const unparsedSourceMetadata = params.get("sourceMetadata");
+        const unparsedSourceProvenance = params.get("sourceProvenance");
         const unparsedOpenFolders = params.getAll("openFolder");
         const unparsedFilters = params.getAll("filter");
         const unparsedSources = params.getAll("source");
@@ -246,6 +261,9 @@ export default class SearchParams {
                 : undefined,
             sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
             sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
+            sourceProvenance: unparsedSourceProvenance
+                ? JSON.parse(unparsedSourceProvenance)
+                : undefined,
         };
     }
 

@@ -2,7 +2,6 @@ import { makeConstant } from "@aics/redux-utils";
 import { Edge, Node } from "@xyflow/react";
 
 import FileDetail from "../../entity/FileDetail";
-import { Source } from "../../entity/SearchParams";
 
 const STATE_BRANCH_NAME = "provenance";
 
@@ -41,25 +40,6 @@ export function setGraphEdges(edges: Edge[]): SetGraphEdgesAction {
     return {
         payload: edges,
         type: SET_GRAPH_EDGES,
-    };
-}
-
-/**
- * CHANGE_SOURCE_PROVENANCE
- *
- * Intention to update the source file supplying provenance info about the selected data sources
- */
-export const CHANGE_SOURCE_PROVENANCE = makeConstant(STATE_BRANCH_NAME, "change-source-provenance");
-
-export interface ChangeSourceProvenanceAction {
-    payload?: Source;
-    type: string;
-}
-
-export function changeSourceProvenance(source?: Source): ChangeSourceProvenanceAction {
-    return {
-        payload: source,
-        type: CHANGE_SOURCE_PROVENANCE,
     };
 }
 
