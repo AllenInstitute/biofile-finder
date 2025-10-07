@@ -10,6 +10,7 @@ import {
 
 import styles from "./CustomEdge.module.css";
 
+// Returns a customizable edge in a ReactFlow network graph
 const CustomEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
     id,
     sourceX,
@@ -20,6 +21,16 @@ const CustomEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
     targetPosition,
     data,
 }) => {
+    /**
+     *  External util from reactflow that returns a "bezier" type path between two nodes
+     *
+     *  Inputs: The x and y coordinates for the source and target nodes,
+     *  and the position of the edge connectors to use relative to each node (e.g., top, bottom, left, right)
+     *
+     *  @returns a fully described edge
+     *  - `edgePath`: string describing the path to use in the SVG `<path>` element
+     *  - `labelX`, `labelY`: the x, y default location for the edge's label
+     */
     const [edgePath, labelX, labelY] = getBezierPath({
         sourceX,
         sourceY,
@@ -28,6 +39,8 @@ const CustomEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
         targetY,
         targetPosition,
     });
+
+    // Uses the default edge component, but allows us to apply styling or hyperlinks and change the location of the label
     return (
         <>
             <BaseEdge id={id} path={edgePath} markerEnd={MarkerType.ArrowClosed} />
