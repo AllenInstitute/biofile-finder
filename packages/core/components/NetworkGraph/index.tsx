@@ -3,6 +3,7 @@ import { ReactFlow, useNodesState, useEdgesState, Node, Edge } from "@xyflow/rea
 import dagre from "@dagrejs/dagre";
 
 import "@xyflow/react/dist/style.css";
+import styles from "./NetworkGraph.module.css";
 
 import CustomEdge from "./CustomEdge";
 // import FileNode from './FileNode';
@@ -71,7 +72,7 @@ export default function NetworkGraph(props: NetworkGraphProps) {
     const [edges, _setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
 
     return (
-        <div style={{ width: "100%", height: "500px" }}>
+        <div className={styles.reactFlowContainer}>
             <ReactFlow
                 colorMode="dark"
                 nodes={nodes}
