@@ -14,6 +14,7 @@ import {
     addQuery,
     changeDataSources,
     changeSourceMetadata,
+    changeSourceProvenance,
     decodeSearchParams,
     expandAllFileFolders,
     reorderAnnotationHierarchy,
@@ -1234,6 +1235,9 @@ describe("Selection logics", () => {
                 public deleteSourceMetadata(): Promise<void> {
                     return Promise.resolve();
                 }
+                public deleteSourceProvenance(): Promise<void> {
+                    return Promise.resolve();
+                }
             }
             const state = mergeState(initialState, {
                 interaction: {
@@ -1292,6 +1296,7 @@ describe("Selection logics", () => {
                 })
             ).to.be.true;
             expect(actions.includesMatch(changeSourceMetadata())).to.be.true;
+            expect(actions.includesMatch(changeSourceProvenance())).to.be.true;
             expect(actions.includesMatch(changeDataSources(mockDataSources))).to.be.true;
         });
     });
