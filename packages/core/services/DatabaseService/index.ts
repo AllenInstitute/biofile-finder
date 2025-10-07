@@ -497,17 +497,17 @@ export default abstract class DatabaseService {
         const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
         const edges: EdgeDefinition[] = [];
         try {
+            // Get list of edge definitions for provenance schema
             const rows = await this.query(sql);
             rows.forEach((row) => {
-                const parent = row?.["Subject"];
-                const child = row?.["Object"];
+                const parent = row["Subject"];
+                const child = row["Object"];
                 // fully defined
-                // To do: Are there situations where we'd want to process a row that only has a parent and no child?
-                if (parent && child && row?.["Predicate"]) {
+                if (parent && child && row["Predicate"]) {
                     const newEdge = {
                         parent,
                         child,
-                        label: row?.["Predicate"],
+                        label: row["Predicate"],
                     };
                     edges.push(newEdge);
                 }
