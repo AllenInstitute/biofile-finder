@@ -23,7 +23,7 @@ const constructProvenanceLogic = createLogic({
         const { getState } = deps;
         const { payload: fileDetails } = deps.action as ConstructProvenanceGraph;
         const fileService = interaction.selectors.getFileService(getState());
-        const fileID = fileDetails.id;
+        const fileID = fileDetails.uid;
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
@@ -75,42 +75,43 @@ const constructProvenanceLogic = createLogic({
         const parentPathways = dfs(`File ID-${fileID}`).sort((a, b) => b.length - a.length);
         // To do: 0=siblings, 1=cousins, etc... how far back to go?
         const testPath = parentPathways[2];
-
-        // Create fileset with filters that match current file selection
-        const filters: FileFilter[] = [];
-        testPath.forEach((nodeId) => {
-            const annotation = nodeMap.get(nodeId)?.data?.annotation;
-            if (annotation?.name) {
-                filters.push(new FileFilter(annotation.name, annotation.values));
-            }
-        });
-        const fileSet = new FileSet({
-            fileService,
-            filters,
-        });
-        // Arbitrary limit to select first 5 files
-        const files = await fileSet.fetchFileRange(0, 5);
-
-        // This should maybe happen on demand (e.g., button click) and not on initial graph render?
-        files.forEach((relatedFile) => {
-            const { nodeMap: newNodeMap, edges: newEdges } = constructGraphForFile(
-                relatedFile,
-                edgeDefs
-            );
-
-            // Merge maps. To do: Pass the map? Or store it in state? so that we avoid
-            // generating duplicate nodes and don't have to do the merge logic after
-            newNodeMap.forEach((value, key) => {
-                if (!nodeMap.has(key)) {
-                    nodeMap.set(key, value);
+        if (testPath?.length) {
+            // Create fileset with filters that match current file selection
+            const filters: FileFilter[] = [];
+            testPath.forEach((nodeId) => {
+                const annotation = nodeMap.get(nodeId)?.data?.annotation;
+                if (annotation?.name) {
+                    filters.push(new FileFilter(annotation.name, annotation.values));
                 }
             });
-            newEdges.forEach((newEdge) => {
-                if (!edges.some((e) => e.id === newEdge.id)) {
-                    edges.push(newEdge);
-                }
+            const fileSet = new FileSet({
+                fileService,
+                filters,
             });
-        });
+            // Arbitrary limit to select first 5 files
+            const files = await fileSet.fetchFileRange(0, 5);
+
+            // This should maybe happen on demand (e.g., button click) and not on initial graph render?
+            files.forEach((relatedFile) => {
+                const { nodeMap: newNodeMap, edges: newEdges } = constructGraphForFile(
+                    relatedFile,
+                    edgeDefs
+                );
+
+                // Merge maps. To do: Pass the map? Or store it in state? so that we avoid
+                // generating duplicate nodes and don't have to do the merge logic after
+                newNodeMap.forEach((value, key) => {
+                    if (!nodeMap.has(key)) {
+                        nodeMap.set(key, value);
+                    }
+                });
+                newEdges.forEach((newEdge) => {
+                    if (!edges.some((e) => e.id === newEdge.id)) {
+                        edges.push(newEdge);
+                    }
+                });
+            });
+        }
 
         dispatch(setGraphEdges(edges));
         dispatch(setGraphNodes(Array.from(nodeMap.values())));
@@ -126,7 +127,7 @@ function constructGraphForFile(
     edgeDefs: EdgeDefinition[],
     isSelectedFile?: boolean
 ) {
-    const fileID = fileDetails.id;
+    const fileID = fileDetails.uid;
     const annotationDetails = fileDetails.details.annotations;
     const edges: Edge[] = [];
     const nodeMap = new Map<string, ProvenanceNode>();
