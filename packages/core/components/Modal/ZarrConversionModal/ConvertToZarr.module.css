@@ -1,0 +1,95 @@
+.shell {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 180px 1px minmax(0, 1fr);
+  grid-template-areas: "left divider right";
+  column-gap: 24px;
+  width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.left-col  { grid-area: left;   min-width: 0; }
+.v-divider { grid-area: divider; }
+.right-col { grid-area: right;  min-width: 0; }
+
+.v-divider {
+  width: 1px;
+  background: var(--primary-text-color);
+}
+
+/* ===== Left/form column ===== */
+.left-col {
+  display: flex;
+  flex-direction: column;
+  row-gap: 24px;
+}
+
+.section { display: flex; flex-direction: column; }
+
+.label {
+  font-size: var(--l-paragraph-size);
+  margin-bottom: 8px;
+}
+
+.dest-chip-row { display: flex; align-items: center; gap: 8px; }
+
+.browse-btn { height: 30px; padding: 0 12px; width: 160px; }
+
+.choice-group :global(.ms-ChoiceFieldGroup-flexContainer) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start;
+  row-gap: 6px;
+}
+.choice-group :global(.ms-ChoiceField) { margin: 0 !important; }
+
+.search-box { flex-grow: 1; }
+.search-box :global(input.ms-TextField-field) {
+  background-color: var(--secondary-background-color) !important;
+  color: var(--secondary-text-color) !important;
+}
+
+/* ===== Right column (snippet container only) ===== */
+.right-col {
+  display: flex;
+  flex-direction: column;
+  row-gap: 12px;
+  min-height: 0;
+  position: relative;
+}
+
+/* ===== Footer ===== */
+.footer-buttons {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.close-button { width: min-content; }
+
+/* ===== Responsive ===== */
+@container modal (min-width: 1221px) {
+  .left-col { width: 180px; }
+  .v-divider { display: block; }
+}
+
+@media (max-width: 1220px) {
+  .columns {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "left"
+      "right";
+    grid-auto-rows: auto;
+  }
+  .v-divider { display: none; }
+  .left-col { width: auto; min-width: 0; max-width: none; }
+  .right-col { min-width: 0; }
+}

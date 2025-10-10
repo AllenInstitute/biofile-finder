@@ -68,10 +68,10 @@ export interface InteractionStateBranch {
     platformDependentServices: PlatformDependentServices;
     processFilesPythonSnippet?: { setup: string; code: string };
     convertFilesSnippet: {
-        setup: string,
-        code: string,
-        options?: {},
-    }
+        setup: string;
+        code: string;
+        options?: Record<string, string>;
+    };
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
@@ -242,8 +242,8 @@ export default makeReducer<InteractionStateBranch>(
                 setup: action.payload?.setup ?? state.convertFilesSnippet?.setup ?? "",
                 code: action.payload?.code ?? state.convertFilesSnippet?.code ?? "",
                 options: {
-                ...(state.convertFilesSnippet?.options || {}),
-                ...(action.payload?.options || {}),
+                    ...(state.convertFilesSnippet?.options || {}),
+                    ...(action.payload?.options || {}),
                 },
             },
         }),

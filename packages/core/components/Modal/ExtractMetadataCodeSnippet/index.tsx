@@ -2,9 +2,11 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
+import BaseModal from "../BaseModal";
 import { selection, interaction } from "../../../state";
 import { setProcessFilesPythonSnippet } from "../../../state/interaction/actions";
-import CodeSnippet from ".";
+import CodeSnippet from "../../CodeSnippet";
+import { detectBioioPlugins } from "../../CodeSnippet/CodeUtils";
 
 export default function ProcessFiles({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
@@ -24,37 +26,17 @@ export default function ProcessFiles({ onDismiss }: ModalProps) {
                         .replace(/\\/g, "\\\\")
                         .replace(/"/g, '\\"');
 
-                // Plugin registry
-                const EXT_TO_PKG: Array<[string, string]> = [
-                    [".ome.tiff", "bioio-ome-tiff"],
-                    [".ome.tif", "bioio-ome-tiff"],
-                    [".tiff", "bioio-ome-tiff"],
-                    [".tif", "bioio-ome-tiff"],
-                    [".czi", "bioio-czi"],
-                    [".nd2", "bioio-nd2"],
-                    [".lif", "bioio-lif"],
-                    [".ome.zarr", "bioio-ome-zarr"],
-                    [".zarr", "bioio-ome-zarr"],
-                ];
-
-                const pluginPkgs = new Set<string>();
+                // Build the Python list of selected files
                 const pyList = details
-                    .map((f: { path: string }) => {
-                        const p = f.path;
-                        const lower = p.toLowerCase();
-                        for (const [ext, pkg] of EXT_TO_PKG) {
-                            if (lower.endsWith(ext)) {
-                                pluginPkgs.add(pkg);
-                                break;
-                            }
-                        }
-                        return `    "${safe(p)}"`;
-                    })
+                    .map((f: { path: string }) => `    "${safe(f.path)}"`)
                     .join(",\n");
 
+                // Detect BioIO plugins from selection
+                const plugins = detectBioioPlugins(details.map((d: { path: string }) => d.path));
+
+                // Base + Pandas + recommended plugins
                 const baseDeps = ["bioio", "pandas"];
-                const pluginDeps = Array.from(pluginPkgs).sort();
-                const allDeps = baseDeps.concat(pluginDeps);
+                const allDeps = [...baseDeps, ...plugins];
 
                 const setup = `# Recommended installs based on your selection:
 pip install ${allDeps.join(" ")}
@@ -89,7 +71,6 @@ print(f"Wrote {out_path} with {len(df)} rows and {len(df.columns)} columns.")`;
                 dispatch(setProcessFilesPythonSnippet({ setup, code }));
             } catch (err) {
                 dispatch(setProcessFilesPythonSnippet({}));
-                // eslint-disable-next-line no-console
                 console.error("Failed to generate process-files snippet:", err);
             }
         })();
@@ -100,11 +81,10 @@ print(f"Wrote {out_path} with {len(df)} rows and {len(df.columns)} columns.")`;
     }, [dispatch, fileSelection]);
 
     return (
-        <CodeSnippet
+        <BaseModal
             onDismiss={onDismiss}
-            title="Process Files — Extract Metadata Python Snippet"
-            setup={snippet?.setup}
-            code={snippet?.code}
+            title="Process files — extract metadata (python)"
+            body={<CodeSnippet setup={snippet?.setup} code={snippet?.code} />}
         />
     );
 }

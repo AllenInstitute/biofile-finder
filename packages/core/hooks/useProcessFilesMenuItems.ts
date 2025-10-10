@@ -18,10 +18,9 @@ export default function useProcessMenuItems(
     return [
         {
             key: "process-files-python",
-            text: "Extract Standard Metadata (BioIO)",
+            text: "Extract standard metadata (BioIO)",
             title:
                 "Create a Python snippet that reads files with BioIO and exports standard metadata",
-            iconProps: { iconName: "CodeEdit" },
             onClick() {
                 dispatch(
                     interaction.actions.setVisibleModal(
@@ -33,16 +32,11 @@ export default function useProcessMenuItems(
         },
         {
             key: "convert-files-python",
-            text: "Convert files to OME-ZARR (BioIO)",
-            title:
-                "Create a Python snippet that converts with BioIO",
-            iconProps: { iconName: "CodeEdit" },
+            text: "Convert files to OME-Zarr (BioIO)",
+            title: "Create a Python snippet that converts with BioIO",
             onClick() {
                 dispatch(
-                    interaction.actions.setVisibleModal(
-                        ModalType.ConvertFiles,
-                        folderFilters
-                    )
+                    interaction.actions.setVisibleModal(ModalType.ConvertFiles, folderFilters)
                 );
             },
         },

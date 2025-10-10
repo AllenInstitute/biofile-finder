@@ -3,14 +3,14 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 import About from "./About";
-import QueryCodeSnippet from "./CodeSnippet/QueryCodeSnippetModal";
+import QueryCodeSnippet from "./QueryCodeSnippet";
 import DataSource from "./DataSource";
 import EditMetadata from "./EditMetadata";
 import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
 import CopyFileManifest from "./CopyFileManifest";
-import ProcessFilesCodeSnippet from "./CodeSnippet/ProcessFilesCodeSnippetModal";
-import ConvertFiles from "./CodeSnippet/ConvertToZarr";
+import ProcessFilesCodeSnippet from "./ExtractMetadataCodeSnippet";
+import ConvertFiles from "./ZarrConversionModal";
 
 export interface ModalProps {
     onDismiss: () => void;
