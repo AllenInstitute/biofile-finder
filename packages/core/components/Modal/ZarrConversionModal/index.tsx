@@ -4,7 +4,7 @@ import { TextField } from "@fluentui/react";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
-import { SecondaryButton, TertiaryButton } from "../../Buttons";
+import { SecondaryButton } from "../../Buttons";
 import { interaction, selection } from "../../../state";
 import { setConvertFilesSnippet } from "../../../state/interaction/actions";
 import ChoiceGroup from "../../ChoiceGroup";
@@ -149,7 +149,7 @@ if __name__ == "__main__":
             <div className={styles.columns}>
                 {/* LEFT COLUMN */}
                 <div className={styles.leftCol}>
-                    <div className={styles.section}>
+                    {/* <div className={styles.section}>
                         <div className={styles.label}>Choose destination</div>
 
                         <div className={styles.destChipRow}>
@@ -169,13 +169,11 @@ if __name__ == "__main__":
                         <SecondaryButton
                             text="BROWSE"
                             onClick={() => {
-                                // Hook up your folder picker here and set into opts.destination
-                                // e.g., window.electron?.dialog?.showOpenDialog({ properties: ['openDirectory'] })
-                                //   .then(r => { if (!r.canceled) setOpts(o => ({ ...o, destination: r.filePaths[0] || '' })); });
+                                //TODO: implement directory selection
                             }}
                             className={styles.browseBtn}
                         />
-                    </div>
+                    </div> */}
 
                     <div className={styles.section}>
                         <div className={styles.label}>Scenes</div>
