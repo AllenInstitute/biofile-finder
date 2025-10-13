@@ -820,7 +820,6 @@ export function copyFiles(fileDetails: FileDetail[]): CopyFilesAction {
  * SHOW_PROCESS_FILES
  *
  * Action to show the Process Files dialog.
- * This modal will allow users to generate a Python snippet for processing files.
  */
 export const SHOW_PROCESS_FILES = makeConstant(STATE_BRANCH_NAME, "show-process-files");
 
@@ -837,8 +836,7 @@ export function showProcessFiles(): ShowProcessFilesAction {
 /**
  * SET_PROCESS_FILES_PYTHON_SNIPPET
  *
- * Stores the Python snippet specifically for the Process Files modal.
- * Pass `{}` to clear the snippet.
+ * Stores the Python snippet for the Process Files modal.
  */
 export const SET_PROCESS_FILES_PYTHON_SNIPPET = makeConstant(
     STATE_BRANCH_NAME,
@@ -856,8 +854,6 @@ export function setProcessFilesPythonSnippet(payload?: {
 }): SetProcessFilesPythonSnippetAction {
     return { type: SET_PROCESS_FILES_PYTHON_SNIPPET, payload };
 }
-
-
 
 /**
  * SHOW_CONVERT_FILES
@@ -881,8 +877,6 @@ export function showConvertFiles(): ShowConvertFilesAction {
  * SET_CONVERT_FILES_SNIPPET
  *
  * Stores the Python snippet and any user-supplied options for the Convert Files modal.
- * Pass `{}` to clear the snippet. Options are stored as a dict of strings; only
- * keys/values provided by the user are persisted (OmeZarrConverter handles defaults).
  */
 export const SET_CONVERT_FILES_SNIPPET = makeConstant(
     STATE_BRANCH_NAME,
