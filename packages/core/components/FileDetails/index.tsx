@@ -92,7 +92,7 @@ export default function FileDetails(props: Props) {
         setCalculatedSize(null);
         if (fileDetails) {
             setIsThumbnailLoading(true);
-            fileDetails.getPathToThumbnail().then((path) => {
+            fileDetails.getPathToThumbnail(300).then((path) => {
                 setThumbnailPath(path);
                 setIsThumbnailLoading(false);
             });
@@ -115,8 +115,11 @@ export default function FileDetails(props: Props) {
                         .canUseDirectoryArguments(fileDetails.path)
                         .then((canUse) => {
                             if (!canUse) return;
-                            const { hostname, bucket, key } =
-                                fileDownloadService.parseVirtualizedUrl(fileDetails.path);
+                            const {
+                                hostname,
+                                bucket,
+                                key,
+                            } = fileDownloadService.parseVirtualizedUrl(fileDetails.path);
                             fileDownloadService
                                 .calculateS3DirectorySize(hostname, key, bucket)
                                 .then(setCalculatedSize);
