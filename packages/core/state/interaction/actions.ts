@@ -817,23 +817,6 @@ export function copyFiles(fileDetails: FileDetail[]): CopyFilesAction {
 }
 
 /**
- * SHOW_PROCESS_FILES
- *
- * Action to show the Process Files dialog.
- */
-export const SHOW_PROCESS_FILES = makeConstant(STATE_BRANCH_NAME, "show-process-files");
-
-export interface ShowProcessFilesAction {
-    type: string;
-}
-
-export function showProcessFiles(): ShowProcessFilesAction {
-    return {
-        type: SHOW_PROCESS_FILES,
-    };
-}
-
-/**
  * SET_PROCESS_FILES_PYTHON_SNIPPET
  *
  * Stores the Python snippet for the Process Files modal.
@@ -853,24 +836,6 @@ export function setProcessFilesPythonSnippet(payload?: {
     code?: string;
 }): SetProcessFilesPythonSnippetAction {
     return { type: SET_PROCESS_FILES_PYTHON_SNIPPET, payload };
-}
-
-/**
- * SHOW_CONVERT_FILES
- *
- * Action to show the Convert Files dialog.
- * This modal will allow users to generate a Python snippet for converting files.
- */
-export const SHOW_CONVERT_FILES = makeConstant(STATE_BRANCH_NAME, "show-convert-files");
-
-export interface ShowConvertFilesAction {
-    type: string;
-}
-
-export function showConvertFiles(): ShowConvertFilesAction {
-    return {
-        type: SHOW_CONVERT_FILES,
-    };
 }
 
 /**

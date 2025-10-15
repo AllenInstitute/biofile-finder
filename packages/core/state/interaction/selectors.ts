@@ -50,8 +50,6 @@ export const isOnWeb = (state: State) => state.interaction.isOnWeb;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
-export const getProcessedFilesPythonSnippetFromState = (state: State) =>
-    state.interaction.processFilesPythonSnippet;
 export const getRefreshKey = (state: State) => state.interaction.refreshKey;
 export const getUserSelectedApplications = (state: State) =>
     state.interaction.userSelectedApplications;

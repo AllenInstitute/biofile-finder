@@ -30,8 +30,6 @@ import {
     SET_SELECTED_PUBLIC_DATASET,
     SET_PROCESS_FILES_PYTHON_SNIPPET,
     SET_CONVERT_FILES_SNIPPET,
-    SHOW_PROCESS_FILES,
-    SHOW_CONVERT_FILES,
     SetVisibleModalAction,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
@@ -220,21 +218,12 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: ModalType.CopyFileManifest,
         }),
-        [SHOW_PROCESS_FILES]: (state) => ({
-            ...state,
-            visibleModal: ModalType.ProcessFilesCodeSnippet,
-        }),
-
         [SET_PROCESS_FILES_PYTHON_SNIPPET]: (state, action) => ({
             ...state,
             processFilesPythonSnippet: {
                 setup: action.payload?.setup ?? "",
                 code: action.payload?.code ?? "",
             },
-        }),
-        [SHOW_CONVERT_FILES]: (state) => ({
-            ...state,
-            visibleModal: ModalType.ConvertFiles,
         }),
         [SET_CONVERT_FILES_SNIPPET]: (state, action) => ({
             ...state,
