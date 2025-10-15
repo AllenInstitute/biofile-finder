@@ -6,7 +6,7 @@ import "@xyflow/react/dist/style.css";
 import styles from "./NetworkGraph.module.css";
 
 import CustomEdge from "./CustomEdge";
-// import FileNode from './FileNode';
+// import CustomNode from './CustomNode';
 
 interface NetworkGraphProps {
     initialNodes: Node[];
@@ -18,7 +18,7 @@ const edgeTypes = {
 };
 
 const nodeTypes = {
-    // 'file-node': FileNode,
+    // "custom-node": CustomNode,
 };
 
 // Currently arbitrary placeholder values
@@ -68,8 +68,24 @@ export default function NetworkGraph(props: NetworkGraphProps) {
         initialNodes,
         initialEdges
     );
-    const [nodes, _setNodes, onNodesChange] = useNodesState(layoutedNodes);
-    const [edges, _setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
+    const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
+
+    // Watch for changes to the component props
+    React.useEffect(() => {
+        onLayout();
+    }, [initialNodes, initialEdges]);
+
+    // Re-generate the layout of the nodes and edges if they change
+    const onLayout = React.useCallback(() => {
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+            initialNodes,
+            initialEdges
+        );
+
+        setNodes([...layoutedNodes]);
+        setEdges([...layoutedEdges]);
+    }, [initialNodes, initialEdges]);
 
     return (
         <div className={styles.reactFlowContainer}>

@@ -98,10 +98,6 @@ export default function FileDetails(props: Props) {
                 setIsThumbnailLoading(false);
             });
 
-            // Start generating nodes and edges for selected file
-            // To do: disable if no provenance data source
-            dispatch(provenance.actions.constructProvenanceGraph(fileDetails));
-
             // Determine size of Zarr on web.
             if (isOnWeb && isZarr) {
                 if (fileDetails.size && fileDetails.size > 0) {
@@ -193,6 +189,8 @@ export default function FileDetails(props: Props) {
         if (!fileDetails) {
             return;
         }
+        // Start generating nodes and edges for selected file
+        dispatch(provenance.actions.constructProvenanceGraph(fileDetails));
         dispatch(interaction.actions.setVisibleModal(ModalType.Provenance));
     }, [dispatch, fileDetails]);
 
