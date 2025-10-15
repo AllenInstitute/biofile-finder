@@ -39,10 +39,6 @@
   margin-bottom: 8px;
 }
 
-.dest-chip-row { display: flex; align-items: center; gap: 8px; }
-
-.browse-btn { height: 30px; padding: 0 12px; width: 160px; }
-
 .choice-group :global(.ms-ChoiceFieldGroup-flexContainer) {
   display: flex !important;
   flex-direction: column !important;

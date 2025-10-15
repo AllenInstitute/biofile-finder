@@ -85,6 +85,7 @@ selected_files = [
 ${pyList}
 ]
 
+# See bioio-conversion documentation for additional default options.
 ${defaultsBlock}
 
 def main() -> None:
@@ -149,32 +150,6 @@ if __name__ == "__main__":
             <div className={styles.columns}>
                 {/* LEFT COLUMN */}
                 <div className={styles.leftCol}>
-                    {/* <div className={styles.section}>
-                        <div className={styles.label}>Choose destination</div>
-
-                        <div className={styles.destChipRow}>
-                            <span title={opts.destination || "selected folder"}>
-                                {opts.destination || "selected folder"}
-                            </span>
-                            {opts.destination && (
-                                <TertiaryButton
-                                    iconName="Cancel"
-                                    title="Clear"
-                                    aria-label="Clear"
-                                    onClick={() => setOpts((o) => ({ ...o, destination: "" }))}
-                                />
-                            )}
-                        </div>
-
-                        <SecondaryButton
-                            text="BROWSE"
-                            onClick={() => {
-                                //TODO: implement directory selection
-                            }}
-                            className={styles.browseBtn}
-                        />
-                    </div> */}
-
                     <div className={styles.section}>
                         <div className={styles.label}>Scenes</div>
                         <ChoiceGroup
