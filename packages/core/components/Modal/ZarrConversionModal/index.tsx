@@ -30,17 +30,12 @@ export default function ConvertToZarr({ onDismiss }: ModalProps) {
         sceneIndex: "0",
     });
 
-    const detailsRef = React.useRef<Array<{ path: string }>>([]);
-    const optsRef = React.useRef<UIOpts>(opts);
-    React.useEffect(() => {
-        optsRef.current = opts;
-    }, [opts]);
+    // Store fetched file details
+    const [details, setDetails] = React.useState<Array<{ path: string }>>([]);
 
     // Rebuilds the code snippet whenever user’s UI options change.
     const regenerate = React.useCallback(
-        (details: Array<{ path: string }>) => {
-            const ui = optsRef.current;
-
+        (details: Array<{ path: string }>, ui: UIOpts) => {
             const safe = (s: string) =>
                 String(s ?? "")
                     .replace(/\\/g, "\\\\")
@@ -120,29 +115,29 @@ if __name__ == "__main__":
 
     // Fetch details
     React.useEffect(() => {
-        let mounted = true;
+        let cancelled = false;
         (async () => {
             try {
                 const details = await fileSelection.fetchAllDetails();
-                if (!mounted) return;
-                detailsRef.current = details;
-                regenerate(details); // uses latest opts via ref
+                if (!cancelled) {
+                    setDetails(details);
+                }
             } catch (err) {
                 dispatch(setConvertFilesSnippet({ setup: "", code: "", options: {} }));
                 console.error("Failed to generate convert-files snippet:", err);
             }
         })();
         return () => {
-            mounted = false;
+            cancelled = true;
         };
-    }, [dispatch, fileSelection, regenerate]);
+    }, [fileSelection, dispatch]);
 
     // Re-generate when UI options change, without re-fetching details
     React.useEffect(() => {
-        if (detailsRef.current.length) {
-            regenerate(detailsRef.current);
+        if (details.length) {
+            regenerate(details, opts);
         }
-    }, [opts, regenerate]);
+    }, [details, opts, regenerate]);
 
     // ----- BODY -----
     const body = (
