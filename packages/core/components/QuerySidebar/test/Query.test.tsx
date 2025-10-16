@@ -22,7 +22,7 @@ describe("<Query />", () => {
         const { getByTestId } = render(
             <Provider store={store}>
                 <Query
-                    isSelected
+                    isSelected={false}
                     query={{
                         name: "Test Random Query",
                         parts: {
