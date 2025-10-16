@@ -28,7 +28,7 @@ import {
     DataSourcePromptInfo,
     PromptForDataSource,
     SET_SELECTED_PUBLIC_DATASET,
-    SET_PROCESS_FILES_PYTHON_SNIPPET,
+    SET_EXTRACT_METADATA_PYTHON_SNIPPET,
     SET_CONVERT_FILES_SNIPPET,
     SetVisibleModalAction,
 } from "./actions";
@@ -64,7 +64,7 @@ export interface InteractionStateBranch {
     isAicsEmployee?: boolean;
     isOnWeb: boolean;
     platformDependentServices: PlatformDependentServices;
-    processFilesPythonSnippet?: { setup: string; code: string };
+    extractMetadataPythonSnippet?: { setup: string; code: string };
     convertFilesSnippet: {
         setup: string;
         code: string;
@@ -108,7 +108,7 @@ export const initialState: InteractionStateBranch = {
         executionEnvService: new ExecutionEnvServiceNoop(),
         notificationService: new NotificationServiceNoop(),
     },
-    processFilesPythonSnippet: { setup: "", code: "" },
+    extractMetadataPythonSnippet: { setup: "", code: "" },
     convertFilesSnippet: { setup: "", code: "", options: {} },
     status: [],
 };
@@ -218,9 +218,9 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             visibleModal: ModalType.CopyFileManifest,
         }),
-        [SET_PROCESS_FILES_PYTHON_SNIPPET]: (state, action) => ({
+        [SET_EXTRACT_METADATA_PYTHON_SNIPPET]: (state, action) => ({
             ...state,
-            processFilesPythonSnippet: {
+            extractMetadataPythonSnippet: {
                 setup: action.payload?.setup ?? "",
                 code: action.payload?.code ?? "",
             },

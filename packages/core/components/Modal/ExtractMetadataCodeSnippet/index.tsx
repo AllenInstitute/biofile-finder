@@ -4,14 +4,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { selection, interaction } from "../../../state";
-import { setProcessFilesPythonSnippet } from "../../../state/interaction/actions";
+import { setExtractMetadataPythonSnippet } from "../../../state/interaction/actions";
 import CodeSnippet from "../../CodeSnippet";
 import { detectBioioPlugins } from "../../CodeSnippet/CodeUtils";
 
-export default function ProcessFiles({ onDismiss }: ModalProps) {
+export default function ExtractMetadata({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
     const fileSelection = useSelector(selection.selectors.getFileSelection);
-    const snippet = useSelector(interaction.selectors.getProcessFilesPythonSnippet);
+    const snippet = useSelector(interaction.selectors.getExtractMetadataPythonSnippet);
 
     React.useEffect(() => {
         let mounted = true;
@@ -68,9 +68,9 @@ out_path = "selected_files_metadata.csv"
 df.to_csv(out_path, index=False)
 print(f"Wrote {out_path} with {len(df)} rows and {len(df.columns)} columns.")`;
 
-                dispatch(setProcessFilesPythonSnippet({ setup, code }));
+                dispatch(setExtractMetadataPythonSnippet({ setup, code }));
             } catch (err) {
-                dispatch(setProcessFilesPythonSnippet({}));
+                dispatch(setExtractMetadataPythonSnippet({}));
                 console.error("Failed to generate process-files snippet:", err);
             }
         })();

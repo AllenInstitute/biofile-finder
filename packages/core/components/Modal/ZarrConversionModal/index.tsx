@@ -1,6 +1,6 @@
+import { TextField } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { TextField } from "@fluentui/react";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";

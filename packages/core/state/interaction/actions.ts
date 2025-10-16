@@ -817,25 +817,25 @@ export function copyFiles(fileDetails: FileDetail[]): CopyFilesAction {
 }
 
 /**
- * SET_PROCESS_FILES_PYTHON_SNIPPET
+ * SET_EXTRACT_METADATA_PYTHON_SNIPPET
  *
- * Stores the Python snippet for the Process Files modal.
+ * Stores the Python snippet for the Extract Metadata modal.
  */
-export const SET_PROCESS_FILES_PYTHON_SNIPPET = makeConstant(
+export const SET_EXTRACT_METADATA_PYTHON_SNIPPET = makeConstant(
     STATE_BRANCH_NAME,
-    "set-python-snippet"
+    "set-extract-metadata-snippet"
 );
 
-export interface SetProcessFilesPythonSnippetAction {
+export interface SetExtractMetadataPythonSnippetAction {
     type: string;
     payload?: { setup?: string; code?: string };
 }
 
-export function setProcessFilesPythonSnippet(payload?: {
+export function setExtractMetadataPythonSnippet(payload?: {
     setup?: string;
     code?: string;
-}): SetProcessFilesPythonSnippetAction {
-    return { type: SET_PROCESS_FILES_PYTHON_SNIPPET, payload };
+}): SetExtractMetadataPythonSnippetAction {
+    return { type: SET_EXTRACT_METADATA_PYTHON_SNIPPET, payload };
 }
 
 /**

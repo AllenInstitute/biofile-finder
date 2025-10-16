@@ -17,14 +17,14 @@ export default function useProcessMenuItems(
 
     return [
         {
-            key: "process-files-python",
+            key: "extract-metadata-python",
             text: "Extract standard metadata (BioIO)",
             title:
                 "Create a Python snippet that reads files with BioIO and exports standard metadata",
             onClick() {
                 dispatch(
                     interaction.actions.setVisibleModal(
-                        ModalType.ProcessFilesCodeSnippet,
+                        ModalType.ExtractMetadataCodeSnippet,
                         folderFilters
                     )
                 );

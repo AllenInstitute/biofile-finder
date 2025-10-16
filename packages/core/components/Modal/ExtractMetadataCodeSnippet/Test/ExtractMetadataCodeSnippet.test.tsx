@@ -8,7 +8,7 @@ import { createSandbox } from "sinon";
 import Modal, { ModalType } from "../..";
 import { initialState, interaction, selection } from "../../../../state";
 
-describe("<ProcessFiles />", () => {
+describe("<ExtractMetadata />", () => {
     const sandbox = createSandbox();
 
     afterEach(() => {
@@ -17,7 +17,7 @@ describe("<ProcessFiles />", () => {
 
     const baseVisibleState = mergeState(initialState, {
         interaction: {
-            visibleModal: ModalType.ProcessFilesCodeSnippet,
+            visibleModal: ModalType.ExtractMetadataCodeSnippet,
         },
         selection: {
             dataSources: [{ uri: "fake-uri.test" }],
@@ -43,14 +43,14 @@ describe("<ProcessFiles />", () => {
 
         expect(
             actions.includesMatch({
-                type: interaction.actions.SET_PROCESS_FILES_PYTHON_SNIPPET,
+                type: interaction.actions.SET_EXTRACT_METADATA_PYTHON_SNIPPET,
             }),
-            "expected SET_PROCESS_FILES_PYTHON_SNIPPET to be dispatched"
+            "expected SET_EXTRACT_METADATA_PYTHON_SNIPPET to be dispatched"
         ).to.be.true;
 
         const lastSnippet = [...actions.list]
             .reverse()
-            .find((a) => a.type === interaction.actions.SET_PROCESS_FILES_PYTHON_SNIPPET);
+            .find((a) => a.type === interaction.actions.SET_EXTRACT_METADATA_PYTHON_SNIPPET);
 
         expect(lastSnippet, "expected to capture the snippet action payload").to.exist;
 
@@ -82,13 +82,13 @@ describe("<ProcessFiles />", () => {
 
         expect(
             actions.includesMatch({
-                type: interaction.actions.SET_PROCESS_FILES_PYTHON_SNIPPET,
+                type: interaction.actions.SET_EXTRACT_METADATA_PYTHON_SNIPPET,
             })
         ).to.be.true;
 
         const lastSnippet = [...actions.list]
             .reverse()
-            .find((a) => a.type === interaction.actions.SET_PROCESS_FILES_PYTHON_SNIPPET);
+            .find((a) => a.type === interaction.actions.SET_EXTRACT_METADATA_PYTHON_SNIPPET);
 
         expect(lastSnippet, "expected snippet dispatch with payload").to.exist;
 
@@ -120,14 +120,14 @@ describe("<ProcessFiles />", () => {
 
         expect(
             actions.includesMatch({
-                type: interaction.actions.SET_PROCESS_FILES_PYTHON_SNIPPET,
+                type: interaction.actions.SET_EXTRACT_METADATA_PYTHON_SNIPPET,
             }),
-            "expected SET_PROCESS_FILES_PYTHON_SNIPPET on error"
+            "expected SET_EXTRACT_METADATA_PYTHON_SNIPPET on error"
         ).to.be.true;
 
         const last = [...actions.list]
             .reverse()
-            .find((a) => a.type === interaction.actions.SET_PROCESS_FILES_PYTHON_SNIPPET);
+            .find((a) => a.type === interaction.actions.SET_EXTRACT_METADATA_PYTHON_SNIPPET);
 
         expect(last).to.exist;
 

@@ -9,7 +9,7 @@ import EditMetadata from "./EditMetadata";
 import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
 import CopyFileManifest from "./CopyFileManifest";
-import ProcessFilesCodeSnippet from "./ExtractMetadataCodeSnippet";
+import ExtractMetadataCodeSnippet from "./ExtractMetadataCodeSnippet";
 import ConvertFiles from "./ZarrConversionModal";
 
 export interface ModalProps {
@@ -24,7 +24,7 @@ export enum ModalType {
     EditMetadata = 5,
     MetadataManifest = 6,
     SmallScreenWarning = 7,
-    ProcessFilesCodeSnippet = 8,
+    ExtractMetadataCodeSnippet = 8,
     ConvertFiles = 9,
 }
 
@@ -54,8 +54,8 @@ export default function Modal() {
             return <MetadataManifest onDismiss={onDismiss} />;
         case ModalType.SmallScreenWarning:
             return <SmallScreenWarning onDismiss={onDismiss} />;
-        case ModalType.ProcessFilesCodeSnippet:
-            return <ProcessFilesCodeSnippet onDismiss={onDismiss} />;
+        case ModalType.ExtractMetadataCodeSnippet:
+            return <ExtractMetadataCodeSnippet onDismiss={onDismiss} />;
         case ModalType.ConvertFiles:
             return <ConvertFiles onDismiss={onDismiss} />;
         default:
