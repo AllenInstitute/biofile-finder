@@ -93,7 +93,7 @@ export default function FileDetails(props: Props) {
         setCalculatedSize(null);
         if (fileDetails) {
             setIsThumbnailLoading(true);
-            fileDetails.getPathToThumbnail().then((path) => {
+            fileDetails.getPathToThumbnail(300).then((path) => {
                 setThumbnailPath(path);
                 setIsThumbnailLoading(false);
             });
