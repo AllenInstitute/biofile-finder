@@ -8,6 +8,7 @@ import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
 import useFileDetails from "./useFileDetails";
 import { PrimaryButton } from "../Buttons";
+import { ModalType } from "../Modal";
 import Tooltip from "../Tooltip";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
@@ -15,7 +16,7 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import { MAX_DOWNLOAD_SIZE_WEB } from "../../services/FileDownloadService";
-import { interaction } from "../../state";
+import { interaction, provenance } from "../../state";
 
 import styles from "./FileDetails.module.css";
 
@@ -127,7 +128,7 @@ export default function FileDetails(props: Props) {
                 }
             }
         }
-    }, [fileDetails, fileDownloadService, isOnWeb, isZarr]);
+    }, [dispatch, fileDetails, fileDownloadService, isOnWeb, isZarr]);
 
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
     const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
@@ -184,6 +185,15 @@ export default function FileDetails(props: Props) {
         }, 1000); // 1s, in ms (arbitrary)
     }, [dispatch, fileDetails, fileDownloadService.isFileSystemAccessible]);
 
+    const onClickProvenance = React.useCallback(async () => {
+        if (!fileDetails) {
+            return;
+        }
+        // Start generating nodes and edges for selected file
+        dispatch(provenance.actions.constructProvenanceGraph(fileDetails));
+        dispatch(interaction.actions.setVisibleModal(ModalType.Provenance));
+    }, [dispatch, fileDetails]);
+
     return (
         <div
             className={classNames(styles.root, styles.expandableTransition, props.className)}
@@ -235,6 +245,15 @@ export default function FileDetails(props: Props) {
                                         text="Open file"
                                         title="Open file by selected method"
                                         menuItems={openWithMenuItems}
+                                    />
+                                </StackItem>
+                                <StackItem>
+                                    <PrimaryButton
+                                        className={styles.primaryButton}
+                                        text="Provenance"
+                                        title="Temporary button to display provenance graph"
+                                        onClick={onClickProvenance}
+                                        // to do: disable if no provenance source
                                     />
                                 </StackItem>
                             </Stack>

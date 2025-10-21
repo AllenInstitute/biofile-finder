@@ -9,6 +9,7 @@ import EditMetadata from "./EditMetadata";
 import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
 import CopyFileManifest from "./CopyFileManifest";
+import Provenance from "./Provenance";
 
 export interface ModalProps {
     onDismiss: () => void;
@@ -21,7 +22,8 @@ export enum ModalType {
     DataSource = 4,
     EditMetadata = 5,
     MetadataManifest = 6,
-    SmallScreenWarning = 7,
+    Provenance = 7,
+    SmallScreenWarning = 8,
 }
 
 /**
@@ -48,6 +50,8 @@ export default function Modal() {
             return <EditMetadata onDismiss={onDismiss} />;
         case ModalType.MetadataManifest:
             return <MetadataManifest onDismiss={onDismiss} />;
+        case ModalType.Provenance:
+            return <Provenance onDismiss={onDismiss} />;
         case ModalType.SmallScreenWarning:
             return <SmallScreenWarning onDismiss={onDismiss} />;
         default:

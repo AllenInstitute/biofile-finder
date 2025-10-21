@@ -24,6 +24,7 @@ export const getRequiresDataSourceReload = (state: State) =>
     state.selection.requiresDataSourceReload;
 export const getSelectedDataSources = (state: State) => state.selection.dataSources;
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
+export const getSelectedSourceProvenance = (state: State) => state.selection.sourceProvenance;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
 export const getShouldShowNullGroups = (state: State) => state.selection.shouldShowNullGroups;
@@ -87,6 +88,7 @@ export const getCurrentQueryParts = createSelector(
         getSortColumn,
         getSelectedDataSources,
         getSelectedSourceMetadata,
+        getSelectedSourceProvenance,
     ],
     (
         hierarchy,
@@ -97,7 +99,8 @@ export const getCurrentQueryParts = createSelector(
         showNoValueGroups,
         sortColumn,
         sources,
-        sourceMetadata
+        sourceMetadata,
+        sourceProvenance
     ): SearchParamsComponents => ({
         columns,
         hierarchy,
@@ -108,6 +111,7 @@ export const getCurrentQueryParts = createSelector(
         sortColumn,
         sources,
         sourceMetadata,
+        sourceProvenance,
     })
 );
 
