@@ -815,3 +815,52 @@ export function copyFiles(fileDetails: FileDetail[]): CopyFilesAction {
         },
     };
 }
+
+/**
+ * SET_EXTRACT_METADATA_PYTHON_SNIPPET
+ *
+ * Stores the Python snippet for the Extract Metadata modal.
+ */
+export const SET_EXTRACT_METADATA_PYTHON_SNIPPET = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-extract-metadata-snippet"
+);
+
+export interface SetExtractMetadataPythonSnippetAction {
+    type: string;
+    payload?: { setup?: string; code?: string };
+}
+
+export function setExtractMetadataPythonSnippet(payload?: {
+    setup?: string;
+    code?: string;
+}): SetExtractMetadataPythonSnippetAction {
+    return { type: SET_EXTRACT_METADATA_PYTHON_SNIPPET, payload };
+}
+
+/**
+ * SET_CONVERT_FILES_SNIPPET
+ *
+ * Stores the Python snippet and any user-supplied options for the Convert Files modal.
+ */
+export const SET_CONVERT_FILES_SNIPPET = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-convert-files-snippet"
+);
+
+export interface SetConvertFilesSnippetAction {
+    type: string;
+    payload?: {
+        setup?: string;
+        code?: string;
+        options?: Record<string, string>;
+    };
+}
+
+export function setConvertFilesSnippet(payload?: {
+    setup?: string;
+    code?: string;
+    options?: Record<string, string>;
+}): SetConvertFilesSnippetAction {
+    return { type: SET_CONVERT_FILES_SNIPPET, payload };
+}

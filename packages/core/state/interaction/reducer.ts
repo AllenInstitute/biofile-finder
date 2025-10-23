@@ -28,6 +28,8 @@ import {
     DataSourcePromptInfo,
     PromptForDataSource,
     SET_SELECTED_PUBLIC_DATASET,
+    SET_EXTRACT_METADATA_PYTHON_SNIPPET,
+    SET_CONVERT_FILES_SNIPPET,
     SetVisibleModalAction,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
@@ -62,6 +64,12 @@ export interface InteractionStateBranch {
     isAicsEmployee?: boolean;
     isOnWeb: boolean;
     platformDependentServices: PlatformDependentServices;
+    extractMetadataPythonSnippet?: { setup: string; code: string };
+    convertFilesSnippet: {
+        setup: string;
+        code: string;
+        options?: Record<string, string>;
+    };
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
@@ -100,6 +108,8 @@ export const initialState: InteractionStateBranch = {
         executionEnvService: new ExecutionEnvServiceNoop(),
         notificationService: new NotificationServiceNoop(),
     },
+    extractMetadataPythonSnippet: { setup: "", code: "" },
+    convertFilesSnippet: { setup: "", code: "", options: {} },
     status: [],
 };
 
@@ -207,6 +217,24 @@ export default makeReducer<InteractionStateBranch>(
         [SHOW_COPY_FILE_MANIFEST]: (state) => ({
             ...state,
             visibleModal: ModalType.CopyFileManifest,
+        }),
+        [SET_EXTRACT_METADATA_PYTHON_SNIPPET]: (state, action) => ({
+            ...state,
+            extractMetadataPythonSnippet: {
+                setup: action.payload?.setup ?? "",
+                code: action.payload?.code ?? "",
+            },
+        }),
+        [SET_CONVERT_FILES_SNIPPET]: (state, action) => ({
+            ...state,
+            convertFilesSnippet: {
+                setup: action.payload?.setup ?? state.convertFilesSnippet?.setup ?? "",
+                code: action.payload?.code ?? state.convertFilesSnippet?.code ?? "",
+                options: {
+                    ...(state.convertFilesSnippet?.options || {}),
+                    ...(action.payload?.options || {}),
+                },
+            },
         }),
     },
     initialState
