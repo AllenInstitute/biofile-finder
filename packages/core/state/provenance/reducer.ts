@@ -2,6 +2,7 @@ import { makeReducer } from "@aics/redux-utils";
 import { Edge, Node } from "@xyflow/react";
 
 import { SET_GRAPH_EDGES, SET_GRAPH_NODES } from "./actions";
+import FileDetail from "../../entity/FileDetail";
 import { FmsFileAnnotation } from "../../services/FileService";
 
 export interface ProvenanceStateBranch {
@@ -25,6 +26,7 @@ export interface ProvenanceNode extends Node {
         label?: string;
         annotation?: FmsFileAnnotation;
         isCurrentFile?: boolean;
+        fileDetails?: FileDetail;
     };
 }
 

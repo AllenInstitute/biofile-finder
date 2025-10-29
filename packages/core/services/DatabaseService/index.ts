@@ -500,14 +500,14 @@ export default abstract class DatabaseService {
             // Get list of edge definitions for provenance schema
             const rows = await this.query(sql);
             rows.forEach((row) => {
-                const parent = row["Subject"];
-                const child = row["Object"];
+                const parent = row["Parent"];
+                const child = row["Child"];
                 // fully defined
-                if (parent && child && row["Predicate"]) {
+                if (parent && child && row["Relationship"]) {
                     const newEdge = {
                         parent,
                         child,
-                        label: row["Predicate"],
+                        label: row["Relationship"],
                     };
                     edges.push(newEdge);
                 }

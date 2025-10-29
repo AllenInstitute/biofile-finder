@@ -1,0 +1,62 @@
+.file-node {
+  width: 200px;
+  border: 1px solid var(--aqua);
+  padding: 10px;
+  border-radius: 5px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  background: var(--info-status-background-color);
+  display: flex;
+}
+
+.file-node > a {
+  color: var(--bright-aqua);
+  font-size: var(--s-paragraph-size)
+}
+
+.file-node > a:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.file-node-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important; /* number of lines to show */
+          line-clamp: 3; 
+  -webkit-box-orient: vertical !important;
+  word-wrap: break-word !important;
+}
+
+.current-file {
+  background: var(--aqua);
+}
+
+.current-file > a {
+  color: var(--white);
+}
+
+.menu-button {
+  top: -10px;
+  background: none;
+  position: relative;
+  padding-right: 0;
+}
+
+.menu-button i {
+  color: var(--aqua);
+}
+
+.menu-button:hover {
+  background: none !important;
+  background-color: unset !important;
+}
+
+.menu-button:hover i {
+  color: var(--bright-aqua);
+}
+
+.subheader {
+  font-weight: 600;
+}

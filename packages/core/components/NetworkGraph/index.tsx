@@ -1,24 +1,25 @@
 import React from "react";
-import { ReactFlow, useNodesState, useEdgesState, Node, Edge } from "@xyflow/react";
+import { ReactFlow, useNodesState, useEdgesState, Node, Edge, EdgeTypes } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";
 
 import "@xyflow/react/dist/style.css";
 import styles from "./NetworkGraph.module.css";
 
 import CustomEdge from "./CustomEdge";
-// import CustomNode from './CustomNode';
+import FileNode from "./FileNode";
+import { ProvenanceNode } from "../../state/provenance/reducer";
 
 interface NetworkGraphProps {
-    initialNodes: Node[];
+    initialNodes: ProvenanceNode[];
     initialEdges: Edge[];
 }
 
-const edgeTypes = {
+const edgeTypes: EdgeTypes = {
     "custom-edge": CustomEdge,
 };
 
 const nodeTypes = {
-    // "custom-node": CustomNode,
+    "file-node": FileNode,
 };
 
 // Currently arbitrary placeholder values
@@ -30,9 +31,11 @@ export default function NetworkGraph(props: NetworkGraphProps) {
 
     const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
-    const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = "TB") => {
-        const isHorizontal = direction === "LR";
-        dagreGraph.setGraph({ rankdir: direction });
+    const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
+        // Graph customization
+        // - direction: top to bottom (as opposed to left/right)
+        // - (node/rank)sep: distance between individual nodes and between each generation of nodes
+        dagreGraph.setGraph({ rankdir: "TB", nodesep: NODE_WIDTH, ranksep: NODE_WIDTH });
 
         nodes.forEach((node) => {
             dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
@@ -48,8 +51,8 @@ export default function NetworkGraph(props: NetworkGraphProps) {
             const nodeWithPosition = dagreGraph.node(node.id);
             const newNode = {
                 ...node,
-                targetPosition: isHorizontal ? "left" : "top",
-                sourcePosition: isHorizontal ? "right" : "bottom",
+                targetPosition: "top",
+                sourcePosition: "bottom",
                 // Shift the dagre node position (anchor=center center) to the top left
                 // so it matches the React Flow node anchor point (top left).
                 position: {
@@ -71,12 +74,8 @@ export default function NetworkGraph(props: NetworkGraphProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
 
-    // Watch for changes to the component props
-    React.useEffect(() => {
-        onLayout();
-    }, [initialNodes, initialEdges]);
-
     // Re-generate the layout of the nodes and edges if they change
+    // To do: This and below is an improper use of callback logic w/ dependencies
     const onLayout = React.useCallback(() => {
         const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
             initialNodes,
@@ -85,6 +84,11 @@ export default function NetworkGraph(props: NetworkGraphProps) {
 
         setNodes([...layoutedNodes]);
         setEdges([...layoutedEdges]);
+    }, [initialNodes, initialEdges, setNodes, setEdges]);
+
+    // Watch for changes to the component props and re-render graph
+    React.useEffect(() => {
+        onLayout();
     }, [initialNodes, initialEdges]);
 
     return (

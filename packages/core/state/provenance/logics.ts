@@ -23,7 +23,7 @@ const constructProvenanceLogic = createLogic({
         const { getState } = deps;
         const { payload: fileDetails } = deps.action as ConstructProvenanceGraph;
         const fileService = interaction.selectors.getFileService(getState());
-        const fileID = fileDetails.uid;
+        const fileID = fileDetails.id;
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
@@ -127,7 +127,8 @@ function constructGraphForFile(
     edgeDefs: EdgeDefinition[],
     isSelectedFile?: boolean
 ) {
-    const fileID = fileDetails.uid;
+    // To do: make sure this works with uid
+    const fileID = fileDetails.id;
     const annotationDetails = fileDetails.details.annotations;
     const edges: Edge[] = [];
     const nodeMap = new Map<string, ProvenanceNode>();
@@ -137,8 +138,9 @@ function constructGraphForFile(
     // Add a node for the specific file
     nodeMap.set(`File ID-${fileID}`, {
         id: `File ID-${fileID}`,
-        data: { label: `${fileDetails.name}`, isCurrentFile: !!isSelectedFile },
+        data: { label: `${fileDetails.name}`, isCurrentFile: !!isSelectedFile, fileDetails },
         position: { x: 0, y: 0 },
+        type: "file-node",
     });
 
     edgeDefs.forEach((edge) => {
@@ -161,7 +163,7 @@ function constructGraphForFile(
             return entityId;
         });
         // If we weren't able to generate an ID, the annotation didn't exist in the file
-        // To do: Warn user that couldn't generate these nodes/edges?
+        // To do: Create a blank node so that the graph is still connected
         if (!parentId || !childId) return;
 
         const id = `e${parentId}-${childId}-${label}`;
@@ -176,7 +178,8 @@ function constructGraphForFile(
                 source: `${parentId}`,
                 target: `${childId}`,
                 type: "custom-edge",
-            } as Edge);
+            });
+
             if (isSelectedFile) {
                 // Add to adjacency map to be able to traverse graph via parents
                 // To do: Find another way to track this?
