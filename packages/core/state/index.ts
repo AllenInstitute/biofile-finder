@@ -5,6 +5,7 @@ import { createLogicMiddleware } from "redux-logic";
 
 import interaction, { InteractionStateBranch } from "./interaction";
 import metadata, { MetadataStateBranch } from "./metadata";
+import provenance, { ProvenanceStateBranch } from "./provenance";
 import selection, { SelectionStateBranch } from "./selection";
 import { PlatformDependentServices } from "../services";
 import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
@@ -13,18 +14,20 @@ import FileFilter from "../entity/FileFilter";
 import FileFolder from "../entity/FileFolder";
 import { Query } from "./selection/actions";
 
-export { interaction, metadata, selection };
+export { interaction, metadata, provenance, selection };
 
 // -- STATE
 export interface State {
     interaction: InteractionStateBranch;
     metadata: MetadataStateBranch;
+    provenance: ProvenanceStateBranch;
     selection: SelectionStateBranch;
 }
 
 export const initialState: State = Object.freeze({
     interaction: interaction.initialState,
     metadata: metadata.initialState,
+    provenance: provenance.initialState,
     selection: selection.initialState,
 });
 
@@ -32,6 +35,7 @@ export const initialState: State = Object.freeze({
 export const reducer = combineReducers({
     interaction: interaction.reducer,
     metadata: metadata.reducer,
+    provenance: provenance.reducer,
     selection: selection.reducer,
 });
 
@@ -48,7 +52,12 @@ export const reduxLogicDependencies: Partial<ReduxLogicDeps> = {
     httpClient: axios,
 };
 
-export const reduxLogics = [...metadata.logics, ...selection.logics, ...interaction.logics];
+export const reduxLogics = [
+    ...metadata.logics,
+    ...selection.logics,
+    ...interaction.logics,
+    ...provenance.logics,
+];
 
 const logicMiddleware = createLogicMiddleware(reduxLogics);
 logicMiddleware.addDeps(reduxLogicDependencies);
