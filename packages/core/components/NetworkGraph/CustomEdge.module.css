@@ -5,3 +5,14 @@
   font-size: var(--xs-paragraph-size);
   font-weight: 400;
 }
+
+.custom-edge a {
+  color: var(--aqua);
+  pointer-events: all;
+}
+
+.custom-edge a:hover {
+  color: var(--bright-aqua);
+  pointer-events: all;
+  text-decoration: underline;
+}

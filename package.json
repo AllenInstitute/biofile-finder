@@ -84,6 +84,7 @@
     "jszip": "^3.10.1",
     "lodash": "4.17.x",
     "lru-cache": "5.1.x",
+    "markdown-to-jsx": "^8.0.0",
     "normalize.css": "8.0.x",
     "ome-zarr.js": "^0.0.15",
     "react": "17.x",

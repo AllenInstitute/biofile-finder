@@ -1,4 +1,3 @@
-import React, { FC } from "react";
 import {
     getBezierPath,
     EdgeLabelRenderer,
@@ -7,6 +6,8 @@ import {
     Edge,
     MarkerType,
 } from "@xyflow/react";
+import Markdown from "markdown-to-jsx";
+import React, { FC } from "react";
 
 import styles from "./CustomEdge.module.css";
 
@@ -51,7 +52,23 @@ const CustomEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
                     }}
                     className={`edge-label-renderer__custom-edge nodrag nopan ${styles.customEdge}`}
                 >
-                    <i>{data?.label}</i>
+                    {/* Safely render markdown using external library */}
+                    <i>
+                        <Markdown
+                            options={{
+                                overrides: {
+                                    a: {
+                                        props: {
+                                            target: "_blank",
+                                            rel: "noopener noreferrer",
+                                        },
+                                    },
+                                },
+                            }}
+                        >
+                            {data?.label}
+                        </Markdown>
+                    </i>
                 </div>
             </EdgeLabelRenderer>
         </>
