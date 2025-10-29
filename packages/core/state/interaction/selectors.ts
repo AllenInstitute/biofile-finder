@@ -117,6 +117,11 @@ export const getAllDataSources = createSelector(
             : dataSources
 );
 
+export const getExtractMetadataPythonSnippet = (state: State) =>
+    state.interaction.extractMetadataPythonSnippet;
+
+export const getConvertFilesSnippet = (state: State) => state.interaction.convertFilesSnippet;
+
 export const getPythonSnippet = createSelector(
     [getPythonConversion],
     (pythonQuery): PythonicDataAccessSnippet => {
