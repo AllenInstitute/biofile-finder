@@ -136,7 +136,10 @@ export default class FileDetail {
         // staging.files.allencell.org/130/b23/bfe/117/2a4/71b/746/002/064/db4/1a/danny_int_test_4.txt
         if (
             typeof path === "string" &&
-            path.startsWith(AICS_FMS_S3_BUCKETS[this.env]) &&
+            // Loosen restriction on matching the current environment
+            [this.env, "STAGING", "PRODUCTION"].some((env) => {
+                return path.startsWith(AICS_FMS_S3_BUCKETS[env as Environment]);
+            }) &&
             AICS_FMS_S3_BUCKETS[this.env]
         ) {
             return FileDetail.convertAicsS3PathToHttpUrl(path) as string;
