@@ -12,6 +12,8 @@ import styles from "./useOpenWithMenuItems.module.css";
 import useOpenInCfe from "./useOpenInCfe";
 import useRemoteFileUpload from "../useRemoteFileUpload";
 
+const ONE_MEGABYTE = 1024 * 1024;
+
 enum AppKeys {
     AGAVE = "agave",
     BROWSER = "browser",
@@ -203,7 +205,11 @@ const APPS = (
     } as IContextualMenuItem,
 });
 
-function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenuItem[] {
+function getSupportedApps(
+    apps: Apps,
+    isSmallFile: boolean,
+    fileDetails?: FileDetail
+): IContextualMenuItem[] {
     if (!fileDetails) {
         return [];
     }
@@ -234,7 +240,7 @@ function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenu
             return [apps.neuroglancer];
         case "tif":
         case "tiff":
-            return [apps.agave, apps.vole];
+            return isSmallFile ? [apps.agave, apps.vole] : [apps.agave];
         case "zarr":
         case "": // No extension
             return isLikelyLocalFile
@@ -262,11 +268,16 @@ function getFileExtension(fileDetails: FileDetail): string {
 }
 
 export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
+    const path = fileDetails?.path;
+    const size = fileDetails?.size;
+
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
-    const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
+    const { fileDownloadService, executionEnvService } = useSelector(
+        interaction.selectors.getPlatformDependentServices
+    );
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
@@ -278,6 +289,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         () => Array.from(Object.keys(annotationNameToAnnotationMap)).sort(),
         [annotationNameToAnnotationMap]
     );
+    const [isSmallFile, setIsSmallFile] = React.useState(false);
 
     const remoteServerConnection = useRemoteFileUpload();
     const openInCfe = useOpenInCfe(
@@ -354,7 +366,30 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
     const apps = APPS(fileDetails, { openInCfe });
-    const supportedApps = [...getSupportedApps(apps, fileDetails), ...userApps];
+
+    // Determine is the file is small or not asynchronously
+    React.useEffect(() => {
+        async function determineFileSize() {
+            if (path) {
+                let fileSize = size;
+                if (!fileSize) {
+                    try {
+                        fileSize = await fileDownloadService.getHttpObjectSize(path);
+                    } catch (_err) {
+                        console.debug(
+                            `Failed to get size of ${path}. Unable to determine if Vol-E is suitable viewer.`
+                        );
+                    }
+                }
+
+                // Consider a "small" file to be <= 100Mb
+                setIsSmallFile(!!fileSize && fileSize <= 100 * ONE_MEGABYTE);
+            }
+        }
+        determineFileSize();
+    }, [path, size, fileDownloadService, setIsSmallFile]);
+
+    const supportedApps = [...getSupportedApps(apps, isSmallFile, fileDetails), ...userApps];
     // Grab every other known app
     const unsupportedApps = Object.values(apps)
         .filter((app) => supportedApps.every((item) => item.key !== app.key))
