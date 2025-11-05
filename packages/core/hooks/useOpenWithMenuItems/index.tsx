@@ -233,7 +233,7 @@ function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenu
         case "dvi":
         case "tif":
         case "tiff":
-            return [apps.agave, apps.cfe];
+            return [apps.agave, apps.vole, apps.cfe];
         case "zarr":
         case "": // No extension
             return isLikelyLocalFile
