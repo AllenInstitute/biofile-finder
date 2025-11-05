@@ -284,8 +284,7 @@ const downloadFilesLogic = createLogic({
                 } else if (file.size === 0 && isStandardS3Url) {
                     // Handle individual S3 files
                     try {
-                        const s3HeadResponse = await fileDownloadService.headS3Object(file.path);
-                        file.size = s3HeadResponse.size;
+                        file.size = await fileDownloadService.getHttpObjectSize(file.path);
                     } catch (err) {
                         console.error(`Failed to fetch file size for ${file.name}: ${err}`);
                     }
