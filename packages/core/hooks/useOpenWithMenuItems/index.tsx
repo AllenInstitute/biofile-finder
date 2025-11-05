@@ -231,9 +231,10 @@ function getSupportedApps(apps: Apps, fileDetails?: FileDetail): IContextualMenu
         case "dcm":
             return [apps.volview];
         case "dvi":
+            return [apps.neuroglancer];
         case "tif":
         case "tiff":
-            return [apps.agave, apps.vole, apps.cfe];
+            return [apps.agave, apps.vole];
         case "zarr":
         case "": // No extension
             return isLikelyLocalFile
