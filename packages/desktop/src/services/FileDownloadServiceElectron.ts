@@ -111,6 +111,18 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         } else if (typeof path === "string" && !destination) {
             const dataAsBlob = new Blob([path], { type: "application/json" });
             downloadUrl = URL.createObjectURL(dataAsBlob);
+            // if the string is a url, download directly from that url
+            const isValidURL = (path: string) => {
+                try {
+                    new URL(path);
+                    return true;
+                } catch {
+                    return false;
+                }
+            };
+            if (isValidURL(path)) {
+                downloadUrl = path;
+            }
         } else {
             return this.downloadHttpFile(fileInfo, downloadRequestId, onProgress, destination);
         }
