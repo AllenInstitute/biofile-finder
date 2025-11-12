@@ -18,15 +18,19 @@ export const initialState = {
 export interface EdgeDefinition {
     parent: string;
     child: string;
-    label: string;
+    relationship: string;
+    relationshipType: string;
 }
 
 export interface ProvenanceNode extends Node {
     data: {
-        label?: string;
+        isSelected: boolean;
+
+        // Is present when the Node represents a file
+        file?: FileDetail;
+
+        // Is present when the node represents an annotation
         annotation?: FmsFileAnnotation;
-        isCurrentFile?: boolean;
-        fileDetails?: FileDetail;
     };
 }
 

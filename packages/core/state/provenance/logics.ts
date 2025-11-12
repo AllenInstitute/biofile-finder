@@ -11,8 +11,9 @@ import { EdgeDefinition, ProvenanceNode } from "./reducer";
 import { ReduxLogicDeps, selection } from "../";
 import interaction from "../interaction";
 import FileDetail from "../../entity/FileDetail";
-import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
+import FileFilter from "../../entity/FileFilter";
+import { FmsFileAnnotation } from "../../services/FileService";
 
 /**
  * Interceptor responsible for responding to CONSTRUCT_PROVENANCE_GRAPH actions
@@ -20,176 +21,177 @@ import FileSet from "../../entity/FileSet";
  */
 const constructProvenanceLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { getState } = deps;
-        const { payload: fileDetails } = deps.action as ConstructProvenanceGraph;
-        const fileService = interaction.selectors.getFileService(getState());
-        const fileID = fileDetails.id;
+        const { payload: file } = deps.action as ConstructProvenanceGraph;
+
+        const fileService = interaction.selectors.getFileService(deps.getState());
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
         const selectedDataSources = selection.selectors.getSelectedDataSources(deps.getState());
 
-        const edgeDefs = await databaseService.fetchProvenanceDefinitions(
+        const edgeDefinitions = await databaseService.fetchProvenanceDefinitions(
             selectedDataSources.map((source) => source.name)
         );
 
-        // Initialize graph data using selected file
-        const { nodeMap, edges, parentMap } = constructGraphForFile(fileDetails, edgeDefs, true);
-
-        // To do: Make this smarter & separate into its own function
-        // (or move this whole logic elsewhere?)
-        // Construct parent pathways by working backwards up the graph (DFS)
-        // using parentMap (adjacency map), starting from the selected file node
-        function dfs(start: string, visited = new Set<string>()) {
-            const stack = [];
-            stack.push([start]);
-            visited.add([start].toString());
-            const fullPaths = [];
-            while (stack.length > 0) {
-                const currentPath = stack.pop();
-                if (currentPath) {
-                    // Get the parent of the last node in the path
-                    const parents = parentMap.get(currentPath.slice(-1)[0]);
-                    if (!parents || parents.length === 0) {
-                        // No more parents, this is a root
-                        fullPaths.push(currentPath);
-                    } else {
-                        parents?.forEach((parent) => {
-                            const newPath = [...currentPath, parent];
-                            if (!visited.has(newPath.toString())) {
-                                stack.push(newPath);
-                                visited.add(newPath.toString());
-                            }
-                            // Start a new path working from current node
-                            if (!visited.has([parent].toString())) {
-                                stack.push([parent]);
-                                visited.add([parent].toString());
-                            }
-                        });
-                    }
-                }
+        const fileGetter = async (id: string): Promise<FileDetail> => {
+            const files = await fileService.getFiles({
+                from: 0,
+                limit: 1,
+                fileSet: new FileSet({ fileService, filters: [new FileFilter("File ID", id)] })
+            });
+            if (files.length !== 1) {
+                // TODO: Improve here
+                throw Error("Ugh idk man why not 1");
             }
-            return fullPaths;
-        }
-        // Sort parent pathways by longest first
-        const parentPathways = dfs(`File ID-${fileID}`).sort((a, b) => b.length - a.length);
-        // To do: 0=siblings, 1=cousins, etc... how far back to go?
-        const testPath = parentPathways[2];
-        if (testPath?.length) {
-            // Create fileset with filters that match current file selection
-            const filters: FileFilter[] = [];
-            testPath.forEach((nodeId) => {
-                const annotation = nodeMap.get(nodeId)?.data?.annotation;
-                if (annotation?.name) {
-                    filters.push(new FileFilter(annotation.name, annotation.values));
-                }
-            });
-            const fileSet = new FileSet({
-                fileService,
-                filters,
-            });
-            // Arbitrary limit to select first 5 files
-            const files = await fileSet.fetchFileRange(0, 5);
-
-            // This should maybe happen on demand (e.g., button click) and not on initial graph render?
-            files.forEach((relatedFile) => {
-                const { nodeMap: newNodeMap, edges: newEdges } = constructGraphForFile(
-                    relatedFile,
-                    edgeDefs
-                );
-
-                // Merge maps. To do: Pass the map? Or store it in state? so that we avoid
-                // generating duplicate nodes and don't have to do the merge logic after
-                newNodeMap.forEach((value, key) => {
-                    if (!nodeMap.has(key)) {
-                        nodeMap.set(key, value);
-                    }
-                });
-                newEdges.forEach((newEdge) => {
-                    if (!edges.some((e) => e.id === newEdge.id)) {
-                        edges.push(newEdge);
-                    }
-                });
-            });
+            return files[0];
         }
 
-        dispatch(setGraphEdges(edges));
-        dispatch(setGraphNodes(Array.from(nodeMap.values())));
+        const { nodeIdToNodeMap, edgeIdToEdgeMap } = await addFileToGraph(file, fileGetter, {}, {}, edgeDefinitions, 0, true);
+        console.log("nodeIdToNodeMap", nodeIdToNodeMap)
+        console.log("edgeIdToEdgeMap", edgeIdToEdgeMap)
+
+        dispatch(setGraphEdges(Object.values(edgeIdToEdgeMap)));
+        dispatch(setGraphNodes(Object.values(nodeIdToNodeMap)));
         done();
     },
     type: CONSTRUCT_PROVENANCE_GRAPH,
 });
 
-// To do: Move elsewhere?
-// For a given file, construct nodes and edges based on provenance schema
-function constructGraphForFile(
-    fileDetails: FileDetail,
-    edgeDefs: EdgeDefinition[],
-    isSelectedFile?: boolean
-) {
-    // To do: make sure this works with uid
-    const fileID = fileDetails.id;
-    const annotationDetails = fileDetails.details.annotations;
-    const edges: Edge[] = [];
-    const nodeMap = new Map<string, ProvenanceNode>();
-    // Note: This hopefully shouldn't be necessary in the long term, using temporarily to make traversal easier
-    const parentMap = new Map<string, string[]>();
 
-    // Add a node for the specific file
-    nodeMap.set(`File ID-${fileID}`, {
-        id: `File ID-${fileID}`,
-        data: { label: `${fileDetails.name}`, isCurrentFile: !!isSelectedFile, fileDetails },
-        position: { x: 0, y: 0 },
-        type: "file-node",
-    });
-
-    edgeDefs.forEach((edge) => {
-        const { parent, child, label } = edge;
-        const [parentId, childId] = [parent, child].map((entityName) => {
-            const annotationInFile = annotationDetails?.find((a) => a.name === entityName);
-            if (!annotationInFile) return; // Don't generate node
-            const entityId = `${entityName}-${annotationInFile?.values.join(", ")}`;
-            if (!nodeMap.has(entityId)) {
-                // To do: only generate node if BOTH annotations exist; e.g., outside of .map()
-                nodeMap.set(entityId, {
-                    id: entityId,
-                    data: {
-                        label: `${entityName}: ${annotationInFile?.values.join(", ")}`,
-                        annotation: annotationInFile,
-                    },
-                    position: { x: 0, y: 0 },
-                });
-            }
-            return entityId;
-        });
-        // If we weren't able to generate an ID, the annotation didn't exist in the file
-        // To do: Create a blank node so that the graph is still connected
-        if (!parentId || !childId) return;
-
-        const id = `e${parentId}-${childId}-${label}`;
-        if (edges.some((edge) => edge.id === id)) return; // Edge already exists
-        if (childId && parentId) {
-            edges.push({
-                id,
-                data: {
-                    label: `${label}`,
-                },
-                markerEnd: { type: "arrow" },
-                source: `${parentId}`,
-                target: `${childId}`,
-                type: "custom-edge",
-            });
-
-            if (isSelectedFile) {
-                // Add to adjacency map to be able to traverse graph via parents
-                // To do: Find another way to track this?
-                const currentParents = parentMap.get(childId) || [];
-                parentMap.set(childId, [...currentParents, parentId]);
-            }
-        }
-    });
-
-    return { nodeMap, edges, parentMap };
+/**
+ * TODO
+ * @param file 
+ * @returns 
+ */
+function createFileNode(file: FileDetail, isSelected = false): ProvenanceNode {
+    return {
+        id: file.id, // TODO: use row id..?
+        data: {
+            file,
+            isSelected,
+        },
+        position: { x: 0, y: 0 },  // TODO: What is this for..? isn't this auto-calculated on the fly?
+        type: "file"
+    };
 }
+
+
+/**
+ * TODO
+ * @param annotation 
+ * @returns 
+ */
+function createNonFileNode(annotation: FmsFileAnnotation): ProvenanceNode {
+    return {
+        id: `${annotation.name}: ${annotation.values.join(", ")}`,
+        data: {
+            annotation,
+            isSelected: false,
+        },
+        position: { x: 0, y: 0 },
+        type: "non-file"
+    };
+}
+
+
+
+/**
+ * Recursive function that adds the given file to the node graph
+ * then finds any relevant edges to connect
+ * 
+ * TODO: improve description
+ */
+const addFileToGraph = async (
+    file: FileDetail,
+    fileGetter: (id: string) => Promise<FileDetail>,
+    edgeIdToEdgeMap: { [id: string]: Edge },
+    nodeIdToNodeMap: { [id: string]: ProvenanceNode },
+    edgeDefinitions: EdgeDefinition[],
+    relationshipDepth: number,
+    isSelected = false,
+) => {
+    // Add the node for this file
+    const thisNode = createFileNode(file, isSelected);
+
+    // Base-case: Stop building graph after 3 recursion levels
+    // to avoid getting to large of a graph on first go
+    // or if this graph has already been investigated
+    // TODO: Probably want to have a direction sense here because
+    //       we might want all the way to the primary ancestor
+    //       and then like just the children and no siblings for example
+    if (relationshipDepth > 10 || thisNode.id in nodeIdToNodeMap) {
+        return { edgeIdToEdgeMap, nodeIdToNodeMap };
+    }
+
+    // Add this node to mapping
+    nodeIdToNodeMap[thisNode.id] = thisNode;
+
+    await Promise.all(edgeDefinitions.map(async (edgeDefinition) => {
+        const [parentNode, childNode] = await Promise.all(
+            [edgeDefinition.parent, edgeDefinition.child]
+            .map(async (annotationName) => {
+                // The node might just be the current node!
+                const isNodeThisNode = annotationName === "File ID";
+                if (isNodeThisNode) {
+                    return thisNode;
+                }
+
+                const annotation = file.getAnnotation(annotationName);
+                if (annotation) {
+                    const isNodeAFile = edgeDefinition.relationshipType === "File-File";
+                    if (isNodeAFile) {
+                        const nodeFileId = annotation.values[0] as string; // TODO: Not friendly to arrays :/
+                        console.log("nodeFileId", nodeFileId)
+                        // Avoid re-requesting the file
+                        if (nodeFileId in nodeIdToNodeMap) {
+                            return nodeIdToNodeMap[nodeFileId];
+                        }
+                        const nodeFile = await fileGetter(nodeFileId);
+                        return createFileNode(nodeFile);
+                    } else {
+                        return createNonFileNode(annotation);
+                    }
+                }
+            })
+        );
+
+        console.log("parent", parentNode, edgeDefinition.relationshipType)
+        console.log("child", childNode, edgeDefinition.relationshipType)
+
+        // TODO: Should a node be created even if both don't exist?
+        if (parentNode && childNode) {
+            // Add parent & child nodes to graph
+            await Promise.all([childNode, parentNode].map(async (node) => {
+                const isNodeInMapAlready = node.id in nodeIdToNodeMap;
+                if (!isNodeInMapAlready) {
+                    if (!!node.data.file) {
+                        // get more graph! TODO: Only if parent????
+                        const otherFileGraph = await addFileToGraph(node.data.file, fileGetter, edgeIdToEdgeMap, nodeIdToNodeMap, edgeDefinitions, relationshipDepth + 1);
+                        Object.assign(nodeIdToNodeMap, otherFileGraph.nodeIdToNodeMap);
+                        Object.assign(edgeIdToEdgeMap, otherFileGraph.edgeIdToEdgeMap);
+                    } else {
+                        nodeIdToNodeMap[node.id] = node;
+                    }
+                }
+            }));
+
+            // Add edge to graph
+            const edgeId = `${parentNode.id}-${childNode.id}-${edgeDefinition.relationship}`;
+            edgeIdToEdgeMap[edgeId] = {
+                id: edgeId,
+                data: {
+                    label: edgeDefinition.relationship,
+                },
+                markerEnd: { type: "arrow" }, // TODO: Is this even used?
+                source: parentNode.id,
+                target: childNode.id,
+                type: "custom-edge",  // TODO: What is this?
+            };
+        }
+    }));
+
+    return { nodeIdToNodeMap, edgeIdToEdgeMap };
+}
+
 
 export default [constructProvenanceLogic];

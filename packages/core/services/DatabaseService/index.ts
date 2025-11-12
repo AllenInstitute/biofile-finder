@@ -495,23 +495,18 @@ export default abstract class DatabaseService {
         // To do: situation where this would be true/action to take?
         // const hasEdgeDefinitions = this.dataSourceToProvenanceMap.has(aggregateDataSourceName);
         const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
-        const edges: EdgeDefinition[] = [];
         try {
             // Get list of edge definitions for provenance schema
             const rows = await this.query(sql);
-            rows.forEach((row) => {
-                const parent = row["Parent"];
-                const child = row["Child"];
-                // fully defined
-                if (parent && child && row["Relationship"]) {
-                    const newEdge = {
-                        parent,
-                        child,
-                        label: row["Relationship"],
-                    };
-                    edges.push(newEdge);
-                }
-            });
+            // TODO: Validate this on input - then just rely on typing to assume this is correct
+            // fully defined
+            const edges = rows.map((row) => ({
+                parent: row["Parent"],
+                child: row["Child"],
+                relationship: row["Relationship"],
+                relationshipType: row["Relationship Type"],
+            }));
+            // TODO: uniqWith...? is this used right...?
             this.dataSourceToProvenanceMap.set(aggregateDataSourceName, uniqWith(edges));
         } catch (err) {
             // Source provenance file may not have been supplied
