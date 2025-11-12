@@ -4,12 +4,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { interaction } from "../../state";
 import About from "./About";
 import QueryCodeSnippet from "./QueryCodeSnippet";
+import CopyFileManifest from "./CopyFileManifest";
 import DataSource from "./DataSource";
 import EditMetadata from "./EditMetadata";
-import MetadataManifest from "./MetadataManifest";
-import SmallScreenWarning from "./SmallScreenWarning";
-import CopyFileManifest from "./CopyFileManifest";
 import ExtractMetadataCodeSnippet from "./ExtractMetadataCodeSnippet";
+import MetadataManifest from "./MetadataManifest";
+import Provenance from "./Provenance";
+import SmallScreenWarning from "./SmallScreenWarning";
 import ConvertFiles from "./ZarrConversionModal";
 
 export interface ModalProps {
@@ -26,6 +27,7 @@ export enum ModalType {
     SmallScreenWarning = 7,
     ExtractMetadataCodeSnippet = 8,
     ConvertFiles = 9,
+    Provenance = 10,
 }
 
 /**
@@ -52,6 +54,8 @@ export default function Modal() {
             return <EditMetadata onDismiss={onDismiss} />;
         case ModalType.MetadataManifest:
             return <MetadataManifest onDismiss={onDismiss} />;
+        case ModalType.Provenance:
+            return <Provenance onDismiss={onDismiss} />;
         case ModalType.SmallScreenWarning:
             return <SmallScreenWarning onDismiss={onDismiss} />;
         case ModalType.ExtractMetadataCodeSnippet:
