@@ -65,14 +65,18 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
     const [isLoading, setIsLoading] = React.useState(true);
 
+    // Rough estimate of pixels to render for generating zarr thumbnails
+    // Use a semi consistent value to avoid excessive network calls
+    //     (e.g., should not re-render for every window resize)
+    const targetZarrSize = 500 / fileGridColCount; // 100px for large thumbnails, and 50px for small thumbnails
     React.useEffect(() => {
         if (file) {
-            file.getPathToThumbnail(undefined).then((path) => {
+            file.getPathToThumbnail(targetZarrSize).then((path) => {
                 setThumbnailPath(path);
                 setIsLoading(false);
             });
         }
-    }, [file]);
+    }, [file, targetZarrSize]);
 
     const onClick = (evt: React.MouseEvent) => {
         evt.preventDefault();
