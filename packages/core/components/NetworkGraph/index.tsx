@@ -1,13 +1,15 @@
 import React from "react";
-import { ReactFlow, useNodesState, useEdgesState, Node, Edge, EdgeTypes } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";
-
+import { ReactFlow, useNodesState, useEdgesState, Node, Edge, EdgeTypes } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import styles from "./NetworkGraph.module.css";
 
 import CustomEdge from "./CustomEdge";
 import FileNode from "./FileNode";
+import EntityNode from "./EntityNode";
 import { ProvenanceNode } from "../../state/provenance/reducer";
+
+import styles from "./NetworkGraph.module.css";
+
 
 interface NetworkGraphProps {
     initialNodes: ProvenanceNode[];
@@ -18,8 +20,10 @@ const edgeTypes: EdgeTypes = {
     "custom-edge": CustomEdge,
 };
 
+// TODO: Put this closer to where graph is built and then import from there
 const nodeTypes = {
-    "file-node": FileNode,
+    "file": FileNode,
+    "non-file": EntityNode,
 };
 
 // Currently arbitrary placeholder values

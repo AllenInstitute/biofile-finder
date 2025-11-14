@@ -15,18 +15,26 @@ export const initialState = {
     edges: [],
 };
 
+interface EdgeNode {
+    name: string;
+    type: "entity" | "file";
+}
+
 export interface EdgeDefinition {
-    parent: string;
-    child: string;
-    label: string;
+    parent: EdgeNode;
+    child: EdgeNode;
+    relationship: string;
 }
 
 export interface ProvenanceNode extends Node {
     data: {
-        label?: string;
+        isSelected: boolean;
+
+        // Is present when the Node represents a file
+        file?: FileDetail;
+
+        // Is present when the node represents an annotation
         annotation?: FmsFileAnnotation;
-        isCurrentFile?: boolean;
-        fileDetails?: FileDetail;
     };
 }
 
