@@ -93,6 +93,18 @@ function createNonFileNode(annotation: FmsFileAnnotation): ProvenanceNode {
     };
 }
 
+function createEdge(edgeInfo: { label: string, parentId: string, childId: string }): Edge {
+    const { label, parentId, childId } = edgeInfo;
+    return {
+        id: `${parentId}-${childId}`,
+        data: { label, },
+        markerEnd: { type: "arrow" }, // TODO: Is this even used?
+        source: parentId,
+        target: childId,
+        type: "custom-edge",
+    }
+}
+
 
 
 /**
@@ -107,41 +119,50 @@ const addFileToGraph = async (
     edgeIdToEdgeMap: { [id: string]: Edge },
     nodeIdToNodeMap: { [id: string]: ProvenanceNode },
     edgeDefinitions: EdgeDefinition[],
-    relationshipDepth: number,
+    relationshipDistance: number,
     isSelected = false,
+    maxRelationshipDistance = 10,
 ) => {
     // Add the node for this file
     const thisNode = createFileNode(file, isSelected);
 
-    // Base-case: Stop building graph after 3 recursion levels
+    // Base-case: Stop building graph after X recursion levels
     // to avoid getting to large of a graph on first go
     // or if this graph has already been investigated
     // TODO: Probably want to have a direction sense here because
     //       we might want all the way to the primary ancestor
     //       and then like just the children and no siblings for example
-    if (relationshipDepth > 10 || thisNode.id in nodeIdToNodeMap) {
+    if (relationshipDistance > maxRelationshipDistance || thisNode.id in nodeIdToNodeMap) {
         return { edgeIdToEdgeMap, nodeIdToNodeMap };
     }
 
     // Add this node to mapping
     nodeIdToNodeMap[thisNode.id] = thisNode;
 
+    // TODO: perhaps this should only stop when it hits a file and never
+    // when it is an entity
     await Promise.all(edgeDefinitions.map(async (edgeDefinition) => {
         const [parentNode, childNode] = await Promise.all(
             [edgeDefinition.parent, edgeDefinition.child]
-            .map(async (annotationName) => {
+            .map(async (edgeNode) => {
                 // The node might just be the current node!
-                const isNodeThisNode = annotationName === "File ID";
-                if (isNodeThisNode) {
+                const isEdgeNodeThisNode = edgeNode.name === "File ID"; // TODO: Expand this... should there be type of "ID" or "Self" or smthn..?
+                if (isEdgeNodeThisNode) {
                     return thisNode;
                 }
 
-                const annotation = file.getAnnotation(annotationName);
+                // Annotation may not exist on this file, this could happen
+                // for some files for which there shouldn't be an edge connecting
+                // to this file for that annotation
+                const annotation = file.getAnnotation(edgeNode.name);
                 if (annotation) {
-                    const isNodeAFile = edgeDefinition.relationshipType === "File-File";
+                    // The Node could be a file such as when an annotation points to another
+                    // file via an annotation; an example of this is the "Input File" metadata key
+                    // we have seen users use to note the ID of a file used as input to the segmentation
+                    // model that generated the current node ("thisNode")
+                    const isNodeAFile = edgeNode.type === "file";
                     if (isNodeAFile) {
                         const nodeFileId = annotation.values[0] as string; // TODO: Not friendly to arrays :/
-                        console.log("nodeFileId", nodeFileId)
                         // Avoid re-requesting the file
                         if (nodeFileId in nodeIdToNodeMap) {
                             return nodeIdToNodeMap[nodeFileId];
@@ -155,18 +176,17 @@ const addFileToGraph = async (
             })
         );
 
-        console.log("parent", parentNode, edgeDefinition.relationshipType)
-        console.log("child", childNode, edgeDefinition.relationshipType)
-
-        // TODO: Should a node be created even if both don't exist?
+        // Only generate the edge if the parent and child node both exist
+        // (otherwise what is there even to connect)
         if (parentNode && childNode) {
             // Add parent & child nodes to graph
             await Promise.all([childNode, parentNode].map(async (node) => {
                 const isNodeInMapAlready = node.id in nodeIdToNodeMap;
                 if (!isNodeInMapAlready) {
                     if (!!node.data.file) {
+                        // TODO: wait to grab the actual file until here
                         // get more graph! TODO: Only if parent????
-                        const otherFileGraph = await addFileToGraph(node.data.file, fileGetter, edgeIdToEdgeMap, nodeIdToNodeMap, edgeDefinitions, relationshipDepth + 1);
+                        const otherFileGraph = await addFileToGraph(node.data.file, fileGetter, edgeIdToEdgeMap, nodeIdToNodeMap, edgeDefinitions, relationshipDistance + 1);
                         Object.assign(nodeIdToNodeMap, otherFileGraph.nodeIdToNodeMap);
                         Object.assign(edgeIdToEdgeMap, otherFileGraph.edgeIdToEdgeMap);
                     } else {
@@ -176,17 +196,12 @@ const addFileToGraph = async (
             }));
 
             // Add edge to graph
-            const edgeId = `${parentNode.id}-${childNode.id}-${edgeDefinition.relationship}`;
-            edgeIdToEdgeMap[edgeId] = {
-                id: edgeId,
-                data: {
-                    label: edgeDefinition.relationship,
-                },
-                markerEnd: { type: "arrow" }, // TODO: Is this even used?
-                source: parentNode.id,
-                target: childNode.id,
-                type: "custom-edge",  // TODO: What is this?
-            };
+            const edge = createEdge({
+                label: edgeDefinition.relationship,
+                parentId: parentNode.id,
+                childId: childNode.id,
+            });
+            edgeIdToEdgeMap[edge.id] = edge;
         }
     }));
 

@@ -501,10 +501,15 @@ export default abstract class DatabaseService {
             // TODO: Validate this on input - then just rely on typing to assume this is correct
             // fully defined
             const edges = rows.map((row) => ({
-                parent: row["Parent"],
-                child: row["Child"],
                 relationship: row["Relationship"],
-                relationshipType: row["Relationship Type"],
+                parent: {
+                    name: row["Parent"],
+                    type: row["Parent Type"]
+                },
+                child: {
+                    name: row["Child"],
+                    type: row["Child Type"]
+                },
             }));
             // TODO: uniqWith...? is this used right...?
             this.dataSourceToProvenanceMap.set(aggregateDataSourceName, uniqWith(edges));

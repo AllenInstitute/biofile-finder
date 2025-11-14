@@ -15,11 +15,15 @@ export const initialState = {
     edges: [],
 };
 
+interface EdgeNode {
+    name: string;
+    type: "entity" | "file";
+}
+
 export interface EdgeDefinition {
-    parent: string;
-    child: string;
+    parent: EdgeNode;
+    child: EdgeNode;
     relationship: string;
-    relationshipType: string;
 }
 
 export interface ProvenanceNode extends Node {
