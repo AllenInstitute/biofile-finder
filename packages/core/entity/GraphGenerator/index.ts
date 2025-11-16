@@ -21,7 +21,6 @@ interface MetadataNode extends ProvenanceNode {
     data: {
         annotation: FmsFileAnnotation;
         file: undefined;
-        rank?: number;
         isSelected: boolean;
     };
     type: NodeType.METADATA;
@@ -31,7 +30,6 @@ interface FileNode extends ProvenanceNode {
     data: {
         annotation: undefined;
         file: FileDetail;
-        rank?: number;
         isSelected: boolean;
     };
     type: NodeType.FILE;
@@ -88,21 +86,6 @@ function createEdge(edgeInfo: { label: string; parentId: string; childId: string
 }
 
 /**
- * For the given child, finds their children and adds those children to the children of the parent.
- * Recursive
- */
-function addChildrenOfChildren(map: { [key: string]: Set<string> }, parent: string, child: string) {
-    // TODO: use reduce?
-    map[child].forEach((childOfChild) => {
-        // Recursive-case: grandchildren exist
-        // add grandchildren of the parent to the parent
-        map[parent].add(childOfChild);
-        map = addChildrenOfChildren(map, child, childOfChild);
-    });
-    return map;
-}
-
-/**
  * Class entity responsible for generating the nodes and edges to be displayed
  * on a relationship graph.
  * This generator takes as input:
@@ -119,49 +102,11 @@ export default class GraphGenerator {
     private edgeDefinitions: EdgeDefinition[];
     private readonly edgeMap: { [id: string]: Edge } = {};
     private readonly nodeMap: { [id: string]: FileNode | MetadataNode } = {};
-    private metadataKeyToRank: { [key: string]: number };
     private fileService: FileService;
 
     constructor(fileService: FileService, edgeDefinitions: EdgeDefinition[]) {
         this.fileService = fileService;
         this.edgeDefinitions = edgeDefinitions;
-
-        // Plate Barcode -> Well Label
-        // Publication -> Plate Barcode
-        // Well Label -> File
-        // Primary Input File -> File
-        // Secondary Input File -> File
-        // File -> Thumbnail
-        // should be
-        // Publication: 5
-        // Plate Barcode: 4
-        // Well Label: 3 (is it weird that well label isn't directly on the file???)
-        // Primary Input File: 2
-        // Secondary Input File: 2
-        // File: 1
-        // Thumbnail: 0
-        // TODO: Use reduce?
-        let parentToChildren: { [key: string]: Set<string> } = {};
-        this.edgeDefinitions.forEach((edgeDefinition) => {
-            const parentName = edgeDefinition.parent.name;
-            const childName = edgeDefinition.child.name;
-
-            if (!(parentName in parentToChildren)) {
-                parentToChildren[parentName] = new Set<string>();
-            }
-            if (!(childName in parentToChildren)) {
-                parentToChildren[childName] = new Set<string>();
-            }
-            parentToChildren[parentName].add(childName);
-            parentToChildren = addChildrenOfChildren(parentToChildren, parentName, childName);
-        });
-        this.metadataKeyToRank = Object.entries(parentToChildren)
-            .reduce((mapSoFar, [parent, children]) => ({
-                ...mapSoFar,
-                [parent]: children.size,
-            }), {});
-        console.log("parentToChildren", parentToChildren);
-        console.log("metadataKeyToRank", this.metadataKeyToRank);
     }
 
     /**
@@ -172,13 +117,6 @@ export default class GraphGenerator {
     public async generate(file: FileDetail) {
         const origin = createFileNode(file);
         await this.expand(origin);
-        console.log("edgeMap", this.edgeMap);
-
-        // The problem is that it is building edges for files to their grandparent nodes
-        // but HOW is that happening..?
-        // lets take the publication route as an example:
-        // how can Publication -> Plate Barcode
-        // get linked to Publication -> File? they are several things removed
         return {
             edges: Object.values(this.edgeMap),
             nodes: Object.values(this.nodeMap)
@@ -208,7 +146,7 @@ export default class GraphGenerator {
         // when it is an entity
         await Promise.all(
             this.edgeDefinitions.map(async (edgeDefinition) => {
-                let [parentNodes, childNodes] = thisNode.data.file
+                const [parentNodes, childNodes] = thisNode.data.file
                     ? [
                         await this.getFileNodeConnections(
                             thisNode as FileNode, edgeDefinition.parent, true
@@ -225,13 +163,6 @@ export default class GraphGenerator {
                             thisNode as MetadataNode, edgeDefinition, edgeDefinition.child
                         ),
                     ];
-                parentNodes = parentNodes.map(node => ({
-                    ...node,
-                    data: {
-                        ...node.data,
-                        rank: this.metadataKeyToRank[edgeDefinition.parent.name]
-                    }
-                })) as (FileNode | MetadataNode)[];
 
                 // Only generate the edge if the parent and child node both exist
                 // (otherwise what is there even to connect)
@@ -242,30 +173,18 @@ export default class GraphGenerator {
                         .map(node => this.expand(node as FileNode, relationshipDistance))
                     );
 
-                    // If the metadata key rank of the parent is not one higher
-                    // than the child then don't add the edge because it will be covered by another edge
-                    if (this.metadataKeyToRank[edgeDefinition.parent.name] === this.metadataKeyToRank[edgeDefinition.child.name] + 1) {
-                        console.log("higher", edgeDefinition.parent.name, edgeDefinition.child.name)
-                        // For each combination of parent and node,
-                        // add an edge
-                        parentNodes.forEach(parentNode => {
-                            childNodes.forEach(childNode => {
-                                // if parents and children kept list of their parents and children
-                                // could i use that to remove edges...?
-                                if (edgeDefinition.relationship === "is experiment of") {
-                                    console.log(parentNode.id, childNode.id, edgeDefinition, thisNode)
-                                }
-                                const edge = createEdge({
-                                    label: edgeDefinition.relationship,
-                                    parentId: parentNode.id,
-                                    childId: childNode.id,
-                                });
-                                this.edgeMap[edge.id] = edge;
+                    // For each combination of parent and node,
+                    // add an edge
+                    parentNodes.forEach(parentNode => {
+                        childNodes.forEach(childNode => {
+                            const edge = createEdge({
+                                label: edgeDefinition.relationship,
+                                parentId: parentNode.id,
+                                childId: childNode.id,
                             });
-                        });
-                    } else {
-                        console.log("lower", edgeDefinition.parent.name, edgeDefinition.child.name)
-                    }
+                            this.edgeMap[edge.id] = edge;
+                        })
+                    })
                 }
             })
         );
