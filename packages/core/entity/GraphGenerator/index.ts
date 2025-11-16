@@ -162,9 +162,7 @@ export default class GraphGenerator {
                     // Expand child and parent nodes recursively
                     await Promise.all(
                         [...parentNodes, ...childNodes]
-                        .map(node => {
-                            this.expand(node as FileNode, relationshipDistance);
-                        })
+                        .map(node => this.expand(node as FileNode, relationshipDistance))
                     );
 
                     // For each combination of parent and node,
