@@ -35,7 +35,7 @@ export default function NetworkGraph(props: NetworkGraphProps) {
 
     const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
-    const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
+    const getLayoutedElements = (nodes: ProvenanceNode[], edges: Edge[]) => {
         // Graph customization
         // - direction: top to bottom (as opposed to left/right)
         // - (node/rank)sep: distance between individual nodes and between each generation of nodes
