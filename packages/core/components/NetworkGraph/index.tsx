@@ -17,11 +17,11 @@ interface NetworkGraphProps {
     initialEdges: Edge[];
 }
 
-const edgeTypes: EdgeTypes = {
+const EDGE_TYPES: EdgeTypes = {
     [EdgeType.DEFAULT]: DefaultEdge,
 };
 
-const nodeTypes = {
+const NODE_TYPES = {
     [NodeType.FILE]: FileNode,
     [NodeType.METADATA]: MetadataNode,
 };
@@ -99,8 +99,8 @@ export default function NetworkGraph(props: NetworkGraphProps) {
                 colorMode="dark"
                 nodes={nodes}
                 edges={edges}
-                edgeTypes={edgeTypes}
-                nodeTypes={nodeTypes}
+                edgeTypes={EDGE_TYPES}
+                nodeTypes={NODE_TYPES}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 fitView

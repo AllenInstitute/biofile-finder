@@ -1,5 +1,10 @@
+.content-container {
+  justify-content: center;
+  text-align: center;
+}
+
 .file-node {
-  width: 200px;
+  width: calc(100px + 10px + 10px + 2px);
   border: 1px solid var(--aqua);
   padding: 10px;
   border-radius: 5px;

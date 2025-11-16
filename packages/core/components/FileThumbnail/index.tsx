@@ -12,6 +12,7 @@ interface Props {
     className?: string;
     uri?: string;
     height?: number | string;
+    hideIfEmpty?: boolean;
     width?: number | string;
     loading?: boolean;
     selected?: boolean;
@@ -43,7 +44,7 @@ export default function FileThumbnail(props: Props) {
     }
 
     // Render no thumbnail icon if no URI is provided
-    if (!props.uri) {
+    if (!props.uri && !props.hideIfEmpty) {
         return (
             <SvgIcon
                 height={props?.height || 150}
