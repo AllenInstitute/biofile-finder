@@ -31,8 +31,8 @@ const constructProvenanceLogic = createLogic({
         const graphGenerator = new GraphGenerator(fileService, edgeDefinitions);
         const graph = await graphGenerator.generate(file);
 
-        dispatch(setGraphEdges(Object.values(graph.edgeMap)));
-        dispatch(setGraphNodes(Object.values(graph.nodeMap)));
+        dispatch(setGraphEdges(graph.edges));
+        dispatch(setGraphNodes(graph.nodes));
         done();
     },
     type: CONSTRUCT_PROVENANCE_GRAPH,
