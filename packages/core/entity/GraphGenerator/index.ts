@@ -146,24 +146,26 @@ export default class GraphGenerator {
         // when it is an entity
         await Promise.all(
             this.edgeDefinitions.map(async (edgeDefinition) => {
-                const [parentNodes, childNodes] = thisNode.data.file
-                    ? [
-                        await this.getFileNodeConnections(
-                            thisNode as FileNode, edgeDefinition.parent, true
-                        ),
-                        await this.getFileNodeConnections(
-                            thisNode as FileNode, edgeDefinition.child
-                        )
-                    ]
-                    : [
-                        await this.getMetadataNodeConnections(
+                if (!thisNode.data.file) {
+                    await Promise.all([
+                        this.expandUsingMetadataNode(
                             thisNode as MetadataNode, edgeDefinition, edgeDefinition.parent, true
                         ),
-                        await this.getMetadataNodeConnections(
+                        this.expandUsingMetadataNode(
                             thisNode as MetadataNode, edgeDefinition, edgeDefinition.child
-                        ),
-                    ];
+                        )
+                    ]);
+                    return;
+                }
 
+                const [parentNodes, childNodes] = await Promise.all([
+                    this.getFileNodeConnections(
+                        thisNode as FileNode, edgeDefinition.parent, true
+                    ),
+                    this.getFileNodeConnections(
+                        thisNode as FileNode, edgeDefinition.child
+                    )
+                ]);
                 // Only generate the edge if the parent and child node both exist
                 // (otherwise what is there even to connect)
                 if (!!parentNodes.length && !!childNodes.length) {
@@ -227,16 +229,16 @@ export default class GraphGenerator {
     /**
      * Finds all the nodes related to the given metadata type node
      */
-    private async getMetadataNodeConnections(
+    private async expandUsingMetadataNode(
         thisNode: MetadataNode,
         edgeDefinition: EdgeDefinition,
         edgeNode: EdgeNode,
         isParent = false
-    ): Promise<(FileNode | MetadataNode)[]> {
+    ) {
         // If edgeNode is just thisNode, return
         const isEdgeNodeThisNode = edgeNode.name === thisNode.data.annotation.name;
         if (isEdgeNodeThisNode) {
-            return [thisNode];
+            return;
         }
 
         // Ignore file <-> file edge definitions
@@ -248,16 +250,18 @@ export default class GraphGenerator {
             annotationName === edgeDefinition.parent.name ||
             annotationName === edgeDefinition.child.name;
         if (isFileToFileEdge || !hasConnectionToThisNode) {
-            return [];
+            return;
         }
 
-        // THIS this is the problem!
-        // this is grabbing all the files for the annotation and tying them up together
-        // what this should really be trying to do us run expand on each of the files
-        // I THINK
+        // At this point we know the metadata node has connections (potentially
+        // just the original node). However, we don't want to just outright create
+        // the metadata nodes and return them because that could tie files to metadata
+        // it does not need to be tied to. For example, if we have definitions:
+        // Publication -> Plate Barcode & Plate Barcode -> File
+        // we do not want to tie Publication -> File directly even though the metadata
+        // key "Publication" will be coming from the files themselves
         const files = await this.getFilesByAnnotation(thisNode.data.annotation);
         await Promise.all(files.map(file => this.expand(createFileNode(file), 0)));
-        return [];
     }
 
     /**
