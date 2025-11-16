@@ -5,7 +5,7 @@ import "@xyflow/react/dist/style.css";
 
 import CustomEdge from "./CustomEdge";
 import FileNode from "./FileNode";
-import EntityNode from "./EntityNode";
+import MetadataNode from "./MetadataNode";
 import { ProvenanceNode } from "../../state/provenance/reducer";
 
 import styles from "./NetworkGraph.module.css";
@@ -23,7 +23,7 @@ const edgeTypes: EdgeTypes = {
 // TODO: Put this closer to where graph is built and then import from there
 const nodeTypes = {
     "file": FileNode,
-    "non-file": EntityNode,
+    "metadata": MetadataNode,
 };
 
 // Currently arbitrary placeholder values

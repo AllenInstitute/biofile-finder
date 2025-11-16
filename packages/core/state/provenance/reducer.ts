@@ -15,9 +15,11 @@ export const initialState = {
     edges: [],
 };
 
-interface EdgeNode {
+
+type EdgeType = "file" | "metadata";
+export interface EdgeNode {
     name: string;
-    type: "entity" | "file";
+    type: EdgeType;
 }
 
 export interface EdgeDefinition {

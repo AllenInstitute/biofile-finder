@@ -3,16 +3,15 @@ import { IContextualMenuItem } from "@fluentui/react";
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import React from "react";
 
-import { TertiaryButton } from "../Buttons";
 import Tooltip from "../Tooltip";
 import { ProvenanceNode } from "../../state/provenance/reducer";
 
-import styles from "./EntityNode.module.css";
+import styles from "./MetadataNode.module.css";
 
 
 // This is a proof-of-concept example of a custom node
 // Note that we are able to apply styling to the node, and can include custom buttons as content
-export default function EntityNode(props: NodeProps<ProvenanceNode>) {
+export default function MetadataNode(props: NodeProps<ProvenanceNode>) {
     const shareQueryOptions: IContextualMenuItem[] = [
         {
             key: "graph-menu-option-1",
