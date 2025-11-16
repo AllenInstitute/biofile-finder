@@ -57,9 +57,9 @@ function createFileNode(file: FileDetail, isSelected = false): FileNode {
  * The node this creates is specifically for displaying a non-File
  * metadata value. For example: Well: B4
  */
-function createMetadataNode(annotation: FmsFileAnnotation): MetadataNode {
+function createMetadataNode(id: string, annotation: FmsFileAnnotation): MetadataNode {
     return {
-        id: `${annotation.name}: ${annotation.values.join(", ")}`,
+        id,
         data: {
             annotation,
             file: undefined,
@@ -103,10 +103,21 @@ export default class GraphGenerator {
     private readonly edgeMap: { [id: string]: Edge } = {};
     private readonly nodeMap: { [id: string]: FileNode | MetadataNode } = {};
     private fileService: FileService;
+    private childToParentMap: { [key: string]: Set<string> }
 
     constructor(fileService: FileService, edgeDefinitions: EdgeDefinition[]) {
         this.fileService = fileService;
         this.edgeDefinitions = edgeDefinitions;
+
+        this.childToParentMap = edgeDefinitions.reduce(
+            (mapSoFar, edgeDefinition) => ({
+                ...mapSoFar,
+                [edgeDefinition.child.name]: edgeDefinition.child.name in mapSoFar
+                    ? mapSoFar[edgeDefinition.child.name].add(edgeDefinition.parent.name)
+                    : new Set<string>().add(edgeDefinition.parent.name)
+            }),
+            {} as { [child: string]: Set<string> }
+        );
     }
 
     /**
@@ -115,7 +126,7 @@ export default class GraphGenerator {
      * information.
      */
     public async generate(file: FileDetail) {
-        const origin = createFileNode(file);
+        const origin = createFileNode(file, true);
         await this.expand(origin);
         return {
             edges: Object.values(this.edgeMap),
@@ -214,7 +225,8 @@ export default class GraphGenerator {
         // model that generated the current node ("thisNode")
         const isNodeAFile = edgeNode.type === "file";
         if (!isNodeAFile) {
-            return [createMetadataNode(annotation)];
+            const id = this.generateIdForAnnotation(annotation, thisNode.data.file);
+            return [createMetadataNode(id, annotation)];
         }
 
         return Promise.all(
@@ -252,11 +264,6 @@ export default class GraphGenerator {
         if (isFileToFileEdge || !hasConnectionToThisNode) {
             return;
         }
-
-        // TODO: BUG
-        // if 2 files have Well Label: A4
-        // but are from different plates they are currently
-        // shown as sharing an ancestor, however... that isn't the tea!!!
 
         // At this point we know the metadata node has connections (potentially
         // just the original node). However, we don't want to just outright create
@@ -300,5 +307,23 @@ export default class GraphGenerator {
                 filters: [new FileFilter(annotation.name, annotation.values)]
             })
         });
+    }
+
+    /**
+     * TODO
+     */
+    private generateIdForAnnotation(annotation: FmsFileAnnotation, file: FileDetail): string {
+        // TODO: Clean this all up! probably not even necessary to be this complicated!!!
+        function getAllParentsOfChild(childToParents: { [child: string]: Set<string> }, child: string): Set<string> {
+            return new Set([
+                ...Array.from(childToParents[child] || []),
+                ...Array.from(childToParents[child] || []).flatMap((parent) => Array.from(getAllParentsOfChild(childToParents, parent))),
+            ]);
+        }
+        const allOfTheParents = Array.from(getAllParentsOfChild(this.childToParentMap, annotation.name));
+        return [...allOfTheParents, annotation.name]
+            .sort()
+            .map(parent => `${annotation.name}: ${file.getAnnotation(parent)?.values?.join(", ")}`)
+            .join("-");
     }
 }
