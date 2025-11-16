@@ -1,11 +1,12 @@
 import React from "react";
 import dagre from "@dagrejs/dagre";
-import { ReactFlow, useNodesState, useEdgesState, Node, Edge, EdgeTypes } from "@xyflow/react";
+import { ReactFlow, useNodesState, useEdgesState, Node, Edge, EdgeTypes, Position } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-import CustomEdge from "./CustomEdge";
-import FileNode from "./FileNode";
-import MetadataNode from "./MetadataNode";
+import DefaultEdge from "./Edges/DefaultEdge";
+import FileNode from "./Nodes/FileNode";
+import MetadataNode from "./Nodes/MetadataNode";
+import { EdgeType, NodeType } from "../../entity/GraphGenerator";
 import { ProvenanceNode } from "../../state/provenance/reducer";
 
 import styles from "./NetworkGraph.module.css";
@@ -17,13 +18,12 @@ interface NetworkGraphProps {
 }
 
 const edgeTypes: EdgeTypes = {
-    "custom-edge": CustomEdge,
+    [EdgeType.DEFAULT]: DefaultEdge,
 };
 
-// TODO: Put this closer to where graph is built and then import from there
 const nodeTypes = {
-    "file": FileNode,
-    "metadata": MetadataNode,
+    [NodeType.FILE]: FileNode,
+    [NodeType.METADATA]: MetadataNode,
 };
 
 // Currently arbitrary placeholder values
@@ -51,12 +51,12 @@ export default function NetworkGraph(props: NetworkGraphProps) {
 
         dagre.layout(dagreGraph);
 
-        const newNodes = nodes.map((node) => {
+        const positionedNodes = nodes.map((node): Node => {
             const nodeWithPosition = dagreGraph.node(node.id);
-            const newNode = {
+            return {
                 ...node,
-                targetPosition: "top",
-                sourcePosition: "bottom",
+                targetPosition: Position.Top,
+                sourcePosition: Position.Bottom,
                 // Shift the dagre node position (anchor=center center) to the top left
                 // so it matches the React Flow node anchor point (top left).
                 position: {
@@ -64,11 +64,9 @@ export default function NetworkGraph(props: NetworkGraphProps) {
                     y: nodeWithPosition.y - NODE_HEIGHT / 2,
                 },
             };
-
-            return newNode as Node;
         });
 
-        return { nodes: newNodes, edges };
+        return { nodes: positionedNodes, edges };
     };
 
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(

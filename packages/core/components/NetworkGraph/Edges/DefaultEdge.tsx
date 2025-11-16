@@ -9,10 +9,10 @@ import {
 import Markdown from "markdown-to-jsx";
 import React, { FC } from "react";
 
-import styles from "./CustomEdge.module.css";
+import styles from "./DefaultEdge.module.css";
 
 // Returns a customizable edge in a ReactFlow network graph
-const CustomEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
+const DefaultEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
     id,
     sourceX,
     sourceY,
@@ -75,4 +75,4 @@ const CustomEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
     );
 };
 
-export default CustomEdge;
+export default DefaultEdge;

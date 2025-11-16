@@ -8,6 +8,14 @@ import { EdgeDefinition, EdgeNode, ProvenanceNode } from "../../state/provenance
 
 const MAX_RELATIONSHIP_DISTANCE = 10;
 
+export enum EdgeType {
+    DEFAULT = "default",
+}
+
+export enum NodeType {
+    METADATA = "metadata",
+    FILE = "file"
+}
 
 interface MetadataNode extends ProvenanceNode {
     data: {
@@ -15,7 +23,7 @@ interface MetadataNode extends ProvenanceNode {
         file: undefined;
         isSelected: boolean;
     };
-    type: "metadata";
+    type: NodeType.METADATA;
 }
 
 interface FileNode extends ProvenanceNode {
@@ -24,7 +32,7 @@ interface FileNode extends ProvenanceNode {
         file: FileDetail;
         isSelected: boolean;
     };
-    type: "file";
+    type: NodeType.FILE;
 }
 
 /**
@@ -40,7 +48,7 @@ function createFileNode(file: FileDetail, isSelected = false): FileNode {
             isSelected,
         },
         position: { x: 0, y: 0 }, // TODO: What is this for..? isn't this auto-calculated on the fly?
-        type: "file",
+        type: NodeType.FILE,
     };
 }
 
@@ -58,7 +66,7 @@ function createMetadataNode(annotation: FmsFileAnnotation): MetadataNode {
             isSelected: false,
         },
         position: { x: 0, y: 0 },
-        type: "metadata",
+        type: NodeType.METADATA,
     };
 }
 
@@ -73,7 +81,7 @@ function createEdge(edgeInfo: { label: string; parentId: string; childId: string
         markerEnd: { type: "arrow" }, // TODO: Is this even used?
         source: parentId,
         target: childId,
-        type: "custom-edge",
+        type: EdgeType.DEFAULT,
     };
 }
 

@@ -1,17 +1,18 @@
 import { IContextualMenuItem } from "@fluentui/react";
 // prettier-ignore
 import { Handle, Position, NodeProps } from '@xyflow/react';
+import classNames from "classnames";
 import React from "react";
 
-import Tooltip from "../Tooltip";
-import { ProvenanceNode } from "../../state/provenance/reducer";
+import { TertiaryButton } from "../../Buttons";
+import Tooltip from "../../Tooltip";
+import { ProvenanceNode } from "../../../state/provenance/reducer";
 
-import styles from "./MetadataNode.module.css";
-
+import styles from "./FileNode.module.css";
 
 // This is a proof-of-concept example of a custom node
 // Note that we are able to apply styling to the node, and can include custom buttons as content
-export default function MetadataNode(props: NodeProps<ProvenanceNode>) {
+export default function FileNode(props: NodeProps<ProvenanceNode>) {
     const shareQueryOptions: IContextualMenuItem[] = [
         {
             key: "graph-menu-option-1",
@@ -33,11 +34,15 @@ export default function MetadataNode(props: NodeProps<ProvenanceNode>) {
     ];
 
     return (
-        <Tooltip content={props.data.annotation?.name}>
-            <div className={styles.fileNode}>
+        <Tooltip content={props.data.file?.name}>
+            <div
+                className={classNames(styles.fileNode, {
+                    [styles.currentFile]: props?.data?.isSelected,
+                })}
+            >
                 {/* The handle component is where edges can connect to */}
                 <Handle type="target" position={Position.Top} isConnectable={false} />
-                <div className={styles.fileNodeLabel}>{props.id}</div>
+                <div className={styles.fileNodeLabel}>{props.data.file?.name}</div>
                 {/* <TertiaryButton
                     className={styles.menuButton}
                     iconName="More"

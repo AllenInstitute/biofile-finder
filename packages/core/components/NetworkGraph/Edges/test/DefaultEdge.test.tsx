@@ -2,17 +2,17 @@ import { render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 
-import NetworkGraph from "..";
+import DefaultEdge from "../..";
 
 
-describe("<NetworkGraph />", () => {
+describe("<DefaultEdge />", () => {
     it("todo", () => {
         // Arrange
         // ...
 
         // Act
         const { getByText } = render(
-            <NetworkGraph initialEdges={[]} initialNodes={[]} />
+            <DefaultEdge initialEdges={[]} initialNodes={[]} />
         );
 
         // Assert
