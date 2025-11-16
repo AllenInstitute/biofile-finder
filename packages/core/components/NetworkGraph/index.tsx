@@ -39,7 +39,7 @@ export default function NetworkGraph(props: NetworkGraphProps) {
         // Graph customization
         // - direction: top to bottom (as opposed to left/right)
         // - (node/rank)sep: distance between individual nodes and between each generation of nodes
-        dagreGraph.setGraph({ rankdir: "TB", nodesep: NODE_WIDTH, ranksep: NODE_WIDTH });
+        dagreGraph.setGraph({ rankdir: "TB" });
 
         nodes.forEach((node) => {
             dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
@@ -55,8 +55,8 @@ export default function NetworkGraph(props: NetworkGraphProps) {
             const nodeWithPosition = dagreGraph.node(node.id);
             return {
                 ...node,
-                targetPosition: Position.Top,
-                sourcePosition: Position.Bottom,
+                // targetPosition: Position.Top,
+                // sourcePosition: Position.Bottom,
                 // Shift the dagre node position (anchor=center center) to the top left
                 // so it matches the React Flow node anchor point (top left).
                 position: {
@@ -97,6 +97,11 @@ export default function NetworkGraph(props: NetworkGraphProps) {
         <div className={styles.reactFlowContainer}>
             <ReactFlow
                 colorMode="dark"
+                edgesFocusable={false}
+                edgesReconnectable={false}
+                elementsSelectable={false}
+                nodesConnectable={false}
+                nodesFocusable={false}
                 nodes={nodes}
                 edges={edges}
                 edgeTypes={EDGE_TYPES}

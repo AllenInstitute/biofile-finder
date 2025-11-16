@@ -1,3 +1,8 @@
+.content-container {
+  margin: auto;
+  text-align: center;
+}
+
 .file-node {
     width: 200px;
     border: 1px solid var(--accent-dark);
@@ -20,13 +25,17 @@
   }
   
   .file-node-label {
-    overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box !important;
     -webkit-line-clamp: 3 !important; /* number of lines to show */
             line-clamp: 3; 
     -webkit-box-orient: vertical !important;
     word-wrap: break-word !important;
+  }
+
+  .file-node-label:first-of-type {
+    font-size: smaller;
+    font-style: italic;
   }
 
   

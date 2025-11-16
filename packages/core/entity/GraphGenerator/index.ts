@@ -76,7 +76,7 @@ function createMetadataNode(annotation: FmsFileAnnotation): MetadataNode {
 function createEdge(edgeInfo: { label: string; parentId: string; childId: string }): Edge {
     const { label, parentId, childId } = edgeInfo;
     return {
-        id: `${parentId}-${childId}`,
+        id: `${parentId}-${childId}-${label}`,
         data: { label },
         markerEnd: { type: "arrow" }, // TODO: Is this even used?
         source: parentId,
@@ -252,6 +252,11 @@ export default class GraphGenerator {
         if (isFileToFileEdge || !hasConnectionToThisNode) {
             return;
         }
+
+        // TODO: BUG
+        // if 2 files have Well Label: A4
+        // but are from different plates they are currently
+        // shown as sharing an ancestor, however... that isn't the tea!!!
 
         // At this point we know the metadata node has connections (potentially
         // just the original node). However, we don't want to just outright create

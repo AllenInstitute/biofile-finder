@@ -5,7 +5,6 @@
 
 .file-node {
   width: calc(100px + 10px + 10px + 2px);
-  border: 1px solid var(--aqua);
   padding: 10px;
   border-radius: 5px;
   overflow-wrap: anywhere;
