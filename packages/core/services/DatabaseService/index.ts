@@ -4,10 +4,10 @@ import { isEmpty, uniqWith } from "lodash";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
+import { EdgeDefinition } from "../../entity/GraphGenerator";
 import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
-import { EdgeDefinition } from "../../state/provenance/reducer";
 
 enum PreDefinedColumn {
     FILE_ID = "File ID",

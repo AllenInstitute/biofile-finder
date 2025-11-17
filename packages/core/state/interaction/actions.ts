@@ -866,3 +866,22 @@ export function setConvertFilesSnippet(payload?: {
 }): SetConvertFilesSnippetAction {
     return { type: SET_CONVERT_FILES_SNIPPET, payload };
 }
+
+/**
+ * CONSTRUCT_PROVENANCE_GRAPH
+ *
+ * Intention to construct the nodes and edges for the provenance graph
+ */
+export const CONSTRUCT_PROVENANCE_GRAPH = makeConstant(STATE_BRANCH_NAME, "construct-provenance");
+
+export interface ConstructProvenanceGraph {
+    payload: FileDetail;
+    type: string;
+}
+
+export function constructProvenanceGraph(origin: FileDetail): ConstructProvenanceGraph {
+    return {
+        payload: origin,
+        type: CONSTRUCT_PROVENANCE_GRAPH,
+    };
+}

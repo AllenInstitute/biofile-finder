@@ -4,8 +4,8 @@ import React from "react";
 import { useDispatch } from "react-redux";
 
 import Tooltip from "../../Tooltip";
+import { ProvenanceNode } from '../../../entity/GraphGenerator';
 import { interaction } from "../../../state";
-import { ProvenanceNode } from "../../../state/provenance/reducer";
 
 import styles from "./MetadataNode.module.css";
 

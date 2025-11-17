@@ -5,7 +5,7 @@ import React from "react";
 
 import FileThumbnail from "../../FileThumbnail";
 import Tooltip from "../../Tooltip";
-import { ProvenanceNode } from "../../../state/provenance/reducer";
+import { ProvenanceNode } from '../../../entity/GraphGenerator';
 
 import styles from "./FileNode.module.css";
 

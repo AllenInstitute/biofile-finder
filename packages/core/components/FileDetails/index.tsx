@@ -16,7 +16,7 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import { MAX_DOWNLOAD_SIZE_WEB } from "../../services/FileDownloadService";
-import { interaction, provenance } from "../../state";
+import { interaction } from "../../state";
 
 import styles from "./FileDetails.module.css";
 
@@ -186,12 +186,9 @@ export default function FileDetails(props: Props) {
     }, [dispatch, fileDetails, fileDownloadService.isFileSystemAccessible]);
 
     const onClickProvenance = React.useCallback(async () => {
-        if (!fileDetails) {
-            return;
+        if (fileDetails) {
+            dispatch(interaction.actions.constructProvenanceGraph(fileDetails));
         }
-        // Start generating nodes and edges for selected file
-        dispatch(provenance.actions.constructProvenanceGraph(fileDetails));
-        dispatch(interaction.actions.setVisibleModal(ModalType.Provenance));
     }, [dispatch, fileDetails]);
 
     return (

@@ -4,21 +4,24 @@ import { useSelector } from "react-redux";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import NetworkGraph from "../../NetworkGraph";
-import { provenance } from "../../../state";
+import { interaction } from "../../../state";
 
-import styles from "./Provenance.module.css";
+import styles from "./RelationshipDiagram.module.css";
 
 /**
- * Modal overlay for displaying a provenance network graph
+ * Modal overlay for displaying a relationship diagram/graph
  * Should use as much of the screen as possible
  */
-export default function Provenance({ onDismiss }: ModalProps) {
-    const nodes = useSelector(provenance.selectors.getNodesForModal);
-    const edges = useSelector(provenance.selectors.getEdgesForModal);
+export default function RelationshipDiagram({ onDismiss }: ModalProps) {
+    const origin = useSelector(interaction.selectors.getOriginForProvenance);
+
+    if (!origin) {
+        return null;
+    }
 
     const body = (
         <div className={styles.networkGraphContainer}>
-            <NetworkGraph initialNodes={nodes} initialEdges={edges} />
+            <NetworkGraph origin={origin} />
         </div>
     );
 

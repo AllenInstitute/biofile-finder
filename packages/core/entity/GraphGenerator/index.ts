@@ -1,12 +1,10 @@
-import { Edge } from "@xyflow/react";
+import { Edge, Node } from "@xyflow/react";
 
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import FileService, { FmsFileAnnotation } from "../../services/FileService";
-import { EdgeDefinition, EdgeNode, ProvenanceNode } from "../../state/provenance/reducer";
 
-const MAX_RELATIONSHIP_DISTANCE = 10;
 
 export enum EdgeType {
     DEFAULT = "default",
@@ -15,6 +13,29 @@ export enum EdgeType {
 export enum NodeType {
     METADATA = "metadata",
     FILE = "file"
+}
+
+interface EdgeNode {
+    name: string;
+    type: "file" | "metadata";
+}
+
+export interface EdgeDefinition {
+    parent: EdgeNode;
+    child: EdgeNode;
+    relationship: string;
+}
+
+export interface ProvenanceNode extends Node {
+    data: {
+        isSelected: boolean;
+
+        // Is present when the Node represents a file
+        file?: FileDetail;
+
+        // Is present when the node represents an annotation
+        annotation?: FmsFileAnnotation;
+    };
 }
 
 interface MetadataNode extends ProvenanceNode {
@@ -106,7 +127,7 @@ export default class GraphGenerator {
     private childToParentMap: { [key: string]: Set<string> };
     // Track the number of nodes generated only allowing
     // a certain number to be generated at a time
-    private numberOfNodesAfforded = 100;
+    private numberOfNodesAfforded = 75;
 
     constructor(fileService: FileService, edgeDefinitions: EdgeDefinition[]) {
         this.fileService = fileService;
@@ -129,7 +150,7 @@ export default class GraphGenerator {
      * information.
      */
     public async generate(file: FileDetail) {
-        this.numberOfNodesAfforded = 100;
+        this.numberOfNodesAfforded += 25;
         const origin = createFileNode(file, true);
         await this.expand(origin);
         return {

@@ -2,11 +2,10 @@ import { expect } from "chai";
 import { uniqueId } from "lodash";
 import { createSandbox } from "sinon";
 
-import GraphGenerator from "..";
+import GraphGenerator, { EdgeDefinition } from "..";
 import FileDetail from "../../FileDetail";
 import { Environment } from "../../../constants";
 import FileServiceNoop from "../../../services/FileService/FileServiceNoop";
-import { EdgeDefinition } from "../../../state/provenance/reducer";
 import { FmsFileAnnotation } from "../../../services/FileService";
 
 

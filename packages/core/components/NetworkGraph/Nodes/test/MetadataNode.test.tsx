@@ -12,7 +12,7 @@ describe("<MetadataNode />", () => {
 
         // Act
         const { getByText } = render(
-            <MetadataNode initialEdges={[]} initialNodes={[]} />
+            <MetadataNode origin={{} as any} />
         );
 
         // Assert

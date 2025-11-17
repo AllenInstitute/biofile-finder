@@ -31,6 +31,8 @@ import {
     SET_EXTRACT_METADATA_PYTHON_SNIPPET,
     SET_CONVERT_FILES_SNIPPET,
     SetVisibleModalAction,
+    ConstructProvenanceGraph,
+    CONSTRUCT_PROVENANCE_GRAPH,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -45,6 +47,7 @@ import { UserSelectedApplication } from "../../services/PersistentConfigService"
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
+import FileDetail from "../../entity/FileDetail";
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
@@ -70,6 +73,7 @@ export interface InteractionStateBranch {
         code: string;
         options?: Record<string, string>;
     };
+    originForProvenance?: FileDetail;
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
@@ -115,6 +119,11 @@ export const initialState: InteractionStateBranch = {
 
 export default makeReducer<InteractionStateBranch>(
     {
+        [CONSTRUCT_PROVENANCE_GRAPH]: (state, action: ConstructProvenanceGraph) => ({
+            ...state,
+            originForProvenance: action.payload,
+            visibleModal: ModalType.RelationshipDiagram,
+        }),
         [MARK_AS_USED_APPLICATION_BEFORE]: (state) => ({
             ...state,
             hasUsedApplicationBefore: true,
@@ -190,6 +199,7 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             fileFiltersForVisibleModal: action.payload.fileFiltersForVisibleModal,
             visibleModal: action.payload.visibleModal,
+            originForProvenance: undefined,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action: ShowManifestDownloadDialogAction) => ({
             ...state,

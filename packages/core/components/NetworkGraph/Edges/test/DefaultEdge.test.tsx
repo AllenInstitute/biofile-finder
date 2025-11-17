@@ -12,7 +12,7 @@ describe("<DefaultEdge />", () => {
 
         // Act
         const { getByText } = render(
-            <DefaultEdge initialEdges={[]} initialNodes={[]} />
+            <DefaultEdge origin={{} as any} />
         );
 
         // Assert

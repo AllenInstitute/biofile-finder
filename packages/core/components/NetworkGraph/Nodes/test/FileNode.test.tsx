@@ -12,7 +12,7 @@ describe("<FileNode />", () => {
 
         // Act
         const { getByText } = render(
-            <FileNode initialEdges={[]} initialNodes={[]} />
+            <FileNode origin={{} as any} />
         );
 
         // Assert

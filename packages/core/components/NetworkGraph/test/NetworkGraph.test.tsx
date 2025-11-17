@@ -12,7 +12,7 @@ describe("<NetworkGraph />", () => {
 
         // Act
         const { getByText } = render(
-            <NetworkGraph initialEdges={[]} initialNodes={[]} />
+            <NetworkGraph origin={{} as any} />
         );
 
         // Assert
