@@ -103,7 +103,10 @@ export default class GraphGenerator {
     private readonly edgeMap: { [id: string]: Edge } = {};
     private readonly nodeMap: { [id: string]: FileNode | MetadataNode } = {};
     private fileService: FileService;
-    private childToParentMap: { [key: string]: Set<string> }
+    private childToParentMap: { [key: string]: Set<string> };
+    // Track the number of nodes generated only allowing
+    // a certain number to be generated at a time
+    private numberOfNodesAfforded = 100;
 
     constructor(fileService: FileService, edgeDefinitions: EdgeDefinition[]) {
         this.fileService = fileService;
@@ -126,6 +129,7 @@ export default class GraphGenerator {
      * information.
      */
     public async generate(file: FileDetail) {
+        this.numberOfNodesAfforded = 100;
         const origin = createFileNode(file, true);
         await this.expand(origin);
         return {
@@ -139,19 +143,20 @@ export default class GraphGenerator {
      * recursively searchs for related nodes by checking each edge definition for a potential
      * edge that could be used to build a connection.
      */
-    private async expand(thisNode: FileNode | MetadataNode, relationshipDistance: number = 0) {
+    private async expand(thisNode: FileNode | MetadataNode) {
         // Base-case: Stop building graph after X recursion levels
         // to avoid getting to large of a graph on first go
         // or if this graph has already been investigated
         // TODO: Probably want to have a direction sense here because
         //       we might want all the way to the primary ancestor
         //       and then like just the children and no siblings for example
-        if (relationshipDistance > MAX_RELATIONSHIP_DISTANCE || thisNode.id in this.nodeMap) {
+        if (this.numberOfNodesAfforded < 0 || thisNode.id in this.nodeMap) {
             return;
         }
 
         // Add this node to mapping
         this.nodeMap[thisNode.id] = thisNode;
+        this.numberOfNodesAfforded -= 1;
 
         // TODO: perhaps this should only stop when it hits a file and never
         // when it is an entity
@@ -183,7 +188,7 @@ export default class GraphGenerator {
                     // Expand child and parent nodes recursively
                     await Promise.all(
                         [...parentNodes, ...childNodes]
-                        .map(node => this.expand(node as FileNode, relationshipDistance))
+                        .map(node => this.expand(node))
                     );
 
                     // For each combination of parent and node,
@@ -273,7 +278,7 @@ export default class GraphGenerator {
         // we do not want to tie Publication -> File directly even though the metadata
         // key "Publication" will be coming from the files themselves
         const files = await this.getFilesByAnnotation(thisNode.data.annotation);
-        await Promise.all(files.map(file => this.expand(createFileNode(file), 0)));
+        await Promise.all(files.map(file => this.expand(createFileNode(file))));
     }
 
     /**
