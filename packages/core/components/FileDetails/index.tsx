@@ -210,6 +210,7 @@ export default function FileDetails(props: Props) {
                                             className={styles.tertiaryButton}
                                             disabled={isDownloadDisabled}
                                             iconName="Download"
+                                            id="download-file-button"
                                             title="Download file to local system"
                                             onClick={onDownload}
                                         />
