@@ -87,13 +87,14 @@ export default function FileDetails(props: Props) {
     const isZarr = fileDetails?.path.endsWith(".zarr") || fileDetails?.path.endsWith(".zarr/");
 
     React.useEffect(() => {
+        let cancel = false;
         setCalculatedSize(null);
-        if (fileDetails) {
+        if (fileDetails && !cancel) {
             setIsThumbnailLoading(true);
             fileDetails.getPathToThumbnail(300).then((path) => {
                 setThumbnailPath(path);
-                setIsThumbnailLoading(false);
             });
+            setIsThumbnailLoading(false);
 
             // Determine size of Zarr on web.
             if (isOnWeb && isZarr) {
@@ -125,6 +126,9 @@ export default function FileDetails(props: Props) {
                 }
             }
         }
+        return function cleanup() {
+            cancel = true;
+        };
     }, [fileDetails, fileDownloadService, isOnWeb, isZarr]);
 
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
