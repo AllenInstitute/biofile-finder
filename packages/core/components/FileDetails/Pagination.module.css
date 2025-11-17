@@ -1,6 +1,8 @@
 .root {
     max-width: 300px;
     margin: 0 auto; /* horizontally center */
+    display: flex;
+    flex-direction: row;
 }
 
 .root > div {
@@ -9,4 +11,32 @@
 
 .root > div:not(:first-child) {
     margin-left: 3px;
+}
+
+.align-center { 
+    display: flex;
+    align-items: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.chevron-button i {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.svg-icon {
+    fill: var(--primary-text-color);
+}
+
+.svg-icon:hover {
+    fill: var(--white);
+}
+
+.page-count {
+    display: flex;
+    align-items: center;
+    font-size: var(--s-paragraph-size);
 }

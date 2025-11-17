@@ -1,4 +1,3 @@
-import { IStackTokens, Stack, StackItem } from "@fluentui/react";
 import classNames from "classnames";
 import { noop, throttle } from "lodash";
 import * as React from "react";
@@ -7,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
 import useFileDetails from "./useFileDetails";
-import { PrimaryButton } from "../Buttons";
+import { PrimaryButton, TertiaryButton } from "../Buttons";
 import Tooltip from "../Tooltip";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
@@ -78,7 +77,6 @@ export default function FileDetails(props: Props) {
     const [fileDetails, isLoading] = useFileDetails();
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
     const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
-    const stackTokens: IStackTokens = { childrenGap: 12 + " " + 20 };
     const [calculatedSize, setCalculatedSize] = React.useState<number | null>(null);
 
     const platformDependentServices = useSelector(
@@ -197,10 +195,35 @@ export default function FileDetails(props: Props) {
                 <div />
             </div>
             <div className={styles.paginationAndContent}>
-                <Pagination className={styles.pagination} />
                 <div className={styles.overflowContainer}>
                     {fileDetails && (
                         <>
+                            <div className={styles.header}>
+                                <div className={styles.leftAlign}>
+                                    <Pagination className={styles.pagination} />
+                                </div>
+                                {/* spacing component */}
+                                <div className={styles.gutter}></div>
+                                <div className={styles.rightAlign}>
+                                    <Tooltip content={downloadDisabledMessage}>
+                                        <TertiaryButton
+                                            className={styles.tertiaryButton}
+                                            disabled={isDownloadDisabled}
+                                            iconName="Download"
+                                            title="Download file to local system"
+                                            onClick={onDownload}
+                                        />
+                                    </Tooltip>
+                                    <PrimaryButton
+                                        className={styles.openWithButton}
+                                        iconName="ChevronDownMed"
+                                        text="Open with"
+                                        title="Open file by selected method"
+                                        menuItems={openWithMenuItems}
+                                    />
+                                </div>
+                            </div>
+                            <p className={styles.fileName}>{fileDetails?.name}</p>
                             <div className={styles.thumbnailContainer}>
                                 <FileThumbnail
                                     className={styles.thumbnail}
@@ -209,37 +232,7 @@ export default function FileDetails(props: Props) {
                                     loading={isThumbnailLoading}
                                 />
                             </div>
-                            <Stack
-                                wrap
-                                horizontal
-                                horizontalAlign="center"
-                                styles={{ root: styles.stack }}
-                                tokens={stackTokens}
-                            >
-                                <StackItem>
-                                    <Tooltip content={downloadDisabledMessage}>
-                                        <PrimaryButton
-                                            className={styles.primaryButton}
-                                            disabled={isDownloadDisabled}
-                                            iconName="Download"
-                                            text="Download"
-                                            title="Download file to local system"
-                                            onClick={onDownload}
-                                        />
-                                    </Tooltip>
-                                </StackItem>
-                                <StackItem>
-                                    <PrimaryButton
-                                        className={styles.primaryButton}
-                                        iconName="OpenInNewWindow"
-                                        text="Open file"
-                                        title="Open file by selected method"
-                                        menuItems={openWithMenuItems}
-                                    />
-                                </StackItem>
-                            </Stack>
-                            <p className={styles.fileName}>{fileDetails?.name}</p>
-                            <h4>Information</h4>
+                            <h4>Metadata</h4>
                             <FileAnnotationList
                                 className={styles.annotationList}
                                 fileDetails={fileDetails}

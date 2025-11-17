@@ -33,11 +33,6 @@
 .pagination {
     width: 100%;
     height: var(--pagination-height);
-
-    /* flex parent */
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
 }
 
 .pagination-and-content {
@@ -90,6 +85,7 @@
 .thumbnail-container {
     display: flex;
     justify-content: center;
+    padding-bottom: var(--padding);
 }
 
 .thumbnail {
@@ -141,17 +137,58 @@
 }
 
 .file-name {
-    padding: var(--padding) 0;
+    padding: var(--padding) 0 0;
     text-align: center;
     user-select: text !important;
     word-break: break-all;
 }
 
-.primary-button { 
+.tertiary-button {
+    padding: 3px;
+    margin-right: 5px;
+}
+
+.open-with-button { 
     width: fit-content;
+}
+
+.open-with-button span {
+    /* swap text and icon */
+    flex-direction: row-reverse;
+}
+
+.open-with-button i {
+    /* override primary button defaults */
+    padding: 0 0 0 6px;
 }
 
 .stack {
     width: 100%;
     align-items: center;
+}
+
+.header {
+    border-bottom: 1px solid var(--medium-grey);
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    padding-bottom: var(--margin);
+}
+
+.left-align {
+    display: flex;
+    flex: none;
+    align-items: center;
+}
+
+.gutter {
+    flex: 1;
+}
+
+.right-align {
+    display: flex;
+    flex: none;
+    align-items: center;
+    position: relative;
+    padding: 5px 0;
 }
