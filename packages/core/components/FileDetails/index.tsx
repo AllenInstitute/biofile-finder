@@ -154,7 +154,9 @@ export default function FileDetails(props: Props) {
                 const downloadSizeString = annotationFormatterFactory(
                     AnnotationType.NUMBER
                 ).displayValue(MAX_DOWNLOAD_SIZE_WEB, "bytes");
-                return "File exceeds maximum download size of " + downloadSizeString;
+                return (
+                    "Currently focused file exceeds maximum download size of " + downloadSizeString
+                );
             }
             return "Unable to download file. Upload files to an AWS S3 bucket to enable .zarr downloads";
         }

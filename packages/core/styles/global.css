@@ -90,7 +90,8 @@ body {
     --success-status-text-color: #0CCF4D;
 
     --query-sidebar-max-width: 350px;
-    --file-details-width: 384px;
+    --file-details-width-small: 25%;
+    --file-details-width-med: 35%;
     --margin: 12px;
     --transition-duration: 0.5s;
     --font-family: 'Open Sans', sans-serif;

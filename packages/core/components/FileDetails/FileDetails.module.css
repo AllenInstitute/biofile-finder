@@ -9,7 +9,7 @@
     min-width: 175px;
     max-width: 95%;
     overflow: auto;
-    width: var(--file-details-width); /* defined in App.module.css under .root{} and used by resize handle */
+    width: var(--file-details-width-small); /* defined in global.css and used by resize handle */
 }
 
 .expandable-transition {
@@ -54,7 +54,7 @@
     content: " ";
     height: 50px;
     right: 0;
-    max-width: var(--file-details-width);
+    max-width: var(--file-details-width-small);
     position: absolute;
     width: 100%;
     z-index: 11;
@@ -112,7 +112,7 @@
     cursor: col-resize;
     display: flex;
     height: calc(100% + 12px);
-    right: calc(var(--file-details-width) - var(--resize-handle-width));
+    right: calc(var(--file-details-width-small) - var(--resize-handle-width));
     justify-content: center;
     position: absolute;
     width: var(--resize-handle-width);
@@ -191,4 +191,18 @@
     align-items: center;
     position: relative;
     padding: 5px 0;
+}
+
+@media screen and (max-width: 1500px) { 
+    .root {
+        width: var(--file-details-width-med)
+    }
+
+    .resize-handle {
+        right: calc(var(--file-details-width-med) - var(--resize-handle-width));
+    }
+
+    .overflow-container::after {
+        right: calc(var(--file-details-width-med) - var(--resize-handle-width));
+    }
 }
