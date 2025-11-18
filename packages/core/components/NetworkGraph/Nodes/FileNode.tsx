@@ -1,37 +1,73 @@
+import { Callout } from '@fluentui/react';
 // prettier-ignore
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import classNames from "classnames";
+import { debounce } from 'lodash';
 import React from "react";
+import { useDispatch } from 'react-redux';
 
+import { TertiaryButton } from '../../Buttons';
 import FileThumbnail from "../../FileThumbnail";
-import Tooltip from "../../Tooltip";
 import { ProvenanceNode } from '../../../entity/GraphGenerator';
+import { interaction } from '../../../state';
 
 import styles from "./FileNode.module.css";
 
-// This is a proof-of-concept example of a custom node
-// Note that we are able to apply styling to the node, and can include custom buttons as content
+/**
+ * Custom node element for displaying a File and providing interaction
+ * options related to a file
+ */
 export default function FileNode(props: NodeProps<ProvenanceNode>) {
+    const file = props.data.file;
+    const dispatch = useDispatch();
+    const container = React.useRef<HTMLDivElement>(null);
+    const [isHovered, setIsHovered] = React.useState(false);
+
+    if (!file) {
+        console.error("This should never happen, a <FileNode /> was rendered without a file");
+        return null;
+    }
+    
     return (
-        // TODO: Render all of file metadata in nice tooltip here? or is that on click?
-        <Tooltip content={props.data.file?.name}>
+        <div>
+            {!!isHovered && (
+                <Callout target={container}>
+                    <div>
+                        {file.name}
+                    </div>
+                    <div>
+                        <TertiaryButton
+                            iconName="Plus"
+                            title="Check for more neighbors"
+                            onClick={() => dispatch(interaction.actions.setOriginForProvenance(file)) }
+                        />
+                        <TertiaryButton
+                            iconName="Info"
+                            title="File Details"
+                        />
+                    </div>
+                </Callout>
+            )}
             <div
                 className={classNames(styles.fileNode, {
-                    [styles.currentFile]: props?.data?.isSelected,
+                    [styles.currentFile]: props.data.isSelected,
                 })}
+                onMouseEnter={debounce(() => setIsHovered(true), 1000)}
+                onMouseLeave={() => setIsHovered(false)}
+                ref={container}
             >
                 <Handle type="target" position={Position.Top} isConnectable={false} />
                 <div className={styles.contentContainer}>
                     <FileThumbnail
-                        hideIfEmpty
-                        uri={props.data.file?.thumbnail}
+                        uri={file.thumbnail}
                         height={100}
                         width={100}
                     />
-                    <div className={styles.fileNodeLabel}>{props.data.file?.name}</div>
+                    {/* // TODO: Add toggle to hide file name? */}
+                    <div className={styles.fileNodeLabel}>{file.name}</div>
                 </div>
                 <Handle type="source" position={Position.Bottom} isConnectable={false} />
             </div>
-        </Tooltip>
+        </div>
     );
 }

@@ -19,13 +19,17 @@ export default function RelationshipDiagram({ onDismiss }: ModalProps) {
         return null;
     }
 
-    const body = (
-        <div className={styles.networkGraphContainer}>
-            <NetworkGraph origin={origin} />
-        </div>
-    );
-
     return (
-        <BaseModal body={body} onDismiss={onDismiss} title="Test provenance graph" isFullScreen />
+        <BaseModal
+            isFullScreen
+            body={
+                <NetworkGraph
+                    className={styles.networkGraphContainer}
+                    origin={origin}
+                />
+            }
+            onDismiss={onDismiss}
+            title="Test provenance graph"
+        />
     );
 }

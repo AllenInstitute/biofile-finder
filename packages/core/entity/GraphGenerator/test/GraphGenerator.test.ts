@@ -38,7 +38,8 @@ describe.only("GraphGenerator", () => {
             const origin = mockFileDetail();
 
             // Act
-            const actual = await generator.generate(origin);
+            await generator.generate(origin);
+            const actual = generator.get();
 
             // assert
             expect(actual.edges).to.deep.equal([]);
@@ -63,7 +64,8 @@ describe.only("GraphGenerator", () => {
             ]);
 
             // Act
-            const actual = await generator.generate(origin);
+            await generator.generate(origin);
+            const actual = generator.get();
 
             // assert
             expect(actual.edges).to.deep.equal([]);
@@ -94,7 +96,8 @@ describe.only("GraphGenerator", () => {
             ]);
 
             // Act
-            const actual = await generator.generate(origin);
+            await generator.generate(origin);
+            const actual = generator.get();
 
             // assert
             expect(actual.edges).to.be.lengthOf(2);
@@ -141,7 +144,8 @@ describe.only("GraphGenerator", () => {
             ]);
 
             // Act
-            const actual = await generator.generate(origin);
+            await generator.generate(origin);
+            const actual = generator.get();
 
             // assert
             expect(actual.edges).to.be.lengthOf(1);

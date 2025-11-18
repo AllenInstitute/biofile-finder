@@ -36,7 +36,8 @@ import {
     SET_COLUMNS,
     COLLAPSE_ALL_FILE_FOLDERS,
     TOGGLE_NULL_VALUE_GROUPS,
-    CHANGE_SOURCE_PROVENANCE,
+    CHANGE_PROVENANCE_SOURCE,
+    ChangeProvenanceSource,
 } from "./actions";
 import interaction from "../interaction";
 import { FileView, Source } from "../../entity/SearchParams";
@@ -140,13 +141,13 @@ export default makeReducer<SelectionStateBranch>(
             fileSelection: new FileSelection(),
             openFileFolders: [],
         }),
+        [CHANGE_PROVENANCE_SOURCE]: (state, action: ChangeProvenanceSource) => ({
+            ...state,
+            sourceProvenance: action.payload,
+        }),
         [CHANGE_SOURCE_METADATA]: (state, action) => ({
             ...state,
             sourceMetadata: action.payload,
-        }),
-        [CHANGE_SOURCE_PROVENANCE]: (state, action) => ({
-            ...state,
-            sourceProvenance: action.payload,
         }),
         [ADD_QUERY]: (state, action) => ({
             ...state,

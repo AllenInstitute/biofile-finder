@@ -187,7 +187,7 @@ export default function FileDetails(props: Props) {
 
     const onClickProvenance = React.useCallback(async () => {
         if (fileDetails) {
-            dispatch(interaction.actions.constructProvenanceGraph(fileDetails));
+            dispatch(interaction.actions.setOriginForProvenance(fileDetails));
         }
     }, [dispatch, fileDetails]);
 

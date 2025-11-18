@@ -1,5 +1,6 @@
 import { ReactFlow, EdgeTypes } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import classNames from "classnames";
 import React from "react";
 import { useSelector } from "react-redux";
 
@@ -14,6 +15,7 @@ import styles from "./NetworkGraph.module.css";
 
 
 interface NetworkGraphProps {
+    className?: string;
     origin: FileDetail;
 }
 
@@ -41,7 +43,7 @@ export default function NetworkGraph(props: NetworkGraphProps) {
     }, [graphGenerator, origin]);
 
     return (
-        <div className={styles.graphContainer}>
+        <div className={classNames(props.className, styles.graphContainer)}>
             <ReactFlow
                 // TODO: Use the below thing to focus in on the node selected
                 autoPanOnNodeFocus

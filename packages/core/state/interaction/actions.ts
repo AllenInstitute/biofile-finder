@@ -868,20 +868,20 @@ export function setConvertFilesSnippet(payload?: {
 }
 
 /**
- * CONSTRUCT_PROVENANCE_GRAPH
+ * SET_ORIGIN_FOR_PROVENANCE
  *
- * Intention to construct the nodes and edges for the provenance graph
+ * Intention to set origin file for the provenance graph
  */
-export const CONSTRUCT_PROVENANCE_GRAPH = makeConstant(STATE_BRANCH_NAME, "construct-provenance");
+export const SET_ORIGIN_FOR_PROVENANCE = makeConstant(STATE_BRANCH_NAME, "set-origin-for-provenance");
 
-export interface ConstructProvenanceGraph {
+export interface SetOriginForProvenance {
     payload: FileDetail;
     type: string;
 }
 
-export function constructProvenanceGraph(origin: FileDetail): ConstructProvenanceGraph {
+export function setOriginForProvenance(origin: FileDetail): SetOriginForProvenance {
     return {
         payload: origin,
-        type: CONSTRUCT_PROVENANCE_GRAPH,
+        type: SET_ORIGIN_FOR_PROVENANCE,
     };
 }

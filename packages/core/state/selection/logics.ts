@@ -40,9 +40,9 @@ import {
     CHANGE_SOURCE_METADATA,
     ChangeSourceMetadataAction,
     changeSourceMetadata,
-    CHANGE_SOURCE_PROVENANCE,
-    ChangeSourceProvenanceAction,
-    changeSourceProvenance,
+    CHANGE_PROVENANCE_SOURCE,
+    ChangeProvenanceSource,
+    changeProvenanceSource,
     setRequiresDataSourceReload,
     addDataSourceReloadError,
     removeDataSourceReloadError,
@@ -436,7 +436,7 @@ const decodeSearchParamsLogics = createLogic({
 
         batch(() => {
             dispatch(changeSourceMetadata(sourceMetadata));
-            dispatch(changeSourceProvenance(sourceProvenance));
+            dispatch(changeProvenanceSource(sourceProvenance));
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
             columns && dispatch(setColumns(columns));
@@ -649,12 +649,12 @@ const changeSourceMetadataLogic = createLogic({
 });
 
 /**
- * Interceptor responsible for passing the CHANGE_SOURCE_PROVENANCE action to the database service.
+ * Interceptor responsible for passing the CHANGE_PROVENANCE_SOURCE action to the database service.
  */
-const changeSourceProvenanceLogic = createLogic({
-    type: CHANGE_SOURCE_PROVENANCE,
+const changeProvenanceSourceLogic = createLogic({
+    type: CHANGE_PROVENANCE_SOURCE,
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { payload: selectedSourceProvenance } = deps.action as ChangeSourceProvenanceAction;
+        const { payload: selectedSourceProvenance } = deps.action as ChangeProvenanceSource;
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
@@ -874,7 +874,7 @@ export default [
     setAvailableAnnotationsLogic,
     changeDataSourceLogic,
     changeSourceMetadataLogic,
-    changeSourceProvenanceLogic,
+    changeProvenanceSourceLogic,
     addQueryLogic,
     replaceDataSourceLogic,
     setDataSourceReloadErrorLogic,

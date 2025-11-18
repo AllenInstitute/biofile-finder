@@ -31,8 +31,8 @@ import {
     SET_EXTRACT_METADATA_PYTHON_SNIPPET,
     SET_CONVERT_FILES_SNIPPET,
     SetVisibleModalAction,
-    ConstructProvenanceGraph,
-    CONSTRUCT_PROVENANCE_GRAPH,
+    SetOriginForProvenance,
+    SET_ORIGIN_FOR_PROVENANCE,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -119,11 +119,6 @@ export const initialState: InteractionStateBranch = {
 
 export default makeReducer<InteractionStateBranch>(
     {
-        [CONSTRUCT_PROVENANCE_GRAPH]: (state, action: ConstructProvenanceGraph) => ({
-            ...state,
-            originForProvenance: action.payload,
-            visibleModal: ModalType.RelationshipDiagram,
-        }),
         [MARK_AS_USED_APPLICATION_BEFORE]: (state) => ({
             ...state,
             hasUsedApplicationBefore: true,
@@ -194,6 +189,11 @@ export default makeReducer<InteractionStateBranch>(
         [INITIALIZE_APP]: (state, action) => ({
             ...state,
             environment: action.payload.environment,
+        }),
+        [SET_ORIGIN_FOR_PROVENANCE]: (state, action: SetOriginForProvenance) => ({
+            ...state,
+            originForProvenance: action.payload,
+            visibleModal: ModalType.RelationshipDiagram,
         }),
         [SET_VISIBLE_MODAL]: (state, action: SetVisibleModalAction) => ({
             ...state,
