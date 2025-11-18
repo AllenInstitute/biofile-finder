@@ -5,11 +5,13 @@
 
 .file-node {
   width: calc(100px + 10px + 10px + 2px);
+  background-color: var(--primary-dark);
+  border: 1px solid var(--primary-text-color);
+  color: var(--primary-text-color);
   padding: 10px;
   border-radius: 5px;
   overflow-wrap: anywhere;
   white-space: normal;
-  background: var(--info-status-background-color);
   display: flex;
 }
 
@@ -34,7 +36,7 @@
 }
 
 .current-file {
-  background: var(--aqua);
+  border: 1px solid var(--aqua);
 }
 
 .current-file > a {

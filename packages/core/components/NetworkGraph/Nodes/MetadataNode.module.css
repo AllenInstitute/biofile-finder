@@ -5,7 +5,8 @@
 
 .file-node {
     width: 200px;
-    border: 1px solid var(--accent-dark);
+    border: 1px solid var(--primary-text-color);
+    color: var(--primary-text-color);
     padding: 10px;
     border-radius: 5px;
     overflow-wrap: anywhere;
