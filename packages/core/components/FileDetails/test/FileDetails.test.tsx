@@ -51,7 +51,7 @@ describe("<FileDetails />", () => {
         await logicMiddleware.whenComplete();
 
         // Assert
-        const tooltip = await findByText(/File exceeds maximum download size/);
+        const tooltip = await findByText(/Currently focused file exceeds maximum download size/);
         expect(tooltip).to.exist;
         expect(getByTestId(/download-file-button/).closest("button")?.disabled).to.be.true;
         expect(queryByText(/Download file to local system/)).to.not.exist;

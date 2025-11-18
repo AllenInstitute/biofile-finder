@@ -40,8 +40,9 @@ export default function Pagination(props: PaginationProps) {
 
     return (
         <div
+            data-testid="pagination-root"
             className={classNames(styles.root, props.className, {
-                [styles.hidden]: fileSelection.count() === 1,
+                [styles.hidden]: fileSelection.count() <= 1,
             })}
         >
             <div className={styles.alignCenter}>
