@@ -1,10 +1,16 @@
+import dagre from "@dagrejs/dagre";
 import { Edge, Node } from "@xyflow/react";
+import { RefObject } from "react";
 
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import FileService, { FmsFileAnnotation } from "../../services/FileService";
 
+
+// TODO: Currently arbitrary placeholder values
+const NODE_WIDTH = 180;
+const NODE_HEIGHT = 36;
 
 export enum EdgeType {
     DEFAULT = "default",
@@ -54,6 +60,11 @@ interface FileNode extends ProvenanceNode {
         isSelected: boolean;
     };
     type: NodeType.FILE;
+}
+
+export interface Graph {
+    nodes: (FileNode | MetadataNode)[];
+    edges: Edge[]
 }
 
 /**
@@ -144,6 +155,13 @@ export default class GraphGenerator {
         );
     }
 
+    public get(): Graph {
+        return {
+            edges: Object.values(this.edgeMap),
+            nodes: Object.values(this.nodeMap)
+        };
+    }
+
     /**
      * This function takes a file as input to use as the origin of the graph
      * and builds the relationship graph from there by querying for related
@@ -153,10 +171,118 @@ export default class GraphGenerator {
         this.numberOfNodesAfforded += 25;
         const origin = createFileNode(file, true);
         await this.expand(origin);
-        return {
-            edges: Object.values(this.edgeMap),
-            nodes: Object.values(this.nodeMap)
-        };
+        this.reposition();
+    }
+
+    /**
+     * Position nodes within graph according to edge connections and
+     * height/width of individual nodes
+     */
+    private reposition() {
+        const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+                
+        // Graph customization
+        // - direction: top to bottom (as opposed to left/right)
+        // - (node/rank)sep: distance between individual nodes and between each generation of nodes
+        dagreGraph.setGraph({ rankdir: "TB" });
+        const nodes = Object.values(this.nodeMap);
+        let edges = Object.values(this.edgeMap);
+        nodes.forEach((node) => {
+            dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+        });
+
+        edges.forEach((edge) => {
+            dagreGraph.setEdge(edge.source, edge.target);
+        });
+
+        dagre.layout(dagreGraph);
+
+        const rightClickedValue = "Well Label";
+        const matchingNodes = nodes.filter(node => node.data.annotation?.name === rightClickedValue);
+        const successorsToRemoved: { [key: string]: Node } = {}; 
+        const successorsToPredecessors = matchingNodes.reduce((mapSoFar, node) => {
+            const predecessors = dagreGraph.predecessors(node.id) || [];
+            const successors = dagreGraph.successors(node.id) || [];
+            successors?.forEach(successor => {
+                mapSoFar[successor] = predecessors;
+                successorsToRemoved[successor] = node;
+            });
+            predecessors?.forEach(predecessor => {
+                mapSoFar[predecessor] = successors;
+            });
+            return mapSoFar;
+        }, {} as { [key: string]: string[] });
+
+        const childrenOfRemoved: string[] = [];
+        nodes.forEach((node) => {
+            const nodeWithPosition = dagreGraph.node(node.id);
+
+            // Shift the dagre node position (anchor=center center) to the top left
+            // so it matches the React Flow node anchor point (top left).
+            const x = nodeWithPosition.x - nodeWithPosition.width / 2;
+            const y = (nodeWithPosition.rank || 1) * (nodeWithPosition.height * 1.75);
+
+            // TODO: Add button or similar to make a grid view possible that 
+            // would make the files line up in a grid according to X field
+            // OHHH MAYBE THIS IS A RIGHT-CLICK OPTION AVAILABLE ON METADATA NODES
+            // WHEN CLICKED IT WOULD ARRANGE THE CHILDREN INTO A GRID
+
+            const isFileNode = !!node.data.file;
+            const rightClickedValue = "Well Label";
+            const isRightClickedValue = node.data.annotation?.name === rightClickedValue;
+            if (isRightClickedValue) {
+                // re-target edges relating to this guy
+                // graph.edges = graph.edges.map(edge => {
+                //     if (edge.source === node.id) {
+                //         console.log("before", edge.source);
+                //         console.log("predecessors", dagreGraph.predecessors(node.id)?.[0])
+                //         edge.source = dagreGraph.predecessors(node.id)?.[0] || node.id;
+                //         console.log("after", edge.source);
+                //     } else if (edge.target === node.id) {
+                //         edge.target = dagreGraph.successors(node.id)?.[0] || node.id;
+                //     }
+                //     return edge;
+                // });
+                edges = edges.map(edge => {
+                    if (edge.source === node.id) {
+                        console.log("before", edge.source);
+                        console.log("predecessors", dagreGraph.predecessors(node.id)?.[0])
+                        edge.source = dagreGraph.predecessors(node.id)?.[0] || node.id;
+                        console.log("after", edge.source);
+                    } else if (edge.target === node.id) {
+                        childrenOfRemoved.push(node.id);
+                        edge.target = dagreGraph.successors(node.id)?.[0] || node.id;
+                    }
+                    return edge;
+                });
+                return [];
+            }
+            if (node.id in successorsToRemoved) {
+                const removedNode = successorsToRemoved[node.id];
+                // TODO: Curious attr rx and ry to look inot
+                const removedValue = (removedNode.data.annotation as FmsFileAnnotation).values?.[0] as string || "";
+                const verticalPosition = parseInt(removedValue.charAt(1), 10);
+                const horizontalPosition = removedValue.charAt(0) === "A"
+                    ? 1
+                    : 2;
+                const horizontalStep = 43 + NODE_WIDTH;
+                const verticalStep = 90 + NODE_HEIGHT;
+                console.log("removedNode.position.y", removedNode.position.y, removedNode.position.y + (verticalStep * verticalPosition) - (verticalStep * 0))
+                console.log("removedNode.position.x", removedNode.position.x, removedNode.position.x + (horizontalStep * horizontalPosition) - (horizontalStep * 0))
+                return {
+                    ...node,
+                    position: {
+                        y: y + (verticalStep * verticalPosition) - (verticalStep * 0),
+                        x: x + (horizontalStep * horizontalPosition) - (horizontalStep * 0) ,
+                    }
+                }
+            }
+
+            return [{
+                ...node,
+                position: { x, y, },
+            }];
+        });
     }
 
     /**
