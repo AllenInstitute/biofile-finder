@@ -53,7 +53,7 @@ export default function DataSourcePrompt(props: Props) {
     const onSubmit = (dataSource: Source, metadataSource?: Source) => {
         if (sourceType === DataSourceType.provenance) {
             if (dataSource) {
-                dispatch(selection.actions.changeSourceProvenance(dataSource));
+                dispatch(selection.actions.changeProvenanceSource(dataSource));
             }
             // To do: include provenance source in query as with metadatasource
             return onDismiss();

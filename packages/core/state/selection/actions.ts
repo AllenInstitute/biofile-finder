@@ -667,21 +667,21 @@ export function changeSourceMetadata(source?: Source): ChangeSourceMetadataActio
 }
 
 /**
- * CHANGE_SOURCE_PROVENANCE
+ * CHANGE_PROVENANCE_SOURCE
  *
  * Intention to update the source file supplying provenance info about the selected data sources
  */
-export const CHANGE_SOURCE_PROVENANCE = makeConstant(STATE_BRANCH_NAME, "change-source-provenance");
+export const CHANGE_PROVENANCE_SOURCE = makeConstant(STATE_BRANCH_NAME, "change-provenance-source");
 
-export interface ChangeSourceProvenanceAction {
+export interface ChangeProvenanceSource {
     payload?: Source;
     type: string;
 }
 
-export function changeSourceProvenance(source?: Source): ChangeSourceProvenanceAction {
+export function changeProvenanceSource(source?: Source): ChangeProvenanceSource {
     return {
         payload: source,
-        type: CHANGE_SOURCE_PROVENANCE,
+        type: CHANGE_PROVENANCE_SOURCE,
     };
 }
 

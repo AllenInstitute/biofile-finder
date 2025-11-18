@@ -705,12 +705,17 @@ const refresh = createLogic({
             const { getState } = deps;
             const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
             const annotationService = interactionSelectors.getAnnotationService(getState());
+            const { databaseService } = interactionSelectors.getPlatformDependentServices(getState());
 
             // Refresh list of annotations & which annotations are available
             const [annotations, availableAnnotations] = await Promise.all([
                 annotationService.fetchAnnotations(),
                 annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy),
             ]);
+            const provenanceSource = databaseService.sourceProvenanceName
+                ? { name: databaseService.sourceProvenanceName }
+                : undefined
+            dispatch(selection.actions.changeProvenanceSource(provenanceSource))
             dispatch(metadata.actions.receiveAnnotations(annotations));
             dispatch(selection.actions.setAvailableAnnotations(availableAnnotations));
         } catch (err) {

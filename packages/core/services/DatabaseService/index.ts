@@ -1,5 +1,5 @@
 import axios from "axios";
-import { isEmpty, uniqWith } from "lodash";
+import { isEmpty, mapKeys } from "lodash";
 
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import Annotation from "../../entity/Annotation";
@@ -37,7 +37,7 @@ export default abstract class DatabaseService {
         DatabaseService.OPEN_FILE_LINK_TYPE,
     ]);
     private sourceMetadataName?: string;
-    private sourceProvenanceName?: string;
+    public sourceProvenanceName?: string;
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
@@ -184,7 +184,7 @@ export default abstract class DatabaseService {
         this.sourceMetadataName = sourceMetadata.name;
     }
 
-    public async prepareSourceProvenance(sourceProvenance: Source): Promise<void> {
+    private async prepareSourceProvenance(sourceProvenance: Source): Promise<void> {
         const isPreviousSource = sourceProvenance.name === this.sourceProvenanceName;
         if (isPreviousSource) {
             return;
@@ -486,48 +486,65 @@ export default abstract class DatabaseService {
         await this.execute(this.getUpdateHiddenUIDSQL(viewName));
     }
 
-    public async processProvenance(dataSourceNames: string[]) {
-        // no provenance data
-        if (!this.existingDataSources.has(this.SOURCE_PROVENANCE_TABLE)) {
-            return {};
-        }
-        const aggregateDataSourceName = dataSourceNames.sort().join(", ");
-        // To do: situation where this would be true/action to take?
-        // const hasEdgeDefinitions = this.dataSourceToProvenanceMap.has(aggregateDataSourceName);
-        const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
+    public async processProvenance(provenanceSource: Source): Promise<EdgeDefinition[]> {
+        await this.prepareSourceProvenance(provenanceSource);
+
+        const sql = new SQLBuilder()
+            .select("*")
+            .from(`${this.SOURCE_PROVENANCE_TABLE}`)
+            .toSQL();
         try {
-            // Get list of edge definitions for provenance schema
             const rows = await this.query(sql);
-            // TODO: Validate this on input - then just rely on typing to assume this is correct
-            // fully defined
-            const edges = rows.map((row) => ({
-                relationship: row["Relationship"],
-                parent: {
-                    name: row["Parent"],
-                    type: row["Parent Type"]
-                },
-                child: {
-                    name: row["Child"],
-                    type: row["Child Type"]
-                },
-            }));
-            // TODO: uniqWith...? is this used right...?
-            this.dataSourceToProvenanceMap.set(aggregateDataSourceName, uniqWith(edges));
+            const parentsAndChildren = new Set<string>();
+            return rows.map((row) => (
+                Object.keys(row)
+                    .reduce((mapSoFar, key) => ({
+                        ...mapSoFar,
+                        [key.toLowerCase().trim()]: typeof row[key] !== 'object'
+                            ? row[key]
+                            : mapKeys(row[key], (_value, innerKey) => (
+                                innerKey.toLowerCase().trim()
+                            ))
+                    }), {} as Record<string, any>)
+                )).map(row => {
+                    try {
+                        const parentAndChildKey = `${row["parent"]}-${row["child"]}`;
+                        if (parentsAndChildren.has(parentAndChildKey)) {
+                            throw new Error(`Parent (${row["parent"]}) and Child (${row["child"]}) combination found multiple times`);
+                        }
+
+                        parentsAndChildren.add(parentAndChildKey);
+                        return {
+                            relationship: row["relationship"],
+                            parent: {
+                                name: row["parent"],
+                                type: row["parent type"]
+                            },
+                            child: {
+                                name: row["child"],
+                                type: row["child type"]
+                            },
+                        }
+                    } catch (err) {
+                        if ((err as Error).message.includes("key")) {
+                            throw new Error(
+                                `Unexpected format for provenance data. Check the documentation
+                                for what BFF expects provenance data to look like.
+                                Error: ${(err as Error).message}`
+                            );
+                        }
+                        throw err;
+                    }
+                });
         } catch (err) {
             // Source provenance file may not have been supplied
             // and/or the columns may not exist
             const errMsg = typeof err === "string" ? err : err instanceof Error ? err.message : "";
             if (errMsg.includes("does not exist") || errMsg.includes("not found in FROM clause")) {
-                return {};
+                return [];
             }
             throw err;
         }
-        return this.dataSourceToProvenanceMap.get(aggregateDataSourceName) || [];
-    }
-
-    public async fetchProvenanceDefinitions(dataSourceNames: string[]): Promise<EdgeDefinition[]> {
-        const aggregateDataSourceName = dataSourceNames.sort().join(", ");
-        return this.dataSourceToProvenanceMap.get(aggregateDataSourceName) || [];
     }
 
     public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {

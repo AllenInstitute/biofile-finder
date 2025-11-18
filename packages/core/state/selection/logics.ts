@@ -653,26 +653,25 @@ const changeSourceMetadataLogic = createLogic({
  */
 const changeSourceProvenanceLogic = createLogic({
     type: CHANGE_SOURCE_PROVENANCE,
-    async process(deps: ReduxLogicDeps, _dispatch, done) {
+    async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: selectedSourceProvenance } = deps.action as ChangeSourceProvenanceAction;
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
-        if (selectedSourceProvenance) {
-            await databaseService.prepareSourceProvenance(selectedSourceProvenance);
-        } else {
-            await databaseService.deleteSourceProvenance();
-        }
-        const existingDataSources = selection.selectors.getSelectedDataSources(deps.getState());
 
         try {
-            await databaseService.processProvenance(
-                existingDataSources.map((source) => source.name)
-            );
+            if (selectedSourceProvenance) {
+                const edgeDefinitions = await databaseService.processProvenance(selectedSourceProvenance);
+                dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
+            } else {
+                await databaseService.deleteSourceProvenance();
+                dispatch(metadata.actions.receiveEdgeDefinitions([]));
+            }
         } catch (err) {
-            // To do: error handling
-            console.error("Failed to fetch provenance", err);
+            const msg = `Failed processing provenance. Error: ${(err as Error).message}`
+            dispatch(interaction.actions.processError("provenanceIngestionError", msg));
         }
+
         done();
     },
 });
