@@ -2,6 +2,7 @@ import { ContextualMenuItemType, DefaultButton, Icon, IContextualMenuItem } from
 import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { v4 as uuidv4 } from "uuid";
 
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
@@ -327,24 +328,50 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
 
         const openUrl = new URL(VOLE_BASE_URL);
 
+        // Start on the focused scene
+        const sceneIdx = details.findIndex((detail) => detail.path === fileDetails?.path);
+        if (sceneIdx > 0) {
+            openUrl.searchParams.append("scene", sceneIdx.toString());
+        }
+
         // Prefer putting the image URLs directly in the query string for easy sharing, if the
         // length of the URL would be reasonable
         const includeUrls =
             details.length <= 5 ||
             details.reduce((acc, detail) => acc + detail.path.length + 1, 0) <= 250;
+
         if (includeUrls) {
+            // We can fit all the URLs we want
             openUrl.searchParams.append("url", details.map(({ path }) => path).join("+"));
+        } else {
+            // There are more scene URLs than we want to put in the full path.
+            // Just include the first one and a hint to how many scenes we're opening;
+            // send the rest with `postMessage`.
+            const initialImageUrl = details[Math.max(sceneIdx, 0)].path;
+            openUrl.searchParams.append("url", initialImageUrl);
+            openUrl.searchParams.append("msgscenes", details.length.toString());
         }
 
-        // Start on the focused scene
-        const sceneIdx = details.findIndex((detail) => detail.path === fileDetails?.path);
-        if (sceneIdx < 1) {
-            openUrl.searchParams.append("scene", sceneIdx.toString());
-        }
+        // with these params present, Vol-E will send back `msgid` when ready for more urls/meta
+        // TODO disable when unnecessary (`includeUrls` && no metadata)
+        const msgid = uuidv4();
+        // TODO remove this and replace with "*" origin?
+        openUrl.searchParams.append("msgorigin", window.location.origin);
+        openUrl.searchParams.append("msgid", msgid);
 
         const voleHandle = window.open(openUrl);
-        // TODO
-        window.setTimeout(() => voleHandle?.postMessage({ scenes, meta }, VOLE_BASE_URL), 5000);
+        const voleLoadHandler = (event: MessageEvent): void => {
+            if (event.origin !== openUrl.origin || event.data !== msgid) {
+                return;
+            }
+            // TODO should be more adaptive with whether scenes needs to come along
+            //   (based on `includeUrls`)
+            voleHandle?.postMessage({ scenes, meta }, VOLE_BASE_URL);
+            window.removeEventListener("message", voleLoadHandler);
+        };
+
+        window.addEventListener("message", voleLoadHandler);
+        window.setTimeout(() => window.removeEventListener("message", voleLoadHandler), 60000);
     }, [fileDetails, fileSelection]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
