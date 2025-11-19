@@ -1,4 +1,5 @@
 .custom-edge {
+  cursor: default;
   padding: 5px 10px;
   position: absolute;
   color: var(--primary-text-color);
@@ -6,15 +7,8 @@
   font-weight: 400;
 }
 
-.custom-edge svg {
-  stroke: var(--primary-text-color);
-}
 
-.custom-edge:hover svg {
-  stroke: var(--bright-aqua);
-}
-
-/* TODO: This won't work */
+/* TODO: Does this work? */
 .custom-edge a {
   color: var(--aqua);
   pointer-events: all;

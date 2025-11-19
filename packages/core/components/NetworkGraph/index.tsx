@@ -33,35 +33,33 @@ export default function NetworkGraph(props: NetworkGraphProps) {
     const [graph, setGraph] = React.useState<Graph>({ nodes: [], edges: [] });
 
     React.useEffect(() => {
-        console.log('generate');
-        async function generate() {
-            await graphGenerator.generate(props.origin);
-            setGraph(graphGenerator.get());
-        }
-        generate();
+        graphGenerator.generate(props.origin)
+            .then(() => {
+                setGraph(graphGenerator.get())
+            });
     }, [graphGenerator, origin]);
 
     return (
         <div className={props.className}>
             <ReactFlow
-                // TODO: Use the below thing to focus in on the node selected
-                autoPanOnNodeFocus
-                proOptions={{ hideAttribution: true }}
-                onlyRenderVisibleElements
-                reconnectRadius={0}
                 className={styles.graph}
                 fitView
-                colorMode="dark"
+                nodesDraggable
+                elementsSelectable
+                autoPanOnNodeFocus
+                elevateNodesOnSelect
+                onlyRenderVisibleElements
                 edgesFocusable={false}
-                edgesReconnectable={false}
-                elementsSelectable={false}
-                nodesDraggable={true}
                 nodesConnectable={false}
                 nodesFocusable={false}
+                edgesReconnectable={false}
+                colorMode="dark"
+                reconnectRadius={0}
                 nodes={graph.nodes}
                 edges={graph.edges}
                 edgeTypes={EDGE_TYPES}
                 nodeTypes={NODE_TYPES}
+                proOptions={{ hideAttribution: true }}
             />
         </div>
     );

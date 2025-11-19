@@ -4,7 +4,6 @@ import {
     BaseEdge,
     EdgeProps,
     Edge,
-    MarkerType,
 } from "@xyflow/react";
 import Markdown from "markdown-to-jsx";
 import React, { FC } from "react";
@@ -44,7 +43,7 @@ const DefaultEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
     // Uses the default edge component, but allows us to apply styling or hyperlinks and change the location of the label
     return (
         <>
-            <BaseEdge id={id} path={edgePath} markerEnd={MarkerType.ArrowClosed} />
+            <BaseEdge id={id} path={edgePath} />
             <EdgeLabelRenderer>
                 <div
                     style={{

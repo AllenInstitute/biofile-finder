@@ -27,6 +27,12 @@ export default function RelationshipDiagram() {
         <Panel
             className={styles.panel}
             isOpen={!!origin}
+            focusTrapZoneProps={{
+                disableFirstFocus: true,
+                elementToFocusOnDismiss: undefined,
+                focusPreviouslyFocusedInnerElement: false,
+                ignoreExternalFocusing: true
+            }}
             hasCloseButton={false}
             type={PanelType.smallFluid}
             styles={{
@@ -38,7 +44,6 @@ export default function RelationshipDiagram() {
             {!!origin && (
                 <>
                     <div className={styles.header}>
-                        {/* TODO: unfocus this */}
                         <PrimaryButton
                             iconName="Back"
                             text="Back"
