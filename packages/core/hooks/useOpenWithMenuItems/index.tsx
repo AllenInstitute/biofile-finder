@@ -38,6 +38,7 @@ interface Apps {
 
 type AppOptions = {
     openInCfe: () => void;
+    openInVole: () => void;
 };
 
 const SUPPORTED_APPS_HEADER = {
@@ -160,7 +161,7 @@ const APPS = (
         key: AppKeys.VOLE,
         text: "Vol-E",
         title: `Open files with Vol-E`,
-        href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.path}/`,
+        onClick: options?.openInVole,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -299,6 +300,53 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         fileService
     );
 
+    // TODO custom hook this, like `useOpenInCfe`?
+    const openInVole = React.useCallback(async () => {
+        // TODO change to vole.allencell.org
+        const VOLE_BASE_URL = "http://localhost:9020/viewer";
+
+        const allDetails = await fileSelection.fetchAllDetails();
+        const details = allDetails.filter((detail) => {
+            const fileExt = getFileExtension(detail);
+            return fileExt === "zarr" || fileExt === "";
+        });
+
+        const scenes: string[] = [];
+        const meta: Record<string, Record<string, unknown>> = {};
+
+        for (const detail of details) {
+            const sceneMeta: Record<string, unknown> = {};
+            for (const annotation of detail.annotations) {
+                const isSingleValue = annotation.values.length === 1;
+                const value = isSingleValue ? annotation.values[0] : annotation.values;
+                sceneMeta[annotation.name] = value;
+            }
+            scenes.push(detail.path);
+            meta[detail.path] = sceneMeta;
+        }
+
+        const openUrl = new URL(VOLE_BASE_URL);
+
+        // Prefer putting the image URLs directly in the query string for easy sharing, if the
+        // length of the URL would be reasonable
+        const includeUrls =
+            details.length <= 5 ||
+            details.reduce((acc, detail) => acc + detail.path.length + 1, 0) <= 250;
+        if (includeUrls) {
+            openUrl.searchParams.append("url", details.map(({ path }) => path).join("+"));
+        }
+
+        // Start on the focused scene
+        const sceneIdx = details.findIndex((detail) => detail.path === fileDetails?.path);
+        if (sceneIdx < 1) {
+            openUrl.searchParams.append("scene", sceneIdx.toString());
+        }
+
+        const voleHandle = window.open(openUrl);
+        // TODO
+        window.setTimeout(() => voleHandle?.postMessage({ scenes, meta }, VOLE_BASE_URL), 5000);
+    }, [fileDetails, fileSelection]);
+
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
         () =>
@@ -365,7 +413,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const apps = APPS(fileDetails, { openInCfe });
+    const apps = APPS(fileDetails, { openInCfe, openInVole });
 
     // Determine is the file is small or not asynchronously
     React.useEffect(() => {
