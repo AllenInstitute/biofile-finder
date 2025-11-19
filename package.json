@@ -95,6 +95,7 @@
     "redux": "4.0.x",
     "redux-logic": "3.x",
     "reselect": "4.0.x",
-    "string-natural-compare": "3.0.x"
+    "string-natural-compare": "3.0.x",
+    "uuid": "^13.0.0"
   }
 }
