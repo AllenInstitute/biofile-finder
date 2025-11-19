@@ -1,8 +1,3 @@
-.graph-container { 
-  width: 100%; 
-  height: 100%;
-}
-
 .graph {
   background-color: var(--primary-dark);
 }

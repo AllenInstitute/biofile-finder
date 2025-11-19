@@ -198,7 +198,6 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             fileFiltersForVisibleModal: action.payload.fileFiltersForVisibleModal,
             visibleModal: action.payload.visibleModal,
-            originForProvenance: undefined,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action: ShowManifestDownloadDialogAction) => ({
             ...state,

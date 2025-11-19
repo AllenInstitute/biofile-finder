@@ -197,21 +197,21 @@ export default class GraphGenerator {
 
         dagre.layout(dagreGraph);
 
-        const rightClickedValue = "Well Label";
-        const matchingNodes = nodes.filter(node => node.data.annotation?.name === rightClickedValue);
+        // const rightClickedValue = "Well Label";
+        // const matchingNodes = nodes.filter(node => node.data.annotation?.name === rightClickedValue);
         const successorsToRemoved: { [key: string]: Node } = {}; 
-        const successorsToPredecessors = matchingNodes.reduce((mapSoFar, node) => {
-            const predecessors = dagreGraph.predecessors(node.id) || [];
-            const successors = dagreGraph.successors(node.id) || [];
-            successors?.forEach(successor => {
-                mapSoFar[successor] = predecessors;
-                successorsToRemoved[successor] = node;
-            });
-            predecessors?.forEach(predecessor => {
-                mapSoFar[predecessor] = successors;
-            });
-            return mapSoFar;
-        }, {} as { [key: string]: string[] });
+        // const successorsToPredecessors = matchingNodes.reduce((mapSoFar, node) => {
+        //     const predecessors = dagreGraph.predecessors(node.id) || [];
+        //     const successors = dagreGraph.successors(node.id) || [];
+        //     successors?.forEach(successor => {
+        //         mapSoFar[successor] = predecessors;
+        //         successorsToRemoved[successor] = node;
+        //     });
+        //     predecessors?.forEach(predecessor => {
+        //         mapSoFar[predecessor] = successors;
+        //     });
+        //     return mapSoFar;
+        // }, {} as { [key: string]: string[] });
 
         const childrenOfRemoved: string[] = [];
         nodes.forEach((node) => {
@@ -221,6 +221,9 @@ export default class GraphGenerator {
             // so it matches the React Flow node anchor point (top left).
             const x = nodeWithPosition.x - nodeWithPosition.width / 2;
             const y = (nodeWithPosition.rank || 1) * (nodeWithPosition.height * 1.75);
+
+            node.position = { x, y, };
+            return;
 
             // TODO: Add button or similar to make a grid view possible that 
             // would make the files line up in a grid according to X field
@@ -305,8 +308,6 @@ export default class GraphGenerator {
         this.nodeMap[thisNode.id] = thisNode;
         this.numberOfNodesAfforded -= 1;
 
-        // TODO: perhaps this should only stop when it hits a file and never
-        // when it is an entity
         await Promise.all(
             this.edgeDefinitions.map(async (edgeDefinition) => {
                 if (!thisNode.data.file) {
@@ -318,38 +319,38 @@ export default class GraphGenerator {
                             thisNode as MetadataNode, edgeDefinition, edgeDefinition.child
                         )
                     ]);
-                    return;
-                }
+                } else {
+                    const [parentNodes, childNodes] = await Promise.all([
+                        this.getFileNodeConnections(
+                            thisNode as FileNode, edgeDefinition.parent, true
+                        ),
+                        this.getFileNodeConnections(
+                            thisNode as FileNode, edgeDefinition.child
+                        )
+                    ]);
 
-                const [parentNodes, childNodes] = await Promise.all([
-                    this.getFileNodeConnections(
-                        thisNode as FileNode, edgeDefinition.parent, true
-                    ),
-                    this.getFileNodeConnections(
-                        thisNode as FileNode, edgeDefinition.child
-                    )
-                ]);
-                // Only generate the edge if the parent and child node both exist
-                // (otherwise what is there even to connect)
-                if (!!parentNodes.length && !!childNodes.length) {
-                    // Expand child and parent nodes recursively
-                    await Promise.all(
-                        [...parentNodes, ...childNodes]
-                        .map(node => this.expand(node))
-                    );
-
-                    // For each combination of parent and node,
-                    // add an edge
-                    parentNodes.forEach(parentNode => {
-                        childNodes.forEach(childNode => {
-                            const edge = createEdge({
-                                label: edgeDefinition.relationship,
-                                parentId: parentNode.id,
-                                childId: childNode.id,
-                            });
-                            this.edgeMap[edge.id] = edge;
+                    // Only generate the edge if the parent and child node both exist
+                    // (otherwise what is there even to connect)
+                    if (!!parentNodes.length && !!childNodes.length) {
+                        // Expand child and parent nodes recursively
+                        await Promise.all(
+                            [...parentNodes, ...childNodes]
+                            .map(node => this.expand(node))
+                        );
+    
+                        // For each combination of parent and node,
+                        // add an edge
+                        parentNodes.forEach(parentNode => {
+                            childNodes.forEach(childNode => {
+                                const edge = createEdge({
+                                    label: edgeDefinition.relationship,
+                                    parentId: parentNode.id,
+                                    childId: childNode.id,
+                                });
+                                this.edgeMap[edge.id] = edge;
+                            })
                         })
-                    })
+                    }
                 }
             })
         );

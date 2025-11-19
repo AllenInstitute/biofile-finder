@@ -879,7 +879,7 @@ export interface SetOriginForProvenance {
     type: string;
 }
 
-export function setOriginForProvenance(origin: FileDetail | undefined = undefined): SetOriginForProvenance {
+export function setOriginForProvenance(origin?: FileDetail): SetOriginForProvenance {
     return {
         payload: origin,
         type: SET_ORIGIN_FOR_PROVENANCE,

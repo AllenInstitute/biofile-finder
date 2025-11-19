@@ -1,10 +1,10 @@
 import { Panel, PanelType } from "@fluentui/react";
 import * as React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { PrimaryButton } from "../Buttons";
 import NetworkGraph from "../NetworkGraph";
-import { interaction, selection } from "../../state";
+import { interaction } from "../../state";
 
 import styles from "./RelationshipDiagram.module.css";
 
@@ -13,6 +13,7 @@ import styles from "./RelationshipDiagram.module.css";
  * Should use as much of the screen as possible
  */
 export default function RelationshipDiagram() {
+    const dispatch = useDispatch();
     const origin = useSelector(interaction.selectors.getOriginForProvenance);
 
     const [originalOriginName, setOriginalOriginName] = React.useState<string>();
@@ -41,10 +42,10 @@ export default function RelationshipDiagram() {
                         <PrimaryButton
                             iconName="Back"
                             text="Back"
-                            onClick={() => interaction.actions.setOriginForProvenance()}
+                            onClick={() => dispatch(interaction.actions.setOriginForProvenance(undefined))}
                             title="Close provenance relationship diagram"
                         />
-                        <h4>Provenance for {originalOriginName}</h4>
+                        <h2>Provenance for {originalOriginName}</h2>
                     </div>
                     <NetworkGraph
                         className={styles.networkGraph}
