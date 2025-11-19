@@ -193,7 +193,6 @@ export default makeReducer<InteractionStateBranch>(
         [SET_ORIGIN_FOR_PROVENANCE]: (state, action: SetOriginForProvenance) => ({
             ...state,
             originForProvenance: action.payload,
-            visibleModal: ModalType.RelationshipDiagram,
         }),
         [SET_VISIBLE_MODAL]: (state, action: SetVisibleModalAction) => ({
             ...state,

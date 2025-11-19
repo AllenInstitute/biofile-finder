@@ -11,6 +11,7 @@ import Modal from "./components/Modal";
 import DirectoryTree from "./components/DirectoryTree";
 import FileDetails from "./components/FileDetails";
 import GlobalActionButtonRow from "./components/GlobalActionButtonRow";
+import RelationshipDiagram from "./components/RelationshipDiagram";
 import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
 import QuerySidebar from "./components/QuerySidebar";
@@ -138,6 +139,7 @@ export default function App(props: AppProps) {
                             <DataSourcePrompt className={styles.dataSourcePrompt} />
                         )}
                     </div>
+                    <RelationshipDiagram />
                 </div>
                 <FileDetails className={styles.fileDetails} />
             </div>

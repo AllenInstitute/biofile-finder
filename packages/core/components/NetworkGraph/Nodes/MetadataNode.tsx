@@ -35,12 +35,22 @@ export default function MetadataNode(props: NodeProps<ProvenanceNode>) {
         <Tooltip content={props.data.annotation?.name}>
             <div className={styles.fileNode} onContextMenu={onContextMenu}>
                 {/* The handle component is where edges can connect to */}
-                <Handle type="target" position={Position.Top} isConnectable={false} />
+                <Handle
+                    className={styles.handle}
+                    type="target"
+                    isConnectable={false}
+                    position={Position.Top}
+                />
                 <div className={styles.contentContainer}>
                     <div className={styles.fileNodeLabel}>{props.data.annotation?.name}</div>
                     <div className={styles.fileNodeLabel}>{props.data.annotation?.values.join(", ")}</div>
                 </div>
-                <Handle type="source" position={Position.Bottom} isConnectable={false} />
+                <Handle
+                    className={styles.handle}
+                    type="source"
+                    isConnectable={false}
+                    position={Position.Bottom}
+                />
             </div>
         </Tooltip>
     );

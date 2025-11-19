@@ -52,11 +52,16 @@ export default function FileNode(props: NodeProps<ProvenanceNode>) {
                 className={classNames(styles.fileNode, {
                     [styles.currentFile]: props.data.isSelected,
                 })}
-                onMouseEnter={debounce(() => setIsHovered(true), 1000)}
+                onMouseEnter={debounce(() => setIsHovered(true), 3000, { leading: true, trailing: false })}
                 onMouseLeave={() => setIsHovered(false)}
                 ref={container}
             >
-                <Handle type="target" position={Position.Top} isConnectable={false} />
+                <Handle
+                    className={styles.handle}
+                    type="target"
+                    isConnectable={false}
+                    position={Position.Top}
+                />
                 <div className={styles.contentContainer}>
                     <FileThumbnail
                         uri={file.thumbnail}
@@ -66,7 +71,12 @@ export default function FileNode(props: NodeProps<ProvenanceNode>) {
                     {/* // TODO: Add toggle to hide file name? */}
                     <div className={styles.fileNodeLabel}>{file.name}</div>
                 </div>
-                <Handle type="source" position={Position.Bottom} isConnectable={false} />
+                <Handle
+                    className={styles.handle}
+                    type="source"
+                    isConnectable={false}
+                    position={Position.Bottom}
+                />
             </div>
         </div>
     );

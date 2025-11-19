@@ -875,11 +875,11 @@ export function setConvertFilesSnippet(payload?: {
 export const SET_ORIGIN_FOR_PROVENANCE = makeConstant(STATE_BRANCH_NAME, "set-origin-for-provenance");
 
 export interface SetOriginForProvenance {
-    payload: FileDetail;
+    payload?: FileDetail;
     type: string;
 }
 
-export function setOriginForProvenance(origin: FileDetail): SetOriginForProvenance {
+export function setOriginForProvenance(origin: FileDetail | undefined = undefined): SetOriginForProvenance {
     return {
         payload: origin,
         type: SET_ORIGIN_FOR_PROVENANCE,

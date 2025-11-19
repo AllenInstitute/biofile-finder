@@ -66,3 +66,7 @@
 .subheader {
   font-weight: 600;
 }
+
+.handle {
+  visibility: hidden;
+}

@@ -1,0 +1,24 @@
+.header {
+  border-bottom: 1px solid var(--accent-dark);
+  color: var(--primary-text-color);
+  display: flex;
+  /* Right padding is left padding + back button width */
+  padding: 1em calc(2em + 88px) 1em 2em; /* TODO: */
+}
+
+.header > h4 {
+  margin: auto;
+}
+
+.panel > div > div > div > div {
+  background-color: var(--primary-background-color);
+  padding: 0;
+}
+
+.network-graph {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
