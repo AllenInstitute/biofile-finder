@@ -885,3 +885,22 @@ export function setOriginForProvenance(origin?: FileDetail): SetOriginForProvena
         type: SET_ORIGIN_FOR_PROVENANCE,
     };
 }
+
+/**
+ * TOGGLE_FILE_DETAILS_PANEL
+ *
+ * Intention to show the file details panel for the given file
+ */
+export const TOGGLE_FILE_DETAILS_PANEL = makeConstant(STATE_BRANCH_NAME, "toggle-file-details-panel");
+
+export interface ToggleFileDetailsPanel {
+    payload?: FileDetail;
+    type: string;
+}
+
+export function toggleFileDetailsPanel(origin?: FileDetail): ToggleFileDetailsPanel {
+    return {
+        payload: origin,
+        type: TOGGLE_FILE_DETAILS_PANEL,
+    };
+}

@@ -33,6 +33,8 @@ import {
     SetVisibleModalAction,
     SetOriginForProvenance,
     SET_ORIGIN_FOR_PROVENANCE,
+    TOGGLE_FILE_DETAILS_PANEL,
+    ToggleFileDetailsPanel,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -58,6 +60,7 @@ export interface InteractionStateBranch {
     csvColumns?: string[];
     dataSourceInfoForVisibleModal?: DataSourcePromptInfo;
     datasetDetailsPanelIsVisible: boolean;
+    fileForDetailPanel?: FileDetail;
     fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
     environment: "LOCALHOST" | "PRODUCTION" | "STAGING" | "TEST";
@@ -243,6 +246,10 @@ export default makeReducer<InteractionStateBranch>(
                     ...(action.payload?.options || {}),
                 },
             },
+        }),
+        [TOGGLE_FILE_DETAILS_PANEL]: (state, action: ToggleFileDetailsPanel) => ({
+            ...state,
+            fileForDetailPanel: action.payload,
         }),
     },
     initialState

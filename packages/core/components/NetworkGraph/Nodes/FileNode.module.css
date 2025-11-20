@@ -4,25 +4,22 @@
 }
 
 .file-node {
-  width: calc(100px + 10px + 10px + 2px);
+  height: unset;
   background-color: var(--primary-dark);
   border: 1px solid var(--primary-text-color);
   color: var(--primary-text-color);
   padding: 10px;
   border-radius: 5px;
   overflow-wrap: anywhere;
+  width: unset;
   white-space: normal;
   display: flex;
 }
 
-.file-node > a {
-  color: var(--bright-aqua);
-  font-size: var(--s-paragraph-size)
-}
-
-.file-node > a:hover {
-  text-decoration: underline;
-  cursor: pointer;
+.file-node:hover {
+  background-color: var(--highlight-hover-background-color);
+  border-color: var(--highlight-hover-background-color);
+  color: var(--highlight-hover-text-color);
 }
 
 .file-node-label {
@@ -36,37 +33,13 @@
 }
 
 .current-file {
-  border: 1px solid var(--aqua);
-}
-
-.current-file > a {
-  color: var(--white);
-}
-
-.menu-button {
-  top: -10px;
-  background: none;
-  position: relative;
-  padding-right: 0;
-}
-
-.menu-button i {
-  color: var(--aqua);
-}
-
-.menu-button:hover {
-  background: none !important;
-  background-color: unset !important;
-}
-
-.menu-button:hover i {
-  color: var(--bright-aqua);
-}
-
-.subheader {
-  font-weight: 600;
+  border-color: var(--highlight-background-color);
 }
 
 .handle {
   visibility: hidden;
+}
+
+.handle + i {
+  display: none;
 }
