@@ -1,4 +1,4 @@
-import { ReactFlow, EdgeTypes } from "@xyflow/react";
+import { Edge, ReactFlow, EdgeTypes, useNodesState, useEdgesState } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import React from "react";
 import { useSelector } from "react-redux";
@@ -7,10 +7,11 @@ import DefaultEdge from "./Edges/DefaultEdge";
 import FileNode from "./Nodes/FileNode";
 import MetadataNode from "./Nodes/MetadataNode";
 import FileDetail from "../../entity/FileDetail";
-import { EdgeType, Graph, NodeType } from "../../entity/GraphGenerator";
+import { EdgeType, Graph, NodeType, ProvenanceNode } from "../../entity/GraphGenerator";
 import { interaction } from "../../state";
 
 import styles from "./NetworkGraph.module.css";
+import { noop } from "lodash";
 
 
 interface NetworkGraphProps {
@@ -30,36 +31,37 @@ const NODE_TYPES = {
 export default function NetworkGraph(props: NetworkGraphProps) {
     const graphGenerator = useSelector(interaction.selectors.getGraphGenerator);
 
-    const [graph, setGraph] = React.useState<Graph>({ nodes: [], edges: [] });
+    // These are used by xyflow to redraw the nodes/edges on drag
+    const [nodes, setNodes, onNodesChange] = useNodesState<ProvenanceNode>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
     React.useEffect(() => {
         graphGenerator.generate(props.origin)
             .then(() => {
-                setGraph(graphGenerator.get())
+                const graph = graphGenerator.get();
+                setNodes(graph.nodes);
+                setEdges(graph.edges);
             });
-    }, [graphGenerator, origin]);
+    }, [graphGenerator, origin, setNodes, setEdges]);
 
     return (
         <div className={props.className}>
             <ReactFlow
-                className={styles.graph}
                 fitView
-                nodesDraggable
-                elementsSelectable
-                autoPanOnNodeFocus
-                elevateNodesOnSelect
                 onlyRenderVisibleElements
+                className={styles.graph}
                 edgesFocusable={false}
                 nodesConnectable={false}
                 nodesFocusable={false}
                 edgesReconnectable={false}
                 colorMode="dark"
-                reconnectRadius={0}
-                nodes={graph.nodes}
-                edges={graph.edges}
+                nodes={nodes}
+                edges={edges}
                 edgeTypes={EDGE_TYPES}
                 nodeTypes={NODE_TYPES}
                 proOptions={{ hideAttribution: true }}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
             />
         </div>
     );

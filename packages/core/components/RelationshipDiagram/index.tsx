@@ -9,7 +9,7 @@ import { interaction } from "../../state";
 import styles from "./RelationshipDiagram.module.css";
 
 /**
- * Modal overlay for displaying a relationship diagram/graph
+ * Overlay for displaying a relationship diagram/graph
  * Should use as much of the screen as possible
  */
 export default function RelationshipDiagram() {
