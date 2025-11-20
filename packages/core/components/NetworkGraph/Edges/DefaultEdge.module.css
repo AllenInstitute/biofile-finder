@@ -1,21 +1,52 @@
-.custom-edge {
-  cursor: default;
-  padding: 5px 10px;
-  position: absolute;
+.edge {
+  background-color: var(--primary-background-color);
+  border: none;
+  border-radius: 5px;
   color: var(--primary-text-color);
   font-size: var(--xs-paragraph-size);
   font-weight: 400;
+  height: 1.25em;
+  min-width: min-content;
+  overflow: hidden;
+  padding: 2px;
+  pointer-events: auto;
+  position: absolute;
+  width: min-content;
 }
 
+.edge > span > span {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap
+}
+
+.edge:hover {
+  background-color: var(--primary-background-color);
+  color: var(--highlight-hover-background-color);
+}
+
+.edge > div {
+  overflow: hidden;
+  width: min-content;
+  white-space: nowrap;
+}
+
+.edge i:last-of-type {
+  display: none;
+}
 
 /* TODO: Does this work? */
-.custom-edge a {
-  color: var(--aqua);
-  pointer-events: all;
+.edge a {
+  color: var(--highlight-background-color);
 }
 
-.custom-edge a:hover {
-  color: var(--bright-aqua);
-  pointer-events: all;
+.edge a:hover {
+  color: var(--highlight-hover-background-color);
   text-decoration: underline;
+}
+
+.path {
+  cursor: default;
+  pointer-events: none;
 }

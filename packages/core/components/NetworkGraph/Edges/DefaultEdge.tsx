@@ -1,3 +1,4 @@
+import { DefaultButton, IContextualMenuItem } from "@fluentui/react";
 import {
     getBezierPath,
     EdgeLabelRenderer,
@@ -7,8 +8,13 @@ import {
 } from "@xyflow/react";
 import Markdown from "markdown-to-jsx";
 import React, { FC } from "react";
+import { useDispatch } from "react-redux";
+
+import { useButtonMenu } from "../../Buttons";
+import { interaction, selection } from "../../../state";
 
 import styles from "./DefaultEdge.module.css";
+
 
 // Returns a customizable edge in a ReactFlow network graph
 const DefaultEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
@@ -21,6 +27,7 @@ const DefaultEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
     targetPosition,
     data,
 }) => {
+    const dispatch = useDispatch();
     /**
      *  External util from reactflow that returns a "bezier" type path between two nodes
      *
@@ -40,35 +47,73 @@ const DefaultEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
         targetPosition,
     });
 
+    const buttonMenuItems: IContextualMenuItem[] = [
+        {
+            // TODO: There has to be a better way to say this
+            key: "Open query for all files processed with this process",
+            text: "Open query for all files processed with this process",
+            onClick: () => {
+                // TODO
+                dispatch(selection.actions.addQuery({
+                    name: `Files processed by ${data?.label}`,
+                    parts: {
+                        // TODO: Have to account for ancestors?????
+                        // filters: [new FileFilter()]
+                    }
+                }));
+                dispatch(interaction.actions.setOriginForProvenance());
+            }
+        },
+    ];
+
+    const indexOfLinkStart = data?.label ? data.label.indexOf("(") : 0;
+    const indexOfLinkEnd = data?.label ? data.label.indexOf(")") : 0;
+    const indexOfLinkLabelStart = data?.label ? data.label.indexOf("[") : 0;
+    const indexOfLinkLabelEnd = data?.label ? data.label.indexOf("]") : 0;
+    if (indexOfLinkStart > indexOfLinkLabelStart
+        && indexOfLinkEnd > indexOfLinkLabelEnd 
+        && indexOfLinkEnd > indexOfLinkStart) {
+        const link = data?.label.substring(indexOfLinkStart + 1, indexOfLinkEnd);
+        buttonMenuItems.unshift({
+            key: "open-provided-link",
+            text: "Open provided link",
+            iconName: "OpenInNewWindow",
+            onClick: () => {
+                window.open(link, "_blank", "noopener,noreferrer");
+            }
+        });
+    }
+    const buttonMenu = useButtonMenu({
+        items: buttonMenuItems
+    });
+
     // Uses the default edge component, but allows us to apply styling or hyperlinks and change the location of the label
     return (
         <>
-            <BaseEdge id={id} path={edgePath} />
+            <BaseEdge className={styles.path} id={id} path={edgePath} />
             <EdgeLabelRenderer>
-                <div
+                <DefaultButton
+                    className={`edge-label-renderer__custom-edge nodrag nopan ${styles.edge}`}
+                    menuProps={buttonMenu}
                     style={{
                         transform: `translate(0%, -50%) translate(${labelX}px,${labelY}px)`,
                     }}
-                    className={`edge-label-renderer__custom-edge nodrag nopan ${styles.customEdge}`}
                 >
-                    {/* Safely render markdown using external library */}
-                    <i>
-                        <Markdown
-                            options={{
-                                overrides: {
-                                    a: {
-                                        props: {
-                                            target: "_blank",
-                                            rel: "noopener noreferrer",
-                                        },
+                    <Markdown
+                        options={{
+                            overrides: {
+                                a: {
+                                    props: {
+                                        target: "_blank",
+                                        rel: "noopener noreferrer",
                                     },
                                 },
-                            }}
-                        >
-                            {data?.label}
-                        </Markdown>
-                    </i>
-                </div>
+                            },
+                        }}
+                    >
+                        {data?.label}
+                    </Markdown>
+                </DefaultButton>
             </EdgeLabelRenderer>
         </>
     );
