@@ -3,66 +3,37 @@
   text-align: center;
 }
 
-.file-node {
-  width: 200px;
+.node {
+  background-color: var(--primary-dark);
   border: 1px solid var(--primary-text-color);
-  color: var(--primary-text-color);
-  padding: 10px;
   border-radius: 5px;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  color: var(--primary-text-color);
   display: flex;
+  /* Height is padding x2 + text */
+  height: calc(20px + 2em);
+  padding: 10px;
+  width: 200px;
 }
 
-.file-node > a {
-  color: var(--bright-aqua);
-  font-size: var(--s-paragraph-size)
+.node:hover {
+  background-color: var(--highlight-hover-background-color);
+  border-color: var(--highlight-hover-background-color);
+  color: var(--highlight-hover-text-color);
 }
 
-.file-node > a:hover {
-  text-decoration: underline;
-  cursor: pointer;
+.node > span {
+  margin: auto;
 }
 
-.file-node-label {
-  text-overflow: ellipsis;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 3 !important; /* number of lines to show */
-          line-clamp: 3; 
-  -webkit-box-orient: vertical !important;
-  word-wrap: break-word !important;
-}
-
-.file-node-label:first-of-type {
+.label:first-of-type {
   font-size: smaller;
   font-style: italic;
 }
 
-
-.menu-button {
-  top: -10px;
-  background: none;
-  position: relative;
-  padding-right: 0;
-}
-
-.menu-button i {
-  color: var(--aqua);
-}
-
-.menu-button:hover {
-  background: none !important;
-  background-color: unset !important;
-}
-
-.menu-button:hover i {
-  color: var(--bright-aqua);
-}
-
-.subheader {
-  font-weight: 600;
-}
-
 .handle {
   visibility: hidden;
+}
+
+.handle + i {
+  display: none;
 }

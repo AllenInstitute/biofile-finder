@@ -10,9 +10,7 @@
   color: var(--primary-text-color);
   padding: 10px;
   border-radius: 5px;
-  overflow-wrap: anywhere;
   width: unset;
-  white-space: normal;
   display: flex;
 }
 
@@ -25,11 +23,7 @@
 .file-node-label {
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box !important;
-  -webkit-line-clamp: 3 !important; /* number of lines to show */
-          line-clamp: 3; 
-  -webkit-box-orient: vertical !important;
-  word-wrap: break-word !important;
+  white-space: nowrap;
 }
 
 .current-file {

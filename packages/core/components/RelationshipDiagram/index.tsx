@@ -15,6 +15,7 @@ import styles from "./RelationshipDiagram.module.css";
 export default function RelationshipDiagram() {
     const dispatch = useDispatch();
     const origin = useSelector(interaction.selectors.getOriginForProvenance);
+    const provenanceRefreshKey = useSelector(interaction.selectors.getProvenanceRefreshKey);
 
     const [originalOriginName, setOriginalOriginName] = React.useState<string>();
     React.useEffect(() => {
@@ -55,6 +56,7 @@ export default function RelationshipDiagram() {
                     <NetworkGraph
                         className={styles.networkGraph}
                         origin={origin}
+                        refreshKey={provenanceRefreshKey}
                     />
                 </>
             )}

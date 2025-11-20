@@ -38,6 +38,7 @@ export const getDataSourceInfoForVisibleModal = (state: State) =>
 export const getDatasetDetailsVisibility = (state: State) =>
     state.interaction.datasetDetailsPanelIsVisible;
 export const getOriginForProvenance = (state: State) => state.interaction.originForProvenance;
+export const getProvenanceRefreshKey = (state: State) => state.interaction.provenanceRefreshKey;
 export const getSelectedPublicDataset = (state: State) => state.interaction.selectedPublicDataset;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;

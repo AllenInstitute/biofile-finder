@@ -7,11 +7,21 @@ import { useDispatch } from 'react-redux';
 
 import { useButtonMenu } from '../../Buttons';
 import FileThumbnail from "../../FileThumbnail";
+import Tooltip from '../../Tooltip';
 import { ProvenanceNode } from '../../../entity/GraphGenerator';
+import useOpenWithMenuItems from '../../../hooks/useOpenWithMenuItems';
 import { interaction } from '../../../state';
 
 import styles from "./FileNode.module.css";
 
+
+// Display the start of the file name and at least part of the file type
+const clipFileName = (filename: string) => {
+    if (filename.length > 15) {
+        return filename.slice(0, 6) + "..." + filename.slice(-4);
+    }
+    return filename;
+};
 
 /**
  * Custom node element for displaying a File and providing interaction
@@ -21,18 +31,33 @@ export default function FileNode(props: NodeProps<ProvenanceNode>) {
     const file = props.data.file;
     const dispatch = useDispatch();
 
+    const openWithSubMenuItems = useOpenWithMenuItems(file);
     const buttonMenu = useButtonMenu({
         items: [
             {
                 key: "show-metadata",
-                text: "Show metadata",
+                text: "View metadata",
                 onClick: () => {
                     dispatch(interaction.actions.toggleFileDetailsPanel(file));
                 }
             },
             {
-                key: "check-for-more-neighbors",
-                text: "Check for more neighbors",
+                key: "Open with...",
+                text: "Open with...",
+                subMenuProps: {
+                    items: openWithSubMenuItems
+                }
+            },
+            {
+                key: "Download",
+                text: "Download",
+                onClick: () => {
+                    file && dispatch(interaction.actions.downloadFiles([file]));
+                }
+            },
+            {
+                key: "check-for-more-relationships",
+                text: "Check for more relationships",
                 onClick: () => {
                     dispatch(interaction.actions.setOriginForProvenance(file));
                 }
@@ -46,32 +71,34 @@ export default function FileNode(props: NodeProps<ProvenanceNode>) {
     }
     
     return (
-        <DefaultButton
-            className={classNames(styles.fileNode, {
-                [styles.currentFile]: props.data.isSelected,
-            })}
-            menuProps={buttonMenu}
-        >
-            <Handle
-                className={styles.handle}
-                type="target"
-                isConnectable={false}
-                position={Position.Top}
-            />
-            <div className={styles.contentContainer}>
-                <FileThumbnail
-                    uri={file.thumbnail}
-                    height={100}
-                    width={100}
+        <Tooltip content={file.name}>
+            <DefaultButton
+                className={classNames(styles.fileNode, {
+                    [styles.currentFile]: props.data.isSelected,
+                })}
+                menuProps={buttonMenu}
+            >
+                <Handle
+                    className={styles.handle}
+                    type="target"
+                    isConnectable={false}
+                    position={Position.Top}
                 />
-                <div className={styles.fileNodeLabel}>{file.name}</div>
-            </div>
-            <Handle
-                className={styles.handle}
-                type="source"
-                isConnectable={false}
-                position={Position.Bottom}
-            />
-        </DefaultButton>
+                <div className={styles.contentContainer}>
+                    <FileThumbnail
+                        uri={file.thumbnail}
+                        height={100}
+                        width={100}
+                    />
+                    <div className={styles.fileNodeLabel}>{clipFileName(file.name)}</div>
+                </div>
+                <Handle
+                    className={styles.handle}
+                    type="source"
+                    isConnectable={false}
+                    position={Position.Bottom}
+                />
+            </DefaultButton>
+        </Tooltip>
     );
 }

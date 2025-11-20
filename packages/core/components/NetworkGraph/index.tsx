@@ -19,6 +19,9 @@ import styles from "./NetworkGraph.module.css";
 interface NetworkGraphProps {
     className?: string;
     origin: FileDetail;
+    // Used by parent to force network graph to refresh
+    // which would otherwise only happen on origin change
+    refreshKey?: string;
 }
 
 const EDGE_TYPES: EdgeTypes = {
@@ -49,7 +52,7 @@ export default function NetworkGraph(props: NetworkGraphProps) {
             .finally(() => {
                 setIsLoading(false);
             });
-    }, [graphGenerator, origin, setNodes, setEdges, setIsLoading]);
+    }, [graphGenerator, origin, setNodes, setEdges, setIsLoading, props.refreshKey]);
 
     if (isLoading) {
         return (

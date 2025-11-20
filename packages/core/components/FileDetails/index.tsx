@@ -8,7 +8,6 @@ import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
 import useFileDetails from "./useFileDetails";
 import { PrimaryButton } from "../Buttons";
-import { ModalType } from "../Modal";
 import Tooltip from "../Tooltip";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
