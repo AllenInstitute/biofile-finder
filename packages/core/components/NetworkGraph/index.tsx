@@ -1,6 +1,7 @@
 import { SpinnerSize } from "@fluentui/react";
 import { Edge, ReactFlow, EdgeTypes, useNodesState, useEdgesState } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import classNames from "classnames";
 import React from "react";
 import { useSelector } from "react-redux";
 
@@ -52,7 +53,7 @@ export default function NetworkGraph(props: NetworkGraphProps) {
 
     if (isLoading) {
         return (
-            <div className={props.className}>
+            <div className={classNames(styles.loadingIconContainer, props.className)}>
                 <LoadingIcon size={SpinnerSize.large} />
             </div>
         );

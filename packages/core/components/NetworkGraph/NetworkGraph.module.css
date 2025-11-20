@@ -9,3 +9,11 @@
 .graph g > path {
   stroke: var(--primary-text-color);
 }
+
+.loading-icon-container {
+  display: flex;
+}
+
+.loading-icon-container > * {
+  margin: auto;
+}
