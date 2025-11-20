@@ -7,11 +7,10 @@ import DefaultEdge from "./Edges/DefaultEdge";
 import FileNode from "./Nodes/FileNode";
 import MetadataNode from "./Nodes/MetadataNode";
 import FileDetail from "../../entity/FileDetail";
-import { EdgeType, Graph, NodeType, ProvenanceNode } from "../../entity/GraphGenerator";
+import { EdgeType, NodeType, ProvenanceNode } from "../../entity/GraphGenerator";
 import { interaction } from "../../state";
 
 import styles from "./NetworkGraph.module.css";
-import { noop } from "lodash";
 
 
 interface NetworkGraphProps {

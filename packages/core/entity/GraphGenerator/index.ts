@@ -1,6 +1,5 @@
 import dagre from "@dagrejs/dagre";
 import { Edge, Node } from "@xyflow/react";
-import { RefObject } from "react";
 
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
