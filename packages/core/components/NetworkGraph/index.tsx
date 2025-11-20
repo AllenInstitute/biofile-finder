@@ -6,11 +6,11 @@ import React from "react";
 import { useSelector } from "react-redux";
 
 import DefaultEdge from "./Edges/DefaultEdge";
-import LoadingIcon from "../Icons/LoadingIcon";
 import FileNode from "./Nodes/FileNode";
 import MetadataNode from "./Nodes/MetadataNode";
+import LoadingIcon from "../Icons/LoadingIcon";
 import FileDetail from "../../entity/FileDetail";
-import { EdgeType, NodeType, ProvenanceNode } from "../../entity/GraphGenerator";
+import { AnnotationEdge, EdgeType, NodeType, ProvenanceNode } from "../../entity/GraphGenerator";
 import { interaction } from "../../state";
 
 import styles from "./NetworkGraph.module.css";
@@ -39,7 +39,7 @@ export default function NetworkGraph(props: NetworkGraphProps) {
 
     // These are used by xyflow to redraw the nodes/edges on drag
     const [nodes, setNodes, onNodesChange] = useNodesState<ProvenanceNode>([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<AnnotationEdge>>([]);
 
     React.useEffect(() => {
         setIsLoading(true);

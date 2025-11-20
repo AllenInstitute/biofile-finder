@@ -516,6 +516,7 @@ export default abstract class DatabaseService {
                         parentsAndChildren.add(parentAndChildKey);
                         return {
                             relationship: row["relationship"],
+                            relationshipType: row["relationship type"],
                             parent: {
                                 name: row["parent"],
                                 type: row["parent type"]

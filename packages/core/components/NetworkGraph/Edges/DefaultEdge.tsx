@@ -8,16 +8,19 @@ import {
 } from "@xyflow/react";
 import Markdown from "markdown-to-jsx";
 import React, { FC } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { useButtonMenu } from "../../Buttons";
+import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import { AnnotationEdge } from "../../../entity/GraphGenerator";
+import FileFilter from "../../../entity/FileFilter";
 import { interaction, selection } from "../../../state";
 
 import styles from "./DefaultEdge.module.css";
 
 
 // Returns a customizable edge in a ReactFlow network graph
-const DefaultEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
+const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
     id,
     sourceX,
     sourceY,
@@ -27,7 +30,9 @@ const DefaultEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
     targetPosition,
     data,
 }) => {
+    const annotationValue = `${data?.value}`;
     const dispatch = useDispatch();
+    const currentQuery = useSelector(selection.selectors.getCurrentQueryParts);
     /**
      *  External util from reactflow that returns a "bezier" type path between two nodes
      *
@@ -49,31 +54,42 @@ const DefaultEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
 
     const buttonMenuItems: IContextualMenuItem[] = [
         {
-            // TODO: There has to be a better way to say this
-            key: "Open query for all files processed with this process",
-            text: "Open query for all files processed with this process",
+            key: "Open query for files from this process",
+            text: "Open query for files from this process",
             onClick: () => {
-                // TODO
-                dispatch(selection.actions.addQuery({
-                    name: `Files processed by ${data?.label}`,
-                    parts: {
-                        // TODO: Have to account for ancestors?????
-                        // filters: [new FileFilter()]
-                    }
-                }));
+                if (!data) return;
+                if (data.name) {
+                    dispatch(selection.actions.addQuery({
+                        name: `Files processed by ${data.name}: ${annotationValue}`,
+                        parts: {
+                            ...currentQuery,
+                            hierarchy: [],
+                            filters: [new FileFilter(data.name, annotationValue)],
+                        }
+                    }));
+                } else {
+                    dispatch(selection.actions.addQuery({
+                        name: `Files processed by ${annotationValue}`,
+                        parts: {
+                            ...currentQuery,
+                            hierarchy: [],
+                            filters: [new IncludeFilter(data.parent), new IncludeFilter(data.child)]
+                        }
+                    }));
+                }
                 dispatch(interaction.actions.setOriginForProvenance());
             }
         },
     ];
 
-    const indexOfLinkStart = data?.label ? data.label.indexOf("(") : 0;
-    const indexOfLinkEnd = data?.label ? data.label.indexOf(")") : 0;
-    const indexOfLinkLabelStart = data?.label ? data.label.indexOf("[") : 0;
-    const indexOfLinkLabelEnd = data?.label ? data.label.indexOf("]") : 0;
+    const indexOfLinkStart = annotationValue.indexOf("(");
+    const indexOfLinkEnd = annotationValue.indexOf(")");
+    const indexOfLinkLabelStart = annotationValue.indexOf("[");
+    const indexOfLinkLabelEnd = annotationValue.indexOf("]");
     if (indexOfLinkStart > indexOfLinkLabelStart
         && indexOfLinkEnd > indexOfLinkLabelEnd 
         && indexOfLinkEnd > indexOfLinkStart) {
-        const link = data?.label.substring(indexOfLinkStart + 1, indexOfLinkEnd);
+        const link = annotationValue.substring(indexOfLinkStart + 1, indexOfLinkEnd);
         buttonMenuItems.unshift({
             key: "open-provided-link",
             text: "Open provided link",
@@ -88,6 +104,9 @@ const DefaultEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
     });
 
     // Uses the default edge component, but allows us to apply styling or hyperlinks and change the location of the label
+    const label = data?.name 
+        ? `${data.name}: ${data.value}`
+        : data?.value
     return (
         <>
             <BaseEdge className={styles.path} id={id} path={edgePath} />
@@ -111,7 +130,7 @@ const DefaultEdge: FC<EdgeProps<Edge<{ label: string; endLabel: string }>>> = ({
                             },
                         }}
                     >
-                        {data?.label}
+                        {label}
                     </Markdown>
                 </DefaultButton>
             </EdgeLabelRenderer>

@@ -29,6 +29,15 @@ export interface EdgeDefinition {
     parent: EdgeNode;
     child: EdgeNode;
     relationship: string;
+    relationshipType?: "pointer";
+}
+
+export interface AnnotationEdge {
+    [key: string]: any;
+    name?: string;
+    value: string;
+    child: string;
+    parent: string;
 }
 
 export interface ProvenanceNode extends Node {
@@ -63,7 +72,7 @@ interface FileNode extends ProvenanceNode {
 
 export interface Graph {
     nodes: (FileNode | MetadataNode)[];
-    edges: Edge[]
+    edges: Edge<AnnotationEdge>[]
 }
 
 /**
@@ -104,12 +113,11 @@ function createMetadataNode(id: string, annotation: FmsFileAnnotation): Metadata
 /**
  * Creates an edge to be displayed on the metadata relationship graph.
  */
-function createEdge(edgeInfo: { label: string; parentId: string; childId: string }): Edge {
-    const { label, parentId, childId } = edgeInfo;
+function createEdge(edgeInfo: { data: AnnotationEdge; parentId: string; childId: string }): Edge<AnnotationEdge> {
+    const { data, parentId, childId } = edgeInfo;
     return {
-        id: `${parentId}-${childId}-${label}`,
-        data: { label },
-        markerEnd: { type: "arrow" }, // TODO: Is this even used?
+        id: `${parentId}-${childId}-${data.name}-${data.value}`,
+        data,
         source: parentId,
         target: childId,
         type: EdgeType.DEFAULT,
@@ -131,7 +139,7 @@ function createEdge(edgeInfo: { label: string; parentId: string; childId: string
  */
 export default class GraphGenerator {
     private edgeDefinitions: EdgeDefinition[];
-    private readonly edgeMap: { [id: string]: Edge } = {};
+    private readonly edgeMap: { [id: string]: Edge<AnnotationEdge> } = {};
     private readonly nodeMap: { [id: string]: FileNode | MetadataNode } = {};
     private fileService: FileService;
     private childToParentMap: { [key: string]: Set<string> };
@@ -309,6 +317,22 @@ export default class GraphGenerator {
 
         await Promise.all(
             this.edgeDefinitions.map(async (edgeDefinition) => {
+                const annotation = edgeDefinition.relationshipType === "pointer"
+                    ? thisNode.data?.file?.getAnnotation(edgeDefinition.relationship)
+                    : undefined;
+                const annotationEdge: AnnotationEdge | undefined = annotation
+                    ? {
+                        name: annotation.name,
+                        value: annotation.value,
+                        parent: edgeDefinition.parent.name,
+                        child: edgeDefinition.child.name
+                    }
+                    : {
+                        value: edgeDefinition.relationship,
+                        parent: edgeDefinition.parent.name,
+                        child: edgeDefinition.child.name
+                    };
+
                 if (!thisNode.data.file) {
                     await Promise.all([
                         this.expandUsingMetadataNode(
@@ -342,7 +366,7 @@ export default class GraphGenerator {
                         parentNodes.forEach(parentNode => {
                             childNodes.forEach(childNode => {
                                 const edge = createEdge({
-                                    label: edgeDefinition.relationship,
+                                    data: annotationEdge,
                                     parentId: parentNode.id,
                                     childId: childNode.id,
                                 });
