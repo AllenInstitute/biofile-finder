@@ -71,6 +71,7 @@ export default function NetworkGraph(props: NetworkGraphProps) {
                 edgesFocusable={false}
                 nodesConnectable={false}
                 nodesFocusable={false}
+                elementsSelectable={false}
                 edgesReconnectable={false}
                 colorMode="dark"
                 nodes={nodes}
