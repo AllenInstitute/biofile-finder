@@ -1,9 +1,11 @@
+import { SpinnerSize } from "@fluentui/react";
 import { Edge, ReactFlow, EdgeTypes, useNodesState, useEdgesState } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import React from "react";
 import { useSelector } from "react-redux";
 
 import DefaultEdge from "./Edges/DefaultEdge";
+import LoadingIcon from "../Icons/LoadingIcon";
 import FileNode from "./Nodes/FileNode";
 import MetadataNode from "./Nodes/MetadataNode";
 import FileDetail from "../../entity/FileDetail";
@@ -28,6 +30,7 @@ const NODE_TYPES = {
 };
 
 export default function NetworkGraph(props: NetworkGraphProps) {
+    const [isLoading, setIsLoading] = React.useState(true);
     const graphGenerator = useSelector(interaction.selectors.getGraphGenerator);
 
     // These are used by xyflow to redraw the nodes/edges on drag
@@ -35,13 +38,25 @@ export default function NetworkGraph(props: NetworkGraphProps) {
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
     React.useEffect(() => {
+        setIsLoading(true);
         graphGenerator.generate(props.origin)
             .then(() => {
                 const graph = graphGenerator.get();
                 setNodes(graph.nodes);
                 setEdges(graph.edges);
+            })
+            .finally(() => {
+                setIsLoading(false);
             });
-    }, [graphGenerator, origin, setNodes, setEdges]);
+    }, [graphGenerator, origin, setNodes, setEdges, setIsLoading]);
+
+    if (isLoading) {
+        return (
+            <div className={props.className}>
+                <LoadingIcon size={SpinnerSize.large} />
+            </div>
+        );
+    }
 
     return (
         <div className={props.className}>
