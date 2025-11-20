@@ -269,6 +269,40 @@ function getFileExtension(fileDetails: FileDetail): string {
     return fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
 }
 
+/**
+ * Opens a window at `openUrl`, then attempts to send the data in `entry` to it.
+ *
+ * This requires a bit of protocol to accomplish:
+ * 1. We add some query params to `openUrl`: `msgorigin` is this site's origin for validation, and
+ *    `storageid` uniquely identifies the message we want to send.
+ * 2. *The window must check that these params are present* & send the value of `storageid` back to
+ *    us (via `window.opener`, validated using `msgorigin`) once it's loaded & ready.
+ * 3. Once we receive that message, we send over `entry`.
+ */
+function openWindowWithMessage(openUrl: URL, entry: any): void {
+    if (entry === undefined || entry === null) {
+        window.open(openUrl);
+        return;
+    }
+
+    const storageid = uuidv4();
+    openUrl.searchParams.append("msgorigin", window.location.origin);
+    openUrl.searchParams.append("storageid", storageid);
+
+    const handle = window.open(openUrl);
+    const loadHandler = (event: MessageEvent): void => {
+        if (event.origin !== openUrl.origin || event.data !== storageid) {
+            return;
+        }
+        handle?.postMessage(entry, openUrl.origin);
+        window.removeEventListener("message", loadHandler);
+    };
+
+    window.addEventListener("message", loadHandler);
+    // ensure handlers can't build up with repeated failed requests
+    window.setTimeout(() => window.removeEventListener("message", loadHandler), 60000);
+}
+
 export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
     const path = fileDetails?.path;
     const size = fileDetails?.size;
@@ -302,7 +336,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     );
 
     // TODO custom hook this, like `useOpenInCfe`?
-    const openInVole = React.useCallback(async () => {
+    const openInVole = React.useCallback(async (): Promise<void> => {
         // TODO change to vole.allencell.org
         const VOLE_BASE_URL = "http://localhost:9020/viewer";
 
@@ -346,32 +380,14 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         } else {
             // There are more scene URLs than we want to put in the full path.
             // Just include the first one and a hint to how many scenes we're opening;
-            // send the rest with `postMessage`.
+            // send the rest in a message once the new window opens.
             const initialImageUrl = details[Math.max(sceneIdx, 0)].path;
             openUrl.searchParams.append("url", initialImageUrl);
             openUrl.searchParams.append("msgscenes", details.length.toString());
         }
 
-        // with these params present, Vol-E will send back `msgid` when ready for more urls/meta
-        // TODO disable when unnecessary (`includeUrls` && no metadata)
-        const msgid = uuidv4();
-        // TODO remove this and replace with "*" origin?
-        openUrl.searchParams.append("msgorigin", window.location.origin);
-        openUrl.searchParams.append("msgid", msgid);
-
-        const voleHandle = window.open(openUrl);
-        const voleLoadHandler = (event: MessageEvent): void => {
-            if (event.origin !== openUrl.origin || event.data !== msgid) {
-                return;
-            }
-            // TODO should be more adaptive with whether scenes needs to come along
-            //   (based on `includeUrls`)
-            voleHandle?.postMessage({ scenes, meta }, VOLE_BASE_URL);
-            window.removeEventListener("message", voleLoadHandler);
-        };
-
-        window.addEventListener("message", voleLoadHandler);
-        window.setTimeout(() => window.removeEventListener("message", voleLoadHandler), 60000);
+        // TODO don't send scenes and/or metadata when not present (e.g. check `includeUrls`)
+        openWindowWithMessage(openUrl, { scenes, meta });
     }, [fileDetails, fileSelection]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
