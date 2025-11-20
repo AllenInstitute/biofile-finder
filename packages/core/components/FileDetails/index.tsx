@@ -137,7 +137,7 @@ export default function FileDetails(props: Props) {
     // For tooltips, clip long file names to show at least the start and end
     const truncatedFileName = React.useMemo(() => {
         const fileName = fileDetails?.name || "";
-        if (fileName && fileName.length > 30) {
+        if (fileName.length > 30) {
             return fileName.slice(0, 13) + "..." + fileName.slice(-12);
         }
         return fileName;
