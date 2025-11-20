@@ -90,13 +90,13 @@
 
 .thumbnail {
     margin: 0 auto 10px; /* --margin defined in App.module.css under .root{} */
-    height: 200px;
+    max-height: 250px;
     transition: width var(--transition-duration);
 }
 
 .thumbnail-skeleton {
     width: 100%;
-    height: 200px;
+    max-height: 250px;
     background-color: var(--primary-background-color);
 }
 

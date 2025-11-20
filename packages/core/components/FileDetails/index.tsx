@@ -134,6 +134,15 @@ export default function FileDetails(props: Props) {
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
     const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
 
+    // For tooltips, clip long file names to show at least the start and end
+    const truncatedFileName = React.useMemo(() => {
+        const fileName = fileDetails?.name || "";
+        if (fileName && fileName.length > 30) {
+            return fileName.slice(0, 13) + "..." + fileName.slice(-12);
+        }
+        return fileName;
+    }, [fileDetails]);
+
     // Disable download of large Zarrs ( > 2GB).
     const isDownloadDisabled = fileDetails
         ? processStatuses.some((status) => status.data.fileId?.includes(fileDetails.uid)) ||
@@ -154,15 +163,13 @@ export default function FileDetails(props: Props) {
                 const downloadSizeString = annotationFormatterFactory(
                     AnnotationType.NUMBER
                 ).displayValue(MAX_DOWNLOAD_SIZE_WEB, "bytes");
-                return (
-                    "Currently focused file exceeds maximum download size of " + downloadSizeString
-                );
+                return `File ${truncatedFileName} exceeds maximum download size of ${downloadSizeString}`;
             }
             return "Unable to download file. Upload files to an AWS S3 bucket to enable .zarr downloads";
         }
         // Otherwise, fileId is in processStatuses and details are visible to user there
         return "Download disabled";
-    }, [calculatedSize, fileDetails, isDownloadDisabled, isZarr, isOnWeb]);
+    }, [calculatedSize, truncatedFileName, fileDetails, isDownloadDisabled, isZarr, isOnWeb]);
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
     const onDownload = React.useMemo(() => {
@@ -217,7 +224,7 @@ export default function FileDetails(props: Props) {
                                             disabled={isDownloadDisabled}
                                             iconName="Download"
                                             id="download-file-button"
-                                            title="Download file to local system"
+                                            title={`Download file ${truncatedFileName} to local system`}
                                             onClick={onDownload}
                                         />
                                     </Tooltip>

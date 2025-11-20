@@ -9,10 +9,6 @@
     display: flex;
 }
 
-.root > div:not(:first-child) {
-    margin-left: 3px;
-}
-
 .align-center { 
     display: flex;
     align-items: center;
