@@ -60,6 +60,28 @@
     z-index: 11;
 }
 
+.title-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.title-row > button {
+    background: none;
+    border: none;
+    color: var(--highlight-background-color);
+    height: 1em;
+    padding: 0;
+}
+
+.title-row > button:hover {
+    background: none;
+    color: var(--highlight-hover-background-color);
+}
+
+.title-row > button span {
+    font-weight: normal;
+}
+
 .file-actions {
     /* flex parent */
     display: flex;

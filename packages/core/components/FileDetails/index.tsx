@@ -1,3 +1,4 @@
+import { DefaultButton } from "@fluentui/react";
 import classNames from "classnames";
 import { noop, throttle } from "lodash";
 import * as React from "react";
@@ -252,7 +253,14 @@ export default function FileDetails(props: Props) {
                                     loading={isThumbnailLoading}
                                 />
                             </div>
-                            <h4>Metadata</h4>
+                            <div className={styles.titleRow}>
+                                <h4>Metadata</h4>
+                                <DefaultButton
+                                    onClick={() => dispatch(interaction.actions.setOriginForProvenance(fileDetails))}
+                                >
+                                    View provenance
+                                </DefaultButton>
+                            </div>
                             <FileAnnotationList
                                 className={styles.annotationList}
                                 fileDetails={fileDetails}
