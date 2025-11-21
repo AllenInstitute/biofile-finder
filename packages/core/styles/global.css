@@ -91,7 +91,7 @@ body {
 
     --header-bar-height: 60px;
     --query-sidebar-max-width: 350px;
-    --file-details-width: 20%;
+    --file-details-width: 25%;
     --margin: 12px;
     --transition-duration: 0.5s;
     --font-family: 'Open Sans', sans-serif;
@@ -146,4 +146,17 @@ input:-webkit-autofill:active{
     -webkit-text-fill-color: var(--primary-text-color);
     transition: background-color 5000s ease-in-out 0s;
     caret-color: var(--primary-text-color);
+}
+
+/* Initialize the side panel to different widths depending on screen size */
+@media screen and (max-width: 1500px) { 
+    body {
+        --file-details-width: 30%;
+    }
+}
+
+@media screen and (max-width: 1220px) { 
+    body {
+        --file-details-width: 35%;
+    }
 }

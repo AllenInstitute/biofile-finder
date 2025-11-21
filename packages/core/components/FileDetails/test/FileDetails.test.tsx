@@ -42,7 +42,7 @@ describe("<FileDetails />", () => {
         sandbox.stub(useFileDetails, "default").returns([fileDetails, false]);
 
         // Act
-        const { getByText, findByText, queryByText } = render(
+        const { getByTestId, findByText, queryByText } = render(
             <Provider store={store}>
                 <FileDetails />
             </Provider>
@@ -51,12 +51,13 @@ describe("<FileDetails />", () => {
         await logicMiddleware.whenComplete();
 
         // Assert
-        const tooltip = await findByText(/File exceeds maximum download size/);
+        const tooltip = await findByText(/^File testFile.zarr exceeds maximum download size/);
         expect(tooltip).to.exist;
-        expect(getByText(/DOWNLOAD/).closest("button")?.disabled).to.be.true;
-        expect(queryByText(/Download file to local system/)).to.not.exist;
+        expect(getByTestId(/download-file-button/).closest("button")?.disabled).to.be.true;
+        expect(queryByText(/^Download file.*to local system$/)).to.not.exist;
     });
 
+    // To do: React hooks warning
     it("should disable zarr downloads on web when file size is unknown", async () => {
         // Arrange
         const { store, logicMiddleware } = configureMockStore({
@@ -80,7 +81,7 @@ describe("<FileDetails />", () => {
         sandbox.stub(useFileDetails, "default").returns([fileDetails, false]);
 
         // Act
-        const { getByText, findByText, queryByText } = render(
+        const { getByTestId, findByText, queryByText } = render(
             <Provider store={store}>
                 <FileDetails />
             </Provider>
@@ -91,8 +92,8 @@ describe("<FileDetails />", () => {
         // Assert
         const tooltip = await findByText(/Unable to determine size of .zarr file/);
         expect(tooltip).to.exist;
-        expect(getByText(/DOWNLOAD/).closest("button")?.disabled).to.be.true;
-        expect(queryByText(/Download file to local system/)).to.not.exist;
+        expect(getByTestId(/download-file-button/).closest("button")?.disabled).to.be.true;
+        expect(queryByText(/^Download file.*to local system$/)).to.not.exist;
     });
 
     it("should allow zarr downloads when file size is exactly max", async () => {
@@ -118,16 +119,16 @@ describe("<FileDetails />", () => {
         );
         sandbox.stub(useFileDetails, "default").returns([fileDetails, false]);
         // Act
-        const { findByText, getByText, queryByText } = render(
+        const { findByText, getByTestId, queryByText } = render(
             <Provider store={store}>
                 <FileDetails />
             </Provider>
         );
         // Assert
-        const tooltip = await findByText(/Download file to local system/);
+        const tooltip = await findByText(/^Download file.*to local system$/);
         expect(tooltip).to.exist;
-        expect(getByText(/DOWNLOAD/).closest("button")?.disabled).to.be.false;
-        expect(queryByText(/File exceeds maximum download size/)).to.not.exist;
+        expect(getByTestId(/download-file-button/).closest("button")?.disabled).to.be.false;
+        expect(queryByText(/^File.*exceeds maximum download size/)).to.not.exist;
     });
 
     it("should allow zarr downloads when file size is less than max", async () => {
@@ -153,16 +154,16 @@ describe("<FileDetails />", () => {
         );
         sandbox.stub(useFileDetails, "default").returns([fileDetails, false]);
         // Act
-        const { findByText, getByText, queryByText } = render(
+        const { findByText, getByTestId, queryByText } = render(
             <Provider store={store}>
                 <FileDetails />
             </Provider>
         );
         // Assert
-        const tooltip = await findByText(/Download file to local system/);
+        const tooltip = await findByText(/^Download file.*to local system$/);
         expect(tooltip).to.exist;
-        expect(getByText(/DOWNLOAD/).closest("button")?.disabled).to.be.false;
-        expect(queryByText(/File exceeds maximum download size/)).to.not.exist;
+        expect(getByTestId(/download-file-button/).closest("button")?.disabled).to.be.false;
+        expect(queryByText(/^File.*exceeds maximum download size/)).to.not.exist;
     });
 
     it("should allow downloads on desktop regardless of file size", () => {
@@ -187,14 +188,14 @@ describe("<FileDetails />", () => {
         );
         sandbox.stub(useFileDetails, "default").returns([fileDetails, false]);
         // Act
-        const { getByText, queryByText } = render(
+        const { getByTestId, getByText, queryByText } = render(
             <Provider store={store}>
                 <FileDetails />
             </Provider>
         );
         // Assert
-        expect(getByText(/DOWNLOAD/).closest("button")?.disabled).to.be.false;
-        expect(queryByText(/File exceeds maximum download size/)).to.not.exist;
-        expect(getByText(/Download file to local system/)).to.exist;
+        expect(getByTestId(/download-file-button/).closest("button")?.disabled).to.be.false;
+        expect(queryByText(/^File.*exceeds maximum download size/)).to.not.exist;
+        expect(getByText(/^Download file.*to local system$/)).to.exist;
     });
 });

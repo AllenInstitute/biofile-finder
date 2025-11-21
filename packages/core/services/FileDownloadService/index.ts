@@ -182,15 +182,16 @@ export default abstract class FileDownloadService extends HttpServiceBase {
     }
 
     /**
-     * Retrieve file metadata (specifically, file size) from an S3 object using a HEAD request.
+     * Attempt to retrieve file size from an http object using a HEAD request.
+     *
+     * Returns bytes (octet)
      */
-    public async headS3Object(url: string): Promise<{ size: number }> {
+    public async getHttpObjectSize(url: string): Promise<number> {
         try {
             const response = await axios.head(url);
-            const fileSize = parseInt(response.headers["content-length"] || "0", 10);
-            return { size: fileSize };
+            return parseInt(response.headers["content-length"] || "0", 10);
         } catch (err) {
-            console.error(`Failed to get file metadata: ${err}`);
+            console.error(`Failed to get file size (content-length): ${err}`);
             throw err;
         }
     }
