@@ -5,7 +5,7 @@ import { DatabaseService } from "../../../core/services";
 export default class DatabaseServiceWeb extends DatabaseService {
     private database: duckdb.AsyncDuckDB | undefined;
 
-    public async initialize(logLevel: duckdb.LogLevel = duckdb.LogLevel.INFO) {
+    public async initialize(logLevel: duckdb.LogLevel = duckdb.LogLevel.WARNING) {
         const allBundles = duckdb.getJsDelivrBundles();
 
         // Selects the best bundle based on browser checks
