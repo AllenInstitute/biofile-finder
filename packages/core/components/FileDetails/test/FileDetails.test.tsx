@@ -5,13 +5,14 @@ import * as React from "react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
-import * as useFileDetails from "../useFileDetails";
+import * as useFileDetails from "../../FileDetailPanel/useFileDetails";
 import { Environment } from "../../../constants";
 import FileDetail from "../../../entity/FileDetail";
 import { MAX_DOWNLOAD_SIZE_WEB } from "../../../services/FileDownloadService";
 import { initialState } from "../../../state";
 
 import FileDetails from "..";
+
 describe("<FileDetails />", () => {
     const sandbox = createSandbox();
 

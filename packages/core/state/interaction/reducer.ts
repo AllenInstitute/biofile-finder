@@ -196,8 +196,9 @@ export default makeReducer<InteractionStateBranch>(
         }),
         [SET_ORIGIN_FOR_PROVENANCE]: (state, action: SetOriginForProvenance) => ({
             ...state,
-            originForProvenance: action.payload,
+            fileForDetailPanel: undefined,
             provenanceRefreshKey: uniqueId(),
+            originForProvenance: action.payload,
         }),
         [SET_VISIBLE_MODAL]: (state, action: SetVisibleModalAction) => ({
             ...state,

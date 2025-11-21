@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import ContextMenu from "./components/ContextMenu";
 import CoreContent from "./components/CoreContent/CoreContent";
-import FileDetails from "./components/FileDetails";
+import FileDetailPanel from "./components/FileDetailPanel";
 import Modal from "./components/Modal";
 import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
@@ -74,7 +74,7 @@ export default function App(props: AppProps) {
             <input className={styles.hidden} autoFocus />
             <div className={styles.coreAndFileDetails}>
                 <CoreContent />
-                <FileDetails className={styles.fileDetails} />
+                <FileDetailPanel />
             </div>
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />

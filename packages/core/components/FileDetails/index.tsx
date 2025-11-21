@@ -5,21 +5,26 @@ import { useDispatch } from "react-redux";
 
 import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
-import useFileDetails from "./useFileDetails";
-import { PrimaryButton, TertiaryButton } from "../Buttons";
+import useThumbnailPath from "./useThumbnailPath";
+import { PrimaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
+import FileDetail from "../../entity/FileDetail";
+import useDownloadFiles from "../../hooks/useDownloadFiles";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../hooks/useTruncatedString";
 import { interaction } from "../../state";
 
 import styles from "./FileDetails.module.css";
-import useDownloadFiles from "../../hooks/useDownloadFiles";
-import useThumbnailPath from "./useThumbnailPath";
+
 
 interface Props {
     className?: string;
+    fileDetails?: FileDetail;
+    isLoading?: boolean;
+    hasCloseButton?: boolean;
+    onClose?: () => void;
 }
 
 const FILE_DETAILS_PANE_ID = "file-details-pane";
@@ -70,17 +75,15 @@ function resizeHandleDoubleClick() {
 }
 
 /**
- * Right-hand sidebar of application. Displays details of selected file(s).
+ * Displays details of selected file(s).
  */
 export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
 
-    const [fileDetails, isLoading] = useFileDetails();
-    const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
-    const truncatedFileName = useTruncatedString(fileDetails?.name || "", 30);
-    const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(fileDetails || undefined);
-    const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(fileDetails || undefined);
-
+    const openWithMenuItems = useOpenWithMenuItems(props.fileDetails);
+    const truncatedFileName = useTruncatedString(props.fileDetails?.name || "", 30);
+    const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(props.fileDetails);
+    const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(props.fileDetails);
 
     return (
         <div
@@ -96,35 +99,47 @@ export default function FileDetails(props: Props) {
             </div>
             <div className={styles.paginationAndContent}>
                 <div className={styles.overflowContainer}>
-                    {fileDetails && (
+                    {props.fileDetails && (
                         <>
                             <div className={styles.header}>
-                                <div className={styles.leftAlign}>
-                                    <Pagination className={styles.pagination} />
-                                </div>
-                                {/* spacing component */}
-                                <div className={styles.gutter}></div>
-                                <div className={styles.rightAlign}>
-                                    <Tooltip content={disabledDownloadReason}>
-                                        <TertiaryButton
-                                            className={styles.tertiaryButton}
-                                            disabled={isDownloadDisabled}
-                                            iconName="Download"
-                                            id="download-file-button"
-                                            title={`Download file ${truncatedFileName} to local system`}
-                                            onClick={onDownload}
+                                {!props.hasCloseButton ? (
+                                    <>
+                                        <div className={styles.leftAlign}>
+                                            <Pagination className={styles.pagination} />
+                                        </div>
+                                        {/* spacing component */}
+                                        <div className={styles.gutter}></div>
+                                        <div className={styles.rightAlign}>
+                                            <Tooltip content={disabledDownloadReason}>
+                                                <TertiaryButton
+                                                    className={styles.tertiaryButton}
+                                                    disabled={isDownloadDisabled}
+                                                    iconName="Download"
+                                                    id="download-file-button"
+                                                    title={`Download file ${truncatedFileName} to local system`}
+                                                    onClick={onDownload}
+                                                />
+                                            </Tooltip>
+                                            <PrimaryButton
+                                                className={styles.openWithButton}
+                                                iconName="ChevronDownMed"
+                                                text="Open with"
+                                                title="Open file by selected method"
+                                                menuItems={openWithMenuItems}
+                                            />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className={styles.titleRow}>
+                                        <h4>Metadata</h4>
+                                        <TransparentIconButton
+                                            iconName="Clear"
+                                            onClick={props.onClose}
                                         />
-                                    </Tooltip>
-                                    <PrimaryButton
-                                        className={styles.openWithButton}
-                                        iconName="ChevronDownMed"
-                                        text="Open with"
-                                        title="Open file by selected method"
-                                        menuItems={openWithMenuItems}
-                                    />
-                                </div>
+                                    </div>
+                                )}
                             </div>
-                            <p className={styles.fileName}>{fileDetails?.name}</p>
+                            <p className={styles.fileName}>{props.fileDetails?.name}</p>
                             <div className={styles.thumbnailContainer}>
                                 <FileThumbnail
                                     className={styles.thumbnail}
@@ -133,18 +148,20 @@ export default function FileDetails(props: Props) {
                                     loading={isThumbnailLoading}
                                 />
                             </div>
-                            <div className={styles.titleRow}>
-                                <h4>Metadata</h4>
-                                <DefaultButton
-                                    onClick={() => dispatch(interaction.actions.setOriginForProvenance(fileDetails))}
-                                >
-                                    View provenance
-                                </DefaultButton>
-                            </div>
+                            {!props.hasCloseButton && (
+                                <div className={styles.titleRow}>
+                                    <h4>Metadata</h4>
+                                    <DefaultButton
+                                        onClick={() => dispatch(interaction.actions.setOriginForProvenance(props.fileDetails))}
+                                    >
+                                        View provenance
+                                    </DefaultButton>
+                                </div>
+                            )}
                             <FileAnnotationList
                                 className={styles.annotationList}
-                                fileDetails={fileDetails}
-                                isLoading={isLoading}
+                                fileDetails={props.fileDetails}
+                                isLoading={!!props.isLoading}
                             />
                         </>
                     )}

@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -19,23 +20,24 @@ export default function CoreContent() {
     const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);
     const requiresDataSourceReload = useSelector(selection.selectors.getRequiresDataSourceReload);
 
+    const hasSomethingToQuery = hasQuerySelected || window.location.search;
+    const hasNeedToSelectQuery = requiresDataSourceReload || !hasSomethingToQuery;
     return (
         <>
-            <div className={styles.coreContent}>
+            <div className={classNames(styles.coreContent, { [styles.hideLeft]: !!origin })}>
                 <QuerySidebar className={styles.querySidebar} />
                 <div className={styles.center}>
-                    {!requiresDataSourceReload &&
-                    (hasQuerySelected || window.location.search) ? (
+                    {hasNeedToSelectQuery ? (
+                        <DataSourcePrompt className={styles.dataSourcePrompt} />
+                    ) : (
                         <>
                             <GlobalActionButtonRow className={styles.globalButtonRow} />
                             <DirectoryTree className={styles.fileList} />
                         </>
-                    ) : (
-                        <DataSourcePrompt className={styles.dataSourcePrompt} />
                     )}
                 </div>
             </div>
-            <RelationshipDiagram origin={origin} />
+            <RelationshipDiagram className={classNames({ [styles.hideRight]: !origin })} origin={origin} />
         </>
     );
 }

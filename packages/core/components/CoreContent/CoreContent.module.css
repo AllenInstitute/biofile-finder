@@ -17,6 +17,14 @@
     display: flex;
 }
 
+.hide-left {
+    display: none;
+}
+
+.hide-right {
+    display: none;
+}
+
 .global-button-row {
     height: var(--global-button-row-height);
 }

@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -11,6 +10,7 @@ import styles from "./RelationshipDiagram.module.css";
 
 
 interface Props {
+    className?: string;
     origin?: FileDetail;
 }
 
@@ -18,7 +18,7 @@ interface Props {
  * Overlay for displaying a relationship diagram/graph
  * Should use as much of the screen as possible
  */
-export default function RelationshipDiagram({ origin }: Props) {
+export default function RelationshipDiagram({ className, origin }: Props) {
     const dispatch = useDispatch();
     const provenanceRefreshKey = useSelector(interaction.selectors.getProvenanceRefreshKey);
 
@@ -29,10 +29,8 @@ export default function RelationshipDiagram({ origin }: Props) {
         }
     }, [origin, originalOriginName, setOriginalOriginName]);
 
-    console.log("hidden", !!origin, origin);
-
     return (
-        <div className={classNames({ [styles.hidden]: !!origin})}>
+        <div className={className}>
             <div className={styles.header}>
                 <PrimaryButton
                     iconName="Back"

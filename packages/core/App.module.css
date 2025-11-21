@@ -38,15 +38,6 @@
     overflow: hidden;
 }
 
-.file-details {
-    height: 100%;
-    transition: flex var(--transition-duration);
-    width: 100%;
-
-    /* flex child */
-    flex: 0 0 var(--file-details-width);
-}
-
 .hidden {
     /* arbitrarily large to move input off-screen */
     left: -100%;
