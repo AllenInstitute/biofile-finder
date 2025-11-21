@@ -38,51 +38,6 @@
     overflow: hidden;
 }
 
-.data-source-prompt {
-    padding: 10%;
-    overflow: scroll;
-    height: 100%;
-}
-
-.query-sidebar-and-center {
-    width: calc(100% - var(--margin) - var(--file-details-width));
-    height: 100%;
-    display: flex;
-
-    /* flex child */
-    flex: 1 0 auto;
-    transition: flex var(--transition-duration);
-
-    /* flex parent */
-    display: flex;
-}
-
-.query-sidebar {
-    height: 100%;
-    width: 30%;
-    max-width: var(--query-sidebar-max-width);
-    padding: calc(var(--margin) / 2);
-    position: relative;
-}
-
-.center {
-    flex: auto;
-    height: calc(100% - var(--margin) - 2px);
-    margin: calc(var(--margin) / 2);
-    width: calc(70% - var(--margin));
-}
-
-.global-button-row {
-    height: var(--global-button-row-height);
-}
-
-.file-list {
-    display: flex;
-    flex-direction: column;
-    flex: auto;
-    height: calc(100% - var(--global-button-row-height));
-}
-
 .file-details {
     height: 100%;
     transition: flex var(--transition-duration);
