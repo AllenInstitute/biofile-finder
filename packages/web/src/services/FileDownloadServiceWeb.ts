@@ -31,39 +31,22 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
         }
     }
 
-    private async handleZarrFile(
+    private handleZarrFile(
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        if (this.isS3Url(fileInfo.path)) {
-            return await this.downloadS3Directory(
-                fileInfo,
-                downloadRequestId,
-                onProgress,
-                destination
-            );
-        }
-
         if (this.isLocalPath(fileInfo.path)) {
-            return this.handleLocalZarrFile(fileInfo);
+            return Promise.resolve(this.handleLocalZarrFile(fileInfo));
         }
 
-        const canUseDirectoryArgs = await this.canUseDirectoryArguments(fileInfo.path);
-        if (canUseDirectoryArgs) {
-            return await this.downloadS3Directory(
-                fileInfo,
-                downloadRequestId,
-                onProgress,
-                destination,
-                this.parseVirtualizedUrl
-            );
-        }
-
-        const message = `The file path "${fileInfo.path}" is not supported for Zarr downloads in the web environment. 
-Only S3 URLs are supported. Please upload your files to an S3 bucket for web-based downloads.`;
-        throw new Error(message);
+        return this.downloadS3Directory(
+            fileInfo,
+            downloadRequestId,
+            onProgress,
+            destination,
+        );
     }
 
     private isLocalPath(filePath: string): boolean {
@@ -85,14 +68,15 @@ Please navigate to this directory manually, or upload files to a remote address 
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
         destination?: string,
-        parsingMethod?: (url: string) => { hostname: string; bucket: string; key: string }
     ): Promise<DownloadResult> {
-        const { hostname, key, bucket } = parsingMethod
-            ? parsingMethod(fileInfo.path)
-            : this.parseS3Url(fileInfo.path);
-
         // Calculate the total size of the S3 directory
-        const totalSize = await this.calculateS3DirectorySize(hostname, key, bucket);
+        const parsedUrl = await this.parseUrl(fileInfo.path);
+        if (parsedUrl === undefined) {
+            throw new Error(
+                `The file path "${fileInfo.path}" is not supported for Zarr downloads in the web environment. 
+                Only S3 URLs are supported. Please upload your files to an S3 bucket for web-based downloads.`
+            );
+        }
 
         // Check if the total size exceeds 2 GB.
         // Most modern web browsers have memory constraints that limit them to using approximately 2 GB of RAM.
@@ -100,6 +84,7 @@ Please navigate to this directory manually, or upload files to a remote address 
         // This check ensures that the total download size does not surpass the supported 2 GB threshold.
         // Additionally, zarr size is calculated using the same traversal method as downloads,
         // meaning that if the size cannot be determined, the download is also not possible.
+        const totalSize = await this.calculateS3DirectorySize(parsedUrl);
         if (totalSize > MAX_DOWNLOAD_SIZE_WEB) {
             throw new Error(
                 `The total download size of the requested zarr file exceeds the 2 GB RAM limit supported by web browsers. ` +
@@ -111,7 +96,7 @@ Please navigate to this directory manually, or upload files to a remote address 
             );
         }
 
-        const keys = await this.listS3Objects(hostname, key, bucket);
+        const keys = await this.listS3Objects(parsedUrl);
         if (keys.length === 0) {
             throw new Error("No files found in the specified S3 directory.");
         }
@@ -126,9 +111,9 @@ Please navigate to this directory manually, or upload files to a remote address 
 
         // Download each file and add it to the ZIP archive
         for (const fileKey of keys) {
-            const bucketString = bucket.length > 0 ? `${bucket}/` : "";
-            const fileUrl = `https://${hostname}/${bucketString}${encodeURIComponent(fileKey)}`;
-            const fileName = fileKey.replace(`${key}/`, ""); // Local file name in zip
+            const bucketString = parsedUrl.bucket.length > 0 ? `${parsedUrl.bucket}/` : "";
+            const fileUrl = `https://${parsedUrl.hostname}/${bucketString}${encodeURIComponent(fileKey)}`;
+            const fileName = fileKey.replace(`${parsedUrl.key}/`, ""); // Local file name in zip
 
             let fileBytesDownloaded = 0; // Track the bytes for the current file
 

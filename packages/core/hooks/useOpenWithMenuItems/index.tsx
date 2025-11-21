@@ -374,7 +374,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 let fileSize = size;
                 if (!fileSize) {
                     try {
-                        fileSize = await fileDownloadService.getHttpObjectSize(path);
+                        fileSize = await fileDownloadService.getCloudFileSize(path);
                     } catch (_err) {
                         console.debug(
                             `Failed to get size of ${path}. Unable to determine if Vol-E is suitable viewer.`

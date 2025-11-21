@@ -24,7 +24,7 @@ export default () => {
                     dispatch(interaction.actions.promptUserToUpdateApp(uniqueId(), msg));
                 }
             } catch (e) {
-                console.error(
+                console.warn(
                     "Failed while checking if a newer application version is available",
                     e
                 );

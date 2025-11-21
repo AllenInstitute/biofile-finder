@@ -79,7 +79,7 @@ export default function FileDetails(props: Props) {
     const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
     const truncatedFileName = useTruncatedString(fileDetails?.name || "", 30);
     const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(fileDetails || undefined);
-    const { isDownloadDisabled, disabledDownloadMessage, onDownload } = useDownloadFiles(fileDetails || undefined);
+    const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(fileDetails || undefined);
 
 
     return (
@@ -105,7 +105,7 @@ export default function FileDetails(props: Props) {
                                 {/* spacing component */}
                                 <div className={styles.gutter}></div>
                                 <div className={styles.rightAlign}>
-                                    <Tooltip content={disabledDownloadMessage}>
+                                    <Tooltip content={disabledDownloadReason}>
                                         <TertiaryButton
                                             className={styles.tertiaryButton}
                                             disabled={isDownloadDisabled}

@@ -256,37 +256,13 @@ const downloadFilesLogic = createLogic({
 
         await Promise.all(
             filesToDownload.map(async (file) => {
-                const isStandardS3Url = file.path.includes("amazonaws.com");
-                // Handle S3 zarr files
-                if (file.path.endsWith(".zarr")) {
-                    if (!isStandardS3Url) {
-                        // Only check for virtualized URLs if not already an S3 URL
-                        const canUseDirectoryArgs = await fileDownloadService.canUseDirectoryArguments(
-                            file.path
-                        );
-                        if (!canUseDirectoryArgs) return; // Can't calculate size
-                    }
-                    const parsingFunc = isStandardS3Url
-                        ? fileDownloadService.parseS3Url
-                        : fileDownloadService.parseVirtualizedUrl;
+                if (file.size === 0) {
                     try {
-                        const { hostname, key, bucket } = parsingFunc(file.path);
-                        file.size = await fileDownloadService.calculateS3DirectorySize(
-                            hostname,
-                            key,
-                            bucket
-                        );
+                        file.size = await fileDownloadService.getCloudFileSize(file.path);
                     } catch (err) {
                         console.error(
                             `Failed to calculate directory size for ${file.name}: ${err}`
                         );
-                    }
-                } else if (file.size === 0 && isStandardS3Url) {
-                    // Handle individual S3 files
-                    try {
-                        file.size = await fileDownloadService.getHttpObjectSize(file.path);
-                    } catch (err) {
-                        console.error(`Failed to fetch file size for ${file.name}: ${err}`);
                     }
                 }
             })
