@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -30,7 +31,7 @@ export default function RelationshipDiagram({ className, origin }: Props) {
     }, [origin, originalOriginName, setOriginalOriginName]);
 
     return (
-        <div className={className}>
+        <div className={classNames(styles.container, className)}>
             <div className={styles.header}>
                 <PrimaryButton
                     iconName="Back"
