@@ -35,7 +35,7 @@ export default function FileNode(props: NodeProps<ProvenanceNode>) {
     const buttonMenu = useButtonMenu({
         items: [
             {
-                key: "show-metadata",
+                key: "view-metadata",
                 text: "View metadata",
                 onClick: () => {
                     dispatch(interaction.actions.toggleFileDetailsPanel(file));

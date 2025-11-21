@@ -42,6 +42,7 @@ export const getProvenanceRefreshKey = (state: State) => state.interaction.prove
 export const getSelectedPublicDataset = (state: State) => state.interaction.selectedPublicDataset;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
+export const getFileForDetailPanel = (state: State) => state.interaction.fileForDetailPanel;
 export const getFileTypeForVisibleModal = (state: State) =>
     state.interaction.fileTypeForVisibleModal;
 export const getHasDismissedSmallScreenWarning = (state: State) =>
