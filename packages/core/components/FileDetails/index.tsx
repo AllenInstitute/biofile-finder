@@ -101,45 +101,46 @@ export default function FileDetails(props: Props) {
                 <div className={styles.overflowContainer}>
                     {props.fileDetails && (
                         <>
-                            <div className={styles.header}>
-                                {!props.hasCloseButton ? (
-                                    <>
-                                        <div className={styles.leftAlign}>
-                                            <Pagination className={styles.pagination} />
-                                        </div>
-                                        {/* spacing component */}
-                                        <div className={styles.gutter}></div>
-                                        <div className={styles.rightAlign}>
-                                            <Tooltip content={disabledDownloadReason}>
-                                                <TertiaryButton
-                                                    className={styles.tertiaryButton}
-                                                    disabled={isDownloadDisabled}
-                                                    iconName="Download"
-                                                    id="download-file-button"
-                                                    title={`Download file ${truncatedFileName} to local system`}
-                                                    onClick={onDownload}
-                                                />
-                                            </Tooltip>
-                                            <PrimaryButton
-                                                className={styles.openWithButton}
-                                                iconName="ChevronDownMed"
-                                                text="Open with"
-                                                title="Open file by selected method"
-                                                menuItems={openWithMenuItems}
+                            {!props.hasCloseButton ? (
+                                <div className={styles.header}>
+                                    <div className={styles.leftAlign}>
+                                        <Pagination className={styles.pagination} />
+                                    </div>
+                                    {/* spacing component */}
+                                    <div className={styles.gutter}></div>
+                                    <div className={styles.rightAlign}>
+                                        <Tooltip content={disabledDownloadReason}>
+                                            <TertiaryButton
+                                                className={styles.tertiaryButton}
+                                                disabled={isDownloadDisabled}
+                                                iconName="Download"
+                                                id="download-file-button"
+                                                title={`Download file ${truncatedFileName} to local system`}
+                                                onClick={onDownload}
                                             />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className={styles.titleRow}>
-                                        <h4>Metadata</h4>
-                                        <TransparentIconButton
-                                            iconName="Clear"
-                                            onClick={props.onClose}
+                                        </Tooltip>
+                                        <PrimaryButton
+                                            className={styles.openWithButton}
+                                            iconName="ChevronDownMed"
+                                            text="Open with"
+                                            title="Open file by selected method"
+                                            menuItems={openWithMenuItems}
                                         />
                                     </div>
-                                )}
-                            </div>
-                            <p className={styles.fileName}>{props.fileDetails?.name}</p>
+                                </div>
+                            ) : (
+                                <div className={styles.titleRow}>
+                                    <h4>Metadata</h4>
+                                    <TransparentIconButton
+                                        className={styles.clearButton}
+                                        iconName="Clear"
+                                        onClick={props.onClose}
+                                    />
+                                </div>
+                            )}
+                            <p className={classNames(styles.fileName, { [styles.leftAlign]: !!props.hasCloseButton })}>
+                                {props.fileDetails?.name}
+                            </p>
                             <div className={styles.thumbnailContainer}>
                                 <FileThumbnail
                                     className={styles.thumbnail}

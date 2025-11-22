@@ -5,16 +5,19 @@
 }
 
 .core-content {
-    width: calc(100% - var(--margin) - var(--file-details-width));
     height: 100%;
     display: flex;
+
+    /* flex parent */
+    display: flex;
+}
+
+.core-content, .diagram {
+    width: calc(100% - var(--margin) - var(--file-details-width));
 
     /* flex child */
     flex: 1 0 auto;
     transition: flex var(--transition-duration);
-
-    /* flex parent */
-    display: flex;
 }
 
 .hide-left {

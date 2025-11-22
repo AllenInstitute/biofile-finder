@@ -6,11 +6,11 @@ import {
     EdgeProps,
     Edge,
 } from "@xyflow/react";
-import Markdown from "markdown-to-jsx";
 import React, { FC } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { useButtonMenu } from "../../Buttons";
+import MarkdownText from "../../MarkdownText";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import { AnnotationEdge } from "../../../entity/GraphGenerator";
 import FileFilter from "../../../entity/FileFilter";
@@ -118,20 +118,7 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
                         transform: `translate(0%, -50%) translate(${labelX}px,${labelY}px)`,
                     }}
                 >
-                    <Markdown
-                        options={{
-                            overrides: {
-                                a: {
-                                    props: {
-                                        target: "_blank",
-                                        rel: "noopener noreferrer",
-                                    },
-                                },
-                            },
-                        }}
-                    >
-                        {label}
-                    </Markdown>
+                    <MarkdownText text={label} />
                 </DefaultButton>
             </EdgeLabelRenderer>
         </>

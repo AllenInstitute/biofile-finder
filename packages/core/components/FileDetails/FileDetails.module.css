@@ -1,3 +1,11 @@
+.clear-button {
+    color: var(--primary-text-color) !important;
+}
+
+.left-align {
+    text-align: left;
+}
+
 .root {
     --pagination-height: 40px;
     --padding: 10px;
@@ -5,6 +13,7 @@
     background-color: var(--primary-background-color);
     color: var(--primary-text-color);
     display: flex;
+    filter: drop-shadow(black 0px -1px 8px);
     justify-content: center;
     min-width: 175px;
     max-width: 95%;

@@ -36,16 +36,6 @@
   display: none;
 }
 
-/* TODO: Does this work? */
-.edge a {
-  color: var(--highlight-background-color);
-}
-
-.edge a:hover {
-  color: var(--highlight-hover-background-color);
-  text-decoration: underline;
-}
-
 .path {
   cursor: default;
   pointer-events: none;

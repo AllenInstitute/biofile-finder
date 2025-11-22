@@ -37,7 +37,7 @@ export default function CoreContent() {
                     )}
                 </div>
             </div>
-            <RelationshipDiagram className={classNames({ [styles.hideRight]: !origin })} origin={origin} />
+            <RelationshipDiagram className={classNames(styles.diagram, { [styles.hideRight]: !origin })} origin={origin} />
         </>
     );
 }

@@ -20,24 +20,7 @@
 
 .network-graph {
   position: relative;
-  width: 100vw;
   height: calc(100vh - var(--diagram-header-height) - var(--header-bar-height));
   overflow-y: hidden;
   overflow-x: hidden;
-}
-
-@keyframes slideRightOff {
-  from {
-    transform: translateX(0); /* Start at its current horizontal position */
-  }
-  to {
-    transform: translateX(100vw); /* Move 100% of viewport width to the right */
-  }
-}
-
-.hidden {
-  animation-name: slideRightOff;
-  animation-duration: 1s; /* Adjust duration as needed */
-  animation-timing-function: ease-in; /* Or other timing functions like linear, ease-out, etc. */
-  animation-fill-mode: forwards; /* Keeps the element in its final state after animation */
 }
