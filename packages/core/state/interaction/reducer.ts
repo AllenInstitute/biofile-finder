@@ -1,6 +1,6 @@
 import FrontendInsights from "@aics/frontend-insights";
 import { makeReducer } from "@aics/redux-utils";
-import { filter, sortBy } from "lodash";
+import { filter, sortBy, uniqueId } from "lodash";
 
 import {
     HIDE_CONTEXT_MENU,
@@ -31,6 +31,10 @@ import {
     SET_EXTRACT_METADATA_PYTHON_SNIPPET,
     SET_CONVERT_FILES_SNIPPET,
     SetVisibleModalAction,
+    SetOriginForProvenance,
+    SET_ORIGIN_FOR_PROVENANCE,
+    TOGGLE_FILE_DETAILS_PANEL,
+    ToggleFileDetailsPanel,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -45,6 +49,7 @@ import { UserSelectedApplication } from "../../services/PersistentConfigService"
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
+import FileDetail from "../../entity/FileDetail";
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
@@ -55,6 +60,7 @@ export interface InteractionStateBranch {
     csvColumns?: string[];
     dataSourceInfoForVisibleModal?: DataSourcePromptInfo;
     datasetDetailsPanelIsVisible: boolean;
+    fileForDetailPanel?: FileDetail;
     fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
     environment: "LOCALHOST" | "PRODUCTION" | "STAGING" | "TEST";
@@ -70,6 +76,8 @@ export interface InteractionStateBranch {
         code: string;
         options?: Record<string, string>;
     };
+    originForProvenance?: FileDetail;
+    provenanceRefreshKey?: string;
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
@@ -186,6 +194,12 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             environment: action.payload.environment,
         }),
+        [SET_ORIGIN_FOR_PROVENANCE]: (state, action: SetOriginForProvenance) => ({
+            ...state,
+            fileForDetailPanel: undefined,
+            provenanceRefreshKey: uniqueId(),
+            originForProvenance: action.payload,
+        }),
         [SET_VISIBLE_MODAL]: (state, action: SetVisibleModalAction) => ({
             ...state,
             fileFiltersForVisibleModal: action.payload.fileFiltersForVisibleModal,
@@ -235,6 +249,10 @@ export default makeReducer<InteractionStateBranch>(
                     ...(action.payload?.options || {}),
                 },
             },
+        }),
+        [TOGGLE_FILE_DETAILS_PANEL]: (state, action: ToggleFileDetailsPanel) => ({
+            ...state,
+            fileForDetailPanel: action.payload,
         }),
     },
     initialState

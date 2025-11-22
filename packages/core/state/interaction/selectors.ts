@@ -12,7 +12,7 @@ import {
     CellFeatureExplorerBaseUrl,
     TemporaryFileServiceBaseUrl,
 } from "../../constants";
-import { getDatasetManifestSource, getDataSources } from "../metadata/selectors";
+import { getDatasetManifestSource, getDataSources, getEdgeDefinitions } from "../metadata/selectors";
 import { getSelectedDataSources, getPythonConversion } from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
 import DatasetService, {
@@ -23,6 +23,7 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
+import GraphGenerator from "../../entity/GraphGenerator";
 
 // BASIC SELECTORS
 export const getEnvironment = (state: State) => state.interaction.environment;
@@ -36,9 +37,12 @@ export const getDataSourceInfoForVisibleModal = (state: State) =>
     state.interaction.dataSourceInfoForVisibleModal;
 export const getDatasetDetailsVisibility = (state: State) =>
     state.interaction.datasetDetailsPanelIsVisible;
+export const getOriginForProvenance = (state: State) => state.interaction.originForProvenance;
+export const getProvenanceRefreshKey = (state: State) => state.interaction.provenanceRefreshKey;
 export const getSelectedPublicDataset = (state: State) => state.interaction.selectedPublicDataset;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
+export const getFileForDetailPanel = (state: State) => state.interaction.fileForDetailPanel;
 export const getFileTypeForVisibleModal = (state: State) =>
     state.interaction.fileTypeForVisibleModal;
 export const getHasDismissedSmallScreenWarning = (state: State) =>
@@ -245,6 +249,11 @@ export const getDatasetService = createSelector(
             userName,
             fileExplorerServiceBaseUrl,
         })
+);
+
+export const getGraphGenerator = createSelector(
+    [getFileService, getEdgeDefinitions],
+    (fileService, edgeDefinitions) => new GraphGenerator(fileService, edgeDefinitions)
 );
 
 /**

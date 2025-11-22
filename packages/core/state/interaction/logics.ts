@@ -256,38 +256,13 @@ const downloadFilesLogic = createLogic({
 
         await Promise.all(
             filesToDownload.map(async (file) => {
-                const isStandardS3Url = file.path.includes("amazonaws.com");
-                // Handle S3 zarr files
-                if (file.path.endsWith(".zarr")) {
-                    if (!isStandardS3Url) {
-                        // Only check for virtualized URLs if not already an S3 URL
-                        const canUseDirectoryArgs = await fileDownloadService.canUseDirectoryArguments(
-                            file.path
-                        );
-                        if (!canUseDirectoryArgs) return; // Can't calculate size
-                    }
-                    const parsingFunc = isStandardS3Url
-                        ? fileDownloadService.parseS3Url
-                        : fileDownloadService.parseVirtualizedUrl;
+                if (file.size === 0) {
                     try {
-                        const { hostname, key, bucket } = parsingFunc(file.path);
-                        file.size = await fileDownloadService.calculateS3DirectorySize(
-                            hostname,
-                            key,
-                            bucket
-                        );
+                        file.size = await fileDownloadService.getCloudFileSize(file.path);
                     } catch (err) {
                         console.error(
                             `Failed to calculate directory size for ${file.name}: ${err}`
                         );
-                    }
-                } else if (file.size === 0 && isStandardS3Url) {
-                    // Handle individual S3 files
-                    try {
-                        const s3HeadResponse = await fileDownloadService.headS3Object(file.path);
-                        file.size = s3HeadResponse.size;
-                    } catch (err) {
-                        console.error(`Failed to fetch file size for ${file.name}: ${err}`);
                     }
                 }
             })
@@ -353,10 +328,11 @@ const downloadFilesLogic = createLogic({
                         if (result.resolution === DownloadResolution.CANCELLED) {
                             dispatch(removeStatus(downloadRequestId));
                         } else {
+                            // This gets sent before some large files are complete
                             dispatch(
                                 processSuccess(
                                     downloadRequestId,
-                                    result.msg || "Download completed successfully."
+                                    result.msg || "Download started successfully."
                                 )
                             );
                         }
@@ -705,12 +681,17 @@ const refresh = createLogic({
             const { getState } = deps;
             const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
             const annotationService = interactionSelectors.getAnnotationService(getState());
+            const { databaseService } = interactionSelectors.getPlatformDependentServices(getState());
 
             // Refresh list of annotations & which annotations are available
             const [annotations, availableAnnotations] = await Promise.all([
                 annotationService.fetchAnnotations(),
                 annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy),
             ]);
+            const provenanceSource = databaseService.sourceProvenanceName
+                ? { name: databaseService.sourceProvenanceName }
+                : undefined
+            dispatch(selection.actions.changeProvenanceSource(provenanceSource))
             dispatch(metadata.actions.receiveAnnotations(annotations));
             dispatch(selection.actions.setAvailableAnnotations(availableAnnotations));
         } catch (err) {

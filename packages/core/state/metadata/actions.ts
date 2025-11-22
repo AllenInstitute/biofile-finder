@@ -2,6 +2,7 @@ import { makeConstant } from "@aics/redux-utils";
 
 import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import { DataSource } from "../../services/DataSourceService";
+import { EdgeDefinition } from "../../entity/GraphGenerator";
 
 const STATE_BRANCH_NAME = "metadata";
 
@@ -149,6 +150,25 @@ export function receiveDatasetManifest(name: string, uri: string): ReceiveDatase
     return {
         payload: { name, uri },
         type: RECEIVE_DATASET_MANIFEST,
+    };
+}
+
+/**
+ * RECEIVE_EDGE_DEFINITIONS
+ *
+ * Intention to store the listing of edge definitions present from the provenance definition supplied
+ */
+export const RECEIVE_EDGE_DEFINITIONS = makeConstant(STATE_BRANCH_NAME, "receive-edge-definitions");
+
+export interface ReceiveEdgeDefinitions {
+    payload: EdgeDefinition[];
+    type: string;
+}
+
+export function receiveEdgeDefinitions(payload: EdgeDefinition[]): ReceiveEdgeDefinitions {
+    return {
+        payload,
+        type: RECEIVE_EDGE_DEFINITIONS,
     };
 }
 

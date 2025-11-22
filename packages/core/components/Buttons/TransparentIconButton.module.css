@@ -1,0 +1,9 @@
+.icon-button {
+  background-color: transparent;
+  color: var(--primary-text-color);
+}
+
+.icon-button:hover {
+  background-color: unset;
+  color: var(--highlight-text-color);
+}
