@@ -1,9 +1,10 @@
-import { IContextualMenuItem, IconButton, SpinnerSize, TextField } from "@fluentui/react";
+import { IContextualMenuItem, SpinnerSize, TextField } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import QueryFooter from "./QueryFooter";
+import { TertiaryButton, TransparentIconButton } from "../Buttons";
 import LoadingIcon from "../Icons/LoadingIcon";
 import QueryDataSource from "../QueryPart/QueryDataSource";
 import QueryFilter from "../QueryPart/QueryFilter";
@@ -119,12 +120,10 @@ export default function Query(props: QueryProps) {
                             <i>Building new query...</i>
                         </h4>
                     </Tooltip>
-                    <IconButton
-                        ariaDescription="Expand view details"
-                        ariaLabel="Expand"
+                    <TransparentIconButton
                         className={styles.expandButton}
                         disabled
-                        iconProps={{ iconName: "ChevronDownMed" }}
+                        iconName="ChevronDownMed"
                     />
                 </div>
                 <hr className={styles.divider}></hr>
@@ -154,13 +153,11 @@ export default function Query(props: QueryProps) {
                     <Tooltip content={props.query.name}>
                         <h4>{props.query.name}</h4>
                     </Tooltip>
-                    <IconButton
-                        ariaDescription="Expand view details"
-                        ariaLabel="Expand"
+                    <TransparentIconButton
                         className={styles.expandButton}
                         onClick={() => setIsExpanded(!isExpanded)}
-                        iconProps={{ iconName: "ChevronDownMed" }}
-                        data-testid="expand-button"
+                        iconName="ChevronDownMed"
+                        id="expand-button"
                     />
                 </div>
                 {!isExpanded && <hr className={styles.divider}></hr>}
@@ -214,13 +211,12 @@ export default function Query(props: QueryProps) {
                         }
                     />
                 </div>
-                <IconButton
-                    ariaDescription="Collapse view details"
-                    ariaLabel="Collapse"
+                <TertiaryButton
                     className={styles.collapseButton}
                     onClick={() => setIsExpanded(!isExpanded)}
-                    iconProps={{ iconName: "ChevronUpMed" }}
+                    iconName="ChevronUpMed"
                     data-testid="collapse-button"
+                    title="Collapse query details"
                 />
             </div>
             <QueryDataSource
