@@ -255,6 +255,10 @@ export const getGraphGenerator = createSelector(
     [getFileService, getEdgeDefinitions],
     (fileService, edgeDefinitions) => new GraphGenerator(fileService, edgeDefinitions)
 );
+export const getGraphHasMoreToSearch = createSelector(
+    [getGraphGenerator],
+    (graphGenerator) => graphGenerator.hasMoreToSearch
+);
 
 /**
  * In order to make certain a new ContextMenu is rendered on each contextmenu event (e.g., a right-click),

@@ -24,12 +24,15 @@ const clipLabel = (label?: string) => {
 export default function MetadataNode(props: NodeProps<ProvenanceNode>) {
     const dispatch = useDispatch();
     const origin = useSelector(interaction.selectors.getOriginForProvenance);
+    const graphHasMoreToSearch = useSelector(interaction.selectors.getGraphHasMoreToSearch);
 
     const buttonMenu = useButtonMenu({
         items: [
             {
                 key: "check-for-more-relationships",
                 text: "Check for more relationships",
+                title: graphHasMoreToSearch ? undefined : "All relationships have been checked",
+                disabled: !graphHasMoreToSearch,
                 onClick: () => {
                     dispatch(interaction.actions.setOriginForProvenance(origin));
                 }

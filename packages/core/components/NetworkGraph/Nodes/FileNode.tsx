@@ -3,7 +3,7 @@ import { DefaultButton } from '@fluentui/react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import classNames from "classnames";
 import React from "react";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { useButtonMenu } from '../../Buttons';
 import FileThumbnail from "../../FileThumbnail";
@@ -30,6 +30,7 @@ const clipFileName = (filename: string) => {
 export default function FileNode(props: NodeProps<ProvenanceNode>) {
     const file = props.data.file;
     const dispatch = useDispatch();
+    const graphHasMoreToSearch = useSelector(interaction.selectors.getGraphHasMoreToSearch);
 
     const openWithSubMenuItems = useOpenWithMenuItems(file);
     const buttonMenu = useButtonMenu({
@@ -58,6 +59,8 @@ export default function FileNode(props: NodeProps<ProvenanceNode>) {
             {
                 key: "check-for-more-relationships",
                 text: "Check for more relationships",
+                title: graphHasMoreToSearch ? undefined : "All relationships have been checked",
+                disabled: !graphHasMoreToSearch,
                 onClick: () => {
                     dispatch(interaction.actions.setOriginForProvenance(file));
                 }

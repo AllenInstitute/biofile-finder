@@ -170,6 +170,14 @@ export default class GraphGenerator {
     }
 
     /**
+     * The graph might still have nodes left to search if we had
+     * on a previous run used up all the node search afforded
+     */
+    public get hasMoreToSearch(): boolean {
+        return this.numberOfNodesAfforded <= 0;
+    }
+
+    /**
      * This function takes a file as input to use as the origin of the graph
      * and builds the relationship graph from there by querying for related
      * information.
@@ -301,12 +309,9 @@ export default class GraphGenerator {
      * edge that could be used to build a connection.
      */
     private async expand(thisNode: FileNode | MetadataNode) {
-        // Base-case: Stop building graph after X recursion levels
-        // to avoid getting to large of a graph on first go
-        // or if this graph has already been investigated
-        // TODO: Probably want to have a direction sense here because
-        //       we might want all the way to the primary ancestor
-        //       and then like just the children and no siblings for example
+        // Base-case: Stop building graph after X recursions
+        // to avoid getting too large of a graph on first go
+        // or if this node has already been investigated
         if (this.numberOfNodesAfforded < 0 || thisNode.id in this.nodeMap) {
             return;
         }
@@ -328,24 +333,10 @@ export default class GraphGenerator {
                     ]);
                 }
 
-                const annotation = edgeDefinition.relationshipType === "pointer"
-                    ? thisNode.data?.file?.getAnnotation(edgeDefinition.relationship)
-                    : undefined;
-                const annotationEdge: AnnotationEdge | undefined = annotation
-                    ? {
-                        name: annotation.name,
-                        value: `${annotation.values[0]}`,
-                        parent: edgeDefinition.parent.name,
-                        child: edgeDefinition.child.name
-                    }
-                    : {
-                        value: edgeDefinition.relationship,
-                        parent: edgeDefinition.parent.name,
-                        child: edgeDefinition.child.name
-                    };
+                // Check this file node for any viable connections
                 const [parentNodes, childNodes] = await Promise.all([
                     this.getFileNodeConnections(
-                        thisNode as FileNode, edgeDefinition.parent, true
+                        thisNode as FileNode, edgeDefinition.parent
                     ),
                     this.getFileNodeConnections(
                         thisNode as FileNode, edgeDefinition.child
@@ -361,6 +352,26 @@ export default class GraphGenerator {
                         .map(node => this.expand(node))
                     );
 
+                    // If the edge relationship type is a "pointer"
+                    // we have to use the given "pointer" column to render
+                    // the actual value. This is useful for when a relationship
+                    // might exist like "Segmentation Algorithm" but have two
+                    // distinct values like "v1.0.0" and "v2.0.0"
+                    const annotation = edgeDefinition.relationshipType === "pointer"
+                        ? thisNode.data?.file?.getAnnotation(edgeDefinition.relationship)
+                        : undefined;
+                    const annotationEdge: AnnotationEdge | undefined = annotation
+                        ? {
+                            name: annotation.name,
+                            value: `${annotation.values[0]}`,
+                            parent: edgeDefinition.parent.name,
+                            child: edgeDefinition.child.name
+                        }
+                        : {
+                            value: edgeDefinition.relationship,
+                            parent: edgeDefinition.parent.name,
+                            child: edgeDefinition.child.name
+                        };
                     // For each combination of parent and node,
                     // add an edge
                     parentNodes.forEach(parentNode => {
@@ -381,7 +392,7 @@ export default class GraphGenerator {
     /**
      * Finds all the nodes related to the given file type node
      */
-    private async getFileNodeConnections(thisNode: FileNode, edgeNode: EdgeNode, isParent = false): Promise<(FileNode | MetadataNode)[]> {
+    private async getFileNodeConnections(thisNode: FileNode, edgeNode: EdgeNode): Promise<(FileNode | MetadataNode)[]> {
         // The node might just be the current node!
         const isEdgeNodeThisNode = edgeNode.name === "File ID"; // TODO: Expand this... should there be type of "ID" or "Self" or smthn..?
         if (isEdgeNodeThisNode) {

@@ -23,7 +23,6 @@ interface Props {
     className?: string;
     fileDetails?: FileDetail;
     isLoading?: boolean;
-    hasCloseButton?: boolean;
     onClose?: () => void;
 }
 
@@ -101,7 +100,7 @@ export default function FileDetails(props: Props) {
                 <div className={styles.overflowContainer}>
                     {props.fileDetails && (
                         <>
-                            {!props.hasCloseButton ? (
+                            {!props.onClose ? (
                                 <div className={styles.header}>
                                     <div className={styles.leftAlign}>
                                         <Pagination className={styles.pagination} />
@@ -138,7 +137,7 @@ export default function FileDetails(props: Props) {
                                     />
                                 </div>
                             )}
-                            <p className={classNames(styles.fileName, { [styles.leftAlign]: !!props.hasCloseButton })}>
+                            <p className={classNames(styles.fileName, { [styles.leftAlign]: !!props.onClose })}>
                                 {props.fileDetails?.name}
                             </p>
                             <div className={styles.thumbnailContainer}>
@@ -149,7 +148,7 @@ export default function FileDetails(props: Props) {
                                     loading={isThumbnailLoading}
                                 />
                             </div>
-                            {!props.hasCloseButton && (
+                            {!props.onClose && (
                                 <div className={styles.titleRow}>
                                     <h4>Metadata</h4>
                                     <DefaultButton

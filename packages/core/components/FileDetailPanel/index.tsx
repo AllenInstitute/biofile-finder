@@ -24,8 +24,11 @@ export default function FileDetailPanel() {
             className={classNames({ [styles.hideRight]: !!origin && !fileForDetailPanel })}
             fileDetails={fileDetails}
             isLoading={isLoading}
-            hasCloseButton={!!origin}
-            onClose={() => dispatch(interaction.actions.setOriginForProvenance())}
+            onClose={
+                origin ?
+                    () => dispatch(interaction.actions.toggleFileDetailsPanel())
+                    : undefined
+            }
         />
     )
 }
