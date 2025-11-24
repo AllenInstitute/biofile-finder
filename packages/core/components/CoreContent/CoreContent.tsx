@@ -22,22 +22,29 @@ export default function CoreContent() {
 
     const hasSomethingToQuery = hasQuerySelected || window.location.search;
     const hasNeedToSelectQuery = requiresDataSourceReload || !hasSomethingToQuery;
+
+    if (!!origin) {
+        return (
+            <RelationshipDiagram
+                className={styles.diagram}
+                origin={origin}
+            />
+        );
+    }
+
     return (
-        <>
-            <div className={classNames(styles.coreContent, { [styles.hideLeft]: !!origin })}>
-                <QuerySidebar className={styles.querySidebar} />
-                <div className={styles.center}>
-                    {hasNeedToSelectQuery ? (
-                        <DataSourcePrompt className={styles.dataSourcePrompt} />
-                    ) : (
-                        <>
-                            <GlobalActionButtonRow className={styles.globalButtonRow} />
-                            <DirectoryTree className={styles.fileList} />
-                        </>
-                    )}
-                </div>
+        <div className={styles.coreContent}>
+            <QuerySidebar className={styles.querySidebar} />
+            <div className={styles.center}>
+                {hasNeedToSelectQuery ? (
+                    <DataSourcePrompt className={styles.dataSourcePrompt} />
+                ) : (
+                    <>
+                        <GlobalActionButtonRow className={styles.globalButtonRow} />
+                        <DirectoryTree className={styles.fileList} />
+                    </>
+                )}
             </div>
-            <RelationshipDiagram className={classNames(styles.diagram, { [styles.hideRight]: !origin })} origin={origin} />
-        </>
+        </div>
     );
 }
