@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { useButtonMenu } from "../../Buttons";
 import MarkdownText from "../../MarkdownText";
+import Tooltip from "../../Tooltip";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import { AnnotationEdge } from "../../../entity/GraphGenerator";
 import FileFilter from "../../../entity/FileFilter";
@@ -103,10 +104,10 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
         items: buttonMenuItems
     });
 
-    // Uses the default edge component, but allows us to apply styling or hyperlinks and change the location of the label
-    const label = data?.name 
+    const tooltip = data?.name 
         ? `${data.name}: ${data.value}`
         : data?.value
+    // Uses the default edge component, but allows us to apply styling or hyperlinks and change the location of the label
     return (
         <>
             <BaseEdge className={styles.path} id={id} path={edgePath} />
@@ -118,7 +119,9 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
                         transform: `translate(0%, -50%) translate(${labelX}px,${labelY}px)`,
                     }}
                 >
-                    <MarkdownText text={label} />
+                    <Tooltip content={tooltip}>
+                        <MarkdownText text={data?.value} />
+                    </Tooltip>
                 </DefaultButton>
             </EdgeLabelRenderer>
         </>

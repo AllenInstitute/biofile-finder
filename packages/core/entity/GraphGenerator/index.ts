@@ -317,13 +317,24 @@ export default class GraphGenerator {
 
         await Promise.all(
             this.edgeDefinitions.map(async (edgeDefinition) => {
+                if (!thisNode.data.file) {
+                    return Promise.all([
+                        this.expandUsingMetadataNode(
+                            thisNode as MetadataNode, edgeDefinition, edgeDefinition.parent, true
+                        ),
+                        this.expandUsingMetadataNode(
+                            thisNode as MetadataNode, edgeDefinition, edgeDefinition.child
+                        )
+                    ]);
+                }
+
                 const annotation = edgeDefinition.relationshipType === "pointer"
                     ? thisNode.data?.file?.getAnnotation(edgeDefinition.relationship)
                     : undefined;
                 const annotationEdge: AnnotationEdge | undefined = annotation
                     ? {
                         name: annotation.name,
-                        value: annotation.value,
+                        value: `${annotation.values[0]}`,
                         parent: edgeDefinition.parent.name,
                         child: edgeDefinition.child.name
                     }
@@ -332,48 +343,36 @@ export default class GraphGenerator {
                         parent: edgeDefinition.parent.name,
                         child: edgeDefinition.child.name
                     };
+                const [parentNodes, childNodes] = await Promise.all([
+                    this.getFileNodeConnections(
+                        thisNode as FileNode, edgeDefinition.parent, true
+                    ),
+                    this.getFileNodeConnections(
+                        thisNode as FileNode, edgeDefinition.child
+                    )
+                ]);
 
-                if (!thisNode.data.file) {
-                    await Promise.all([
-                        this.expandUsingMetadataNode(
-                            thisNode as MetadataNode, edgeDefinition, edgeDefinition.parent, true
-                        ),
-                        this.expandUsingMetadataNode(
-                            thisNode as MetadataNode, edgeDefinition, edgeDefinition.child
-                        )
-                    ]);
-                } else {
-                    const [parentNodes, childNodes] = await Promise.all([
-                        this.getFileNodeConnections(
-                            thisNode as FileNode, edgeDefinition.parent, true
-                        ),
-                        this.getFileNodeConnections(
-                            thisNode as FileNode, edgeDefinition.child
-                        )
-                    ]);
+                // Only generate the edge if the parent and child node both exist
+                // (otherwise what is there even to connect)
+                if (!!parentNodes.length && !!childNodes.length) {
+                    // Expand child and parent nodes recursively
+                    await Promise.all(
+                        [...parentNodes, ...childNodes]
+                        .map(node => this.expand(node))
+                    );
 
-                    // Only generate the edge if the parent and child node both exist
-                    // (otherwise what is there even to connect)
-                    if (!!parentNodes.length && !!childNodes.length) {
-                        // Expand child and parent nodes recursively
-                        await Promise.all(
-                            [...parentNodes, ...childNodes]
-                            .map(node => this.expand(node))
-                        );
-    
-                        // For each combination of parent and node,
-                        // add an edge
-                        parentNodes.forEach(parentNode => {
-                            childNodes.forEach(childNode => {
-                                const edge = createEdge({
-                                    data: annotationEdge,
-                                    parentId: parentNode.id,
-                                    childId: childNode.id,
-                                });
-                                this.edgeMap[edge.id] = edge;
-                            })
+                    // For each combination of parent and node,
+                    // add an edge
+                    parentNodes.forEach(parentNode => {
+                        childNodes.forEach(childNode => {
+                            const edge = createEdge({
+                                data: annotationEdge,
+                                parentId: parentNode.id,
+                                childId: childNode.id,
+                            });
+                            this.edgeMap[edge.id] = edge;
                         })
-                    }
+                    })
                 }
             })
         );

@@ -14,7 +14,7 @@
   width: min-content;
 }
 
-.edge > span > span {
+.edge > span > div > span {
   max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -24,12 +24,6 @@
 .edge:hover {
   background-color: var(--primary-background-color);
   color: var(--highlight-hover-background-color);
-}
-
-.edge > div {
-  overflow: hidden;
-  width: min-content;
-  white-space: nowrap;
 }
 
 .edge i:last-of-type {
