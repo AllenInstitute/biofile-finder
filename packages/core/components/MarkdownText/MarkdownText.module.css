@@ -1,7 +1,7 @@
 .markdown a {
     color: var(--highlight-background-color);
 }
-  
+
 .markdown a:hover {
     color: var(--highlight-hover-background-color);
     text-decoration: underline;

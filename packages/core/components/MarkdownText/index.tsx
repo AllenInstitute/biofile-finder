@@ -15,20 +15,21 @@ interface Props {
  */
 export default function MarkdownText(props: Props) {
     return (
-        <Markdown
-            className={classNames(styles.markdown, props.className)}
-            options={{
-                overrides: {
-                    a: {
-                        props: {
-                            target: "_blank",
-                            rel: "noopener noreferrer",
+        <span className={classNames(styles.markdown, props.className)}>
+            <Markdown
+                options={{
+                    overrides: {
+                        a: {
+                            props: {
+                                target: "_blank",
+                                rel: "noopener noreferrer",
+                            },
                         },
                     },
-                },
-            }}
-        >
-            {props.text}
-        </Markdown>
+                }}
+            >
+                {props.text}
+            </Markdown>
+        </span>
     )
 }
