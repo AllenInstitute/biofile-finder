@@ -273,11 +273,15 @@ function getFileExtension(fileDetails: FileDetail): string {
  * Opens a window at `openUrl`, then attempts to send the data in `entry` to it.
  *
  * This requires a bit of protocol to accomplish:
- * 1. We add some query params to `openUrl`: `msgorigin` is this site's origin for validation, and
- *    `storageid` uniquely identifies the message we want to send.
- * 2. *The window must check that these params are present* & send the value of `storageid` back to
- *    us (via `window.opener`, validated using `msgorigin`) once it's loaded & ready.
+ * 1. We add some query params to `openUrl` before opening: `msgorigin` is this site's origin for
+ *    validation, and `storageid` uniquely identifies the message we want to send.
+ * 2. *The opened window must check if these params are present* and post the value of `storageid`
+ *    back to us (via `window.opener`, validated using `msgorigin`) once it's loaded and ready.
  * 3. Once we receive that message, we send over `entry`.
+ *
+ * This is currently only used by `openInVole`, but is broken out into a separate function to
+ * emphasize that this protocol is both message- and receiver-agnostic, and could be used to send
+ * large bundles of data to other apps as well.
  */
 function openWindowWithMessage(openUrl: URL, entry: any): void {
     if (entry === undefined || entry === null) {
