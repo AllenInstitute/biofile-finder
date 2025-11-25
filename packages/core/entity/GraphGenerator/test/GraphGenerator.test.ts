@@ -24,7 +24,7 @@ const mockFileDetail = (annotations: FmsFileAnnotation[] = []) => (
 );
 
 
-describe.only("GraphGenerator", () => {
+describe("GraphGenerator", () => {
     const sandbox = createSandbox();
 
     afterEach(() => {
