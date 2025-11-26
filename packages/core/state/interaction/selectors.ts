@@ -23,7 +23,7 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
-import GraphGenerator from "../../entity/GraphGenerator";
+import Graph from "../../entity/Graph";
 
 // BASIC SELECTORS
 export const getEnvironment = (state: State) => state.interaction.environment;
@@ -251,13 +251,13 @@ export const getDatasetService = createSelector(
         })
 );
 
-export const getGraphGenerator = createSelector(
+export const getGraph = createSelector(
     [getFileService, getEdgeDefinitions],
-    (fileService, edgeDefinitions) => new GraphGenerator(fileService, edgeDefinitions)
+    (fileService, edgeDefinitions) => new Graph(fileService, edgeDefinitions)
 );
 export const getGraphHasMoreToSearch = createSelector(
-    [getGraphGenerator],
-    (graphGenerator) => graphGenerator.hasMoreToSearch
+    [getGraph],
+    (graph) => graph.hasMoreToSearch
 );
 
 /**

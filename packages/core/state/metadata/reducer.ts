@@ -1,7 +1,7 @@
 import { makeReducer } from "@aics/redux-utils";
 
 import Annotation from "../../entity/Annotation";
-import { EdgeDefinition } from "../../entity/GraphGenerator";
+import { EdgeDefinition } from "../../entity/Graph";
 import { DataSource } from "../../services/DataSourceService";
 
 import {

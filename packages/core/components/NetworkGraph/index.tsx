@@ -3,21 +3,20 @@ import { Edge, ReactFlow, EdgeTypes, useNodesState, useEdgesState } from "@xyflo
 import "@xyflow/react/dist/style.css";
 import classNames from "classnames";
 import React from "react";
-import { useSelector } from "react-redux";
 
 import DefaultEdge from "./Edges/DefaultEdge";
 import FileNode from "./Nodes/FileNode";
 import MetadataNode from "./Nodes/MetadataNode";
 import LoadingIcon from "../Icons/LoadingIcon";
 import FileDetail from "../../entity/FileDetail";
-import { AnnotationEdge, EdgeType, NodeType, ProvenanceNode } from "../../entity/GraphGenerator";
-import { interaction } from "../../state";
+import Graph, { AnnotationEdge, EdgeType, NodeType, FileNode as FileNodeType, MetadataNode as MetadataNodeType } from "../../entity/Graph";
 
 import styles from "./NetworkGraph.module.css";
 
 
 interface NetworkGraphProps {
     className?: string;
+    graph: Graph;
     origin: FileDetail;
     // Used by parent to force network graph to refresh
     // which would otherwise only happen on origin change
@@ -35,24 +34,22 @@ const NODE_TYPES = {
 
 export default function NetworkGraph(props: NetworkGraphProps) {
     const [isLoading, setIsLoading] = React.useState(true);
-    const graphGenerator = useSelector(interaction.selectors.getGraphGenerator);
 
     // These are used by xyflow to redraw the nodes/edges on drag
-    const [nodes, setNodes, onNodesChange] = useNodesState<ProvenanceNode>([]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<FileNodeType | MetadataNodeType>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<AnnotationEdge>>([]);
 
     React.useEffect(() => {
         setIsLoading(true);
-        graphGenerator.generate(props.origin)
+        props.graph.originate(props.origin)
             .then(() => {
-                const graph = graphGenerator.get();
-                setNodes(graph.nodes);
-                setEdges(graph.edges);
+                setNodes(props.graph.nodes);
+                setEdges(props.graph.edges);
             })
             .finally(() => {
                 setIsLoading(false);
             });
-    }, [graphGenerator, origin, setNodes, setEdges, setIsLoading, props.refreshKey]);
+    }, [props.graph, origin, setNodes, setEdges, setIsLoading, props.refreshKey]);
 
     if (isLoading) {
         return (

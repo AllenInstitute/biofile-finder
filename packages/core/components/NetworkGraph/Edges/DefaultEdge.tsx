@@ -13,7 +13,7 @@ import { useButtonMenu } from "../../Buttons";
 import MarkdownText from "../../MarkdownText";
 import Tooltip from "../../Tooltip";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
-import { AnnotationEdge } from "../../../entity/GraphGenerator";
+import { AnnotationEdge } from "../../../entity/Graph";
 import FileFilter from "../../../entity/FileFilter";
 import { interaction, selection } from "../../../state";
 

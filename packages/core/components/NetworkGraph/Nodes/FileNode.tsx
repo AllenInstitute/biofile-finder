@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useButtonMenu } from '../../Buttons';
 import FileThumbnail from "../../FileThumbnail";
 import Tooltip from '../../Tooltip';
-import { ProvenanceNode } from '../../../entity/GraphGenerator';
+import { FileNode as FileNodeType, MetadataNode as MetadataNodeType } from '../../../entity/Graph';
 import useOpenWithMenuItems from '../../../hooks/useOpenWithMenuItems';
 import { interaction } from '../../../state';
 
@@ -27,7 +27,7 @@ const clipFileName = (filename: string) => {
  * Custom node element for displaying a File and providing interaction
  * options related to a file
  */
-export default function FileNode(props: NodeProps<ProvenanceNode>) {
+export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeType>) {
     const file = props.data.file;
     const dispatch = useDispatch();
     const graphHasMoreToSearch = useSelector(interaction.selectors.getGraphHasMoreToSearch);
