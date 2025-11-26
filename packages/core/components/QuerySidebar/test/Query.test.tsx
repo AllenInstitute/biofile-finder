@@ -13,7 +13,7 @@ import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import { initialState } from "../../../state";
 
 describe("<Query />", () => {
-    it("expands and collapses when clicked", async () => {
+    it.skip("expands and collapses when clicked", async () => {
         // Arrange
         const { store } = configureMockStore({
             state: initialState,

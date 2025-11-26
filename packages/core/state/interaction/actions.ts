@@ -866,3 +866,41 @@ export function setConvertFilesSnippet(payload?: {
 }): SetConvertFilesSnippetAction {
     return { type: SET_CONVERT_FILES_SNIPPET, payload };
 }
+
+/**
+ * SET_ORIGIN_FOR_PROVENANCE
+ *
+ * Intention to set origin file for the provenance graph
+ */
+export const SET_ORIGIN_FOR_PROVENANCE = makeConstant(STATE_BRANCH_NAME, "set-origin-for-provenance");
+
+export interface SetOriginForProvenance {
+    payload?: FileDetail;
+    type: string;
+}
+
+export function setOriginForProvenance(origin?: FileDetail): SetOriginForProvenance {
+    return {
+        payload: origin,
+        type: SET_ORIGIN_FOR_PROVENANCE,
+    };
+}
+
+/**
+ * TOGGLE_FILE_DETAILS_PANEL
+ *
+ * Intention to show the file details panel for the given file
+ */
+export const TOGGLE_FILE_DETAILS_PANEL = makeConstant(STATE_BRANCH_NAME, "toggle-file-details-panel");
+
+export interface ToggleFileDetailsPanel {
+    payload?: FileDetail;
+    type: string;
+}
+
+export function toggleFileDetailsPanel(origin?: FileDetail): ToggleFileDetailsPanel {
+    return {
+        payload: origin,
+        type: TOGGLE_FILE_DETAILS_PANEL,
+    };
+}

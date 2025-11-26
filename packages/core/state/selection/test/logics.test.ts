@@ -14,7 +14,7 @@ import {
     addQuery,
     changeDataSources,
     changeSourceMetadata,
-    changeSourceProvenance,
+    changeProvenanceSource,
     decodeSearchParams,
     expandAllFileFolders,
     reorderAnnotationHierarchy,
@@ -1296,7 +1296,7 @@ describe("Selection logics", () => {
                 })
             ).to.be.true;
             expect(actions.includesMatch(changeSourceMetadata())).to.be.true;
-            expect(actions.includesMatch(changeSourceProvenance())).to.be.true;
+            expect(actions.includesMatch(changeProvenanceSource())).to.be.true;
             expect(actions.includesMatch(changeDataSources(mockDataSources))).to.be.true;
         });
     });

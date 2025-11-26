@@ -52,7 +52,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             );
             return true;
         } catch (error) {
-            console.error(`Unable to access AICS network ${error}`);
+            console.debug(`Unable to access AICS network ${error}`);
             return false;
         }
     }

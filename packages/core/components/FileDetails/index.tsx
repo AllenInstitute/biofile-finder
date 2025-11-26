@@ -1,27 +1,29 @@
-import { IStackTokens, Stack, StackItem } from "@fluentui/react";
+import { DefaultButton } from "@fluentui/react";
 import classNames from "classnames";
-import { noop, throttle } from "lodash";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
-import useFileDetails from "./useFileDetails";
-import { PrimaryButton } from "../Buttons";
-import { ModalType } from "../Modal";
+import useThumbnailPath from "./useThumbnailPath";
+import { PrimaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
-import AnnotationName from "../../entity/Annotation/AnnotationName";
-import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
+import FileDetail from "../../entity/FileDetail";
+import useDownloadFiles from "../../hooks/useDownloadFiles";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
-import { MAX_DOWNLOAD_SIZE_WEB } from "../../services/FileDownloadService";
-import { interaction, provenance } from "../../state";
+import useTruncatedString from "../../hooks/useTruncatedString";
+import { interaction } from "../../state";
 
 import styles from "./FileDetails.module.css";
 
+
 interface Props {
     className?: string;
+    fileDetails?: FileDetail;
+    isLoading?: boolean;
+    onClose?: () => void;
 }
 
 const FILE_DETAILS_PANE_ID = "file-details-pane";
@@ -72,127 +74,15 @@ function resizeHandleDoubleClick() {
 }
 
 /**
- * Right-hand sidebar of application. Displays details of selected file(s).
+ * Displays details of selected file(s).
  */
 export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
-    const [fileDetails, isLoading] = useFileDetails();
-    const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
-    const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
-    const stackTokens: IStackTokens = { childrenGap: 12 + " " + 20 };
-    const [calculatedSize, setCalculatedSize] = React.useState<number | null>(null);
 
-    const platformDependentServices = useSelector(
-        interaction.selectors.getPlatformDependentServices
-    );
-    const fileDownloadService = platformDependentServices.fileDownloadService;
-    const isOnWeb = useSelector(interaction.selectors.isOnWeb);
-    const isZarr = fileDetails?.path.endsWith(".zarr") || fileDetails?.path.endsWith(".zarr/");
-
-    React.useEffect(() => {
-        setCalculatedSize(null);
-        if (fileDetails) {
-            setIsThumbnailLoading(true);
-            fileDetails.getPathToThumbnail(300).then((path) => {
-                setThumbnailPath(path);
-                setIsThumbnailLoading(false);
-            });
-
-            // Determine size of Zarr on web.
-            if (isOnWeb && isZarr) {
-                if (fileDetails.size && fileDetails.size > 0) {
-                    setCalculatedSize(fileDetails.size);
-                } else if (fileDownloadService.isS3Url(fileDetails.path)) {
-                    // Currently unable to calculate file size for local, non-s3 zarr files
-                    const { hostname, key, bucket } = fileDownloadService.parseS3Url(
-                        fileDetails.path
-                    );
-                    fileDownloadService
-                        .calculateS3DirectorySize(hostname, key, bucket)
-                        .then(setCalculatedSize);
-                } else {
-                    // Check if able to use list-type query arguments to calculate size
-                    fileDownloadService
-                        .canUseDirectoryArguments(fileDetails.path)
-                        .then((canUse) => {
-                            if (!canUse) return;
-                            const {
-                                hostname,
-                                bucket,
-                                key,
-                            } = fileDownloadService.parseVirtualizedUrl(fileDetails.path);
-                            fileDownloadService
-                                .calculateS3DirectorySize(hostname, key, bucket)
-                                .then(setCalculatedSize);
-                        });
-                }
-            }
-        }
-    }, [dispatch, fileDetails, fileDownloadService, isOnWeb, isZarr]);
-
-    const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
-    const openWithMenuItems = useOpenWithMenuItems(fileDetails || undefined);
-
-    // Disable download of large Zarrs ( > 2GB).
-    const isDownloadDisabled = fileDetails
-        ? processStatuses.some((status) => status.data.fileId?.includes(fileDetails.uid)) ||
-          (isOnWeb &&
-              isZarr &&
-              // The Zarr size is calculated using the same traversal method as downloads
-              // meaning that if the size cannot be determined, the download is also not possible.
-              (calculatedSize === null || calculatedSize > MAX_DOWNLOAD_SIZE_WEB))
-        : true;
-    // Display a tooltip if download is disabled
-    const downloadDisabledMessage = React.useMemo(() => {
-        if (!isDownloadDisabled) return;
-        if (!fileDetails) return "File details not available";
-        if (isZarr && isOnWeb) {
-            if (calculatedSize === null) {
-                return "Unable to determine size of .zarr file";
-            } else if (calculatedSize > MAX_DOWNLOAD_SIZE_WEB) {
-                const downloadSizeString = annotationFormatterFactory(
-                    AnnotationType.NUMBER
-                ).displayValue(MAX_DOWNLOAD_SIZE_WEB, "bytes");
-                return "File exceeds maximum download size of " + downloadSizeString;
-            }
-            return "Unable to download file. Upload files to an AWS S3 bucket to enable .zarr downloads";
-        }
-        // Otherwise, fileId is in processStatuses and details are visible to user there
-        return "Download disabled";
-    }, [calculatedSize, fileDetails, isDownloadDisabled, isZarr, isOnWeb]);
-
-    // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
-    const onDownload = React.useMemo(() => {
-        if (!fileDetails) {
-            return noop;
-        }
-
-        return throttle(() => {
-            dispatch(
-                interaction.actions.downloadFiles([
-                    {
-                        id: fileDetails.uid,
-                        name: fileDetails.name,
-                        size: fileDetails.size,
-                        path: fileDownloadService.isFileSystemAccessible
-                            ? ((fileDetails.getFirstAnnotationValue(
-                                  AnnotationName.LOCAL_FILE_PATH
-                              ) || fileDetails.path) as string)
-                            : fileDetails.path,
-                    },
-                ])
-            );
-        }, 1000); // 1s, in ms (arbitrary)
-    }, [dispatch, fileDetails, fileDownloadService.isFileSystemAccessible]);
-
-    const onClickProvenance = React.useCallback(async () => {
-        if (!fileDetails) {
-            return;
-        }
-        // Start generating nodes and edges for selected file
-        dispatch(provenance.actions.constructProvenanceGraph(fileDetails));
-        dispatch(interaction.actions.setVisibleModal(ModalType.Provenance));
-    }, [dispatch, fileDetails]);
+    const openWithMenuItems = useOpenWithMenuItems(props.fileDetails);
+    const truncatedFileName = useTruncatedString(props.fileDetails?.name || "", 30);
+    const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(props.fileDetails);
+    const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(props.fileDetails);
 
     return (
         <div
@@ -207,10 +97,49 @@ export default function FileDetails(props: Props) {
                 <div />
             </div>
             <div className={styles.paginationAndContent}>
-                <Pagination className={styles.pagination} />
                 <div className={styles.overflowContainer}>
-                    {fileDetails && (
+                    {props.fileDetails && (
                         <>
+                            {!props.onClose ? (
+                                <div className={styles.header}>
+                                    <div className={styles.leftAlign}>
+                                        <Pagination className={styles.pagination} />
+                                    </div>
+                                    {/* spacing component */}
+                                    <div className={styles.gutter}></div>
+                                    <div className={styles.rightAlign}>
+                                        <Tooltip content={disabledDownloadReason}>
+                                            <TertiaryButton
+                                                className={styles.tertiaryButton}
+                                                disabled={isDownloadDisabled}
+                                                iconName="Download"
+                                                id="download-file-button"
+                                                title={`Download file ${truncatedFileName} to local system`}
+                                                onClick={onDownload}
+                                            />
+                                        </Tooltip>
+                                        <PrimaryButton
+                                            className={styles.openWithButton}
+                                            iconName="ChevronDownMed"
+                                            text="Open with"
+                                            title="Open file by selected method"
+                                            menuItems={openWithMenuItems}
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className={styles.titleRow}>
+                                    <h4>Metadata</h4>
+                                    <TransparentIconButton
+                                        className={styles.clearButton}
+                                        iconName="Clear"
+                                        onClick={props.onClose}
+                                    />
+                                </div>
+                            )}
+                            <p className={classNames(styles.fileName, { [styles.leftAlign]: !!props.onClose })}>
+                                {props.fileDetails?.name}
+                            </p>
                             <div className={styles.thumbnailContainer}>
                                 <FileThumbnail
                                     className={styles.thumbnail}
@@ -219,50 +148,20 @@ export default function FileDetails(props: Props) {
                                     loading={isThumbnailLoading}
                                 />
                             </div>
-                            <Stack
-                                wrap
-                                horizontal
-                                horizontalAlign="center"
-                                styles={{ root: styles.stack }}
-                                tokens={stackTokens}
-                            >
-                                <StackItem>
-                                    <Tooltip content={downloadDisabledMessage}>
-                                        <PrimaryButton
-                                            className={styles.primaryButton}
-                                            disabled={isDownloadDisabled}
-                                            iconName="Download"
-                                            text="Download"
-                                            title="Download file to local system"
-                                            onClick={onDownload}
-                                        />
-                                    </Tooltip>
-                                </StackItem>
-                                <StackItem>
-                                    <PrimaryButton
-                                        className={styles.primaryButton}
-                                        iconName="OpenInNewWindow"
-                                        text="Open file"
-                                        title="Open file by selected method"
-                                        menuItems={openWithMenuItems}
-                                    />
-                                </StackItem>
-                                <StackItem>
-                                    <PrimaryButton
-                                        className={styles.primaryButton}
-                                        text="Provenance"
-                                        title="Temporary button to display provenance graph"
-                                        onClick={onClickProvenance}
-                                        // to do: disable if no provenance source
-                                    />
-                                </StackItem>
-                            </Stack>
-                            <p className={styles.fileName}>{fileDetails?.name}</p>
-                            <h4>Information</h4>
+                            {!props.onClose && (
+                                <div className={styles.titleRow}>
+                                    <h4>Metadata</h4>
+                                    <DefaultButton
+                                        onClick={() => dispatch(interaction.actions.setOriginForProvenance(props.fileDetails))}
+                                    >
+                                        View provenance
+                                    </DefaultButton>
+                                </div>
+                            )}
                             <FileAnnotationList
                                 className={styles.annotationList}
-                                fileDetails={fileDetails}
-                                isLoading={isLoading}
+                                fileDetails={props.fileDetails}
+                                isLoading={!!props.isLoading}
                             />
                         </>
                     )}
