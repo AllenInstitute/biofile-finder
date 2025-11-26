@@ -201,8 +201,11 @@ export default abstract class DatabaseService {
     }
 
     public async deleteSourceProvenance(): Promise<void> {
-        await this.deleteDataSource(this.SOURCE_PROVENANCE_TABLE);
-        this.dataSourceToProvenanceMap.clear();
+        if (this.sourceProvenanceName) {
+            await this.deleteDataSource(this.SOURCE_PROVENANCE_TABLE);
+            this.dataSourceToProvenanceMap.clear();
+            this.sourceProvenanceName = undefined;
+        }
     }
 
     public async deleteSourceMetadata(): Promise<void> {
@@ -489,28 +492,32 @@ export default abstract class DatabaseService {
     public async processProvenance(provenanceSource: Source): Promise<EdgeDefinition[]> {
         await this.prepareSourceProvenance(provenanceSource);
 
-        const sql = new SQLBuilder()
-            .select("*")
-            .from(`${this.SOURCE_PROVENANCE_TABLE}`)
-            .toSQL();
+        const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
         try {
             const rows = await this.query(sql);
             const parentsAndChildren = new Set<string>();
-            return rows.map((row) => (
-                Object.keys(row)
-                    .reduce((mapSoFar, key) => ({
-                        ...mapSoFar,
-                        [key.toLowerCase().trim()]: typeof row[key] !== 'object'
-                            ? row[key]
-                            : mapKeys(row[key], (_value, innerKey) => (
-                                innerKey.toLowerCase().trim()
-                            ))
-                    }), {} as Record<string, any>)
-                )).map(row => {
+            return rows
+                .map((row) =>
+                    Object.keys(row).reduce(
+                        (mapSoFar, key) => ({
+                            ...mapSoFar,
+                            [key.toLowerCase().trim()]:
+                                typeof row[key] !== "object"
+                                    ? row[key]
+                                    : mapKeys(row[key], (_value, innerKey) =>
+                                          innerKey.toLowerCase().trim()
+                                      ),
+                        }),
+                        {} as Record<string, any>
+                    )
+                )
+                .map((row) => {
                     try {
                         const parentAndChildKey = `${row["parent"]}-${row["child"]}`;
                         if (parentsAndChildren.has(parentAndChildKey)) {
-                            throw new Error(`Parent (${row["parent"]}) and Child (${row["child"]}) combination found multiple times`);
+                            throw new Error(
+                                `Parent (${row["parent"]}) and Child (${row["child"]}) combination found multiple times`
+                            );
                         }
 
                         parentsAndChildren.add(parentAndChildKey);
@@ -519,13 +526,13 @@ export default abstract class DatabaseService {
                             relationshipType: row["relationship type"],
                             parent: {
                                 name: row["parent"],
-                                type: row["parent type"]
+                                type: row["parent type"],
                             },
                             child: {
                                 name: row["child"],
-                                type: row["child type"]
+                                type: row["child type"],
                             },
-                        }
+                        };
                     } catch (err) {
                         if ((err as Error).message.includes("key")) {
                             throw new Error(

@@ -534,7 +534,6 @@ const openWithLogic = createLogic({
 const deleteMetadataLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const filters = interactionSelectors.getFileFiltersForVisibleModal(deps.getState());
-        const deleteRequestId = uniqueId();
         const {
             payload: { annotationName, user },
         } = deps.action as DeleteMetadataAction;
@@ -546,7 +545,7 @@ const deleteMetadataLogic = createLogic({
             const errorMsg = `Failed to delete metadata from files, some may have been edited. Details:<br/>${
                 err instanceof Error ? err.message : err
             }`;
-            dispatch(processError(deleteRequestId, errorMsg));
+            dispatch(processError(uniqueId(), errorMsg));
         } finally {
             done();
         }
@@ -681,7 +680,9 @@ const refresh = createLogic({
             const { getState } = deps;
             const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
             const annotationService = interactionSelectors.getAnnotationService(getState());
-            const { databaseService } = interactionSelectors.getPlatformDependentServices(getState());
+            const { databaseService } = interactionSelectors.getPlatformDependentServices(
+                getState()
+            );
 
             // Refresh list of annotations & which annotations are available
             const [annotations, availableAnnotations] = await Promise.all([
@@ -690,8 +691,8 @@ const refresh = createLogic({
             ]);
             const provenanceSource = databaseService.sourceProvenanceName
                 ? { name: databaseService.sourceProvenanceName }
-                : undefined
-            dispatch(selection.actions.changeProvenanceSource(provenanceSource))
+                : undefined;
+            dispatch(selection.actions.changeProvenanceSource(provenanceSource));
             dispatch(metadata.actions.receiveAnnotations(annotations));
             dispatch(selection.actions.setAvailableAnnotations(availableAnnotations));
         } catch (err) {

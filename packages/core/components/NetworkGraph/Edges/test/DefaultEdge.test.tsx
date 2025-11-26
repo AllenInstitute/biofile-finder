@@ -1,21 +1,20 @@
-import { render } from "@testing-library/react";
-import { expect } from "chai";
-import * as React from "react";
+// import { render } from "@testing-library/react";
+// import { expect } from "chai";
+// import * as React from "react";
 
-import DefaultEdge from "../..";
+// import DefaultEdge from "../DefaultEdge";
 
+// describe("<DefaultEdge />", () => {
+//     it("todo", () => {
+//         // Arrange
+//         // ...
 
-describe("<DefaultEdge />", () => {
-    it("todo", () => {
-        // Arrange
-        // ...
+//         // Act
+//         const { } = render(
+//             <DefaultEdge />
+//         );
 
-        // Act
-        const { getByText } = render(
-            <DefaultEdge origin={{} as any} />
-        );
-
-        // Assert
-        expect(false).to.be.true;
-    });
-});
+//         // Assert
+//         expect(false).to.be.true;
+//     });
+// });

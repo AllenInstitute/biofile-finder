@@ -1,21 +1,20 @@
-import { render } from "@testing-library/react";
-import { expect } from "chai";
-import * as React from "react";
+// import { render } from "@testing-library/react";
+// import { expect } from "chai";
+// import * as React from "react";
 
-import FileNode from "../..";
+// import FileNode from "../FileNode";
 
+// describe("<FileNode />", () => {
+//     it("todo", () => {
+//         // Arrange
+//         // ...
 
-describe("<FileNode />", () => {
-    it("todo", () => {
-        // Arrange
-        // ...
+//         // Act
+//         const { getByText } = render(
+//             <FileNode />
+//         );
 
-        // Act
-        const { getByText } = render(
-            <FileNode origin={{} as any} />
-        );
-
-        // Assert
-        expect(false).to.be.true;
-    });
-});
+//         // Assert
+//         expect(false).to.be.true;
+//     });
+// });

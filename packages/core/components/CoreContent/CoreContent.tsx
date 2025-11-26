@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -10,7 +9,6 @@ import RelationshipDiagram from "../RelationshipDiagram";
 import { interaction, selection } from "../../state";
 
 import styles from "./CoreContent.module.css";
-
 
 /**
  * Core content of the application
@@ -24,12 +22,7 @@ export default function CoreContent() {
     const hasNeedToSelectQuery = requiresDataSourceReload || !hasSomethingToQuery;
 
     if (!!origin) {
-        return (
-            <RelationshipDiagram
-                className={styles.diagram}
-                origin={origin}
-            />
-        );
+        return <RelationshipDiagram className={styles.diagram} origin={origin} />;
     }
 
     return (

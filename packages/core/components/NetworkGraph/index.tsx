@@ -9,10 +9,15 @@ import FileNode from "./Nodes/FileNode";
 import MetadataNode from "./Nodes/MetadataNode";
 import LoadingIcon from "../Icons/LoadingIcon";
 import FileDetail from "../../entity/FileDetail";
-import Graph, { AnnotationEdge, EdgeType, NodeType, FileNode as FileNodeType, MetadataNode as MetadataNodeType } from "../../entity/Graph";
+import Graph, {
+    AnnotationEdge,
+    EdgeType,
+    NodeType,
+    FileNode as FileNodeType,
+    MetadataNode as MetadataNodeType,
+} from "../../entity/Graph";
 
 import styles from "./NetworkGraph.module.css";
-
 
 interface NetworkGraphProps {
     className?: string;
@@ -41,7 +46,8 @@ export default function NetworkGraph(props: NetworkGraphProps) {
 
     React.useEffect(() => {
         setIsLoading(true);
-        props.graph.originate(props.origin)
+        props.graph
+            .originate(props.origin)
             .then(() => {
                 setNodes(props.graph.nodes);
                 setEdges(props.graph.edges);
@@ -49,7 +55,7 @@ export default function NetworkGraph(props: NetworkGraphProps) {
             .finally(() => {
                 setIsLoading(false);
             });
-    }, [props.graph, origin, setNodes, setEdges, setIsLoading, props.refreshKey]);
+    }, [props.graph, props.origin, setNodes, setEdges, setIsLoading, props.refreshKey]);
 
     if (isLoading) {
         return (

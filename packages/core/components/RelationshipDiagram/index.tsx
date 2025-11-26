@@ -9,7 +9,6 @@ import { interaction } from "../../state";
 
 import styles from "./RelationshipDiagram.module.css";
 
-
 interface Props {
     className?: string;
     origin?: FileDetail;
@@ -30,7 +29,7 @@ export default function RelationshipDiagram({ className, origin }: Props) {
             graph.reset();
             setOriginalOriginName(origin?.name);
         }
-    }, [origin, originalOriginName, setOriginalOriginName]);
+    }, [graph, origin, originalOriginName, setOriginalOriginName]);
 
     return (
         <div className={classNames(styles.container, className)}>

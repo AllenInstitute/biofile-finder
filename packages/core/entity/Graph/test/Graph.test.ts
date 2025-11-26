@@ -8,8 +8,7 @@ import { FmsFileAnnotation } from "../../../services/FileService";
 
 import Graph, { EdgeDefinition } from "..";
 
-
-const mockFileDetail = (annotations: FmsFileAnnotation[] = []) => (
+const mockFileDetail = (annotations: FmsFileAnnotation[] = []) =>
     new FileDetail(
         {
             annotations,
@@ -20,12 +19,9 @@ const mockFileDetail = (annotations: FmsFileAnnotation[] = []) => (
             uploaded: "01/01/01",
         },
         Environment.TEST
-    )
-);
+    );
 
-
-describe.only("Graph", () => {
-
+describe("Graph", () => {
     describe("originate: no edges case", () => {
         // Arrange
         const expectedPlateWellLabel = "is well in";
@@ -35,10 +31,8 @@ describe.only("Graph", () => {
                 child: { name: "Well", type: "metadata" },
                 relationship: expectedPlateWellLabel,
             },
-        ]
-        const origin = mockFileDetail([
-            { name: "Well", values: ["A4"] },
-        ]);
+        ];
+        const origin = mockFileDetail([{ name: "Well", values: ["A4"] }]);
 
         it("creates no edges", async () => {
             const graph = new Graph(new FileServiceNoop(), edgeDefinitions);
@@ -69,11 +63,9 @@ describe.only("Graph", () => {
                 parent: { name: "Well", type: "metadata" },
                 child: { name: "File ID", type: "file" },
                 relationship: expectedWellFileLabel,
-            }
-        ]
-        const origin = mockFileDetail([
-            { name: "Well", values: ["A4"] },
-        ]);
+            },
+        ];
+        const origin = mockFileDetail([{ name: "Well", values: ["A4"] }]);
 
         it("creates accurate edge", async () => {
             // Act
@@ -94,8 +86,8 @@ describe.only("Graph", () => {
 
             // Assert
             expect(graph.nodes).to.be.lengthOf(2);
-            expect(graph.nodes.some(node => node.id === origin.id)).to.be.true;
-            expect(graph.nodes.some(node => node.id === "Well: A4")).to.be.true;
+            expect(graph.nodes.some((node) => node.id === origin.id)).to.be.true;
+            expect(graph.nodes.some((node) => node.id === "Well: A4")).to.be.true;
         });
     });
 
@@ -113,8 +105,8 @@ describe.only("Graph", () => {
                 parent: { name: "Well", type: "metadata" },
                 child: { name: "File ID", type: "file" },
                 relationship: expectedWellFileLabel,
-            }
-        ]
+            },
+        ];
         const origin = mockFileDetail([
             { name: "Plate Barcode", values: ["1234"] },
             { name: "Well", values: ["A4"] },
@@ -127,16 +119,22 @@ describe.only("Graph", () => {
 
             // Assert
             expect(graph.edges).to.be.lengthOf(2);
-            expect(graph.edges.some(edge => (
-                edge.source === "Plate Barcode: 1234"
-                && edge.target === "Plate Barcode: 1234-Well: A4"
-                && edge.data?.value === expectedPlateWellLabel
-            ))).to.be.true;
-            expect(graph.edges.some(edge => (
-                edge.source === "Plate Barcode: 1234-Well: A4"
-                && edge.target === origin.id
-                && edge.data?.value === expectedWellFileLabel
-            ))).to.be.true;
+            expect(
+                graph.edges.some(
+                    (edge) =>
+                        edge.source === "Plate Barcode: 1234" &&
+                        edge.target === "Plate Barcode: 1234-Well: A4" &&
+                        edge.data?.value === expectedPlateWellLabel
+                )
+            ).to.be.true;
+            expect(
+                graph.edges.some(
+                    (edge) =>
+                        edge.source === "Plate Barcode: 1234-Well: A4" &&
+                        edge.target === origin.id &&
+                        edge.data?.value === expectedWellFileLabel
+                )
+            ).to.be.true;
         });
 
         it("creates accurate nodes", async () => {
@@ -146,9 +144,10 @@ describe.only("Graph", () => {
 
             // Assert
             expect(graph.nodes).to.be.lengthOf(3);
-            expect(graph.nodes.some(node => node.id === origin.id)).to.be.true;
-            expect(graph.nodes.some(node => node.id === "Plate Barcode: 1234")).to.be.true;
-            expect(graph.nodes.some(node => node.id === "Plate Barcode: 1234-Well: A4")).to.be.true;
+            expect(graph.nodes.some((node) => node.id === origin.id)).to.be.true;
+            expect(graph.nodes.some((node) => node.id === "Plate Barcode: 1234")).to.be.true;
+            expect(graph.nodes.some((node) => node.id === "Plate Barcode: 1234-Well: A4")).to.be
+                .true;
         });
     });
 
@@ -172,12 +171,12 @@ describe.only("Graph", () => {
                 parent: { name: "Segmentation ID", type: "file" },
                 child: { name: "File ID", type: "file" },
                 relationship: expectedPointer,
-                relationshipType: "pointer"
+                relationshipType: "pointer",
             },
-        ]
+        ];
         const origin = mockFileDetail([
             { name: edgeDefinitions[0].parent.name, values: [sourceFile.id] },
-            { name: expectedPointer, values: [expectedAlgorithm]}
+            { name: expectedPointer, values: [expectedAlgorithm] },
         ]);
 
         it("creates accurate edge", async () => {
@@ -200,13 +199,12 @@ describe.only("Graph", () => {
 
             // Assert
             expect(graph.nodes).to.be.lengthOf(2);
-            expect(graph.nodes.some(node => node.id === origin.id)).to.be.true;
-            expect(graph.nodes.some(node => node.id === sourceFile.id)).to.be.true;
+            expect(graph.nodes.some((node) => node.id === origin.id)).to.be.true;
+            expect(graph.nodes.some((node) => node.id === sourceFile.id)).to.be.true;
         });
     });
 
     describe("reset", () => {
-
         it("clears used graph", async () => {
             // Arrange
             const expectedWellFileLabel = "is image in";
@@ -215,11 +213,9 @@ describe.only("Graph", () => {
                     parent: { name: "Well", type: "metadata" },
                     child: { name: "File ID", type: "file" },
                     relationship: expectedWellFileLabel,
-                }
-            ]
-            const origin = mockFileDetail([
-                { name: "Well", values: ["A4"] },
-            ]);
+                },
+            ];
+            const origin = mockFileDetail([{ name: "Well", values: ["A4"] }]);
             const graph = new Graph(new FileServiceNoop(), edgeDefinitions);
             await graph.originate(origin);
 
