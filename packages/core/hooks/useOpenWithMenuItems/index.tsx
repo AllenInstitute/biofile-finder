@@ -397,7 +397,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             }
         }
 
-        // TODO don't send scenes and/or metadata when not present (e.g. check `includeUrls`)
         openWindowWithMessage(openUrl, message);
     }, [fileDetails, fileSelection]);
 
