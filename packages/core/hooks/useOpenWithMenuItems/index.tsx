@@ -289,8 +289,8 @@ function getFileExtension(fileDetails: FileDetail): string {
  * emphasize that this protocol is both message- and receiver-agnostic, and could be used to send
  * large bundles of data to other apps as well.
  */
-function openWindowWithMessage(openUrl: URL, entry: any): void {
-    if (entry === undefined || entry === null) {
+function openWindowWithMessage(openUrl: URL, message: any): void {
+    if (message === undefined || message === null) {
         window.open(openUrl);
         return;
     }
@@ -304,7 +304,7 @@ function openWindowWithMessage(openUrl: URL, entry: any): void {
         if (event.origin !== openUrl.origin || event.data !== storageid) {
             return;
         }
-        handle?.postMessage(entry, openUrl.origin);
+        handle?.postMessage(message, openUrl.origin);
         window.removeEventListener("message", loadHandler);
     };
 
