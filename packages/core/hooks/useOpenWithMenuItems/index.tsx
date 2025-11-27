@@ -345,10 +345,9 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         fileService
     );
 
-    // TODO custom hook this, like `useOpenInCfe`?
+    // custom hook this, like `useOpenInCfe`?
     const openInVole = React.useCallback(async (): Promise<void> => {
-        // TODO change to vole.allencell.org
-        const VOLE_BASE_URL = "http://localhost:9020/viewer";
+        const VOLE_BASE_URL = "https://vole.allencell.org/viewer";
 
         const allDetails = await fileSelection.fetchAllDetails();
         const details = allDetails.filter((detail) => {
