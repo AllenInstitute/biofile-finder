@@ -207,6 +207,12 @@ const APPS = (
     } as IContextualMenuItem,
 });
 
+type VoleMessage = {
+    scenes?: string[];
+    meta: Record<string, Record<string, unknown>>;
+    sceneIndex?: number;
+};
+
 function getSupportedApps(
     apps: Apps,
     isSmallFile: boolean,
@@ -351,7 +357,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         });
 
         const scenes: string[] = [];
-        const meta: Record<string, Record<string, unknown>> = {};
+        const message: VoleMessage = { meta: {} };
 
         for (const detail of details) {
             const sceneMeta: Record<string, unknown> = {};
@@ -361,16 +367,13 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 sceneMeta[annotation.name] = value;
             }
             scenes.push(detail.path);
-            meta[detail.path] = sceneMeta;
+            message.meta[detail.path] = sceneMeta;
         }
 
         const openUrl = new URL(VOLE_BASE_URL);
 
         // Start on the focused scene
-        const sceneIdx = details.findIndex((detail) => detail.path === fileDetails?.path);
-        if (sceneIdx > 0) {
-            openUrl.searchParams.append("scene", sceneIdx.toString());
-        }
+        const sceneIndex = details.findIndex((detail) => detail.path === fileDetails?.path);
 
         // Prefer putting the image URLs directly in the query string for easy sharing, if the
         // length of the URL would be reasonable
@@ -379,19 +382,24 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             details.reduce((acc, detail) => acc + detail.path.length + 1, 0) <= 250;
 
         if (includeUrls) {
-            // We can fit all the URLs we want
+            // We can fit all the URLs we want!
             openUrl.searchParams.append("url", details.map(({ path }) => path).join("+"));
+            if (sceneIndex > 0) {
+                openUrl.searchParams.append("scene", sceneIndex.toString());
+            }
         } else {
-            // There are more scene URLs than we want to put in the full path.
-            // Just include the first one and a hint to how many scenes we're opening;
-            // send the rest in a message once the new window opens.
-            const initialImageUrl = details[Math.max(sceneIdx, 0)].path;
+            // There are more scene URLs than we want to put in the full URL. We need to send them over as a message.
+            // Include only the URL of the focused scene, so the link is usable even if the message fails.
+            const initialImageUrl = details[Math.max(sceneIndex, 0)].path;
             openUrl.searchParams.append("url", initialImageUrl);
-            openUrl.searchParams.append("msgscenes", details.length.toString());
+            message.scenes = scenes;
+            if (sceneIndex > 0) {
+                message.sceneIndex = sceneIndex;
+            }
         }
 
         // TODO don't send scenes and/or metadata when not present (e.g. check `includeUrls`)
-        openWindowWithMessage(openUrl, { scenes, meta });
+        openWindowWithMessage(openUrl, message);
     }, [fileDetails, fileSelection]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
