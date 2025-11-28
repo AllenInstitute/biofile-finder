@@ -138,13 +138,7 @@
 }
 
 .selected-option-button {
-  color: var(--primary-text-color);
   margin-left: 10px;
-}
-
-.selected-option-button:hover {
-  background-color: unset;
-  color: var(--highlight-text-color);
 }
 
 .text-field {

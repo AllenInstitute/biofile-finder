@@ -352,10 +352,11 @@ const downloadFilesLogic = createLogic({
                         if (result.resolution === DownloadResolution.CANCELLED) {
                             dispatch(removeStatus(downloadRequestId));
                         } else {
+                            // This gets sent before some large files are complete
                             dispatch(
                                 processSuccess(
                                     downloadRequestId,
-                                    result.msg || "Download completed successfully."
+                                    result.msg || "Download started successfully."
                                 )
                             );
                         }
