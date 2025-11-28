@@ -366,7 +366,9 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 sceneMeta[annotation.name] = value;
             }
             scenes.push(detail.path);
-            message.meta[detail.path] = sceneMeta;
+            if (Object.keys(sceneMeta).length > 0) {
+                message.meta[detail.path] = sceneMeta;
+            }
         }
 
         const openUrl = new URL(VOLE_BASE_URL);
@@ -377,7 +379,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         // Prefer putting the image URLs directly in the query string for easy sharing, if the
         // length of the URL would be reasonable
         const includeUrls =
-            details.length <= 5 ||
+            details.length < 5 ||
             details.reduce((acc, detail) => acc + detail.path.length + 1, 0) <= 250;
 
         if (includeUrls) {
@@ -397,7 +399,11 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             }
         }
 
-        openWindowWithMessage(openUrl, message);
+        if (includeUrls && Object.keys(message.meta).length === 0) {
+            window.open(openUrl);
+        } else {
+            openWindowWithMessage(openUrl, message);
+        }
     }, [fileDetails, fileSelection]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
