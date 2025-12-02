@@ -8,6 +8,7 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import { interaction, metadata, selection } from "../../state";
+import { getVolEBaseUrl } from "../../state/interaction/selectors";
 
 import styles from "./useOpenWithMenuItems.module.css";
 import useOpenInCfe from "./useOpenInCfe";
@@ -329,6 +330,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     );
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
     const fileService = useSelector(interaction.selectors.getFileService);
+    const voleBaseUrl = useSelector(getVolEBaseUrl);
 
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const annotationNames = React.useMemo(
@@ -347,8 +349,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
 
     // custom hook this, like `useOpenInCfe`?
     const openInVole = React.useCallback(async (): Promise<void> => {
-        const VOLE_BASE_URL = "https://vole.allencell.org/viewer";
-
         const allDetails = await fileSelection.fetchAllDetails();
         const details = allDetails.filter((detail) => {
             const fileExt = getFileExtension(detail);
@@ -371,7 +371,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             }
         }
 
-        const openUrl = new URL(VOLE_BASE_URL);
+        const openUrl = new URL(voleBaseUrl);
 
         // Start on the focused scene
         const sceneIndex = details.findIndex((detail) => detail.path === fileDetails?.path);
@@ -404,7 +404,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         } else {
             openWindowWithMessage(openUrl, message);
         }
-    }, [fileDetails, fileSelection]);
+    }, [fileDetails, fileSelection, voleBaseUrl]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
