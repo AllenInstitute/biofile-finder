@@ -37,15 +37,24 @@ export default function SearchBox(props: Props) {
         setSearchValue("");
     }
 
+    // Autofocus into search box
+    // Note: currently works inconsistently depending on render depth
+    const inputRef = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        const input = inputRef.current?.getElementsByTagName("input")[0];
+        input?.focus();
+    }, [inputRef]);
+
     return (
         <div className={styles.searchBoxWrapper}>
             <SearchBoxComponent
                 className={classNames(props.className, styles.searchBox)}
-                id={props.id}
+                id={`${props.id}-searchbox`}
                 onClear={onClear}
                 onSearch={props.onSearch}
                 onChange={onSearchBoxChange}
                 placeholder={props.placeholder || "Search..."}
+                ref={inputRef}
                 value={searchValue}
             />
             {showSubmitButton && (
