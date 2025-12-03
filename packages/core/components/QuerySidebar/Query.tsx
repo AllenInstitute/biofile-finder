@@ -215,7 +215,7 @@ export default function Query(props: QueryProps) {
                     className={styles.collapseButton}
                     onClick={() => setIsExpanded(!isExpanded)}
                     iconName="ChevronUpMed"
-                    data-testid="collapse-button"
+                    id="collapse-button"
                     title="Collapse query details"
                 />
             </div>
