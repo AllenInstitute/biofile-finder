@@ -98,9 +98,11 @@ export default abstract class DatabaseService {
         // Because when querying multiple data sources column differences can complicate the queries
         // preparing a table ahead of time that is the aggregate of the data sources is most optimal
         // should look toward some way of reducing the memory footprint if that becomes an issue
+        console.debug("prepareDataSources:dataSources.length", dataSources.length); // doesn't happen
         if (dataSources.length > 1) {
             await this.aggregateDataSources(dataSources);
         }
+        console.debug("prepareDataSources:complete")
     }
 
     private async prepareDataSource(dataSource: Source, skipNormalization: boolean): Promise<void> {
@@ -122,6 +124,7 @@ export default abstract class DatabaseService {
         try {
             // Add the data source as a table on the database
             await this.addDataSource(name, type, uri);
+            console.debug("prepareDataSource: finished addDataSource");
 
             // Add data source name to in-memory set
             // for quick data source checks
@@ -129,15 +132,20 @@ export default abstract class DatabaseService {
 
             // Unless skipped, this will ensure the table is prepared
             // for querying with the expected columns & uniqueness constraints
+            console.debug("prepareDataSource: skipNormalization", skipNormalization); // Happens: result is False
             if (!skipNormalization) {
                 await this.normalizeDataSourceColumnNames(name);
+                console.debug("prepareDataSources.normalizeDataSourceColumnNames:complete"); // Doesn't happen
 
                 const errors = await this.checkDataSourceForErrors(name);
+                console.debug("prepareDataSources.checkDataSourceForErrors:complete");
+                console.debug("prepareDataSources.errors", errors);
                 if (errors.length) {
                     throw new Error(errors.join("</br></br>"));
                 }
 
                 await this.addRequiredColumns(dataSource.name);
+                console.debug("prepareDataSources.addRequiredColumns:complete");
             }
         } catch (err) {
             let formattedError = (err as Error).message;

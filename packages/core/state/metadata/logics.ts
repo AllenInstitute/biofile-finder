@@ -180,11 +180,14 @@ const createNewAnnotationLogic = createLogic({
  */
 const requestDataSources = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        console.debug("requestDataSources.process:start");
         const datasetService = interaction.selectors.getDatasetService(deps.getState());
         const existingDataSources = metadataSelectors.getDataSources(deps.getState());
+        console.debug("requestDataSources.process:did getDataSources");
 
         try {
             const dataSources = await datasetService.getAll();
+            console.debug("requestDataSources.process:got dataSources", dataSources);
             dispatch(receiveDataSources(uniqBy([...existingDataSources, ...dataSources], "id")));
         } catch (err) {
             console.error("Failed to fetch datasets", err);

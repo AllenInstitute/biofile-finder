@@ -56,6 +56,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
         }
 
         const fixedSql = sql.replaceAll("sample_file_large", "sample_file_large.parquet");
+        // const fixedSql = sql.replaceAll("sample_file_large.parquet", "read_parquet(sample_file_large.parquet)");
 
         const connection = await this.database.connect();
         try {

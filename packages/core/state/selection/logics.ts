@@ -753,6 +753,7 @@ const removeQueryLogic = createLogic({
 const replaceDataSourceLogic = createLogic({
     type: REPLACE_DATA_SOURCE,
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        console.debug("replaceDataSourceLogic.process");
         const { payload: replacementSource } = deps.ctx
             .replaceDataSourceAction as ReplaceDataSource;
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
@@ -761,7 +762,9 @@ const replaceDataSourceLogic = createLogic({
 
         // Prepare the data sources ahead of querying against them below
         try {
+            console.debug("Starting prepareDataSources"); // happens
             await databaseService.prepareDataSources([replacementSource]);
+            console.debug("Finished prepareDataSources"); // doesn't happen
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
@@ -775,9 +778,11 @@ const replaceDataSourceLogic = createLogic({
         }
 
         dispatch(interaction.actions.refresh() as AnyAction);
+        console.debug("replaceDataSourceLogic.process:cleanup"); // Happens after error
         done();
     },
     transform(deps: ReduxLogicDeps, next) {
+        console.debug("replaceDataSourceLogic.transform");
         const { payload: replacementDataSource } = deps.action as ReplaceDataSource;
         deps.ctx.replaceDataSourceAction = deps.action;
         const queries = selectionSelectors.getQueries(deps.getState());
@@ -794,6 +799,7 @@ const replaceDataSourceLogic = createLogic({
                 },
             };
         });
+        console.debug("replaceDataSourceLogic.transform: setQueries");
         next(selection.actions.setQueries(updatedQueries));
     },
 });
