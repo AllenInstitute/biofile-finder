@@ -37,9 +37,9 @@ export default class DatabaseFileService implements FileService {
         env: Environment
     ): FileDetail {
         const uniqueId: string | undefined = row[DatabaseService.HIDDEN_UID_ANNOTATION];
-        if (!uniqueId) {
-            throw new Error("Missing auto-generated unique ID");
-        }
+        // if (!uniqueId) {
+        //     throw new Error("Missing auto-generated unique ID");
+        // }
 
         return new FileDetail(
             {

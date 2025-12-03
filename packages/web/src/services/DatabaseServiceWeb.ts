@@ -4,6 +4,7 @@ import { DatabaseService } from "../../../core/services";
 
 export default class DatabaseServiceWeb extends DatabaseService {
     private database: duckdb.AsyncDuckDB | undefined;
+    private type: string | undefined;
 
     public async initialize(logLevel: duckdb.LogLevel = duckdb.LogLevel.INFO) {
         const allBundles = duckdb.getJsDelivrBundles();
@@ -54,9 +55,11 @@ export default class DatabaseServiceWeb extends DatabaseService {
             throw new Error("Database failed to initialize");
         }
 
+        const fixedSql = sql.replaceAll("sample_file_large", "sample_file_large.parquet");
+
         const connection = await this.database.connect();
         try {
-            const result = await connection.query(sql);
+            const result = await connection.query(fixedSql);
             const resultAsArray = result.toArray();
             const resultAsJSONString = JSON.stringify(
                 resultAsArray,
@@ -65,7 +68,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
             return JSON.parse(resultAsJSONString);
         } catch (err) {
             throw new Error(
-                `${(err as Error).message}. \nThe above error occured while executing query: ${sql}`
+                `${(err as Error).message}. \nThe above error occured while executing query: ${fixedSql}`
             );
         } finally {
             await connection.close();
@@ -85,13 +88,18 @@ export default class DatabaseServiceWeb extends DatabaseService {
             throw new Error("Database failed to initialize");
         }
 
+        this.type = type;
+
         if (uri instanceof File) {
+            const trueName = `${name}.${type}`;
             await this.database.registerFileHandle(
-                name,
+                trueName,
                 uri,
                 duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
                 true
             );
+            const conn = await this.database.connect();
+            const result = await conn.query(`SELECT * FROM ${trueName} LIMIT 2`);
         } else {
             const protocol = uri.startsWith("s3")
                 ? duckdb.DuckDBDataProtocol.S3
@@ -101,7 +109,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
         }
 
         if (type === "parquet") {
-            await this.execute(`CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`);
+            return;
         } else if (type === "json") {
             await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
         } else {

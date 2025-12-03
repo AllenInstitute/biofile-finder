@@ -6,6 +6,7 @@ import { DatabaseService } from "../../services";
  */
 export default class SQLBuilder {
     private isSummarizing = false;
+    private isDescribing = false;
     private selectStatement = "*";
     private fromStatement?: string;
     private readonly whereClauses: string[] = [];
@@ -29,7 +30,18 @@ export default class SQLBuilder {
         return `REGEXP_MATCHES("${column}", '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
     }
 
+    public describe(): SQLBuilder {
+        if (this.isSummarizing) {
+            throw new Error('"DESCRIBE" cannot be used with "SUMMARIZE"');
+        }
+        this.isDescribing = true;
+        return this;
+    }
+
     public summarize(): SQLBuilder {
+        if (this.isDescribing) {
+            throw new Error('"SUMMARIZE" cannot be used with "DESCRIBE"');
+        }
         this.isSummarizing = true;
         return this;
     }
@@ -72,7 +84,12 @@ export default class SQLBuilder {
     }
 
     public orderBy(clause?: string): SQLBuilder {
+        if (clause && clause?.indexOf(DatabaseService.HIDDEN_UID_ANNOTATION) > -1) {
+            clause = undefined;
+            console.debug("SQLBuilder.orderBy:hidden_bff_uid");
+        }
         this.orderByClause = clause;
+        console.debug("SQLBuilder.orderBy.clause", clause);
         return this;
     }
 
@@ -98,18 +115,17 @@ export default class SQLBuilder {
         // So even if there is already an "order by" clause, secondarily sort on unique ID.
         // Exception: COUNT(*) queries should not require sorting
         let orderByString = "";
-        if (this.orderByClause || (this.limitNum && !this.selectStatement.includes("COUNT(*)"))) {
-            orderByString = `ORDER BY ${this.orderByClause || ""}${
-                this.orderByClause && this.limitNum ? ", " : ""
-            }${DatabaseService.HIDDEN_UID_ANNOTATION}`;
+        if (this.orderByClause) {
+            orderByString = `ORDER BY ${this.orderByClause}`;
         }
         return `
+            ${this.isDescribing ? "DESCRIBE" : ""}
             ${this.isSummarizing ? "SUMMARIZE" : ""}
             SELECT ${this.selectStatement}
             FROM "${this.fromStatement}"
             ${this.whereClauses.length ? `WHERE (${this.whereClauses.join(") AND (")})` : ""}
             ${orderByString}
-            ${this.limitNum !== undefined ? `LIMIT ${this.limitNum}` : ""}
+            LIMIT ${this.limitNum !== undefined ? this.limitNum : "1000"}
             ${this.offsetNum !== undefined ? `OFFSET ${this.offsetNum}` : ""}
         `;
     }

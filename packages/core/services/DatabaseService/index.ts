@@ -88,6 +88,7 @@ export default abstract class DatabaseService {
         dataSources: Source[],
         skipNormalization = false
     ): Promise<void> {
+        skipNormalization = true; // Don't edit column names for test parquet file
         await Promise.all(
             dataSources
                 .filter((dataSource) => !this.existingDataSources.has(dataSource.name))
@@ -470,12 +471,11 @@ export default abstract class DatabaseService {
         const shouldHaveDescriptions = dataSourceNames.includes(this.SOURCE_METADATA_TABLE);
         if (!hasAnnotations || (!hasDescriptions && shouldHaveDescriptions)) {
             const sql = new SQLBuilder()
-                .select("column_name, data_type")
-                .from('information_schema"."columns')
-                .where(`table_name = '${aggregateDataSourceName}'`)
-                .where(`column_name != '${DatabaseService.HIDDEN_UID_ANNOTATION}'`)
+                .describe()
+                .select("*")
+                .from(aggregateDataSourceName)
                 .toSQL();
-            const rows = await this.query(sql);
+            const rows = (await this.query(sql)).filter(row => row["column_name"] !== DatabaseService.HIDDEN_UID_ANNOTATION);
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
             }
@@ -497,7 +497,7 @@ export default abstract class DatabaseService {
                             DatabaseService.OPEN_FILE_LINK_TYPE
                                 ? AnnotationType.STRING
                                 : (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
-                                  DatabaseService.columnTypeToAnnotationType(row["data_type"]),
+                                  DatabaseService.columnTypeToAnnotationType(row["column_type"]),
                     })
             );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);

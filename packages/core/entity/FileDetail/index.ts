@@ -111,7 +111,7 @@ export default class FileDetail {
     }
 
     public get id(): string {
-        const id = this.fileDetail.file_id || this.getFirstAnnotationValue("File ID");
+        const id = this.fileDetail.file_id || this.getFirstAnnotationValue("File ID") || this.getFirstAnnotationValue("File Name");
         if (id === undefined) {
             throw new Error("File ID is not defined");
         }
