@@ -85,9 +85,8 @@ export default class FileFilter {
             case FilterType.EXCLUDE:
                 return `"${this.annotationName}" IS NULL`;
             case FilterType.FUZZY:
-                return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
             default:
-                return `"${this.annotationName}" = '${this.annotationValue}'`
+                return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
         }
     }
 

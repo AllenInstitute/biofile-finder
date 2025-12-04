@@ -27,7 +27,7 @@ export default class SQLBuilder {
     ): string {
         // Escape special characters for regex
         const escapedValue = `${value}`.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-        return `REGEXP_MATCHES("${column}", '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
+        return `REGEXP_MATCHES(CAST("${column}" as VarChar), '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
     }
 
     public describe(): SQLBuilder {
