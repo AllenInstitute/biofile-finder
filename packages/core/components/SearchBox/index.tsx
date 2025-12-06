@@ -38,11 +38,15 @@ export default function SearchBox(props: Props) {
     }
 
     // Autofocus into search box
-    // Note: currently works inconsistently depending on render depth
     const inputRef = React.useRef<HTMLDivElement>(null);
     React.useEffect(() => {
         const input = inputRef.current?.getElementsByTagName("input")[0];
-        input?.focus();
+        if (input) {
+            // Very small timeout in case focus is captured elsewhere by click event
+            setTimeout(() => {
+                input.focus();
+            }, 100); // 10 is too small, anything higher is slightly visible
+        }
     }, [inputRef]);
 
     return (
