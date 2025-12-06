@@ -5,12 +5,13 @@ import { State } from "../";
 import { ModalType } from "../../components/Modal";
 import {
     AICS_FMS_DATA_SOURCE_NAME,
+    CellFeatureExplorerBaseUrl,
     DatasetBucketUrl,
     FESBaseUrl,
-    MMSBaseUrl,
     LoadBalancerBaseUrl,
-    CellFeatureExplorerBaseUrl,
+    MMSBaseUrl,
     TemporaryFileServiceBaseUrl,
+    VolEBaseUrl,
 } from "../../constants";
 import { getDatasetManifestSource, getDataSources } from "../metadata/selectors";
 import { getSelectedDataSources, getPythonConversion } from "../selection/selectors";
@@ -80,6 +81,11 @@ export const getMetadataManagementServiceBaseUrl = createSelector(
 export const getCellFeatureExplorerBaseUrl = createSelector(
     [getEnvironment],
     (environment) => CellFeatureExplorerBaseUrl[environment]
+);
+
+export const getVolEBaseUrl = createSelector(
+    [getEnvironment],
+    (environment) => VolEBaseUrl[environment]
 );
 
 export const getTemporaryFileServiceBaseUrl = createSelector(
