@@ -58,6 +58,7 @@ body {
     --light-grey: #BFBFBF;
     --white: #ffffff;
     --red: #c23030;
+    --yellow: #EBB326;
 
     /* DEFAULT THEME (dark theme) */
     --primary-background-color: var(--primary-dark);

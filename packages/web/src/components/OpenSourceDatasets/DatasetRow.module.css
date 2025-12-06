@@ -22,15 +22,14 @@
 .button-wrapper {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
+  padding-right: calc(2*var(--margin));
+  max-width: 1100px;
+  width: 90vw;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-}
-
-.button-wrapper:hover {
-  width: 100%;
 }
 
 .button-wrapper-hidden {

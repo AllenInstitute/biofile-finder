@@ -3,6 +3,14 @@
   position: relative;
 }
 
+/* Adjust left to allow for "favorite" icon */
+.table-root {
+  left: -15px;
+}
+.table-header {
+  margin-left: 15px;
+}
+
 .table-header > div {
   background-color: var(--secondary-dark);
   background: var(--secondary-dark);
@@ -52,6 +60,21 @@
 .link:hover {
   text-decoration: underline;
   color: var(--bright-aqua);
+}
+
+.row-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.favorite-icon {
+  color: var(--yellow);
+  font-size: var(--s-paragraph-size);
+  margin-bottom: 5px;
+}
+/* Keep present to maintain spacing, but hidden */
+.favorite-icon-hidden {
+  color: transparent;
 }
 
 /* Toggle overlay depending on screen size */
