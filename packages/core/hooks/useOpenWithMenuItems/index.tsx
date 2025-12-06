@@ -40,7 +40,7 @@ interface Apps {
 
 type AppOptions = {
     openInCfe: () => void;
-    openInVole: () => void;
+    openInVolE: () => void;
 };
 
 const SUPPORTED_APPS_HEADER = {
@@ -163,7 +163,7 @@ const APPS = (
         key: AppKeys.VOLE,
         text: "Vol-E",
         title: `Open files with Vol-E`,
-        onClick: options?.openInVole,
+        onClick: options?.openInVolE,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -208,7 +208,7 @@ const APPS = (
     } as IContextualMenuItem,
 });
 
-type VoleMessage = {
+type VolEMessage = {
     scenes?: string[];
     meta: Record<string, Record<string, unknown>>;
     sceneIndex?: number;
@@ -286,7 +286,7 @@ function getFileExtension(fileDetails: FileDetail): string {
  *    back to us (via `window.opener`, validated using `msgorigin`) once it's loaded and ready.
  * 3. Once we receive that message, we send over `entry`.
  *
- * This is currently only used by `openInVole`, but is broken out into a separate function to
+ * This is currently only used by `openInVolE`, but is broken out into a separate function to
  * emphasize that this protocol is both message- and receiver-agnostic, and could be used to send
  * large bundles of data to other apps as well.
  */
@@ -330,7 +330,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     );
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
     const fileService = useSelector(interaction.selectors.getFileService);
-    const voleBaseUrl = useSelector(getVolEBaseUrl);
+    const volEBaseUrl = useSelector(getVolEBaseUrl);
 
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const annotationNames = React.useMemo(
@@ -348,7 +348,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     );
 
     // custom hook this, like `useOpenInCfe`?
-    const openInVole = React.useCallback(async (): Promise<void> => {
+    const openInVolE = React.useCallback(async (): Promise<void> => {
         const allDetails = await fileSelection.fetchAllDetails();
         const details = allDetails.filter((detail) => {
             const fileExt = getFileExtension(detail);
@@ -356,7 +356,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         });
 
         const scenes: string[] = [];
-        const message: VoleMessage = { meta: {} };
+        const message: VolEMessage = { meta: {} };
 
         for (const detail of details) {
             const sceneMeta: Record<string, unknown> = {};
@@ -371,7 +371,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             }
         }
 
-        const openUrl = new URL(voleBaseUrl);
+        const openUrl = new URL(volEBaseUrl);
 
         // Start on the focused scene
         const sceneIndex = details.findIndex((detail) => detail.path === fileDetails?.path);
@@ -404,7 +404,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         } else {
             openWindowWithMessage(openUrl, message);
         }
-    }, [fileDetails, fileSelection, voleBaseUrl]);
+    }, [fileDetails, fileSelection, volEBaseUrl]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
@@ -472,7 +472,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const apps = APPS(fileDetails, { openInCfe, openInVole });
+    const apps = APPS(fileDetails, { openInCfe, openInVolE });
 
     // Determine is the file is small or not asynchronously
     React.useEffect(() => {
