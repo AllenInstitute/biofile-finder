@@ -84,7 +84,7 @@ export default function OpenSourceDatasets() {
                     <h2 className={styles.tableTitle}>Datasets optimized for BioFile Finder</h2>
                     <p>
                         These datasets utilize features that highlight BFF&apos;s capabilities, such
-                        as as thumbnail rendering and interoperability with viewers.
+                        as thumbnail rendering and interoperability with viewers.
                     </p>
                     <DatasetTable onLoadDataset={loadDataset} featured />
                     <h2 className={styles.tableTitle}>All datasets</h2>
