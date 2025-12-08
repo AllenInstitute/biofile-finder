@@ -1,6 +1,7 @@
 import {
     createTheme,
     IColumn,
+    Icon,
     IDetailsRowProps,
     IRenderFunction,
     PartialTheme,
@@ -24,6 +25,7 @@ import styles from "./DatasetTable.module.css";
 
 interface DatasetTableProps {
     onLoadDataset: (dataset: PublicDataset) => void;
+    featured?: boolean; // Flag to filter down to only the featured datasets
 }
 
 export default function DatasetTable(props: DatasetTableProps) {
@@ -44,7 +46,7 @@ export default function DatasetTable(props: DatasetTableProps) {
             };
         }
     );
-    const [items, isLoading, error] = useDatasetDetails(sortColumn);
+    const [items, isLoading, error] = useDatasetDetails(sortColumn, props?.featured);
 
     const renderRow = (
         rowProps: IDetailsRowProps | undefined,
@@ -52,11 +54,19 @@ export default function DatasetTable(props: DatasetTableProps) {
     ): JSX.Element => {
         if (rowProps && defaultRender) {
             return (
-                <DatasetRow
-                    rowProps={rowProps}
-                    defaultRender={defaultRender}
-                    onLoadDataset={props.onLoadDataset}
-                />
+                <div className={styles.rowWrapper}>
+                    <Icon
+                        className={classNames(styles.favoriteIcon, {
+                            [styles.favoriteIconHidden]: !props.featured,
+                        })}
+                        iconName="FavoriteStarFill"
+                    />
+                    <DatasetRow
+                        rowProps={rowProps}
+                        defaultRender={defaultRender}
+                        onLoadDataset={props.onLoadDataset}
+                    />
+                </div>
             );
         }
         return <></>;
@@ -118,6 +128,7 @@ export default function DatasetTable(props: DatasetTableProps) {
                     ariaLabelForShimmer="Content is being fetched"
                     ariaLabelForGrid="Item details"
                     detailsListStyles={{
+                        root: styles.tableRoot,
                         headerWrapper: styles.tableHeader,
                     }}
                     onRenderRow={(props, defaultRender) => renderRow(props, defaultRender)}
