@@ -11,6 +11,10 @@ module.exports = ({ analyze, production } = {}) => ({
         host: devServer.host,
         port: devServer.port,
         historyApiFallback: true,
+        static: {
+            directory: path.join(__dirname, 'dist'),
+        },
+        compress: true,
     },
     entry: {
         app: "./src/index.tsx",
