@@ -60,7 +60,10 @@ export default class DatabaseServiceWeb extends DatabaseService {
 
         const connection = await this.database.connect();
         try {
+            const name = Math.random().toString() + fixedSql;
+            console.time(name);
             const result = await connection.query(fixedSql);
+            console.timeEnd(name);
             const resultAsArray = result.toArray();
             const resultAsJSONString = JSON.stringify(
                 resultAsArray,
