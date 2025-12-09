@@ -2,13 +2,6 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 
 import { DatabaseService } from "../../../core/services";
 
-interface FileSystemDirectoryHandle {
-    [Symbol.asyncIterator](): AsyncIterableIterator<[string, FileSystemHandle]>;
-    entries(): AsyncIterableIterator<[string, FileSystemHandle]>;
-    keys(): AsyncIterableIterator<string>;
-    values(): AsyncIterableIterator<FileSystemHandle>;
-  }
-
 export default class DatabaseServiceWeb extends DatabaseService {
     private database: duckdb.AsyncDuckDB | undefined;
 
