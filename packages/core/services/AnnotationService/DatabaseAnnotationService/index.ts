@@ -154,14 +154,13 @@ export default class DatabaseAnnotationService implements AnnotationService {
             .where(`not column_name in ('${annotations.join("', '")}')`)
             .toSQL();
         const columnNameRows = await this.databaseService.query(columnNamesSql);
-        const columnNames = columnNameRows.map(row => row['column_name']);
 
         const queries = columnNameRows.map(row => {
             const columnName = row['column_name'];
             const sql = new SQLBuilder()
                 .select(`'${columnName}' as column_name`) // The only data in the result is the name of the filtered column
                 .from(aggregateDataSourceName)
-                .where(`${columnName} is not null`)
+                .where(`"${columnName}" is not null`)
                 .limit(1)
                 .toSQL();
             return this.databaseService.query(sql);
