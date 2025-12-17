@@ -6,14 +6,13 @@ import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
 import FileService, { FmsFileAnnotation } from "../../services/FileService";
 
-
 export enum EdgeType {
     DEFAULT = "default",
 }
 
 export enum NodeType {
     METADATA = "metadata",
-    FILE = "file"
+    FILE = "file",
 }
 
 interface EdgeNode {
@@ -78,8 +77,10 @@ function createFileNode(file: FileDetail, isSelected = false): FileNode {
             file,
             isSelected,
         },
-        // Placeholder values
+        // Placeholder values: Overwritten in this.nodes()
         position: { x: 0, y: 0 },
+        width: 110,
+        height: 125,
         type: NodeType.FILE,
     };
 }
@@ -91,7 +92,10 @@ function createFileNode(file: FileDetail, isSelected = false): FileNode {
  * might exist like "Segmentation Algorithm" but have two
  * distinct values like "v1.0.0" and "v2.0.0"
  */
-function createAnnotationEdge(edgeDefinition: EdgeDefinition, file: FileDetail): AnnotationEdge | undefined {
+function createAnnotationEdge(
+    edgeDefinition: EdgeDefinition,
+    file: FileDetail
+): AnnotationEdge | undefined {
     if (edgeDefinition.relationshipType === "pointer") {
         const annotation = file.getAnnotation(edgeDefinition.relationship);
         if (!annotation) return undefined;
@@ -100,7 +104,7 @@ function createAnnotationEdge(edgeDefinition: EdgeDefinition, file: FileDetail):
             value: `${annotation.values[0]}`,
             parent: edgeDefinition.parent.name,
             child: edgeDefinition.child.name,
-        }
+        };
     }
     return {
         value: edgeDefinition.relationship,
@@ -118,7 +122,7 @@ function createAnnotationEdge(edgeDefinition: EdgeDefinition, file: FileDetail):
  *   for example, parent: "Plate Barcode", child: "Well" which would be the definition for
  *   two nodes "Plate Barcode" & "Well" respectively. Additional information about the edge
  *   is captured as well, see the EdgeDefintion type for more information.
- * 
+ *
  * The main utility of this class is the generate() function will takes a file as input
  * and uses that as the origin to build the graph from.
  */
@@ -129,48 +133,55 @@ export default class Graph {
     // Track the number of nodes generated only allowing
     // a certain number to be generated at a time
     private numberOfNodesAfforded = 75;
-    private visitedNodeIds = new Set<string>();
+    private readonly visitedNodeIds = new Set<string>();
     private graph: dagre.graphlib.Graph<FileNode | MetadataNode> = new dagre.graphlib.Graph();
 
     /**
      * Static method for building a map of a child node (defined by the child's name in the edge definition)
      * to all possible ancestors
      */
-    private static createChildToAncestorsMap(edgeDefinitions: EdgeDefinition[]): { [child: string]: string[] } {
+    private static createChildToAncestorsMap(
+        edgeDefinitions: EdgeDefinition[]
+    ): { [child: string]: string[] } {
         // Step 1: Create map of children to their IMMEDIATE parents
         const childToParentMap = edgeDefinitions.reduce(
             (mapSoFar, edgeDefinition) => ({
                 ...mapSoFar,
-                [edgeDefinition.child.name]: edgeDefinition.child.name in mapSoFar
-                    ? mapSoFar[edgeDefinition.child.name].add(edgeDefinition.parent.name)
-                    : new Set<string>().add(edgeDefinition.parent.name)
+                [edgeDefinition.child.name]:
+                    edgeDefinition.child.name in mapSoFar
+                        ? mapSoFar[edgeDefinition.child.name].add(edgeDefinition.parent.name)
+                        : new Set<string>().add(edgeDefinition.parent.name),
             }),
             {} as { [child: string]: Set<string> }
         );
 
         // Step 2: Create recursive function for grabbing all ancestors of any given child
-        const getAllAncestorsOfChild = (child: string): Set<string> => (
+        const getAllAncestorsOfChild = (child: string): Set<string> =>
             new Set([
                 // Get all the parents of this child
                 ...(childToParentMap[child] || []),
                 // ...and also all the parents of the parents of this child (recursively)
-                ...[...(childToParentMap[child] || [])].flatMap((parent) => [...getAllAncestorsOfChild(parent)]),
-            ])
-        );
+                ...[...(childToParentMap[child] || [])].flatMap((parent) => [
+                    ...getAllAncestorsOfChild(parent),
+                ]),
+            ]);
 
         // Step 3: Create map of children to their ancestors (including parents)
-        return edgeDefinitions.reduce((mapSoFar, edgeDefinition) => ({
-            ...mapSoFar,
-            [edgeDefinition.child.name]: (
-                mapSoFar[edgeDefinition.child.name] || [...getAllAncestorsOfChild(edgeDefinition.child.name)].sort()
-            ),
-        }), {} as { [child: string]: string[] });
+        return edgeDefinitions.reduce(
+            (mapSoFar, edgeDefinition) => ({
+                ...mapSoFar,
+                [edgeDefinition.child.name]:
+                    mapSoFar[edgeDefinition.child.name] ||
+                    [...getAllAncestorsOfChild(edgeDefinition.child.name)].sort(),
+            }),
+            {} as { [child: string]: string[] }
+        );
     }
 
     constructor(fileService: FileService, edgeDefinitions: EdgeDefinition[]) {
         this.fileService = fileService;
         this.edgeDefinitions = edgeDefinitions;
-        // Pre-compute this somewhat expensive mapping so that each metadata 
+        // Pre-compute this somewhat expensive mapping so that each metadata
         // node doesn't have to do the work of tracing its child -> ancestors
         this.childToAncestorsMap = Graph.createChildToAncestorsMap(edgeDefinitions);
         this.reset();
@@ -180,45 +191,47 @@ export default class Graph {
      * Quick getter for grabbing a list of the nodes in the graph
      */
     public get nodes(): (FileNode | MetadataNode)[] {
-        return this.graph
-            .nodes()
-            .map(nodeId => {
-                const node = this.graph.node(nodeId); // .node() is O(1)
-                // Should be impossible, but just in case
-                if (!node) {
-                    throw new Error(
-                        `An edge is pointing to a node that doesn't exist (${nodeId})`
-                        + " - this is likely a bug with the graph's construction."
-                    );
-                }
-                return node;
-            });
+        return this.graph.nodes().map((nodeId) => {
+            const node = this.graph.node(nodeId); // .node() is O(1)
+            // Should be impossible, but just in case
+            if (!node) {
+                throw new Error(
+                    `An edge is pointing to a node that doesn't exist (${nodeId})` +
+                        " - this is likely a bug with the graph's construction."
+                );
+            }
+            return {
+                ...node,
+                // Dagre puts the position at the top level, but the xyflow
+                // expects the positioning within this block so we have to
+                // remap it here
+                position: { x: node.x, y: node.y },
+            };
+        });
     }
 
     /**
      * Quick getter for grabbing a list of the edges in the graph
      */
     public get edges(): Edge<AnnotationEdge>[] {
-        return this.graph
-            .edges()
-            .map(edgeObj => {
-                const edge = this.graph.edge(edgeObj) as GraphEdge & AnnotationEdge; // .edge() is O(1)
-                // Should be impossible, but just in case
-                if (!edge) {
-                    throw new Error(
-                        `Edge (${JSON.stringify(edgeObj)}) can't be found - it might be`
-                        + " pointing to a node that doesn't exist - "
-                        + " this is likely a bug with the graph's construction."
-                    );
-                }
-                return {
-                    ...edge,
-                    source: edgeObj.v,
-                    target: edgeObj.w,
-                    data: edge,
-                    id: `${edgeObj.v}-${edgeObj.w}-${edge.name}-${edge.value}`,
-                }
-            });
+        return this.graph.edges().map((edgeObj) => {
+            const edge = this.graph.edge(edgeObj) as GraphEdge & AnnotationEdge; // .edge() is O(1)
+            // Should be impossible, but just in case
+            if (!edge) {
+                throw new Error(
+                    `Edge (${JSON.stringify(edgeObj)}) can't be found - it might be` +
+                        " pointing to a node that doesn't exist - " +
+                        " this is likely a bug with the graph's construction."
+                );
+            }
+            return {
+                ...edge,
+                source: edgeObj.v,
+                target: edgeObj.w,
+                data: edge,
+                id: `${edgeObj.v}-${edgeObj.w}-${edge.name}-${edge.value}`,
+            };
+        });
     }
 
     /**
@@ -238,7 +251,7 @@ export default class Graph {
         this.numberOfNodesAfforded += 25;
         const node = createFileNode(origin, true);
         await this.expand(node);
-        this.reposition();
+        this.organize(origin.id, "graph");
     }
 
     /**
@@ -247,131 +260,56 @@ export default class Graph {
      */
     public reset() {
         this.numberOfNodesAfforded = 75;
-        this.visitedNodeIds = new Set<string>();
+        this.visitedNodeIds.clear();
         this.graph = new dagre.graphlib.Graph<FileNode | MetadataNode>()
-            .setGraph({ width: 180, height: 36, rankdir: "TB" });
+            .setGraph({ rankdir: "TB" })
+            .setDefaultEdgeLabel(() => ({}));
     }
 
     /**
      * Position nodes within graph according to edge connections and
      * height/width of individual nodes
      */
-    private reposition() {
-        // const nodes = Object.values(this.nodeMap);
-        // let edges = Object.values(this.edgeMap);
-        // nodes.forEach((node) => {
-        //     this.graph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
-        // });
+    public organize(nodeId: string, layout: "grid" | "graph" | "stack", opts = { offset: 2 }) {
+        dagre.layout(this.graph);
 
-        // edges.forEach((edge) => {
-        //     this.graph.setEdge(edge.source, edge.target);
-        // });
+        if (layout === "stack") {
+            const parent = this.graph.node(nodeId);
+            let offset = opts.offset;
+            // First stack the immediate child
+            for (const childId of this.graph.children(nodeId)) {
+                const child = this.graph.node(childId);
+                child.position.x = parent.position.x + offset;
+                child.position.y = parent.position.y + offset;
+                offset += 2;
+            }
+            // Then stack up the successors of the children
+            for (const childId of this.graph.children(nodeId)) {
+                // TODO: Does this need some notion of layering (z-stack?)
+                this.organize(childId, "stack", { offset });
+            }
+        } else if (layout === "grid") {
+            // Otherwise organize the data into a grid pattern
 
-        // TODO:!!!
-        // dagre.layout(this.graph);
+            // TODO: This should be dynamic because wells can have children
+            // so if this were dynamic like say as a right click option on the Plate parent
+            // THEN the well child in the grid could have options like "Center" or something..?
+            // to then make the children all nicely shown for the well
+            for (const childId of this.graph.children(nodeId)) {
+                const child = this.graph.node(childId);
+                // TODO: What about multiple values here..?
+                child.position.y =
+                    child.position.y +
+                    36 * (child.data.annotation?.values[0] as string).charCodeAt(0);
+                // Column can be like 11
+                child.position.x =
+                    child.position.x +
+                    180 * (child.data.annotation?.values[0] as string).charCodeAt(1);
 
-        // const rightClickedValue = "Well Label";
-        // const matchingNodes = nodes.filter(node => node.data.annotation?.name === rightClickedValue);
-        // const successorsToRemoved: { [key: string]: Node } = {}; 
-        // const successorsToPredecessors = matchingNodes.reduce((mapSoFar, node) => {
-        //     const predecessors = dagreGraph.predecessors(node.id) || [];
-        //     const successors = dagreGraph.successors(node.id) || [];
-        //     successors?.forEach(successor => {
-        //         mapSoFar[successor] = predecessors;
-        //         successorsToRemoved[successor] = node;
-        //     });
-        //     predecessors?.forEach(predecessor => {
-        //         mapSoFar[predecessor] = successors;
-        //     });
-        //     return mapSoFar;
-        // }, {} as { [key: string]: string[] });
-
-        // const childrenOfRemoved: string[] = [];
-        // const nodes = this.graph.nodes().forEach((nodeId) => {
-        //     const node = this.graph.node(nodeId);
-
-        //     // Shift the dagre node position (anchor=center center) to the top left
-        //     // so it matches the React Flow node anchor point (top left).
-        //     const x = node.x - node.width / 2;
-        //     const y = (node.rank || 1) * (node.height * 1.75);
-
-        //     return {
-        //         ...node,
-        //         position: { x, y, },
-        //     };
-        // })
-        // nodes.forEach((node) => {
-        //     const nodeWithPosition = this.graph.node(node.id);
-
-        //     // Shift the dagre node position (anchor=center center) to the top left
-        //     // so it matches the React Flow node anchor point (top left).
-        //     const x = nodeWithPosition.x - nodeWithPosition.width / 2;
-        //     const y = (nodeWithPosition.rank || 1) * (nodeWithPosition.height * 1.75);
-
-        //     node.position = { x, y, };
-        //     return;
-
-            // TODO: Add button or similar to make a grid view possible that 
-            // would make the files line up in a grid according to X field
-            // OHHH MAYBE THIS IS A RIGHT-CLICK OPTION AVAILABLE ON METADATA NODES
-            // WHEN CLICKED IT WOULD ARRANGE THE CHILDREN INTO A GRID
-
-            // const isFileNode = !!node.data.file;
-            // const rightClickedValue = "Well Label";
-            // const isRightClickedValue = node.data.annotation?.name === rightClickedValue;
-            // if (isRightClickedValue) {
-                // re-target edges relating to this guy
-                // graph.edges = graph.edges.map(edge => {
-                //     if (edge.source === node.id) {
-                //         console.log("before", edge.source);
-                //         console.log("predecessors", dagreGraph.predecessors(node.id)?.[0])
-                //         edge.source = dagreGraph.predecessors(node.id)?.[0] || node.id;
-                //         console.log("after", edge.source);
-                //     } else if (edge.target === node.id) {
-                //         edge.target = dagreGraph.successors(node.id)?.[0] || node.id;
-                //     }
-                //     return edge;
-                // });
-                // edges = edges.map(edge => {
-                //     if (edge.source === node.id) {
-                //         console.log("before", edge.source);
-                //         console.log("predecessors", this.graph.predecessors(node.id)?.[0])
-                //         edge.source = this.graph.predecessors(node.id)?.[0] || node.id;
-                //         console.log("after", edge.source);
-                //     } else if (edge.target === node.id) {
-                //         childrenOfRemoved.push(node.id);
-                //         edge.target = this.graph.successors(node.id)?.[0] || node.id;
-                //     }
-                //     return edge;
-                // });
-                // return [];
-            // }
-            // if (node.id in successorsToRemoved) {
-            //     const removedNode = successorsToRemoved[node.id];
-            //     // TODO: Curious attr rx and ry to look inot
-            //     const removedValue = (removedNode.data.annotation as FmsFileAnnotation).values?.[0] as string || "";
-            //     const verticalPosition = parseInt(removedValue.charAt(1), 10);
-            //     const horizontalPosition = removedValue.charAt(0) === "A"
-            //         ? 1
-            //         : 2;
-            //     const horizontalStep = 43 + NODE_WIDTH;
-            //     const verticalStep = 90 + NODE_HEIGHT;
-            //     console.log("removedNode.position.y", removedNode.position.y, removedNode.position.y + (verticalStep * verticalPosition) - (verticalStep * 0))
-            //     console.log("removedNode.position.x", removedNode.position.x, removedNode.position.x + (horizontalStep * horizontalPosition) - (horizontalStep * 0))
-            //     return {
-            //         ...node,
-            //         position: {
-            //             y: y + (verticalStep * verticalPosition) - (verticalStep * 0),
-            //             x: x + (horizontalStep * horizontalPosition) - (horizontalStep * 0) ,
-            //         }
-            //     }
-            // }
-
-            // return [{
-            //     ...node,
-            //     position: { x, y, },
-            // }];
-        // });
+                // Stack the successors of the children to clean up grid
+                this.organize(childId, "stack");
+            }
+        }
     }
 
     /**
@@ -395,22 +333,22 @@ export default class Graph {
                 if (!thisNode.data.file) {
                     return Promise.all([
                         this.expandUsingMetadataNode(
-                            thisNode as MetadataNode, edgeDefinition, edgeDefinition.parent
+                            thisNode as MetadataNode,
+                            edgeDefinition,
+                            edgeDefinition.parent
                         ),
                         this.expandUsingMetadataNode(
-                            thisNode as MetadataNode, edgeDefinition, edgeDefinition.child
-                        )
+                            thisNode as MetadataNode,
+                            edgeDefinition,
+                            edgeDefinition.child
+                        ),
                     ]);
                 }
 
                 // Check this file node for any viable connections
                 const [parentNodes, childNodes] = await Promise.all([
-                    this.getFileNodeConnections(
-                        thisNode as FileNode, edgeDefinition.parent
-                    ),
-                    this.getFileNodeConnections(
-                        thisNode as FileNode, edgeDefinition.child
-                    )
+                    this.getFileNodeConnections(thisNode as FileNode, edgeDefinition.parent),
+                    this.getFileNodeConnections(thisNode as FileNode, edgeDefinition.child),
                 ]);
 
                 // Only generate the edge if the parent and child node both exist
@@ -419,16 +357,15 @@ export default class Graph {
                 if (!!parentNodes.length && !!childNodes.length && annotationEdge) {
                     // Expand child and parent nodes recursively
                     await Promise.all(
-                        [...parentNodes, ...childNodes]
-                        .map(node => this.expand(node))
+                        [...parentNodes, ...childNodes].map((node) => this.expand(node))
                     );
 
                     // For each combination of parent and node,
                     // add an edge
-                    parentNodes.forEach(parentNode => {
-                        childNodes.forEach(childNode => {
+                    parentNodes.forEach((parentNode) => {
+                        childNodes.forEach((childNode) => {
                             this.graph.setEdge(parentNode.id, childNode.id, annotationEdge);
-                        })
+                        });
                     });
                 }
             })
@@ -438,7 +375,10 @@ export default class Graph {
     /**
      * Finds all the nodes related to the given file type node
      */
-    private async getFileNodeConnections(thisNode: FileNode, edgeNode: EdgeNode): Promise<(FileNode | MetadataNode)[]> {
+    private async getFileNodeConnections(
+        thisNode: FileNode,
+        edgeNode: EdgeNode
+    ): Promise<(FileNode | MetadataNode)[]> {
         // The node might just be the current node!
         const isEdgeNodeThisNode = edgeNode.name === "File ID"; // TODO: Expand this... should there be type of "ID" or "Self" or smthn..?
         if (isEdgeNodeThisNode) {
@@ -461,10 +401,12 @@ export default class Graph {
         }
 
         return Promise.all(
-            (annotation.values as string[]).map(async (fileId) => (
-                // Avoid re-requesting the file when possible
-                this.graph.node(fileId) || createFileNode(await this.getFileById(fileId))
-        )));
+            (annotation.values as string[]).map(
+                async (fileId) =>
+                    // Avoid re-requesting the file when possible
+                    this.graph.node(fileId) || createFileNode(await this.getFileById(fileId))
+            )
+        );
     }
 
     /**
@@ -473,7 +415,7 @@ export default class Graph {
     private async expandUsingMetadataNode(
         thisNode: MetadataNode,
         edgeDefinition: EdgeDefinition,
-        edgeNode: EdgeNode,
+        edgeNode: EdgeNode
     ) {
         // If edgeNode is just thisNode, return
         const isEdgeNodeThisNode = edgeNode.name === thisNode.data.annotation.name;
@@ -501,7 +443,7 @@ export default class Graph {
         // we do not want to tie Publication -> File directly even though the metadata
         // key "Publication" will be coming from the files themselves
         const files = await this.getFilesByAnnotation(thisNode.data.annotation);
-        await Promise.all(files.map(file => this.expand(createFileNode(file))));
+        await Promise.all(files.map((file) => this.expand(createFileNode(file))));
     }
 
     /**
@@ -532,8 +474,8 @@ export default class Graph {
             fileSet: new FileSet({
                 fileService: this.fileService,
                 // TODO: Make sure this works with multiple values
-                filters: [new FileFilter(annotation.name, annotation.values)]
-            })
+                filters: [new FileFilter(annotation.name, annotation.values)],
+            }),
         });
     }
 
@@ -541,7 +483,7 @@ export default class Graph {
      * Creates a node to be displayed on the metadata relationship graph.
      * The node this creates is specifically for displaying a non-File
      * metadata value. For example: Well: B4
-     * 
+     *
      * Generates a unique id for a metadata node given by tracing the ancestors
      * of the node and creating a concatenated id from each ancestor node.
      * The purpose of this is to avoid a situation like the following:
@@ -551,7 +493,10 @@ export default class Graph {
      */
     private createMetadataNode(file: FileDetail, annotation: FmsFileAnnotation): MetadataNode {
         const id = [...(this.childToAncestorsMap[annotation.name] || []), annotation.name]
-            .map(annotationName => `${annotationName}: ${file.getAnnotation(annotationName)?.values?.join(", ")}`)
+            .map(
+                (annotationName) =>
+                    `${annotationName}: ${file.getAnnotation(annotationName)?.values?.join(", ")}`
+            )
             .join("-");
         return {
             id,
@@ -560,7 +505,9 @@ export default class Graph {
                 file: undefined,
                 isSelected: false,
             },
-            // Placeholder values
+            width: 180,
+            height: 45,
+            // Placeholder values: Overwritten in this.nodes()
             position: { x: 0, y: 0 },
             type: NodeType.METADATA,
         };
