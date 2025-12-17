@@ -66,7 +66,13 @@ export interface FileNode extends ProvenanceNode {
     type: NodeType.FILE;
 }
 
-export function getGridPosition(valueToCheck: string): { column: number; row: number } | undefined {
+export function getGridPosition(
+    child: FileNode | MetadataNode
+): { column: number; row: number } | undefined {
+    const valueToCheck = child.data.annotation?.values[0] as string;
+    if (!valueToCheck) {
+        return undefined;
+    }
     const indexOfFirstNumeric = valueToCheck.search(/\d/);
     const indexOfFirstLetter = valueToCheck.search(/[a-zA-Z]/);
     const reversedValueToCheck = valueToCheck.split("").reverse().join("");
@@ -334,16 +340,14 @@ export default class Graph {
             const parent = this.graph.node(nodeId);
             for (const childId of this.graph.successors(nodeId) || []) {
                 const child = this.graph.node(childId);
-                const valueToCheck = (child.data.file?.getFirstAnnotationValue(
-                    parent.data?.annotation?.name || ""
-                ) || "") as string;
-                const gridPosition = getGridPosition(valueToCheck);
+                const gridPosition = getGridPosition(child);
                 // Should be impossible since this is only enabled for
                 // nodes that we can determine a grid position for, but ya never
                 // know + type safety
                 if (!gridPosition) {
-                    throw new Error(`Unable to determine grid order for ${valueToCheck}`);
+                    throw new Error(`Unable to determine grid order for node: ${child.id}`);
                 }
+
                 child.y = parent.y + (10 + child.height) * gridPosition.row;
                 child.x = parent.x + 10 * child.width * gridPosition.column;
 

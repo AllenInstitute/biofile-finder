@@ -16,6 +16,7 @@ import { interaction } from "../../../state";
 
 import styles from "./MetadataNode.module.css";
 
+// TODO: Remove this and use CSS
 const clipLabel = (label?: string) => {
     if (label && label.length > 15) {
         return label.slice(0, 11) + "...";
@@ -32,11 +33,7 @@ export default function MetadataNode(props: NodeProps<FileNodeType | MetadataNod
 
     const canOrganizeAsGrid = React.useMemo(() => {
         const child = graph.getChildren(props.id)[0];
-        const valueToCheck = (child.data.file?.getFirstAnnotationValue(
-            props.data?.annotation?.name || ""
-        ) || "") as string;
-        const gridPosition = getGridPosition(valueToCheck);
-        return !!gridPosition;
+        return !!getGridPosition(child);
     }, [graph, props.id, props.data]);
 
     const buttonMenu = useButtonMenu({
