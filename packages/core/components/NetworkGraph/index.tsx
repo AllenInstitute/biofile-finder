@@ -23,9 +23,6 @@ interface NetworkGraphProps {
     className?: string;
     graph: Graph;
     origin: FileDetail;
-    // Used by parent to force network graph to refresh
-    // which would otherwise only happen on origin change
-    refreshKey?: string;
 }
 
 const EDGE_TYPES: EdgeTypes = {
@@ -38,26 +35,16 @@ const NODE_TYPES = {
 };
 
 export default function NetworkGraph(props: NetworkGraphProps) {
-    const [isLoading, setIsLoading] = React.useState(true);
-
     // These are used by xyflow to redraw the nodes/edges on drag
     const [nodes, setNodes, onNodesChange] = useNodesState<FileNodeType | MetadataNodeType>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<AnnotationEdge>>([]);
 
     React.useEffect(() => {
-        setIsLoading(true);
-        props.graph
-            .originate(props.origin)
-            .then(() => {
-                setNodes(props.graph.nodes);
-                setEdges(props.graph.edges);
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }, [props.graph, props.origin, setNodes, setEdges, setIsLoading, props.refreshKey]);
+        setNodes(props.graph.nodes);
+        setEdges(props.graph.edges);
+    }, [props.graph.nodes, props.graph.edges]);
 
-    if (isLoading) {
+    if (props.graph.isLoading) {
         return (
             <div className={classNames(styles.loadingIconContainer, props.className)}>
                 <LoadingIcon size={SpinnerSize.large} />

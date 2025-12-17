@@ -21,15 +21,6 @@ interface Props {
 export default function RelationshipDiagram({ className, origin }: Props) {
     const dispatch = useDispatch();
     const graph = useSelector(interaction.selectors.getGraph);
-    const provenanceRefreshKey = useSelector(interaction.selectors.getProvenanceRefreshKey);
-
-    const [originalOriginName, setOriginalOriginName] = React.useState<string>();
-    React.useEffect(() => {
-        if (!origin || !originalOriginName) {
-            graph.reset();
-            setOriginalOriginName(origin?.name);
-        }
-    }, [graph, origin, originalOriginName, setOriginalOriginName]);
 
     return (
         <div className={classNames(styles.container, className)}>
@@ -40,15 +31,10 @@ export default function RelationshipDiagram({ className, origin }: Props) {
                     onClick={() => dispatch(interaction.actions.setOriginForProvenance(undefined))}
                     title="Close provenance relationship diagram"
                 />
-                <h2>Provenance for {originalOriginName}</h2>
+                <h2>Provenance for {origin?.name}</h2>
             </div>
             {origin && (
-                <NetworkGraph
-                    className={styles.networkGraph}
-                    graph={graph}
-                    origin={origin}
-                    refreshKey={provenanceRefreshKey}
-                />
+                <NetworkGraph className={styles.networkGraph} graph={graph} origin={origin} />
             )}
         </div>
     );

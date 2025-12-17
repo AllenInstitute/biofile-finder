@@ -12,7 +12,11 @@ import {
     CellFeatureExplorerBaseUrl,
     TemporaryFileServiceBaseUrl,
 } from "../../constants";
-import { getDatasetManifestSource, getDataSources, getEdgeDefinitions } from "../metadata/selectors";
+import {
+    getDatasetManifestSource,
+    getDataSources,
+    getEdgeDefinitions,
+} from "../metadata/selectors";
 import { getSelectedDataSources, getPythonConversion } from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
 import DatasetService, {
@@ -38,7 +42,6 @@ export const getDataSourceInfoForVisibleModal = (state: State) =>
 export const getDatasetDetailsVisibility = (state: State) =>
     state.interaction.datasetDetailsPanelIsVisible;
 export const getOriginForProvenance = (state: State) => state.interaction.originForProvenance;
-export const getProvenanceRefreshKey = (state: State) => state.interaction.provenanceRefreshKey;
 export const getSelectedPublicDataset = (state: State) => state.interaction.selectedPublicDataset;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
@@ -254,10 +257,6 @@ export const getDatasetService = createSelector(
 export const getGraph = createSelector(
     [getFileService, getEdgeDefinitions],
     (fileService, edgeDefinitions) => new Graph(fileService, edgeDefinitions)
-);
-export const getGraphHasMoreToSearch = createSelector(
-    [getGraph],
-    (graph) => graph.hasMoreToSearch
 );
 
 /**

@@ -1,6 +1,6 @@
 import FrontendInsights from "@aics/frontend-insights";
 import { makeReducer } from "@aics/redux-utils";
-import { filter, sortBy, uniqueId } from "lodash";
+import { filter, sortBy } from "lodash";
 
 import {
     HIDE_CONTEXT_MENU,
@@ -77,7 +77,6 @@ export interface InteractionStateBranch {
         options?: Record<string, string>;
     };
     originForProvenance?: FileDetail;
-    provenanceRefreshKey?: string;
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
@@ -197,7 +196,6 @@ export default makeReducer<InteractionStateBranch>(
         [SET_ORIGIN_FOR_PROVENANCE]: (state, action: SetOriginForProvenance) => ({
             ...state,
             fileForDetailPanel: undefined,
-            provenanceRefreshKey: uniqueId(),
             originForProvenance: action.payload,
         }),
         [SET_VISIBLE_MODAL]: (state, action: SetVisibleModalAction) => ({
