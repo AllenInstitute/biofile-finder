@@ -1,19 +1,19 @@
-import { DefaultButton } from '@fluentui/react';
+import { DefaultButton } from "@fluentui/react";
 // prettier-ignore
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import classNames from "classnames";
 import React from "react";
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from "react-redux";
 
-import { useButtonMenu } from '../../Buttons';
+import nodeMenuItems from "./nodeMenuItems";
+import { useButtonMenu } from "../../Buttons";
 import FileThumbnail from "../../FileThumbnail";
-import Tooltip from '../../Tooltip';
-import { FileNode as FileNodeType, MetadataNode as MetadataNodeType } from '../../../entity/Graph';
-import useOpenWithMenuItems from '../../../hooks/useOpenWithMenuItems';
-import { interaction } from '../../../state';
+import Tooltip from "../../Tooltip";
+import { FileNode as FileNodeType, MetadataNode as MetadataNodeType } from "../../../entity/Graph";
+import useOpenWithMenuItems from "../../../hooks/useOpenWithMenuItems";
+import { interaction } from "../../../state";
 
 import styles from "./FileNode.module.css";
-
 
 // Display the start of the file name and at least part of the file type
 const clipFileName = (filename: string) => {
@@ -40,60 +40,23 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
                 text: "View metadata",
                 onClick: () => {
                     dispatch(interaction.actions.toggleFileDetailsPanel(file));
-                }
+                },
             },
             {
                 key: "Open with...",
                 text: "Open with...",
                 subMenuProps: {
-                    items: openWithSubMenuItems
-                }
-            },
-            {
-                key: "organize",
-                text: "Organize",
-                subMenuProps: {
-                    items: [
-                        {
-                            key: "grid",
-                            text: "Grid",
-                            onClick: () => {
-                                graph.organize(props.id, "grid");
-                            }
-                        },
-                        {
-                            key: "stack",
-                            text: "Stack",
-                            onClick: () => {
-                                graph.organize(props.id, "stack");
-                            }
-                        },
-                        {
-                            key: "graph",
-                            text: "Graph (Default)",
-                            onClick: () => {
-                                graph.organize(props.id, "graph");
-                            }
-                        },
-                    ]
-                }
+                    items: openWithSubMenuItems,
+                },
             },
             {
                 key: "Download",
                 text: "Download",
                 onClick: () => {
                     file && dispatch(interaction.actions.downloadFiles([file]));
-                }
+                },
             },
-            {
-                key: "check-for-more-relationships",
-                text: "Check for more relationships",
-                title: graph.hasMoreToSearch ? undefined : "All relationships have been checked",
-                disabled: !graph.hasMoreToSearch,
-                onClick: () => {
-                    dispatch(interaction.actions.setOriginForProvenance(file));
-                }
-            },
+            ...nodeMenuItems(graph, props.id, file),
         ],
     });
 
@@ -101,7 +64,7 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
         console.error("This should never happen, a <FileNode /> was rendered without a file");
         return null;
     }
-    
+
     return (
         <Tooltip content={file.name}>
             <DefaultButton
@@ -117,11 +80,7 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
                     position={Position.Top}
                 />
                 <div className={styles.contentContainer}>
-                    <FileThumbnail
-                        uri={file.thumbnail}
-                        height={100}
-                        width={100}
-                    />
+                    <FileThumbnail uri={file.thumbnail} height={100} width={100} />
                     <div className={styles.fileNodeLabel}>{clipFileName(file.name)}</div>
                 </div>
                 <Handle

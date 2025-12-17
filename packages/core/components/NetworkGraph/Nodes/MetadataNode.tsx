@@ -1,16 +1,16 @@
-import { DefaultButton } from '@fluentui/react';
+import { DefaultButton } from "@fluentui/react";
 // prettier-ignore
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
-import { useButtonMenu } from '../../Buttons';
+import nodeMenuItems from "./nodeMenuItems";
+import { useButtonMenu } from "../../Buttons";
 import Tooltip from "../../Tooltip";
-import { FileNode as FileNodeType, MetadataNode as MetadataNodeType } from '../../../entity/Graph';
+import { FileNode as FileNodeType, MetadataNode as MetadataNodeType } from "../../../entity/Graph";
 import { interaction } from "../../../state";
 
 import styles from "./MetadataNode.module.css";
-
 
 const clipLabel = (label?: string) => {
     if (label && label.length > 15) {
@@ -22,32 +22,18 @@ const clipLabel = (label?: string) => {
 // This is a proof-of-concept example of a custom node
 // Note that we are able to apply styling to the node, and can include custom buttons as content
 export default function MetadataNode(props: NodeProps<FileNodeType | MetadataNodeType>) {
-    const dispatch = useDispatch();
-    const origin = useSelector(interaction.selectors.getOriginForProvenance);
     const graph = useSelector(interaction.selectors.getGraph);
+    const origin = useSelector(interaction.selectors.getOriginForProvenance);
 
     const buttonMenu = useButtonMenu({
-        items: [
-            {
-                key: "check-for-more-relationships",
-                text: "Check for more relationships",
-                title: graph.hasMoreToSearch ? undefined : "All relationships have been checked",
-                disabled: !graph.hasMoreToSearch,
-                onClick: () => {
-                    dispatch(interaction.actions.setOriginForProvenance(origin));
-                }
-            },
-        ],
+        items: nodeMenuItems(graph, props.id, origin),
     });
 
     const annotationValues = props.data.annotation?.values.join(", ");
     const tooltip = `${props.data.annotation?.name}: ${annotationValues}`;
     return (
         <Tooltip content={tooltip}>
-<           DefaultButton
-                className={styles.node}
-                menuProps={buttonMenu}
-            >
+            <DefaultButton className={styles.node} menuProps={buttonMenu}>
                 <Handle
                     className={styles.handle}
                     type="target"
