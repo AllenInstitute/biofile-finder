@@ -28,7 +28,7 @@ export interface SearchParamsComponents {
     fileView?: FileView;
     sources: Source[];
     sourceMetadata?: Source;
-    sourceProvenance?: Source;
+    prov?: Source;
     filters: FileFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
@@ -171,15 +171,15 @@ export default class SearchParams {
                 })
             );
         }
-        if (urlComponents.sourceProvenance) {
+        if (urlComponents.prov) {
             params.append(
-                "sourceProvenance",
+                "prov",
                 JSON.stringify({
-                    ...urlComponents.sourceProvenance,
+                    ...urlComponents.prov,
                     uri:
-                        typeof urlComponents.sourceProvenance.uri === "string" ||
-                        urlComponents.sourceProvenance.uri instanceof String
-                            ? urlComponents.sourceProvenance.uri
+                        typeof urlComponents.prov.uri === "string" ||
+                        urlComponents.prov.uri instanceof String
+                            ? urlComponents.prov.uri
                             : undefined,
                 })
             );
@@ -220,7 +220,7 @@ export default class SearchParams {
 
     private static decodeComplexParams(params: URLSearchParams): SearchParamsComponents {
         const unparsedSourceMetadata = params.get("sourceMetadata");
-        const unparsedSourceProvenance = params.get("sourceProvenance");
+        const unparsedSourceProvenance = params.get("prov");
         const unparsedOpenFolders = params.getAll("openFolder");
         const unparsedFilters = params.getAll("filter");
         const unparsedSources = params.getAll("source");
@@ -253,6 +253,7 @@ export default class SearchParams {
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
+            prov: unparsedSourceProvenance ? JSON.parse(unparsedSourceProvenance) : undefined,
             showNoValueGroups: showNoValueGroupsString
                 ? JSON.parse(showNoValueGroupsString)
                 : false,
@@ -261,9 +262,6 @@ export default class SearchParams {
                 : undefined,
             sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
             sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
-            sourceProvenance: unparsedSourceProvenance
-                ? JSON.parse(unparsedSourceProvenance)
-                : undefined,
         };
     }
 

@@ -100,7 +100,7 @@ export const getCurrentQueryParts = createSelector(
         sortColumn,
         sources,
         sourceMetadata,
-        sourceProvenance
+        prov
     ): SearchParamsComponents => ({
         columns,
         hierarchy,
@@ -111,7 +111,7 @@ export const getCurrentQueryParts = createSelector(
         sortColumn,
         sources,
         sourceMetadata,
-        sourceProvenance,
+        prov,
     })
 );
 

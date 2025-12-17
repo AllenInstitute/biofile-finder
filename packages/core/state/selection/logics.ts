@@ -431,12 +431,10 @@ const decodeSearchParamsLogics = createLogic({
             sortColumn,
             sources,
             sourceMetadata,
-            sourceProvenance,
+            prov,
         } = SearchParams.decode(encodedURL);
 
         batch(() => {
-            dispatch(changeSourceMetadata(sourceMetadata));
-            dispatch(changeProvenanceSource(sourceProvenance));
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
             columns && dispatch(setColumns(columns));
@@ -445,6 +443,10 @@ const decodeSearchParamsLogics = createLogic({
             dispatch(setOpenFileFolders(openFolders));
             dispatch(setSortColumn(sortColumn));
             dispatch(toggleNullValueGroups(showNoValueGroups) as AnyAction);
+        });
+        batch(() => {
+            dispatch(changeSourceMetadata(sourceMetadata));
+            dispatch(changeProvenanceSource(prov));
         });
         done();
     },
@@ -661,14 +663,16 @@ const changeProvenanceSourceLogic = createLogic({
 
         try {
             if (selectedSourceProvenance) {
-                const edgeDefinitions = await databaseService.processProvenance(selectedSourceProvenance);
+                const edgeDefinitions = await databaseService.processProvenance(
+                    selectedSourceProvenance
+                );
                 dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
             } else {
                 await databaseService.deleteSourceProvenance();
                 dispatch(metadata.actions.receiveEdgeDefinitions([]));
             }
         } catch (err) {
-            const msg = `Failed processing provenance. Error: ${(err as Error).message}`
+            const msg = `Failed processing provenance. Error: ${(err as Error).message}`;
             dispatch(interaction.actions.processError("provenanceIngestionError", msg));
         }
 

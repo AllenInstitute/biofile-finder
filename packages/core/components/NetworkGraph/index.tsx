@@ -16,7 +16,7 @@ import {
     FileNode as FileNodeType,
     MetadataNode as MetadataNodeType,
 } from "../../entity/Graph";
-import { interaction } from "../../state";
+import { interaction, selection } from "../../state";
 
 import styles from "./NetworkGraph.module.css";
 
@@ -40,6 +40,7 @@ export default function NetworkGraph(props: NetworkGraphProps) {
     const graph = useSelector(interaction.selectors.getGraph);
     const isLoading = useSelector(interaction.selectors.isGraphLoading);
     const refreshKey = useSelector(interaction.selectors.getGraphRefreshKey);
+    const provenanceSource = useSelector(selection.selectors.getSelectedSourceProvenance);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<AnnotationEdge>>([]);
     const [nodes, setNodes, onNodesChange] = useNodesState<FileNodeType | MetadataNodeType>([]);
 
@@ -50,9 +51,23 @@ export default function NetworkGraph(props: NetworkGraphProps) {
         setNodes(graph.nodes);
     }, [graph, setEdges, setNodes, refreshKey]);
 
+    // TODO: Is this right...? Should we just have no provenance button when there isn't a source selected
+    // it isn't like it is critical for every dataset
+    const hasNoProvenance = !provenanceSource;
+    if (hasNoProvenance) {
+        return (
+            <div className={classNames(styles.simpleContainer, props.className)}>
+                <p>
+                    No provenance source was selected. Check this page out for information about
+                    adding provenance
+                </p>
+            </div>
+        );
+    }
+
     if (isLoading) {
         return (
-            <div className={classNames(styles.loadingIconContainer, props.className)}>
+            <div className={classNames(styles.simpleContainer, props.className)}>
                 <LoadingIcon size={SpinnerSize.large} />
             </div>
         );

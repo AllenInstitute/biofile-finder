@@ -10,10 +10,10 @@
   stroke: var(--primary-text-color);
 }
 
-.loading-icon-container {
+.simple-container {
   display: flex;
 }
 
-.loading-icon-container > * {
+.simple-container > * {
   margin: auto;
 }
