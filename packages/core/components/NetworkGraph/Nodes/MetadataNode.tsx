@@ -7,7 +7,11 @@ import { useDispatch, useSelector } from "react-redux";
 import nodeMenuItems from "./nodeMenuItems";
 import { useButtonMenu } from "../../Buttons";
 import Tooltip from "../../Tooltip";
-import { FileNode as FileNodeType, MetadataNode as MetadataNodeType } from "../../../entity/Graph";
+import {
+    FileNode as FileNodeType,
+    MetadataNode as MetadataNodeType,
+    getGridPosition,
+} from "../../../entity/Graph";
 import { interaction } from "../../../state";
 
 import styles from "./MetadataNode.module.css";
@@ -26,8 +30,17 @@ export default function MetadataNode(props: NodeProps<FileNodeType | MetadataNod
     const graph = useSelector(interaction.selectors.getGraph);
     const origin = useSelector(interaction.selectors.getOriginForProvenance);
 
+    const canOrganizeAsGrid = React.useMemo(() => {
+        const child = graph.getChildren(props.id)[0];
+        const valueToCheck = (child.data.file?.getFirstAnnotationValue(
+            props.data?.annotation?.name || ""
+        ) || "") as string;
+        const gridPosition = getGridPosition(valueToCheck);
+        return !!gridPosition;
+    }, [graph, props.id, props.data]);
+
     const buttonMenu = useButtonMenu({
-        items: nodeMenuItems(dispatch, graph, props.id, origin),
+        items: nodeMenuItems(dispatch, graph, props.id, origin, canOrganizeAsGrid),
     });
 
     const annotationValues = props.data.annotation?.values.join(", ");

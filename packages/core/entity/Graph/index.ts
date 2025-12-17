@@ -1,5 +1,6 @@
 import dagre, { GraphEdge } from "@dagrejs/dagre";
 import { Edge, Node } from "@xyflow/react";
+import { pick } from "lodash";
 
 import FileDetail from "../FileDetail";
 import FileFilter from "../FileFilter";
@@ -63,6 +64,45 @@ export interface FileNode extends ProvenanceNode {
         isSelected: boolean;
     };
     type: NodeType.FILE;
+}
+
+export function getGridPosition(valueToCheck: string): { column: number; row: number } | undefined {
+    const indexOfFirstNumeric = valueToCheck.search(/\d/);
+    const indexOfFirstLetter = valueToCheck.search(/[a-zA-Z]/);
+    const reversedValueToCheck = valueToCheck.split("").reverse().join("");
+    const indexOfLastNumeric = valueToCheck.length - reversedValueToCheck.search(/\d/) + 1;
+    const indexOfLastLetter = valueToCheck.length - reversedValueToCheck.search(/[a-zA-Z]/) + 1;
+
+    const parseNumeric = (stringToParse: string, startIndex: number, endIndex: number) =>
+        parseInt(stringToParse.substring(startIndex, endIndex + 1), 10);
+    const parseLetters = (stringToParse: string, startIndex: number, endIndex: number) =>
+        stringToParse
+            .substring(startIndex, endIndex + 1)
+            .split("")
+            .map((char) => char.charCodeAt(0) - 64)
+            .reduce((valueSoFar, charCode) => valueSoFar * charCode, 1);
+
+    // If numeric value is first then the grid positioning is like so: 1A, 3C where the column
+    // is a number and the row is a letter
+    if (indexOfFirstNumeric > indexOfFirstLetter) {
+        if (indexOfLastNumeric > indexOfLastLetter) {
+            return {
+                column: parseNumeric(valueToCheck, indexOfFirstNumeric, indexOfLastNumeric),
+                row: parseLetters(valueToCheck, indexOfFirstLetter, indexOfLastLetter),
+            };
+        }
+    } else if (indexOfFirstLetter > indexOfFirstNumeric) {
+        // Otherwise, if numeric value is last then the grid positioning is like so: A1, C3 where the column
+        // is a letter and the row is a number
+        if (indexOfLastLetter > indexOfLastNumeric) {
+            return {
+                column: parseLetters(valueToCheck, indexOfFirstLetter, indexOfLastLetter),
+                row: parseNumeric(valueToCheck, indexOfFirstNumeric, indexOfLastNumeric),
+            };
+        }
+    }
+
+    return undefined;
 }
 
 /**
@@ -202,6 +242,9 @@ export default class Graph {
             }
             return {
                 ...node,
+                // We want the nodes of higher rank to show below those of lower rank
+                // such that the top of the tree could overlap the bottom of the tree
+                zIndex: this.graph.nodeCount() - (node.rank || 0),
                 // Dagre puts the position at the top level, but the xyflow
                 // expects the positioning within this block so we have to
                 // remap it here
@@ -251,7 +294,7 @@ export default class Graph {
         this.numberOfNodesAfforded += 25;
         const node = createFileNode(origin, true);
         await this.expand(node);
-        this.organize(origin.id, "graph");
+        dagre.layout(this.graph);
     }
 
     /**
@@ -270,46 +313,76 @@ export default class Graph {
      * Position nodes within graph according to edge connections and
      * height/width of individual nodes
      */
-    public organize(nodeId: string, layout: "grid" | "graph" | "stack", opts = { offset: 2 }) {
-        dagre.layout(this.graph);
-
-        if (layout === "stack") {
+    public organize(nodeId: string, layout: "grid" | "graph" | "compact", opts = { offset: 2 }) {
+        if (layout === "compact") {
             const parent = this.graph.node(nodeId);
             let offset = opts.offset;
-            // First stack the immediate child
-            for (const childId of this.graph.children(nodeId)) {
+
+            // First stack the immediate children
+            const successors = this.graph.successors(nodeId) || [];
+            for (const childId of successors) {
                 const child = this.graph.node(childId);
-                child.position.x = parent.position.x + offset;
-                child.position.y = parent.position.y + offset;
+                child.x = parent.x + offset;
+                child.y = parent.y + offset;
                 offset += 2;
             }
-            // Then stack up the successors of the children
-            for (const childId of this.graph.children(nodeId)) {
-                // TODO: Does this need some notion of layering (z-stack?)
-                this.organize(childId, "stack", { offset });
+            // Then stack up the children of the children
+            for (const childId of successors) {
+                this.organize(childId, "compact", { offset });
             }
         } else if (layout === "grid") {
-            // Otherwise organize the data into a grid pattern
-
-            // TODO: This should be dynamic because wells can have children
-            // so if this were dynamic like say as a right click option on the Plate parent
-            // THEN the well child in the grid could have options like "Center" or something..?
-            // to then make the children all nicely shown for the well
-            for (const childId of this.graph.children(nodeId)) {
+            const parent = this.graph.node(nodeId);
+            for (const childId of this.graph.successors(nodeId) || []) {
                 const child = this.graph.node(childId);
-                // TODO: What about multiple values here..?
-                child.position.y =
-                    child.position.y +
-                    36 * (child.data.annotation?.values[0] as string).charCodeAt(0);
-                // Column can be like 11
-                child.position.x =
-                    child.position.x +
-                    180 * (child.data.annotation?.values[0] as string).charCodeAt(1);
+                const valueToCheck = (child.data.file?.getFirstAnnotationValue(
+                    parent.data?.annotation?.name || ""
+                ) || "") as string;
+                const gridPosition = getGridPosition(valueToCheck);
+                // Should be impossible since this is only enabled for
+                // nodes that we can determine a grid position for, but ya never
+                // know + type safety
+                if (!gridPosition) {
+                    throw new Error(`Unable to determine grid order for ${valueToCheck}`);
+                }
+                child.y = parent.y + (10 + child.height) * gridPosition.row;
+                child.x = parent.x + 10 * child.width * gridPosition.column;
 
                 // Stack the successors of the children to clean up grid
-                this.organize(childId, "stack");
+                this.organize(childId, "compact");
             }
+        } else if (layout === "graph") {
+            // TODO: This doesn't work because we need the positions to come from the xyflow state (useNodes, useEdges)
+            // not this state
+
+            // Preserve position of all other nodes except this child and its successors
+            const successors = new Set([nodeId, ...(this.graph.successors(nodeId) || [])]);
+            const nodeIdToOriginalPositionMap = this.graph
+                .nodes()
+                .filter((id) => !successors.has(id))
+                .reduce(
+                    (mapSoFar, id) => ({
+                        ...mapSoFar,
+                        [id]: pick(this.graph.node(id), ["x", "y"]),
+                    }),
+                    {} as Record<string, { x: number; y: number }>
+                );
+
+            dagre.layout(this.graph);
+            console.log("LAYOUT CALLED here");
+            this.graph.nodes().forEach((id) => {
+                this.graph.setNode(id, {
+                    ...this.graph.node(id),
+                    ...(id in nodeIdToOriginalPositionMap ? nodeIdToOriginalPositionMap[id] : {}),
+                });
+            });
         }
+    }
+
+    /**
+     * Get the children of the given node
+     */
+    public getChildren(nodeId: string) {
+        return (this.graph.successors(nodeId) || []).map((id) => this.graph.node(id));
     }
 
     /**
