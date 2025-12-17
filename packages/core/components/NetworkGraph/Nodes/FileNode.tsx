@@ -30,7 +30,7 @@ const clipFileName = (filename: string) => {
 export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeType>) {
     const file = props.data.file;
     const dispatch = useDispatch();
-    const graphHasMoreToSearch = useSelector(interaction.selectors.getGraphHasMoreToSearch);
+    const graph = useSelector(interaction.selectors.getGraph);
 
     const openWithSubMenuItems = useOpenWithMenuItems(file);
     const buttonMenu = useButtonMenu({
@@ -50,6 +50,35 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
                 }
             },
             {
+                key: "organize",
+                text: "Organize",
+                subMenuProps: {
+                    items: [
+                        {
+                            key: "grid",
+                            text: "Grid",
+                            onClick: () => {
+                                graph.organize(props.id, "grid");
+                            }
+                        },
+                        {
+                            key: "stack",
+                            text: "Stack",
+                            onClick: () => {
+                                graph.organize(props.id, "stack");
+                            }
+                        },
+                        {
+                            key: "graph",
+                            text: "Graph (Default)",
+                            onClick: () => {
+                                graph.organize(props.id, "graph");
+                            }
+                        },
+                    ]
+                }
+            },
+            {
                 key: "Download",
                 text: "Download",
                 onClick: () => {
@@ -59,8 +88,8 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
             {
                 key: "check-for-more-relationships",
                 text: "Check for more relationships",
-                title: graphHasMoreToSearch ? undefined : "All relationships have been checked",
-                disabled: !graphHasMoreToSearch,
+                title: graph.hasMoreToSearch ? undefined : "All relationships have been checked",
+                disabled: !graph.hasMoreToSearch,
                 onClick: () => {
                     dispatch(interaction.actions.setOriginForProvenance(file));
                 }
