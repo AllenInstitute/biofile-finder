@@ -56,7 +56,7 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
                     file && dispatch(interaction.actions.downloadFiles([file]));
                 },
             },
-            ...nodeMenuItems(graph, props.id, file),
+            ...nodeMenuItems(dispatch, graph, props.id, file),
         ],
     });
 

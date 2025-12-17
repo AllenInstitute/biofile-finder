@@ -872,7 +872,10 @@ export function setConvertFilesSnippet(payload?: {
  *
  * Intention to set origin file for the provenance graph
  */
-export const SET_ORIGIN_FOR_PROVENANCE = makeConstant(STATE_BRANCH_NAME, "set-origin-for-provenance");
+export const SET_ORIGIN_FOR_PROVENANCE = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-origin-for-provenance"
+);
 
 export interface SetOriginForProvenance {
     payload?: FileDetail;
@@ -891,7 +894,10 @@ export function setOriginForProvenance(origin?: FileDetail): SetOriginForProvena
  *
  * Intention to show the file details panel for the given file
  */
-export const TOGGLE_FILE_DETAILS_PANEL = makeConstant(STATE_BRANCH_NAME, "toggle-file-details-panel");
+export const TOGGLE_FILE_DETAILS_PANEL = makeConstant(
+    STATE_BRANCH_NAME,
+    "toggle-file-details-panel"
+);
 
 export interface ToggleFileDetailsPanel {
     payload?: FileDetail;
@@ -902,5 +908,37 @@ export function toggleFileDetailsPanel(origin?: FileDetail): ToggleFileDetailsPa
     return {
         payload: origin,
         type: TOGGLE_FILE_DETAILS_PANEL,
+    };
+}
+
+/**
+ * Intention to expand the graph's in memory representation
+ */
+export const EXPAND_GRAPH = makeConstant(STATE_BRANCH_NAME, "expand-graph");
+
+export interface ExpandGraph {
+    payload: FileDetail;
+    type: string;
+}
+
+export function expandGraph(file: FileDetail): ExpandGraph {
+    return {
+        payload: file,
+        type: EXPAND_GRAPH,
+    };
+}
+
+/**
+ * Intention to update the visual representation of the graph
+ */
+export const REFRESH_GRAPH = makeConstant(STATE_BRANCH_NAME, "refresh-graph");
+
+export interface RefreshGraph {
+    type: string;
+}
+
+export function refreshGraph(): RefreshGraph {
+    return {
+        type: REFRESH_GRAPH,
     };
 }

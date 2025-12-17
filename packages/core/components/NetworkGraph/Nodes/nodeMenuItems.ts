@@ -1,10 +1,13 @@
+import { Dispatch } from "redux";
+
 import FileDetail from "../../../entity/FileDetail";
 import Graph from "../../../entity/Graph";
+import { interaction } from "../../../state";
 
 /**
  * Button options shared across nodes
  */
-export default (graph: Graph, nodeId: string, fileToSearch?: FileDetail) => [
+export default (dispatch: Dispatch, graph: Graph, nodeId: string, fileToSearch?: FileDetail) => [
     {
         key: "organize",
         text: "Organize",
@@ -15,6 +18,7 @@ export default (graph: Graph, nodeId: string, fileToSearch?: FileDetail) => [
                     text: "Grid",
                     onClick: () => {
                         graph.organize(nodeId, "grid");
+                        dispatch(interaction.actions.refreshGraph());
                     },
                 },
                 {
@@ -22,6 +26,7 @@ export default (graph: Graph, nodeId: string, fileToSearch?: FileDetail) => [
                     text: "Stack",
                     onClick: () => {
                         graph.organize(nodeId, "stack");
+                        dispatch(interaction.actions.refreshGraph());
                     },
                 },
                 {
@@ -29,6 +34,7 @@ export default (graph: Graph, nodeId: string, fileToSearch?: FileDetail) => [
                     text: "Graph (Default)",
                     onClick: () => {
                         graph.organize(nodeId, "graph");
+                        dispatch(interaction.actions.refreshGraph());
                     },
                 },
             ],
@@ -40,7 +46,7 @@ export default (graph: Graph, nodeId: string, fileToSearch?: FileDetail) => [
         title: graph.hasMoreToSearch ? undefined : "All relationships have been checked",
         disabled: !graph.hasMoreToSearch,
         onClick: () => {
-            fileToSearch && graph.originate(fileToSearch);
+            fileToSearch && dispatch(interaction.actions.expandGraph(fileToSearch));
         },
     },
 ];

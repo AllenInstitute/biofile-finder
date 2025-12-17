@@ -3,26 +3,25 @@ import { Edge, ReactFlow, EdgeTypes, useNodesState, useEdgesState } from "@xyflo
 import "@xyflow/react/dist/style.css";
 import classNames from "classnames";
 import React from "react";
+import { useSelector } from "react-redux";
 
 import DefaultEdge from "./Edges/DefaultEdge";
 import FileNode from "./Nodes/FileNode";
 import MetadataNode from "./Nodes/MetadataNode";
 import LoadingIcon from "../Icons/LoadingIcon";
-import FileDetail from "../../entity/FileDetail";
-import Graph, {
+import {
     AnnotationEdge,
     EdgeType,
     NodeType,
     FileNode as FileNodeType,
     MetadataNode as MetadataNodeType,
 } from "../../entity/Graph";
+import { interaction } from "../../state";
 
 import styles from "./NetworkGraph.module.css";
 
 interface NetworkGraphProps {
     className?: string;
-    graph: Graph;
-    origin: FileDetail;
 }
 
 const EDGE_TYPES: EdgeTypes = {
@@ -34,17 +33,24 @@ const NODE_TYPES = {
     [NodeType.METADATA]: MetadataNode,
 };
 
+/**
+ * Component for rendering a graph at the given origin
+ */
 export default function NetworkGraph(props: NetworkGraphProps) {
-    // These are used by xyflow to redraw the nodes/edges on drag
-    const [nodes, setNodes, onNodesChange] = useNodesState<FileNodeType | MetadataNodeType>([]);
+    const graph = useSelector(interaction.selectors.getGraph);
+    const isLoading = useSelector(interaction.selectors.isGraphLoading);
+    const refreshKey = useSelector(interaction.selectors.getGraphRefreshKey);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<AnnotationEdge>>([]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<FileNodeType | MetadataNodeType>([]);
 
+    // Unfortunately we have to have some notion of state at a high level for control from the components
+    // and at the dagre level for when the user does a drag action causing this duplication of efforts
     React.useEffect(() => {
-        setNodes(props.graph.nodes);
-        setEdges(props.graph.edges);
-    }, [props.graph.nodes, props.graph.edges]);
+        setEdges(graph.edges);
+        setNodes(graph.nodes);
+    }, [graph, setEdges, setNodes, refreshKey]);
 
-    if (props.graph.isLoading) {
+    if (isLoading) {
         return (
             <div className={classNames(styles.loadingIconContainer, props.className)}>
                 <LoadingIcon size={SpinnerSize.large} />

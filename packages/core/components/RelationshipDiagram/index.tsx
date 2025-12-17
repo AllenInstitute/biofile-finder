@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { PrimaryButton } from "../Buttons";
 import NetworkGraph from "../NetworkGraph";
@@ -20,7 +20,6 @@ interface Props {
  */
 export default function RelationshipDiagram({ className, origin }: Props) {
     const dispatch = useDispatch();
-    const graph = useSelector(interaction.selectors.getGraph);
 
     return (
         <div className={classNames(styles.container, className)}>
@@ -33,9 +32,7 @@ export default function RelationshipDiagram({ className, origin }: Props) {
                 />
                 <h2>Provenance for {origin?.name}</h2>
             </div>
-            {origin && (
-                <NetworkGraph className={styles.networkGraph} graph={graph} origin={origin} />
-            )}
+            <NetworkGraph className={styles.networkGraph} />
         </div>
     );
 }

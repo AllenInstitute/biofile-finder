@@ -1,6 +1,6 @@
 import FrontendInsights from "@aics/frontend-insights";
 import { makeReducer } from "@aics/redux-utils";
-import { filter, sortBy } from "lodash";
+import { filter, sortBy, uniqueId } from "lodash";
 
 import {
     HIDE_CONTEXT_MENU,
@@ -35,6 +35,8 @@ import {
     SET_ORIGIN_FOR_PROVENANCE,
     TOGGLE_FILE_DETAILS_PANEL,
     ToggleFileDetailsPanel,
+    REFRESH_GRAPH,
+    EXPAND_GRAPH,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -68,7 +70,9 @@ export interface InteractionStateBranch {
     hasUnsavedChanges: boolean;
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;
+    isGraphLoading: boolean;
     isOnWeb: boolean;
+    graphRefreshKey?: string;
     platformDependentServices: PlatformDependentServices;
     extractMetadataPythonSnippet?: { setup: string; code: string };
     convertFilesSnippet: {
@@ -99,6 +103,7 @@ export const initialState: InteractionStateBranch = {
     hasDismissedSmallScreenWarning: false,
     hasUnsavedChanges: false,
     hasUsedApplicationBefore: false,
+    isGraphLoading: false,
     isOnWeb: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
@@ -189,6 +194,10 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             csvColumns: action.payload.annotations,
         }),
+        [EXPAND_GRAPH]: (state) => ({
+            ...state,
+            isGraphLoading: true,
+        }),
         [INITIALIZE_APP]: (state, action) => ({
             ...state,
             environment: action.payload.environment,
@@ -251,6 +260,11 @@ export default makeReducer<InteractionStateBranch>(
         [TOGGLE_FILE_DETAILS_PANEL]: (state, action: ToggleFileDetailsPanel) => ({
             ...state,
             fileForDetailPanel: action.payload,
+        }),
+        [REFRESH_GRAPH]: (state) => ({
+            ...state,
+            graphRefreshKey: uniqueId(),
+            isGraphLoading: false,
         }),
     },
     initialState

@@ -41,6 +41,7 @@ export const getDataSourceInfoForVisibleModal = (state: State) =>
     state.interaction.dataSourceInfoForVisibleModal;
 export const getDatasetDetailsVisibility = (state: State) =>
     state.interaction.datasetDetailsPanelIsVisible;
+export const getGraphRefreshKey = (state: State) => state.interaction.graphRefreshKey;
 export const getOriginForProvenance = (state: State) => state.interaction.originForProvenance;
 export const getSelectedPublicDataset = (state: State) => state.interaction.selectedPublicDataset;
 export const getFileFiltersForVisibleModal = (state: State) =>
@@ -53,6 +54,7 @@ export const getHasDismissedSmallScreenWarning = (state: State) =>
 export const getHasUnsavedChanges = (state: State) => state.interaction.hasUnsavedChanges;
 export const hasUsedApplicationBefore = (state: State) =>
     state.interaction.hasUsedApplicationBefore;
+export const isGraphLoading = (state: State) => state.interaction.isGraphLoading;
 export const isOnWeb = (state: State) => state.interaction.isOnWeb;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;

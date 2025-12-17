@@ -2,7 +2,7 @@ import { DefaultButton } from "@fluentui/react";
 // prettier-ignore
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import nodeMenuItems from "./nodeMenuItems";
 import { useButtonMenu } from "../../Buttons";
@@ -22,11 +22,12 @@ const clipLabel = (label?: string) => {
 // This is a proof-of-concept example of a custom node
 // Note that we are able to apply styling to the node, and can include custom buttons as content
 export default function MetadataNode(props: NodeProps<FileNodeType | MetadataNodeType>) {
+    const dispatch = useDispatch();
     const graph = useSelector(interaction.selectors.getGraph);
     const origin = useSelector(interaction.selectors.getOriginForProvenance);
 
     const buttonMenu = useButtonMenu({
-        items: nodeMenuItems(graph, props.id, origin),
+        items: nodeMenuItems(dispatch, graph, props.id, origin),
     });
 
     const annotationValues = props.data.annotation?.values.join(", ");

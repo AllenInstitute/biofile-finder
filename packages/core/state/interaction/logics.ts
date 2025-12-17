@@ -40,6 +40,12 @@ import {
     editFiles,
     DELETE_METADATA,
     DeleteMetadataAction,
+    SET_ORIGIN_FOR_PROVENANCE,
+    SetOriginForProvenance,
+    expandGraph,
+    ExpandGraph,
+    refreshGraph,
+    EXPAND_GRAPH,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { ModalType } from "../../components/Modal";
@@ -707,6 +713,44 @@ const refresh = createLogic({
 });
 
 /**
+ * Interceptor responsible for processing relationship graph origin
+ * changes and updating the graph accordingly
+ */
+const setOriginForProvenance = createLogic({
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: file } = deps.action as SetOriginForProvenance;
+        const graph = interactionSelectors.getGraph(deps.getState());
+        if (!file) {
+            graph.reset();
+            dispatch(refreshGraph());
+        } else {
+            dispatch(expandGraph(file));
+        }
+        done();
+    },
+    type: SET_ORIGIN_FOR_PROVENANCE,
+});
+
+/**
+ * Interceptor responsible for processing a graph's expansion by
+ * focusing on a file as the origin of the relationships
+ */
+const expandGraphLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: file } = deps.action as ExpandGraph;
+        const graph = interactionSelectors.getGraph(deps.getState());
+        try {
+            await graph.originate(file);
+            dispatch(refreshGraph());
+        } finally {
+            done();
+        }
+    },
+    type: EXPAND_GRAPH,
+    warnTimeout: 0, // can take a long time for large datasets
+});
+
+/**
  * Interceptor responsible for processing screen size changes and
  * dispatching appropriate modal changes
  */
@@ -853,11 +897,13 @@ export default [
     downloadFilesLogic,
     downloadManifest,
     editFilesLogic,
+    expandGraphLogic,
     initializeApp,
     openWithDefault,
     openWithLogic,
     promptForNewExecutable,
     refresh,
     setIsSmallScreen,
+    setOriginForProvenance,
     showContextMenu,
 ];
