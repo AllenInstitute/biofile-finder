@@ -76,14 +76,14 @@ export function getGridPosition(
     const indexOfFirstNumeric = valueToCheck.search(/\d/);
     const indexOfFirstLetter = valueToCheck.search(/[a-zA-Z]/);
     const reversedValueToCheck = valueToCheck.split("").reverse().join("");
-    const indexOfLastNumeric = valueToCheck.length - reversedValueToCheck.search(/\d/) + 1;
-    const indexOfLastLetter = valueToCheck.length - reversedValueToCheck.search(/[a-zA-Z]/) + 1;
+    const indexOfLastNumeric = valueToCheck.length - reversedValueToCheck.search(/\d/);
+    const indexOfLastLetter = valueToCheck.length - reversedValueToCheck.search(/[a-zA-Z]/);
 
     const parseNumeric = (stringToParse: string, startIndex: number, endIndex: number) =>
         parseInt(stringToParse.substring(startIndex, endIndex + 1), 10);
     const parseLetters = (stringToParse: string, startIndex: number, endIndex: number) =>
         stringToParse
-            .substring(startIndex, endIndex + 1)
+            .substring(startIndex, endIndex)
             .split("")
             .map((char) => char.charCodeAt(0) - 64)
             .reduce((valueSoFar, charCode) => valueSoFar * charCode, 1);
@@ -338,7 +338,16 @@ export default class Graph {
             }
         } else if (layout === "grid") {
             const parent = this.graph.node(nodeId);
-            for (const childId of this.graph.successors(nodeId) || []) {
+            // Track the min/max row/column so that we can adjust the midpoint
+            // of where the grid should start later on when assigning the positions
+            // to the nodes
+            let minRow = 1;
+            let maxRow = 1;
+            let minColumn = 1;
+            let maxColumn = 1;
+            const childIdToGridPosition: Record<string, { column: number; row: number }> = {};
+            const successors = this.graph.successors(nodeId) || [];
+            for (const childId of successors) {
                 const child = this.graph.node(childId);
                 const gridPosition = getGridPosition(child);
                 // Should be impossible since this is only enabled for
@@ -347,9 +356,25 @@ export default class Graph {
                 if (!gridPosition) {
                     throw new Error(`Unable to determine grid order for node: ${child.id}`);
                 }
+                minColumn = Math.min(minColumn, gridPosition.column);
+                maxColumn = Math.max(maxColumn, gridPosition.column);
+                minRow = Math.min(minRow, gridPosition.row);
+                maxRow = Math.max(maxRow, gridPosition.row);
+                childIdToGridPosition[child.id] = gridPosition;
+            }
 
-                child.y = parent.y + (10 + child.height) * gridPosition.row;
-                child.x = parent.x + 10 * child.width * gridPosition.column;
+            // Now that we have an idea of both where the nodes think they are
+            // within the grid and an idea of the grid size we can assign
+            // actual XY positions
+            const medianColumn = (maxColumn - minColumn) / 2;
+            const medianRow = (maxRow - minRow) / 2;
+            for (const childId of successors) {
+                const child = this.graph.node(childId);
+                const gridPosition = childIdToGridPosition[childId];
+                const row = gridPosition.row - medianRow;
+                const column = gridPosition.column - medianColumn;
+                child.y = parent.y + 200 * row;
+                child.x = parent.x + 250 * column;
 
                 // Stack the successors of the children to clean up grid
                 this.organize(childId, "compact");
