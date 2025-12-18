@@ -397,7 +397,6 @@ export default class Graph {
                 );
 
             dagre.layout(this.graph);
-            console.log("LAYOUT CALLED here");
             this.graph.nodes().forEach((id) => {
                 this.graph.setNode(id, {
                     ...this.graph.node(id),
