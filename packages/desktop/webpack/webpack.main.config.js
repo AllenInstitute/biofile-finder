@@ -10,6 +10,7 @@ module.exports = ({ production } = {}) => ({
     },
     mode: production ? "production" : "development",
     module: {
+        exprContextCritical: false,
         rules: [
             {
                 test: /\.(j|t)sx?/,
