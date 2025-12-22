@@ -181,13 +181,17 @@ export default class DatabaseService {
             : str;
     }
 
+    public hasDataSource(dataSourceName: string): boolean {
+        return this.existingDataSources.has(dataSourceName);
+    }
+
     public async prepareDataSources(
         dataSources: Source[],
         skipNormalization = false
     ): Promise<void> {
         await Promise.all(
             dataSources
-                .filter((dataSource) => !this.existingDataSources.has(dataSource.name))
+                .filter((dataSource) => !this.hasDataSource(dataSource.name))
                 .map((dataSource) => this.prepareDataSource(dataSource, skipNormalization))
         );
 

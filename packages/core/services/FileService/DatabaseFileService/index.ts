@@ -75,7 +75,12 @@ export default class DatabaseFileService implements FileService {
     }
 
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
-        if (!this.dataSourceNames.length) {
+        // Async DB means source may exist in query params but not in database
+        const dataSourcesExistInDatabase = this.dataSourceNames.reduce(
+            (acc, name) => acc && this.databaseService.hasDataSource(name),
+            true
+        );
+        if (!this.dataSourceNames.length || !dataSourcesExistInDatabase) {
             throw new Error("Data source is not prepared");
         }
 

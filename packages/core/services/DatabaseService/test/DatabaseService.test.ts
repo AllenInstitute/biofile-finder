@@ -72,9 +72,6 @@ describe("DatabaseService", () => {
             execute(): Promise<void> {
                 return Promise.resolve();
             }
-            public getDataSources(): Set<string> {
-                return this.existingDataSources;
-            }
             query(): Promise<any> {
                 return Promise.resolve([]);
             }
@@ -109,7 +106,7 @@ describe("DatabaseService", () => {
                     true
                 );
                 // Assert
-                expect(service.getDataSources()).to.contain(tempFileName);
+                expect(service.hasDataSource(tempFileName)).to.be.true;
             });
         });
 
@@ -134,7 +131,7 @@ describe("DatabaseService", () => {
             expect(caughtError).to.not.be.undefined;
             expect(caughtError).to.contain(/DataSourcePreparationError/);
             expect(caughtError).to.contain(/File Path/);
-            expect(service.getDataSources()).not.to.contain(tempFileName);
+            expect(service.hasDataSource(tempFileName)).to.be.false;
         });
 
         it("successfully adds source when has File Path column", async () => {
@@ -165,7 +162,7 @@ describe("DatabaseService", () => {
 
             // Assert
             expect(caughtError).to.be.undefined;
-            expect(service.getDataSources()).to.contain(tempFileName);
+            expect(service.hasDataSource(tempFileName)).to.be.true;
         });
     });
 });
