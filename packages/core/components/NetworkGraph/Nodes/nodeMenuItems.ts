@@ -42,11 +42,11 @@ export default (
                     },
                 },
                 {
-                    key: "graph",
-                    text: "Graph (Default)",
-                    title: "Formats children into the original layout",
+                    key: "tree",
+                    text: "Tree (Default)",
+                    title: "Formats children into the original layout (tree-like)",
                     onClick: () => {
-                        graph.organize(nodeId, "graph");
+                        graph.organize(nodeId, "tree");
                         dispatch(interaction.actions.refreshGraph());
                     },
                 },
