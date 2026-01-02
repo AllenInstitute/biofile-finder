@@ -1,6 +1,5 @@
 import dagre, { GraphEdge } from "@dagrejs/dagre";
 import { Edge, Node } from "@xyflow/react";
-import { pick } from "lodash";
 
 import FileDetail from "../FileDetail";
 import FileFilter from "../FileFilter";
@@ -13,6 +12,8 @@ const METADATA_NODE_WIDTH = 180;
 const METADATA_NODE_HEIGHT = 45;
 const MAX_NODE_HEIGHT = Math.max(FILE_NODE_HEIGHT, METADATA_NODE_HEIGHT);
 const MAX_NODE_WIDTH = Math.max(FILE_NODE_WIDTH, METADATA_NODE_WIDTH);
+const ROW_SPACING = MAX_NODE_HEIGHT + 25;
+const COLUMN_SPACING = MAX_NODE_WIDTH + 25;
 
 export enum EdgeType {
     DEFAULT = "default",
@@ -326,22 +327,25 @@ export default class Graph {
      * Position nodes within graph according to edge connections and
      * height/width of individual nodes
      */
-    public organize(nodeId: string, layout: "grid" | "tree" | "compact", opts = { offset: 2 }) {
+    public organize(
+        nodeId: string,
+        layout: "grid" | "tree" | "compact",
+        opts: { offset: number; position?: { x: number; y: number } } = { offset: 2 }
+    ) {
         if (layout === "compact") {
             const parent = this.graph.node(nodeId);
             let offset = opts.offset;
 
             // First stack the immediate children
-            const successors = this.graph.successors(nodeId) || [];
-            for (const childId of successors) {
-                const child = this.graph.node(childId);
+            const children = this.getChildren(nodeId);
+            for (const child of children) {
                 child.x = parent.x + offset;
                 child.y = parent.y + offset;
                 offset += 2;
             }
             // Then stack up the children of the children
-            for (const childId of successors) {
-                this.organize(childId, "compact", { offset });
+            for (const child of children) {
+                this.organize(child.id, "compact", { offset });
             }
         } else if (layout === "grid") {
             const parent = this.graph.node(nodeId);
@@ -351,9 +355,8 @@ export default class Graph {
             let minColumn = 1;
             let maxColumn = 1;
             const childIdToGridPosition: Record<string, { column: number; row: number }> = {};
-            const successors = this.graph.successors(nodeId) || [];
-            for (const childId of successors) {
-                const child = this.graph.node(childId);
+            const children = this.getChildren(nodeId);
+            for (const child of children) {
                 const gridPosition = getGridPosition(child);
                 // Should be impossible since this is only enabled for
                 // nodes that we can determine a grid position for, but ya never
@@ -370,8 +373,8 @@ export default class Graph {
             // within the grid and an idea of the grid size we can assign
             // actual XY positions
             const medianColumn = (maxColumn - minColumn) / 2;
-            for (const childId of successors) {
-                const gridPosition = childIdToGridPosition[childId];
+            for (const child of children) {
+                const gridPosition = childIdToGridPosition[child.id];
 
                 // Offset the column by the median column
                 // so that the position is centered by the parent
@@ -379,38 +382,37 @@ export default class Graph {
                 // left of the parent when arranged)
                 const column = gridPosition.column - medianColumn - 1;
 
-                // Update the child's coordinates
-                const child = this.graph.node(childId);
-                child.y = parent.y + (MAX_NODE_HEIGHT + 25) * gridPosition.row;
-                child.x = parent.x + (MAX_NODE_WIDTH + 25) * column;
-
-                // Stack the successors of the children to clean up grid
-                this.organize(childId, "compact");
+                child.x = parent.x + COLUMN_SPACING * column;
+                child.y = parent.y + ROW_SPACING * gridPosition.row;
+                this.organize(child.id, "compact");
             }
         } else if (layout === "tree") {
-            // TODO: This doesn't work because we need the positions to come from the xyflow state (useNodes, useEdges)
-            // not this state
+            // If no parent provided, default to the current node
+            const position = opts.position || this.graph.node(nodeId);
 
-            // Preserve position of all other nodes except this child and its successors
-            const successors = new Set([nodeId, ...(this.graph.successors(nodeId) || [])]);
-            const nodeIdToOriginalPositionMap = this.graph
-                .nodes()
-                .filter((id) => !successors.has(id))
-                .reduce(
-                    (mapSoFar, id) => ({
-                        ...mapSoFar,
-                        [id]: pick(this.graph.node(id), ["x", "y"]),
-                    }),
-                    {} as Record<string, { x: number; y: number }>
-                );
-
-            dagre.layout(this.graph);
-            this.graph.nodes().forEach((id) => {
-                this.graph.setNode(id, {
-                    ...this.graph.node(id),
-                    ...(id in nodeIdToOriginalPositionMap ? nodeIdToOriginalPositionMap[id] : {}),
-                });
-            });
+            // Reposition the children (and recursively the
+            // successors of those children) into a tree-like format
+            let count = 0;
+            for (const child of this.getChildren(nodeId)) {
+                // Position the child's X coordinate relative
+                // to the parent with the first value being directly
+                // underneath then alternating left and right after
+                count += 1;
+                const isMiddle = count == 1;
+                const isLeft = count % 2 == 0;
+                if (isMiddle) {
+                    child.x = position.x;
+                } else if (isLeft) {
+                    child.x = position.x - (COLUMN_SPACING * count) / 2;
+                } else {
+                    // isRight
+                    child.x = position.x + (COLUMN_SPACING * count) / 2;
+                }
+                // The child's y position is always consistent
+                child.y = position.y + ROW_SPACING;
+                // After a child has been positioned we can position its children
+                this.organize(child.id, "tree", { position: { x: child.x, y: child.y }, ...opts });
+            }
         }
     }
 

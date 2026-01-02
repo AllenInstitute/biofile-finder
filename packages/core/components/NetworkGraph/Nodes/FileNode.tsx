@@ -32,6 +32,7 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
     const dispatch = useDispatch();
     const graph = useSelector(interaction.selectors.getGraph);
 
+    const position = { x: props.positionAbsoluteX, y: props.positionAbsoluteY };
     const openWithSubMenuItems = useOpenWithMenuItems(file);
     const buttonMenu = useButtonMenu({
         items: [
@@ -56,7 +57,7 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
                     file && dispatch(interaction.actions.downloadFiles([file]));
                 },
             },
-            ...nodeMenuItems(dispatch, graph, props.id, file),
+            ...nodeMenuItems(dispatch, graph, props.id, position, file),
         ],
     });
 

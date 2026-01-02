@@ -11,6 +11,7 @@ export default (
     dispatch: Dispatch,
     graph: Graph,
     nodeId: string,
+    position: { x: number; y: number },
     fileToSearch?: FileDetail,
     canOrganizeAsGrid?: boolean
 ) => [
@@ -46,7 +47,7 @@ export default (
                     text: "Tree (Default)",
                     title: "Formats children into the original layout (tree-like)",
                     onClick: () => {
-                        graph.organize(nodeId, "tree");
+                        graph.organize(nodeId, "tree", { offset: 2, position });
                         dispatch(interaction.actions.refreshGraph());
                     },
                 },
