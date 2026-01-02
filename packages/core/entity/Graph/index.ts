@@ -7,6 +7,13 @@ import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
 import FileService, { FmsFileAnnotation } from "../../services/FileService";
 
+const FILE_NODE_HEIGHT = 125;
+const FILE_NODE_WIDTH = 110;
+const METADATA_NODE_WIDTH = 180;
+const METADATA_NODE_HEIGHT = 45;
+const MAX_NODE_HEIGHT = Math.max(FILE_NODE_HEIGHT, METADATA_NODE_HEIGHT);
+const MAX_NODE_WIDTH = Math.max(FILE_NODE_WIDTH, METADATA_NODE_WIDTH);
+
 export enum EdgeType {
     DEFAULT = "default",
 }
@@ -125,8 +132,8 @@ function createFileNode(file: FileDetail, isSelected = false): FileNode {
         },
         // Placeholder values: Overwritten in this.nodes()
         position: { x: 0, y: 0 },
-        width: 110,
-        height: 125,
+        width: FILE_NODE_WIDTH,
+        height: FILE_NODE_HEIGHT,
         type: NodeType.FILE,
     };
 }
@@ -319,7 +326,7 @@ export default class Graph {
      * Position nodes within graph according to edge connections and
      * height/width of individual nodes
      */
-    public organize(nodeId: string, layout: "grid" | "graph" | "compact", opts = { offset: 2 }) {
+    public organize(nodeId: string, layout: "grid" | "tree" | "compact", opts = { offset: 2 }) {
         if (layout === "compact") {
             const parent = this.graph.node(nodeId);
             let offset = opts.offset;
@@ -338,11 +345,9 @@ export default class Graph {
             }
         } else if (layout === "grid") {
             const parent = this.graph.node(nodeId);
-            // Track the min/max row/column so that we can adjust the midpoint
+            // Track the min/max column so that we can adjust the midpoint
             // of where the grid should start later on when assigning the positions
             // to the nodes
-            let minRow = 1;
-            let maxRow = 1;
             let minColumn = 1;
             let maxColumn = 1;
             const childIdToGridPosition: Record<string, { column: number; row: number }> = {};
@@ -358,8 +363,6 @@ export default class Graph {
                 }
                 minColumn = Math.min(minColumn, gridPosition.column);
                 maxColumn = Math.max(maxColumn, gridPosition.column);
-                minRow = Math.min(minRow, gridPosition.row);
-                maxRow = Math.max(maxRow, gridPosition.row);
                 childIdToGridPosition[child.id] = gridPosition;
             }
 
@@ -367,19 +370,24 @@ export default class Graph {
             // within the grid and an idea of the grid size we can assign
             // actual XY positions
             const medianColumn = (maxColumn - minColumn) / 2;
-            const medianRow = (maxRow - minRow) / 2;
             for (const childId of successors) {
-                const child = this.graph.node(childId);
                 const gridPosition = childIdToGridPosition[childId];
-                const row = gridPosition.row - medianRow;
-                const column = gridPosition.column - medianColumn;
-                child.y = parent.y + 200 * row;
-                child.x = parent.x + 250 * column;
+
+                // Offset the column by the median column
+                // so that the position is centered by the parent
+                // (Ex. column A in a grid from A-D should be to the
+                // left of the parent when arranged)
+                const column = gridPosition.column - medianColumn - 1;
+
+                // Update the child's coordinates
+                const child = this.graph.node(childId);
+                child.y = parent.y + (MAX_NODE_HEIGHT + 25) * gridPosition.row;
+                child.x = parent.x + (MAX_NODE_WIDTH + 25) * column;
 
                 // Stack the successors of the children to clean up grid
                 this.organize(childId, "compact");
             }
-        } else if (layout === "graph") {
+        } else if (layout === "tree") {
             // TODO: This doesn't work because we need the positions to come from the xyflow state (useNodes, useEdges)
             // not this state
 
@@ -606,8 +614,8 @@ export default class Graph {
                 file: undefined,
                 isSelected: false,
             },
-            width: 180,
-            height: 45,
+            width: METADATA_NODE_WIDTH,
+            height: METADATA_NODE_HEIGHT,
             // Placeholder values: Overwritten in this.nodes()
             position: { x: 0, y: 0 },
             type: NodeType.METADATA,
