@@ -230,8 +230,7 @@ export default function Query(props: QueryProps) {
                 isDeletable={queries.length > 1}
                 onQueryDelete={onQueryDelete}
                 query={props.query}
-                groups={queryComponents.hierarchy}
-                filters={queryComponents.filters}
+                queryComponents={queryComponents}
             />
         </div>
     );
