@@ -154,20 +154,22 @@ export default function FileDetails(props: Props) {
                                     loading={isThumbnailLoading}
                                 />
                             </div>
-                            {!props.onClose && hasProvenanceSource && (
+                            {!props.onClose && (
                                 <div className={styles.titleRow}>
                                     <h4>Metadata</h4>
-                                    <DefaultButton
-                                        onClick={() =>
-                                            dispatch(
-                                                interaction.actions.setOriginForProvenance(
-                                                    props.fileDetails
+                                    {hasProvenanceSource && (
+                                        <DefaultButton
+                                            onClick={() =>
+                                                dispatch(
+                                                    interaction.actions.setOriginForProvenance(
+                                                        props.fileDetails
+                                                    )
                                                 )
-                                            )
-                                        }
-                                    >
-                                        View provenance
-                                    </DefaultButton>
+                                            }
+                                        >
+                                            View provenance
+                                        </DefaultButton>
+                                    )}
                                 </div>
                             )}
                             <FileAnnotationList
