@@ -60,7 +60,6 @@ const APPS = (
 ): Apps => ({
     [AppKeys.AGAVE]: {
         key: AppKeys.AGAVE,
-        // TODO: Upgrade styling here
         className: styles.desktopMenuItem,
         text: "AGAVE",
         title: "Open files with AGAVE v1.7.2+",

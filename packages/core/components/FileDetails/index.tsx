@@ -1,7 +1,7 @@
 import { DefaultButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import FileAnnotationList from "./FileAnnotationList";
 import Pagination from "./Pagination";
@@ -14,10 +14,9 @@ import FileDetail from "../../entity/FileDetail";
 import useDownloadFiles from "../../hooks/useDownloadFiles";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../hooks/useTruncatedString";
-import { interaction } from "../../state";
+import { interaction, selection } from "../../state";
 
 import styles from "./FileDetails.module.css";
-
 
 interface Props {
     className?: string;
@@ -78,11 +77,14 @@ function resizeHandleDoubleClick() {
  */
 export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
+    const hasProvenanceSource = useSelector(selection.selectors.hasProvenanceSource);
 
     const openWithMenuItems = useOpenWithMenuItems(props.fileDetails);
     const truncatedFileName = useTruncatedString(props.fileDetails?.name || "", 30);
     const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(props.fileDetails);
-    const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(props.fileDetails);
+    const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(
+        props.fileDetails
+    );
 
     return (
         <div
@@ -137,7 +139,11 @@ export default function FileDetails(props: Props) {
                                     />
                                 </div>
                             )}
-                            <p className={classNames(styles.fileName, { [styles.leftAlign]: !!props.onClose })}>
+                            <p
+                                className={classNames(styles.fileName, {
+                                    [styles.leftAlign]: !!props.onClose,
+                                })}
+                            >
                                 {props.fileDetails?.name}
                             </p>
                             <div className={styles.thumbnailContainer}>
@@ -148,11 +154,17 @@ export default function FileDetails(props: Props) {
                                     loading={isThumbnailLoading}
                                 />
                             </div>
-                            {!props.onClose && (
+                            {!props.onClose && hasProvenanceSource && (
                                 <div className={styles.titleRow}>
                                     <h4>Metadata</h4>
                                     <DefaultButton
-                                        onClick={() => dispatch(interaction.actions.setOriginForProvenance(props.fileDetails))}
+                                        onClick={() =>
+                                            dispatch(
+                                                interaction.actions.setOriginForProvenance(
+                                                    props.fileDetails
+                                                )
+                                            )
+                                        }
                                     >
                                         View provenance
                                     </DefaultButton>

@@ -51,18 +51,10 @@ export default function NetworkGraph(props: NetworkGraphProps) {
         setNodes(graph.nodes);
     }, [graph, setEdges, setNodes, refreshKey]);
 
-    // TODO: Is this right...? Should we just have no provenance button when there isn't a source selected
-    // it isn't like it is critical for every dataset
-    const hasNoProvenance = !provenanceSource;
-    if (hasNoProvenance) {
-        return (
-            <div className={classNames(styles.simpleContainer, props.className)}>
-                <p>
-                    No provenance source was selected. Check this page out for information about
-                    adding provenance
-                </p>
-            </div>
-        );
+    // The option to open this graph shouldn't even appear when a
+    // source isn't available so this shouldn't ever happen
+    if (!provenanceSource) {
+        return null;
     }
 
     if (isLoading) {
