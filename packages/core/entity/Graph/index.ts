@@ -123,7 +123,7 @@ export function getGridPosition(
  */
 function createFileNode(file: FileDetail, isSelected = false): FileNode {
     return {
-        id: file.id, // TODO: use row id..?
+        id: file.id, // TODO: This doesn't have to be tied to FMS's ID system, we could be more generic here
         data: {
             annotation: undefined,
             file,
@@ -556,7 +556,6 @@ export default class Graph {
             limit: 100, // Arbitrary, might want to consider another value or paging
             fileSet: new FileSet({
                 fileService: this.fileService,
-                // TODO: Make sure this works with multiple values
                 filters: [new FileFilter(annotation.name, annotation.values)],
             }),
         });
