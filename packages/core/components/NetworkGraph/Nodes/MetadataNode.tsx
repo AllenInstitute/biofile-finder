@@ -36,9 +36,8 @@ export default function MetadataNode(props: NodeProps<FileNodeType | MetadataNod
         return !!getGridPosition(child);
     }, [graph, props.id, props.data]);
 
-    const position = { x: props.positionAbsoluteX, y: props.positionAbsoluteY };
     const buttonMenu = useButtonMenu({
-        items: nodeMenuItems(dispatch, graph, props.id, position, origin, canOrganizeAsGrid),
+        items: nodeMenuItems(dispatch, graph, props.id, origin, canOrganizeAsGrid),
     });
 
     const annotationValues = props.data.annotation?.values.join(", ");

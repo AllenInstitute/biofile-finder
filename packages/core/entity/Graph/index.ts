@@ -6,14 +6,12 @@ import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
 import FileService, { FmsFileAnnotation } from "../../services/FileService";
 
-const FILE_NODE_HEIGHT = 125;
 const FILE_NODE_WIDTH = 110;
+const FILE_NODE_HEIGHT = 125;
 const METADATA_NODE_WIDTH = 180;
 const METADATA_NODE_HEIGHT = 45;
-const MAX_NODE_HEIGHT = Math.max(FILE_NODE_HEIGHT, METADATA_NODE_HEIGHT);
-const MAX_NODE_WIDTH = Math.max(FILE_NODE_WIDTH, METADATA_NODE_WIDTH);
-const ROW_SPACING = MAX_NODE_HEIGHT + 25;
-const COLUMN_SPACING = MAX_NODE_WIDTH + 25;
+const ROW_SPACING = Math.max(FILE_NODE_HEIGHT, METADATA_NODE_HEIGHT) + 25;
+const COLUMN_SPACING = Math.max(FILE_NODE_WIDTH, METADATA_NODE_WIDTH) + 25;
 
 export enum EdgeType {
     DEFAULT = "default",
@@ -308,7 +306,7 @@ export default class Graph {
         this.numberOfNodesAfforded += 25;
         const node = createFileNode(origin, true);
         await this.expand(node);
-        dagre.layout(this.graph);
+        this.organize(node.id, "tree");
     }
 
     /**
@@ -330,14 +328,15 @@ export default class Graph {
     public organize(
         nodeId: string,
         layout: "grid" | "tree" | "compact",
-        opts: { offset: number; position?: { x: number; y: number } } = { offset: 2 }
+        opts: { offset: number } = { offset: 2 }
     ) {
+        const parent = this.graph.node(nodeId);
+        const children = this.getChildren(nodeId);
+
         if (layout === "compact") {
-            const parent = this.graph.node(nodeId);
             let offset = opts.offset;
 
             // First stack the immediate children
-            const children = this.getChildren(nodeId);
             for (const child of children) {
                 child.x = parent.x + offset;
                 child.y = parent.y + offset;
@@ -348,14 +347,12 @@ export default class Graph {
                 this.organize(child.id, "compact", { offset });
             }
         } else if (layout === "grid") {
-            const parent = this.graph.node(nodeId);
             // Track the min/max column so that we can adjust the midpoint
             // of where the grid should start later on when assigning the positions
             // to the nodes
             let minColumn = 1;
             let maxColumn = 1;
             const childIdToGridPosition: Record<string, { column: number; row: number }> = {};
-            const children = this.getChildren(nodeId);
             for (const child of children) {
                 const gridPosition = getGridPosition(child);
                 // Should be impossible since this is only enabled for
@@ -387,32 +384,7 @@ export default class Graph {
                 this.organize(child.id, "compact");
             }
         } else if (layout === "tree") {
-            // If no parent provided, default to the current node
-            const position = opts.position || this.graph.node(nodeId);
-
-            // Reposition the children (and recursively the
-            // successors of those children) into a tree-like format
-            let count = 0;
-            for (const child of this.getChildren(nodeId)) {
-                // Position the child's X coordinate relative
-                // to the parent with the first value being directly
-                // underneath then alternating left and right after
-                count += 1;
-                const isMiddle = count == 1;
-                const isLeft = count % 2 == 0;
-                if (isMiddle) {
-                    child.x = position.x;
-                } else if (isLeft) {
-                    child.x = position.x - (COLUMN_SPACING * count) / 2;
-                } else {
-                    // isRight
-                    child.x = position.x + (COLUMN_SPACING * count) / 2;
-                }
-                // The child's y position is always consistent
-                child.y = position.y + ROW_SPACING;
-                // After a child has been positioned we can position its children
-                this.organize(child.id, "tree", { position: { x: child.x, y: child.y }, ...opts });
-            }
+            dagre.layout(this.graph);
         }
     }
 
