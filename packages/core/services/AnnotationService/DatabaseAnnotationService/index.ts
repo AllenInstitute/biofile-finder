@@ -165,7 +165,10 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 .toSQL();
             return this.databaseService.query(sql);
         });
+        const name = `${Math.random()} parallel per-column queries`;
+        console.time(name);
         const results = (await Promise.all(queries)) as QueryResult[];
+        console.timeEnd(name);
         console.debug('Finished per-column queries', results);
         return results
             .filter(result => result.length > 0)
