@@ -32,8 +32,31 @@ export default function QueryFooter(props: Props) {
         const groupByFilters = props.queryComponents.hierarchy.map(
             (annotationName) => new IncludeFilter(annotationName)
         );
-        return [...props.queryComponents.filters, ...groupByFilters];
-    }, [props.queryComponents.filters, props.queryComponents.hierarchy]);
+        return [...props.filters, ...groupByFilters];
+    }, [props.filters, props.groups]);
+    const totalFileSet = React.useMemo(() => {
+        return new FileSet({
+            fileService,
+            filters: combinedFilters,
+        });
+    }, [fileService, combinedFilters]);
+
+    // Get a count of all files
+    React.useEffect(() => {
+        totalFileSet
+            .fetchTotalCount()
+            .then((count) => {
+                setTotalFileCount(count);
+            })
+            .catch((err) => {
+                // Data source may not be prepared if the data source is taking longer to load
+                // than the component does to render. In this case, we can ignore the error.
+                // The component will re-render when the data source is prepared.
+                if (!err?.message?.includes("Data source is not prepared")) {
+                    throw err;
+                }
+            });
+    }, [totalFileSet, setTotalFileCount]);
 
     const isEmptyQuery = !props.query.parts.sources.length;
 

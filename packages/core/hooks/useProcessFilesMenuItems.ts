@@ -40,5 +40,18 @@ export default function useProcessMenuItems(
                 );
             },
         },
+        {
+            key: "all-cells-mask-segmentation",
+            text: "Run all cells mask segmentation",
+            title: "Generate an all-cells segmentation mask using a predefined pipeline",
+            onClick() {
+                dispatch(
+                    interaction.actions.setVisibleModal(
+                        ModalType.AllCellsMaskSegmentation,
+                        folderFilters
+                    )
+                );
+            },
+        },
     ];
 }

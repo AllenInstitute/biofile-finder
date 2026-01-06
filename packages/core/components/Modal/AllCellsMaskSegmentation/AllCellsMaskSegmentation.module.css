@@ -1,0 +1,167 @@
+/* packages/core/components/Modal/AllCellsMaskSegmentation/AllCellsMaskSegmentation.module.css */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 180px 1px minmax(0, 1fr);
+  grid-template-areas: "left divider right";
+  column-gap: 24px;
+  width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+/* If you include a divider element later, these are ready. */
+.leftCol  { grid-area: left;   min-width: 0; }
+.vDivider { grid-area: divider; }
+.rightCol { grid-area: right;  min-width: 0; }
+
+.vDivider {
+  width: 1px;
+  background: var(--primary-text-color);
+}
+
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  row-gap: 24px;
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  row-gap: 12px;
+  min-height: 0;
+  position: relative;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: var(--l-paragraph-size);
+  margin-bottom: 8px;
+}
+
+.helpText {
+  color: var(--secondary-text-color);
+}
+
+.searchBox {
+  flex-grow: 1;
+}
+
+.searchBox :global(input.ms-TextField-field) {
+  background-color: var(--secondary-background-color) !important;
+  color: var(--secondary-text-color) !important;
+}
+
+.preview {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--secondary-background-color);
+  color: var(--secondary-text-color);
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+
+.muted {
+  color: var(--secondary-text-color);
+  opacity: 0.85;
+}
+
+/* ===== Footer ===== */
+.footerButtons {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.closeButton {
+  width: min-content;
+}
+
+/* ===== Status boxes ===== */
+.errorBox {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 0, 0, 0.08);
+  border: 1px solid rgba(255, 0, 0, 0.25);
+}
+
+.errorTitle {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.errorText {
+  color: var(--secondary-text-color);
+}
+
+/* ===== Full-width success banner (spans both columns) ===== */
+.fullWidthSuccess {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+
+  display: flex;
+  flex-direction: column;
+  row-gap: 6px;
+
+  background: rgba(0, 255, 0, 0.08);
+  border: 1px solid rgba(0, 255, 0, 0.25);
+}
+
+.successTitle {
+  font-weight: 600;
+}
+
+.successText {
+  color: var(--secondary-text-color);
+}
+
+.code {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+
+/* ===== Responsive ===== */
+@container modal (min-width: 1221px) {
+  .leftCol { width: 180px; }
+  .vDivider { display: block; }
+}
+
+@media (max-width: 1220px) {
+  .columns {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "left"
+      "right";
+    grid-auto-rows: auto;
+  }
+  .vDivider { display: none; }
+  .leftCol { width: auto; min-width: 0; max-width: none; }
+  .rightCol { min-width: 0; }
+}
