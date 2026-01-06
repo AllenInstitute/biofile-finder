@@ -59,7 +59,7 @@ export default function QueryFooter(props: Props) {
                 // Data source may not be prepared if the data source is taking longer to load
                 // than the component does to render. In this case, we can ignore the error.
                 // The component will re-render when the data source is prepared.
-                if (!err?.message.includes("Data source is not prepared")) {
+                if (!err?.message?.includes("Data source is not prepared")) {
                     throw err;
                 }
             });

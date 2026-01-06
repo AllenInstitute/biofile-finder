@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 import About from "./About";
+import AllCellsMaskSegmentation from "./AllCellsMaskSegmentation";
 import QueryCodeSnippet from "./QueryCodeSnippet";
 import DataSource from "./DataSource";
 import EditMetadata from "./EditMetadata";
@@ -26,6 +27,7 @@ export enum ModalType {
     SmallScreenWarning = 7,
     ExtractMetadataCodeSnippet = 8,
     ConvertFiles = 9,
+    AllCellsMaskSegmentation = 10,
 }
 
 /**
@@ -58,6 +60,8 @@ export default function Modal() {
             return <ExtractMetadataCodeSnippet onDismiss={onDismiss} />;
         case ModalType.ConvertFiles:
             return <ConvertFiles onDismiss={onDismiss} />;
+        case ModalType.AllCellsMaskSegmentation:
+            return <AllCellsMaskSegmentation onDismiss={onDismiss} />;
         default:
             return null;
     }
