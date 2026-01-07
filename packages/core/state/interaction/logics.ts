@@ -46,6 +46,7 @@ import {
     ExpandGraph,
     refreshGraph,
     EXPAND_GRAPH,
+    setIsGraphLoading,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { ModalType } from "../../components/Modal";
@@ -733,8 +734,20 @@ const expandGraphLogic = createLogic({
         const { payload: file } = deps.action as ExpandGraph;
         const graph = interactionSelectors.getGraph(deps.getState());
         try {
-            await graph.originate(file);
-            dispatch(refreshGraph());
+            try {
+                await graph.originate(file);
+                dispatch(refreshGraph());
+            } catch (err) {
+                dispatch(setIsGraphLoading(false));
+                dispatch(
+                    processError(
+                        uniqueId(),
+                        `Error while attempting to generate provenance graph for file ${
+                            file.name
+                        }. Error: ${(err as Error).message}`
+                    )
+                );
+            }
         } finally {
             done();
         }

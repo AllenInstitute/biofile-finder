@@ -484,11 +484,14 @@ export default class Graph {
         }
 
         return Promise.all(
-            (annotation.values as string[]).map(
-                async (fileId) =>
-                    // Avoid re-requesting the file when possible
-                    this.graph.node(fileId) || createFileNode(await this.getFileById(fileId))
-            )
+            (annotation.values as string[]).map(async (fileId) => {
+                // Avoid re-requesting the file when possible
+                const node = this.graph.node(fileId);
+                if (node) return node;
+                const file = await this.getFileById(fileId);
+                if (file) return createFileNode(file);
+                throw new Error(`Unable to find file ${fileId}`);
+            })
         );
     }
 
@@ -532,15 +535,21 @@ export default class Graph {
     /**
      * Retrieve the one file that is identified by this ID
      */
-    private async getFileById(id: string): Promise<FileDetail> {
-        const files = await this.fileService.getFiles({
-            from: 0,
-            limit: 1,
-            fileSet: new FileSet({
-                fileService: this.fileService,
-                filters: [new FileFilter("File ID", id)],
-            }),
-        });
+    private async getFileById(id: string): Promise<FileDetail | undefined> {
+        let files;
+        try {
+            files = await this.fileService.getFiles({
+                from: 0,
+                limit: 1,
+                fileSet: new FileSet({
+                    fileService: this.fileService,
+                    filters: [new FileFilter("File ID", id)],
+                }),
+            });
+        } catch (err) {
+            console.error(`Failed to find file ${id}. Error: ${(err as Error).message}`);
+            return undefined;
+        }
         if (files.length !== 1) {
             throw new Error(`Failed to fetch 1 file for ID ${id}. Found ${files.length} instead.`);
         }

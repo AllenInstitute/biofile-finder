@@ -37,6 +37,8 @@ import {
     ToggleFileDetailsPanel,
     REFRESH_GRAPH,
     EXPAND_GRAPH,
+    SetIsGraphLoading,
+    SET_IS_GRAPH_LOADING,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -265,6 +267,10 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             graphRefreshKey: uniqueId(),
             isGraphLoading: false,
+        }),
+        [SET_IS_GRAPH_LOADING]: (state, action: SetIsGraphLoading) => ({
+            ...state,
+            isGraphLoading: action.payload.isGraphLoading,
         }),
     },
     initialState

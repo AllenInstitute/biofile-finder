@@ -942,3 +942,22 @@ export function refreshGraph(): RefreshGraph {
         type: REFRESH_GRAPH,
     };
 }
+
+/**
+ * Intention to set whether the graph is loading or not
+ */
+export const SET_IS_GRAPH_LOADING = makeConstant(STATE_BRANCH_NAME, "set-is-graph-loading");
+
+export interface SetIsGraphLoading {
+    type: string;
+    payload: {
+        isGraphLoading: boolean;
+    };
+}
+
+export function setIsGraphLoading(isGraphLoading: boolean): SetIsGraphLoading {
+    return {
+        payload: { isGraphLoading },
+        type: SET_IS_GRAPH_LOADING,
+    };
+}
