@@ -70,6 +70,7 @@
     "@aics/frontend-insights": "0.2.x",
     "@aics/redux-utils": "0.6.0",
     "@dagrejs/dagre": "^1.1.5",
+    "@duckdb/duckdb-wasm": "^1.30",
     "@fluentui/react": "8.67",
     "@tippyjs/react": "4.2.x",
     "@xyflow/react": "^12.8.5",

@@ -53,8 +53,5 @@
 }
 
 .table-title {
-  font-weight: 300;
-  font-size: 24px;
-  line-height: 1.25;
   margin-top: calc(2*var(--margin));
 }

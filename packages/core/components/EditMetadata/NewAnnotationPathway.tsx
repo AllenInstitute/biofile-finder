@@ -1,11 +1,11 @@
-import { IconButton, Stack, StackItem, TextField } from "@fluentui/react";
+import { Stack, StackItem, TextField } from "@fluentui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import MetadataDetails, { ValueCountItem } from "./MetadataDetails";
-import { PrimaryButton, SecondaryButton } from "../Buttons";
+import { PrimaryButton, SecondaryButton, TransparentIconButton } from "../Buttons";
 import ComboBox from "../ComboBox";
 import LoadingIcon from "../Icons/LoadingIcon";
 import Tooltip from "../Tooltip";
@@ -295,9 +295,10 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                                         <Tooltip content={option}>
                                             <p className={styles.selectedOption}>{option}</p>
                                         </Tooltip>
-                                        <IconButton
+                                        <TransparentIconButton
                                             className={styles.selectedOptionButton}
-                                            iconProps={{ iconName: "Cancel" }}
+                                            iconName="Cancel"
+                                            title={`Remove ${option}`}
                                             onClick={() => removeDropdownChip(option)}
                                         />
                                     </div>

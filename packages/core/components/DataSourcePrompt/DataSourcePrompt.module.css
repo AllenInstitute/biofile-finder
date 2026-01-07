@@ -65,19 +65,12 @@
 }
 
 .icon-button {
-    background-color: transparent;
-    color: var(--primary-text-color);
     top: -6px;
 }
 
 .icon-button i {
     font-size: 18px;
     height: 18px;
-}
-
-.icon-button:hover {
-    background-color: transparent;
-    color: var(--highlight-text-color);
 }
 
 .load-button-container {

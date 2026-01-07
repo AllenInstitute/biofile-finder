@@ -13,6 +13,7 @@ export interface PublicDatasetProps {
     dataset_size?: string;
     description?: string;
     doi?: string;
+    featured?: "TRUE" | "FALSE"; // string containing boolean indicating if this is one of BFF's featured datasets
     file_count?: string;
     index?: string;
     created?: string;
@@ -51,11 +52,12 @@ export const DatasetAnnotations = {
     DATASET_ID: new DatasetAnnotation("Dataset ID", "dataset_id"),
     DATASET_NAME: new DatasetAnnotation("Dataset name", "dataset_name", 50),
     DATASET_PATH: new DatasetAnnotation("File Path", "dataset_path"),
-    INDEX: new DatasetAnnotation("Index", "index", 1),
     DATASET_SIZE: new DatasetAnnotation("Size", "dataset_size", 78),
     DATASET_DESCRIPTION: new DatasetAnnotation("Short description", "description", 200),
     DOI: new DatasetAnnotation("DOI", "doi"),
+    FEATURED: new DatasetAnnotation("Featured", "featured"),
     FILE_COUNT: new DatasetAnnotation("File count", "file_count", 89),
+    INDEX: new DatasetAnnotation("Index", "index", 1),
     ORGANIZATION: new DatasetAnnotation("Organization", "organization", 114),
     PUBLICATION_DATE: new DatasetAnnotation("Publication date", "published", 128),
     RELATED_PUBLICATON: new DatasetAnnotation("Related publication", "related_publication", 178),
@@ -112,7 +114,9 @@ export default class PublicDataset {
                     this.setMetadata(
                         mappedAnnotationsToProps,
                         value.name as keyof PublicDatasetProps,
-                        equivalentAnnotation.values[0] as string // Temporary measure to avoid type errors
+                        // We currently split on commas, which breaks the description field into multiple values
+                        // This is hopefully just a temporary solution, since doesn't work for numbers (e.g., 30,000 becomes 30, 000)
+                        equivalentAnnotation.values.join(", ") as string // String casting as temporary measure to avoid type errors
                     );
                 }
             });
@@ -164,6 +168,10 @@ export default class PublicDataset {
         } else {
             return SearchParams.decode(this.datasetDetails.specific_query);
         }
+    }
+
+    public get featured(): boolean {
+        return this.datasetDetails.featured === "TRUE";
     }
 
     public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {

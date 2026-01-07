@@ -1,13 +1,14 @@
+import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
-import { isEmpty, uniqWith } from "lodash";
+import { isEmpty, mapKeys } from "lodash";
 
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
+import { EdgeDefinition } from "../../entity/Graph";
 import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
-import { EdgeDefinition } from "../../state/provenance/reducer";
 
 enum PreDefinedColumn {
     FILE_ID = "File ID",
@@ -22,7 +23,7 @@ const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
 /**
  * Service reponsible for querying against a database
  */
-export default abstract class DatabaseService {
+export default class DatabaseService {
     public static readonly LIST_DELIMITER = ",";
     // Name of the hidden column BFF uses to uniquely identify rows
     public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
@@ -37,28 +38,132 @@ export default abstract class DatabaseService {
         DatabaseService.OPEN_FILE_LINK_TYPE,
     ]);
     private sourceMetadataName?: string;
-    private sourceProvenanceName?: string;
+    public sourceProvenanceName?: string;
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
     private readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
     private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
 
-    public abstract saveQuery(
-        _destination: string,
-        _sql: string,
-        _format: "csv" | "parquet" | "json"
-    ): Promise<Uint8Array>;
+    protected database: duckdb.AsyncDuckDB | undefined;
 
-    public abstract query(_sql: string): Promise<{ [key: string]: any }[]>;
+    constructor() {
+        this.addDataSource = this.addDataSource.bind(this);
+        this.execute = this.execute.bind(this);
+        this.query = this.query.bind(this);
+    }
 
-    protected abstract addDataSource(
-        _name: string,
-        _type: "csv" | "json" | "parquet",
-        _uri: string | File
-    ): Promise<void>;
+    public async initialize(logLevel: duckdb.LogLevel = duckdb.LogLevel.WARNING) {
+        const allBundles = duckdb.getJsDelivrBundles();
 
-    public abstract execute(_sql: string): Promise<void>;
+        // Selects the best bundle based on browser checks
+        const bundle = await duckdb.selectBundle(allBundles);
+        const worker_url = URL.createObjectURL(
+            new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" })
+        );
+        // Instantiate the asynchronous version of DuckDB-wasm
+        const worker = new Worker(worker_url);
+        const logger = new duckdb.ConsoleLogger(logLevel);
+        this.database = new duckdb.AsyncDuckDB(logger, worker);
+        await this.database.instantiate(bundle.mainModule, bundle.pthreadWorker);
+        URL.revokeObjectURL(worker_url);
+    }
+
+    public async saveQuery(
+        destination: string,
+        sql: string,
+        format: "parquet" | "csv" | "json"
+    ): Promise<Uint8Array> {
+        if (!this.database) {
+            throw new Error("Database failed to initialize");
+        }
+
+        const resultName = `${destination}.${format}`;
+        const formatOptions = format === "json" ? ", ARRAY true" : "";
+        const finalSQL = `COPY (${sql}) TO '${resultName}' (FORMAT '${format}'${formatOptions});`;
+        const connection = await this.database.connect();
+        try {
+            await connection.send(finalSQL);
+            return await this.database.copyFileToBuffer(resultName);
+        } finally {
+            await connection.close();
+        }
+    }
+
+    public async query(sql: string): Promise<{ [key: string]: any }[]> {
+        if (!this.database) {
+            throw new Error("Database failed to initialize");
+        }
+        const connection = await this.database?.connect();
+        try {
+            const result = await connection.query(sql);
+            const resultAsArray = result.toArray();
+            const resultAsJSONString = JSON.stringify(
+                resultAsArray,
+                (_, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
+            );
+            return JSON.parse(resultAsJSONString);
+        } catch (err) {
+            throw new Error(
+                `${(err as Error).message}. \nThe above error occured while executing query: ${sql}`
+            );
+        } finally {
+            await connection.close();
+        }
+    }
+
+    public async close(): Promise<void> {
+        this.database?.detach();
+    }
+
+    protected async addDataSource(
+        name: string,
+        type: "csv" | "json" | "parquet",
+        uri: string | File
+    ): Promise<void> {
+        if (!this.database) {
+            throw new Error("Database failed to initialize");
+        }
+
+        if (uri instanceof File) {
+            await this.database.registerFileHandle(
+                name,
+                uri,
+                duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+                true
+            );
+        } else {
+            const protocol = uri.startsWith("s3")
+                ? duckdb.DuckDBDataProtocol.S3
+                : duckdb.DuckDBDataProtocol.HTTP;
+
+            await this.database.registerFileURL(name, uri, protocol, false);
+        }
+
+        if (type === "parquet") {
+            await this.execute(`CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`);
+        } else if (type === "json") {
+            await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
+        } else {
+            // Default to CSV
+            await this.execute(
+                `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
+            );
+        }
+    }
+
+    public async execute(sql: string): Promise<void> {
+        if (!this.database) {
+            throw new Error("Database failed to initialize");
+        }
+
+        const connection = await this.database.connect();
+        try {
+            await connection.query(sql);
+        } finally {
+            await connection.close();
+        }
+    }
 
     private static columnTypeToAnnotationType(columnType: string): AnnotationType {
         switch (columnType) {
@@ -80,12 +185,8 @@ export default abstract class DatabaseService {
             : str;
     }
 
-    constructor() {
-        // 'this' scope gets lost when a higher order class (ex. DatabaseService)
-        // calls a lower level class (ex. DatabaseServiceWeb)
-        this.addDataSource = this.addDataSource.bind(this);
-        this.execute = this.execute.bind(this);
-        this.query = this.query.bind(this);
+    public hasDataSource(dataSourceName: string): boolean {
+        return this.existingDataSources.has(dataSourceName);
     }
 
     public async prepareDataSources(
@@ -94,7 +195,7 @@ export default abstract class DatabaseService {
     ): Promise<void> {
         await Promise.all(
             dataSources
-                .filter((dataSource) => !this.existingDataSources.has(dataSource.name))
+                .filter((dataSource) => !this.hasDataSource(dataSource.name))
                 .map((dataSource) => this.prepareDataSource(dataSource, skipNormalization))
         );
 
@@ -184,7 +285,7 @@ export default abstract class DatabaseService {
         this.sourceMetadataName = sourceMetadata.name;
     }
 
-    public async prepareSourceProvenance(sourceProvenance: Source): Promise<void> {
+    private async prepareSourceProvenance(sourceProvenance: Source): Promise<void> {
         const isPreviousSource = sourceProvenance.name === this.sourceProvenanceName;
         if (isPreviousSource) {
             return;
@@ -201,8 +302,11 @@ export default abstract class DatabaseService {
     }
 
     public async deleteSourceProvenance(): Promise<void> {
-        await this.deleteDataSource(this.SOURCE_PROVENANCE_TABLE);
-        this.dataSourceToProvenanceMap.clear();
+        if (this.sourceProvenanceName) {
+            await this.deleteDataSource(this.SOURCE_PROVENANCE_TABLE);
+            this.dataSourceToProvenanceMap.clear();
+            this.sourceProvenanceName = undefined;
+        }
     }
 
     public async deleteSourceMetadata(): Promise<void> {
@@ -486,48 +590,70 @@ export default abstract class DatabaseService {
         await this.execute(this.getUpdateHiddenUIDSQL(viewName));
     }
 
-    public async processProvenance(dataSourceNames: string[]) {
-        // no provenance data
-        if (!this.existingDataSources.has(this.SOURCE_PROVENANCE_TABLE)) {
-            return {};
-        }
-        const aggregateDataSourceName = dataSourceNames.sort().join(", ");
-        // To do: situation where this would be true/action to take?
-        // const hasEdgeDefinitions = this.dataSourceToProvenanceMap.has(aggregateDataSourceName);
+    public async processProvenance(provenanceSource: Source): Promise<EdgeDefinition[]> {
+        await this.prepareSourceProvenance(provenanceSource);
+
         const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
-        const edges: EdgeDefinition[] = [];
         try {
-            // Get list of edge definitions for provenance schema
             const rows = await this.query(sql);
-            rows.forEach((row) => {
-                const parent = row["Parent"];
-                const child = row["Child"];
-                // fully defined
-                if (parent && child && row["Relationship"]) {
-                    const newEdge = {
-                        parent,
-                        child,
-                        label: row["Relationship"],
-                    };
-                    edges.push(newEdge);
-                }
-            });
-            this.dataSourceToProvenanceMap.set(aggregateDataSourceName, uniqWith(edges));
+            const parentsAndChildren = new Set<string>();
+            return rows
+                .map((row) =>
+                    Object.keys(row).reduce(
+                        (mapSoFar, key) => ({
+                            ...mapSoFar,
+                            [key.toLowerCase().trim()]:
+                                typeof row[key] !== "object"
+                                    ? row[key]
+                                    : mapKeys(row[key], (_value, innerKey) =>
+                                          innerKey.toLowerCase().trim()
+                                      ),
+                        }),
+                        {} as Record<string, any>
+                    )
+                )
+                .map((row) => {
+                    try {
+                        const parentAndChildKey = `${row["parent"]}-${row["child"]}`;
+                        if (parentsAndChildren.has(parentAndChildKey)) {
+                            throw new Error(
+                                `Parent (${row["parent"]}) and Child (${row["child"]}) combination found multiple times`
+                            );
+                        }
+
+                        parentsAndChildren.add(parentAndChildKey);
+                        return {
+                            relationship: row["relationship"],
+                            relationshipType: row["relationship type"],
+                            parent: {
+                                name: row["parent"],
+                                type: row["parent type"],
+                            },
+                            child: {
+                                name: row["child"],
+                                type: row["child type"],
+                            },
+                        };
+                    } catch (err) {
+                        if ((err as Error).message.includes("key")) {
+                            throw new Error(
+                                `Unexpected format for provenance data. Check the documentation
+                                for what BFF expects provenance data to look like.
+                                Error: ${(err as Error).message}`
+                            );
+                        }
+                        throw err;
+                    }
+                });
         } catch (err) {
             // Source provenance file may not have been supplied
             // and/or the columns may not exist
             const errMsg = typeof err === "string" ? err : err instanceof Error ? err.message : "";
             if (errMsg.includes("does not exist") || errMsg.includes("not found in FROM clause")) {
-                return {};
+                return [];
             }
             throw err;
         }
-        return this.dataSourceToProvenanceMap.get(aggregateDataSourceName) || [];
-    }
-
-    public async fetchProvenanceDefinitions(dataSourceNames: string[]): Promise<EdgeDefinition[]> {
-        const aggregateDataSourceName = dataSourceNames.sort().join(", ");
-        return this.dataSourceToProvenanceMap.get(aggregateDataSourceName) || [];
     }
 
     public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
