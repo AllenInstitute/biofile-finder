@@ -4,14 +4,13 @@ import * as React from "react";
 
 import styles from "./MarkdownText.module.css";
 
-
 interface Props {
     className?: string;
     text?: string;
 }
 
 /**
- * Render the given text aa markdown component
+ * Render the given text as a markdown component
  */
 export default function MarkdownText(props: Props) {
     return (
@@ -31,5 +30,5 @@ export default function MarkdownText(props: Props) {
                 {props.text}
             </Markdown>
         </span>
-    )
+    );
 }
