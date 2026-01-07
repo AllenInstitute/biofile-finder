@@ -51,7 +51,7 @@ export default (fileDetails?: FileDetail) => {
         (status) => fileDetails && status.data.fileId?.includes(fileDetails.uid)
     );
     const isDownloadDisabled =
-        !fileDetails || isBeingDownloaded || (isOnWeb && !!isZarr && !!isFileTooBig);
+        !fileDetails || isBeingDownloaded || (isOnWeb && !!isZarr && isFileTooBig !== false);
 
     // Display a tooltip if download is disabled
     const disabledDownloadReason = React.useMemo(() => {

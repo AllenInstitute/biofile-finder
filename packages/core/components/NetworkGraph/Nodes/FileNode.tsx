@@ -62,6 +62,7 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
 
     if (!file) {
         console.error("This should never happen, a <FileNode /> was rendered without a file");
+        throw new Error(JSON.stringify(props));
         return null;
     }
 

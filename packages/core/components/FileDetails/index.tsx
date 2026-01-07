@@ -20,7 +20,7 @@ import styles from "./FileDetails.module.css";
 
 interface Props {
     className?: string;
-    fileDetails?: FileDetail;
+    fileDetails: FileDetail | undefined;
     isLoading?: boolean;
     onClose?: () => void;
 }

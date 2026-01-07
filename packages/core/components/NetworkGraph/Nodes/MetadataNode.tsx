@@ -16,7 +16,6 @@ import { interaction } from "../../../state";
 
 import styles from "./MetadataNode.module.css";
 
-// TODO: Remove this and use CSS
 const clipLabel = (label?: string) => {
     if (label && label.length > 15) {
         return label.slice(0, 11) + "...";

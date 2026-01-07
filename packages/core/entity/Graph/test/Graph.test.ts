@@ -21,7 +21,7 @@ const mockFileDetail = (annotations: FmsFileAnnotation[] = []) =>
         Environment.TEST
     );
 
-describe.only("Graph", () => {
+describe("Graph", () => {
     describe("originate: no edges case", () => {
         // Arrange
         const expectedPlateWellLabel = "is well in";
@@ -229,20 +229,6 @@ describe.only("Graph", () => {
             // Assert
             expect(graph.nodes).to.be.empty;
             expect(graph.edges).to.be.empty;
-        });
-    });
-
-    describe("organize", () => {
-        it("organizes into graph (default) arrangement", () => {
-            expect(false).to.be.true;
-        });
-
-        it("organizes into grid arrangement", () => {
-            expect(false).to.be.true;
-        });
-
-        it("organizes into stack arrangement", () => {
-            expect(false).to.be.true;
         });
     });
 });
