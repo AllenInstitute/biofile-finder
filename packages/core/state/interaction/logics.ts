@@ -124,6 +124,7 @@ const initializeApp = createLogic({
                 })
             );
         }
+        dispatch(setIsAicsEmployee(isAicsEmployee) as AnyAction);
 
         let isRemoteServerAvailable = false;
         if (isAicsEmployee) {
@@ -154,10 +155,10 @@ const initializeApp = createLogic({
             isRemoteServerAvailable = await checkRemoteServer();
         }
 
-        dispatch(setIsAicsEmployee(isAicsEmployee) as AnyAction);
         dispatch(setIsRemoteFileUploadServerAvailable(isRemoteServerAvailable));
         done();
     },
+    warnTimeout: 0, // pinging remote server can take a while
 });
 
 /**
