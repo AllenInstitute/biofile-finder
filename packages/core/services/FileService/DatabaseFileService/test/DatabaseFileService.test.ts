@@ -23,6 +23,7 @@ describe("DatabaseFileService", () => {
     }));
 
     class MockDatabaseService extends DatabaseServiceNoop {
+        protected readonly existingDataSources = new Set(["MockDataSource"]);
         public query(): Promise<{ [key: string]: string }[]> {
             return Promise.resolve(files);
         }
@@ -93,7 +94,7 @@ describe("DatabaseFileService", () => {
     describe("getCountOfMatchingFiles", () => {
         it("issues request for count of files matching given parameters", async () => {
             const fileService = new DatabaseFileService({
-                dataSourceNames: ["whatever"],
+                dataSourceNames: ["MockDataSource"],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
             });

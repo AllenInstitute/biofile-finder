@@ -125,9 +125,11 @@ export default abstract class FileDownloadService extends HttpServiceBase {
      * If the get call throws an error, return false
      */
     public async canUseDirectoryArguments(url: string): Promise<boolean> {
-        const { hostname, key } = this.parseVirtualizedUrl(url);
-        const directoryUrl = `https://${hostname}?list-type=2&prefix=${encodeURIComponent(key)}`;
         try {
+            const { hostname, key } = this.parseVirtualizedUrl(url);
+            const directoryUrl = `https://${hostname}?list-type=2&prefix=${encodeURIComponent(
+                key
+            )}`;
             await this.httpClient.get(directoryUrl);
             return true;
         } catch (error) {

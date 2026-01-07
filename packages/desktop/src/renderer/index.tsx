@@ -7,10 +7,9 @@ import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
 import FmsFileExplorer from "../../../core/App";
-import { PersistedConfigKeys } from "../../../core/services";
+import { DatabaseService, PersistedConfigKeys } from "../../../core/services";
 import { createReduxStore, interaction, selection } from "../../../core/state";
 import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
-import DatabaseServiceElectron from "../services/DatabaseServiceElectron";
 import ExecutionEnvServiceElectron from "../services/ExecutionEnvServiceElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
@@ -24,7 +23,8 @@ const APP_ID = "fms-file-explorer";
 const notificationService = new NotificationServiceElectron();
 const persistentConfigService = new PersistentConfigServiceElectron();
 const applicationInfoService = new ApplicationInfoServiceElectron();
-const databaseService = new DatabaseServiceElectron();
+const databaseService = new DatabaseService();
+await databaseService.initialize();
 const executionEnvService = new ExecutionEnvServiceElectron(notificationService);
 
 // Define the KeyDownHandler component inline
@@ -113,7 +113,7 @@ store.subscribe(() => {
     }
 });
 
-function renderFmsFileExplorer() {
+async function renderFmsFileExplorer() {
     render(
         <Provider store={store}>
             <>
