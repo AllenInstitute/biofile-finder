@@ -30,10 +30,10 @@ export default function MetadataNode(props: NodeProps<FileNodeType | MetadataNod
     const graph = useSelector(interaction.selectors.getGraph);
     const origin = useSelector(interaction.selectors.getOriginForProvenance);
 
-    const canOrganizeAsGrid = React.useMemo(() => {
-        const child = graph.getChildren(props.id)[0];
-        return !!getGridPosition(child);
-    }, [graph, props.id, props.data]);
+    const canOrganizeAsGrid = React.useMemo(
+        () => !!getGridPosition(graph.getChildren(props.id)[0]),
+        [graph, props.id]
+    );
 
     const buttonMenu = useButtonMenu({
         items: nodeMenuItems(dispatch, graph, props.id, origin, canOrganizeAsGrid),
