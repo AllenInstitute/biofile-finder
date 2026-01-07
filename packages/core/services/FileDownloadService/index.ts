@@ -61,23 +61,23 @@ export default abstract class FileDownloadService extends HttpServiceBase {
      */
     public parseUrl(url: string) {
         return this.isS3Url(url)
-             ? Promise.resolve(this.parseS3Url(url))
-             : this.parseVirtualizedUrl(url);
+            ? Promise.resolve(this.parseS3Url(url))
+            : this.parseVirtualizedUrl(url);
     }
 
     /**
      * Calculate the total size of all files in an S3 directory (or zarr file).
      */
     public async calculateS3DirectorySize(parsedUrl: {
-        hostname: string,
-        key: string,
-        bucket: string
+        hostname: string;
+        key: string;
+        bucket: string;
     }): Promise<number> {
         let totalSize = 0;
         let continuationToken: string | undefined;
-        const url = `https://${parsedUrl.hostname}/${parsedUrl.bucket}?list-type=2&prefix=${encodeURIComponent(
-            parsedUrl.key
-        )}`;
+        const url = `https://${parsedUrl.hostname}/${
+            parsedUrl.bucket
+        }?list-type=2&prefix=${encodeURIComponent(parsedUrl.key)}`;
 
         do {
             const listUrl = continuationToken
@@ -152,13 +152,13 @@ export default abstract class FileDownloadService extends HttpServiceBase {
      * List components of S3 directory.
      */
     protected async listS3Objects(parsedUrl: {
-        hostname: string,
-        key: string,
-        bucket: string
+        hostname: string;
+        key: string;
+        bucket: string;
     }): Promise<string[]> {
-        const url = `https://${parsedUrl.hostname}/${parsedUrl.bucket}?list-type=2&prefix=${encodeURIComponent(
-            parsedUrl.key
-        )}`;
+        const url = `https://${parsedUrl.hostname}/${
+            parsedUrl.bucket
+        }?list-type=2&prefix=${encodeURIComponent(parsedUrl.key)}`;
         const response = await this.httpClient.get(url);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(response.data, "text/xml");
@@ -204,7 +204,12 @@ export default abstract class FileDownloadService extends HttpServiceBase {
      * Parse a potentially virtualized S3 URL that would not be identifiable by parseS3Url
      */
     private async parseVirtualizedUrl(url: string) {
-        const urlObj = new URL(url);
+        let urlObj;
+        try {
+            urlObj = new URL(url);
+        } catch (err) {
+            return undefined;
+        }
         const hostname = urlObj.hostname;
         const key = urlObj.pathname.startsWith("/") ? urlObj.pathname.slice(1) : urlObj.pathname;
 
