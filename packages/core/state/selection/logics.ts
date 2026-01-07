@@ -679,24 +679,27 @@ const addQueryLogic = createLogic({
     transform(deps: ReduxLogicDeps, next) {
         const queries = selectionSelectors.getQueries(deps.getState());
         const { payload: newQuery } = deps.action as AddQuery;
-        // Map the query names to their occurrences so that queries with the same name
-        // have their occurences appended to their name to make them unique
-        const queryNameToOccurrence = queries.reduce(
-            (acc, query) => {
-                const nameWithoutOccurence = query.name.replace(/ \(\d+\)$/, "");
-                return { ...acc, [nameWithoutOccurence]: (acc[nameWithoutOccurence] || 0) + 1 };
-            },
-            {} as Record<string, number>
-        );
 
-        const newQueryName = newQuery.name.replace(/ \(\d+\)$/, "");
+        // Make sure query name is unique.
+        // Can't just use index/number of queries with the same name,
+        // because these may collide or not line up if the user has deleted previous occurrences.
+        // Instead, iterate through a counter until we find an unused query name
+        let counter = 0;
+        const nameWithoutCounter = newQuery.name.replace(/ \(\d+\)$/, "");
+        let newQueryName = nameWithoutCounter;
+        function queryNameAlreadyExists(queryName: string): boolean {
+            return queries.some((query) => query.name === queryName);
+        }
+        while (queryNameAlreadyExists(newQueryName)) {
+            counter++;
+            newQueryName = `${nameWithoutCounter} (${counter})`;
+        }
+
         next({
             ...deps.action,
             payload: {
                 ...newQuery,
-                name: queryNameToOccurrence[newQueryName]
-                    ? `${newQueryName} (${queryNameToOccurrence[newQueryName]})`
-                    : newQueryName,
+                name: newQueryName,
             },
         });
     },
