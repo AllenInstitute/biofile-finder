@@ -13,7 +13,7 @@ import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import { initialState } from "../../../state";
 
 describe("<Query />", () => {
-    it.skip("expands and collapses when clicked", async () => {
+    it("expands and collapses when clicked", async () => {
         // Arrange
         const { store } = configureMockStore({
             state: initialState,
@@ -31,21 +31,22 @@ describe("<Query />", () => {
                             sources: [{ name: sourceName }],
                             openFolders: [],
                         },
+                        loading: false,
                     }}
                 />
             </Provider>
         );
 
         // (sanity-check) is collapsed
-        expect(getByTestId("expand-button")).to.exist;
-        expect(() => getByTestId("collapse-button")).to.throw();
+        expect(getByTestId(/expand-button/)).to.exist;
+        expect(() => getByTestId(/collapse-button/)).to.throw();
 
         // Act
-        fireEvent.click(getByTestId("expand-button"));
+        fireEvent.click(getByTestId(/expand-button/));
 
         // Assert
-        expect(getByTestId("collapse-button")).to.exist;
-        expect(() => getByTestId("expand-button")).to.throw();
+        expect(getByTestId(/collapse-button/)).to.exist;
+        expect(() => getByTestId(/expand-button/)).to.throw();
     });
 
     it("renders spinner and loading header when new query is in loading state", () => {

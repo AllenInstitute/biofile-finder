@@ -1,10 +1,10 @@
-import { Icon, IconButton, TextField } from "@fluentui/react";
+import { Icon, TextField } from "@fluentui/react";
 import classNames from "classnames";
 import { throttle } from "lodash";
 import * as React from "react";
 import { useDropzone } from "react-dropzone";
 
-import { SecondaryButton, TertiaryButton } from "../Buttons";
+import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
 import { Source, getNameAndTypeFromSourceUrl } from "../../entity/SearchParams";
 
@@ -97,9 +97,10 @@ export default function FilePrompt(props: Props) {
                             {props.selectedFile.name}.{props.selectedFile.type}
                         </p>
                     </Tooltip>
-                    <IconButton
+                    <TransparentIconButton
                         className={styles.selectedFileButton}
-                        iconProps={{ iconName: "Cancel" }}
+                        iconName="Cancel"
+                        title="Remove file"
                         onClick={() => props.onSelectFile(undefined)}
                     />
                 </div>

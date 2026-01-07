@@ -1,10 +1,10 @@
-import { DefaultButton, Icon, IconButton } from "@fluentui/react";
+import { DefaultButton, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FilePrompt from "./FilePrompt";
-import { LinkLikeButton, PrimaryButton } from "../Buttons";
+import { LinkLikeButton, PrimaryButton, TransparentIconButton } from "../Buttons";
 import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
@@ -91,9 +91,9 @@ export default function DataSourcePrompt(props: Props) {
             {!metadataSource && (
                 <div className={styles.advancedOptionsHeader}>
                     <h4 className={styles.fullWidth}>Add metadata descriptor file (optional)</h4>
-                    <IconButton
+                    <TransparentIconButton
                         className={styles.iconButton}
-                        iconProps={{ iconName: "Cancel" }}
+                        iconName="Cancel"
                         onClick={() => {
                             setMetadataSource(undefined);
                             setShowAdvancedOptions(false);
