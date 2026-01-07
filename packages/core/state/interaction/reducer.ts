@@ -39,6 +39,8 @@ import {
     EXPAND_GRAPH,
     SetIsGraphLoading,
     SET_IS_GRAPH_LOADING,
+    SET_IS_REMOTE_FILE_UPLOAD_SERVER_AVAILABLE,
+    SetIsRemoteFileUploadServerAvailable,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -74,6 +76,7 @@ export interface InteractionStateBranch {
     isAicsEmployee?: boolean;
     isGraphLoading: boolean;
     isOnWeb: boolean;
+    isRemoteFileUploadServerAvailable?: boolean;
     graphRefreshKey?: string;
     platformDependentServices: PlatformDependentServices;
     extractMetadataPythonSnippet?: { setup: string; code: string };
@@ -271,6 +274,13 @@ export default makeReducer<InteractionStateBranch>(
         [SET_IS_GRAPH_LOADING]: (state, action: SetIsGraphLoading) => ({
             ...state,
             isGraphLoading: action.payload.isGraphLoading,
+        }),
+        [SET_IS_REMOTE_FILE_UPLOAD_SERVER_AVAILABLE]: (
+            state,
+            action: SetIsRemoteFileUploadServerAvailable
+        ) => ({
+            ...state,
+            isRemoteFileUploadServerAvailable: action.payload.isRemoteFileServerAvailable,
         }),
     },
     initialState

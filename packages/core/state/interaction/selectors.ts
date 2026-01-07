@@ -56,6 +56,8 @@ export const hasUsedApplicationBefore = (state: State) =>
     state.interaction.hasUsedApplicationBefore;
 export const isGraphLoading = (state: State) => state.interaction.isGraphLoading;
 export const isOnWeb = (state: State) => state.interaction.isOnWeb;
+export const isRemoteFileUploadServerAvailable = (state: State) =>
+    state.interaction.isRemoteFileUploadServerAvailable;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;

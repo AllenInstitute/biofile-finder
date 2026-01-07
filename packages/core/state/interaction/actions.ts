@@ -254,6 +254,28 @@ export function setIsAicsEmployee(isAicsEmployee: boolean): SetIsAicsEmployee {
 }
 
 /**
+ * Intention is to set whether the remote file upload server is available
+ */
+export const SET_IS_REMOTE_FILE_UPLOAD_SERVER_AVAILABLE = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-is-remote-file-upload-server-available"
+);
+
+export interface SetIsRemoteFileUploadServerAvailable {
+    type: string;
+    payload: { isRemoteFileServerAvailable: boolean };
+}
+
+export const setIsRemoteFileUploadServerAvailable = (
+    isRemoteFileServerAvailable: boolean
+): SetIsRemoteFileUploadServerAvailable => {
+    return {
+        type: SET_IS_REMOTE_FILE_UPLOAD_SERVER_AVAILABLE,
+        payload: { isRemoteFileServerAvailable },
+    };
+};
+
+/**
  * Set connection configuration and kick off any tasks to initialize the app
  */
 export const INITIALIZE_APP = makeConstant(STATE_BRANCH_NAME, "initialize-app");

@@ -47,6 +47,7 @@ import {
     refreshGraph,
     EXPAND_GRAPH,
     setIsGraphLoading,
+    setIsRemoteFileUploadServerAvailable,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { ModalType } from "../../components/Modal";
@@ -64,6 +65,7 @@ import {
 } from "../../services/ExecutionEnvService";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
+import { fetchWithTimeout } from "../../hooks/useRemoteFileUpload";
 
 export const DEFAULT_QUERY_NAME = "New Query";
 
@@ -76,6 +78,9 @@ const initializeApp = createLogic({
         const queries = selection.selectors.getQueries(deps.getState());
         const isOnWeb = interactionSelectors.isOnWeb(deps.getState());
         const fileService = interactionSelectors.getHttpFileService(deps.getState());
+        const remoteUploadBaseUrl = interactionSelectors.getTemporaryFileServiceBaseUrl(
+            deps.getState()
+        );
 
         // Rudimentary check to see if the user is an AICS employee by
         // checking if the AICS network is accessible
@@ -120,7 +125,37 @@ const initializeApp = createLogic({
             );
         }
 
+        let isRemoteServerAvailable = false;
+        if (isAicsEmployee) {
+            const checkRemoteServer = async (): Promise<boolean> => {
+                const maxFetchAttempts = 3;
+                let lastError: Error | undefined;
+                let attempt = 1;
+                while (attempt <= maxFetchAttempts) {
+                    attempt++;
+                    try {
+                        const response = await fetchWithTimeout(`${remoteUploadBaseUrl}/ping`);
+                        if (response.ok) {
+                            return true;
+                        }
+                    } catch (error) {
+                        lastError = error as Error;
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) & 500));
+                }
+
+                console.warn(
+                    `Could not connect to remote file upload server after ${maxFetchAttempts} attempts. Certain viewer integrations may be disabled.`,
+                    lastError
+                );
+                return false;
+            };
+
+            isRemoteServerAvailable = await checkRemoteServer();
+        }
+
         dispatch(setIsAicsEmployee(isAicsEmployee) as AnyAction);
+        dispatch(setIsRemoteFileUploadServerAvailable(isRemoteServerAvailable));
         done();
     },
 });

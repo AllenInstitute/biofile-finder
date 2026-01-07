@@ -3,14 +3,13 @@ import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import useOpenInCfe from "./useOpenInCfe";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import { interaction, metadata, selection } from "../../state";
 
 import styles from "./useOpenWithMenuItems.module.css";
-import useOpenInCfe from "./useOpenInCfe";
-import useRemoteFileUpload from "../useRemoteFileUpload";
 
 const ONE_MEGABYTE = 1024 * 1024;
 
@@ -290,13 +289,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     );
     const [isSmallFile, setIsSmallFile] = React.useState(false);
 
-    const remoteServerConnection = useRemoteFileUpload();
-    const openInCfe = useOpenInCfe(
-        remoteServerConnection,
-        fileSelection,
-        annotationNames,
-        fileService
-    );
+    const openInCfe = useOpenInCfe(fileSelection, annotationNames, fileService);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
