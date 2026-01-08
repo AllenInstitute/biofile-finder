@@ -277,6 +277,14 @@ function getFileExtension(fileDetails: FileDetail): string {
 }
 
 /**
+ * Vol-E uses certain reserved characters to delimit URLs.
+ * If the URLs also contain those characters, they ought to be escaped.
+ */
+function encodeVolEImageUrl(url: string): string {
+    return /[+ ,]/.test(url) ? encodeURIComponent(url) : url;
+}
+
+/**
  * Opens a window at `openUrl`, then attempts to send the data in `entry` to it.
  *
  * This requires a bit of protocol to accomplish:
@@ -384,7 +392,8 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
 
         if (includeUrls) {
             // We can fit all the URLs we want!
-            openUrl.searchParams.append("url", details.map(({ path }) => path).join("+"));
+            const encodedURLs = details.map(({ path }) => encodeVolEImageUrl(path));
+            openUrl.searchParams.append("url", encodedURLs.join("+"));
             if (sceneIndex > 0) {
                 openUrl.searchParams.append("scene", sceneIndex.toString());
             }
@@ -392,7 +401,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             // There are more scene URLs than we want to put in the full URL. We need to send them over as a message.
             // Include only the URL of the focused scene, so the link is usable even if the message fails.
             const initialImageUrl = details[Math.max(sceneIndex, 0)].path;
-            openUrl.searchParams.append("url", initialImageUrl);
+            openUrl.searchParams.append("url", encodeVolEImageUrl(initialImageUrl));
             message.scenes = scenes;
             if (sceneIndex > 0) {
                 message.sceneIndex = sceneIndex;
