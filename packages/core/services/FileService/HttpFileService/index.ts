@@ -26,6 +26,8 @@ interface Config extends ConnectionConfig {
  * Service responsible for fetching file related metadata.
  */
 export default class HttpFileService extends HttpServiceBase implements FileService {
+    private static readonly COMPUTE_ENDPOINT_VERSION = "4.0";
+    public static readonly ALL_CELLS_MASK_URL = `fss2/v${HttpFileService.COMPUTE_ENDPOINT_VERSION}/compute/all-cells-mask`;
     private static readonly CACHE_ENDPOINT_VERSION = "v3.0";
     private static readonly ENDPOINT_VERSION = "3.0";
     public static readonly BASE_FILES_URL = `file-explorer-service/${HttpFileService.ENDPOINT_VERSION}/files`;
@@ -220,5 +222,77 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             console.error("Failed to cache files:", error);
             throw new Error("Unable to complete the caching request.");
         }
+    }
+
+    public async submitAllCellsMaskJob(params: {
+        files: string[];
+        scene: number;
+        channel: number;
+    }): Promise<{ computeTaskId: string; manifestCsvPath: string }> {
+        // This will become the service base when deployed
+        const requestUrl = `http://stg-aics.corp.alleninstitute.org/${HttpFileService.ALL_CELLS_MASK_URL}${this.pathSuffix}`;
+
+        try {
+            const result = await this.rawPost<{
+                computeTaskId: string;
+                manifestCsvPath: string;
+            }>(
+                requestUrl,
+                JSON.stringify({
+                    files: params.files,
+                    scene: params.scene,
+                    channel: params.channel,
+                })
+            );
+
+            /**
+             * Normalize the returned manifest path for browser access.
+             */
+            const manifestCsvPath = result.manifestCsvPath.replace(
+                "/allen/aics/",
+                "https://vast-files.int.allencell.org/"
+            );
+
+            return {
+                computeTaskId: result.computeTaskId,
+                manifestCsvPath,
+            };
+        } catch (error) {
+            console.error("Failed to submit All Cells Mask job:", error);
+            throw error;
+        }
+    }
+
+    // This is bad and we should never do it
+    public async waitForPath(
+        url: string,
+        options?: {
+            intervalMs?: number;
+            timeoutMs?: number;
+        }
+    ): Promise<void> {
+        const intervalMs = options?.intervalMs ?? 3000;
+        const timeoutMs = options?.timeoutMs ?? 5 * 60 * 1000;
+
+        const start = Date.now();
+
+        while (Date.now() - start < timeoutMs) {
+            try {
+                const res = await fetch(url, {
+                    method: "HEAD",
+                    credentials: "omit",
+                });
+
+                if (res.ok) {
+                    return;
+                }
+            } catch {
+                // Expected while file does not exist OR CORS blocks visibility
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, intervalMs));
+        }
+
+        throw new Error(`Timed out waiting for file to appear: ${url}`);
     }
 }
