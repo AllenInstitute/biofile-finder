@@ -6,6 +6,7 @@
 /* Adjust left to allow for "favorite" icon */
 .table-root {
   left: -15px;
+  width: calc(100% + 15px);
 }
 .table-header {
   margin-left: 15px;

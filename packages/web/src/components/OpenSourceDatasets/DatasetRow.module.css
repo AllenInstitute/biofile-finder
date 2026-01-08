@@ -30,6 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  pointer-events: none;
 }
 
 .button-wrapper-hidden {
@@ -40,6 +41,7 @@
   height: 33px;
   width: fit-content;
   margin-right: 5px; 
+  pointer-events: auto; 
 }
 
 .button span {
