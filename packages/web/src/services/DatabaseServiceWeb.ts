@@ -5,6 +5,7 @@ import { DatabaseService } from "../../../core/services";
 export default class DatabaseServiceWeb extends DatabaseService {
     private database: duckdb.AsyncDuckDB | undefined;
     private type: string | undefined;
+    private sourceName: string | undefined;
 
     public async initialize(logLevel: duckdb.LogLevel = duckdb.LogLevel.INFO) {
         const allBundles = duckdb.getJsDelivrBundles();
@@ -51,11 +52,11 @@ export default class DatabaseServiceWeb extends DatabaseService {
     }
 
     public async query(sql: string): Promise<{ [key: string]: any }[]> {
-        if (!this.database) {
+        if (!this.database || !this.sourceName) {
             throw new Error("Database failed to initialize");
         }
 
-        const fixedSql = sql.replaceAll("sample_file_large", "sample_file_large.parquet");
+        const fixedSql = sql.replaceAll(this.sourceName, `${this.sourceName}.${this.type}`);
         // const fixedSql = sql.replaceAll("sample_file_large.parquet", "read_parquet(sample_file_large.parquet)");
 
         const connection = await this.database.connect();
@@ -92,6 +93,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
             throw new Error("Database failed to initialize");
         }
 
+        this.sourceName = name;
         this.type = type;
 
         if (uri instanceof File) {
