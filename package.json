@@ -69,6 +69,7 @@
   "dependencies": {
     "@aics/frontend-insights": "0.2.x",
     "@aics/redux-utils": "0.6.0",
+    "@duckdb/duckdb-wasm": "^1.30",
     "@fluentui/react": "8.67",
     "@tippyjs/react": "4.2.x",
     "amazon-s3-url": "^1.0.3",
