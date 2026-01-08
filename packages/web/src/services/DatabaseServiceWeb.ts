@@ -155,6 +155,8 @@ export default class DatabaseServiceWeb extends DatabaseService {
             await this.database.registerFileURL(name, uri, protocol, false);
         }
 
+        const timerName = Math.random() + " CREATE TABLE " + type;
+        console.time(timerName);
         if (type === "parquet") {
             await this.execute(`CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`);
         } else if (type === "json") {
@@ -165,6 +167,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
             );
         }
+        console.timeEnd(timerName);
     }
 
     public async execute(sql: string): Promise<void> {

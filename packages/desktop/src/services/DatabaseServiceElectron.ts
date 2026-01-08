@@ -102,9 +102,7 @@ export default class DatabaseServiceElectron extends DatabaseService {
             }
 
             await new Promise<void>((resolve, reject) => {
-                const name = `${Math.random()} CREATE TABLE`;
                 const callback = (err: any) => {
-                    console.timeEnd(name);
                     if (err) {
                         reject(err.message);
                     } else {
@@ -112,7 +110,6 @@ export default class DatabaseServiceElectron extends DatabaseService {
                     }
                 };
 
-                console.time(name);
                 if (type === "parquet") {
                     this.database.run(
                         `CREATE TABLE "${name}" AS FROM parquet_scan('${source}');`,
