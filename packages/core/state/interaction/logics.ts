@@ -40,6 +40,8 @@ import {
     editFiles,
     DELETE_METADATA,
     DeleteMetadataAction,
+    SUBMIT_ALL_CELLS_MASK_SEGMENTATION,
+    SubmitAllCellsMaskSegmentationAction,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { ModalType } from "../../components/Modal";
@@ -864,6 +866,64 @@ const copyFilesLogic = createLogic({
     type: COPY_FILES,
 });
 
+/**
+ * Interceptor responsible for submitting an All Cells Mask segmentation job
+ * and tracking readiness of the resulting CSV.
+ */
+const submitAllCellsMaskLogic = createLogic({
+    type: SUBMIT_ALL_CELLS_MASK_SEGMENTATION,
+    warnTimeout: 0,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { action, getState } = deps;
+
+        const {
+            payload: { fileIds, sceneIndex, channelIndex },
+        } = action as SubmitAllCellsMaskSegmentationAction;
+
+        const httpFileService = interactionSelectors.getHttpFileService(getState());
+        const processId = uniqueId("all-cells-mask-");
+
+        try {
+            dispatch(
+                interaction.actions.processStart(
+                    processId,
+                    "All Cells Mask job submitted. Generating CSV…"
+                )
+            );
+
+            const { manifestCsvPath } = await httpFileService.submitAllCellsMaskJob({
+                files: fileIds,
+                scene: sceneIndex,
+                channel: channelIndex,
+            });
+
+            dispatch(
+                interaction.actions.processInfo(
+                    processId,
+                    `Waiting for CSV to be written:\n${manifestCsvPath}`
+                )
+            );
+
+            await httpFileService.waitForPath(manifestCsvPath);
+
+            dispatch(
+                interaction.actions.processSuccess(processId, `CSV ready:\n${manifestCsvPath}`)
+            );
+        } catch (err) {
+            dispatch(
+                interaction.actions.processError(
+                    processId,
+                    `Failed to generate All Cells Mask CSV: ${
+                        err instanceof Error ? err.message : err
+                    }`
+                )
+            );
+        } finally {
+            done();
+        }
+    },
+});
+
 export default [
     cancelFileDownloadLogic,
     copyFilesLogic,
@@ -878,4 +938,5 @@ export default [
     refresh,
     setIsSmallScreen,
     showContextMenu,
+    submitAllCellsMaskLogic,
 ];

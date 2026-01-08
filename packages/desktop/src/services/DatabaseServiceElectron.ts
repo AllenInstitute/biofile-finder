@@ -12,6 +12,7 @@ export default class DatabaseServiceElectron extends DatabaseService {
     constructor() {
         super();
         this.database = new duckdb.Database(":memory:");
+        this.database.exec("INSTALL 'httpfs';");
     }
 
     /**

@@ -864,3 +864,38 @@ export function setConvertFilesSnippet(payload?: {
 }): SetConvertFilesSnippetAction {
     return { type: SET_CONVERT_FILES_SNIPPET, payload };
 }
+
+/**
+ * SUBMIT_ALL_CELLS_MASK_SEGMENTATION
+ *
+ * Intention to submit an All Cells Mask Segmentation job for a set of files.
+ * The backend will generate a CSV asynchronously.
+ */
+export const SUBMIT_ALL_CELLS_MASK_SEGMENTATION = makeConstant(
+    STATE_BRANCH_NAME,
+    "submit-all-cells-mask-segmentation"
+);
+
+export interface SubmitAllCellsMaskSegmentationAction {
+    type: string;
+    payload: {
+        fileIds: string[];
+        sceneIndex: number;
+        channelIndex: number;
+    };
+}
+
+export function submitAllCellsMaskSegmentation(
+    fileIds: string[],
+    sceneIndex: number,
+    channelIndex: number
+): SubmitAllCellsMaskSegmentationAction {
+    return {
+        type: SUBMIT_ALL_CELLS_MASK_SEGMENTATION,
+        payload: {
+            fileIds,
+            sceneIndex,
+            channelIndex,
+        },
+    };
+}
