@@ -4,6 +4,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
 
+import useOpenInCfe from "./useOpenInCfe";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
@@ -11,8 +12,6 @@ import { interaction, metadata, selection } from "../../state";
 import { getVolEBaseUrl } from "../../state/interaction/selectors";
 
 import styles from "./useOpenWithMenuItems.module.css";
-import useOpenInCfe from "./useOpenInCfe";
-import useRemoteFileUpload from "../useRemoteFileUpload";
 
 const ONE_MEGABYTE = 1024 * 1024;
 
@@ -63,7 +62,6 @@ const APPS = (
 ): Apps => ({
     [AppKeys.AGAVE]: {
         key: AppKeys.AGAVE,
-        // TODO: Upgrade styling here
         className: styles.desktopMenuItem,
         text: "AGAVE",
         title: "Open files with AGAVE v1.7.2+",
@@ -353,13 +351,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     );
     const [isSmallFile, setIsSmallFile] = React.useState(false);
 
-    const remoteServerConnection = useRemoteFileUpload();
-    const openInCfe = useOpenInCfe(
-        remoteServerConnection,
-        fileSelection,
-        annotationNames,
-        fileService
-    );
+    const openInCfe = useOpenInCfe(fileSelection, annotationNames, fileService);
 
     // custom hook this, like `useOpenInCfe`?
     const openInVolE = React.useCallback(async (): Promise<void> => {
@@ -496,7 +488,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 let fileSize = size;
                 if (!fileSize) {
                     try {
-                        fileSize = await fileDownloadService.getHttpObjectSize(path);
+                        fileSize = await fileDownloadService.getCloudFileSize(path);
                     } catch (_err) {
                         console.debug(
                             `Failed to get size of ${path}. Unable to determine if Vol-E is suitable viewer.`

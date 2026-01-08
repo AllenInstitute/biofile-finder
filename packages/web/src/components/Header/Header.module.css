@@ -6,8 +6,10 @@
   overflow: hidden;
   width: 100%;
   padding: 8px 10px;
-  min-height: 60px;
-  filter: drop-shadow(black 0px 4px 8px);
+  position: relative;
+  z-index: 100000;
+  min-height: var(--header-bar-height);
+  filter: drop-shadow(black 0px -1px 8px);
 }
 
 .title {

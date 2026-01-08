@@ -1,10 +1,11 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
-import { isEmpty } from "lodash";
+import { isEmpty, mapKeys } from "lodash";
 
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
+import { EdgeDefinition } from "../../entity/Graph";
 import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
@@ -27,6 +28,7 @@ export default class DatabaseService {
     // Name of the hidden column BFF uses to uniquely identify rows
     public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
+    protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
     // "Open file link" as a datatype must be hardcoded, and CAN NOT change
     // without BREAKING visibility in the dataset released in 2024 as part
     // of the EMT Data Release paper
@@ -36,10 +38,12 @@ export default class DatabaseService {
         DatabaseService.OPEN_FILE_LINK_TYPE,
     ]);
     private sourceMetadataName?: string;
+    public sourceProvenanceName?: string;
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
     private readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
+    private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
 
     protected database: duckdb.AsyncDuckDB | undefined;
 
@@ -49,7 +53,7 @@ export default class DatabaseService {
         this.query = this.query.bind(this);
     }
 
-    public async initialize(logLevel: duckdb.LogLevel = duckdb.LogLevel.INFO) {
+    public async initialize(logLevel: duckdb.LogLevel = duckdb.LogLevel.WARNING) {
         const allBundles = duckdb.getJsDelivrBundles();
 
         // Selects the best bundle based on browser checks
@@ -279,6 +283,30 @@ export default class DatabaseService {
             true
         );
         this.sourceMetadataName = sourceMetadata.name;
+    }
+
+    private async prepareSourceProvenance(sourceProvenance: Source): Promise<void> {
+        const isPreviousSource = sourceProvenance.name === this.sourceProvenanceName;
+        if (isPreviousSource) {
+            return;
+        }
+        await this.deleteSourceProvenance();
+        await this.prepareDataSource(
+            {
+                ...sourceProvenance,
+                name: this.SOURCE_PROVENANCE_TABLE,
+            },
+            true
+        );
+        this.sourceProvenanceName = sourceProvenance.name;
+    }
+
+    public async deleteSourceProvenance(): Promise<void> {
+        if (this.sourceProvenanceName) {
+            await this.deleteDataSource(this.SOURCE_PROVENANCE_TABLE);
+            this.dataSourceToProvenanceMap.clear();
+            this.sourceProvenanceName = undefined;
+        }
     }
 
     public async deleteSourceMetadata(): Promise<void> {
@@ -560,6 +588,72 @@ export default class DatabaseService {
 
         // Reset hidden UID to avoid conflicts in previous auto-generation
         await this.execute(this.getUpdateHiddenUIDSQL(viewName));
+    }
+
+    public async processProvenance(provenanceSource: Source): Promise<EdgeDefinition[]> {
+        await this.prepareSourceProvenance(provenanceSource);
+
+        const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
+        try {
+            const rows = await this.query(sql);
+            const parentsAndChildren = new Set<string>();
+            return rows
+                .map((row) =>
+                    Object.keys(row).reduce(
+                        (mapSoFar, key) => ({
+                            ...mapSoFar,
+                            [key.toLowerCase().trim()]:
+                                typeof row[key] !== "object"
+                                    ? row[key]
+                                    : mapKeys(row[key], (_value, innerKey) =>
+                                          innerKey.toLowerCase().trim()
+                                      ),
+                        }),
+                        {} as Record<string, any>
+                    )
+                )
+                .map((row) => {
+                    try {
+                        const parentAndChildKey = `${row["parent"]}-${row["child"]}`;
+                        if (parentsAndChildren.has(parentAndChildKey)) {
+                            throw new Error(
+                                `Parent (${row["parent"]}) and Child (${row["child"]}) combination found multiple times`
+                            );
+                        }
+
+                        parentsAndChildren.add(parentAndChildKey);
+                        return {
+                            relationship: row["relationship"],
+                            relationshipType: row["relationship type"],
+                            parent: {
+                                name: row["parent"],
+                                type: row["parent type"],
+                            },
+                            child: {
+                                name: row["child"],
+                                type: row["child type"],
+                            },
+                        };
+                    } catch (err) {
+                        if ((err as Error).message.includes("key")) {
+                            throw new Error(
+                                `Unexpected format for provenance data. Check the documentation
+                                for what BFF expects provenance data to look like.
+                                Error: ${(err as Error).message}`
+                            );
+                        }
+                        throw err;
+                    }
+                });
+        } catch (err) {
+            // Source provenance file may not have been supplied
+            // and/or the columns may not exist
+            const errMsg = typeof err === "string" ? err : err instanceof Error ? err.message : "";
+            if (errMsg.includes("does not exist") || errMsg.includes("not found in FROM clause")) {
+                return [];
+            }
+            throw err;
+        }
     }
 
     public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {

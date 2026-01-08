@@ -36,6 +36,8 @@ import {
     SET_COLUMNS,
     COLLAPSE_ALL_FILE_FOLDERS,
     TOGGLE_NULL_VALUE_GROUPS,
+    CHANGE_PROVENANCE_SOURCE,
+    ChangeProvenanceSource,
 } from "./actions";
 import interaction from "../interaction";
 import { FileView, Source } from "../../entity/SearchParams";
@@ -62,6 +64,7 @@ export interface SelectionStateBranch {
     shouldShowNullGroups: boolean;
     sortColumn?: FileSort;
     sourceMetadata?: Source;
+    sourceProvenance?: Source;
     queries: Query[];
     tutorial?: Tutorial;
 }
@@ -137,6 +140,10 @@ export default makeReducer<SelectionStateBranch>(
             dataSources: uniqBy(action.payload, "name"),
             fileSelection: new FileSelection(),
             openFileFolders: [],
+        }),
+        [CHANGE_PROVENANCE_SOURCE]: (state, action: ChangeProvenanceSource) => ({
+            ...state,
+            sourceProvenance: action.payload,
         }),
         [CHANGE_SOURCE_METADATA]: (state, action) => ({
             ...state,

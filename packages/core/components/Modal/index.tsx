@@ -4,12 +4,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { interaction } from "../../state";
 import About from "./About";
 import QueryCodeSnippet from "./QueryCodeSnippet";
+import CopyFileManifest from "./CopyFileManifest";
 import DataSource from "./DataSource";
 import EditMetadata from "./EditMetadata";
+import ExtractMetadataCodeSnippet from "./ExtractMetadataCodeSnippet";
 import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
-import CopyFileManifest from "./CopyFileManifest";
-import ExtractMetadataCodeSnippet from "./ExtractMetadataCodeSnippet";
 import ConvertFiles from "./ZarrConversionModal";
 
 export interface ModalProps {

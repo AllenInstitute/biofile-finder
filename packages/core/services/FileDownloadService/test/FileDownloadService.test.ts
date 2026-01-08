@@ -13,7 +13,7 @@ interface S3TestObject {
 
 describe("FileDownloadService", () => {
     // This uses an external package, so is mostly just a consistency check
-    describe("parseS3Url", () => {
+    describe("parseUrl", () => {
         const fileDownloadService = new FileDownloadServiceNoop();
 
         const testUrls: S3TestObject[] = [
@@ -55,24 +55,29 @@ describe("FileDownloadService", () => {
         ];
 
         testUrls.forEach(({ url, expected }, idx) => {
-            it(`(${idx}) parses url correctly`, () => {
-                const { hostname, key, bucket } = fileDownloadService.parseS3Url(url);
-                expect(hostname).to.equal(expected.hostname);
-                expect(bucket).to.equal(expected.bucket);
-                expect(key).to.equal(expected.key);
+            it(`(${idx}) parses standard s3 url correctly`, async () => {
+                // Act
+                const parsedUrl = await fileDownloadService.parseUrl(url);
+
+                // Assert
+                expect(parsedUrl).to.not.be.undefined;
+                expect(parsedUrl?.hostname).to.equal(expected.hostname);
+                expect(parsedUrl?.bucket).to.equal(expected.bucket);
+                expect(parsedUrl?.key).to.equal(expected.key);
             });
         });
-    });
 
-    describe("parseVirtualizedUrl", () => {
-        const fileDownloadService = new FileDownloadServiceNoop();
-        it("parses url correctly", () => {
-            const { hostname, key, bucket } = fileDownloadService.parseVirtualizedUrl(
+        it("parses virtualized s3 url", async () => {
+            // Act
+            const parsedUrl = await fileDownloadService.parseUrl(
                 "https://example.com/directory-name/path/to/file.zarr"
             );
-            expect(hostname).to.equal("example.com");
-            expect(key).to.equal("directory-name/path/to/file.zarr");
-            expect(bucket).to.equal("");
+
+            // Assert
+            expect(parsedUrl).to.not.be.undefined;
+            expect(parsedUrl?.hostname).to.equal("example.com");
+            expect(parsedUrl?.key).to.equal("directory-name/path/to/file.zarr");
+            expect(parsedUrl?.bucket).to.equal("");
         });
     });
 });

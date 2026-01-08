@@ -57,100 +57,27 @@ export default abstract class FileDownloadService extends HttpServiceBase {
     }
 
     /**
-     * Return true if s3 file.
+     * Parse URL into hostname, bucket, key from a url
      */
-    public isS3Url(url: string): boolean {
-        try {
-            return isS3Url(url);
-        } catch (error) {
-            return false;
-        }
-    }
-
-    /**
-     * Break down S3 URL to host, bucket, and path (key).
-     */
-    public parseS3Url(url: string): { hostname: string; bucket: string; key: string } {
-        const { protocol, hostname } = new URL(url);
-        const { region, bucket, key } = parseS3Url(url);
-        let parsedHost = hostname;
-        // CORS does not work with s3: protocol urls, so convert to a standard http host
-        if (protocol === "s3:") {
-            parsedHost = `s3.${region ? `${region}.` : ""}amazonaws.com`;
-        } else if (bucket && hostname.startsWith(bucket)) {
-            parsedHost = hostname.slice(bucket.length + 1);
-        }
-        return { hostname: parsedHost, bucket, key };
-    }
-
-    /**
-     * Parse a potentially virtualized S3 URL that would not be identifiable by parseS3Url
-     */
-    public parseVirtualizedUrl(url: string): { hostname: string; bucket: string; key: string } {
-        const urlObj = new URL(url);
-        const hostname = urlObj.hostname;
-        const key = urlObj.pathname.startsWith("/") ? urlObj.pathname.slice(1) : urlObj.pathname;
-        return { hostname, bucket: "", key };
-    }
-
-    /**
-     * List components of S3 directory.
-     */
-    public async listS3Objects(
-        hostname: string,
-        prefix: string,
-        bucket: string
-    ): Promise<string[]> {
-        const url = `https://${hostname}/${bucket}?list-type=2&prefix=${encodeURIComponent(
-            prefix
-        )}`;
-        const response = await this.httpClient.get(url);
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(response.data, "text/xml");
-
-        const keys: string[] = [];
-        const contents = xmlDoc.getElementsByTagName("Key");
-
-        for (let i = 0; i < contents.length; i++) {
-            keys.push(contents[i].textContent || "");
-        }
-
-        return keys;
-    }
-
-    /**
-     * Not all S3 URLs are identifiable from their structure (e.g. some virtualized URLs),
-     * but we may still be able to support zarr downloads if the bucket accepts directory list arguments
-     *
-     * If the get call throws an error, return false
-     */
-    public async canUseDirectoryArguments(url: string): Promise<boolean> {
-        try {
-            const { hostname, key } = this.parseVirtualizedUrl(url);
-            const directoryUrl = `https://${hostname}?list-type=2&prefix=${encodeURIComponent(
-                key
-            )}`;
-            await this.httpClient.get(directoryUrl);
-            return true;
-        } catch (error) {
-            return false;
-        }
+    public parseUrl(url: string) {
+        return this.isS3Url(url)
+            ? Promise.resolve(this.parseS3Url(url))
+            : this.parseVirtualizedUrl(url);
     }
 
     /**
      * Calculate the total size of all files in an S3 directory (or zarr file).
      */
-    public async calculateS3DirectorySize(
-        hostname: string,
-        prefix: string,
-        bucket: string
-    ): Promise<number> {
+    public async calculateS3DirectorySize(parsedUrl: {
+        hostname: string;
+        key: string;
+        bucket: string;
+    }): Promise<number> {
         let totalSize = 0;
-        let continuationToken: string | undefined = undefined;
-
-        const url = `https://${hostname}/${bucket}?list-type=2&prefix=${encodeURIComponent(
-            prefix
-        )}`;
+        let continuationToken: string | undefined;
+        const url = `https://${parsedUrl.hostname}/${
+            parsedUrl.bucket
+        }?list-type=2&prefix=${encodeURIComponent(parsedUrl.key)}`;
 
         do {
             const listUrl = continuationToken
@@ -184,17 +111,115 @@ export default abstract class FileDownloadService extends HttpServiceBase {
     }
 
     /**
+     * Get file size for a file on the cloud
+     */
+    public async getCloudFileSize(url: string): Promise<number | undefined> {
+        // Handle S3 zarr files
+        const isZarr = url.endsWith(".zarr") || url.endsWith(".zarr/");
+        if (isZarr) {
+            // Will be unable to calculate size so will be unable to download
+            const parsedUrl = await this.parseUrl(url);
+            if (!parsedUrl) {
+                return;
+            }
+
+            return this.calculateS3DirectorySize(parsedUrl);
+        }
+
+        // Handle individual S3 files if they are simple
+        const isStandardS3Url = url.includes("amazonaws.com");
+        if (isStandardS3Url) {
+            return this.getHttpObjectSize(url);
+        }
+    }
+
+    /**
      * Attempt to retrieve file size from an http object using a HEAD request.
      *
      * Returns bytes (octet)
      */
-    public async getHttpObjectSize(url: string): Promise<number> {
+    protected async getHttpObjectSize(url: string): Promise<number> {
         try {
             const response = await axios.head(url);
             return parseInt(response.headers["content-length"] || "0", 10);
         } catch (err) {
             console.error(`Failed to get file size (content-length): ${err}`);
             throw err;
+        }
+    }
+
+    /**
+     * List components of S3 directory.
+     */
+    protected async listS3Objects(parsedUrl: {
+        hostname: string;
+        key: string;
+        bucket: string;
+    }): Promise<string[]> {
+        const url = `https://${parsedUrl.hostname}/${
+            parsedUrl.bucket
+        }?list-type=2&prefix=${encodeURIComponent(parsedUrl.key)}`;
+        const response = await this.httpClient.get(url);
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(response.data, "text/xml");
+
+        const keys: string[] = [];
+        const contents = xmlDoc.getElementsByTagName("Key");
+
+        for (let i = 0; i < contents.length; i++) {
+            keys.push(contents[i].textContent || "");
+        }
+
+        return keys;
+    }
+
+    /**
+     * Return true if s3 file.
+     */
+    private isS3Url(url: string): boolean {
+        try {
+            return isS3Url(url);
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
+     * Break down S3 URL to host, bucket, and path (key).
+     */
+    private parseS3Url(url: string): { hostname: string; bucket: string; key: string } {
+        const { protocol, hostname } = new URL(url);
+        const { region, bucket, key } = parseS3Url(url);
+        let parsedHost = hostname;
+        // CORS does not work with s3: protocol urls, so convert to a standard http host
+        if (protocol === "s3:") {
+            parsedHost = `s3.${region ? `${region}.` : ""}amazonaws.com`;
+        } else if (bucket && hostname.startsWith(bucket)) {
+            parsedHost = hostname.slice(bucket.length + 1);
+        }
+        return { hostname: parsedHost, bucket, key };
+    }
+
+    /**
+     * Parse a potentially virtualized S3 URL that would not be identifiable by parseS3Url
+     */
+    private async parseVirtualizedUrl(url: string) {
+        let urlObj;
+        try {
+            urlObj = new URL(url);
+        } catch (err) {
+            return undefined;
+        }
+        const hostname = urlObj.hostname;
+        const key = urlObj.pathname.startsWith("/") ? urlObj.pathname.slice(1) : urlObj.pathname;
+
+        // Check if actually able to use directory arguments before returning
+        const directoryUrl = `https://${hostname}?list-type=2&prefix=${encodeURIComponent(key)}`;
+        try {
+            await this.httpClient.get(directoryUrl);
+            return { hostname, key, bucket: "" };
+        } catch (error) {
+            return undefined;
         }
     }
 }
