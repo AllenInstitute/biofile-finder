@@ -272,8 +272,14 @@ function getSupportedApps(
     return [];
 }
 
-function getFileExtension(fileDetails: FileDetail): string {
-    return fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
+function getFileExtension({ path }: FileDetail): string {
+    const trimmedPath = path.endsWith("/") ? path.slice(0, -1) : path;
+    const filename = trimmedPath.slice(trimmedPath.lastIndexOf("/") + 1);
+    const extensionIndex = filename.lastIndexOf(".");
+    if (extensionIndex === -1) {
+        return "";
+    }
+    return filename.slice(extensionIndex + 1).toLowerCase();
 }
 
 /**
