@@ -104,8 +104,6 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
                 true
             );
-            const conn = await this.database.connect();
-            const result = await conn.query(`SELECT * FROM ${trueName} LIMIT 2`);
         } else {
             const protocol = uri.startsWith("s3")
                 ? duckdb.DuckDBDataProtocol.S3
