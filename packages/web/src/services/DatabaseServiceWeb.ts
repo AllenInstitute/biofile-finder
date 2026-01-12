@@ -27,7 +27,6 @@ export default class DatabaseServiceWeb extends DatabaseService {
 
         const tmpConn = await this.database.connect();
         console.debug('Extensions installed:', await tmpConn.send('SELECT extension_name, installed, description FROM duckdb_extensions();'))
-        console.debug("Did db instantiate");
 
         const listDirectoryContents = async (directoryHandle: any, depth = 1) => {
             const entries = directoryHandle.values();
@@ -49,31 +48,13 @@ export default class DatabaseServiceWeb extends DatabaseService {
         const rootDirectoryHandle = await navigator.storage.getDirectory();
         await listDirectoryContents(rootDirectoryHandle);
 
-        // const opfsRoot = await navigator.storage.getDirectory();
-        // console.debug("opfsRoot", opfsRoot);
-        // const newDir = await opfsRoot.getDirectoryHandle("bff_duckdb_tmp_dir", { create: true });
-        // const opfsDir = `opfs://${newDir.name}`;
-        // console.debug("opfsDir", opfsDir);
         await this.database.open({
-            path: 'opfs://spilltest7/duck.db',
+            path: 'opfs://bff/duck.db',
             accessMode: duckdb.DuckDBAccessMode.READ_WRITE,
             opfs: {
-                tempPath: 'opfs://spilltest7/tmp',
+                tempPath: 'opfs://bff/tmp',
             },
         });
-        const connection = await this.database.connect();
-        // const result = await connection.send(`SET temp_directory='${opfsDir}'`);
-        // console.debug("temp_directory result", result);
-        // await connection.send(`PRAGMA memory_limit='4MB';`)
-        // await connection.send(`SET max_temp_directory_size = '1000MiB';`);
-        // const tmpDir = await connection.send('SHOW temp_directory');
-        // console.debug("temp_directory", tmpDir);
-        for (let i=0; i < 20; i++) {
-            const spillQuery = `SELECT COUNT(*) FROM (SELECT i FROM range(0, 800000) i ORDER BY hash(i) LIMIT 100000)`;
-            const spillQueryResult = await connection.send(spillQuery);
-            await spillQueryResult.next();
-        }
-        console.debug("spillQuery successful")
     }
 
     /**

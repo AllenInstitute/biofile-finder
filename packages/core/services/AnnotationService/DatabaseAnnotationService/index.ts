@@ -169,12 +169,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
         console.time(name);
         const results = (await Promise.all(queries)) as QueryResult[];
         console.timeEnd(name);
-        console.debug('Finished per-column queries', results);
-        const nonemptyColumns = results
+        return results
             .filter(result => result.length > 0)
             .map(result => result[0]['column_name']);
-        console.log('nonemptyColumns', nonemptyColumns);
-        return nonemptyColumns;
     }
 
     /**
