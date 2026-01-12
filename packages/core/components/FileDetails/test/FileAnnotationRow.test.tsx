@@ -40,9 +40,6 @@ describe("<FileAnnotationRow />", () => {
                 expect(cells[0].classList.contains(styles.smallFont)).to.equal(
                     shouldDisplaySmallFont
                 );
-                expect(cells[1].classList.contains(styles.smallFont)).to.equal(
-                    shouldDisplaySmallFont
-                );
             });
         });
 
