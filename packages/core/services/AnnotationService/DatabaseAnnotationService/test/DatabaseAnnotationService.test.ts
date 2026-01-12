@@ -155,7 +155,7 @@ describe("DatabaseAnnotationService", () => {
 
         class MockDatabaseService extends DatabaseService {
             public query(sql: string): Promise<any> {
-                querySpy(sql);
+                querySpy(sql); // pass SQL to the spy func
                 return Promise.resolve([]);
             }
         }
@@ -171,20 +171,23 @@ describe("DatabaseAnnotationService", () => {
                 databaseService,
             });
 
-            // Filters with varying quantities of values to match
+            // Filters with different quantities of values to match
             const filter1a = new FileFilter("filter1", "value1a");
             const filter1b = new FileFilter("filter1", "value1b");
             const filter1c = new FileFilter("filter1", "value1c");
+
             const filter2a = new FileFilter("filter2", "value2a");
             const filter2b = new FileFilter("filter2", "value2b");
+
             const filter3 = new FileFilter("filter3", "value3");
 
             await annotationService.fetchHierarchyValuesUnderPath(
-                [],
-                [],
-                [filter1a, filter1b, filter1c, filter2a, filter2b, filter3]
+                [], // hierarchy; skipping to simplify test
+                [], // path so far; skipping to simplify test
+                [filter1a, filter1b, filter1c, filter2a, filter2b, filter3] // user-applied filters
             );
 
+            // Construct expected regex for each set of filters
             const filter1OR = `${filterToRegex(filter1a)} OR ${filterToRegex(
                 filter1b
             )} OR ${filterToRegex(filter1c)}`;
@@ -216,12 +219,12 @@ describe("DatabaseAnnotationService", () => {
             const filter1b = new FileFilter("filter1", "value1b");
 
             await annotationService.fetchHierarchyValuesUnderPath(
-                ["group1", "group2", "group3", "group4"], // Annotations to group by
-                ["value1", "value2"], // Path so far
-                [filter1a, filter1b] // User-applied filters
+                ["group1", "group2", "group3", "group4"], // annotations to group by
+                ["value1", "value2"], // path so far
+                [filter1a, filter1b] // user-applied filters
             );
 
-            // Select a value for the current level of the grouping hierarchy (group3, not group4)
+            // Find potential values for the current level of the grouping hierarchy (group3, not group4)
             expect(querySpy.calledWithMatch(/SELECT DISTINCT "group3"/)).to.be.true;
 
             // Consistency check: still formats "OR" statement correctly
@@ -231,7 +234,7 @@ describe("DatabaseAnnotationService", () => {
                 )
             ).to.be.true;
 
-            // Includes a filter for each group in the hierarchy so far
+            // Includes a filter for each group in the hierarchy path so far
             const hierarchyPath1 = filterToRegex(new FileFilter("group1", "value1"));
             expect(querySpy.calledWithMatch(hierarchyPath1)).to.be.true;
             const hierarchyPath2 = filterToRegex(new FileFilter("group2", "value2"));
