@@ -2,11 +2,13 @@ import { ContextualMenuItemType, DefaultButton, Icon, IContextualMenuItem } from
 import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { v4 as uuidv4 } from "uuid";
 
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import { interaction, metadata, selection } from "../../state";
+import { getVolEBaseUrl } from "../../state/interaction/selectors";
 
 import styles from "./useOpenWithMenuItems.module.css";
 import useOpenInCfe from "./useOpenInCfe";
@@ -38,6 +40,7 @@ interface Apps {
 
 type AppOptions = {
     openInCfe: () => void;
+    openInVolE: () => void;
 };
 
 const SUPPORTED_APPS_HEADER = {
@@ -160,7 +163,7 @@ const APPS = (
         key: AppKeys.VOLE,
         text: "Vol-E",
         title: `Open files with Vol-E`,
-        href: `https://volumeviewer.allencell.org/viewer?url=${fileDetails?.path}/`,
+        onClick: options?.openInVolE,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -204,6 +207,12 @@ const APPS = (
         },
     } as IContextualMenuItem,
 });
+
+type VolEMessage = {
+    scenes?: string[];
+    meta: Record<string, Record<string, unknown>>;
+    sceneIndex?: number;
+};
 
 function getSupportedApps(
     apps: Apps,
@@ -263,8 +272,60 @@ function getSupportedApps(
     return [];
 }
 
-function getFileExtension(fileDetails: FileDetail): string {
-    return fileDetails.path.slice(fileDetails.path.lastIndexOf(".") + 1).toLowerCase();
+function getFileExtension({ path }: FileDetail): string {
+    const trimmedPath = path.endsWith("/") ? path.slice(0, -1) : path;
+    const filename = trimmedPath.slice(trimmedPath.lastIndexOf("/") + 1);
+    const extensionIndex = filename.lastIndexOf(".");
+    if (extensionIndex === -1) {
+        return "";
+    }
+    return filename.slice(extensionIndex + 1).toLowerCase();
+}
+
+/**
+ * Vol-E uses certain reserved characters to delimit URLs.
+ * If the URLs also contain those characters, they ought to be escaped.
+ */
+function encodeVolEImageUrl(url: string): string {
+    return /[+ ,]/.test(url) ? encodeURIComponent(url) : url;
+}
+
+/**
+ * Opens a window at `openUrl`, then attempts to send the data in `entry` to it.
+ *
+ * This requires a bit of protocol to accomplish:
+ * 1. We add some query params to `openUrl` before opening: `msgorigin` is this site's origin for
+ *    validation, and `storageid` uniquely identifies the message we want to send.
+ * 2. *The opened window must check if these params are present* and post the value of `storageid`
+ *    back to us (via `window.opener`, validated using `msgorigin`) once it's loaded and ready.
+ * 3. Once we receive that message, we send over `entry`.
+ *
+ * This is currently only used by `openInVolE`, but is broken out into a separate function to
+ * emphasize that this protocol is both message- and receiver-agnostic, and could be used to send
+ * large bundles of data to other apps as well.
+ */
+function openWindowWithMessage(openUrl: URL, message: any): void {
+    if (message === undefined || message === null) {
+        window.open(openUrl);
+        return;
+    }
+
+    const storageid = uuidv4();
+    openUrl.searchParams.append("msgorigin", window.location.origin);
+    openUrl.searchParams.append("storageid", storageid);
+
+    const handle = window.open(openUrl);
+    const loadHandler = (event: MessageEvent): void => {
+        if (event.origin !== openUrl.origin || event.data !== storageid) {
+            return;
+        }
+        handle?.postMessage(message, openUrl.origin);
+        window.removeEventListener("message", loadHandler);
+    };
+
+    window.addEventListener("message", loadHandler);
+    // ensure handlers can't build up with repeated failed requests
+    window.setTimeout(() => window.removeEventListener("message", loadHandler), 60000);
 }
 
 export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMenuItem[] => {
@@ -283,6 +344,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     );
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
     const fileService = useSelector(interaction.selectors.getFileService);
+    const volEBaseUrl = useSelector(getVolEBaseUrl);
 
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const annotationNames = React.useMemo(
@@ -298,6 +360,66 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         annotationNames,
         fileService
     );
+
+    // custom hook this, like `useOpenInCfe`?
+    const openInVolE = React.useCallback(async (): Promise<void> => {
+        const allDetails = await fileSelection.fetchAllDetails();
+        const details = allDetails.filter((detail) => {
+            const fileExt = getFileExtension(detail);
+            return fileExt === "zarr" || fileExt === "";
+        });
+
+        const scenes: string[] = [];
+        const message: VolEMessage = { meta: {} };
+
+        for (const detail of details) {
+            const sceneMeta: Record<string, unknown> = {};
+            for (const annotation of detail.annotations) {
+                const isSingleValue = annotation.values.length === 1;
+                const value = isSingleValue ? annotation.values[0] : annotation.values;
+                sceneMeta[annotation.name] = value;
+            }
+            scenes.push(detail.path);
+            if (Object.keys(sceneMeta).length > 0) {
+                message.meta[detail.path] = sceneMeta;
+            }
+        }
+
+        const openUrl = new URL(volEBaseUrl);
+
+        // Start on the focused scene
+        const sceneIndex = details.findIndex((detail) => detail.path === fileDetails?.path);
+
+        // Prefer putting the image URLs directly in the query string for easy sharing, if the
+        // length of the URL would be reasonable
+        const includeUrls =
+            details.length < 5 ||
+            details.reduce((acc, detail) => acc + detail.path.length + 1, 0) <= 250;
+
+        if (includeUrls) {
+            // We can fit all the URLs we want!
+            const encodedURLs = details.map(({ path }) => encodeVolEImageUrl(path));
+            openUrl.searchParams.append("url", encodedURLs.join("+"));
+            if (sceneIndex > 0) {
+                openUrl.searchParams.append("scene", sceneIndex.toString());
+            }
+        } else {
+            // There are more scene URLs than we want to put in the full URL. We need to send them over as a message.
+            // Include only the URL of the focused scene, so the link is usable even if the message fails.
+            const initialImageUrl = details[Math.max(sceneIndex, 0)].path;
+            openUrl.searchParams.append("url", encodeVolEImageUrl(initialImageUrl));
+            message.scenes = scenes;
+            if (sceneIndex > 0) {
+                message.sceneIndex = sceneIndex;
+            }
+        }
+
+        if (includeUrls && Object.keys(message.meta).length === 0) {
+            window.open(openUrl);
+        } else {
+            openWindowWithMessage(openUrl, message);
+        }
+    }, [fileDetails, fileSelection, volEBaseUrl]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
@@ -365,7 +487,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const apps = APPS(fileDetails, { openInCfe });
+    const apps = APPS(fileDetails, { openInCfe, openInVolE });
 
     // Determine is the file is small or not asynchronously
     React.useEffect(() => {

@@ -9,7 +9,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import NotificationServiceWeb from "./services/NotificationServiceWeb";
 import ApplicationInfoServiceWeb from "./services/ApplicationInfoServiceWeb";
 import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
-import DatabaseServiceWeb from "./services/DatabaseServiceWeb";
 import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
 import Learn from "./components/Learn";
@@ -18,6 +17,7 @@ import Layout from "./components/Layout";
 import OpenSourceDatasets from "./components/OpenSourceDatasets";
 import SiteLogo from "../assets/site-logo.png";
 import FmsFileExplorer from "../../core/App";
+import { DatabaseService } from "../../core/services";
 import { createReduxStore } from "../../core/state";
 
 import "../../core/styles/global.css";
@@ -55,7 +55,7 @@ const router = createBrowserRouter(
 );
 
 async function asyncRender() {
-    const databaseService = new DatabaseServiceWeb();
+    const databaseService = new DatabaseService();
     await databaseService.initialize();
 
     // Memoized to make sure the object that collects these services doesn't
