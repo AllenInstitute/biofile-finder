@@ -45,7 +45,6 @@ export default function DataSourcePrompt(props: Props) {
 
     const onSubmit = (dataSource: Source, metadataSource?: Source) => {
         if (requiresDataSourceReload || query) {
-            console.debug("requiresDataSourceReload", requiresDataSourceReload, "query", query);
             if (metadataSource) {
                 dispatch(selection.actions.changeSourceMetadata(metadataSource));
             }
@@ -56,7 +55,6 @@ export default function DataSourcePrompt(props: Props) {
                 dispatch(selection.actions.changeDataSources([...selectedDataSources, dataSource]));
             }
         } else {
-            console.debug("Calling addQuery", { sources: [dataSource], sourceMetadata: metadataSource });
             dispatch(
                 selection.actions.addQuery({
                     name: `New ${dataSource.name} Query`,
