@@ -100,8 +100,8 @@ export function getGridPosition(
             // ex, "B" -> 2, "A" -> 1, "Z" -> 26
             .map((char) => char.charCodeAt(0) - 64)
             // Lastly, multiply each element so that we can account
-            // for multiple character assigments (ex. "AA" -> 26 + 1, "BC", 52 + 3)
-            .reduce((valueSoFar, charCode) => valueSoFar * 26 + charCode, 1);
+            // for multiple character assigments (ex. "AA" -> 0 + 1, "BC", 26 + 3)
+            .reduce((valueSoFar, charCode) => valueSoFar * 26 + charCode, 0);
 
     // If numeric value is first then the grid positioning is like so: 1A, 3C where the column
     // is a number and the row is a letter
