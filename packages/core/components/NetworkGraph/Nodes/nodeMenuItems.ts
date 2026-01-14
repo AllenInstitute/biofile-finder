@@ -34,8 +34,8 @@ export default (
                     text: "Grid (alphanumeric)",
                     disabled: !canOrganizeAsGrid,
                     title: canOrganizeAsGrid
-                        ? "Unable to organize into grid pattern when node values aren't alphanumeric compatible (ex. 'A1' where A is the column and 1 is the row)"
-                        : "Formats children into a grid pattern using alphanumeric ordering (ex. A1 where A is a column and 1 is a row)",
+                        ? "Formats children into a grid pattern using alphanumeric ordering (ex. A1 where A is a column and 1 is a row)"
+                        : "Unable to organize into grid pattern when node values aren't alphanumeric compatible (ex. 'A1' where A is the column and 1 is the row)",
                     onClick: () => {
                         graph.organize(nodeId, "grid");
                         dispatch(interaction.actions.refreshGraph());

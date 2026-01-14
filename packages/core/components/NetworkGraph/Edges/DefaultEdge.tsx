@@ -1,11 +1,5 @@
 import { DefaultButton, IContextualMenuItem } from "@fluentui/react";
-import {
-    getBezierPath,
-    EdgeLabelRenderer,
-    BaseEdge,
-    EdgeProps,
-    Edge,
-} from "@xyflow/react";
+import { getBezierPath, EdgeLabelRenderer, BaseEdge, EdgeProps, Edge } from "@xyflow/react";
 import React, { FC } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -19,7 +13,6 @@ import { interaction, selection } from "../../../state";
 
 import styles from "./DefaultEdge.module.css";
 
-
 // Returns a customizable edge in a ReactFlow network graph
 const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
     id,
@@ -31,7 +24,7 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
     targetPosition,
     data,
 }) => {
-    const annotationValue = `${data?.value}`;
+    const annotationValue = data ? `${data.value}` : "";
     const dispatch = useDispatch();
     const currentQuery = useSelector(selection.selectors.getCurrentQueryParts);
     /**
@@ -60,26 +53,33 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
             onClick: () => {
                 if (!data) return;
                 if (data.name) {
-                    dispatch(selection.actions.addQuery({
-                        name: `Files processed by ${data.name}: ${annotationValue}`,
-                        parts: {
-                            ...currentQuery,
-                            hierarchy: [],
-                            filters: [new FileFilter(data.name, annotationValue)],
-                        }
-                    }));
+                    dispatch(
+                        selection.actions.addQuery({
+                            name: `Files processed by ${data.name}: ${annotationValue}`,
+                            parts: {
+                                ...currentQuery,
+                                hierarchy: [],
+                                filters: [new FileFilter(data.name, annotationValue)],
+                            },
+                        })
+                    );
                 } else {
-                    dispatch(selection.actions.addQuery({
-                        name: `Files processed by ${annotationValue}`,
-                        parts: {
-                            ...currentQuery,
-                            hierarchy: [],
-                            filters: [new IncludeFilter(data.parent), new IncludeFilter(data.child)]
-                        }
-                    }));
+                    dispatch(
+                        selection.actions.addQuery({
+                            name: `Files processed by ${annotationValue}`,
+                            parts: {
+                                ...currentQuery,
+                                hierarchy: [],
+                                filters: [
+                                    new IncludeFilter(data.parent),
+                                    new IncludeFilter(data.child),
+                                ],
+                            },
+                        })
+                    );
                 }
                 dispatch(interaction.actions.setOriginForProvenance());
-            }
+            },
         },
     ];
 
@@ -87,9 +87,11 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
     const indexOfLinkEnd = annotationValue.indexOf(")");
     const indexOfLinkLabelStart = annotationValue.indexOf("[");
     const indexOfLinkLabelEnd = annotationValue.indexOf("]");
-    if (indexOfLinkStart > indexOfLinkLabelStart
-        && indexOfLinkEnd > indexOfLinkLabelEnd 
-        && indexOfLinkEnd > indexOfLinkStart) {
+    if (
+        indexOfLinkStart > indexOfLinkLabelStart &&
+        indexOfLinkEnd > indexOfLinkLabelEnd &&
+        indexOfLinkEnd > indexOfLinkStart
+    ) {
         const link = annotationValue.substring(indexOfLinkStart + 1, indexOfLinkEnd);
         buttonMenuItems.unshift({
             key: "open-provided-link",
@@ -97,16 +99,14 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
             iconName: "OpenInNewWindow",
             onClick: () => {
                 window.open(link, "_blank", "noopener,noreferrer");
-            }
+            },
         });
     }
     const buttonMenu = useButtonMenu({
-        items: buttonMenuItems
+        items: buttonMenuItems,
     });
 
-    const tooltip = data?.name 
-        ? `${data.name}: ${data.value}`
-        : data?.value
+    const tooltip = data?.name ? `${data.name}: ${data.value}` : data?.value;
     // Uses the default edge component, but allows us to apply styling or hyperlinks and change the location of the label
     return (
         <>

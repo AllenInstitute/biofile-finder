@@ -21,7 +21,7 @@ export default function CoreContent() {
     const hasSomethingToQuery = hasQuerySelected || window.location.search;
     const hasNeedToSelectQuery = requiresDataSourceReload || !hasSomethingToQuery;
 
-    if (!!origin) {
+    if (origin) {
         return <RelationshipDiagram className={styles.diagram} origin={origin} />;
     }
 
