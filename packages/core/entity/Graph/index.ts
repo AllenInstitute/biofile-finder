@@ -89,10 +89,19 @@ export function getGridPosition(
         parseInt(stringToParse.substring(startIndex, endIndex + 1), 10);
     const parseLetters = (stringToParse: string, startIndex: number, endIndex: number) =>
         stringToParse
+            // Grab the characters we care about
             .substring(startIndex, endIndex)
+            // Split each character into own element in array
             .split("")
+            // Each element is now a 1 character long string which
+            // we can get the Unicode character code for and convert
+            // that assumed Latin characer into a numeric value
+            // by subtracting the first Latin unicode character ("A")
+            // ex, "B" -> 2, "A" -> 1, "Z" -> 26
             .map((char) => char.charCodeAt(0) - 64)
-            .reduce((valueSoFar, charCode) => valueSoFar * charCode, 1);
+            // Lastly, multiply each element so that we can account
+            // for multiple character assigments (ex. "AA" -> 26 + 1, "BC", 52 + 3)
+            .reduce((valueSoFar, charCode) => valueSoFar * 26 + charCode, 1);
 
     // If numeric value is first then the grid positioning is like so: 1A, 3C where the column
     // is a number and the row is a letter
