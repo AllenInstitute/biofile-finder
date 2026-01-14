@@ -408,9 +408,7 @@ export default class Graph {
             return;
         }
 
-        // TODO: silos? if no, remove the set below
         this.addNode(thisNode);
-        this.visitedNodeIds.add(thisNode.id);
         await Promise.all(
             this.edgeDefinitions.map(async (edgeDefinition) => {
                 if (!thisNode.data.file) {
