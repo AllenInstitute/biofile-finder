@@ -100,6 +100,13 @@ export enum CellFeatureExplorerBaseUrl {
     TEST = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist",
 }
 
+export enum VolEBaseUrl {
+    LOCALHOST = "http://localhost:9020/viewer",
+    STAGING = "https://staging.volumeviewer.allencell.org/viewer",
+    PRODUCTION = "https://vole.allencell.org/viewer",
+    TEST = "https://staging.volumeviewer.allencell.org/viewer",
+}
+
 export enum TemporaryFileServiceBaseUrl {
     LOCALHOST = "http://localhost:5000",
     STAGING = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080",
