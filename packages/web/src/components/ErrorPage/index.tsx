@@ -15,8 +15,7 @@ export default function ErrorPage() {
             <p>
                 An unexpected error has bubbled up, we are not sure exactly what went wrong, but
                 below is the error we caught.
-            </p>
-            <p>
+                <br />
                 Navigate to the Help tab on the{" "}
                 <a
                     href="https://bff.allencell.org"
@@ -26,11 +25,12 @@ export default function ErrorPage() {
                 >
                     homepage
                 </a>{" "}
-                for options to get in contact with us.
+                for options on getting in contact with us.
             </p>
-            <h3 className={styles.error}>
-                Error <p>{error?.message || "Unknown error"}</p>
-            </h3>
+            <div className={styles.error}>
+                <h3>Error</h3>
+                <p>{error?.message || "Unknown error"}</p>
+            </div>
         </div>
     );
 }
