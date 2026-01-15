@@ -1,0 +1,19 @@
+.graph {
+  background-color: var(--primary-dark);
+}
+
+.graph > div > div {
+  cursor: default !important;
+}
+
+.graph g > path {
+  stroke: var(--primary-text-color);
+}
+
+.simple-container {
+  display: flex;
+}
+
+.simple-container > * {
+  margin: auto;
+}

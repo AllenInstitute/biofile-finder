@@ -1,0 +1,39 @@
+.content-container {
+  justify-content: center;
+  text-align: center;
+}
+
+.file-node {
+  height: unset;
+  background-color: var(--primary-dark);
+  border: 1px solid var(--primary-text-color);
+  color: var(--primary-text-color);
+  padding: 10px;
+  border-radius: 5px;
+  width: unset;
+  display: flex;
+}
+
+.file-node:hover {
+  background-color: var(--highlight-hover-background-color);
+  border-color: var(--highlight-hover-background-color);
+  color: var(--highlight-hover-text-color);
+}
+
+.file-node-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.current-file {
+  border-color: var(--highlight-background-color);
+}
+
+.handle {
+  visibility: hidden;
+}
+
+.handle + i {
+  display: none;
+}

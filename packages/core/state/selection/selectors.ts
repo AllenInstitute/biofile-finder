@@ -24,6 +24,7 @@ export const getRequiresDataSourceReload = (state: State) =>
     state.selection.requiresDataSourceReload;
 export const getSelectedDataSources = (state: State) => state.selection.dataSources;
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
+export const getSelectedSourceProvenance = (state: State) => state.selection.sourceProvenance;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
 export const getShouldShowNullGroups = (state: State) => state.selection.shouldShowNullGroups;
@@ -34,6 +35,11 @@ const getPlatformDependentServices = (state: State) => state.interaction.platfor
 
 // COMPOSED SELECTORS
 export const hasQuerySelected = createSelector([getSelectedQuery], (query): boolean => !!query);
+
+export const hasProvenanceSource = createSelector(
+    [getSelectedSourceProvenance],
+    (source): boolean => !!source
+);
 
 export const isColumnWidthOverflowing = createSelector(
     [getColumns, getFileView],
@@ -87,6 +93,7 @@ export const getCurrentQueryParts = createSelector(
         getSortColumn,
         getSelectedDataSources,
         getSelectedSourceMetadata,
+        getSelectedSourceProvenance,
     ],
     (
         hierarchy,
@@ -97,7 +104,8 @@ export const getCurrentQueryParts = createSelector(
         showNoValueGroups,
         sortColumn,
         sources,
-        sourceMetadata
+        sourceMetadata,
+        prov
     ): SearchParamsComponents => ({
         columns,
         hierarchy,
@@ -108,6 +116,7 @@ export const getCurrentQueryParts = createSelector(
         sortColumn,
         sources,
         sourceMetadata,
+        prov,
     })
 );
 

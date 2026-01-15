@@ -90,6 +90,7 @@ body {
     --success-status-background-color: #294C2F;
     --success-status-text-color: #0CCF4D;
 
+    --header-bar-height: 60px;
     --query-sidebar-max-width: 350px;
     --file-details-width: 25%;
     --margin: 12px;

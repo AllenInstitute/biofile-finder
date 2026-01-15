@@ -1,0 +1,22 @@
+.container {
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: center;
+    padding: 10%;
+    text-align: center;
+}
+
+.container > p > a {
+    color: var(--aqua);
+    text-decoration: underline;
+}
+
+.error {
+    background-color: var(--error-background-color);
+    border-radius: 4em;
+    color: var(--error-text-color);
+    padding: 1em;
+}

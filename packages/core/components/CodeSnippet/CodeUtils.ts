@@ -1,7 +1,6 @@
 export type PluginMap = ReadonlyArray<readonly [extLower: string, pkg: string]>;
 
 /** Default mapping from file extension to the bioio plugin package. */
-// TODO: make this smart for SLDY
 export const DEFAULT_PLUGIN_MAP: PluginMap = [
     [".ome.tiff", "bioio-ome-tiff"],
     [".ome.tif", "bioio-ome-tiff"],
@@ -10,6 +9,7 @@ export const DEFAULT_PLUGIN_MAP: PluginMap = [
     [".czi", "bioio-czi"],
     [".nd2", "bioio-nd2"],
     [".lif", "bioio-lif"],
+    [".sldy", "bioio-sldy"],
     [".ome.zarr", "bioio-ome-zarr"],
     [".zarr", "bioio-ome-zarr"],
 ] as const;

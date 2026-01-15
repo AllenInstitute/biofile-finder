@@ -28,6 +28,7 @@ export interface SearchParamsComponents {
     fileView?: FileView;
     sources: Source[];
     sourceMetadata?: Source;
+    prov?: Source;
     filters: FileFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
@@ -170,6 +171,19 @@ export default class SearchParams {
                 })
             );
         }
+        if (urlComponents.prov) {
+            params.append(
+                "prov",
+                JSON.stringify({
+                    ...urlComponents.prov,
+                    uri:
+                        typeof urlComponents.prov.uri === "string" ||
+                        urlComponents.prov.uri instanceof String
+                            ? urlComponents.prov.uri
+                            : undefined,
+                })
+            );
+        }
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
         }
@@ -206,6 +220,7 @@ export default class SearchParams {
 
     private static decodeComplexParams(params: URLSearchParams): SearchParamsComponents {
         const unparsedSourceMetadata = params.get("sourceMetadata");
+        const unparsedSourceProvenance = params.get("prov");
         const unparsedOpenFolders = params.getAll("openFolder");
         const unparsedFilters = params.getAll("filter");
         const unparsedSources = params.getAll("source");
@@ -238,6 +253,7 @@ export default class SearchParams {
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
+            prov: unparsedSourceProvenance ? JSON.parse(unparsedSourceProvenance) : undefined,
             showNoValueGroups: showNoValueGroupsString
                 ? JSON.parse(showNoValueGroupsString)
                 : false,

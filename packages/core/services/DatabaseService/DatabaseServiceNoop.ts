@@ -5,6 +5,10 @@ export default class DatabaseServiceNoop extends DatabaseService {
         return Promise.reject("DatabaseServiceNoop:deleteSourceMetadata");
     }
 
+    public deleteSourceProvenance(): Promise<void> {
+        return Promise.reject("DatabaseServiceNoop:deleteSourceProvenance");
+    }
+
     public execute(): Promise<void> {
         return Promise.reject("DatabaseServiceNoop:execute");
     }

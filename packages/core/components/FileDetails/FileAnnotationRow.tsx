@@ -3,6 +3,7 @@ import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import MarkdownText from "../MarkdownText";
 import Tooltip from "../Tooltip";
 import Cell from "../../components/FileRow/Cell";
 import { interaction, metadata, selection } from "../../state";
@@ -119,13 +120,12 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                     </a>
                 ) : (
                     <span onContextMenu={onContextMenuHandlerFactory(trimmedValue)}>
-                        <div
+                        <MarkdownText
                             className={classNames({
                                 [styles.valueTruncated]: !showLongValue && isLongValue,
                             })}
-                        >
-                            {trimmedValue}
-                        </div>
+                            text={trimmedValue}
+                        />
                         {isLongValue && (
                             <div className={styles.expandButtonWrapper}>
                                 <Tooltip content={showLongValue ? "Collapse text" : "Expand text"}>
