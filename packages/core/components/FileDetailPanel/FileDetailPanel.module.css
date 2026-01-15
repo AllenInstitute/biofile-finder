@@ -1,0 +1,24 @@
+.container {
+    display: flex;
+    flex-direction: column;
+
+    /* flex child */
+    flex: 0 0 var(--file-details-width);
+}
+
+.container > *:first-child {
+    margin-left: auto;
+}
+
+.container > *:last-child {
+    height: 100%;
+    transition: flex var(--transition-duration);
+    width: 100%;
+
+    /* flex child */
+    flex: 1 1 1;
+}
+
+.hide-right {
+    display: none;
+}

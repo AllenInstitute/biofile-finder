@@ -1,15 +1,8 @@
 .icon-button, .icon-button:hover {
-    background-color: unset;
-    color: unset;
     font-weight: 600;
     height: 37px;
     max-width: 22px;
     width: 100%;
-}
-
-.icon-button:hover {
-    background-color: unset;
-    color: var(--highlight-text-color);
 }
 
 .icon-button i {

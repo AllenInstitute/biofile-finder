@@ -6,7 +6,6 @@
   margin: 0;
   border: 0;
   width: 100%;
-  height: calc(100% - 2 * var(--margin));
   overflow-y: auto;
   justify-content: center;
   padding-bottom: calc(2 * var(--margin))
@@ -53,8 +52,5 @@
 }
 
 .table-title {
-  font-weight: 300;
-  font-size: 24px;
-  line-height: 1.25;
   margin-top: calc(2*var(--margin));
 }

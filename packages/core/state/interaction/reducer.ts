@@ -1,6 +1,6 @@
 import FrontendInsights from "@aics/frontend-insights";
 import { makeReducer } from "@aics/redux-utils";
-import { filter, sortBy } from "lodash";
+import { filter, sortBy, uniqueId } from "lodash";
 
 import {
     HIDE_CONTEXT_MENU,
@@ -31,6 +31,16 @@ import {
     SET_EXTRACT_METADATA_PYTHON_SNIPPET,
     SET_CONVERT_FILES_SNIPPET,
     SetVisibleModalAction,
+    SetOriginForProvenance,
+    SET_ORIGIN_FOR_PROVENANCE,
+    TOGGLE_FILE_DETAILS_PANEL,
+    ToggleFileDetailsPanel,
+    REFRESH_GRAPH,
+    EXPAND_GRAPH,
+    SetIsGraphLoading,
+    SET_IS_GRAPH_LOADING,
+    SET_IS_REMOTE_FILE_UPLOAD_SERVER_AVAILABLE,
+    SetIsRemoteFileUploadServerAvailable,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -45,6 +55,7 @@ import { UserSelectedApplication } from "../../services/PersistentConfigService"
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
+import FileDetail from "../../entity/FileDetail";
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
@@ -55,6 +66,7 @@ export interface InteractionStateBranch {
     csvColumns?: string[];
     dataSourceInfoForVisibleModal?: DataSourcePromptInfo;
     datasetDetailsPanelIsVisible: boolean;
+    fileForDetailPanel?: FileDetail;
     fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
     environment: "LOCALHOST" | "PRODUCTION" | "STAGING" | "TEST";
@@ -62,7 +74,10 @@ export interface InteractionStateBranch {
     hasUnsavedChanges: boolean;
     hasUsedApplicationBefore: boolean;
     isAicsEmployee?: boolean;
+    isGraphLoading: boolean;
     isOnWeb: boolean;
+    isRemoteFileUploadServerAvailable?: boolean;
+    graphRefreshKey?: string;
     platformDependentServices: PlatformDependentServices;
     extractMetadataPythonSnippet?: { setup: string; code: string };
     convertFilesSnippet: {
@@ -70,6 +85,7 @@ export interface InteractionStateBranch {
         code: string;
         options?: Record<string, string>;
     };
+    originForProvenance?: FileDetail;
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
@@ -92,6 +108,7 @@ export const initialState: InteractionStateBranch = {
     hasDismissedSmallScreenWarning: false,
     hasUnsavedChanges: false,
     hasUsedApplicationBefore: false,
+    isGraphLoading: false,
     isOnWeb: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
@@ -182,9 +199,18 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             csvColumns: action.payload.annotations,
         }),
+        [EXPAND_GRAPH]: (state) => ({
+            ...state,
+            isGraphLoading: true,
+        }),
         [INITIALIZE_APP]: (state, action) => ({
             ...state,
             environment: action.payload.environment,
+        }),
+        [SET_ORIGIN_FOR_PROVENANCE]: (state, action: SetOriginForProvenance) => ({
+            ...state,
+            fileForDetailPanel: undefined,
+            originForProvenance: action.payload,
         }),
         [SET_VISIBLE_MODAL]: (state, action: SetVisibleModalAction) => ({
             ...state,
@@ -235,6 +261,26 @@ export default makeReducer<InteractionStateBranch>(
                     ...(action.payload?.options || {}),
                 },
             },
+        }),
+        [TOGGLE_FILE_DETAILS_PANEL]: (state, action: ToggleFileDetailsPanel) => ({
+            ...state,
+            fileForDetailPanel: action.payload,
+        }),
+        [REFRESH_GRAPH]: (state) => ({
+            ...state,
+            graphRefreshKey: uniqueId(),
+            isGraphLoading: false,
+        }),
+        [SET_IS_GRAPH_LOADING]: (state, action: SetIsGraphLoading) => ({
+            ...state,
+            isGraphLoading: action.payload.isGraphLoading,
+        }),
+        [SET_IS_REMOTE_FILE_UPLOAD_SERVER_AVAILABLE]: (
+            state,
+            action: SetIsRemoteFileUploadServerAvailable
+        ) => ({
+            ...state,
+            isRemoteFileUploadServerAvailable: action.payload.isRemoteFileServerAvailable,
         }),
     },
     initialState

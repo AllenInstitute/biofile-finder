@@ -15,6 +15,27 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 describe("<FileAnnotationList />", () => {
     describe("file path representation", () => {
+        const annotations = [
+            ...TOP_LEVEL_FILE_ANNOTATIONS,
+            new Annotation({
+                annotationDisplayName: "Cache Eviction Date",
+                annotationName: AnnotationName.CACHE_EVICTION_DATE,
+                description: "Indicates when the cache for this file should be evicted.",
+                type: AnnotationType.STRING,
+            }),
+            new Annotation({
+                annotationDisplayName: "File Path (Local VAST)",
+                annotationName: AnnotationName.LOCAL_FILE_PATH,
+                description: "Local path for the file on the host machine.",
+                type: AnnotationType.STRING,
+            }),
+            new Annotation({
+                annotationDisplayName: "Should Be in Local Cache",
+                annotationName: AnnotationName.SHOULD_BE_IN_LOCAL,
+                description: "Indicates if the file should be cached locally.",
+                type: AnnotationType.BOOLEAN,
+            }),
+        ];
         it("has both cloud file path and local file path adjusted to OS & allen mount point", async () => {
             // Arrange
             const hostMountPoint = "/some/path";
@@ -28,28 +49,7 @@ describe("<FileAnnotationList />", () => {
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
                     metadata: {
-                        annotations: [
-                            ...TOP_LEVEL_FILE_ANNOTATIONS,
-                            new Annotation({
-                                annotationDisplayName: "Cache Eviction Date",
-                                annotationName: AnnotationName.CACHE_EVICTION_DATE,
-                                description:
-                                    "Indicates when the cache for this file should be evicted.",
-                                type: AnnotationType.STRING,
-                            }),
-                            new Annotation({
-                                annotationDisplayName: "File Path (Local VAST)",
-                                annotationName: AnnotationName.LOCAL_FILE_PATH,
-                                description: "Local path for the file on the host machine.",
-                                type: AnnotationType.STRING,
-                            }),
-                            new Annotation({
-                                annotationDisplayName: "Should Be in Local Cache",
-                                annotationName: AnnotationName.SHOULD_BE_IN_LOCAL,
-                                description: "Indicates if the file should be cached locally.",
-                                type: AnnotationType.BOOLEAN,
-                            }),
-                        ],
+                        annotations,
                     },
                     interaction: {
                         platformDependentServices: {
@@ -144,7 +144,7 @@ describe("<FileAnnotationList />", () => {
             );
         });
 
-        it("has loading message when file is downloading", () => {
+        it("has loading message when file is downloading", async () => {
             // Arrange
             class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
                 public formatPathForHost(posixPath: string): Promise<string> {
@@ -154,7 +154,7 @@ describe("<FileAnnotationList />", () => {
             const { store } = configureMockStore({
                 state: mergeState(initialState, {
                     metadata: {
-                        annotations: TOP_LEVEL_FILE_ANNOTATIONS,
+                        annotations,
                     },
                     interaction: {
                         platformDependentServices: {
@@ -184,9 +184,8 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Assert
-            ["File Path (Local VAST)", "Copying to VAST in progress…"].forEach(async (cellText) => {
-                expect(await findByText(cellText)).to.not.be.undefined;
-            });
+            expect(await findByText("File Path (Local VAST)")).to.not.be.undefined;
+            expect(await findByText("Copying to VAST in progress…")).to.not.be.undefined;
         });
     });
 });

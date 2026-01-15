@@ -5,14 +5,19 @@ import { State } from "../";
 import { ModalType } from "../../components/Modal";
 import {
     AICS_FMS_DATA_SOURCE_NAME,
+    CellFeatureExplorerBaseUrl,
     DatasetBucketUrl,
     FESBaseUrl,
-    MMSBaseUrl,
     LoadBalancerBaseUrl,
-    CellFeatureExplorerBaseUrl,
+    MMSBaseUrl,
     TemporaryFileServiceBaseUrl,
+    VolEBaseUrl,
 } from "../../constants";
-import { getDatasetManifestSource, getDataSources } from "../metadata/selectors";
+import {
+    getDatasetManifestSource,
+    getDataSources,
+    getEdgeDefinitions,
+} from "../metadata/selectors";
 import { getSelectedDataSources, getPythonConversion } from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
 import DatasetService, {
@@ -23,6 +28,7 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
+import Graph from "../../entity/Graph";
 
 // BASIC SELECTORS
 export const getEnvironment = (state: State) => state.interaction.environment;
@@ -36,9 +42,12 @@ export const getDataSourceInfoForVisibleModal = (state: State) =>
     state.interaction.dataSourceInfoForVisibleModal;
 export const getDatasetDetailsVisibility = (state: State) =>
     state.interaction.datasetDetailsPanelIsVisible;
+export const getGraphRefreshKey = (state: State) => state.interaction.graphRefreshKey;
+export const getOriginForProvenance = (state: State) => state.interaction.originForProvenance;
 export const getSelectedPublicDataset = (state: State) => state.interaction.selectedPublicDataset;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
+export const getFileForDetailPanel = (state: State) => state.interaction.fileForDetailPanel;
 export const getFileTypeForVisibleModal = (state: State) =>
     state.interaction.fileTypeForVisibleModal;
 export const getHasDismissedSmallScreenWarning = (state: State) =>
@@ -46,7 +55,10 @@ export const getHasDismissedSmallScreenWarning = (state: State) =>
 export const getHasUnsavedChanges = (state: State) => state.interaction.hasUnsavedChanges;
 export const hasUsedApplicationBefore = (state: State) =>
     state.interaction.hasUsedApplicationBefore;
+export const isGraphLoading = (state: State) => state.interaction.isGraphLoading;
 export const isOnWeb = (state: State) => state.interaction.isOnWeb;
+export const isRemoteFileUploadServerAvailable = (state: State) =>
+    state.interaction.isRemoteFileUploadServerAvailable;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
@@ -80,6 +92,11 @@ export const getMetadataManagementServiceBaseUrl = createSelector(
 export const getCellFeatureExplorerBaseUrl = createSelector(
     [getEnvironment],
     (environment) => CellFeatureExplorerBaseUrl[environment]
+);
+
+export const getVolEBaseUrl = createSelector(
+    [getEnvironment],
+    (environment) => VolEBaseUrl[environment]
 );
 
 export const getTemporaryFileServiceBaseUrl = createSelector(
@@ -245,6 +262,11 @@ export const getDatasetService = createSelector(
             userName,
             fileExplorerServiceBaseUrl,
         })
+);
+
+export const getGraph = createSelector(
+    [getFileService, getEdgeDefinitions],
+    (fileService, edgeDefinitions) => new Graph(fileService, edgeDefinitions)
 );
 
 /**

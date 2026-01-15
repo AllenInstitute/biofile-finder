@@ -122,7 +122,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
         Object.keys(filtersByAnnotation).forEach((annotationToFilter) => {
             const appliedFilters = filtersByAnnotation[annotationToFilter];
             sqlBuilder.where(
-                appliedFilters.map((filter) => filter.toSQLWhereString()).join(") OR (")
+                appliedFilters.map((filter) => filter.toSQLWhereString()).join(" OR ")
             );
         });
 

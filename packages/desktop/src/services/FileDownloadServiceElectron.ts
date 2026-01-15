@@ -65,42 +65,20 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
     ): Promise<DownloadResult> {
         let downloadUrl: string;
 
-        if (fileInfo.path.endsWith(".zarr")) {
-            const isS3Path = this.isS3Url(fileInfo.path);
-            if (isS3Path) {
-                return this.downloadS3Directory(
+        if (fileInfo.path.endsWith(".zarr") || fileInfo.path.endsWith(".zarr/")) {
+            return (await this.isLocalPath(fileInfo.path))
+                ? this.copyLocalZarrDirectory(
+                    fileInfo,
+                    downloadRequestId,
+                    onProgress,
+                    destination
+                )
+                : this.downloadS3Directory(
                     fileInfo,
                     downloadRequestId,
                     onProgress,
                     destination
                 );
-            }
-
-            const isLocal = await this.isLocalPath(fileInfo.path);
-            if (isLocal) {
-                return this.copyLocalZarrDirectory(
-                    fileInfo,
-                    downloadRequestId,
-                    onProgress,
-                    destination
-                );
-            }
-
-            const canUseDirectoryArgs = await this.canUseDirectoryArguments(fileInfo.path);
-            if (canUseDirectoryArgs) {
-                return this.downloadS3Directory(
-                    fileInfo,
-                    downloadRequestId,
-                    onProgress,
-                    destination,
-                    this.parseVirtualizedUrl
-                );
-            }
-
-            throw new DownloadFailure(
-                `Unsupported path for ".zarr":  ${fileInfo.path}. Currently only support AWS S3 or locally stored files.`,
-                downloadRequestId
-            );
         }
 
         const path = fileInfo.data || fileInfo.path;
@@ -111,6 +89,18 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         } else if (typeof path === "string" && !destination) {
             const dataAsBlob = new Blob([path], { type: "application/json" });
             downloadUrl = URL.createObjectURL(dataAsBlob);
+            // if the string is a url, download directly from that url
+            const isValidURL = (path: string) => {
+                try {
+                    new URL(path);
+                    return true;
+                } catch {
+                    return false;
+                }
+            };
+            if (isValidURL(path)) {
+                downloadUrl = path;
+            }
         } else {
             return this.downloadHttpFile(fileInfo, downloadRequestId, onProgress, destination);
         }
@@ -417,13 +407,17 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
         destination?: string,
-        parsingMethod?: (url: string) => { hostname: string; bucket: string; key: string }
     ): Promise<DownloadResult> {
-        const { hostname, key, bucket } = parsingMethod
-            ? parsingMethod(fileInfo.path)
-            : this.parseS3Url(fileInfo.path);
+        const parsedUrl = await this.parseUrl(fileInfo.path);
+        if (!parsedUrl) {
+            throw new DownloadFailure(
+                `Unsupported path for ".zarr":  ${fileInfo.path}. Currently only support AWS S3 or locally stored files.`,
+                downloadRequestId
+            );
+        }
+
         const fileSize =
-            fileInfo.size || (await this.calculateS3DirectorySize(hostname, key, bucket));
+            fileInfo.size || (await this.calculateS3DirectorySize(parsedUrl));
 
         destination = destination || (await this.getDefaultDownloadDirectory());
 
@@ -439,7 +433,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             // Backfill missing directories from path.
             fs.mkdirSync(fullDestination, { recursive: true });
 
-            const keys = await this.listS3Objects(hostname, key, bucket);
+            const keys = await this.listS3Objects(parsedUrl);
 
             if (keys.length === 0) {
                 throw new Error("No files found in the specified S3 directory.");
@@ -463,10 +457,10 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                     throw new DownloadFailure(`Download cancelled by user.`, downloadRequestId);
                 }
 
-                const relativePath = path.relative(key, fileKey);
+                const relativePath = path.relative(parsedUrl.key, fileKey);
                 const destinationPath = path.join(fullDestination, relativePath);
-                const bucketString = bucket.length > 0 ? `${bucket}/` : "";
-                const fileUrl = `https://${hostname}/${bucketString}${encodeURIComponent(fileKey)}`;
+                const bucketString = parsedUrl.bucket.length > 0 ? `${parsedUrl.bucket}/` : "";
+                const fileUrl = `https://${parsedUrl.hostname}/${bucketString}${encodeURIComponent(fileKey)}`;
 
                 // Backfill missing directories from path.
                 fs.mkdirSync(path.dirname(destinationPath), { recursive: true });

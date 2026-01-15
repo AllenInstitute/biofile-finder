@@ -37,15 +37,28 @@ export default function SearchBox(props: Props) {
         setSearchValue("");
     }
 
+    // Autofocus into search box
+    const inputRef = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        const input = inputRef.current?.getElementsByTagName("input")[0];
+        if (input) {
+            // Very small timeout in case focus is captured elsewhere by click event
+            setTimeout(() => {
+                input.focus();
+            }, 100); // 10 is too small, anything higher is slightly visible
+        }
+    }, [inputRef]);
+
     return (
         <div className={styles.searchBoxWrapper}>
             <SearchBoxComponent
                 className={classNames(props.className, styles.searchBox)}
-                id={props.id}
+                id={`${props.id}-searchbox`}
                 onClear={onClear}
                 onSearch={props.onSearch}
                 onChange={onSearchBoxChange}
                 placeholder={props.placeholder || "Search..."}
+                ref={inputRef}
                 value={searchValue}
             />
             {showSubmitButton && (

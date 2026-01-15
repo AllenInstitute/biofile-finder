@@ -75,13 +75,7 @@
 }
 
 .selected-file-button {
-    color: var(--primary-text-color);
     margin-left: 10px;
-}
-
-.selected-file-button:hover {
-    background-color: unset;
-    color: var(--highlight-text-color);
 }
 
 .selected-files {

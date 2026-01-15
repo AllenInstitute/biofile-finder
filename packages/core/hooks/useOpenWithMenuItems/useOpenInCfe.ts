@@ -2,11 +2,10 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { uniqueId } from "lodash";
 
-import { RemoteFileUploadServerConnection } from "../useRemoteFileUpload";
+import useRemoteFileUpload from "../useRemoteFileUpload";
 import FileSelection from "../../entity/FileSelection";
 import { FileService } from "../../services";
 import { interaction } from "../../state";
-import { getCellFeatureExplorerBaseUrl } from "../../state/interaction/selectors";
 
 /**
  * Returns a callback to open the current file selection in Cell Feature
@@ -20,14 +19,14 @@ import { getCellFeatureExplorerBaseUrl } from "../../state/interaction/selectors
  *   open CFE in a new tab with the selected files loaded.
  */
 const useOpenInCfe = (
-    remoteServerConnection: RemoteFileUploadServerConnection,
     fileSelection: FileSelection,
     annotationNames: string[],
     fileService: FileService
 ): (() => Promise<void>) | undefined => {
-    const { hasRemoteServer, uploadFile } = remoteServerConnection;
     const dispatch = useDispatch();
-    const cfeBaseUrl = useSelector(getCellFeatureExplorerBaseUrl);
+    const cfeBaseUrl = useSelector(interaction.selectors.getCellFeatureExplorerBaseUrl);
+    const hasRemoteServer = useSelector(interaction.selectors.isRemoteFileUploadServerAvailable);
+    const uploadFileCallback = useRemoteFileUpload();
 
     const openInCfe = React.useCallback(
         async (
@@ -69,7 +68,7 @@ const useOpenInCfe = (
                 return;
             }
             try {
-                const { url } = await uploadFile(file);
+                const { url } = await uploadFileCallback(file);
                 cfeUrl = `${cfeBaseUrl}/?dataset=csv&csvUrl=${encodeURIComponent(url)}`;
             } catch (error) {
                 console.error("Error uploading CSV for CFE: ", error);
@@ -94,7 +93,7 @@ const useOpenInCfe = (
                 )
             );
         },
-        [hasRemoteServer, cfeBaseUrl, dispatch, uploadFile]
+        [hasRemoteServer, cfeBaseUrl, dispatch, uploadFileCallback]
     );
 
     const openCurrentSelectionInCfe = React.useCallback(() => {

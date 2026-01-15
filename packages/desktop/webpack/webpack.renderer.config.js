@@ -24,6 +24,9 @@ module.exports = ({ analyze, production } = {}) => ({
     },
     mode: production ? "production" : "development",
     module: {
+        // Suppress warnings about dynamic imports in dependencies, e.g., import(variable).
+        // Added 01/2026 to support duckdb-wasm
+        exprContextCritical: false,
         rules: [
             {
                 test: /\.(j|t)sx?/,

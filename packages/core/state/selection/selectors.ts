@@ -36,6 +36,11 @@ const getPlatformDependentServices = (state: State) => state.interaction.platfor
 // COMPOSED SELECTORS
 export const hasQuerySelected = createSelector([getSelectedQuery], (query): boolean => !!query);
 
+export const hasProvenanceSource = createSelector(
+    [getSelectedSourceProvenance],
+    (source): boolean => !!source
+);
+
 export const isColumnWidthOverflowing = createSelector(
     [getColumns, getFileView],
     (columns, fileView): boolean =>
@@ -100,7 +105,7 @@ export const getCurrentQueryParts = createSelector(
         sortColumn,
         sources,
         sourceMetadata,
-        sourceProvenance
+        prov
     ): SearchParamsComponents => ({
         columns,
         hierarchy,
@@ -111,7 +116,7 @@ export const getCurrentQueryParts = createSelector(
         sortColumn,
         sources,
         sourceMetadata,
-        sourceProvenance,
+        prov,
     })
 );
 

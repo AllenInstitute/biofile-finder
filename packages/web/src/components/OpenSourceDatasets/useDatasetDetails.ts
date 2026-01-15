@@ -12,7 +12,8 @@ import PublicDataset, { PublicDatasetProps } from "../../entity/PublicDataset";
  * of the return array will be true.
  */
 export default function useDatasetDetails(
-    fileSort?: FileSort | undefined
+    fileSort?: FileSort | undefined,
+    featured?: boolean
 ): [PublicDatasetProps[] | null, boolean, string | undefined] {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState<string>();
@@ -39,13 +40,16 @@ export default function useDatasetDetails(
                 })
                 .then((itemList) => {
                     setItems(
-                        itemList.map(
-                            (dataset) =>
-                                new PublicDataset(
-                                    { dataset_name: dataset.name },
-                                    dataset.annotations
-                                ).details
-                        )
+                        itemList
+                            .map(
+                                (dataset) =>
+                                    new PublicDataset(
+                                        { dataset_name: dataset.name },
+                                        dataset.annotations
+                                    )
+                            )
+                            .filter((dataset) => dataset?.featured === !!featured)
+                            .map((dataset) => dataset.details)
                     );
                     setIsLoading(false);
                 })
@@ -57,6 +61,6 @@ export default function useDatasetDetails(
         return () => {
             setIsLoading(false);
         };
-    }, [fileSet, publicDatasetListService]);
+    }, [featured, fileSet, publicDatasetListService]);
     return [items, isLoading, error];
 }

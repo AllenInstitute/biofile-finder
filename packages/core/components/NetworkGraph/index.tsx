@@ -1,107 +1,89 @@
-import React from "react";
-import { ReactFlow, useNodesState, useEdgesState, Node, Edge, EdgeTypes } from "@xyflow/react";
-import dagre from "@dagrejs/dagre";
-
+import { SpinnerSize } from "@fluentui/react";
+import { Edge, ReactFlow, EdgeTypes, useNodesState, useEdgesState } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import classNames from "classnames";
+import React from "react";
+import { useSelector } from "react-redux";
+
+import DefaultEdge from "./Edges/DefaultEdge";
+import FileNode from "./Nodes/FileNode";
+import MetadataNode from "./Nodes/MetadataNode";
+import LoadingIcon from "../Icons/LoadingIcon";
+import {
+    AnnotationEdge,
+    EdgeType,
+    NodeType,
+    FileNode as FileNodeType,
+    MetadataNode as MetadataNodeType,
+} from "../../entity/Graph";
+import { interaction, selection } from "../../state";
+
 import styles from "./NetworkGraph.module.css";
 
-import CustomEdge from "./CustomEdge";
-import FileNode from "./FileNode";
-import { ProvenanceNode } from "../../state/provenance/reducer";
-
 interface NetworkGraphProps {
-    initialNodes: ProvenanceNode[];
-    initialEdges: Edge[];
+    className?: string;
 }
 
-const edgeTypes: EdgeTypes = {
-    "custom-edge": CustomEdge,
+const EDGE_TYPES: EdgeTypes = {
+    [EdgeType.DEFAULT]: DefaultEdge,
 };
 
-const nodeTypes = {
-    "file-node": FileNode,
+const NODE_TYPES = {
+    [NodeType.FILE]: FileNode,
+    [NodeType.METADATA]: MetadataNode,
 };
 
-// Currently arbitrary placeholder values
-const NODE_WIDTH = 180;
-const NODE_HEIGHT = 36;
-
+/**
+ * Component for rendering a graph at the given origin
+ */
 export default function NetworkGraph(props: NetworkGraphProps) {
-    const { initialNodes, initialEdges } = props;
+    const graph = useSelector(interaction.selectors.getGraph);
+    const isLoading = useSelector(interaction.selectors.isGraphLoading);
+    const refreshKey = useSelector(interaction.selectors.getGraphRefreshKey);
+    const provenanceSource = useSelector(selection.selectors.getSelectedSourceProvenance);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<AnnotationEdge>>([]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<FileNodeType | MetadataNodeType>([]);
 
-    const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-
-    const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
-        // Graph customization
-        // - direction: top to bottom (as opposed to left/right)
-        // - (node/rank)sep: distance between individual nodes and between each generation of nodes
-        dagreGraph.setGraph({ rankdir: "TB", nodesep: NODE_WIDTH, ranksep: NODE_WIDTH });
-
-        nodes.forEach((node) => {
-            dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
-        });
-
-        edges.forEach((edge) => {
-            dagreGraph.setEdge(edge.source, edge.target);
-        });
-
-        dagre.layout(dagreGraph);
-
-        const newNodes = nodes.map((node) => {
-            const nodeWithPosition = dagreGraph.node(node.id);
-            const newNode = {
-                ...node,
-                targetPosition: "top",
-                sourcePosition: "bottom",
-                // Shift the dagre node position (anchor=center center) to the top left
-                // so it matches the React Flow node anchor point (top left).
-                position: {
-                    x: nodeWithPosition.x - NODE_WIDTH / 2,
-                    y: nodeWithPosition.y - NODE_HEIGHT / 2,
-                },
-            };
-
-            return newNode as Node;
-        });
-
-        return { nodes: newNodes, edges };
-    };
-
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-        initialNodes,
-        initialEdges
-    );
-    const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
-
-    // Re-generate the layout of the nodes and edges if they change
-    // To do: This and below is an improper use of callback logic w/ dependencies
-    const onLayout = React.useCallback(() => {
-        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-            initialNodes,
-            initialEdges
-        );
-
-        setNodes([...layoutedNodes]);
-        setEdges([...layoutedEdges]);
-    }, [initialNodes, initialEdges, setNodes, setEdges]);
-
-    // Watch for changes to the component props and re-render graph
+    // Unfortunately we have to have some notion of state at a high level for control from the components
+    // and at the dagre level for when the user does a drag action causing this duplication of efforts
     React.useEffect(() => {
-        onLayout();
-    }, [initialNodes, initialEdges]);
+        setEdges(graph.edges);
+        setNodes(graph.nodes);
+    }, [graph, setEdges, setNodes, refreshKey]);
+
+    // The option to open this graph shouldn't even appear when a
+    // source isn't available so this shouldn't ever happen
+    if (!provenanceSource) {
+        return null;
+    }
+
+    if (isLoading) {
+        return (
+            <div className={classNames(styles.simpleContainer, props.className)}>
+                <LoadingIcon size={SpinnerSize.large} />
+            </div>
+        );
+    }
 
     return (
-        <div className={styles.reactFlowContainer}>
+        <div className={props.className}>
             <ReactFlow
+                fitView
+                onlyRenderVisibleElements
+                className={styles.graph}
+                edgesFocusable={false}
+                nodesConnectable={false}
+                nodesFocusable={false}
+                elementsSelectable={false}
+                edgesReconnectable={false}
                 colorMode="dark"
                 nodes={nodes}
                 edges={edges}
-                edgeTypes={edgeTypes}
-                nodeTypes={nodeTypes}
+                edgeTypes={EDGE_TYPES}
+                nodeTypes={NODE_TYPES}
+                proOptions={{ hideAttribution: true }}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
-                fitView
             />
         </div>
     );

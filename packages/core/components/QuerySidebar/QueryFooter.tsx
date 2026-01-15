@@ -7,9 +7,9 @@ import { TertiaryButton } from "../Buttons";
 import { ModalType } from "../Modal";
 import Tooltip from "../Tooltip";
 import Tutorial from "../../entity/Tutorial";
-import FileFilter from "../../entity/FileFilter";
 import IncludeFilter from "../../entity/FileFilter/IncludeFilter";
 import FileSet from "../../entity/FileSet";
+import { SearchParamsComponents } from "../../entity/SearchParams";
 import useSaveMetadataOptions from "../../hooks/useSaveMetadataOptions";
 import { interaction, selection } from "../../state";
 import { Query } from "../../state/selection/actions";
@@ -22,8 +22,7 @@ interface Props {
     isDeletable?: boolean;
     onQueryDelete: () => void;
     query: Query;
-    filters: FileFilter[];
-    groups: string[];
+    queryComponents: SearchParamsComponents;
 }
 
 /**
@@ -36,11 +35,11 @@ export default function QueryFooter(props: Props) {
     const fileService = useSelector(interaction.selectors.getFileService);
     const [totalFileCount, setTotalFileCount] = React.useState(0);
     const combinedFilters = React.useMemo(() => {
-        const groupByFilters = props.groups.map(
+        const groupByFilters = props.queryComponents.hierarchy.map(
             (annotationName) => new IncludeFilter(annotationName)
         );
-        return [...props.filters, ...groupByFilters];
-    }, [props.filters, props.groups]);
+        return [...props.queryComponents.filters, ...groupByFilters];
+    }, [props.queryComponents.filters, props.queryComponents.hierarchy]);
     const totalFileSet = React.useMemo(() => {
         return new FileSet({
             fileService,
@@ -111,6 +110,18 @@ export default function QueryFooter(props: Props) {
     ];
     const saveQueryAsOptions = useSaveMetadataOptions(combinedFilters, true);
 
+    const onDuplicateQuery = () => {
+        // original rendered query object may not be fully synced with state,
+        // so make sure all filters are present when duplicating
+        const fullQuery: Query = {
+            ...props.query,
+            parts: {
+                ...props.queryComponents,
+            },
+        };
+        dispatch(selection.actions.addQuery(fullQuery));
+    };
+
     const onRefresh = throttle(
         () => {
             dispatch(interaction.actions.refresh());
@@ -139,7 +150,7 @@ export default function QueryFooter(props: Props) {
                 invertColor
                 disabled={isEmptyQuery}
                 iconName="Copy"
-                onClick={() => dispatch(selection.actions.addQuery(props.query))}
+                onClick={onDuplicateQuery}
                 title="Duplicate query"
             />
             <Tooltip

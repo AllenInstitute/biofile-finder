@@ -73,17 +73,21 @@ export default function OpenSourceDatasets() {
                         <div className={styles.bannerContentText}>
                             <div className={styles.bannerHeader}> Open-source datasets</div>
                             <div className={styles.bannerBody}>
-                                The tables below contain examples of datasets that are available for
-                                exploration.
-                            </div>
-                            <div className={styles.bannerBody}>
-                                Select a dataset to view more information, or click LOAD to open it
-                                in the BioFile Finder app.
+                                The datasets below are available for exploration and open use. Click
+                                LOAD to open a dataset in BioFile Finder, view images in your web
+                                browser, download files, or share selected subdatasets as links.
                             </div>
                         </div>
                     </div>
                 </div>
                 <div className={styles.content}>
+                    <h2 className={styles.tableTitle}>Datasets optimized for BioFile Finder</h2>
+                    <p>
+                        These datasets utilize features that highlight BFF&apos;s capabilities, such
+                        as thumbnail rendering and interoperability with viewers.
+                    </p>
+                    <DatasetTable onLoadDataset={loadDataset} featured />
+                    <h2 className={styles.tableTitle}>All datasets</h2>
                     <DatasetTable onLoadDataset={loadDataset} />
                     <p>
                         Want to include your dataset? Send us a request at

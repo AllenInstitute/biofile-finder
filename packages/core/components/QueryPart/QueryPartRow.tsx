@@ -1,8 +1,8 @@
-import { DirectionalHint, Icon, IconButton } from "@fluentui/react";
+import { DirectionalHint, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
-import { useButtonMenu } from "../Buttons";
+import { TransparentIconButton, useButtonMenu } from "../Buttons";
 import { DnDItem, DnDItemRendererParams } from "../DnDList/DnDList";
 import Tooltip from "../Tooltip";
 
@@ -58,25 +58,20 @@ export default function QueryGroupRow(props: Props) {
                 </Tooltip>
             </div>
             {!!props.item.onRenderEditMenuList && (
-                <Tooltip content="Edit">
-                    <IconButton
-                        ariaLabel="Edit"
-                        className={classNames(styles.iconButton, styles.hiddenInnerIcon)}
-                        iconProps={{ iconName: "Edit" }}
-                        menuProps={editMenu}
-                    />
-                </Tooltip>
+                <TransparentIconButton
+                    className={classNames(styles.iconButton, styles.hiddenInnerIcon)}
+                    iconName="Edit"
+                    menuProps={editMenu}
+                    title="Edit"
+                />
             )}
             {props.item.onDelete && (
-                <Tooltip content="Delete">
-                    <IconButton
-                        ariaDescription="Delete"
-                        ariaLabel="Delete"
-                        className={styles.iconButton}
-                        iconProps={{ iconName: "Cancel" }}
-                        onClick={() => props.item.onDelete?.(props.item.id)}
-                    />
-                </Tooltip>
+                <TransparentIconButton
+                    className={styles.iconButton}
+                    iconName="Cancel"
+                    onClick={() => props.item.onDelete?.(props.item.id)}
+                    title="Delete"
+                />
             )}
         </div>
     );
