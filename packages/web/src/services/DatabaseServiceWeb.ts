@@ -38,7 +38,8 @@ export default class DatabaseServiceWeb extends DatabaseService {
                     console.log(`${indentation}${entry.name}/`);
                     await listDirectoryContents(entry, depth + 1);
                 } else {
-                    console.log(`${indentation}${entry.name} ${(await entry.getFile()).size/1000_000}MB`);
+                    const file = await entry.getFile()
+                    console.log(`${indentation}${entry.name} ${file.size/1000_000}MB ${new Date(file.lastModified)}`);
                     directoryHandle.removeEntry(entry.name);
                 }
             }
