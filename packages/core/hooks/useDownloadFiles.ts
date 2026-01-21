@@ -71,7 +71,7 @@ export default (fileDetails?: FileDetail) => {
         }
         // Otherwise, fileId is in processStatuses and details are visible to user there
         return "Download disabled";
-    }, [isFileTooBig, fileDetails, isDownloadDisabled, isZarr, isOnWeb]);
+    }, [isFileTooBig, fileDetails, isBeingDownloaded, isDownloadDisabled, isZarr, isOnWeb]);
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
     const onDownload = React.useMemo(
