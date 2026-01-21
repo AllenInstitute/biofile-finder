@@ -29,6 +29,7 @@ export default (fileDetails?: FileDetail) => {
             setIsFileTooBig(false);
         } else if (fileDetails && !cancel && isOnWeb) {
             if (fileDetails.size) {
+                // Disable download of large Zarrs ( > 2GB).
                 setIsFileTooBig(fileDetails.size > MAX_DOWNLOAD_SIZE_WEB);
             } else {
                 // Determine size of Zarr on web.
@@ -46,7 +47,6 @@ export default (fileDetails?: FileDetail) => {
         };
     }, [fileDetails, fileDownloadService, isOnWeb, isZarr]);
 
-    // Disable download of large Zarrs ( > 2GB).
     const isBeingDownloaded = processStatuses.some(
         (status) => fileDetails && status.data.fileId?.includes(fileDetails.uid)
     );
@@ -57,6 +57,7 @@ export default (fileDetails?: FileDetail) => {
     const disabledDownloadReason = React.useMemo(() => {
         if (!isDownloadDisabled) return;
         if (!fileDetails) return "File details not available";
+        if (isBeingDownloaded) return "Download already in progress";
         if (isZarr && isOnWeb) {
             if (isFileTooBig === null) {
                 return "Unable to determine size of .zarr file";
