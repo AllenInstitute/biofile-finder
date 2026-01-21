@@ -11,17 +11,10 @@ import FileThumbnail from "../../FileThumbnail";
 import Tooltip from "../../Tooltip";
 import { FileNode as FileNodeType, MetadataNode as MetadataNodeType } from "../../../entity/Graph";
 import useOpenWithMenuItems from "../../../hooks/useOpenWithMenuItems";
+import useTruncatedString from "../../../hooks/useTruncatedString";
 import { interaction } from "../../../state";
 
 import styles from "./FileNode.module.css";
-
-// Display the start of the file name and at least part of the file type
-const clipFileName = (filename: string) => {
-    if (filename.length > 15) {
-        return filename.slice(0, 6) + "..." + filename.slice(-4);
-    }
-    return filename;
-};
 
 /**
  * Custom node element for displaying a File and providing interaction
@@ -81,7 +74,7 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
                 />
                 <div className={styles.contentContainer}>
                     <FileThumbnail uri={file.thumbnail} height={100} width={100} />
-                    <div className={styles.fileNodeLabel}>{clipFileName(file.name)}</div>
+                    <div className={styles.fileNodeLabel}>{useTruncatedString(file.name, 10)}</div>
                 </div>
                 <Handle
                     className={styles.handle}

@@ -7,8 +7,9 @@ import * as React from "react";
  *
  * Ex. "Some really long sentence here" -> "Some rea...ce here"
  */
-export default (sentence: string, limit: number) => {
+export default (sentence: string | undefined, limit: number) => {
     return React.useMemo(() => {
+        if (!sentence) return "";
         if (sentence.length <= limit) {
             return sentence;
         }
