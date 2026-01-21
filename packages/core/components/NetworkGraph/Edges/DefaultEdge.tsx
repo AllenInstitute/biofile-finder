@@ -88,9 +88,9 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
     const indexOfLinkLabelStart = annotationValue.indexOf("[");
     const indexOfLinkLabelEnd = annotationValue.indexOf("]");
     if (
-        indexOfLinkStart > indexOfLinkLabelStart &&
-        indexOfLinkEnd > indexOfLinkLabelEnd &&
-        indexOfLinkEnd > indexOfLinkStart
+        indexOfLinkLabelStart < indexOfLinkLabelEnd &&
+        indexOfLinkLabelEnd < indexOfLinkStart &&
+        indexOfLinkStart < indexOfLinkEnd
     ) {
         const link = annotationValue.substring(indexOfLinkStart + 1, indexOfLinkEnd);
         buttonMenuItems.unshift({
