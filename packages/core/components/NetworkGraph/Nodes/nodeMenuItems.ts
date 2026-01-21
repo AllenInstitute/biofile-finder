@@ -56,8 +56,8 @@ export default (
     {
         key: "check-for-more-relationships",
         text: "Check for more relationships",
-        title: graph.hasMoreToSearch ? undefined : "All relationships have been checked",
-        disabled: !graph.hasMoreToSearch,
+        title: graph.hasMoreNodesToSearch ? undefined : "All relationships have been checked",
+        disabled: !graph.hasMoreNodesToSearch,
         onClick: () => {
             fileToSearch && dispatch(interaction.actions.expandGraph(fileToSearch));
         },
