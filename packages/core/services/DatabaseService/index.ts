@@ -29,14 +29,7 @@ export default class DatabaseService {
     public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
-    // "Open file link" as a datatype must be hardcoded, and CAN NOT change
-    // without BREAKING visibility in the dataset released in 2024 as part
-    // of the EMT Data Release paper
-    private static readonly OPEN_FILE_LINK_TYPE = "Open file link";
-    private static readonly ANNOTATION_TYPE_SET = new Set([
-        ...Object.values(AnnotationType),
-        DatabaseService.OPEN_FILE_LINK_TYPE,
-    ]);
+    private static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));
     private sourceMetadataName?: string;
     public sourceProvenanceName?: string;
     private currentAggregateSource?: string;
@@ -684,15 +677,9 @@ export default class DatabaseService {
                         annotationName: row["column_name"],
                         annotationDisplayName: row["column_name"],
                         description: annotationNameToDescriptionMap[row["column_name"]] || "",
-                        isOpenFileLink:
-                            annotationNameToTypeMap[row["column_name"]] ===
-                            DatabaseService.OPEN_FILE_LINK_TYPE,
                         type:
-                            annotationNameToTypeMap[row["column_name"]] ===
-                            DatabaseService.OPEN_FILE_LINK_TYPE
-                                ? AnnotationType.STRING
-                                : (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
-                                  DatabaseService.columnTypeToAnnotationType(row["data_type"]),
+                            (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
+                            DatabaseService.columnTypeToAnnotationType(row["data_type"]),
                     })
             );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);

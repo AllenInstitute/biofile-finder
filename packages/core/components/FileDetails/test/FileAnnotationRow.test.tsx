@@ -63,11 +63,8 @@ describe("<FileAnnotationRow />", () => {
             // Act / Assert
             expect(queryByTestId("expand-metadata")).to.exist;
             expect(queryByTestId("collapse-metadata")).not.to.exist;
-            expect(
-                getByText(annotationValueSuperLong).parentElement?.classList.contains(
-                    styles.valueTruncated
-                )
-            ).to.be.true;
+            expect(getByText(annotationValueSuperLong).classList.contains(styles.valueTruncated)).to
+                .be.true;
 
             fireEvent.click(getByTestId("expand-metadata"));
             await logicMiddleware.whenComplete();

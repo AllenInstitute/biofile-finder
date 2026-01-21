@@ -14,6 +14,11 @@ export enum AnnotationType {
     DURATION = "Duration",
     DROPDOWN = "Dropdown",
     LOOKUP = "Lookup",
+    MARKDOWN = "Markdown",
+    // "Open file link" as a datatype must be hardcoded, and CAN NOT change
+    // without BREAKING visibility in the dataset released in 2024 as part
+    // of the EMT Data Release paper
+    OPEN_FILE_LINK = "Open file link",
 }
 
 // ID table source via Labkey server: executeQuery.view?schemaName=filemetadata&query.queryName=AnnotationType

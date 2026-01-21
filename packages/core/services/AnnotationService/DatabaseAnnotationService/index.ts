@@ -51,7 +51,6 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const annotationNameToTypeMap = await this.databaseService.fetchAnnotationTypes();
         const type = annotationNameToTypeMap[name] as AnnotationType;
         // If the annotation type is not recognized, default to string
-        // this may happen for types like "Open file link"
         if (!Object.values(AnnotationType).includes(type) || type === AnnotationType.LOOKUP) {
             return { type: AnnotationType.STRING };
         }

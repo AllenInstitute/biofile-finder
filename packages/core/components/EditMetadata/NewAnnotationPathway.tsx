@@ -45,6 +45,12 @@ const FUZZY_SEARCH_OPTIONS = {
     threshold: 0.2,
 };
 
+const ADVANCED_DATA_TYPES = new Set([
+    AnnotationType.LOOKUP,
+    AnnotationType.MARKDOWN,
+    AnnotationType.OPEN_FILE_LINK,
+]);
+
 /**
  * Component for submitting a new annotation
  * and then entering values for the selected files
@@ -258,7 +264,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
                         label="Data type"
                         placeholder="Select a data type..."
                         options={Object.values(AnnotationType)
-                            .filter((type) => type !== AnnotationType.LOOKUP)
+                            .filter((type) => !ADVANCED_DATA_TYPES.has(type))
                             .map((type) => {
                                 const text =
                                     type === AnnotationType.BOOLEAN ? "Boolean (true/false)" : type;

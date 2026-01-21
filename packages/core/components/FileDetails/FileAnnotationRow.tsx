@@ -30,7 +30,7 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
 
-    const isOpenFileLink = annotationNameToAnnotationMap[props.name]?.isOpenFileLink;
+    const annotation = annotationNameToAnnotationMap[props.name];
     // Character length approximately exceeds 4 lines of text
     const isLongValue: boolean = trimmedValue.trim().length > 160;
 
@@ -108,7 +108,7 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                 columnKey="value"
                 width={1}
             >
-                {isOpenFileLink ? (
+                {annotation?.isOpenFileLink ? (
                     <a
                         className={styles.link}
                         onContextMenu={onContextMenuHandlerFactory(trimmedValue)}
@@ -120,12 +120,22 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                     </a>
                 ) : (
                     <span onContextMenu={onContextMenuHandlerFactory(trimmedValue)}>
-                        <MarkdownText
-                            className={classNames({
-                                [styles.valueTruncated]: !showLongValue && isLongValue,
-                            })}
-                            text={trimmedValue}
-                        />
+                        {annotation?.isMarkdown ? (
+                            <MarkdownText
+                                className={classNames({
+                                    [styles.valueTruncated]: !showLongValue && isLongValue,
+                                })}
+                                text={trimmedValue}
+                            />
+                        ) : (
+                            <div
+                                className={classNames({
+                                    [styles.valueTruncated]: !showLongValue && isLongValue,
+                                })}
+                            >
+                                {trimmedValue}
+                            </div>
+                        )}
                         {isLongValue && (
                             <div className={styles.expandButtonWrapper}>
                                 <Tooltip content={showLongValue ? "Collapse text" : "Expand text"}>
