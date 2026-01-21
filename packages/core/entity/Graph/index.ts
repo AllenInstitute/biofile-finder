@@ -193,7 +193,7 @@ export default class Graph {
     private childToAncestorsMap: { [child: string]: string[] };
     // Track the number of nodes generated only allowing
     // a certain number to be generated at a time
-    private numberOfNodesAfforded = 75;
+    private nodeAffordanceRemaining = 75;
     private readonly visitedNodeIds = new Set<string>();
     private graph: dagre.graphlib.Graph<FileNode | MetadataNode> = new dagre.graphlib.Graph();
 
@@ -302,8 +302,8 @@ export default class Graph {
      * The graph might still have nodes left to search if we had
      * on a previous run used up all the node search afforded
      */
-    public get hasMoreToSearch(): boolean {
-        return this.numberOfNodesAfforded <= 0;
+    public get hasMoreNodesToSearch(): boolean {
+        return this.nodeAffordanceRemaining <= 0;
     }
 
     /**
@@ -312,7 +312,7 @@ export default class Graph {
      * information.
      */
     public async originate(origin: FileDetail) {
-        this.numberOfNodesAfforded += 25;
+        this.nodeAffordanceRemaining += 25;
         const node = createFileNode(origin, true);
         await this.expand(node);
         this.organize(node.id, "tree");
@@ -323,7 +323,7 @@ export default class Graph {
      * used for tracking state
      */
     public reset() {
-        this.numberOfNodesAfforded = 75;
+        this.nodeAffordanceRemaining = 75;
         this.visitedNodeIds.clear();
         this.graph = new dagre.graphlib.Graph<FileNode | MetadataNode>()
             .setGraph({ rankdir: "TB" })
@@ -413,7 +413,7 @@ export default class Graph {
         // Base-case: Stop building graph after X recursions
         // to avoid getting too large of a graph on first go
         // or if this node has already been investigated
-        if (this.numberOfNodesAfforded < 0 || this.visitedNodeIds.has(thisNode.id)) {
+        if (this.nodeAffordanceRemaining < 0 || this.visitedNodeIds.has(thisNode.id)) {
             return;
         }
 
@@ -615,7 +615,7 @@ export default class Graph {
      * Adds node the graph and adjusts internal tracking properties
      */
     private addNode(node: FileNode | MetadataNode): void {
-        this.numberOfNodesAfforded -= 1;
+        this.nodeAffordanceRemaining -= 1;
         this.visitedNodeIds.add(node.id);
         this.graph.setNode(node.id, node);
     }
