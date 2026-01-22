@@ -216,6 +216,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
 
     /**
      * Parse a potentially virtualized S3 URL that would not be identifiable by parseS3Url
+     * Returns undefined if unable to parse
      */
     private async parseVirtualizedUrl(url: string): Promise<ParsedUrl | undefined> {
         let urlObj;
