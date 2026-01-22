@@ -106,7 +106,10 @@ Please navigate to this directory manually, or upload files to a remote address 
 
         // Download each file and add it to the ZIP archive
         for (const fileKey of keys) {
-            const fileUrl = FileDownloadService.formatUrlAsFileResource(parsedUrl);
+            const fileUrl = FileDownloadService.formatUrlAsFileResource({
+                ...parsedUrl,
+                key: fileKey,
+            });
             const fileName = fileKey.replace(`${parsedUrl.key}/`, ""); // Local file name in zip
 
             let fileBytesDownloaded = 0; // Track the bytes for the current file

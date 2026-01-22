@@ -448,7 +448,10 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
 
                 const relativePath = path.relative(parsedUrl.key, fileKey);
                 const destinationPath = path.join(fullDestination, relativePath);
-                const fileUrl = FileDownloadService.formatUrlAsFileResource(parsedUrl);
+                const fileUrl = FileDownloadService.formatUrlAsFileResource({
+                    ...parsedUrl,
+                    key: fileKey,
+                });
 
                 // Backfill missing directories from path.
                 fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
