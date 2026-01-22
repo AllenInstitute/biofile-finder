@@ -27,7 +27,23 @@ interface ParsedUrl {
     key: string;
 }
 
+// Maps active request ids (uuids) to request download info
+interface ActiveRequestMap {
+    [id: string]: {
+        filePath?: string;
+        cancel: () => void;
+        onProgress?: (bytes: number) => void;
+    };
+}
+
+/**
+ * Abstract class for interfacing with file downloads
+ */
 export default abstract class FileDownloadService extends HttpServiceBase {
+    abstract isFileSystemAccessible: boolean;
+    protected readonly activeRequestMap: ActiveRequestMap = {};
+    protected readonly cancellationRequests: Set<string> = new Set();
+
     /**
      * Return true if s3 file.
      */
@@ -76,13 +92,6 @@ export default abstract class FileDownloadService extends HttpServiceBase {
         super({ ...config, includeCustomHeaders: false });
     }
 
-    abstract isFileSystemAccessible: boolean;
-
-    /**
-     * Attempt to cancel an active download request, deleting the downloaded artifact if present.
-     */
-    abstract cancelActiveRequest(downloadRequestId: string): void;
-
     /**
      * Download a file described by `fileInfo`. Optionally provide an "onProgress" callback that will be
      * called repeatedly over the course of the file download with the number of bytes downloaded so far.
@@ -116,9 +125,67 @@ export default abstract class FileDownloadService extends HttpServiceBase {
     }
 
     /**
-     * Calculate the total size of all files in an S3 directory (or zarr file).
+     * Get file size for a file on the cloud
+     * Returns undefined if unable to determine size
      */
-    public async calculateS3DirectorySize(parsedUrl: ParsedUrl): Promise<number> {
+    public async getCloudObjectSize(url: string): Promise<number | undefined> {
+        if (FileDownloadService.isZarr(url)) {
+            const cloudDirInfo = await this.getCloudDirectoryInfo(url);
+            if (!cloudDirInfo) return;
+            return cloudDirInfo.size;
+        } else if (url.includes("amazonaws.com")) {
+            // Handle individual S3 files if they are simple
+            return this.getHttpObjectSize(url);
+        }
+    }
+
+    /**
+     * Attempt to cancel an active download request, deleting the downloaded artifact if possible
+     */
+    public cancelActiveRequest(downloadRequestId: string): void {
+        this.cancellationRequests.add(downloadRequestId);
+
+        if (this.activeRequestMap[downloadRequestId]) {
+            const { cancel } = this.activeRequestMap[downloadRequestId];
+            cancel();
+            delete this.activeRequestMap[downloadRequestId];
+        }
+    }
+
+    /**
+     * List components of S3 directory.
+     */
+    protected async listS3Objects(parsedUrl: ParsedUrl): Promise<string[]> {
+        const url = `https://${parsedUrl.hostname}/${
+            parsedUrl.bucket
+        }?list-type=2&prefix=${encodeURIComponent(parsedUrl.key)}`;
+        const response = await this.httpClient.get(url);
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(response.data, "text/xml");
+
+        const keys: string[] = [];
+        const contents = xmlDoc.getElementsByTagName("Key");
+
+        for (let i = 0; i < contents.length; i++) {
+            keys.push(contents[i].textContent || "");
+        }
+
+        return keys;
+    }
+
+    /**
+     * Calculate the total size of all files in an S3 directory (or zarr file).
+     * Returns undefined if unable to calculate size.
+     */
+    protected async getCloudDirectoryInfo(
+        directoryUrl: string
+    ): Promise<{ size: number; parsedUrl: ParsedUrl } | undefined> {
+        // Will be unable to calculate size so will be unable to download
+        const parsedUrl = await this.parseUrl(directoryUrl);
+        if (!parsedUrl) {
+            return;
+        }
+
         let totalSize = 0;
         let continuationToken: string | undefined;
         const url = `https://${parsedUrl.hostname}/${
@@ -153,29 +220,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
             }
         } while (continuationToken);
 
-        return totalSize;
-    }
-
-    /**
-     * Get file size for a file on the cloud
-     */
-    public async getCloudFileSize(url: string): Promise<number | undefined> {
-        // Handle S3 zarr files
-        if (FileDownloadService.isZarr(url)) {
-            // Will be unable to calculate size so will be unable to download
-            const parsedUrl = await this.parseUrl(url);
-            if (!parsedUrl) {
-                return;
-            }
-
-            return this.calculateS3DirectorySize(parsedUrl);
-        }
-
-        // Handle individual S3 files if they are simple
-        const isStandardS3Url = url.includes("amazonaws.com");
-        if (isStandardS3Url) {
-            return this.getHttpObjectSize(url);
-        }
+        return { size: totalSize, parsedUrl };
     }
 
     /**
@@ -183,7 +228,7 @@ export default abstract class FileDownloadService extends HttpServiceBase {
      *
      * Returns bytes (octet)
      */
-    protected async getHttpObjectSize(url: string): Promise<number> {
+    private async getHttpObjectSize(url: string): Promise<number> {
         try {
             const response = await axios.head(url);
             return parseInt(response.headers["content-length"] || "0", 10);
@@ -191,27 +236,6 @@ export default abstract class FileDownloadService extends HttpServiceBase {
             console.error(`Failed to get file size (content-length): ${err}`);
             throw err;
         }
-    }
-
-    /**
-     * List components of S3 directory.
-     */
-    protected async listS3Objects(parsedUrl: ParsedUrl): Promise<string[]> {
-        const url = `https://${parsedUrl.hostname}/${
-            parsedUrl.bucket
-        }?list-type=2&prefix=${encodeURIComponent(parsedUrl.key)}`;
-        const response = await this.httpClient.get(url);
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(response.data, "text/xml");
-
-        const keys: string[] = [];
-        const contents = xmlDoc.getElementsByTagName("Key");
-
-        for (let i = 0; i < contents.length; i++) {
-            keys.push(contents[i].textContent || "");
-        }
-
-        return keys;
     }
 
     /**

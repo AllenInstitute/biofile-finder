@@ -25,19 +25,16 @@ export default (fileDetails?: FileDetail) => {
     React.useEffect(() => {
         let cancel = false;
         setIsFileTooBig(null);
-        if (!isZarr) {
+        if (!isZarr || !isOnWeb) {
             setIsFileTooBig(false);
-        } else if (fileDetails && !cancel && isOnWeb) {
+        } else if (fileDetails && !cancel) {
             if (fileDetails.size) {
                 // Disable download of large Zarrs ( > 2GB).
                 setIsFileTooBig(fileDetails.size > MAX_DOWNLOAD_SIZE_WEB);
             } else {
-                // Determine size of Zarr on web.
-                fileDownloadService.parseUrl(fileDetails.path).then((parsedUrl) => {
-                    if (!parsedUrl) return;
-                    fileDownloadService.calculateS3DirectorySize(parsedUrl).then((size) => {
-                        setIsFileTooBig(size > MAX_DOWNLOAD_SIZE_WEB);
-                    });
+                fileDownloadService.getCloudObjectSize(fileDetails.path).then((size) => {
+                    if (size === undefined || cancel) return;
+                    setIsFileTooBig(size > MAX_DOWNLOAD_SIZE_WEB);
                 });
             }
         }
