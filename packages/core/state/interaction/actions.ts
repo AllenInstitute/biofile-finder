@@ -3,6 +3,7 @@ import { uniqueId } from "lodash";
 
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import FileFilter from "../../entity/FileFilter";
+import { DataSourceType } from "../../components/DataSourcePrompt";
 import { ModalType } from "../../components/Modal";
 import { AnnotationValue } from "../../services/AnnotationService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
@@ -26,6 +27,7 @@ type PartialSource = Omit<Source, "type">;
 export interface DataSourcePromptInfo {
     source?: PartialSource;
     query?: string;
+    sourceType?: DataSourceType;
 }
 
 export interface PromptForDataSource {
@@ -250,6 +252,28 @@ export function setIsAicsEmployee(isAicsEmployee: boolean): SetIsAicsEmployee {
         payload: isAicsEmployee,
     };
 }
+
+/**
+ * Intention is to set whether the remote file upload server is available
+ */
+export const SET_IS_REMOTE_FILE_UPLOAD_SERVER_AVAILABLE = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-is-remote-file-upload-server-available"
+);
+
+export interface SetIsRemoteFileUploadServerAvailable {
+    type: string;
+    payload: { isRemoteFileServerAvailable: boolean };
+}
+
+export const setIsRemoteFileUploadServerAvailable = (
+    isRemoteFileServerAvailable: boolean
+): SetIsRemoteFileUploadServerAvailable => {
+    return {
+        type: SET_IS_REMOTE_FILE_UPLOAD_SERVER_AVAILABLE,
+        payload: { isRemoteFileServerAvailable },
+    };
+};
 
 /**
  * Set connection configuration and kick off any tasks to initialize the app
@@ -863,4 +887,99 @@ export function setConvertFilesSnippet(payload?: {
     options?: Record<string, string>;
 }): SetConvertFilesSnippetAction {
     return { type: SET_CONVERT_FILES_SNIPPET, payload };
+}
+
+/**
+ * SET_ORIGIN_FOR_PROVENANCE
+ *
+ * Intention to set origin file for the provenance graph
+ */
+export const SET_ORIGIN_FOR_PROVENANCE = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-origin-for-provenance"
+);
+
+export interface SetOriginForProvenance {
+    payload?: FileDetail;
+    type: string;
+}
+
+export function setOriginForProvenance(origin?: FileDetail): SetOriginForProvenance {
+    return {
+        payload: origin,
+        type: SET_ORIGIN_FOR_PROVENANCE,
+    };
+}
+
+/**
+ * TOGGLE_FILE_DETAILS_PANEL
+ *
+ * Intention to show the file details panel for the given file
+ */
+export const TOGGLE_FILE_DETAILS_PANEL = makeConstant(
+    STATE_BRANCH_NAME,
+    "toggle-file-details-panel"
+);
+
+export interface ToggleFileDetailsPanel {
+    payload?: FileDetail;
+    type: string;
+}
+
+export function toggleFileDetailsPanel(origin?: FileDetail): ToggleFileDetailsPanel {
+    return {
+        payload: origin,
+        type: TOGGLE_FILE_DETAILS_PANEL,
+    };
+}
+
+/**
+ * Intention to expand the graph's in memory representation
+ */
+export const EXPAND_GRAPH = makeConstant(STATE_BRANCH_NAME, "expand-graph");
+
+export interface ExpandGraph {
+    payload: FileDetail;
+    type: string;
+}
+
+export function expandGraph(file: FileDetail): ExpandGraph {
+    return {
+        payload: file,
+        type: EXPAND_GRAPH,
+    };
+}
+
+/**
+ * Intention to update the visual representation of the graph
+ */
+export const REFRESH_GRAPH = makeConstant(STATE_BRANCH_NAME, "refresh-graph");
+
+export interface RefreshGraph {
+    type: string;
+}
+
+export function refreshGraph(): RefreshGraph {
+    return {
+        type: REFRESH_GRAPH,
+    };
+}
+
+/**
+ * Intention to set whether the graph is loading or not
+ */
+export const SET_IS_GRAPH_LOADING = makeConstant(STATE_BRANCH_NAME, "set-is-graph-loading");
+
+export interface SetIsGraphLoading {
+    type: string;
+    payload: {
+        isGraphLoading: boolean;
+    };
+}
+
+export function setIsGraphLoading(isGraphLoading: boolean): SetIsGraphLoading {
+    return {
+        payload: { isGraphLoading },
+        type: SET_IS_GRAPH_LOADING,
+    };
 }

@@ -19,7 +19,6 @@ export interface AnnotationResponse {
     description: string;
     isImmutable?: boolean;
     type: AnnotationType;
-    isOpenFileLink?: boolean;
     units?: string;
 }
 
@@ -78,8 +77,12 @@ export default class Annotation {
         return this.annotation.type;
     }
 
+    public get isMarkdown(): boolean {
+        return this.type === AnnotationType.MARKDOWN;
+    }
+
     public get isOpenFileLink(): boolean {
-        return this.annotation.isOpenFileLink || false;
+        return this.type === AnnotationType.OPEN_FILE_LINK;
     }
 
     /**

@@ -40,6 +40,14 @@ import {
     editFiles,
     DELETE_METADATA,
     DeleteMetadataAction,
+    SET_ORIGIN_FOR_PROVENANCE,
+    SetOriginForProvenance,
+    expandGraph,
+    ExpandGraph,
+    refreshGraph,
+    EXPAND_GRAPH,
+    setIsGraphLoading,
+    setIsRemoteFileUploadServerAvailable,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { ModalType } from "../../components/Modal";
@@ -57,6 +65,7 @@ import {
 } from "../../services/ExecutionEnvService";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
+import { fetchWithTimeout } from "../../hooks/useRemoteFileUpload";
 
 export const DEFAULT_QUERY_NAME = "New Query";
 
@@ -69,6 +78,9 @@ const initializeApp = createLogic({
         const queries = selection.selectors.getQueries(deps.getState());
         const isOnWeb = interactionSelectors.isOnWeb(deps.getState());
         const fileService = interactionSelectors.getHttpFileService(deps.getState());
+        const remoteUploadBaseUrl = interactionSelectors.getTemporaryFileServiceBaseUrl(
+            deps.getState()
+        );
 
         // Rudimentary check to see if the user is an AICS employee by
         // checking if the AICS network is accessible
@@ -112,10 +124,41 @@ const initializeApp = createLogic({
                 })
             );
         }
-
         dispatch(setIsAicsEmployee(isAicsEmployee) as AnyAction);
+
+        let isRemoteServerAvailable = false;
+        if (isAicsEmployee) {
+            const checkRemoteServer = async (): Promise<boolean> => {
+                const maxFetchAttempts = 3;
+                let lastError: Error | undefined;
+                let attempt = 1;
+                while (attempt <= maxFetchAttempts) {
+                    attempt++;
+                    try {
+                        const response = await fetchWithTimeout(`${remoteUploadBaseUrl}/ping`);
+                        if (response.ok) {
+                            return true;
+                        }
+                    } catch (error) {
+                        lastError = error as Error;
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) & 500));
+                }
+
+                console.warn(
+                    `Could not connect to remote file upload server after ${maxFetchAttempts} attempts. Certain viewer integrations may be disabled.`,
+                    lastError
+                );
+                return false;
+            };
+
+            isRemoteServerAvailable = await checkRemoteServer();
+        }
+
+        dispatch(setIsRemoteFileUploadServerAvailable(isRemoteServerAvailable));
         done();
     },
+    warnTimeout: 0, // pinging remote server can take a while
 });
 
 /**
@@ -256,37 +299,13 @@ const downloadFilesLogic = createLogic({
 
         await Promise.all(
             filesToDownload.map(async (file) => {
-                const isStandardS3Url = file.path.includes("amazonaws.com");
-                // Handle S3 zarr files
-                if (file.path.endsWith(".zarr")) {
-                    if (!isStandardS3Url) {
-                        // Only check for virtualized URLs if not already an S3 URL
-                        const canUseDirectoryArgs = await fileDownloadService.canUseDirectoryArguments(
-                            file.path
-                        );
-                        if (!canUseDirectoryArgs) return; // Can't calculate size
-                    }
-                    const parsingFunc = isStandardS3Url
-                        ? fileDownloadService.parseS3Url
-                        : fileDownloadService.parseVirtualizedUrl;
+                if (file.size === 0) {
                     try {
-                        const { hostname, key, bucket } = parsingFunc(file.path);
-                        file.size = await fileDownloadService.calculateS3DirectorySize(
-                            hostname,
-                            key,
-                            bucket
-                        );
+                        file.size = await fileDownloadService.getCloudFileSize(file.path);
                     } catch (err) {
                         console.error(
                             `Failed to calculate directory size for ${file.name}: ${err}`
                         );
-                    }
-                } else if (file.size === 0 && isStandardS3Url) {
-                    // Handle individual S3 files
-                    try {
-                        file.size = await fileDownloadService.getHttpObjectSize(file.path);
-                    } catch (err) {
-                        console.error(`Failed to fetch file size for ${file.name}: ${err}`);
                     }
                 }
             })
@@ -558,7 +577,6 @@ const openWithLogic = createLogic({
 const deleteMetadataLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const filters = interactionSelectors.getFileFiltersForVisibleModal(deps.getState());
-        const deleteRequestId = uniqueId();
         const {
             payload: { annotationName, user },
         } = deps.action as DeleteMetadataAction;
@@ -570,7 +588,7 @@ const deleteMetadataLogic = createLogic({
             const errorMsg = `Failed to delete metadata from files, some may have been edited. Details:<br/>${
                 err instanceof Error ? err.message : err
             }`;
-            dispatch(processError(deleteRequestId, errorMsg));
+            dispatch(processError(uniqueId(), errorMsg));
         } finally {
             done();
         }
@@ -725,6 +743,56 @@ const refresh = createLogic({
 });
 
 /**
+ * Interceptor responsible for processing relationship graph origin
+ * changes and updating the graph accordingly
+ */
+const setOriginForProvenance = createLogic({
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: file } = deps.action as SetOriginForProvenance;
+        const graph = interactionSelectors.getGraph(deps.getState());
+        if (!file) {
+            graph.reset();
+            dispatch(refreshGraph());
+        } else {
+            dispatch(expandGraph(file));
+        }
+        done();
+    },
+    type: SET_ORIGIN_FOR_PROVENANCE,
+});
+
+/**
+ * Interceptor responsible for processing a graph's expansion by
+ * focusing on a file as the origin of the relationships
+ */
+const expandGraphLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: file } = deps.action as ExpandGraph;
+        const graph = interactionSelectors.getGraph(deps.getState());
+        try {
+            try {
+                await graph.originate(file);
+                dispatch(refreshGraph());
+            } catch (err) {
+                dispatch(setIsGraphLoading(false));
+                dispatch(
+                    processError(
+                        uniqueId(),
+                        `Error while attempting to generate provenance graph for file ${
+                            file.name
+                        }. Error: ${(err as Error).message}`
+                    )
+                );
+            }
+        } finally {
+            done();
+        }
+    },
+    type: EXPAND_GRAPH,
+    warnTimeout: 0, // can take a long time for large datasets
+});
+
+/**
  * Interceptor responsible for processing screen size changes and
  * dispatching appropriate modal changes
  */
@@ -871,11 +939,13 @@ export default [
     downloadFilesLogic,
     downloadManifest,
     editFilesLogic,
+    expandGraphLogic,
     initializeApp,
     openWithDefault,
     openWithLogic,
     promptForNewExecutable,
     refresh,
     setIsSmallScreen,
+    setOriginForProvenance,
     showContextMenu,
 ];

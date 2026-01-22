@@ -8,6 +8,7 @@ import Tooltip from "../Tooltip";
 import FileThumbnail from "../../components/FileThumbnail";
 import { FileView } from "../../entity/SearchParams";
 import FileSet from "../../entity/FileSet";
+import useTruncatedString from "../../hooks/useTruncatedString";
 import { selection } from "../../state";
 
 import styles from "./LazilyRenderedThumbnail.module.css";
@@ -96,18 +97,11 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     };
 
     // Display the start of the file name and at least part of the file type
-    const clipFileName = (filename: string) => {
-        if (fileView === FileView.SMALL_THUMBNAIL && filename.length > 15) {
-            return filename.slice(0, 6) + "..." + filename.slice(-4);
-        } else if (filename.length > 20) {
-            return filename.slice(0, 9) + "..." + filename.slice(-8);
-        }
-        return filename;
-    };
+    const fileNameLimit = fileView === FileView.SMALL_THUMBNAIL ? 15 : 20;
+    const clippedFileName = useTruncatedString(file?.name, fileNameLimit);
 
     let content;
     if (file) {
-        const filenameForRender = clipFileName(file?.name);
         content = (
             <Tooltip content={file?.name}>
                 <div
@@ -131,7 +125,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
                                 shouldDisplaySmallFont || fileView === FileView.SMALL_THUMBNAIL,
                         })}
                     >
-                        {filenameForRender}
+                        {clippedFileName}
                     </div>
                 </div>
             </Tooltip>

@@ -3,6 +3,7 @@ import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import MarkdownText from "../MarkdownText";
 import Tooltip from "../Tooltip";
 import Cell from "../../components/FileRow/Cell";
 import { interaction, metadata, selection } from "../../state";
@@ -29,7 +30,7 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
 
-    const isOpenFileLink = annotationNameToAnnotationMap[props.name]?.isOpenFileLink;
+    const annotation = annotationNameToAnnotationMap[props.name];
     // Character length approximately exceeds 4 lines of text
     const isLongValue: boolean = trimmedValue.trim().length > 160;
 
@@ -107,7 +108,7 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                 columnKey="value"
                 width={1}
             >
-                {isOpenFileLink ? (
+                {annotation?.isOpenFileLink ? (
                     <a
                         className={styles.link}
                         onContextMenu={onContextMenuHandlerFactory(trimmedValue)}
@@ -119,13 +120,22 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
                     </a>
                 ) : (
                     <span onContextMenu={onContextMenuHandlerFactory(trimmedValue)}>
-                        <div
-                            className={classNames({
-                                [styles.valueTruncated]: !showLongValue && isLongValue,
-                            })}
-                        >
-                            {trimmedValue}
-                        </div>
+                        {annotation?.isMarkdown ? (
+                            <MarkdownText
+                                className={classNames({
+                                    [styles.valueTruncated]: !showLongValue && isLongValue,
+                                })}
+                                text={trimmedValue}
+                            />
+                        ) : (
+                            <div
+                                className={classNames({
+                                    [styles.valueTruncated]: !showLongValue && isLongValue,
+                                })}
+                            >
+                                {trimmedValue}
+                            </div>
+                        )}
                         {isLongValue && (
                             <div className={styles.expandButtonWrapper}>
                                 <Tooltip content={showLongValue ? "Collapse text" : "Expand text"}>

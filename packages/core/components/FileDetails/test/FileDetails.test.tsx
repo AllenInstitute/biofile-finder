@@ -3,22 +3,15 @@ import { render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
-import { createSandbox } from "sinon";
 
-import * as useFileDetails from "../useFileDetails";
 import { Environment } from "../../../constants";
 import FileDetail from "../../../entity/FileDetail";
 import { MAX_DOWNLOAD_SIZE_WEB } from "../../../services/FileDownloadService";
 import { initialState } from "../../../state";
 
 import FileDetails from "..";
+
 describe("<FileDetails />", () => {
-    const sandbox = createSandbox();
-
-    afterEach(() => {
-        sandbox.restore();
-    });
-
     it("should disable downloads on web when file size exceeds max", async () => {
         // Arrange
         const { store, logicMiddleware } = configureMockStore({
@@ -39,12 +32,11 @@ describe("<FileDetails />", () => {
             },
             Environment.TEST
         );
-        sandbox.stub(useFileDetails, "default").returns([fileDetails, false]);
 
         // Act
         const { getByTestId, findByText, queryByText } = render(
             <Provider store={store}>
-                <FileDetails />
+                <FileDetails fileDetails={fileDetails} />
             </Provider>
         );
 
@@ -78,12 +70,11 @@ describe("<FileDetails />", () => {
             },
             Environment.TEST
         );
-        sandbox.stub(useFileDetails, "default").returns([fileDetails, false]);
 
         // Act
         const { getByTestId, findByText, queryByText } = render(
             <Provider store={store}>
-                <FileDetails />
+                <FileDetails fileDetails={fileDetails} />
             </Provider>
         );
 
@@ -117,13 +108,14 @@ describe("<FileDetails />", () => {
             },
             Environment.TEST
         );
-        sandbox.stub(useFileDetails, "default").returns([fileDetails, false]);
+
         // Act
         const { findByText, getByTestId, queryByText } = render(
             <Provider store={store}>
-                <FileDetails />
+                <FileDetails fileDetails={fileDetails} />
             </Provider>
         );
+
         // Assert
         const tooltip = await findByText(/^Download file.*to local system$/);
         expect(tooltip).to.exist;
@@ -152,11 +144,11 @@ describe("<FileDetails />", () => {
             },
             Environment.TEST
         );
-        sandbox.stub(useFileDetails, "default").returns([fileDetails, false]);
+
         // Act
         const { findByText, getByTestId, queryByText } = render(
             <Provider store={store}>
-                <FileDetails />
+                <FileDetails fileDetails={fileDetails} />
             </Provider>
         );
         // Assert
@@ -166,7 +158,7 @@ describe("<FileDetails />", () => {
         expect(queryByText(/^File.*exceeds maximum download size/)).to.not.exist;
     });
 
-    it("should allow downloads on desktop regardless of file size", () => {
+    it("should allow downloads on desktop regardless of file size", async () => {
         // Arrange
         const { store } = configureMockStore({
             state: mergeState(initialState, {
@@ -186,13 +178,14 @@ describe("<FileDetails />", () => {
             },
             Environment.TEST
         );
-        sandbox.stub(useFileDetails, "default").returns([fileDetails, false]);
+
         // Act
         const { getByTestId, getByText, queryByText } = render(
             <Provider store={store}>
-                <FileDetails />
+                <FileDetails fileDetails={fileDetails} />
             </Provider>
         );
+
         // Assert
         expect(getByTestId(/download-file-button/).closest("button")?.disabled).to.be.false;
         expect(queryByText(/^File.*exceeds maximum download size/)).to.not.exist;

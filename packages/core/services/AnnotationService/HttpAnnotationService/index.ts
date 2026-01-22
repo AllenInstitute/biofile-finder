@@ -197,16 +197,19 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
 
         try {
             const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpAnnotationService.BASE_MMS_ANNOTATION_URL}/`;
-            const annotationType = annotation.type as AnnotationType;
-            const requestBody = {
-                annotationTypeId: AnnotationTypeIdMap[annotationType],
-                annotationOptions,
-                description: annotation.description,
-                name: annotation.name,
-            };
+            const type = annotation.type as AnnotationType;
+            const annotationTypeId =
+                type in AnnotationTypeIdMap
+                    ? AnnotationTypeIdMap[type as AnnotationType.STRING]
+                    : AnnotationTypeIdMap[AnnotationType.STRING];
             const response = await this.post<AnnotationResponseMms>(
                 requestUrl,
-                JSON.stringify(requestBody)
+                JSON.stringify({
+                    annotationTypeId,
+                    annotationOptions,
+                    description: annotation.description,
+                    name: annotation.name,
+                })
             );
 
             return response.data;

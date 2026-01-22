@@ -248,9 +248,8 @@ const storeNewAnnotationLogic = createLogic({
         } = deps.action as StoreNewAnnotationAction;
         const annotations = metadata.selectors.getAnnotations(deps.getState());
         const type =
-            Object.keys(AnnotationTypeIdMap).find(
-                (key) => AnnotationTypeIdMap[key as AnnotationType] === annotation.annotationTypeId
-            ) || AnnotationType.STRING;
+            Object.values(AnnotationTypeIdMap).find((id) => id === annotation.annotationTypeId) ||
+            AnnotationType.STRING;
         const newMmsAnnotation = new Annotation({
             annotationName: annotation.name,
             annotationDisplayName: annotation.name,

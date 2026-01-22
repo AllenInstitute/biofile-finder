@@ -40,6 +40,9 @@ import {
     CHANGE_SOURCE_METADATA,
     ChangeSourceMetadataAction,
     changeSourceMetadata,
+    CHANGE_PROVENANCE_SOURCE,
+    ChangeProvenanceSource,
+    changeProvenanceSource,
     setRequiresDataSourceReload,
     addDataSourceReloadError,
     removeDataSourceReloadError,
@@ -428,10 +431,10 @@ const decodeSearchParamsLogics = createLogic({
             sortColumn,
             sources,
             sourceMetadata,
+            prov,
         } = SearchParams.decode(encodedURL);
 
         batch(() => {
-            dispatch(changeSourceMetadata(sourceMetadata));
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
             columns && dispatch(setColumns(columns));
@@ -440,6 +443,10 @@ const decodeSearchParamsLogics = createLogic({
             dispatch(setOpenFileFolders(openFolders));
             dispatch(setSortColumn(sortColumn));
             dispatch(toggleNullValueGroups(showNoValueGroups) as AnyAction);
+        });
+        batch(() => {
+            dispatch(changeSourceMetadata(sourceMetadata));
+            dispatch(changeProvenanceSource(prov));
         });
         done();
     },
@@ -639,6 +646,36 @@ const changeSourceMetadataLogic = createLogic({
         }
 
         dispatch(metadata.actions.requestAnnotations());
+        done();
+    },
+});
+
+/**
+ * Interceptor responsible for passing the CHANGE_PROVENANCE_SOURCE action to the database service.
+ */
+const changeProvenanceSourceLogic = createLogic({
+    type: CHANGE_PROVENANCE_SOURCE,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: selectedSourceProvenance } = deps.action as ChangeProvenanceSource;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
+
+        try {
+            if (selectedSourceProvenance) {
+                const edgeDefinitions = await databaseService.processProvenance(
+                    selectedSourceProvenance
+                );
+                dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
+            } else {
+                await databaseService.deleteSourceProvenance();
+                dispatch(metadata.actions.receiveEdgeDefinitions([]));
+            }
+        } catch (err) {
+            const msg = `Failed processing provenance. Error: ${(err as Error).message}`;
+            dispatch(interaction.actions.processError("provenanceIngestionError", msg));
+        }
+
         done();
     },
 });
@@ -847,6 +884,7 @@ export default [
     setAvailableAnnotationsLogic,
     changeDataSourceLogic,
     changeSourceMetadataLogic,
+    changeProvenanceSourceLogic,
     addQueryLogic,
     replaceDataSourceLogic,
     setDataSourceReloadErrorLogic,

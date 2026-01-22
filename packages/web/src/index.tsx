@@ -11,6 +11,7 @@ import ApplicationInfoServiceWeb from "./services/ApplicationInfoServiceWeb";
 import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
 import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
+import ErrorPage from "./components/ErrorPage";
 import Learn from "./components/Learn";
 import Home from "./components/Home";
 import Layout from "./components/Layout";
@@ -29,6 +30,7 @@ const router = createBrowserRouter(
     [
         {
             element: <Layout />,
+            ErrorBoundary: ErrorPage,
             children: [
                 {
                     path: "/",
