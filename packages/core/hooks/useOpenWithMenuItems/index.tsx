@@ -356,10 +356,20 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     // custom hook this, like `useOpenInCfe`?
     const openInVolE = React.useCallback(async (): Promise<void> => {
         const allDetails = await fileSelection.fetchAllDetails();
-        const details = allDetails.filter((detail) => {
-            const fileExt = getFileExtension(detail);
-            return fileExt === "zarr" || fileExt === "" || fileExt === "tif" || fileExt === "tiff";
-        });
+        // if the user has just one file selected, give it a shot even if the file type seems wrong
+        const details =
+            allDetails.length === 1
+                ? allDetails
+                : allDetails.filter((detail) => {
+                      // otherwise, filter out files that don't look like Vol-E can open them
+                      const fileExt = getFileExtension(detail);
+                      return (
+                          fileExt === "zarr" ||
+                          fileExt === "" ||
+                          fileExt === "tif" ||
+                          fileExt === "tiff"
+                      );
+                  });
 
         const scenes: string[] = [];
         const message: VolEMessage = { meta: {} };
