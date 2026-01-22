@@ -5,7 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import AnnotationName from "../entity/Annotation/AnnotationName";
 import annotationFormatterFactory, { AnnotationType } from "../entity/AnnotationFormatter";
 import FileDetail from "../entity/FileDetail";
-import FileDownloadService, { MAX_DOWNLOAD_SIZE_WEB } from "../services/FileDownloadService";
+import { MAX_DOWNLOAD_SIZE_WEB } from "../services/FileDownloadService";
+import S3StorageService from "../services/S3StorageService";
 import { interaction } from "../state";
 
 /**
@@ -13,26 +14,28 @@ import { interaction } from "../state";
  * the file given
  */
 export default (fileDetails?: FileDetail) => {
-    const isZarr = FileDownloadService.isZarr(fileDetails?.path);
+    const isMultiObjectFile =
+        !!fileDetails?.path && S3StorageService.isMultiObjectFile(fileDetails.path);
 
     const dispatch = useDispatch();
     const [isFileTooBig, setIsFileTooBig] = React.useState<boolean | null>(null);
 
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
+    const s3StorageService = useSelector(interaction.selectors.getS3StorageService);
     const { fileDownloadService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
     React.useEffect(() => {
         let cancel = false;
         setIsFileTooBig(null);
-        if (!isZarr || !isOnWeb) {
+        if (!isMultiObjectFile || !isOnWeb) {
             setIsFileTooBig(false);
         } else if (fileDetails && !cancel) {
             if (fileDetails.size) {
-                // Disable download of large Zarrs ( > 2GB).
+                // Disable download of large multi object files (Zarrs) ( > 2GB).
                 setIsFileTooBig(fileDetails.size > MAX_DOWNLOAD_SIZE_WEB);
             } else {
-                fileDownloadService.getCloudObjectSize(fileDetails.path).then((size) => {
+                s3StorageService.getCloudObjectSize(fileDetails.path).then((size) => {
                     if (size === undefined || cancel) return;
                     setIsFileTooBig(size > MAX_DOWNLOAD_SIZE_WEB);
                 });
@@ -42,20 +45,22 @@ export default (fileDetails?: FileDetail) => {
         return function cleanup() {
             cancel = true;
         };
-    }, [fileDetails, fileDownloadService, isOnWeb, isZarr]);
+    }, [fileDetails, s3StorageService, isOnWeb, isMultiObjectFile]);
 
     const isBeingDownloaded = processStatuses.some(
         (status) => fileDetails && status.data.fileId?.includes(fileDetails.uid)
     );
     const isDownloadDisabled =
-        !fileDetails || isBeingDownloaded || (isOnWeb && !!isZarr && isFileTooBig !== false);
+        !fileDetails ||
+        isBeingDownloaded ||
+        (isOnWeb && !!isMultiObjectFile && isFileTooBig !== false);
 
     // Display a tooltip if download is disabled
     const disabledDownloadReason = React.useMemo(() => {
         if (!isDownloadDisabled) return;
         if (!fileDetails) return "File details not available";
         if (isBeingDownloaded) return "Download already in progress";
-        if (isZarr && isOnWeb) {
+        if (isMultiObjectFile && isOnWeb) {
             if (isFileTooBig === null) {
                 return "Unable to determine size of .zarr file";
             } else if (isFileTooBig) {
@@ -68,7 +73,14 @@ export default (fileDetails?: FileDetail) => {
         }
         // Otherwise, fileId is in processStatuses and details are visible to user there
         return "Download disabled";
-    }, [isFileTooBig, fileDetails, isBeingDownloaded, isDownloadDisabled, isZarr, isOnWeb]);
+    }, [
+        isFileTooBig,
+        fileDetails,
+        isBeingDownloaded,
+        isDownloadDisabled,
+        isMultiObjectFile,
+        isOnWeb,
+    ]);
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
     const onDownload = React.useMemo(

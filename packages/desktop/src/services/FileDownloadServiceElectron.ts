@@ -13,6 +13,7 @@ import {
     DownloadResolution,
     FileDownloadCancellationToken,
 } from "../../../core/services";
+import S3StorageService from "../../../core/services/S3StorageService";
 import { DownloadFailure } from "../../../core/errors";
 
 interface WriteStreamOptions {
@@ -53,7 +54,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
     ): Promise<DownloadResult> {
         let downloadUrl: string;
 
-        if (FileDownloadService.isZarr(fileInfo.path)) {
+        if (S3StorageService.isMultiObjectFile(fileInfo.path)) {
             return (await this.isLocalPath(fileInfo.path))
                 ? this.copyDirectory(fileInfo, downloadRequestId, onProgress, destination)
                 : this.downloadCloudDirectory(fileInfo, downloadRequestId, onProgress, destination);
@@ -388,7 +389,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        const cloudDirInfo = await this.getCloudDirectoryInfo(fileInfo.path);
+        const cloudDirInfo = await this.s3StorageService.getCloudDirectoryInfo(fileInfo.path);
         if (!cloudDirInfo) {
             throw new DownloadFailure(
                 `Unable to determine size of ${fileInfo.path}. Currently only support AWS S3 or locally stored files.`,
@@ -411,9 +412,9 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             // Backfill missing directories from path.
             fs.mkdirSync(fullDestination, { recursive: true });
 
-            const keys = await this.listS3Objects(parsedUrl);
+            const objectsInDir = await this.s3StorageService.getObjectsInDirectory(parsedUrl);
 
-            if (keys.length === 0) {
+            if (objectsInDir.length === 0) {
                 throw new Error("No files found in the specified S3 directory.");
             }
 
@@ -428,29 +429,29 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             };
 
             // Download each file, track its size, and report progress
-            for (const fileKey of keys) {
+            for (const objectInDir of objectsInDir) {
                 // If cancel was requested, cleanup.
                 if (cancelRequested) {
                     await fs.promises.rm(fullDestination, { recursive: true, force: true });
                     throw new DownloadFailure(`Download cancelled by user.`, downloadRequestId);
                 }
 
-                const relativePath = path.relative(parsedUrl.key, fileKey);
+                const relativePath = path.relative(parsedUrl.key, objectInDir.name);
                 const destinationPath = path.join(fullDestination, relativePath);
-                const fileUrl = FileDownloadService.formatUrlAsFileResource({
-                    ...parsedUrl,
-                    key: fileKey,
-                });
 
                 // Backfill missing directories from path.
                 fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
 
                 // Download the file and update the downloaded size
-                await this.downloadCloudFile(fileUrl, destinationPath, (fileDownloadedBytes) => {
-                    if (onProgress && size > 0) {
-                        onProgress(fileDownloadedBytes);
+                await this.downloadCloudFile(
+                    objectInDir.url,
+                    destinationPath,
+                    (fileDownloadedBytes) => {
+                        if (onProgress && size > 0) {
+                            onProgress(fileDownloadedBytes);
+                        }
                     }
-                });
+                );
 
                 // If cancel was requested, cleanup.
                 if (cancelRequested) {

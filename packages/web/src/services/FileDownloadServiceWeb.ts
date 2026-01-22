@@ -7,6 +7,7 @@ import {
     DownloadResolution,
 } from "../../../core/services";
 import { MAX_DOWNLOAD_SIZE_WEB } from "../../../core/services/FileDownloadService";
+import S3StorageService from "../../../core/services/S3StorageService";
 
 export default class FileDownloadServiceWeb extends FileDownloadService {
     isFileSystemAccessible = false;
@@ -23,7 +24,7 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        if (FileDownloadService.isZarr(fileInfo.path)) {
+        if (S3StorageService.isMultiObjectFile(fileInfo.path)) {
             return this.downloadDirectory(fileInfo, downloadRequestId, onProgress, destination);
         }
 
@@ -58,7 +59,7 @@ Please navigate to this directory manually, or upload files to a remote address 
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        const cloudDirInfo = await this.getCloudDirectoryInfo(fileInfo.path);
+        const cloudDirInfo = await this.s3StorageService.getCloudDirectoryInfo(fileInfo.path);
         if (!cloudDirInfo) {
             throw new Error(
                 `Unable to determine size of directory at "${fileInfo.path}".
@@ -83,8 +84,8 @@ Please navigate to this directory manually, or upload files to a remote address 
             );
         }
 
-        const keys = await this.listS3Objects(parsedUrl);
-        if (keys.length === 0) {
+        const objectsInDir = await this.s3StorageService.getObjectsInDirectory(parsedUrl);
+        if (objectsInDir.length === 0) {
             throw new Error("No files found in the specified S3 directory.");
         }
 
@@ -97,16 +98,12 @@ Please navigate to this directory manually, or upload files to a remote address 
         };
 
         // Download each file and add it to the ZIP archive
-        for (const fileKey of keys) {
-            const fileUrl = FileDownloadService.formatUrlAsFileResource({
-                ...parsedUrl,
-                key: fileKey,
-            });
-            const fileName = fileKey.replace(`${parsedUrl.key}/`, ""); // Local file name in zip
+        for (const objectInDir of objectsInDir) {
+            const fileName = objectInDir.name.replace(`${parsedUrl.key}/`, ""); // Local file name in zip
 
             let fileBytesDownloaded = 0; // Track the bytes for the current file
 
-            const response = await axios.get(fileUrl, {
+            const response = await axios.get(objectInDir.url, {
                 responseType: "blob",
                 onDownloadProgress: (progressEvent) => {
                     const { loaded } = progressEvent;
@@ -162,8 +159,7 @@ Please navigate to this directory manually, or upload files to a remote address 
         } else if (typeof data === "string") {
             // See if the data is a URL that needs to be formatted
             // this would be the case for S3 protocol URLs for example
-            const parsedUrl = await this.parseUrl(data);
-            downloadUrl = parsedUrl ? FileDownloadService.formatUrlAsFileResource(parsedUrl) : data;
+            downloadUrl = (await this.s3StorageService.formatAsHttpResource(data)) || data;
         } else {
             throw new Error("Unsupported data type for download");
         }

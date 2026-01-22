@@ -333,10 +333,9 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const dispatch = useDispatch();
     const isOnWeb = useSelector(interaction.selectors.isOnWeb);
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
+    const s3StorageService = useSelector(interaction.selectors.getS3StorageService);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
-    const { fileDownloadService, executionEnvService } = useSelector(
-        interaction.selectors.getPlatformDependentServices
-    );
+    const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
@@ -488,7 +487,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 let fileSize = size;
                 if (!fileSize) {
                     try {
-                        fileSize = await fileDownloadService.getCloudObjectSize(path);
+                        fileSize = await s3StorageService.getCloudObjectSize(path);
                     } catch (_err) {
                         console.debug(
                             `Failed to get size of ${path}. Unable to determine if Vol-E is suitable viewer.`
@@ -501,7 +500,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             }
         }
         determineFileSize();
-    }, [path, size, fileDownloadService, setIsSmallFile]);
+    }, [path, size, s3StorageService, setIsSmallFile]);
 
     const supportedApps = [...getSupportedApps(apps, isSmallFile, fileDetails), ...userApps];
     // Grab every other known app
