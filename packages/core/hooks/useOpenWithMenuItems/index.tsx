@@ -358,7 +358,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         const allDetails = await fileSelection.fetchAllDetails();
         const details = allDetails.filter((detail) => {
             const fileExt = getFileExtension(detail);
-            return fileExt === "zarr" || fileExt === "";
+            return fileExt === "zarr" || fileExt === "" || fileExt === "tif" || fileExt === "tiff";
         });
 
         const scenes: string[] = [];
