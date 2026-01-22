@@ -360,7 +360,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             // if the user has more than one file selected, try to filter out what Vol-E can't open
             const filteredDetails = details.filter((detail) => {
                 const fileExt = getFileExtension(detail);
-                return ["", "zarr", "tiff", "tif"].indexOf(fileExt) !== 0;
+                return ["", "zarr", "tiff", "tif"].includes(fileExt);
             });
             if (filteredDetails.length !== 0) {
                 details = filteredDetails;
