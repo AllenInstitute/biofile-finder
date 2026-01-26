@@ -10,6 +10,7 @@ import { selection } from "../../state";
 import styles from "./FileRow.module.css";
 
 export interface CellConfig {
+    className?: string;
     columnKey: string;
     displayValue: string | React.ReactNode;
     title?: string;
@@ -51,7 +52,9 @@ export default function FileRow(props: FileRowProps) {
         <div className={classNames(styles.row, className)} onClick={onClick}>
             {map(cells, (cell) => (
                 <Cell
-                    className={classNames({ [styles.smallFont]: shouldDisplaySmallFont })}
+                    className={classNames(cell.className, {
+                        [styles.smallFont]: shouldDisplaySmallFont,
+                    })}
                     key={cell.columnKey}
                     columnKey={cell.columnKey}
                     onContextMenu={onContextMenu}

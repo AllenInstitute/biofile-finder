@@ -37,13 +37,11 @@ function Header(
         dispatch(selection.actions.resizeColumn({ name, width: width || 0.25 }));
     };
     const headerCells: CellConfig[] = map(columns, (column) => ({
+        className: styles.headerCell, // pass style elements to cell component
         // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
         columnKey: column.name,
         displayValue: (
-            <span
-                className={styles.headerCell}
-                onClick={() => dispatch(selection.actions.sortColumn(column.name))}
-            >
+            <span onClick={() => dispatch(selection.actions.sortColumn(column.name))}>
                 <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
                     <span className={styles.headerTitle}>
                         {annotationNameToAnnotationMap[column.name]?.displayName}
