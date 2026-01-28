@@ -134,7 +134,7 @@ export default class DatabaseService {
         }
 
         if (type === "parquet") {
-            await this.execute(`CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`);
+            // No CREATE TABLE needed: queries to parquet files scale up much better than creating an in-memory table.
         } else if (type === "json") {
             await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
         } else {
@@ -226,7 +226,7 @@ export default class DatabaseService {
 
             // Unless skipped, this will ensure the table is prepared
             // for querying with the expected columns & uniqueness constraints
-            if (!skipNormalization) {
+            if (type != "parquet" && !skipNormalization) {
                 await this.normalizeDataSourceColumnNames(name);
 
                 const errors = await this.checkDataSourceForErrors(name);
@@ -518,6 +518,9 @@ export default class DatabaseService {
     }
 
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {
+        if (dataSources.some((source) => source.type === "parquet")) {
+            throw new Error("Parquet tables cannot be combined to query multiple data sources.");
+        }
         const viewName = dataSources
             .map((source) => source.name)
             .sort()
@@ -658,10 +661,9 @@ export default class DatabaseService {
         const shouldHaveDescriptions = dataSourceNames.includes(this.SOURCE_METADATA_TABLE);
         if (!hasAnnotations || (!hasDescriptions && shouldHaveDescriptions)) {
             const sql = new SQLBuilder()
-                .select("column_name, data_type")
-                .from('information_schema"."columns')
-                .where(`table_name = '${aggregateDataSourceName}'`)
-                .where(`column_name != '${DatabaseService.HIDDEN_UID_ANNOTATION}'`)
+                .describe()
+                .select("*")
+                .from(aggregateDataSourceName)
                 .toSQL();
             const rows = await this.query(sql);
             if (isEmpty(rows)) {
@@ -671,17 +673,19 @@ export default class DatabaseService {
                 this.fetchAnnotationDescriptions(),
                 this.fetchAnnotationTypes(),
             ]);
-            const annotations = rows.map(
-                (row) =>
-                    new Annotation({
-                        annotationName: row["column_name"],
-                        annotationDisplayName: row["column_name"],
-                        description: annotationNameToDescriptionMap[row["column_name"]] || "",
-                        type:
-                            (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
-                            DatabaseService.columnTypeToAnnotationType(row["data_type"]),
-                    })
-            );
+            const annotations = rows
+                .filter((row) => row["column_name"] !== DatabaseService.HIDDEN_UID_ANNOTATION)
+                .map(
+                    (row) =>
+                        new Annotation({
+                            annotationName: row["column_name"],
+                            annotationDisplayName: row["column_name"],
+                            description: annotationNameToDescriptionMap[row["column_name"]] || "",
+                            type:
+                                (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
+                                DatabaseService.columnTypeToAnnotationType(row["data_type"]),
+                        })
+                );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);
         }
 

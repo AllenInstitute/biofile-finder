@@ -25,7 +25,7 @@ import DatasetService, {
     PythonicDataAccessSnippet,
 } from "../../services/DataSourceService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
-import DatabaseFileService from "../../services/FileService/DatabaseFileService";
+import DatabaseFileService, { QueryMode } from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
 import Graph from "../../entity/Graph";
@@ -195,6 +195,9 @@ export const getFileService = createSelector(
                 databaseService: platformDependentServices.databaseService,
                 dataSourceNames: dataSourceNames.map((source) => source.name),
                 downloadService: platformDependentServices.fileDownloadService,
+                queryMode: dataSourceNames.some((source) => source.type == "parquet")
+                    ? QueryMode.DirectFromParquet
+                    : QueryMode.InMemoryOrFMS,
             });
         }
 
@@ -217,6 +220,10 @@ export const getPublicDatasetManifestService = createSelector(
             databaseService: platformDependentServices.databaseService,
             dataSourceNames: [datasetManifestSource.name],
             downloadService: platformDependentServices.fileDownloadService,
+            queryMode:
+                datasetManifestSource.type == "parquet"
+                    ? QueryMode.DirectFromParquet
+                    : QueryMode.InMemoryOrFMS,
         });
     }
 );

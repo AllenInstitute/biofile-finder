@@ -9,7 +9,7 @@ import SQLBuilder from "../../../../entity/SQLBuilder";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
 
-import DatabaseFileService from "..";
+import DatabaseFileService, { QueryMode } from "..";
 
 describe("DatabaseFileService", () => {
     const totalFileSize = 864452;
@@ -36,6 +36,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["whatever", "and another"],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
+                queryMode: QueryMode.InMemoryOrFMS,
             });
             const fileSet = new FileSet();
             const response = await databaseFileService.getFiles({
@@ -75,6 +76,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["whatever"],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
+                queryMode: QueryMode.InMemoryOrFMS,
             });
             const selection = new FileSelection().select({
                 fileSet: new FileSet({ fileService }),
@@ -97,6 +99,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["MockDataSource"],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
+                queryMode: QueryMode.InMemoryOrFMS,
             });
             const fileSet = new FileSet();
             const count = await fileService.getCountOfMatchingFiles(fileSet);
@@ -107,9 +110,11 @@ describe("DatabaseFileService", () => {
     describe("applySelectionFilters", () => {
         // Setup
         let sqlBuilder: SQLBuilder;
+        let databaseFileService: DatabaseFileService;
 
         beforeEach(() => {
             sqlBuilder = new SQLBuilder().select("*").from("mock_source");
+            databaseFileService = new DatabaseFileService()
         });
 
         // the sql we produce has new lines that mess up comparison
@@ -131,7 +136,7 @@ describe("DatabaseFileService", () => {
             ];
 
             // Act
-            DatabaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
+            databaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
             const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
 
             // Assert
@@ -150,7 +155,7 @@ describe("DatabaseFileService", () => {
             ];
 
             // Act
-            DatabaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
+            databaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
             const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
 
             // Assert
@@ -179,11 +184,11 @@ describe("DatabaseFileService", () => {
             const sqlBuilderAND = new SQLBuilder().select("*").from("mock_source");
 
             // Act
-            DatabaseFileService.applySelectionFilters(sqlBuilder, selectionsWithOR, [
+            databaseFileService.applySelectionFilters(sqlBuilder, selectionsWithOR, [
                 "mock_source",
             ]);
             const modifiedSQLWithOR = normalizeSQL(sqlBuilder.toSQL());
-            DatabaseFileService.applySelectionFilters(sqlBuilderAND, selectionsWithAND, [
+            databaseFileService.applySelectionFilters(sqlBuilderAND, selectionsWithAND, [
                 "mock_source",
             ]);
             const modifiedSQLWithAND = normalizeSQL(sqlBuilderAND.toSQL());
@@ -231,6 +236,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
+                queryMode: QueryMode.InMemoryOrFMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName = "Test Annotation";
@@ -250,6 +256,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
+                queryMode: QueryMode.InMemoryOrFMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName = "Test Annotation";
@@ -271,6 +278,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
+                queryMode: QueryMode.InMemoryOrFMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName1 = "Test Annotation 1";
@@ -296,6 +304,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
+                queryMode: QueryMode.InMemoryOrFMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName = "Test Annotation";

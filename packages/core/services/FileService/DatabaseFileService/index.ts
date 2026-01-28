@@ -17,11 +17,18 @@ import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
 import SQLBuilder from "../../../entity/SQLBuilder";
 import { Environment } from "../../../constants";
+import Query from "../../../components/QuerySidebar/Query";
+
+export enum QueryMode {
+    InMemoryOrFMS,
+    DirectFromParquet,
+}
 
 interface Config {
     databaseService: DatabaseService;
     dataSourceNames: string[];
     downloadService: FileDownloadService;
+    queryMode: QueryMode;
 }
 
 /**
@@ -31,13 +38,14 @@ export default class DatabaseFileService implements FileService {
     private readonly databaseService: DatabaseService;
     private readonly downloadService: FileDownloadService;
     private readonly dataSourceNames: string[];
+    private readonly queryMode: QueryMode;
 
-    private static convertDatabaseRowToFileDetail(
+    private convertDatabaseRowToFileDetail(
         row: { [key: string]: string },
         env: Environment
     ): FileDetail {
         const uniqueId: string | undefined = row[DatabaseService.HIDDEN_UID_ANNOTATION];
-        if (!uniqueId) {
+        if (this.queryMode != QueryMode.DirectFromParquet && !uniqueId) {
             throw new Error("Missing auto-generated unique ID");
         }
 
@@ -67,11 +75,13 @@ export default class DatabaseFileService implements FileService {
             dataSourceNames: [],
             databaseService: new DatabaseServiceNoop(),
             downloadService: new FileDownloadServiceNoop(),
+            queryMode: QueryMode.InMemoryOrFMS,
         }
     ) {
         this.databaseService = config.databaseService;
         this.downloadService = config.downloadService;
         this.dataSourceNames = config.dataSourceNames;
+        this.queryMode = config.queryMode;
     }
 
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
@@ -89,7 +99,7 @@ export default class DatabaseFileService implements FileService {
             .select(`COUNT(*) AS ${select_key}`)
             .from(this.dataSourceNames)
             // Remove sort if present
-            .orderBy()
+            .removeOrderBy()
             .toSQL();
 
         const rows = await this.databaseService.query(sql);
@@ -117,24 +127,42 @@ export default class DatabaseFileService implements FileService {
             return [];
         }
 
-        const sql = request.fileSet
+        let sqlBuilder = request.fileSet
             .toQuerySQLBuilder()
             .from(this.dataSourceNames)
             .offset(request.from * request.limit)
-            .limit(request.limit)
-            .toSQL();
+            .limit(request.limit);
+        if (this.dataSourceNames.some((sourceName) => !sourceName.endsWith(".parquet"))) {
+            // At least one queried data source is not in Direct From Parquet mode, so the queried table will
+            // have a hidden_bff_uid column
+            // LIMIT is non-deterministic without sorting
+            // So even if there is already an "order by" clause, secondarily sort on unique ID.
+            sqlBuilder = sqlBuilder.orderBy(DatabaseService.HIDDEN_UID_ANNOTATION);
+        }
+        const sql = sqlBuilder.toSQL();
 
         const rows = await this.databaseService.query(sql);
         const env = this.downloadService.getEnvironmentFromUrl();
-        return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
+        return rows.map((row) => this.convertDatabaseRowToFileDetail(row, env));
     }
 
     private getSelectionSql(annotations: string[], selections: Selection[]): string {
-        const sqlBuilder = new SQLBuilder()
-            .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
-            .from(this.dataSourceNames);
-        DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
-        return sqlBuilder.toSQL();
+        if (this.queryMode == QueryMode.DirectFromParquet) {
+            const indexRanges = selections.flatMap(selection => selection.indexRanges);
+            const indexRangeQueries = indexRanges.map(indexRange => {
+                return new SQLBuilder()
+                    .from(this.dataSourceNames)
+                    .offset(indexRange.start)
+                    .limit(indexRange.end - indexRange.start + 1);
+            })
+            return new SQLBuilder().union(indexRangeQueries).toSQL();
+        } else {
+            const sqlBuilder = new SQLBuilder()
+                .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
+                .from(this.dataSourceNames);
+            this.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
+            return sqlBuilder.toSQL();
+        }
     }
 
     public async getManifest(
@@ -168,8 +196,9 @@ export default class DatabaseFileService implements FileService {
 
     /**
      * Processes selections and applies WHERE clause directly to the SQLBuilder.
+     * Only for query modes that support HIDDEN_UID_ANNOTATION
      */
-    public static applySelectionFilters(
+    public applySelectionFilters(
         sqlBuilder: SQLBuilder,
         selections: Selection[],
         dataSourceNames: string[]

@@ -32,9 +32,15 @@ export default function FilePrompt(props: Props) {
             if (selectedFile) {
                 // Grab name minus extension
                 const nameAndExtension = selectedFile.name.split(".");
-                const name = nameAndExtension.slice(0, -1).join("");
+                let name = nameAndExtension.slice(0, -1).join("");
                 // Extension validation is handled by the component itself
                 const extension = nameAndExtension.pop();
+                if (extension == "parquet") {
+                    // `name` determines the name of the table used in duckdb queries.
+                    // In Direct From Parquet mode, the file is registered to duckdb and
+                    // queried by full filename, including extension.
+                    name = selectedFile.name;
+                }
                 onSelectFile({ name, type: extension, uri: selectedFile });
             }
         },
