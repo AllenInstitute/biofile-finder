@@ -23,13 +23,10 @@
   background-color: var(--primary-background-color);
   border-radius: var(--small-border-radius);
   box-shadow: var(--box-shadow);
-  color: var(--primary-text-color);
-  padding: var(--inner-header-padding) 0;
 }
 
 .header:hover {
   background-color: var(--accent-dark);
-  color: var(--primary-text-color);
 }
 
 .header > div {
@@ -44,9 +41,20 @@
 
 .header-cell {
   cursor: pointer;
+  background-color: inherit;
+  box-shadow: var(--box-shadow);
+  color: var(--primary-text-color);
+  padding: var(--inner-header-padding) 0;
 }
 
-.header-cell:hover {
+/* The first cell should have rounded corners on the left side */
+.header-cell:first-of-type {
+  border-top-left-radius: var(--small-border-radius);
+  border-bottom-left-radius: var(--small-border-radius);
+}
+
+/* Only highlight text when hovering the title itself */
+.header-title:hover {
   color: var(--highlight-text-color);
 }
 
