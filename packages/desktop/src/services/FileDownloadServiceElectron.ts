@@ -65,20 +65,10 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
     ): Promise<DownloadResult> {
         let downloadUrl: string;
 
-        if (fileInfo.path.endsWith(".zarr") || fileInfo.path.endsWith(".zarr/")) {
+        if (FileDownloadService.isZarr(fileInfo.path)) {
             return (await this.isLocalPath(fileInfo.path))
-                ? this.copyLocalZarrDirectory(
-                    fileInfo,
-                    downloadRequestId,
-                    onProgress,
-                    destination
-                )
-                : this.downloadS3Directory(
-                    fileInfo,
-                    downloadRequestId,
-                    onProgress,
-                    destination
-                );
+                ? this.copyLocalZarrDirectory(fileInfo, downloadRequestId, onProgress, destination)
+                : this.downloadS3Directory(fileInfo, downloadRequestId, onProgress, destination);
         }
 
         const path = fileInfo.data || fileInfo.path;
@@ -406,7 +396,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
-        destination?: string,
+        destination?: string
     ): Promise<DownloadResult> {
         const parsedUrl = await this.parseUrl(fileInfo.path);
         if (!parsedUrl) {
@@ -416,8 +406,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             );
         }
 
-        const fileSize =
-            fileInfo.size || (await this.calculateS3DirectorySize(parsedUrl));
+        const fileSize = fileInfo.size || (await this.calculateS3DirectorySize(parsedUrl));
 
         destination = destination || (await this.getDefaultDownloadDirectory());
 
@@ -459,8 +448,10 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
 
                 const relativePath = path.relative(parsedUrl.key, fileKey);
                 const destinationPath = path.join(fullDestination, relativePath);
-                const bucketString = parsedUrl.bucket.length > 0 ? `${parsedUrl.bucket}/` : "";
-                const fileUrl = `https://${parsedUrl.hostname}/${bucketString}${encodeURIComponent(fileKey)}`;
+                const fileUrl = FileDownloadService.formatUrlAsFileResource({
+                    ...parsedUrl,
+                    key: fileKey,
+                });
 
                 // Backfill missing directories from path.
                 fs.mkdirSync(path.dirname(destinationPath), { recursive: true });

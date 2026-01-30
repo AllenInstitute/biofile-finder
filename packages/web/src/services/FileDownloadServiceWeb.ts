@@ -18,17 +18,17 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
     isFileSystemAccessible = false;
     private readonly activeRequestMap: ActiveRequestMap = {};
 
-    public async download(
+    public download(
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        if (fileInfo.path.endsWith(".zarr")) {
-            return await this.handleZarrFile(fileInfo, downloadRequestId, onProgress, destination);
-        } else {
-            return await this.downloadFile(fileInfo);
+        if (FileDownloadService.isZarr(fileInfo.path)) {
+            return this.handleZarrFile(fileInfo, downloadRequestId, onProgress, destination);
         }
+
+        return this.downloadFile(fileInfo);
     }
 
     private handleZarrFile(
@@ -41,12 +41,7 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
             return Promise.resolve(this.handleLocalZarrFile(fileInfo));
         }
 
-        return this.downloadS3Directory(
-            fileInfo,
-            downloadRequestId,
-            onProgress,
-            destination,
-        );
+        return this.downloadS3Directory(fileInfo, downloadRequestId, onProgress, destination);
     }
 
     private isLocalPath(filePath: string): boolean {
@@ -67,7 +62,7 @@ Please navigate to this directory manually, or upload files to a remote address 
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
-        destination?: string,
+        destination?: string
     ): Promise<DownloadResult> {
         // Calculate the total size of the S3 directory
         const parsedUrl = await this.parseUrl(fileInfo.path);
@@ -111,8 +106,10 @@ Please navigate to this directory manually, or upload files to a remote address 
 
         // Download each file and add it to the ZIP archive
         for (const fileKey of keys) {
-            const bucketString = parsedUrl.bucket.length > 0 ? `${parsedUrl.bucket}/` : "";
-            const fileUrl = `https://${parsedUrl.hostname}/${bucketString}${encodeURIComponent(fileKey)}`;
+            const fileUrl = FileDownloadService.formatUrlAsFileResource({
+                ...parsedUrl,
+                key: fileKey,
+            });
             const fileName = fileKey.replace(`${parsedUrl.key}/`, ""); // Local file name in zip
 
             let fileBytesDownloaded = 0; // Track the bytes for the current file
@@ -171,7 +168,10 @@ Please navigate to this directory manually, or upload files to a remote address 
         } else if (data instanceof Blob) {
             downloadUrl = URL.createObjectURL(data);
         } else if (typeof data === "string") {
-            downloadUrl = data;
+            // See if the data is a URL that needs to be formatted
+            // this would be the case for S3 protocol URLs for example
+            const parsedUrl = await this.parseUrl(data);
+            downloadUrl = parsedUrl ? FileDownloadService.formatUrlAsFileResource(parsedUrl) : data;
         } else {
             throw new Error("Unsupported data type for download");
         }
@@ -183,7 +183,7 @@ Please navigate to this directory manually, or upload files to a remote address 
             a.target = "_blank";
             a.click();
             a.remove();
-            console.log(`File ${fileInfo.name} should start downloading...`);
+            console.debug(`File ${fileInfo.name} should start downloading...`);
             return {
                 downloadRequestId: fileInfo.id,
                 resolution: DownloadResolution.SUCCESS,

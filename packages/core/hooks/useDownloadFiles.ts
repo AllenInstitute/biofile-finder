@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import AnnotationName from "../entity/Annotation/AnnotationName";
 import annotationFormatterFactory, { AnnotationType } from "../entity/AnnotationFormatter";
 import FileDetail from "../entity/FileDetail";
-import { MAX_DOWNLOAD_SIZE_WEB } from "../services/FileDownloadService";
+import FileDownloadService, { MAX_DOWNLOAD_SIZE_WEB } from "../services/FileDownloadService";
 import { interaction } from "../state";
 
 /**
@@ -13,7 +13,7 @@ import { interaction } from "../state";
  * the file given
  */
 export default (fileDetails?: FileDetail) => {
-    const isZarr = fileDetails?.path.endsWith(".zarr") || fileDetails?.path.endsWith(".zarr/");
+    const isZarr = FileDownloadService.isZarr(fileDetails?.path);
 
     const dispatch = useDispatch();
     const [isFileTooBig, setIsFileTooBig] = React.useState<boolean | null>(null);
