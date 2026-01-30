@@ -75,7 +75,7 @@ export default class S3StorageService extends HttpServiceBase {
      * Returns undefined if unable to determine size
      */
     public async getCloudObjectSize(url: string): Promise<number | undefined> {
-        if (S3StorageService.isMultiObjectFile(url)) {
+        if (isMultiObjectFile(url)) {
             const cloudDirInfo = await this.getCloudDirectoryInfo(url);
             if (!cloudDirInfo) return;
             return cloudDirInfo.size;
