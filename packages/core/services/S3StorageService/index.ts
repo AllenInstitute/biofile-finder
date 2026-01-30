@@ -3,6 +3,12 @@ import axios from "axios";
 
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
+/**
+ * Return true if the URL seems to point to a multi object file like Zarr
+ */
+export const isMultiObjectFile = (url: string) =>
+    [".zarr", ".zarr/", ".sldy", ".sldy/"].some((ext) => url.endsWith(ext));
+
 interface ParsedUrl {
     hostname: string;
     bucket: string;
@@ -13,13 +19,6 @@ interface ParsedUrl {
  * Class for interfacing with objects stored on S3
  */
 export default class S3StorageService extends HttpServiceBase {
-    /**
-     * Return true if the URL seems to point to a multi object file like Zarr
-     */
-    public static isMultiObjectFile(url: string) {
-        return [".zarr", ".zarr/", ".sldy", ".sldy/"].some((ext) => url.endsWith(ext));
-    }
-
     /**
      * Given a parsed URL return a simple HTTP URL pointing to a file
      */

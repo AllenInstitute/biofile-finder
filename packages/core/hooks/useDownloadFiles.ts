@@ -6,7 +6,7 @@ import AnnotationName from "../entity/Annotation/AnnotationName";
 import annotationFormatterFactory, { AnnotationType } from "../entity/AnnotationFormatter";
 import FileDetail from "../entity/FileDetail";
 import { MAX_DOWNLOAD_SIZE_WEB } from "../services/FileDownloadService";
-import S3StorageService from "../services/S3StorageService";
+import { isMultiObjectFile } from "../services/S3StorageService";
 import { interaction } from "../state";
 
 /**
@@ -14,8 +14,7 @@ import { interaction } from "../state";
  * the file given
  */
 export default (fileDetails?: FileDetail) => {
-    const isMultiObjectFile =
-        !!fileDetails?.path && S3StorageService.isMultiObjectFile(fileDetails.path);
+    const isMultiObject = !!fileDetails?.path && isMultiObjectFile(fileDetails.path);
 
     const dispatch = useDispatch();
     const [isFileTooBig, setIsFileTooBig] = React.useState<boolean | null>(null);
@@ -28,7 +27,7 @@ export default (fileDetails?: FileDetail) => {
     React.useEffect(() => {
         let cancel = false;
         setIsFileTooBig(null);
-        if (!isMultiObjectFile || !isOnWeb) {
+        if (!isMultiObject || !isOnWeb) {
             setIsFileTooBig(false);
         } else if (fileDetails && !cancel) {
             if (fileDetails.size) {
@@ -45,22 +44,20 @@ export default (fileDetails?: FileDetail) => {
         return function cleanup() {
             cancel = true;
         };
-    }, [fileDetails, s3StorageService, isOnWeb, isMultiObjectFile]);
+    }, [fileDetails, s3StorageService, isOnWeb, isMultiObject]);
 
     const isBeingDownloaded = processStatuses.some(
         (status) => fileDetails && status.data.fileId?.includes(fileDetails.uid)
     );
     const isDownloadDisabled =
-        !fileDetails ||
-        isBeingDownloaded ||
-        (isOnWeb && !!isMultiObjectFile && isFileTooBig !== false);
+        !fileDetails || isBeingDownloaded || (isOnWeb && !!isMultiObject && isFileTooBig !== false);
 
     // Display a tooltip if download is disabled
     const disabledDownloadReason = React.useMemo(() => {
         if (!isDownloadDisabled) return;
         if (!fileDetails) return "File details not available";
         if (isBeingDownloaded) return "Download already in progress";
-        if (isMultiObjectFile && isOnWeb) {
+        if (isMultiObject && isOnWeb) {
             if (isFileTooBig === null) {
                 return "Unable to determine size of .zarr file";
             } else if (isFileTooBig) {
@@ -73,14 +70,7 @@ export default (fileDetails?: FileDetail) => {
         }
         // Otherwise, fileId is in processStatuses and details are visible to user there
         return "Download disabled";
-    }, [
-        isFileTooBig,
-        fileDetails,
-        isBeingDownloaded,
-        isDownloadDisabled,
-        isMultiObjectFile,
-        isOnWeb,
-    ]);
+    }, [isFileTooBig, fileDetails, isBeingDownloaded, isDownloadDisabled, isMultiObject, isOnWeb]);
 
     // Prevent triggering multiple downloads accidentally -- throttle with a 1s wait
     const onDownload = React.useMemo(

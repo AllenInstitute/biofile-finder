@@ -1,5 +1,6 @@
 import axios, { Canceler } from "axios";
 import JSZip from "jszip";
+
 import {
     FileDownloadService,
     DownloadResult,
@@ -7,7 +8,7 @@ import {
     DownloadResolution,
 } from "../../../core/services";
 import { MAX_DOWNLOAD_SIZE_WEB } from "../../../core/services/FileDownloadService";
-import S3StorageService from "../../../core/services/S3StorageService";
+import { isMultiObjectFile } from "../../../core/services/S3StorageService";
 
 export default class FileDownloadServiceWeb extends FileDownloadService {
     isFileSystemAccessible = false;
@@ -24,7 +25,7 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        if (S3StorageService.isMultiObjectFile(fileInfo.path)) {
+        if (isMultiObjectFile(fileInfo.path)) {
             return this.downloadDirectory(fileInfo, downloadRequestId, onProgress, destination);
         }
 

@@ -6,6 +6,7 @@ import * as path from "path";
 import { Policy } from "cockatiel";
 import { app, ipcMain, ipcRenderer } from "electron";
 
+import { DownloadFailure } from "../../../core/errors";
 import {
     DownloadResult,
     FileDownloadService,
@@ -13,8 +14,7 @@ import {
     DownloadResolution,
     FileDownloadCancellationToken,
 } from "../../../core/services";
-import S3StorageService from "../../../core/services/S3StorageService";
-import { DownloadFailure } from "../../../core/errors";
+import { isMultiObjectFile } from "../../../core/services/S3StorageService";
 
 interface WriteStreamOptions {
     flags: string;
@@ -54,7 +54,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
     ): Promise<DownloadResult> {
         let downloadUrl: string;
 
-        if (S3StorageService.isMultiObjectFile(fileInfo.path)) {
+        if (isMultiObjectFile(fileInfo.path)) {
             return (await this.isLocalPath(fileInfo.path))
                 ? this.copyDirectory(fileInfo, downloadRequestId, onProgress, destination)
                 : this.downloadCloudDirectory(fileInfo, downloadRequestId, onProgress, destination);
