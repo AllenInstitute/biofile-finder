@@ -15,6 +15,7 @@ import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron
 import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
+import S3StorageService from "../../../core/services/S3StorageService";
 import useKeyDown from "../../../core/hooks/useKeyDown";
 import "../../../core/styles/global.css";
 
@@ -26,6 +27,7 @@ const applicationInfoService = new ApplicationInfoServiceElectron();
 const databaseService = new DatabaseService();
 await databaseService.initialize();
 const executionEnvService = new ExecutionEnvServiceElectron(notificationService);
+const s3StorageService = new S3StorageService();
 
 // Define the KeyDownHandler component inline
 const KeyDownHandler: React.FC<{ clearStore: () => void }> = ({ clearStore }) => {
@@ -69,7 +71,7 @@ const collectPlatformDependentServices = memoize(() => ({
     applicationInfoService,
     databaseService,
     executionEnvService,
-    fileDownloadService: new FileDownloadServiceElectron(),
+    fileDownloadService: new FileDownloadServiceElectron(s3StorageService),
     fileViewerService: new FileViewerServiceElectron(notificationService),
     frontendInsights,
 }));

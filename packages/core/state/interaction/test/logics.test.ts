@@ -53,6 +53,7 @@ import HttpFileService from "../../../services/FileService/HttpFileService";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
 import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
+import S3StorageServiceNoop from "../../../services/S3StorageService/S3StorageServiceNoop";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -756,7 +757,7 @@ describe("Interaction logics", () => {
             fileExplorerServiceBaseUrl,
             httpClient: mockHttpClient,
         });
-        const downloadService = new TestDownloadService({
+        const downloadService = new TestDownloadService(new S3StorageServiceNoop(), {
             fileExplorerServiceBaseUrl,
             metadataManagementServiceBaseURl,
         });

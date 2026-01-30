@@ -39,7 +39,10 @@ export default abstract class FileDownloadService extends HttpServiceBase {
     protected readonly cancellationRequests: Set<string> = new Set();
     protected readonly s3StorageService: S3StorageService;
 
-    constructor(config: ConnectionConfig = {}, s3StorageService = new S3StorageServiceNoop()) {
+    constructor(
+        s3StorageService: S3StorageService = new S3StorageServiceNoop(),
+        config: ConnectionConfig = {}
+    ) {
         super({ ...config, includeCustomHeaders: false });
         this.s3StorageService = s3StorageService;
     }
