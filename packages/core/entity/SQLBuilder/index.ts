@@ -12,7 +12,7 @@ export default class SQLBuilder {
     private orderByClauses: string[] = [];
     private offsetNum?: number;
     private limitNum?: number;
-    private readonly unionSubQueries: SQLBuilder[] = [];
+    private unionSubQueries: SQLBuilder[] = [];
 
     /**
      * Utility function to create a regex match for a value in a list
@@ -34,10 +34,9 @@ export default class SQLBuilder {
         if (this.fromStatement) {
             throw new Error("SQLBuilder.union cannot be used with SQLBuilder.from");
         }
-        this.unionSubQueries.concat(subQueries);
+        this.unionSubQueries = this.unionSubQueries.concat(subQueries);
         return this;
     }
-
 
     public describe(): SQLBuilder {
         if (this.isSummarizing) {
@@ -121,7 +120,7 @@ export default class SQLBuilder {
     }
 
     public toSQL(): string {
-        if (!this.fromStatement || !this.unionSubQueries) {
+        if (!this.fromStatement && this.unionSubQueries.length === 0) {
             throw new Error("Unable to build SQL without a FROM or UNION");
         }
         let selectionSQL;
@@ -132,7 +131,7 @@ export default class SQLBuilder {
             `;
         } else {
             selectionSQL = this.unionSubQueries
-                .map(subquery => `(${subquery.toSQL()})`)
+                .map((subquery) => `(${subquery.toSQL()})`)
                 .join(" UNION ");
         }
         return `

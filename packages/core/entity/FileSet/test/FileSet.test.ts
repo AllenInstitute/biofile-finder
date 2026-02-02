@@ -114,20 +114,20 @@ describe("FileSet", () => {
         it("builds SQL queries with regular filters for different annotations", () => {
             const fileSet = new FileSet({ filters: [scientistEqualsJane, matrigelIsHard] });
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
-                'WHERE (REGEXP_MATCHES("scientist"'
+                'WHERE (REGEXP_MATCHES(CAST("scientist" AS VARCHAR)'
             );
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
-                'AND (REGEXP_MATCHES("matrigel_is_hardened"'
+                'AND (REGEXP_MATCHES(CAST("matrigel_is_hardened" AS VARCHAR)'
             );
         });
 
         it("builds SQL queries with regular filters for same annotation with different values", () => {
             const fileSet = new FileSet({ filters: [scientistEqualsJane, scientistEqualsJohn] });
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
-                'WHERE (REGEXP_MATCHES("scientist"'
+                'WHERE (REGEXP_MATCHES(CAST("scientist" AS VARCHAR)'
             );
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
-                'OR REGEXP_MATCHES("scientist"'
+                'OR REGEXP_MATCHES(CAST("scientist" AS VARCHAR)'
             );
         });
     });

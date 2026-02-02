@@ -17,7 +17,6 @@ import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
 import SQLBuilder from "../../../entity/SQLBuilder";
 import { Environment } from "../../../constants";
-import Query from "../../../components/QuerySidebar/Query";
 
 export enum QueryMode {
     InMemoryOrFMS,
@@ -147,19 +146,19 @@ export default class DatabaseFileService implements FileService {
     }
 
     private getSelectionSql(annotations: string[], selections: Selection[]): string {
+        const selectStatement = annotations.map((annotation) => `"${annotation}"`).join(", ");
         if (this.queryMode == QueryMode.DirectFromParquet) {
-            const indexRanges = selections.flatMap(selection => selection.indexRanges);
-            const indexRangeQueries = indexRanges.map(indexRange => {
+            const indexRanges = selections.flatMap((selection) => selection.indexRanges);
+            const indexRangeQueries = indexRanges.map((indexRange) => {
                 return new SQLBuilder()
+                    .select(selectStatement)
                     .from(this.dataSourceNames)
                     .offset(indexRange.start)
                     .limit(indexRange.end - indexRange.start + 1);
-            })
+            });
             return new SQLBuilder().union(indexRangeQueries).toSQL();
         } else {
-            const sqlBuilder = new SQLBuilder()
-                .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
-                .from(this.dataSourceNames);
+            const sqlBuilder = new SQLBuilder().select(selectStatement).from(this.dataSourceNames);
             this.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
             return sqlBuilder.toSQL();
         }
