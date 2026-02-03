@@ -27,6 +27,7 @@ export default class DatabaseService {
     public static readonly LIST_DELIMITER = ",";
     // Name of the hidden column BFF uses to uniquely identify rows
     public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
+    public static readonly PARQUET_ROW_NUMBER_COL = "file_row_number";
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
     private static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));

@@ -125,20 +125,16 @@ export default class DatabaseFileService implements FileService {
         if (!this.dataSourceNames.length) {
             return [];
         }
-
-        let sqlBuilder = request.fileSet
+        const orderBy = this.queryMode == QueryMode.InMemoryOrFMS
+            ? DatabaseService.HIDDEN_UID_ANNOTATION
+            : DatabaseService.PARQUET_ROW_NUMBER_COL;
+        const sql = request.fileSet
             .toQuerySQLBuilder()
             .from(this.dataSourceNames)
             .offset(request.from * request.limit)
-            .limit(request.limit);
-        if (this.dataSourceNames.some((sourceName) => !sourceName.endsWith(".parquet"))) {
-            // At least one queried data source is not in Direct From Parquet mode, so the queried table will
-            // have a hidden_bff_uid column
-            // LIMIT is non-deterministic without sorting
-            // So even if there is already an "order by" clause, secondarily sort on unique ID.
-            sqlBuilder = sqlBuilder.orderBy(DatabaseService.HIDDEN_UID_ANNOTATION);
-        }
-        const sql = sqlBuilder.toSQL();
+            .limit(request.limit)
+            .orderBy(orderBy)
+            .toSQL();
 
         const rows = await this.databaseService.query(sql);
         const env = this.downloadService.getEnvironmentFromUrl();
