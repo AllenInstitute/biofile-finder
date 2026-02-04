@@ -4,6 +4,7 @@ import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Column } from "../../state/selection/actions";
+import QueryMode from "../QueryMode";
 
 // These values CANNOT change otherwise it would break compatibility
 // with any existing URLs that use these in the encoding
@@ -16,9 +17,17 @@ export enum FileView {
 export const ACCEPTED_SOURCE_TYPES = ["csv", "json", "parquet"] as const;
 
 export interface Source {
+    mode?: QueryMode;
     name: string;
     type?: typeof ACCEPTED_SOURCE_TYPES[number];
     uri?: string | File;
+}
+
+export interface CompleteSource {
+    mode: QueryMode;
+    name: string;
+    type: typeof ACCEPTED_SOURCE_TYPES[number];
+    uri: string | File;
 }
 
 // Components of the application state this captures

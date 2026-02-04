@@ -6,9 +6,10 @@ import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { EdgeDefinition } from "../../entity/Graph";
-import { Source } from "../../entity/SearchParams";
+import { CompleteSource, Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
+import QueryMode from "../../entity/QueryMode";
 
 enum PreDefinedColumn {
     FILE_ID = "File ID",
@@ -110,11 +111,8 @@ export default class DatabaseService {
         this.database?.detach();
     }
 
-    protected async addDataSource(
-        name: string,
-        type: "csv" | "json" | "parquet",
-        uri: string | File
-    ): Promise<void> {
+    protected async addDataSource(dataSource: CompleteSource): Promise<void> {
+        const { name, type, uri, mode } = dataSource;
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
@@ -135,7 +133,9 @@ export default class DatabaseService {
         }
 
         if (type === "parquet") {
-            // No CREATE TABLE needed: queries to parquet files scale up much better than creating an in-memory table.
+            if (mode !== QueryMode.DIRECT_FROM_PARQUET) {
+                await this.execute(`CREATE TABLE "${name}" AS FROM parquet_scan('${name}');`);
+            }
         } else if (type === "json") {
             await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
         } else {
@@ -202,9 +202,9 @@ export default class DatabaseService {
     }
 
     private async prepareDataSource(dataSource: Source, skipNormalization: boolean): Promise<void> {
-        const { name, type, uri } = dataSource;
+        const { name, type, uri, mode } = dataSource;
 
-        if (!type || !uri) {
+        if (!type || !uri || !mode) {
             throw new DataSourcePreparationError(
                 `Lost access to the data source.\
                 </br> \
@@ -219,7 +219,7 @@ export default class DatabaseService {
 
         try {
             // Add the data source as a table on the database
-            await this.addDataSource(name, type, uri);
+            await this.addDataSource({ name, type, uri, mode });
 
             // Add data source name to in-memory set
             // for quick data source checks
@@ -227,7 +227,7 @@ export default class DatabaseService {
 
             // Unless skipped, this will ensure the table is prepared
             // for querying with the expected columns & uniqueness constraints
-            if (type != "parquet" && !skipNormalization) {
+            if (mode !== QueryMode.DIRECT_FROM_PARQUET && !skipNormalization) {
                 await this.normalizeDataSourceColumnNames(name);
 
                 const errors = await this.checkDataSourceForErrors(name);
@@ -235,7 +235,7 @@ export default class DatabaseService {
                     throw new Error(errors.join("</br></br>"));
                 }
 
-                await this.addRequiredColumns(dataSource.name);
+                await this.addRequiredColumns(name);
             }
         } catch (err) {
             let formattedError = (err as Error).message;

@@ -36,7 +36,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["whatever", "and another"],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.InMemoryOrFMS,
+                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const fileSet = new FileSet();
             const response = await databaseFileService.getFiles({
@@ -76,7 +76,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["whatever"],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.InMemoryOrFMS,
+                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const selection = new FileSelection().select({
                 fileSet: new FileSet({ fileService }),
@@ -99,7 +99,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["MockDataSource"],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.InMemoryOrFMS,
+                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const fileSet = new FileSet();
             const count = await fileService.getCountOfMatchingFiles(fileSet);
@@ -236,7 +236,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.InMemoryOrFMS,
+                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName = "Test Annotation";
@@ -256,7 +256,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.InMemoryOrFMS,
+                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName = "Test Annotation";
@@ -278,7 +278,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.InMemoryOrFMS,
+                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName1 = "Test Annotation 1";
@@ -304,7 +304,7 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.InMemoryOrFMS,
+                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName = "Test Annotation";

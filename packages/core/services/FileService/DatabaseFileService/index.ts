@@ -70,7 +70,7 @@ export default class DatabaseFileService implements FileService {
             dataSourceNames: [],
             databaseService: new DatabaseServiceNoop(),
             downloadService: new FileDownloadServiceNoop(),
-            queryMode: QueryMode.InMemoryOrFMS,
+            queryMode: QueryMode.IN_MEMORY_OR_FMS,
         }
     ) {
         this.databaseService = config.databaseService;
@@ -126,7 +126,7 @@ export default class DatabaseFileService implements FileService {
             return [];
         }
         const selectStatement =
-            this.queryMode == QueryMode.DirectFromParquet ? `*, ${this.getRowIDColumn()}` : "*";
+            this.queryMode == QueryMode.DIRECT_FROM_PARQUET ? `*, ${this.getRowIDColumn()}` : "*";
         const sql = request.fileSet
             .toQuerySQLBuilder()
             .select(selectStatement)

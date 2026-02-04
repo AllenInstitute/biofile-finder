@@ -120,7 +120,7 @@ export default class SQLBuilder {
         // Exception: COUNT(*) queries should not require sorting
         if (this.limitNum && !this.selectStatement.includes("COUNT(*)")) {
             this.orderByClauses.push(
-                this.queryMode == QueryMode.DirectFromParquet
+                this.queryMode == QueryMode.DIRECT_FROM_PARQUET
                     ? DatabaseService.PARQUET_ROW_NUMBER_COL
                     : DatabaseService.HIDDEN_UID_ANNOTATION
             );
