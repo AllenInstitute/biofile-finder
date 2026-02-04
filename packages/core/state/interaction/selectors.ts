@@ -25,7 +25,8 @@ import DatasetService, {
     PythonicDataAccessSnippet,
 } from "../../services/DataSourceService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
-import DatabaseFileService, { QueryMode } from "../../services/FileService/DatabaseFileService";
+import DatabaseFileService from "../../services/FileService/DatabaseFileService";
+import QueryMode from "../../entity/QueryMode";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
 import Graph from "../../entity/Graph";

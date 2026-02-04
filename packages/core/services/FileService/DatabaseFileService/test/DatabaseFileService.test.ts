@@ -8,8 +8,8 @@ import NumericRange from "../../../../entity/NumericRange";
 import SQLBuilder from "../../../../entity/SQLBuilder";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
-
-import DatabaseFileService, { QueryMode } from "..";
+import QueryMode from "../../../../entity/QueryMode";
+import DatabaseFileService from "..";
 
 describe("DatabaseFileService", () => {
     const totalFileSize = 864452;
@@ -114,7 +114,7 @@ describe("DatabaseFileService", () => {
 
         beforeEach(() => {
             sqlBuilder = new SQLBuilder().select("*").from("mock_source");
-            databaseFileService = new DatabaseFileService()
+            databaseFileService = new DatabaseFileService();
         });
 
         // the sql we produce has new lines that mess up comparison

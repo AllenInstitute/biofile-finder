@@ -1,4 +1,6 @@
 import { castArray } from "lodash";
+import QueryMode from "../QueryMode";
+import DatabaseService from "../../services/DatabaseService";
 
 /**
  * A simple SQL query builder.
@@ -12,7 +14,7 @@ export default class SQLBuilder {
     private orderByClauses: string[] = [];
     private offsetNum?: number;
     private limitNum?: number;
-    private unionSubQueries: SQLBuilder[] = [];
+    private queryMode?: QueryMode;
 
     /**
      * Utility function to create a regex match for a value in a list
@@ -28,14 +30,6 @@ export default class SQLBuilder {
         // Escape special characters for regex
         const escapedValue = `${value}`.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
         return `REGEXP_MATCHES(CAST("${column}" AS VARCHAR), '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
-    }
-
-    public union(subQueries: SQLBuilder[]): SQLBuilder {
-        if (this.fromStatement) {
-            throw new Error("SQLBuilder.union cannot be used with SQLBuilder.from");
-        }
-        this.unionSubQueries = this.unionSubQueries.concat(subQueries);
-        return this;
     }
 
     public describe(): SQLBuilder {
@@ -61,9 +55,6 @@ export default class SQLBuilder {
 
     // We could modify every call to .from to support direct from parquet mode, or we could rename the data sources.
     public from(statement: string | string[]): SQLBuilder {
-        if (this.fromStatement) {
-            throw new Error("SQLBuilder.from cannot be used with SQLBuilder.union");
-        }
         const statementAsArray = castArray(statement);
         if (!statementAsArray.length) {
             throw new Error('"FROM" statement requires at least one argument');
@@ -110,8 +101,9 @@ export default class SQLBuilder {
         return this;
     }
 
-    public limit(limit: number): SQLBuilder {
+    public limit(limit: number, queryMode: QueryMode): SQLBuilder {
         this.limitNum = limit;
+        this.queryMode = queryMode;
         return this;
     }
 
@@ -120,24 +112,24 @@ export default class SQLBuilder {
     }
 
     public toSQL(): string {
-        if (!this.fromStatement && this.unionSubQueries.length === 0) {
-            throw new Error("Unable to build SQL without a FROM or UNION");
+        if (!this.fromStatement) {
+            throw new Error("Unable to build SQL without a FROM statement");
         }
-        let selectionSQL;
-        if (this.fromStatement) {
-            selectionSQL = `
-                SELECT ${this.selectStatement}
-                FROM "${this.fromStatement}"
-            `;
-        } else {
-            selectionSQL = this.unionSubQueries
-                .map((subquery) => `(${subquery.toSQL()})`)
-                .join(" UNION ");
+        // LIMIT is non-deterministic without sorting
+        // So even if there is already an "order by" clause, secondarily sort on unique ID.
+        // Exception: COUNT(*) queries should not require sorting
+        if (this.limitNum && !this.selectStatement.includes("COUNT(*)")) {
+            this.orderByClauses.push(
+                this.queryMode == QueryMode.DirectFromParquet
+                    ? DatabaseService.PARQUET_ROW_NUMBER_COL
+                    : DatabaseService.HIDDEN_UID_ANNOTATION
+            );
         }
         return `
             ${this.isDescribing ? "DESCRIBE" : ""}
             ${this.isSummarizing ? "SUMMARIZE" : ""}
-            ${selectionSQL}
+            SELECT ${this.selectStatement}
+            FROM "${this.fromStatement}"
             ${this.whereClauses.length ? `WHERE (${this.whereClauses.join(") AND (")})` : ""}
             ${this.orderByClauses.length > 0 ? `ORDER BY ${this.orderByClauses.join(", ")}` : ""}
             ${this.limitNum !== undefined ? `LIMIT ${this.limitNum}` : ""}

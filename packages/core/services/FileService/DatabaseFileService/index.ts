@@ -17,11 +17,7 @@ import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
 import SQLBuilder from "../../../entity/SQLBuilder";
 import { Environment } from "../../../constants";
-
-export enum QueryMode {
-    InMemoryOrFMS,
-    DirectFromParquet,
-}
+import QueryMode, { getRowIDColumn } from "../../../entity/QueryMode";
 
 interface Config {
     databaseService: DatabaseService;
@@ -118,9 +114,7 @@ export default class DatabaseFileService implements FileService {
     }
 
     private getRowIDColumn() {
-        return this.queryMode == QueryMode.InMemoryOrFMS
-            ? DatabaseService.HIDDEN_UID_ANNOTATION
-            : DatabaseService.PARQUET_ROW_NUMBER_COL;
+        return getRowIDColumn(this.queryMode);
     }
 
     /**
@@ -131,15 +125,14 @@ export default class DatabaseFileService implements FileService {
         if (!this.dataSourceNames.length) {
             return [];
         }
-        const selectStatement = this.queryMode == QueryMode.DirectFromParquet
-            ? `*, ${this.getRowIDColumn()}` : '*';
+        const selectStatement =
+            this.queryMode == QueryMode.DirectFromParquet ? `*, ${this.getRowIDColumn()}` : "*";
         const sql = request.fileSet
             .toQuerySQLBuilder()
             .select(selectStatement)
             .from(this.dataSourceNames)
             .offset(request.from * request.limit)
-            .limit(request.limit)
-            .orderBy(this.getRowIDColumn())
+            .limit(request.limit, this.queryMode)
             .toSQL();
 
         const rows = await this.databaseService.query(sql);
@@ -200,12 +193,10 @@ export default class DatabaseFileService implements FileService {
                     .select(this.getRowIDColumn())
                     .from(dataSourceNames)
                     .offset(indexRange.start)
-                    .limit(indexRange.end - indexRange.start + 1);
+                    .limit(indexRange.end - indexRange.start + 1, this.queryMode);
 
                 DatabaseFileService.applyFiltersAndSorting(subQuery, selection);
-                subQueries.push(
-                    `${this.getRowIDColumn()} IN (${subQuery.toSQL()})`
-                );
+                subQueries.push(`${this.getRowIDColumn()} IN (${subQuery.toSQL()})`);
             });
         });
         // sqlBuilder whereOr isnt implemented, so we add our own "OR"
