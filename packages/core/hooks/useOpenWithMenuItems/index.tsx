@@ -314,7 +314,7 @@ function openWindowWithMessage(openUrl: URL, message: any): void {
 
     const handle = window.open(openUrl);
     const loadHandler = (event: MessageEvent): void => {
-        if (event.origin !== openUrl.origin || event.data !== storageid) {
+        if (event.origin !== openUrl.origin || event.source !== handle) {
             return;
         }
         handle?.postMessage(message, openUrl.origin);
