@@ -18,6 +18,7 @@ const ONE_MEGABYTE = 1024 * 1024;
 enum AppKeys {
     AGAVE = "agave",
     BROWSER = "browser",
+    FIJI = "fiji",
     NEUROGLANCER = "neuroglancer",
     SIMULARIUM = "simularium",
     VALIDATOR = "validator",
@@ -29,6 +30,7 @@ enum AppKeys {
 interface Apps {
     [AppKeys.AGAVE]: IContextualMenuItem;
     [AppKeys.BROWSER]: IContextualMenuItem;
+    [AppKeys.FIJI]: IContextualMenuItem;
     [AppKeys.NEUROGLANCER]: IContextualMenuItem;
     [AppKeys.SIMULARIUM]: IContextualMenuItem;
     [AppKeys.VALIDATOR]: IContextualMenuItem;
@@ -40,6 +42,7 @@ interface Apps {
 type AppOptions = {
     openInCfe: () => void;
     openInVolE: () => void;
+    openInFiji: () => void;
 };
 
 const SUPPORTED_APPS_HEADER = {
@@ -103,6 +106,39 @@ const APPS = (
                 <>
                     {defaultRenders.renderItemName(props)}
                     <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
+    [AppKeys.FIJI]: {
+        key: AppKeys.FIJI,
+        className: styles.desktopMenuItem,
+        text: "FIJI",
+        title: "Open files with FIJI (may require updating FIJI)",
+        onClick: options?.openInFiji,
+        // href: `fiji://open/source?p=${fileDetails?.getPathAsHttps()}`,
+        // href: `fiji://open/source?p=https://allencell.s3.amazonaws.com/aics/integrated_transcriptomics_structural_organization_hipsc_cm/2d_autocontrasted_fields_and_single_cells_fish_1/rescaled_2D_fov_tiff_path/029b7e65_ec4c125c_5500000013_63X_20190807_S1_P5_B4_annotations_corrected_rescaled.ome.tiff`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <a
+                        className={styles.viewLink}
+                        href="https://imagej.net/software/fiji/downloads"
+                        rel="noreferrer"
+                        target="_blank"
+                    >
+                        <DefaultButton
+                            className={styles.infoButton}
+                            title="Get info or download to enable use"
+                        >
+                            Info
+                            <Icon iconName="OpenInNewWindow" />
+                        </DefaultButton>
+                    </a>
+                    <span className={styles.secondaryText}>| Desktop</span>
                 </>
             );
         },
@@ -238,7 +274,7 @@ function getSupportedApps(
         case "svg":
         case "txt":
         case "xml":
-            return [apps.browser];
+            return isLikelyLocalFile ? [apps.fiji, apps.browser] : [apps.browser, apps.fiji];
         case "simularium":
             return [apps.simularium];
         case "dcm":
@@ -247,7 +283,9 @@ function getSupportedApps(
             return [apps.neuroglancer];
         case "tif":
         case "tiff":
-            return isSmallFile ? [apps.agave, apps.vole] : [apps.agave];
+            return isLikelyLocalFile || !isSmallFile
+                ? [apps.fiji, apps.agave]
+                : [apps.fiji, apps.agave, apps.vole];
         case "zarr":
         case "": // No extension
             return isLikelyLocalFile
@@ -267,7 +305,7 @@ function getSupportedApps(
             : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
     }
 
-    return [];
+    return [apps.fiji];
 }
 
 function getFileExtension({ path }: FileDetail): string {
@@ -351,6 +389,17 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const [isSmallFile, setIsSmallFile] = React.useState(false);
 
     const openInCfe = useOpenInCfe(fileSelection, annotationNames, fileService);
+
+    const openInFiji = React.useCallback(async (): Promise<void> => {
+        if (!fileDetails) return;
+        let path = fileDetails.path;
+        // Attempt to format the URL as an https resource so FIJI has an easier time opening it
+        if (fileDetails.path.startsWith("s3")) {
+            path = (await s3StorageService.formatAsHttpResource(fileDetails.path)) || path;
+        }
+        const fijiUrl = `fiji://open/source?p=${path}`;
+        window.open(fijiUrl);
+    }, [fileDetails, s3StorageService]);
 
     // custom hook this, like `useOpenInCfe`?
     const openInVolE = React.useCallback(async (): Promise<void> => {
@@ -478,7 +527,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const apps = APPS(fileDetails, { openInCfe, openInVolE });
+    const apps = APPS(fileDetails, { openInCfe, openInVolE, openInFiji });
 
     // Determine is the file is small or not asynchronously
     React.useEffect(() => {
