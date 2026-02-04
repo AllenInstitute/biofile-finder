@@ -6,7 +6,6 @@ import DatabaseService from "../../services/DatabaseService";
  * A simple SQL query builder.
  */
 export default class SQLBuilder {
-    private isSummarizing = false;
     private isDescribing = false;
     private selectStatement = "*";
     private fromStatement?: string;
@@ -33,18 +32,7 @@ export default class SQLBuilder {
     }
 
     public describe(): SQLBuilder {
-        if (this.isSummarizing) {
-            throw new Error('"DESCRIBE" cannot be used with "SUMMARIZE"');
-        }
         this.isDescribing = true;
-        return this;
-    }
-
-    public summarize(): SQLBuilder {
-        if (this.isDescribing) {
-            throw new Error('"SUMMARIZE" cannot be used with "DESCRIBE"');
-        }
-        this.isSummarizing = true;
         return this;
     }
 
@@ -96,14 +84,14 @@ export default class SQLBuilder {
         return this;
     }
 
-    public offset(offset: number): SQLBuilder {
+    public offset(offset: number, queryMode: QueryMode): SQLBuilder {
         this.offsetNum = offset;
+        this.queryMode = queryMode;
         return this;
     }
 
-    public limit(limit: number, queryMode: QueryMode): SQLBuilder {
+    public limit(limit: number): SQLBuilder {
         this.limitNum = limit;
-        this.queryMode = queryMode;
         return this;
     }
 
@@ -115,10 +103,13 @@ export default class SQLBuilder {
         if (!this.fromStatement) {
             throw new Error("Unable to build SQL without a FROM statement");
         }
-        // LIMIT is non-deterministic without sorting
+        // LIMIT and OFFSET are non-deterministic without sorting.
+        // There are some use cases for queries with a non-deterministic LIMIT 1, but BFF
+        // doesn't have use cases for non-deterministic OFFSET queries, so use presence of
+        // OFFSET to decide whether to make this deterministic.
         // So even if there is already an "order by" clause, secondarily sort on unique ID.
         // Exception: COUNT(*) queries should not require sorting
-        if (this.limitNum && !this.selectStatement.includes("COUNT(*)")) {
+        if (this.offsetNum && !this.selectStatement.includes("COUNT(*)")) {
             this.orderByClauses.push(
                 this.queryMode == QueryMode.DIRECT_FROM_PARQUET
                     ? DatabaseService.PARQUET_ROW_NUMBER_COL
@@ -127,7 +118,6 @@ export default class SQLBuilder {
         }
         return `
             ${this.isDescribing ? "DESCRIBE" : ""}
-            ${this.isSummarizing ? "SUMMARIZE" : ""}
             SELECT ${this.selectStatement}
             FROM "${this.fromStatement}"
             ${this.whereClauses.length ? `WHERE (${this.whereClauses.join(") AND (")})` : ""}

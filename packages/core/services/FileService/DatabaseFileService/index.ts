@@ -131,8 +131,8 @@ export default class DatabaseFileService implements FileService {
             .toQuerySQLBuilder()
             .select(selectStatement)
             .from(this.dataSourceNames)
-            .offset(request.from * request.limit)
-            .limit(request.limit, this.queryMode)
+            .offset(request.from * request.limit, this.queryMode)
+            .limit(request.limit)
             .toSQL();
 
         const rows = await this.databaseService.query(sql);
@@ -192,8 +192,8 @@ export default class DatabaseFileService implements FileService {
                 const subQuery = new SQLBuilder()
                     .select(this.getRowIDColumn())
                     .from(dataSourceNames)
-                    .offset(indexRange.start)
-                    .limit(indexRange.end - indexRange.start + 1, this.queryMode);
+                    .offset(indexRange.start, this.queryMode)
+                    .limit(indexRange.end - indexRange.start + 1);
 
                 DatabaseFileService.applyFiltersAndSorting(subQuery, selection);
                 subQueries.push(`${this.getRowIDColumn()} IN (${subQuery.toSQL()})`);
