@@ -116,8 +116,6 @@ const APPS = (
         text: "FIJI",
         title: "Open files with FIJI (may require updating FIJI)",
         onClick: options?.openInFiji,
-        // href: `fiji://open/source?p=${fileDetails?.getPathAsHttps()}`,
-        // href: `fiji://open/source?p=https://allencell.s3.amazonaws.com/aics/integrated_transcriptomics_structural_organization_hipsc_cm/2d_autocontrasted_fields_and_single_cells_fish_1/rescaled_2D_fov_tiff_path/029b7e65_ec4c125c_5500000013_63X_20190807_S1_P5_B4_annotations_corrected_rescaled.ome.tiff`,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
