@@ -81,7 +81,6 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                 downloadUrl = path;
             }
         } else {
-            // return this.downloadCloudFile(fileInfo.path, onProgress, destination);
             return this.downloadHttpFile(fileInfo, downloadRequestId, onProgress, destination);
         }
 
