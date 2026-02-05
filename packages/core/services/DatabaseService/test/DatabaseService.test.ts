@@ -10,6 +10,7 @@ import DatabaseService from "..";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
+import QueryMode from "../../../entity/QueryMode";
 
 describe("DatabaseService", () => {
     describe("fetchAnnotations", () => {
@@ -102,10 +103,11 @@ describe("DatabaseService", () => {
                 // Act
                 // Skip normalization
                 await service.prepareDataSources(
-                    [{ name: tempFileName, type, uri: tempFile }],
+                    [{ name: tempFileName, type, uri: tempFile, mode: QueryMode.IN_MEMORY_OR_FMS }],
                     true
                 );
                 // Assert
+                // const sourceName = type === "parquet" ? `${tempFileName}.parquet` : tempFileName;
                 expect(service.hasDataSource(tempFileName)).to.be.true;
             });
         });
@@ -154,7 +156,12 @@ describe("DatabaseService", () => {
             // Act
             try {
                 await service.prepareDataSources([
-                    { name: tempFileName, type: "csv", uri: tempFile },
+                    {
+                        name: tempFileName,
+                        type: "csv",
+                        uri: tempFile,
+                        mode: QueryMode.IN_MEMORY_OR_FMS,
+                    },
                 ]);
             } catch (error) {
                 caughtError = error;

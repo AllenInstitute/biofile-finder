@@ -53,6 +53,7 @@ import { DataSource } from "../../../services/DataSourceService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
+import QueryMode from "../../../entity/QueryMode";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -720,7 +721,14 @@ describe("Selection logics", () => {
                     hierarchy: [],
                     filters: [],
                     openFolders: [],
-                    sources: [{ name: dataSourceName, type: "csv", uri }],
+                    sources: [
+                        {
+                            name: dataSourceName,
+                            type: "csv",
+                            uri,
+                            mode: QueryMode.IN_MEMORY_OR_FMS,
+                        },
+                    ],
                 },
             };
         };
