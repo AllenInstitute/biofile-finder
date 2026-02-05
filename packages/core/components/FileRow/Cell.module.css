@@ -11,6 +11,7 @@
     font-size: initial;
     height: 100%;
     line-height: normal;
+    background-color: inherit;
 }
 
 .cell:first-of-type {
@@ -30,16 +31,17 @@
 }
 
 .resize-target {
-    background-color: var(--highlight-background-color);
-    height: 18px;
+    color: var(--highlight-background-color);
+    font-size: 18px;
+    font-weight: bolder;
     position: absolute;
     right: calc(1em / 2);
     text-align: center;
-    top: 0;
+    top: 3px;
     touch-action: none;
-    width: 2px;
+    width: 5px;
 }
 
 .resize-target:hover {
-    background-color: var(--highlight-hover-background-color);
+    color: var(--highlight-hover-background-color);
 }
