@@ -127,6 +127,7 @@ const APPS = (
                         href="https://imagej.net/software/fiji/downloads"
                         rel="noreferrer"
                         target="_blank"
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <DefaultButton
                             className={styles.infoButton}
