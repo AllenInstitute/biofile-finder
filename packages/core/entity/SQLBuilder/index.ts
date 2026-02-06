@@ -109,7 +109,7 @@ export default class SQLBuilder {
         // OFFSET to decide whether to make this deterministic.
         // So even if there is already an "order by" clause, secondarily sort on unique ID.
         // Exception: COUNT(*) queries should not require sorting
-        if (this.offsetNum && !this.selectStatement.includes("COUNT(*)")) {
+        if (this.offsetNum !== undefined && !this.selectStatement.includes("COUNT(*)")) {
             this.orderByClauses.push(
                 this.queryMode == QueryMode.DIRECT_FROM_PARQUET
                     ? DatabaseService.PARQUET_ROW_NUMBER_COL
