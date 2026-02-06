@@ -221,10 +221,7 @@ export const getPublicDatasetManifestService = createSelector(
             databaseService: platformDependentServices.databaseService,
             dataSourceNames: [datasetManifestSource.name],
             downloadService: platformDependentServices.fileDownloadService,
-            queryMode:
-                datasetManifestSource.type == "parquet"
-                    ? QueryMode.DIRECT_FROM_PARQUET
-                    : QueryMode.IN_MEMORY_OR_FMS,
+            queryMode: QueryMode.IN_MEMORY_OR_FMS,
         });
     }
 );
