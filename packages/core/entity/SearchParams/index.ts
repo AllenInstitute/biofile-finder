@@ -23,6 +23,8 @@ export interface Source {
     uri?: string | File;
 }
 
+// CompleteSource is just for the type checker: so we can have a Source where
+// that is statically checked for no undefined values.
 export interface CompleteSource {
     mode: QueryMode;
     name: string;
