@@ -5,12 +5,12 @@ import { useDispatch, useSelector } from "react-redux";
 
 import FilePrompt from "./FilePrompt";
 import { LinkLikeButton, PrimaryButton, TransparentIconButton } from "../Buttons";
+import QueryMode from "../../entity/QueryMode";
 import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
 
 import styles from "./DataSourcePrompt.module.css";
-import QueryMode from "../../entity/QueryMode";
 
 interface Props {
     className?: string;
