@@ -98,7 +98,8 @@ describe("DatabaseFileService", () => {
             });
             // Act
             await databaseFileService.getFiles({
-                from: 1,
+                // This is a regression test. OFFSET 0 was a specific edge case
+                from: 0,
                 limit: 10,
                 fileSet: new FileSet(),
             });
