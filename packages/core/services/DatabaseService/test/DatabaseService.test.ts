@@ -107,7 +107,6 @@ describe("DatabaseService", () => {
                     true
                 );
                 // Assert
-                // const sourceName = type === "parquet" ? `${tempFileName}.parquet` : tempFileName;
                 expect(service.hasDataSource(tempFileName)).to.be.true;
             });
         });
