@@ -28,6 +28,7 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
+import S3StorageService from "../../services/S3StorageService";
 import Graph from "../../entity/Graph";
 
 // BASIC SELECTORS
@@ -201,6 +202,8 @@ export const getFileService = createSelector(
         return httpFileService;
     }
 );
+
+export const getS3StorageService = createSelector([], () => new S3StorageService());
 
 /**
  * Selector specifically for open-source dataset manifest, re-using regular file service interface.

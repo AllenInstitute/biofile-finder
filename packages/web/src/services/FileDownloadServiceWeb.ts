@@ -1,5 +1,6 @@
 import axios, { Canceler } from "axios";
 import JSZip from "jszip";
+
 import {
     FileDownloadService,
     DownloadResult,
@@ -7,16 +8,16 @@ import {
     DownloadResolution,
 } from "../../../core/services";
 import { MAX_DOWNLOAD_SIZE_WEB } from "../../../core/services/FileDownloadService";
-
-interface ActiveRequestMap {
-    [id: string]: {
-        cancel: () => void;
-    };
-}
+import { isMultiObjectFile } from "../../../core/services/S3StorageService";
 
 export default class FileDownloadServiceWeb extends FileDownloadService {
     isFileSystemAccessible = false;
-    private readonly activeRequestMap: ActiveRequestMap = {};
+
+    // TODO: Test this in unit tests
+    public static isLocalPath(filePath: string): boolean {
+        const uriPattern = /^(https?|ftp):\/\/|^[a-zA-Z]:\\/;
+        return filePath.startsWith("file://") || !uriPattern.test(filePath);
+    }
 
     public download(
         fileInfo: FileInfo,
@@ -24,32 +25,27 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        if (FileDownloadService.isZarr(fileInfo.path)) {
-            return this.handleZarrFile(fileInfo, downloadRequestId, onProgress, destination);
+        if (isMultiObjectFile(fileInfo.path)) {
+            return this.downloadDirectory(fileInfo, downloadRequestId, onProgress, destination);
         }
 
         return this.downloadFile(fileInfo);
     }
 
-    private handleZarrFile(
+    private downloadDirectory(
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        if (this.isLocalPath(fileInfo.path)) {
-            return Promise.resolve(this.handleLocalZarrFile(fileInfo));
+        if (FileDownloadServiceWeb.isLocalPath(fileInfo.path)) {
+            return Promise.resolve(this.downloadLocalDirectory(fileInfo));
         }
 
-        return this.downloadS3Directory(fileInfo, downloadRequestId, onProgress, destination);
+        return this.downloadCloudDirectory(fileInfo, downloadRequestId, onProgress, destination);
     }
 
-    private isLocalPath(filePath: string): boolean {
-        const uriPattern = /^(https?|ftp):\/\/|^[a-zA-Z]:\\/;
-        return filePath.startsWith("file://") || !uriPattern.test(filePath);
-    }
-
-    private handleLocalZarrFile(fileInfo: FileInfo): DownloadResult {
+    private downloadLocalDirectory(fileInfo: FileInfo): DownloadResult {
         const directoryPath = fileInfo.path;
         const message = `The directory containing the Zarr file is located at: ${directoryPath}.
 Due to security restrictions, the web browser cannot open this location directly. 
@@ -58,20 +54,20 @@ Please navigate to this directory manually, or upload files to a remote address 
         throw new Error(message);
     }
 
-    private async downloadS3Directory(
+    private async downloadCloudDirectory(
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        // Calculate the total size of the S3 directory
-        const parsedUrl = await this.parseUrl(fileInfo.path);
-        if (parsedUrl === undefined) {
+        const cloudDirInfo = await this.s3StorageService.getCloudDirectoryInfo(fileInfo.path);
+        if (!cloudDirInfo) {
             throw new Error(
-                `The file path "${fileInfo.path}" is not supported for Zarr downloads in the web environment. 
-                Only S3 URLs are supported. Please upload your files to an S3 bucket for web-based downloads.`
+                `Unable to determine size of directory at "${fileInfo.path}".
+                This may happen if the path is of a cloud format we are unfamiliar with.`
             );
         }
+        const { size, parsedUrl } = cloudDirInfo;
 
         // Check if the total size exceeds 2 GB.
         // Most modern web browsers have memory constraints that limit them to using approximately 2 GB of RAM.
@@ -79,20 +75,18 @@ Please navigate to this directory manually, or upload files to a remote address 
         // This check ensures that the total download size does not surpass the supported 2 GB threshold.
         // Additionally, zarr size is calculated using the same traversal method as downloads,
         // meaning that if the size cannot be determined, the download is also not possible.
-        const totalSize = await this.calculateS3DirectorySize(parsedUrl);
-        if (totalSize > MAX_DOWNLOAD_SIZE_WEB) {
+        if (size > MAX_DOWNLOAD_SIZE_WEB) {
             throw new Error(
                 `The total download size of the requested zarr file exceeds the 2 GB RAM limit supported by web browsers. ` +
-                    `Attempting to download a total size of ${(
-                        totalSize /
-                        (1024 * 1024 * 1024)
-                    ).toFixed(2)} GB can lead to ` +
+                    `Attempting to download a total size of ${(size / (1024 * 1024 * 1024)).toFixed(
+                        2
+                    )} GB can lead to ` +
                     `browser memory issues, potential crashes, or failed downloads.`
             );
         }
 
-        const keys = await this.listS3Objects(parsedUrl);
-        if (keys.length === 0) {
+        const objectsInDir = await this.s3StorageService.getObjectsInDirectory(parsedUrl);
+        if (objectsInDir.length === 0) {
             throw new Error("No files found in the specified S3 directory.");
         }
 
@@ -105,16 +99,12 @@ Please navigate to this directory manually, or upload files to a remote address 
         };
 
         // Download each file and add it to the ZIP archive
-        for (const fileKey of keys) {
-            const fileUrl = FileDownloadService.formatUrlAsFileResource({
-                ...parsedUrl,
-                key: fileKey,
-            });
-            const fileName = fileKey.replace(`${parsedUrl.key}/`, ""); // Local file name in zip
+        for (const objectInDir of objectsInDir) {
+            const fileName = objectInDir.name.replace(`${parsedUrl.key}/`, ""); // Local file name in zip
 
             let fileBytesDownloaded = 0; // Track the bytes for the current file
 
-            const response = await axios.get(fileUrl, {
+            const response = await axios.get(objectInDir.url, {
                 responseType: "blob",
                 onDownloadProgress: (progressEvent) => {
                     const { loaded } = progressEvent;
@@ -124,7 +114,7 @@ Please navigate to this directory manually, or upload files to a remote address 
                     fileBytesDownloaded = loaded;
 
                     // Pass only the new bytes downloaded to onProgress
-                    if (onProgress && totalSize > 0) {
+                    if (onProgress && size > 0) {
                         onProgress(newBytes);
                     }
                 },
@@ -170,8 +160,7 @@ Please navigate to this directory manually, or upload files to a remote address 
         } else if (typeof data === "string") {
             // See if the data is a URL that needs to be formatted
             // this would be the case for S3 protocol URLs for example
-            const parsedUrl = await this.parseUrl(data);
-            downloadUrl = parsedUrl ? FileDownloadService.formatUrlAsFileResource(parsedUrl) : data;
+            downloadUrl = (await this.s3StorageService.formatAsHttpResource(data)) || data;
         } else {
             throw new Error("Unsupported data type for download");
         }
@@ -193,13 +182,6 @@ Please navigate to this directory manually, or upload files to a remote address 
             throw err;
         } finally {
             URL.revokeObjectURL(downloadUrl);
-        }
-    }
-
-    public cancelActiveRequest(downloadRequestId: string): void {
-        if (this.activeRequestMap[downloadRequestId]) {
-            this.activeRequestMap[downloadRequestId].cancel();
-            delete this.activeRequestMap[downloadRequestId];
         }
     }
 
