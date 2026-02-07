@@ -17,13 +17,11 @@ import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
 import SQLBuilder from "../../../entity/SQLBuilder";
 import { Environment } from "../../../constants";
-import QueryMode, { getRowIDColumn } from "../../../entity/QueryMode";
 
 interface Config {
     databaseService: DatabaseService;
     dataSourceNames: string[];
     downloadService: FileDownloadService;
-    queryMode: QueryMode;
 }
 
 /**
@@ -33,15 +31,14 @@ export default class DatabaseFileService implements FileService {
     private readonly databaseService: DatabaseService;
     private readonly downloadService: FileDownloadService;
     private readonly dataSourceNames: string[];
-    private readonly queryMode: QueryMode;
 
-    private convertDatabaseRowToFileDetail(
+    private static convertDatabaseRowToFileDetail(
         row: { [key: string]: string },
         env: Environment
     ): FileDetail {
-        const uniqueId: string | undefined = row[this.getRowIDColumn()];
+        const uniqueId: string | undefined = row[DatabaseService.HIDDEN_UID_ANNOTATION];
         if (!uniqueId) {
-            throw new Error(`Missing unique ID column ${this.getRowIDColumn()}`);
+            throw new Error("Missing auto-generated unique ID");
         }
 
         return new FileDetail(
@@ -51,7 +48,7 @@ export default class DatabaseFileService implements FileService {
                         ([name, values]) =>
                             !isNil(values) &&
                             // Omit hidden UID annotation
-                            name !== this.getRowIDColumn()
+                            name !== DatabaseService.HIDDEN_UID_ANNOTATION
                     )
                     .map(([name, values]) => ({
                         name,
@@ -70,13 +67,11 @@ export default class DatabaseFileService implements FileService {
             dataSourceNames: [],
             databaseService: new DatabaseServiceNoop(),
             downloadService: new FileDownloadServiceNoop(),
-            queryMode: QueryMode.IN_MEMORY_OR_FMS,
         }
     ) {
         this.databaseService = config.databaseService;
         this.downloadService = config.downloadService;
         this.dataSourceNames = config.dataSourceNames;
-        this.queryMode = config.queryMode;
     }
 
     public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
@@ -113,10 +108,6 @@ export default class DatabaseFileService implements FileService {
         return { count, size };
     }
 
-    private getRowIDColumn() {
-        return getRowIDColumn(this.queryMode);
-    }
-
     /**
      * Get list of file documents that match a given filter, potentially according to a particular sort order,
      * and potentially starting from a particular file_id and limited to a set number of files.
@@ -125,26 +116,23 @@ export default class DatabaseFileService implements FileService {
         if (!this.dataSourceNames.length) {
             return [];
         }
-        const selectStatement =
-            this.queryMode == QueryMode.DIRECT_FROM_PARQUET ? `*, ${this.getRowIDColumn()}` : "*";
         const sql = request.fileSet
             .toQuerySQLBuilder()
-            .select(selectStatement)
             .from(this.dataSourceNames)
-            .offset(request.from * request.limit, this.queryMode)
+            .offset(request.from * request.limit)
             .limit(request.limit)
             .toSQL();
 
         const rows = await this.databaseService.query(sql);
         const env = this.downloadService.getEnvironmentFromUrl();
-        return rows.map((row) => this.convertDatabaseRowToFileDetail(row, env));
+        return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
     }
 
     private getSelectionSql(annotations: string[], selections: Selection[]): string {
         const sqlBuilder = new SQLBuilder()
             .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
             .from(this.dataSourceNames);
-        this.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
+        DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
         return sqlBuilder.toSQL();
     }
 
@@ -180,7 +168,7 @@ export default class DatabaseFileService implements FileService {
     /**
      * Processes selections and applies WHERE clause directly to the SQLBuilder.
      */
-    public applySelectionFilters(
+    public static applySelectionFilters(
         sqlBuilder: SQLBuilder,
         selections: Selection[],
         dataSourceNames: string[]
@@ -190,13 +178,15 @@ export default class DatabaseFileService implements FileService {
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
-                    .select(this.getRowIDColumn())
+                    .select(DatabaseService.HIDDEN_UID_ANNOTATION)
                     .from(dataSourceNames)
-                    .offset(indexRange.start, this.queryMode)
+                    .offset(indexRange.start)
                     .limit(indexRange.end - indexRange.start + 1);
 
                 DatabaseFileService.applyFiltersAndSorting(subQuery, selection);
-                subQueries.push(`${this.getRowIDColumn()} IN (${subQuery.toSQL()})`);
+                subQueries.push(
+                    `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`
+                );
             });
         });
         // sqlBuilder whereOr isnt implemented, so we add our own "OR"

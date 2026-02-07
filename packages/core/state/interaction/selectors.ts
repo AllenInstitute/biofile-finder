@@ -26,7 +26,6 @@ import DatasetService, {
 } from "../../services/DataSourceService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
-import QueryMode from "../../entity/QueryMode";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
 import Graph from "../../entity/Graph";
@@ -196,9 +195,6 @@ export const getFileService = createSelector(
                 databaseService: platformDependentServices.databaseService,
                 dataSourceNames: dataSourceNames.map((source) => source.name),
                 downloadService: platformDependentServices.fileDownloadService,
-                queryMode: dataSourceNames.some((source) => source.type == "parquet")
-                    ? QueryMode.DIRECT_FROM_PARQUET
-                    : QueryMode.IN_MEMORY_OR_FMS,
             });
         }
 
@@ -221,7 +217,6 @@ export const getPublicDatasetManifestService = createSelector(
             databaseService: platformDependentServices.databaseService,
             dataSourceNames: [datasetManifestSource.name],
             downloadService: platformDependentServices.fileDownloadService,
-            queryMode: QueryMode.IN_MEMORY_OR_FMS,
         });
     }
 );

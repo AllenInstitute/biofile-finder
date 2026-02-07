@@ -1,6 +1,5 @@
 import { castArray } from "lodash";
-import QueryMode from "../QueryMode";
-import DatabaseService from "../../services/DatabaseService";
+import { DatabaseService } from "../../services";
 
 /**
  * A simple SQL query builder.
@@ -13,7 +12,6 @@ export default class SQLBuilder {
     private orderByClauses: string[] = [];
     private offsetNum?: number;
     private limitNum?: number;
-    private queryMode?: QueryMode;
 
     /**
      * Utility function to create a regex match for a value in a list
@@ -41,7 +39,6 @@ export default class SQLBuilder {
         return this;
     }
 
-    // We could modify every call to .from to support direct from parquet mode, or we could rename the data sources.
     public from(statement: string | string[]): SQLBuilder {
         const statementAsArray = castArray(statement);
         if (!statementAsArray.length) {
@@ -84,9 +81,8 @@ export default class SQLBuilder {
         return this;
     }
 
-    public offset(offset: number, queryMode: QueryMode): SQLBuilder {
+    public offset(offset: number): SQLBuilder {
         this.offsetNum = offset;
-        this.queryMode = queryMode;
         return this;
     }
 
@@ -110,11 +106,7 @@ export default class SQLBuilder {
         // So even if there is already an "order by" clause, secondarily sort on unique ID.
         // Exception: COUNT(*) queries should not require sorting
         if (this.offsetNum !== undefined && !this.selectStatement.includes("COUNT(*)")) {
-            this.orderByClauses.push(
-                this.queryMode == QueryMode.DIRECT_FROM_PARQUET
-                    ? DatabaseService.PARQUET_ROW_NUMBER_COL
-                    : DatabaseService.HIDDEN_UID_ANNOTATION
-            );
+            this.orderByClauses.push(DatabaseService.HIDDEN_UID_ANNOTATION);
         }
         return `
             ${this.isDescribing ? "DESCRIBE" : ""}

@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 
 import FilePrompt from "./FilePrompt";
 import { LinkLikeButton, PrimaryButton, TransparentIconButton } from "../Buttons";
-import QueryMode from "../../entity/QueryMode";
 import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
@@ -52,26 +51,6 @@ export default function DataSourcePrompt(props: Props) {
     };
 
     const onSubmit = (dataSource: Source, metadataSource?: Source) => {
-        if (dataSource.type === "parquet") {
-            dataSource = {
-                ...dataSource,
-                // The `name` field is used in FROM clauses; Direct From Parquet mode
-                // needs the filename with extension
-                name: `${dataSource.name}.parquet`,
-                mode: QueryMode.DIRECT_FROM_PARQUET,
-            };
-        } else {
-            dataSource = {
-                ...dataSource,
-                mode: QueryMode.IN_MEMORY_OR_FMS,
-            };
-        }
-        if (metadataSource) {
-            metadataSource = {
-                ...metadataSource,
-                mode: QueryMode.IN_MEMORY_OR_FMS,
-            };
-        }
         if (sourceType === DataSourceType.provenance) {
             if (dataSource) {
                 dispatch(selection.actions.changeProvenanceSource(dataSource));

@@ -10,7 +10,6 @@ import DatabaseService from "..";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
-import QueryMode from "../../../entity/QueryMode";
 
 describe("DatabaseService", () => {
     describe("fetchAnnotations", () => {
@@ -103,7 +102,7 @@ describe("DatabaseService", () => {
                 // Act
                 // Skip normalization
                 await service.prepareDataSources(
-                    [{ name: tempFileName, type, uri: tempFile, mode: QueryMode.IN_MEMORY_OR_FMS }],
+                    [{ name: tempFileName, type, uri: tempFile }],
                     true
                 );
                 // Assert
@@ -155,12 +154,7 @@ describe("DatabaseService", () => {
             // Act
             try {
                 await service.prepareDataSources([
-                    {
-                        name: tempFileName,
-                        type: "csv",
-                        uri: tempFile,
-                        mode: QueryMode.IN_MEMORY_OR_FMS,
-                    },
+                    { name: tempFileName, type: "csv", uri: tempFile },
                 ]);
             } catch (error) {
                 caughtError = error;

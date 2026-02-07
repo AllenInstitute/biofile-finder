@@ -8,7 +8,7 @@ import NumericRange from "../../../../entity/NumericRange";
 import SQLBuilder from "../../../../entity/SQLBuilder";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
-import QueryMode from "../../../../entity/QueryMode";
+
 import DatabaseFileService from "..";
 
 describe("DatabaseFileService", () => {
@@ -41,7 +41,6 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["whatever", "and another"],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const fileSet = new FileSet();
             const response = await databaseFileService.getFiles({
@@ -73,11 +72,11 @@ describe("DatabaseFileService", () => {
             });
         });
 
-        it("sorts by file_row_number in DIRECT_FROM_PARQUET mode when offset is used", async () => {
+        it("sorts parquets by hidden_bff_uid when offset is used", async () => {
             // Arrange
             const parquetFiles = [
                 {
-                    [DatabaseService.PARQUET_ROW_NUMBER_COL]: "1",
+                    [DatabaseService.HIDDEN_UID_ANNOTATION]: "1",
                     "File ID": "123",
                 },
             ];
@@ -94,7 +93,6 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["parquet_source"],
                 databaseService: mockDbService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.DIRECT_FROM_PARQUET,
             });
             // Act
             await databaseFileService.getFiles({
@@ -105,7 +103,7 @@ describe("DatabaseFileService", () => {
             });
 
             // Assert
-            expect(querySpy.calledWith(match(/ORDER BY\s+file_row_number/i))).to.be.true;
+            expect(querySpy.calledWith(match(/ORDER BY\s+hidden_bff_uid/i))).to.be.true;
         });
     });
 
@@ -116,7 +114,6 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["whatever"],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const selection = new FileSelection().select({
                 fileSet: new FileSet({ fileService }),
@@ -139,7 +136,6 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["MockDataSource"],
                 databaseService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const fileSet = new FileSet();
             const count = await fileService.getCountOfMatchingFiles(fileSet);
@@ -150,11 +146,9 @@ describe("DatabaseFileService", () => {
     describe("applySelectionFilters", () => {
         // Setup
         let sqlBuilder: SQLBuilder;
-        let databaseFileService: DatabaseFileService;
 
         beforeEach(() => {
             sqlBuilder = new SQLBuilder().select("*").from("mock_source");
-            databaseFileService = new DatabaseFileService();
         });
 
         // the sql we produce has new lines that mess up comparison
@@ -176,7 +170,7 @@ describe("DatabaseFileService", () => {
             ];
 
             // Act
-            databaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
+            DatabaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
             const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
 
             // Assert
@@ -195,7 +189,7 @@ describe("DatabaseFileService", () => {
             ];
 
             // Act
-            databaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
+            DatabaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
             const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
 
             // Assert
@@ -224,11 +218,11 @@ describe("DatabaseFileService", () => {
             const sqlBuilderAND = new SQLBuilder().select("*").from("mock_source");
 
             // Act
-            databaseFileService.applySelectionFilters(sqlBuilder, selectionsWithOR, [
+            DatabaseFileService.applySelectionFilters(sqlBuilder, selectionsWithOR, [
                 "mock_source",
             ]);
             const modifiedSQLWithOR = normalizeSQL(sqlBuilder.toSQL());
-            databaseFileService.applySelectionFilters(sqlBuilderAND, selectionsWithAND, [
+            DatabaseFileService.applySelectionFilters(sqlBuilderAND, selectionsWithAND, [
                 "mock_source",
             ]);
             const modifiedSQLWithAND = normalizeSQL(sqlBuilderAND.toSQL());
@@ -276,7 +270,6 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName = "Test Annotation";
@@ -296,7 +289,6 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName = "Test Annotation";
@@ -318,7 +310,6 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName1 = "Test Annotation 1";
@@ -344,7 +335,6 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["Mock Source"],
                 databaseService: databaseEditService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.IN_MEMORY_OR_FMS,
             });
             const sqlSpy = sandbox.spy(databaseEditService, "execute");
             const annotationName = "Test Annotation";
@@ -362,7 +352,7 @@ describe("DatabaseFileService", () => {
             sandbox.restore();
         });
 
-        it("uses file_row_number to select files in DIRECT_FROM_PARQUET mode", async () => {
+        it("uses hidden_bff_uid to select files", async () => {
             // Arrange
             class MockParquetManifestService extends DatabaseServiceNoop {
                 protected readonly existingDataSources = new Set(["parquet_source"]);
@@ -381,7 +371,6 @@ describe("DatabaseFileService", () => {
                 dataSourceNames: ["parquet_source"],
                 databaseService: mockDbService,
                 downloadService: new FileDownloadServiceNoop(),
-                queryMode: QueryMode.DIRECT_FROM_PARQUET,
             });
 
             const selections = [
@@ -397,7 +386,7 @@ describe("DatabaseFileService", () => {
 
             // Assert
             const any = match(/.*/);
-            expect(saveQuerySpy.calledWith(any, match(/file_row_number\s+IN\s*\(/i), any)).to.be
+            expect(saveQuerySpy.calledWith(any, match(/hidden_bff_uid\s+IN\s*\(/i), any)).to.be
                 .true;
         });
     });
