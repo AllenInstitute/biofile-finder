@@ -524,7 +524,6 @@ export default class DatabaseService {
         viewName: string,
         parquetInternalName: string
     ): Promise<void> {
-        this.getColumnsOnDataSource;
         // 1. Get original column names from the user's table.
         // Note: we don't use this.getColumnsOnDataSource, since that expects a
         // fully built data source, and this function is used for creating a
