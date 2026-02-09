@@ -14,10 +14,8 @@ interface Config {
     dataSourceNames: string[];
 }
 
-interface SummarizeQueryResult {
-    [key: string]: string;
+interface QueryResult {
     column_name: string;
-    null_percentage: string;
 }
 
 /**
@@ -145,21 +143,32 @@ export default class DatabaseAnnotationService implements AnnotationService {
             return [];
         }
 
-        const sql = new SQLBuilder()
-            .summarize()
-            .from(this.dataSourceNames)
-            .where(annotations.map((annotation) => `"${annotation}" IS NOT NULL`))
+        // Subquery 1
+        const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
+        const columnNamesSql= new SQLBuilder()
+            .from(aggregateDataSourceName)
+            .limit(1)
             .toSQL();
-        const rows = (await this.databaseService.query(sql)) as SummarizeQueryResult[];
-        const annotationSet = new Set(annotations);
-        return rows
-            .reduce((annotations, row) => {
-                if (row["null_percentage"] !== "100.0%") {
-                    annotations.push(row["column_name"]);
-                }
-                return annotations;
-            }, [] as string[])
-            .filter((annotation) => !annotationSet.has(annotation));
+        const queryResult = await this.databaseService.query(columnNamesSql);
+        const columnNames = Object.keys(queryResult[0]);
+
+        const queries = columnNames.map(columnName => {
+            const sql = new SQLBuilder()
+                .select(`'${columnName}' AS column_name`)
+                .from(aggregateDataSourceName)
+                .where(`"${columnName}" IS NOT NULL`)
+                .where(annotations.map(annotation => `"${annotation}" IS NOT NULL`))
+                // This limit is non-deterministic, but we just want to know if
+                // any rows are non-null for this column, and a
+                // non-deterministic query will be faster.
+                .limit(1)
+                .toSQL();
+            return this.databaseService.query(sql);
+        });
+        const results = (await Promise.all(queries)) as QueryResult[][];
+        return results
+            .filter(result => result.length > 0)
+            .map(result => result[0].column_name);
     }
 
     /**

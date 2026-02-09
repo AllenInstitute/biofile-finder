@@ -5,11 +5,11 @@ import { DatabaseService } from "../../services";
  * A simple SQL query builder.
  */
 export default class SQLBuilder {
-    private isSummarizing = false;
+    private isDescribing = false;
     private selectStatement = "*";
     private fromStatement?: string;
     private readonly whereClauses: string[] = [];
-    private orderByClause?: string;
+    private orderByClauses: string[] = [];
     private offsetNum?: number;
     private limitNum?: number;
 
@@ -26,11 +26,11 @@ export default class SQLBuilder {
     ): string {
         // Escape special characters for regex
         const escapedValue = `${value}`.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-        return `REGEXP_MATCHES("${column}", '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
+        return `REGEXP_MATCHES(CAST("${column}" AS VARCHAR), '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
     }
 
-    public summarize(): SQLBuilder {
-        this.isSummarizing = true;
+    public describe(): SQLBuilder {
+        this.isDescribing = true;
         return this;
     }
 
@@ -71,8 +71,13 @@ export default class SQLBuilder {
         return this;
     }
 
-    public orderBy(clause?: string): SQLBuilder {
-        this.orderByClause = clause;
+    public orderBy(clause: string): SQLBuilder {
+        this.orderByClauses.push(clause);
+        return this;
+    }
+
+    public removeOrderBy(): SQLBuilder {
+        this.orderByClauses = [];
         return this;
     }
 
@@ -94,21 +99,21 @@ export default class SQLBuilder {
         if (!this.fromStatement) {
             throw new Error("Unable to build SQL without a FROM statement");
         }
-        // LIMIT is non-deterministic without sorting
+        // LIMIT and OFFSET are non-deterministic without sorting.
+        // There are some use cases for queries with a non-deterministic LIMIT 1, but BFF
+        // doesn't have use cases for non-deterministic OFFSET queries, so use presence of
+        // OFFSET to decide whether to make this deterministic.
         // So even if there is already an "order by" clause, secondarily sort on unique ID.
         // Exception: COUNT(*) queries should not require sorting
-        let orderByString = "";
-        if (this.orderByClause || (this.limitNum && !this.selectStatement.includes("COUNT(*)"))) {
-            orderByString = `ORDER BY ${this.orderByClause || ""}${
-                this.orderByClause && this.limitNum ? ", " : ""
-            }${DatabaseService.HIDDEN_UID_ANNOTATION}`;
+        if (this.offsetNum !== undefined && !this.selectStatement.includes("COUNT(*)")) {
+            this.orderByClauses.push(DatabaseService.HIDDEN_UID_ANNOTATION);
         }
         return `
-            ${this.isSummarizing ? "SUMMARIZE" : ""}
+            ${this.isDescribing ? "DESCRIBE" : ""}
             SELECT ${this.selectStatement}
             FROM "${this.fromStatement}"
             ${this.whereClauses.length ? `WHERE (${this.whereClauses.join(") AND (")})` : ""}
-            ${orderByString}
+            ${this.orderByClauses.length > 0 ? `ORDER BY ${this.orderByClauses.join(", ")}` : ""}
             ${this.limitNum !== undefined ? `LIMIT ${this.limitNum}` : ""}
             ${this.offsetNum !== undefined ? `OFFSET ${this.offsetNum}` : ""}
         `;
