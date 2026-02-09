@@ -705,7 +705,12 @@ export default class DatabaseService {
             ?.some((annotation) => !!annotation.description);
         const shouldHaveDescriptions = dataSourceNames.includes(this.SOURCE_METADATA_TABLE);
         if (!hasAnnotations || (!hasDescriptions && shouldHaveDescriptions)) {
-            const sql = new SQLBuilder().describe().from(aggregateDataSourceName).toSQL();
+            const sql = new SQLBuilder()
+                .select("column_name, data_type")
+                .from('information_schema"."columns')
+                .where(`table_name = '${aggregateDataSourceName}'`)
+                .where(`column_name != '${DatabaseService.HIDDEN_UID_ANNOTATION}'`)
+                .toSQL();
             const rows = await this.query(sql);
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
@@ -715,18 +720,17 @@ export default class DatabaseService {
                 this.fetchAnnotationTypes(),
             ]);
 
-            const annotations = rows
-                .filter((row) => row["column_name"] !== DatabaseService.HIDDEN_UID_ANNOTATION)
-                .map((row) => {
-                    return new Annotation({
+            const annotations = rows.map(
+                (row) =>
+                    new Annotation({
                         annotationName: row["column_name"],
                         annotationDisplayName: row["column_name"],
                         description: annotationNameToDescriptionMap[row["column_name"]] || "",
                         type:
                             (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
                             DatabaseService.columnTypeToAnnotationType(row["data_type"]),
-                    });
-                });
+                    })
+            );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);
         }
 
