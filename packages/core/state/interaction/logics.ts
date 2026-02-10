@@ -274,6 +274,7 @@ const downloadFilesLogic = createLogic({
     warnTimeout: 0, // no way to know how long this will take--don't print console warning if it takes a while
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
+        const s3StorageService = interactionSelectors.getS3StorageService(deps.getState());
         const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(
             deps.getState()
         );
@@ -301,7 +302,7 @@ const downloadFilesLogic = createLogic({
             filesToDownload.map(async (file) => {
                 if (file.size === 0) {
                     try {
-                        file.size = await fileDownloadService.getCloudFileSize(file.path);
+                        file.size = await s3StorageService.getCloudObjectSize(file.path);
                     } catch (err) {
                         console.error(
                             `Failed to calculate directory size for ${file.name}: ${err}`
@@ -315,7 +316,7 @@ const downloadFilesLogic = createLogic({
         const totalBytesToDownload = sumBy(filesToDownload, "size") || 0;
         const totalBytesDisplay = numberFormatter.displayValue(totalBytesToDownload, "bytes");
 
-        await Promise.all(
+        await Promise.allSettled(
             filesToDownload.map(async (file) => {
                 const downloadRequestId = uniqueId();
                 // TODO: The byte display should be fixed automatically when moving to downloading using browser

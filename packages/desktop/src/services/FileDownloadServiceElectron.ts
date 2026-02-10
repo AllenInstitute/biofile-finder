@@ -6,6 +6,7 @@ import * as path from "path";
 import { Policy } from "cockatiel";
 import { app, ipcMain, ipcRenderer } from "electron";
 
+import { DownloadFailure } from "../../../core/errors";
 import {
     DownloadResult,
     FileDownloadService,
@@ -13,16 +14,7 @@ import {
     DownloadResolution,
     FileDownloadCancellationToken,
 } from "../../../core/services";
-import { DownloadFailure } from "../../../core/errors";
-
-// Maps active request ids (uuids) to request download info
-interface ActiveRequestMap {
-    [id: string]: {
-        filePath: string;
-        cancel: () => void;
-        onProgress?: (bytes: number) => void;
-    };
-}
+import { isMultiObjectFile } from "../../../core/services/S3StorageService";
 
 interface WriteStreamOptions {
     flags: string;
@@ -44,9 +36,6 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
     public static GET_FILE_SAVE_PATH = "get-file-save-path";
     public static GET_DOWNLOADS_DIR = "get-downloads-dir";
     public static SHOW_OPEN_DIALOG = "show-open-dialog-for-download";
-
-    private readonly activeRequestMap: ActiveRequestMap = {};
-    private readonly cancellationRequests: Set<string> = new Set();
     public readonly isFileSystemAccessible = true;
 
     public static registerIpcHandlers() {
@@ -65,10 +54,10 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
     ): Promise<DownloadResult> {
         let downloadUrl: string;
 
-        if (FileDownloadService.isZarr(fileInfo.path)) {
+        if (isMultiObjectFile(fileInfo.path)) {
             return (await this.isLocalPath(fileInfo.path))
-                ? this.copyLocalZarrDirectory(fileInfo, downloadRequestId, onProgress, destination)
-                : this.downloadS3Directory(fileInfo, downloadRequestId, onProgress, destination);
+                ? this.copyDirectory(fileInfo, downloadRequestId, onProgress, destination)
+                : this.downloadCloudDirectory(fileInfo, downloadRequestId, onProgress, destination);
         }
 
         const path = fileInfo.data || fileInfo.path;
@@ -123,7 +112,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         }
     }
 
-    private async copyLocalZarrDirectory(
+    private async copyDirectory(
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
@@ -133,7 +122,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             const destinationDir = destination || (await this.getDefaultDownloadDirectory());
             const fullDestinationDir = path.join(destinationDir, fileInfo.name);
 
-            await this.copyDirectory(fileInfo.path, fullDestinationDir, onProgress);
+            await this.copyDirectoryRecursive(fileInfo.path, fullDestinationDir, onProgress);
 
             return {
                 downloadRequestId: fileInfo.id,
@@ -148,7 +137,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         }
     }
 
-    private async copyDirectory(
+    private async copyDirectoryRecursive(
         source: string,
         destination: string,
         onProgress?: (transferredBytes: number) => void
@@ -161,7 +150,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             const destinationPath = path.join(destination, entry.name);
 
             if (entry.isDirectory()) {
-                await this.copyDirectory(sourcePath, destinationPath, onProgress);
+                await this.copyDirectoryRecursive(sourcePath, destinationPath, onProgress);
             } else {
                 await fs.promises.copyFile(sourcePath, destinationPath);
                 if (onProgress) {
@@ -172,6 +161,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         }
     }
 
+    // TODO :This vs ... downloadCloudFile
     private async downloadHttpFile(
         fileInfo: FileInfo,
         downloadRequestId: string,
@@ -293,7 +283,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                 } else {
                     incomingMsg.on("end", async () => {
                         delete this.activeRequestMap[downloadRequestId];
-                        if (incomingMsg.aborted) {
+                        if (incomingMsg.destroyed) {
                             try {
                                 await this.deleteArtifact(outFilePath);
                             } finally {
@@ -392,21 +382,20 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         });
     }
 
-    private async downloadS3Directory(
+    private async downloadCloudDirectory(
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        const parsedUrl = await this.parseUrl(fileInfo.path);
-        if (!parsedUrl) {
+        const cloudDirInfo = await this.s3StorageService.getCloudDirectoryInfo(fileInfo.path);
+        if (!cloudDirInfo) {
             throw new DownloadFailure(
-                `Unsupported path for ".zarr":  ${fileInfo.path}. Currently only support AWS S3 or locally stored files.`,
+                `Unable to determine size of ${fileInfo.path}. Currently only support AWS S3 or locally stored files.`,
                 downloadRequestId
             );
         }
-
-        const fileSize = fileInfo.size || (await this.calculateS3DirectorySize(parsedUrl));
+        const { parsedUrl, size } = cloudDirInfo;
 
         destination = destination || (await this.getDefaultDownloadDirectory());
 
@@ -422,9 +411,9 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             // Backfill missing directories from path.
             fs.mkdirSync(fullDestination, { recursive: true });
 
-            const keys = await this.listS3Objects(parsedUrl);
+            const objectsInDir = await this.s3StorageService.getObjectsInDirectory(parsedUrl);
 
-            if (keys.length === 0) {
+            if (objectsInDir.length === 0) {
                 throw new Error("No files found in the specified S3 directory.");
             }
 
@@ -439,29 +428,29 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             };
 
             // Download each file, track its size, and report progress
-            for (const fileKey of keys) {
+            for (const objectInDir of objectsInDir) {
                 // If cancel was requested, cleanup.
                 if (cancelRequested) {
                     await fs.promises.rm(fullDestination, { recursive: true, force: true });
                     throw new DownloadFailure(`Download cancelled by user.`, downloadRequestId);
                 }
 
-                const relativePath = path.relative(parsedUrl.key, fileKey);
+                const relativePath = path.relative(parsedUrl.key, objectInDir.name);
                 const destinationPath = path.join(fullDestination, relativePath);
-                const fileUrl = FileDownloadService.formatUrlAsFileResource({
-                    ...parsedUrl,
-                    key: fileKey,
-                });
 
                 // Backfill missing directories from path.
                 fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
 
                 // Download the file and update the downloaded size
-                await this.downloadS3File(fileUrl, destinationPath, (fileDownloadedBytes) => {
-                    if (onProgress && fileSize > 0) {
-                        onProgress(fileDownloadedBytes);
+                await this.downloadCloudFile(
+                    objectInDir.url,
+                    destinationPath,
+                    (fileDownloadedBytes) => {
+                        if (onProgress && size > 0) {
+                            onProgress(fileDownloadedBytes);
+                        }
                     }
-                });
+                );
 
                 // If cancel was requested, cleanup.
                 if (cancelRequested) {
@@ -490,7 +479,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         }
     }
 
-    private async downloadS3File(
+    private async downloadCloudFile(
         url: string,
         destinationPath: string,
         onProgress?: (bytes: number) => void
@@ -518,16 +507,6 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
 
             req.on("error", reject);
         });
-    }
-
-    public cancelActiveRequest(downloadRequestId: string): void {
-        this.cancellationRequests.add(downloadRequestId);
-
-        if (this.activeRequestMap[downloadRequestId]) {
-            const { cancel } = this.activeRequestMap[downloadRequestId];
-            cancel();
-            delete this.activeRequestMap[downloadRequestId];
-        }
     }
 
     public getDefaultDownloadDirectory(): Promise<string> {
