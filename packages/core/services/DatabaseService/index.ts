@@ -172,11 +172,11 @@ export default class DatabaseService {
         if (type === "parquet") {
             await this.createParquetDirectView(name, registerName);
         } else if (type === "json") {
-            await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
+            await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${registerName}');`);
         } else {
             // Default to CSV
             await this.execute(
-                `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
+                `CREATE TABLE "${name}" AS FROM read_csv_auto('${registerName}', header=true, all_varchar=true);`
             );
         }
     }
