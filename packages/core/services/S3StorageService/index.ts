@@ -63,11 +63,7 @@ export default class S3StorageService extends HttpServiceBase {
     public async formatAsHttpResource(url: string): Promise<string | undefined> {
         const parsedUrl = await this.parseUrl(url);
         if (!parsedUrl) return;
-
-        const bucketSimplified = parsedUrl.bucket.length > 0 ? `${parsedUrl.bucket}/` : "";
-        return `https://${parsedUrl.hostname}/${bucketSimplified}${encodeURIComponent(
-            parsedUrl.key
-        )}`;
+        return S3StorageService.formatAsHttpResource(parsedUrl);
     }
 
     /**
