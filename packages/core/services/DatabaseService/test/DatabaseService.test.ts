@@ -6,7 +6,7 @@ import * as os from "os";
 import * as path from "path";
 import sinon from "sinon";
 
-import DatabaseService from "..";
+import DatabaseService, { getParquetFileNameSelectPart } from "..";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
@@ -163,6 +163,47 @@ describe("DatabaseService", () => {
             // Assert
             expect(caughtError).to.be.undefined;
             expect(service.hasDataSource(tempFileName)).to.be.true;
+        });
+    });
+
+    describe("getParquetFileNameSelectPart", () => {
+        it("returns File Name SELECT expression when File Path exists and File Name does not", () => {
+            // Arrange
+            const actualToPreDefined = new Map([["file_path", "File Path"]]);
+
+            // Act
+            const result = getParquetFileNameSelectPart(actualToPreDefined);
+
+            // Assert
+            expect(result).to.not.be.null;
+            expect(result).to.include("File Name");
+            expect(result).to.include("file_path");
+            expect(result).to.include("REGEXP_REPLACE");
+        });
+
+        it("returns null when File Name column already exists", () => {
+            // Arrange
+            const actualToPreDefined = new Map([
+                ["file_path", "File Path"],
+                ["file_name", "File Name"],
+            ]);
+
+            // Act
+            const result = getParquetFileNameSelectPart(actualToPreDefined);
+
+            // Assert
+            expect(result).to.be.null;
+        });
+
+        it("returns null when File Path column does not exist", () => {
+            // Arrange
+            const actualToPreDefined = new Map();
+
+            // Act
+            const result = getParquetFileNameSelectPart(actualToPreDefined);
+
+            // Assert
+            expect(result).to.be.null;
         });
     });
 });

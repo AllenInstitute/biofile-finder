@@ -50,6 +50,38 @@ function getActualToPreDefinedColumnMap(columns: string[]): Map<string, string> 
 }
 
 /**
+ * Derive a "File Name" from a path-like column (local path or URL).
+ */
+function getFileNameFromPathExpression(quotedPathColumn: string): string {
+    const cleaned = `REGEXP_REPLACE(
+        REGEXP_REPLACE(${quotedPathColumn}, '[?#].*$', ''),
+        '/+$',
+        ''
+    )`;
+    const basename = `REGEXP_EXTRACT(${cleaned}, '([^/]+)$', 1)`;
+    const stripOme = `REGEXP_REPLACE(${basename}, '(?i)\\\\.ome$', '')`;
+
+    return `COALESCE(NULLIF(${stripOme}, ''), ${quotedPathColumn})`;
+}
+
+/**
+ * For parquets: add a computed "File Name" when we have "File Path" but not "File Name".
+ */
+export function getParquetFileNameSelectPart(
+    actualToPreDefined: Map<string, string>
+): string | null {
+    const hasFileName = [...actualToPreDefined.values()].includes(PreDefinedColumn.FILE_NAME);
+    if (hasFileName) return null;
+
+    const pathColumn = [...actualToPreDefined.entries()].find(
+        ([, predefined]) => predefined === PreDefinedColumn.FILE_PATH
+    )?.[0];
+    if (!pathColumn) return null;
+
+    return `${getFileNameFromPathExpression(`"${pathColumn}"`)} AS "${PreDefinedColumn.FILE_NAME}"`;
+}
+
+/**
  * Service reponsible for querying against a database
  */
 export default class DatabaseService {
@@ -379,34 +411,12 @@ export default class DatabaseService {
          * First checks if a "File Name" already exists,
          * then makes best shot attempt at auto-generating a "File Name"
          * from the "File Path", then defaults to full path if this fails.
-         *
-         * Description of SQL:
-         * - COALESCE - returns the first non-null value in the list
-         * - NULLIF - returns null if the two arguments are equal
-         * - REGEXP_REPLACE - replaces a substring with another substring
-         * First creates a "trimmed path" by replacing the last file extension and
-         * any directories in the "File Path" with empty strings.
-         * Then checks for and removes .ome at the end of the "trimmed path".
-         * If the "trimmed path" is an empty string, sets the generated file name to NULL.
-         * Then uses COALESCE to default to the full path if generated file name is NULL.
          */
         const fileNameGenerationSQL = `
                 UPDATE "${name}"
                 SET "${PreDefinedColumn.FILE_NAME}" = COALESCE(
                     "${PreDefinedColumn.FILE_NAME}",
-                    NULLIF(
-                        REGEXP_REPLACE(
-                            REGEXP_REPLACE(
-                                "${PreDefinedColumn.FILE_PATH}",
-                                '^.*/([^/]*?)(\\.[^/.]+)?$',
-                                '\\1',
-                                ''
-                            ),
-                            '\\.ome$',
-                            ''
-                        ),
-                    ''),
-                    "${PreDefinedColumn.FILE_PATH}"
+                    ${getFileNameFromPathExpression(`"${PreDefinedColumn.FILE_PATH}"`)}
                 );`;
         if (!dataSourceColumns.has(PreDefinedColumn.FILE_NAME)) {
             commandsToExecute.push(`
@@ -541,6 +551,10 @@ export default class DatabaseService {
             }
             return `"${col}"`;
         });
+        const fileNameSelectPart = getParquetFileNameSelectPart(actualToPreDefined);
+        if (fileNameSelectPart !== null) {
+            selectParts.push(fileNameSelectPart);
+        }
         selectParts.push(`"file_row_number" AS "${DatabaseService.HIDDEN_UID_ANNOTATION}"`);
         // 4. Create the view for this data source
         const createViewSql = `CREATE VIEW "${viewName}"
