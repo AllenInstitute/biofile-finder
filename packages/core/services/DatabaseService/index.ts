@@ -52,7 +52,7 @@ function getActualToPreDefinedColumnMap(columns: string[]): Map<string, string> 
 /**
  * Derive a "File Name" from a path-like column (local path or URL).
  */
-export function getFileNameFromPathExpression(quotedPathColumn: string): string {
+function getFileNameFromPathExpression(quotedPathColumn: string): string {
     const cleaned = `REGEXP_REPLACE(
         REGEXP_REPLACE(${quotedPathColumn}, '[?#].*$', ''),
         '/+$',
