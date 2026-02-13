@@ -89,7 +89,7 @@ export default class DatabaseFileService implements FileService {
             .select(`COUNT(*) AS ${select_key}`)
             .from(this.dataSourceNames)
             // Remove sort if present
-            .orderBy()
+            .removeOrderBy()
             .toSQL();
 
         const rows = await this.databaseService.query(sql);
@@ -116,7 +116,6 @@ export default class DatabaseFileService implements FileService {
         if (!this.dataSourceNames.length) {
             return [];
         }
-
         const sql = request.fileSet
             .toQuerySQLBuilder()
             .from(this.dataSourceNames)
@@ -179,7 +178,7 @@ export default class DatabaseFileService implements FileService {
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
-                    .select(`${DatabaseService.HIDDEN_UID_ANNOTATION}`)
+                    .select(DatabaseService.HIDDEN_UID_ANNOTATION)
                     .from(dataSourceNames)
                     .offset(indexRange.start)
                     .limit(indexRange.end - indexRange.start + 1);

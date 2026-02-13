@@ -2,7 +2,6 @@ import { ContextualMenuItemType, DefaultButton, Icon, IContextualMenuItem } from
 import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { v4 as uuidv4 } from "uuid";
 
 import useOpenInCfe from "./useOpenInCfe";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
@@ -345,13 +344,11 @@ function openWindowWithMessage(openUrl: URL, message: any): void {
         return;
     }
 
-    const storageid = uuidv4();
     openUrl.searchParams.append("msgorigin", window.location.origin);
-    openUrl.searchParams.append("storageid", storageid);
 
     const handle = window.open(openUrl);
     const loadHandler = (event: MessageEvent): void => {
-        if (event.origin !== openUrl.origin || event.data !== storageid) {
+        if (event.origin !== openUrl.origin || event.source !== handle) {
             return;
         }
         handle?.postMessage(message, openUrl.origin);

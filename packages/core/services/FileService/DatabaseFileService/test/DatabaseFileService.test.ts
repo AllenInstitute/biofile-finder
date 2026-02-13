@@ -31,6 +31,11 @@ describe("DatabaseFileService", () => {
     const databaseService = new MockDatabaseService();
 
     describe("getFiles", () => {
+        const sandbox = createSandbox();
+        afterEach(() => {
+            sandbox.restore();
+        });
+
         it("issues request for files that match given parameters", async () => {
             const databaseFileService = new DatabaseFileService({
                 dataSourceNames: ["whatever", "and another"],
@@ -65,6 +70,40 @@ describe("DatabaseFileService", () => {
                     },
                 ],
             });
+        });
+
+        it("sorts parquets by hidden_bff_uid when offset is used", async () => {
+            // Arrange
+            const parquetFiles = [
+                {
+                    [DatabaseService.HIDDEN_UID_ANNOTATION]: "1",
+                    "File ID": "123",
+                },
+            ];
+            class MockParquetDatabaseService extends DatabaseServiceNoop {
+                protected readonly existingDataSources = new Set(["parquet_source"]);
+                public query(_sql?: string): Promise<{ [key: string]: string }[]> {
+                    return Promise.resolve(parquetFiles);
+                }
+            }
+            const mockDbService = new MockParquetDatabaseService();
+            const querySpy = sandbox.spy(mockDbService, "query");
+
+            const databaseFileService = new DatabaseFileService({
+                dataSourceNames: ["parquet_source"],
+                databaseService: mockDbService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+            // Act
+            await databaseFileService.getFiles({
+                // This is a regression test. OFFSET 0 was a specific edge case
+                from: 0,
+                limit: 10,
+                fileSet: new FileSet(),
+            });
+
+            // Assert
+            expect(querySpy.calledWith(match(/ORDER BY\s+hidden_bff_uid/i))).to.be.true;
         });
     });
 
@@ -304,6 +343,51 @@ describe("DatabaseFileService", () => {
             expect(sqlSpy.called).to.be.true;
             const regex = new RegExp(String.raw`SET \"${annotationName}\" \= NULL`);
             expect(sqlSpy.calledWith(match(regex))).to.be.true;
+        });
+    });
+
+    describe("getManifest", () => {
+        const sandbox = createSandbox();
+        afterEach(() => {
+            sandbox.restore();
+        });
+
+        it("uses hidden_bff_uid to select files", async () => {
+            // Arrange
+            class MockParquetManifestService extends DatabaseServiceNoop {
+                protected readonly existingDataSources = new Set(["parquet_source"]);
+                public saveQuery(
+                    _destination?: string,
+                    _sql?: string,
+                    _format?: string
+                ): Promise<Uint8Array> {
+                    return Promise.resolve(new Uint8Array());
+                }
+            }
+            const mockDbService = new MockParquetManifestService();
+            const saveQuerySpy = sandbox.spy(mockDbService, "saveQuery");
+
+            const databaseFileService = new DatabaseFileService({
+                dataSourceNames: ["parquet_source"],
+                databaseService: mockDbService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+
+            const selections = [
+                {
+                    indexRanges: [{ start: 5, end: 7 }],
+                    filters: {},
+                    sort: undefined,
+                },
+            ];
+
+            // Act
+            await databaseFileService.getManifest(["File ID"], selections, "csv");
+
+            // Assert
+            const any = match(/.*/);
+            expect(saveQuerySpy.calledWith(any, match(/hidden_bff_uid\s+IN\s*\(/i), any)).to.be
+                .true;
         });
     });
 });
