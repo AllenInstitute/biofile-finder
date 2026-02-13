@@ -383,6 +383,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         [annotationNameToAnnotationMap]
     );
     const [isSmallFile, setIsSmallFile] = React.useState(false);
+    const [isMacOS, setIsMacOS] = React.useState(false);
 
     const openInCfe = useOpenInCfe(fileSelection, annotationNames, fileService);
 
@@ -553,7 +554,33 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         determineFileSize();
     }, [path, size, s3StorageService, setIsSmallFile]);
 
-    const supportedApps = [...getSupportedApps(apps, isSmallFile, fileDetails), ...userApps];
+    // Try to quickly check if user is on MacOS or not
+    React.useEffect(() => {
+        async function getIsMacOS() {
+            try {
+                // Typescript doesn't have support for this property yet
+                const userAgentData = (navigator as any).userAgentData;
+                if (userAgentData) {
+                    const ua = await userAgentData.getHighEntropyValues(["platform"]);
+                    return ua.platform === "macOS";
+                }
+
+                // Fallback
+                return navigator.platform.toUpperCase().includes("MAC");
+            } catch (e) {
+                console.error(
+                    "Unable to determine if user is on a MacOS. Assuming not, and disabling any MacOS specific features."
+                );
+                return false;
+            }
+        }
+        getIsMacOS().then(setIsMacOS);
+    }, []);
+
+    const supportedApps = [...getSupportedApps(apps, isSmallFile, fileDetails), ...userApps]
+        // TODO: This is a placeholder until FIJI finishes rolling out FIJI support across all
+        // platforms
+        .filter((app) => isMacOS || app.key !== AppKeys.FIJI);
     // Grab every other known app
     const unsupportedApps = Object.values(apps)
         .filter((app) => supportedApps.every((item) => item.key !== app.key))
