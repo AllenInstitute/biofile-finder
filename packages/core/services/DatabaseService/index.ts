@@ -1,4 +1,4 @@
-// import axios from "axios";
+import axios from "axios";
 import { isEmpty, mapKeys } from "lodash";
 
 import { columnTypeToAnnotationType, getUpdateHiddenUIDSQL } from "./utils";
@@ -8,6 +8,7 @@ import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { EdgeDefinition } from "../../entity/Graph";
 import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
+import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
 /**
  * Service reponsible for querying against a database
@@ -61,7 +62,7 @@ export default abstract class DatabaseService {
         dataSources
             .filter((dataSource) => !this.hasDataSource(dataSource.name))
             .map((dataSource) => {
-                const promise = this.prepareDataSource(dataSource, skipNormalization);
+                const promise = this.prepareDataSourceWrapper(dataSource, skipNormalization);
                 pending.push(promise);
             });
         await Promise.all(pending);
@@ -71,6 +72,52 @@ export default abstract class DatabaseService {
         // should look toward some way of reducing the memory footprint if that becomes an issue
         if (dataSources.length > 1) {
             await this.aggregateDataSources(dataSources);
+        }
+    }
+
+    private async prepareDataSourceWrapper(
+        dataSource: Source,
+        skipNormalization: boolean
+    ): Promise<void> {
+        const { name, type, uri } = dataSource;
+
+        if (!type || !uri) {
+            throw new DataSourcePreparationError(
+                `Lost access to the data source.\
+                </br> \
+                Local data sources must be re-uploaded with each \
+                page refresh to gain access to the data source file \
+                on your computer. \
+                To avoid this, consider using cloud storage for the \
+                file and sharing the URL.`,
+                name
+            );
+        }
+
+        try {
+            await this.prepareDataSource(dataSource, skipNormalization);
+        } catch (err) {
+            let formattedError = (err as Error).message;
+            // DuckDB does not provide informative server errors, so send a
+            // separate 'get' call to retrieve error messages for URL data sources
+            if (!(uri instanceof File)) {
+                await axios.get(uri).catch((error) => {
+                    // Error responses can be formatted differently
+                    // Get progressively less specific in where we look for the message
+                    if (error?.response) {
+                        formattedError = `Request failed with status ${error.response.status}: ${
+                            error.response?.data?.error ||
+                            error.response?.data?.message ||
+                            error.response?.statusText ||
+                            error.response.data
+                        }`;
+                    } else if (error?.message) {
+                        formattedError = error.message;
+                    } // else use default error message
+                });
+            }
+            await this.deleteDataSource(name);
+            throw new DataSourcePreparationError(formattedError, name);
         }
     }
 
@@ -86,7 +133,7 @@ export default abstract class DatabaseService {
         }
 
         await this.deleteSourceMetadata();
-        await this.prepareDataSource(
+        await this.prepareDataSourceWrapper(
             {
                 ...sourceMetadata,
                 name: this.SOURCE_METADATA_TABLE,
@@ -102,7 +149,7 @@ export default abstract class DatabaseService {
             return;
         }
         await this.deleteSourceProvenance();
-        await this.prepareDataSource(
+        await this.prepareDataSourceWrapper(
             {
                 ...sourceProvenance,
                 name: this.SOURCE_PROVENANCE_TABLE,

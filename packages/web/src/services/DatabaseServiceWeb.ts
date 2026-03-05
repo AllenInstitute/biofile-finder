@@ -1,10 +1,8 @@
-// import axios from "axios";
 import { uniqueId } from "lodash";
 
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../../core/constants";
 import Annotation, { AnnotationResponse } from "../../../core/entity/Annotation";
 import { Source } from "../../../core/entity/SearchParams";
-import DataSourcePreparationError from "../../../core/errors/DataSourcePreparationError";
 import {
     CanceledError,
     Pending,
@@ -13,16 +11,13 @@ import {
     WorkerResponse,
     WorkerResType,
 } from "../../../core/services/DatabaseService/types";
-import { MockWorker, WorkerLike } from "../../../core/services/DatabaseService/test/MockWorker";
 import { DatabaseService } from "../../../core/services";
 
 export default class DatabaseServiceWeb extends DatabaseService {
-    // protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
-    // public sourceProvenanceName?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
 
-    public worker: MockWorker | WorkerLike;
+    public worker: Worker;
     protected dbPromise: any;
     protected dbInitialized = new Promise((resolve, _reject) => {
         this.dbPromise = resolve;
@@ -36,7 +31,6 @@ export default class DatabaseServiceWeb extends DatabaseService {
         this.worker = new Worker(new URL("./duckdb-worker-web.worker", import.meta.url), {
             type: "module",
         });
-        // this.worker = isInTest ? new MockWorker() : new Worker(new URL('duckdb-worker-web.worker', import.meta.url), { type: "module" });
         this.worker.onmessage = this.onMessage.bind(this);
         this.worker.onerror = (e: any) => {
             // propagate to all pending queries
@@ -176,19 +170,6 @@ export default class DatabaseServiceWeb extends DatabaseService {
         skipNormalization: boolean
     ): Promise<void> {
         const { name, type, uri } = dataSource;
-
-        if (!type || !uri) {
-            throw new DataSourcePreparationError(
-                `Lost access to the data source.\
-                </br> \
-                Local data sources must be re-uploaded with each \
-                page refresh to gain access to the data source file \
-                on your computer. \
-                To avoid this, consider using cloud storage for the \
-                file and sharing the URL.`,
-                name
-            );
-        }
         const promise = new Promise<any>((resolve, reject) => {
             this.pendingSources.set(name, { resolve, reject });
             this.worker.postMessage({

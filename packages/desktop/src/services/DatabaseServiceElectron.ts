@@ -1,5 +1,4 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
-import axios from "axios";
 
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../../core/constants";
 import { Source } from "../../../core/entity/SearchParams";
@@ -169,53 +168,28 @@ export default class DatabaseServiceElectron extends DatabaseService {
                 name
             );
         }
+        // Add the data source as a table on the database
+        await this.addDataSource(name, type, uri);
 
-        try {
-            // Add the data source as a table on the database
-            await this.addDataSource(name, type, uri);
+        // Add data source name to in-memory set
+        // for quick data source checks
+        this.existingDataSources.add(name);
 
-            // Add data source name to in-memory set
-            // for quick data source checks
-            this.existingDataSources.add(name);
-
-            // Unless skipped, this will ensure the table is prepared
-            // for querying with the expected columns & uniqueness constraints
-            if (!skipNormalization) {
-                if (type !== "parquet") {
-                    await this.normalizeDataSourceColumnNames(name);
-                }
-
-                const errors = await this.checkDataSourceForErrors(name);
-                if (errors.length) {
-                    throw new Error(errors.join("</br></br>"));
-                }
-
-                if (type !== "parquet") {
-                    await this.addRequiredColumns(name);
-                }
+        // Unless skipped, this will ensure the table is prepared
+        // for querying with the expected columns & uniqueness constraints
+        if (!skipNormalization) {
+            if (type !== "parquet") {
+                await this.normalizeDataSourceColumnNames(name);
             }
-        } catch (err) {
-            let formattedError = (err as Error).message;
-            // DuckDB does not provide informative server errors, so send a
-            // separate 'get' call to retrieve error messages for URL data sources
-            if (!(uri instanceof File)) {
-                await axios.get(uri).catch((error) => {
-                    // Error responses can be formatted differently
-                    // Get progressively less specific in where we look for the message
-                    if (error?.response) {
-                        formattedError = `Request failed with status ${error.response.status}: ${
-                            error.response?.data?.error ||
-                            error.response?.data?.message ||
-                            error.response?.statusText ||
-                            error.response.data
-                        }`;
-                    } else if (error?.message) {
-                        formattedError = error.message;
-                    } // else use default error message
-                });
+
+            const errors = await this.checkDataSourceForErrors(name);
+            if (errors.length) {
+                throw new Error(errors.join("</br></br>"));
             }
-            await this.deleteDataSource(name);
-            throw new DataSourcePreparationError(formattedError, name);
+
+            if (type !== "parquet") {
+                await this.addRequiredColumns(name);
+            }
         }
     }
 
