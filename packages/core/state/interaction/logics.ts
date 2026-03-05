@@ -70,6 +70,18 @@ import { fetchWithTimeout } from "../../hooks/useRemoteFileUpload";
 export const DEFAULT_QUERY_NAME = "New Query";
 
 /**
+ * Function for creating a message to display representing the total bytes to download
+ */
+const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
+function getBytesDisplay(bytes: number, hasUnknownSize = false): string {
+    const bytesWithUnits = numberFormatter.displayValue(bytes, "bytes");
+    if (hasUnknownSize) {
+        return `Unknown, but at least ${bytesWithUnits}`;
+    }
+    return bytesWithUnits;
+}
+
+/**
  * Interceptor responsible for checking if the user is able to access the AICS network
  */
 const initializeApp = createLogic({
@@ -273,14 +285,12 @@ const downloadFilesLogic = createLogic({
     type: DOWNLOAD_FILES,
     warnTimeout: 0, // no way to know how long this will take--don't print console warning if it takes a while
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: files } = deps.action as DownloadFilesAction;
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
         const s3StorageService = interactionSelectors.getS3StorageService(deps.getState());
         const { fileDownloadService } = interactionSelectors.getPlatformDependentServices(
             deps.getState()
         );
-
-        const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
-        const { payload: files } = deps.action as DownloadFilesAction;
 
         let filesToDownload: FileInfo[];
         if (files !== undefined) {
@@ -298,32 +308,25 @@ const downloadFilesLogic = createLogic({
             }));
         }
 
+        let someFilesHaveUnknownSize = false;
         await Promise.all(
             filesToDownload.map(async (file) => {
-                if (file.size === 0) {
-                    try {
-                        file.size = await s3StorageService.getCloudObjectSize(file.path);
-                    } catch (err) {
-                        console.error(
-                            `Failed to calculate directory size for ${file.name}: ${err}`
-                        );
-                    }
+                if (!file.size) {
+                    file.size = await s3StorageService.getCloudObjectSize(file.path);
+                    if (file.size === undefined) someFilesHaveUnknownSize = true;
                 }
             })
         );
 
-        // Calculate total bytes to download
+        // Calculate total bytes to download if we know the total bytes
         const totalBytesToDownload = sumBy(filesToDownload, "size") || 0;
-        const totalBytesDisplay = numberFormatter.displayValue(totalBytesToDownload, "bytes");
+        const totalBytesDisplay = getBytesDisplay(totalBytesToDownload, someFilesHaveUnknownSize);
 
+        // TODO: Download these into a zip using new streamsaver zipped code
         await Promise.allSettled(
             filesToDownload.map(async (file) => {
                 const downloadRequestId = uniqueId();
-                // TODO: The byte display should be fixed automatically when moving to downloading using browser
-                // https://github.com/AllenInstitute/biofile-finder/issues/62
-                const fileByteDisplay = numberFormatter.displayValue(file.size || 0, "bytes");
 
-                let totalBytesDownloaded = 0;
                 // A function that dispatches progress events, throttled
                 // to only be invokable at most once/second
                 const onCancel = () => {
@@ -331,6 +334,7 @@ const downloadFilesLogic = createLogic({
                 };
 
                 // Throttled progress dispatcher with updated message
+                let totalBytesDownloaded = 0;
                 const throttledProgressDispatcher = throttle((progressMsg: string) => {
                     dispatch(
                         processProgress(
@@ -357,8 +361,9 @@ const downloadFilesLogic = createLogic({
 
                 try {
                     // Start the download and handle progress reporting
-                    const msg = `Downloading ${file.name}. <br/> ${fileByteDisplay} out of ${totalBytesDisplay} set to download`;
-                    if (totalBytesToDownload) {
+                    if (!someFilesHaveUnknownSize) {
+                        const fileByteDisplay = getBytesDisplay(file.size || 0);
+                        const msg = `Downloading ${file.name}. <br/> ${fileByteDisplay} out of ${totalBytesDisplay} set to download`;
                         dispatch(processStart(downloadRequestId, msg, onCancel, [file.id]));
                     }
 
@@ -368,7 +373,7 @@ const downloadFilesLogic = createLogic({
                         onProgress
                     );
 
-                    if (totalBytesToDownload) {
+                    if (!someFilesHaveUnknownSize) {
                         if (result.resolution === DownloadResolution.CANCELLED) {
                             dispatch(removeStatus(downloadRequestId));
                         } else {
