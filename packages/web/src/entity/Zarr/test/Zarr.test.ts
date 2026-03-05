@@ -30,7 +30,7 @@ describe("Zarr", () => {
         it("enumerates v3 metadata and chunk files", async () => {
             const basePath = "https://example.org/sample.zarr";
             const responses: Record<string, MockFetchResponse> = {
-                [`${basePath}//zarr.json`]: {
+                [`${basePath}/zarr.json`]: {
                     ok: true,
                     json: {
                         multiscales: [{ datasets: [{ path: "0" }] }],
@@ -97,7 +97,8 @@ describe("Zarr", () => {
             const files = await collect(zarr.getRelativeFilePaths());
 
             expect(files).to.deep.equal([
-                "/zarr.json",
+                "zarr.json",
+                "labels/zarr.json",
                 "labels/nuclei/zarr.json",
                 "labels/nuclei/c/0",
                 "0/zarr.json",
@@ -122,7 +123,7 @@ describe("Zarr", () => {
                 throw new Error("Expected getRelativeFilePaths to throw");
             } catch (error) {
                 expect((error as Error).message).to.equal(
-                    `Expected to find a metadata file for the Zarr at ${basePath}//zarr.json`
+                    "Could not find root metadata file for .zarr"
                 );
             }
         });
@@ -130,7 +131,7 @@ describe("Zarr", () => {
         it("uses custom chunk separator when provided in v3 metadata", async () => {
             const basePath = "https://example.org/separator.zarr";
             const responses: Record<string, MockFetchResponse> = {
-                [`${basePath}//zarr.json`]: {
+                [`${basePath}/zarr.json`]: {
                     ok: true,
                     json: {
                         multiscales: [{ datasets: [{ path: "0" }] }],
@@ -176,12 +177,101 @@ describe("Zarr", () => {
             const files = await collect(zarr.getRelativeFilePaths());
 
             expect(files).to.deep.equal([
-                "/zarr.json",
+                "zarr.json",
                 "0/zarr.json",
                 "0.c.0.0",
                 "0.c.0.1",
                 "0.c.1.0",
                 "0.c.1.1",
+            ]);
+        });
+
+        it("handles v3 label groups with nested multiscale datasets", async () => {
+            const basePath = "https://example.org/labels-group.zarr";
+            const responses: Record<string, MockFetchResponse> = {
+                [`${basePath}/zarr.json`]: {
+                    ok: true,
+                    json: {
+                        attributes: {
+                            ome: {
+                                multiscales: [{ datasets: [{ path: "0" }] }],
+                            },
+                        },
+                    },
+                },
+                [`${basePath}/labels/zarr.json`]: {
+                    ok: true,
+                    json: {
+                        attributes: {
+                            ome: {
+                                labels: ["segmentation"],
+                            },
+                        },
+                    },
+                },
+                [`${basePath}/0/zarr.json`]: {
+                    ok: true,
+                    json: {
+                        shape: [1],
+                        chunk_grid: {
+                            configuration: {
+                                chunk_shape: [1],
+                            },
+                        },
+                    },
+                },
+                [`${basePath}/labels/segmentation/zarr.json`]: {
+                    ok: true,
+                    json: {
+                        node_type: "group",
+                        attributes: {
+                            ome: {
+                                multiscales: [{ datasets: [{ path: "0" }] }],
+                            },
+                        },
+                    },
+                },
+                [`${basePath}/labels/segmentation/0/zarr.json`]: {
+                    ok: true,
+                    json: {
+                        shape: [1],
+                        chunk_grid: {
+                            configuration: {
+                                chunk_shape: [1],
+                            },
+                        },
+                    },
+                },
+            };
+
+            globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+                if (init?.method === "HEAD") {
+                    return { ok: false } as Response;
+                }
+
+                const key = String(input);
+                const response = responses[key];
+                if (!response) {
+                    return { ok: false } as Response;
+                }
+
+                return {
+                    ok: response.ok,
+                    json: async () => response.json,
+                } as Response;
+            }) as typeof globalThis.fetch;
+
+            const zarr = new Zarr(basePath);
+            const files = await collect(zarr.getRelativeFilePaths());
+
+            expect(files).to.deep.equal([
+                "zarr.json",
+                "labels/zarr.json",
+                "labels/segmentation/zarr.json",
+                "labels/segmentation/0/zarr.json",
+                "labels/segmentation/0/c/0",
+                "0/zarr.json",
+                "0/c/0",
             ]);
         });
     });

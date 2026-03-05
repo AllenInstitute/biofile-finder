@@ -22,7 +22,9 @@ export default class StreamedZipDownloader {
     private readonly maxQueueLength: number;
     private readonly taskQueue: ConcurrentTaskQueue;
     private readonly writer: WritableStreamDefaultWriter<Uint8Array>;
-    private isCancelled = false;
+    private readonly onProgress?: OnProgress;
+    private writerFinalized = false;
+    public isCancelled = false;
 
     constructor(
         fileName: string,
@@ -30,15 +32,26 @@ export default class StreamedZipDownloader {
         maxParallelStreams = 6,
         maxQueueLength = 10_000
     ) {
+        this.onProgress = onProgress;
         this.maxQueueLength = maxQueueLength;
         this.taskQueue = new ConcurrentTaskQueue(maxParallelStreams);
         const fileStream = streamSaver.createWriteStream(`${fileName}.zip`);
         this.writer = fileStream.getWriter();
         this.zip = new Zip((err, chunk, final) => {
-            if (err) throw err;
-            this.writer.write(chunk);
-            onProgress?.(chunk.byteLength);
-            if (final) this.writer.close();
+            if (this.isCancelled) return;
+
+            if (err) {
+                void this.cancel();
+                return;
+            }
+
+            void this.writer.write(chunk).catch(() => {
+                void this.cancel();
+            });
+
+            if (final) {
+                void this.finalizeWriter("close");
+            }
         });
     }
 
@@ -63,14 +76,16 @@ export default class StreamedZipDownloader {
             this.zip.add(file);
 
             // Retrieve reader
-            const reader = await readerGetter();
+            const stream = await readerGetter();
+            const reader = stream.getReader();
 
             // Grab chunks from read stream
             while (true) {
-                const { value, done } = await reader.getReader().read();
+                const { value, done } = await reader.read();
                 if (this.isCancelled) return;
                 if (done) break;
                 file.push(value); // push chunk to zip
+                this.onProgress?.(value.byteLength);
             }
 
             // Finalize entry
@@ -78,16 +93,33 @@ export default class StreamedZipDownloader {
         });
     }
 
-    public async cancel() {
-        await this.taskQueue.cancel();
-        this.zip.terminate();
-        await this.writer.close();
-        this.isCancelled = true;
-    }
-
     public async end() {
+        if (this.isCancelled) return;
         await this.taskQueue.drain();
         this.zip.end();
-        await this.writer.close();
+        await this.finalizeWriter("close");
+    }
+
+    public async cancel() {
+        if (this.isCancelled) return;
+        this.isCancelled = true;
+        await this.taskQueue.cancel();
+        this.zip.terminate();
+        await this.finalizeWriter("abort");
+    }
+
+    private async finalizeWriter(action: "close" | "abort") {
+        if (this.writerFinalized) return;
+        this.writerFinalized = true;
+
+        try {
+            if (action === "abort") {
+                await this.writer.abort();
+            } else {
+                await this.writer.close();
+            }
+        } catch {
+            // No-op: writer may already be closed/errored if browser-side download is cancelled
+        }
     }
 }

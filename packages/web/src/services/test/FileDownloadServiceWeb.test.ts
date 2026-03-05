@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { noop } from "lodash";
 import sinon from "sinon";
 import streamSaver from "streamsaver";
 
@@ -26,6 +27,43 @@ describe("FileDownloadServiceWeb", () => {
     });
 
     describe("download", () => {
+        type WriterStub = {
+            writes: Uint8Array[];
+            closeCallCount: number;
+            write: (chunk: Uint8Array) => Promise<void>;
+            close: () => Promise<void>;
+        };
+
+        let originalCreateWriteStream: typeof streamSaver.createWriteStream;
+        let writer: WriterStub;
+
+        beforeEach(() => {
+            originalCreateWriteStream = streamSaver.createWriteStream;
+            writer = {
+                writes: [],
+                closeCallCount: 0,
+                write: async (chunk: Uint8Array) => {
+                    writer.writes.push(chunk);
+                },
+                close: async () => {
+                    writer.closeCallCount += 1;
+                },
+            };
+
+            (streamSaver as {
+                createWriteStream: typeof streamSaver.createWriteStream;
+            }).createWriteStream = () =>
+                ({
+                    getWriter: () => (writer as unknown) as WritableStreamDefaultWriter<Uint8Array>,
+                } as WritableStream<Uint8Array>);
+        });
+
+        afterEach(() => {
+            (streamSaver as {
+                createWriteStream: typeof streamSaver.createWriteStream;
+            }).createWriteStream = originalCreateWriteStream;
+        });
+
         it("uses the file download path for non-directory files", async () => {
             const service = new FileDownloadServiceWeb();
             const expected = {
@@ -142,18 +180,6 @@ describe("FileDownloadServiceWeb", () => {
                 path: "https://example.org/dataset.zarr",
             };
 
-            const writer = {
-                write: () => Promise.resolve(),
-                close: () => Promise.resolve(),
-            };
-            const originalCreateWriteStream = streamSaver.createWriteStream;
-            (streamSaver as {
-                createWriteStream: typeof streamSaver.createWriteStream;
-            }).createWriteStream = () =>
-                ({
-                    getWriter: () => (writer as unknown) as WritableStreamDefaultWriter<Uint8Array>,
-                } as WritableStream<Uint8Array>);
-
             const addFileStub = sinon.stub(StreamedZipDownloader.prototype, "addFile").resolves();
             const endStub = sinon.stub(StreamedZipDownloader.prototype, "end").resolves();
             const cancelStub = sinon.stub(StreamedZipDownloader.prototype, "cancel").resolves();
@@ -174,10 +200,6 @@ describe("FileDownloadServiceWeb", () => {
 
             const result = await service.download(fileInfo, "request-cloud-1");
 
-            (streamSaver as {
-                createWriteStream: typeof streamSaver.createWriteStream;
-            }).createWriteStream = originalCreateWriteStream;
-
             expect(addFileStub.callCount).to.equal(2);
             expect(endStub.calledOnce).to.equal(true);
             expect(cancelStub.called).to.equal(false);
@@ -187,6 +209,47 @@ describe("FileDownloadServiceWeb", () => {
                 ((service as unknown) as { activeRequestMap: Record<string, unknown> })
                     .activeRequestMap["request-cloud-1"]
             ).to.equal(undefined);
+        });
+
+        it("cancelActiveRequest uses a bound cancel callback for active cloud downloads", async () => {
+            const service = new FileDownloadServiceWeb();
+            const fileInfo: FileInfo = {
+                id: "dir-cloud-2",
+                name: "dataset.zarr",
+                path: "https://example.org/dataset.zarr",
+            };
+
+            const cancelStub = sinon.stub(StreamedZipDownloader.prototype, "cancel").resolves();
+            sinon.stub(StreamedZipDownloader.prototype, "addFile").resolves();
+            sinon.stub(StreamedZipDownloader.prototype, "end").resolves();
+
+            let releaseGenerator = noop;
+            const waitForCancel = new Promise<void>((resolve) => {
+                releaseGenerator = resolve;
+            });
+
+            const pathsGenerator = (async function* () {
+                yield "0/zarr.json";
+                await waitForCancel;
+            })();
+
+            sinon
+                .stub(
+                    (service as unknown) as {
+                        getRelativePathsInDirectory: (path: string) => AsyncGenerator<string>;
+                    },
+                    "getRelativePathsInDirectory"
+                )
+                .returns(pathsGenerator);
+
+            const downloadPromise = service.download(fileInfo, "request-cloud-cancel");
+            await Promise.resolve();
+
+            expect(() => service.cancelActiveRequest("request-cloud-cancel")).to.not.throw();
+            expect(cancelStub.calledOnce).to.equal(true);
+
+            releaseGenerator();
+            await downloadPromise;
         });
 
         it("throws for unsupported data type", async () => {

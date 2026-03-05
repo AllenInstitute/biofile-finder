@@ -5,13 +5,17 @@ export default class Zarr {
     public readonly path: string;
     private zarrVersion: number | undefined;
 
+    private static joinUrl(root: string, relativePath: string): string {
+        return `${root.replace(/\/+$/, "")}/${relativePath.replace(/^\/+/, "")}`;
+    }
+
     private static async fetchJSON(
         path: string,
-        missing_ok = false
+        missingOk = false
     ): Promise<Record<string, any> | undefined> {
         const res = await fetch(path);
         if (!res.ok) {
-            if (missing_ok) return undefined;
+            if (missingOk) return undefined;
             throw new Error(`Expected to find a metadata file for the Zarr at ${path}`);
         }
         return res.json();
@@ -53,11 +57,11 @@ export default class Zarr {
         // and determine the zarr version
         this.zarrVersion = 3;
         let rootMetaPath: string;
-        let rootMeta: Record<string, any>;
-        [rootMetaPath, rootMeta] = await this.getMetadataForLevel("", true);
+        let rootMeta: Record<string, any> | undefined;
+        [rootMetaPath, rootMeta] = await this.getMetadataForLevel("", true, true);
         if (rootMeta === undefined) {
             this.zarrVersion = 2;
-            [rootMetaPath, rootMeta] = await this.getMetadataForLevel("", true);
+            [rootMetaPath, rootMeta] = await this.getMetadataForLevel("", true, true);
             if (rootMeta === undefined) {
                 throw new Error("Could not find root metadata file for .zarr");
             }
@@ -66,17 +70,24 @@ export default class Zarr {
         // Yield whichever path we actually found
         yield rootMetaPath;
 
-        // CHeck if .zattrs & if present yield it
-        const zattrsPath = ".zattrs";
-        if (this.zarrVersion === 2 && (await Zarr.isFilePresent(`${this.path}/${zattrsPath}`))) {
-            yield zattrsPath;
+        // Check if .zgroup & if present yield it
+        const zgroupPath = ".zgroup";
+        if (
+            this.zarrVersion === 2 &&
+            (await Zarr.isFilePresent(Zarr.joinUrl(this.path, zgroupPath)))
+        ) {
+            yield zgroupPath;
         }
 
         // Check for labels and iterate over any found
-        const labelsMetadata = await Zarr.fetchJSON(`${this.path}/labels/zarr.json`, true);
-        const labels: string[] = labelsMetadata?.attributes?.ome?.labels || [];
-        for (const label of labels) {
-            yield* this.getFilesAtPath(`labels/${label}`);
+        const labelsPath = "labels/zarr.json";
+        const labelsMetadata = await Zarr.fetchJSON(Zarr.joinUrl(this.path, labelsPath), true);
+        if (labelsMetadata) {
+            yield labelsPath;
+            const labels: string[] = labelsMetadata.attributes?.ome?.labels || [];
+            for (const label of labels) {
+                yield* this.getFilesAtPath(`labels/${label}`);
+            }
         }
 
         // Iterate over coordinate datasets yielding any files found
@@ -92,12 +103,32 @@ export default class Zarr {
      * gather up any files found
      */
     private async *getFilesAtPath(path: string): AsyncGenerator<string> {
-        const [arrayMetaPath, arrayMeta] = await this.getMetadataForLevel(path);
+        const [arrayMetaPath, arrayMeta] = (await this.getMetadataForLevel(path)) as [
+            string,
+            Record<string, any>
+        ];
         yield arrayMetaPath;
+
+        // For v3 groups (for example label groups), recurse into dataset paths
+        const childDatasets =
+            arrayMeta.multiscales?.[0]?.datasets ||
+            arrayMeta.attributes?.ome?.multiscales?.[0]?.datasets;
+        if (Array.isArray(childDatasets)) {
+            for (const dataset of childDatasets) {
+                const childPath = [path, `${dataset.path || ""}`.replace(/^\/+/, "")]
+                    .filter(Boolean)
+                    .join("/");
+                yield* this.getFilesAtPath(childPath);
+            }
+            return;
+        }
 
         // Check if .zattrs & if present yield it
         const zattrsPath = `${path}/.zattrs`;
-        if (this.zarrVersion === 2 && (await Zarr.isFilePresent(`${this.path}/${zattrsPath}`))) {
+        if (
+            this.zarrVersion === 2 &&
+            (await Zarr.isFilePresent(Zarr.joinUrl(this.path, zattrsPath)))
+        ) {
             yield zattrsPath;
         }
 
@@ -105,6 +136,11 @@ export default class Zarr {
         const shape: number[] = arrayMeta.shape;
         const chunks: number[] =
             arrayMeta.chunks || arrayMeta.chunk_grid?.configuration?.chunk_shape;
+        if (!shape || !chunks) {
+            throw new Error(
+                `Unable to determine chunk layout for Zarr path '${path}'. Expected array metadata with shape and chunks.`
+            );
+        }
         const chunkCounts = shape.map((d, i) => Math.ceil(d / chunks[i]));
 
         // Determine the separator used for the coordinate locations
@@ -129,11 +165,12 @@ export default class Zarr {
      */
     private async getMetadataForLevel(
         levelPath: string,
-        isGroup = false
-    ): Promise<[string, Record<string, any>]> {
+        isGroup = false,
+        missingOk = false
+    ): Promise<[string, Record<string, any> | undefined]> {
         let metadataFileName: string;
         if (this.zarrVersion === 2) {
-            metadataFileName = isGroup ? ".zgroup" : ".zarray";
+            metadataFileName = isGroup ? ".zattrs" : ".zarray";
         } else if (this.zarrVersion === 3) {
             metadataFileName = "zarr.json";
         } else {
@@ -142,11 +179,11 @@ export default class Zarr {
             );
         }
 
-        const metadataPath = `${levelPath}/${metadataFileName}`;
-        const metadata = (await Zarr.fetchJSON(`${this.path}/${metadataPath}`)) as Record<
-            string,
-            any
-        >;
+        const normalizedLevelPath = levelPath.replace(/^\/+|\/+$/g, "");
+        const metadataPath = normalizedLevelPath
+            ? `${normalizedLevelPath}/${metadataFileName}`
+            : metadataFileName;
+        const metadata = await Zarr.fetchJSON(Zarr.joinUrl(this.path, metadataPath), missingOk);
         return [metadataPath, metadata];
     }
 }

@@ -78,7 +78,9 @@ Please navigate to this directory manually, or upload files to a remote address 
 
         // Register cancellation token for this request
         this.activeRequestMap[downloadRequestId] = {
-            cancel: downloader.cancel,
+            cancel: () => {
+                void downloader.cancel();
+            },
         };
 
         try {
@@ -97,6 +99,14 @@ Please navigate to this directory manually, or upload files to a remote address 
             delete this.activeRequestMap[downloadRequestId];
         }
 
+        if (downloader.isCancelled) {
+            return {
+                downloadRequestId: fileInfo.id,
+                msg: `Download of ${fileInfo.name} was cancelled.`,
+                resolution: DownloadResolution.CANCELLED,
+            };
+        }
+
         // Consider it a failure if we didn't download the amount of bytes we were expected to
         if (fileInfo.size !== undefined && fileInfo.size !== totalBytesDownloaded) {
             const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
@@ -106,7 +116,7 @@ Please navigate to this directory manually, or upload files to a remote address 
                 "bytes"
             );
             throw new Error(
-                `Expected to download ${fileSizeWithUnits}, instead downloaded ${totalBytesDownloadedWithUnits}`
+                `Expected to download ${fileSizeWithUnits}, instead downloaded ${totalBytesDownloadedWithUnits} (${fileInfo.size} vs ${totalBytesDownloaded}). This may indicate that some files either failed to download, couldn't be found, or were skipped.`
             );
         }
 
@@ -124,7 +134,9 @@ Please navigate to this directory manually, or upload files to a remote address 
         let downloadUrl: string;
 
         if (data instanceof Uint8Array) {
-            downloadUrl = URL.createObjectURL(new Blob([data as Uint8Array<ArrayBuffer>]));
+            const dataBlob = new Uint8Array(data.byteLength);
+            dataBlob.set(data);
+            downloadUrl = URL.createObjectURL(new Blob([dataBlob]));
         } else if (data instanceof Blob) {
             downloadUrl = URL.createObjectURL(data);
         } else if (typeof data === "string") {
