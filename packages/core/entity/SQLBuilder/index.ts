@@ -1,5 +1,5 @@
 import { castArray } from "lodash";
-import { DatabaseService } from "../../services";
+import { HIDDEN_UID_ANNOTATION } from "../../services/DatabaseService/utils";
 
 /**
  * A simple SQL query builder.
@@ -106,7 +106,7 @@ export default class SQLBuilder {
         // So even if there is already an "order by" clause, secondarily sort on unique ID.
         // Exception: COUNT(*) queries should not require sorting
         if (this.offsetNum !== undefined && !this.selectStatement.includes("COUNT(*)")) {
-            this.orderByClauses.push(DatabaseService.HIDDEN_UID_ANNOTATION);
+            this.orderByClauses.push(HIDDEN_UID_ANNOTATION);
         }
         return `
             ${this.isDescribing ? "DESCRIBE" : ""}
