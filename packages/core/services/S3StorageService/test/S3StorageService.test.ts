@@ -1,11 +1,18 @@
+import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
+import { get as _get } from "lodash";
 
 import S3StorageService from "..";
 
 describe("S3StorageService", () => {
     // This uses an external package, so is mostly just a consistency check
     describe("formatAsHttpResource", () => {
-        const s3StorageService = new S3StorageService();
+        const virtualizedS3Url = "https://example.com/directory-name";
+        const httpClient = createMockHttpClient({
+            when: (config) => _get(config, "url", "").includes(virtualizedS3Url),
+            respondWith: {},
+        });
+        const s3StorageService = new S3StorageService({ httpClient });
 
         const testUrls = [
             {
@@ -43,13 +50,11 @@ describe("S3StorageService", () => {
         it("parses virtualized s3 url", async () => {
             // Act
             const reformattedUrl = await s3StorageService.formatAsHttpResource(
-                "https://example.com/directory-name/path/to/file.zarr"
+                `${virtualizedS3Url}/path/to/file.zarr`
             );
 
             // Assert
-            expect(reformattedUrl).to.equal(
-                "https://example.com/directory-name%2Fpath%2Fto%2Ffile.zarr"
-            );
+            expect(reformattedUrl).to.equal(`${virtualizedS3Url}%2Fpath%2Fto%2Ffile.zarr`);
         });
     });
 });
