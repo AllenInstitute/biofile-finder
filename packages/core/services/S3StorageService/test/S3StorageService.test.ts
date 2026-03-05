@@ -1,11 +1,16 @@
 import { expect } from "chai";
+import { createMockHttpClient } from "@aics/redux-utils";
 
 import S3StorageService from "..";
 
 describe("S3StorageService", () => {
     // This uses an external package, so is mostly just a consistency check
     describe("formatAsHttpResource", () => {
-        const s3StorageService = new S3StorageService();
+        const httpClient = createMockHttpClient({
+            when: `https://example.com/directory-name/path/to/file.zarr`,
+            respondWith: {},
+        });
+        const s3StorageService = new S3StorageService({ httpClient });
 
         const testUrls = [
             {
