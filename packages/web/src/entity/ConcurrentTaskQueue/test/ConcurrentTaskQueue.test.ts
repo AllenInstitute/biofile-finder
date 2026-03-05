@@ -20,104 +20,113 @@ describe("ConcurrentTaskQueue", () => {
         };
     }
 
-    it("queues tasks beyond max parallel limit", async () => {
-        const queue = new ConcurrentTaskQueue(2);
-        const firstTask = createDeferred();
-        const secondTask = createDeferred();
+    describe("push and drain", () => {
+        it("queues tasks beyond max parallel limit", async () => {
+            const queue = new ConcurrentTaskQueue(2);
+            const firstTask = createDeferred();
+            const secondTask = createDeferred();
 
-        await queue.push(async () => firstTask.promise);
-        await queue.push(async () => secondTask.promise);
-        await queue.push(async () => Promise.resolve());
+            await queue.push(async () => firstTask.promise);
+            await queue.push(async () => secondTask.promise);
+            await queue.push(async () => Promise.resolve());
 
-        expect(queue.length).to.equal(1);
+            expect(queue.length).to.equal(1);
 
-        firstTask.resolve();
-        secondTask.resolve();
-        await queue.drain();
-        expect(queue.length).to.equal(0);
-    });
+            firstTask.resolve();
+            secondTask.resolve();
+            await queue.drain();
+            expect(queue.length).to.equal(0);
+        });
 
-    it("never runs more than maxParallelTasks at once", async () => {
-        const queue = new ConcurrentTaskQueue(2);
-        const blockers = [createDeferred(), createDeferred(), createDeferred(), createDeferred()];
-        let activeTasks = 0;
-        let maxActiveTasks = 0;
+        it("never runs more than maxParallelTasks at once", async () => {
+            const queue = new ConcurrentTaskQueue(2);
+            const blockers = [
+                createDeferred(),
+                createDeferred(),
+                createDeferred(),
+                createDeferred(),
+            ];
+            let activeTasks = 0;
+            let maxActiveTasks = 0;
 
-        blockers.forEach((blocker) => {
-            void queue.push(async () => {
-                activeTasks++;
-                maxActiveTasks = Math.max(maxActiveTasks, activeTasks);
-                await blocker.promise;
-                activeTasks--;
+            blockers.forEach((blocker) => {
+                void queue.push(async () => {
+                    activeTasks++;
+                    maxActiveTasks = Math.max(maxActiveTasks, activeTasks);
+                    await blocker.promise;
+                    activeTasks--;
+                });
             });
+
+            await Promise.resolve();
+            expect(maxActiveTasks).to.equal(2);
+            expect(queue.length).to.equal(2);
+
+            blockers.forEach((blocker) => blocker.resolve());
+            await queue.drain();
+            expect(activeTasks).to.equal(0);
         });
 
-        await Promise.resolve();
-        expect(maxActiveTasks).to.equal(2);
-        expect(queue.length).to.equal(2);
+        it("drain resolves only after all tasks complete", async () => {
+            const queue = new ConcurrentTaskQueue(1);
+            const task = createDeferred();
+            let drained = false;
 
-        blockers.forEach((blocker) => blocker.resolve());
-        await queue.drain();
-        expect(activeTasks).to.equal(0);
+            await queue.push(async () => task.promise);
+            const drainPromise = queue.drain().then(() => {
+                drained = true;
+            });
+
+            await Promise.resolve();
+            expect(drained).to.equal(false);
+
+            task.resolve();
+            await drainPromise;
+            expect(drained).to.equal(true);
+        });
     });
 
-    it("drain resolves only after all tasks complete", async () => {
-        const queue = new ConcurrentTaskQueue(1);
-        const task = createDeferred();
-        let drained = false;
+    describe("cancel", () => {
+        it("resolves when active tasks settle", async () => {
+            const queue = new ConcurrentTaskQueue(2);
+            const firstTask = createDeferred();
+            const secondTask = createDeferred();
+            let completedTasks = 0;
 
-        await queue.push(async () => task.promise);
-        const drainPromise = queue.drain().then(() => {
-            drained = true;
+            await queue.push(async () => {
+                await firstTask.promise;
+                completedTasks++;
+            });
+
+            await queue.push(async () => {
+                await secondTask.promise;
+                completedTasks++;
+            });
+
+            const cancelPromise = queue.cancel();
+            firstTask.resolve();
+            secondTask.resolve();
+
+            await cancelPromise;
+            expect(completedTasks).to.equal(2);
         });
 
-        await Promise.resolve();
-        expect(drained).to.equal(false);
+        it("resolves without starting queued tasks", async () => {
+            const queue = new ConcurrentTaskQueue(1);
+            const activeTask = createDeferred();
+            let queuedTaskStarted = false;
 
-        task.resolve();
-        await drainPromise;
-        expect(drained).to.equal(true);
-    });
+            await queue.push(async () => activeTask.promise);
+            await queue.push(async () => {
+                queuedTaskStarted = true;
+            });
 
-    it("cancel resolves when active tasks settle", async () => {
-        const queue = new ConcurrentTaskQueue(2);
-        const firstTask = createDeferred();
-        const secondTask = createDeferred();
-        let completedTasks = 0;
+            const cancelPromise = queue.cancel();
 
-        await queue.push(async () => {
-            await firstTask.promise;
-            completedTasks++;
+            activeTask.resolve();
+            await cancelPromise;
+
+            expect(queuedTaskStarted).to.equal(false);
         });
-
-        await queue.push(async () => {
-            await secondTask.promise;
-            completedTasks++;
-        });
-
-        const cancelPromise = queue.cancel();
-        firstTask.resolve();
-        secondTask.resolve();
-
-        await cancelPromise;
-        expect(completedTasks).to.equal(2);
-    });
-
-    it("cancel resolves without starting queued tasks", async () => {
-        const queue = new ConcurrentTaskQueue(1);
-        const activeTask = createDeferred();
-        let queuedTaskStarted = false;
-
-        await queue.push(async () => activeTask.promise);
-        await queue.push(async () => {
-            queuedTaskStarted = true;
-        });
-
-        const cancelPromise = queue.cancel();
-
-        activeTask.resolve();
-        await cancelPromise;
-
-        expect(queuedTaskStarted).to.equal(false);
     });
 });

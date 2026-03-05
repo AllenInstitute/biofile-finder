@@ -65,8 +65,8 @@ export default class StreamedZipDownloader {
         }
 
         // Push a task to the queue for the purpose of
-        // 1) Register the file to the zip
-        // 2) Getting the reader
+        // 1) Registering the file to the zip
+        // 2) Getting the reader from the stream
         // 3) Piping bytes from the reader to the zip writer
         this.taskQueue.push(async () => {
             if (this.isCancelled) return;
