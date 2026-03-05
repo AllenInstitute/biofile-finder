@@ -96,6 +96,10 @@ export default class FileDetail {
         return `${AICS_FMS_S3_URL_PREFIX}${path}`;
     }
 
+    private static isLikelyLocalFile(path: string): boolean {
+        return !path.startsWith("http") && !path.startsWith("s3");
+    }
+
     constructor(fileDetail: FmsFile, env: Environment, uniqueId?: string) {
         this.fileDetail = fileDetail;
         this.env = env;
@@ -150,7 +154,7 @@ export default class FileDetail {
     }
 
     public get isLikelyLocalFile(): boolean {
-        return !this.path.startsWith("http") && !this.path.startsWith("s3");
+        return FileDetail.isLikelyLocalFile(this.path);
     }
 
     public get downloadInProgress(): boolean {
@@ -200,21 +204,23 @@ export default class FileDetail {
         }
 
         // If no thumbnail present try to render the file itself as the thumbnail
-        if (!this.thumbnail) {
-            // Cannot currently read locally stored zarrs on web
-            if (this.path.includes(".zarr") && !this.isLikelyLocalFile) {
-                return renderZarrThumbnailURL(this.path, targetSize);
-            }
+        const pathToRender = this.thumbnail || this.path;
 
-            const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
-                this.path.toLowerCase().endsWith(format)
-            );
-            if (isFileRenderableImage) {
-                return this.path;
-            }
+        // Cannot currently read locally stored zarrs on web
+        if (pathToRender.includes(".zarr") && !FileDetail.isLikelyLocalFile(pathToRender)) {
+            return renderZarrThumbnailURL(pathToRender, targetSize);
         }
 
-        return this.thumbnail;
+        // If file can be easily rendered in the browser automatically (like a .png)
+        // then just go ahead and return it
+        const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
+            pathToRender.toLowerCase().endsWith(format)
+        );
+        if (!isFileRenderableImage) {
+            return undefined;
+        }
+
+        return pathToRender;
     }
 
     public getLinkToPlateUI(labkeyHost: string): string | undefined {
