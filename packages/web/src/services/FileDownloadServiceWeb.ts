@@ -154,7 +154,7 @@ Please navigate to this directory manually, or upload files to a remote address 
         let downloadUrl: string;
 
         if (data instanceof Uint8Array) {
-            downloadUrl = URL.createObjectURL(new Blob([data]));
+            downloadUrl = URL.createObjectURL(new Blob([data as BlobPart]));
         } else if (data instanceof Blob) {
             downloadUrl = URL.createObjectURL(data);
         } else if (typeof data === "string") {

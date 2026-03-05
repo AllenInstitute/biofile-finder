@@ -62,7 +62,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
 
         const path = fileInfo.data || fileInfo.path;
         if (path instanceof Uint8Array) {
-            downloadUrl = URL.createObjectURL(new Blob([path]));
+            downloadUrl = URL.createObjectURL(new Blob([path as BlobPart]));
         } else if (path instanceof Blob) {
             downloadUrl = URL.createObjectURL(path);
         } else if (typeof path === "string" && !destination) {
