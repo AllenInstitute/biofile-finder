@@ -325,17 +325,19 @@ const downloadFilesLogic = createLogic({
         // TODO: Download these into a zip using new streamsaver zipped code
         await Promise.allSettled(
             filesToDownload.map(async (file) => {
+                let isCancelled = false;
                 const downloadRequestId = uniqueId();
 
-                // A function that dispatches progress events, throttled
-                // to only be invokable at most once/second
                 const onCancel = () => {
+                    isCancelled = true;
                     dispatch(cancelFileDownload(downloadRequestId));
                 };
 
-                // Throttled progress dispatcher with updated message
+                // A function that dispatches progress events, throttled
+                // to only be invokable at most once/second
                 let totalBytesDownloaded = 0;
                 const throttledProgressDispatcher = throttle((progressMsg: string) => {
+                    if (isCancelled) return;
                     dispatch(
                         processProgress(
                             downloadRequestId,
@@ -375,7 +377,7 @@ const downloadFilesLogic = createLogic({
 
                     if (!someFilesHaveUnknownSize) {
                         if (result.resolution === DownloadResolution.CANCELLED) {
-                            dispatch(removeStatus(downloadRequestId));
+                            onCancel();
                         } else {
                             // This gets sent before some large files are complete
                             dispatch(
