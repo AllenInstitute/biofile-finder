@@ -176,8 +176,8 @@ Please navigate to this directory manually, or upload files to a remote address 
 
         // If able, use S3 listings to gather up files
         if (size && parsedUrl) {
-            const objectsInDir = await this.s3StorageService.getObjectsInDirectory(parsedUrl);
-            for (const objectInDir of objectsInDir) {
+            const objectsInDir = this.s3StorageService.getObjectsInDirectory(parsedUrl);
+            for await (const objectInDir of objectsInDir) {
                 const fileName = objectInDir.name.replace(`${parsedUrl?.key}/`, ""); // Local file name in zip
                 yield fileName;
             }
