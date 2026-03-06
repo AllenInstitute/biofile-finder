@@ -8,7 +8,7 @@ import FileService, {
 } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
-import FileDownloadService, { DownloadResolution, DownloadResult } from "../../FileDownloadService";
+import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
@@ -92,7 +92,7 @@ export default class DatabaseFileService implements FileService {
             .removeOrderBy()
             .toSQL();
 
-        const rows = await this.databaseService.query(sql);
+        const rows = await this.databaseService.query(sql).promise;
         return parseInt(rows[0][select_key], 10);
     }
 
@@ -123,7 +123,7 @@ export default class DatabaseFileService implements FileService {
             .limit(request.limit)
             .toSQL();
 
-        const rows = await this.databaseService.query(sql);
+        const rows = await this.databaseService.query(sql).promise;
         const env = this.downloadService.getEnvironmentFromUrl();
         return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
     }
@@ -232,24 +232,19 @@ export default class DatabaseFileService implements FileService {
         sql: string,
         format: "csv" | "json" | "parquet"
     ): Promise<DownloadResult> {
+        const name = `file-selection-${new Date()}.${format}`;
+        let buffer;
         // If the file system is accessible we can just have DuckDB write the
         // output query directly to the system rather than to a buffer then the file
         if (this.downloadService.isFileSystemAccessible) {
             const downloadDir = await this.downloadService.getDefaultDownloadDirectory();
             const separator = navigator.userAgent.toLowerCase().includes("windows") ? "\\" : "/";
-            const destination = `${downloadDir}${separator}file-selection-${Date.now().toLocaleString(
-                "en-us"
-            )}`;
-            await this.databaseService.saveQuery(destination, sql, format);
-            return {
-                downloadRequestId: uniqueId(),
-                msg: `File downloaded to ${destination}.${format}`,
-                resolution: DownloadResolution.SUCCESS,
-            };
+            const destination = `${downloadDir}${separator}${name}`;
+            buffer = await this.databaseService.saveQuery(destination, sql, format);
+        } else {
+            buffer = await this.databaseService.saveQuery(uniqueId(), sql, format);
         }
 
-        const buffer = await this.databaseService.saveQuery(uniqueId(), sql, format);
-        const name = `file-selection-${new Date()}.${format}`;
         return this.downloadService.download(
             {
                 id: name,

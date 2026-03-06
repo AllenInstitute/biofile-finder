@@ -123,7 +123,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
             );
         });
 
-        const rows = await this.databaseService.query(sqlBuilder.toSQL());
+        const rows = await this.databaseService.query(sqlBuilder.toSQL()).promise;
         const rowsSplitByDelimiter = rows
             .flatMap((row) =>
                 isNil(row[annotation])
@@ -145,30 +145,25 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         // Subquery 1
         const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
-        const columnNamesSql= new SQLBuilder()
-            .from(aggregateDataSourceName)
-            .limit(1)
-            .toSQL();
-        const queryResult = await this.databaseService.query(columnNamesSql);
+        const columnNamesSql = new SQLBuilder().from(aggregateDataSourceName).limit(1).toSQL();
+        const queryResult = await this.databaseService.query(columnNamesSql).promise;
         const columnNames = Object.keys(queryResult[0]);
 
-        const queries = columnNames.map(columnName => {
+        const queries = columnNames.map((columnName) => {
             const sql = new SQLBuilder()
                 .select(`'${columnName}' AS column_name`)
                 .from(aggregateDataSourceName)
                 .where(`"${columnName}" IS NOT NULL`)
-                .where(annotations.map(annotation => `"${annotation}" IS NOT NULL`))
+                .where(annotations.map((annotation) => `"${annotation}" IS NOT NULL`))
                 // This limit is non-deterministic, but we just want to know if
                 // any rows are non-null for this column, and a
                 // non-deterministic query will be faster.
                 .limit(1)
                 .toSQL();
-            return this.databaseService.query(sql);
+            return this.databaseService.query(sql).promise;
         });
         const results = (await Promise.all(queries)) as QueryResult[][];
-        return results
-            .filter(result => result.length > 0)
-            .map(result => result[0].column_name);
+        return results.filter((result) => result.length > 0).map((result) => result[0].column_name);
     }
 
     /**

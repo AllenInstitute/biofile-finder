@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "jsx": "react",
+    "lib": ["WebWorker", "ESNext", "DOM"],
     "module": "ESNext",
     "moduleResolution": "Node",
     "preserveConstEnums": true,
