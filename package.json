@@ -45,6 +45,7 @@
     "@types/react-window": "1.8.x",
     "@types/react-window-infinite-loader": "1.0.x",
     "@types/sinon": "10.x",
+    "@types/streamsaver": "2.0.x",
     "@types/string-natural-compare": "3.0.x",
     "@typescript-eslint/eslint-plugin": "5.62.x",
     "@typescript-eslint/parser": "5.62.x",
@@ -79,10 +80,10 @@
     "classnames": "2.2.x",
     "cockatiel": "2.0.x",
     "debounce-promise": "3.1.x",
+    "fflate": "0.8.x",
     "filesize": "5.0.x",
     "fuse.js": "3.4.x",
     "interactjs": "1.6.x",
-    "jszip": "^3.10.1",
     "lodash": "4.17.x",
     "lru-cache": "5.1.x",
     "markdown-to-jsx": "^8.0.0",
@@ -99,6 +100,7 @@
     "redux": "4.0.x",
     "redux-logic": "3.x",
     "reselect": "4.0.x",
+    "streamsaver": "2.0.x",
     "string-natural-compare": "3.0.x"
   }
 }
