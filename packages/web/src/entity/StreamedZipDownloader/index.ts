@@ -1,4 +1,4 @@
-import { Zip, ZipDeflate } from "fflate";
+import { Zip, ZipPassThrough } from "fflate";
 import streamSaver from "streamsaver";
 
 import ConcurrentTaskQueue from "../ConcurrentTaskQueue";
@@ -41,6 +41,7 @@ export default class StreamedZipDownloader {
             if (this.isCancelled) return;
 
             if (err) {
+                console.error("Error in zip generation:", err);
                 void this.cancel();
                 return;
             }
@@ -72,7 +73,7 @@ export default class StreamedZipDownloader {
             if (this.isCancelled) return;
 
             // Register file in zip
-            const file = new ZipDeflate(path);
+            const file = new ZipPassThrough(path);
             this.zip.add(file);
 
             // Retrieve reader
