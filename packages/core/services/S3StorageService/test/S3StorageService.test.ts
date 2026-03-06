@@ -43,12 +43,12 @@ describe("S3StorageService", () => {
         it("parses virtualized s3 url", async () => {
             // Act
             const reformattedUrl = await s3StorageService.formatAsHttpResource(
-                "https://example.com/directory-name/path/to/file.zarr"
+                "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/10005.zarr"
             );
 
             // Assert
             expect(reformattedUrl).to.equal(
-                "https://example.com/directory-name%2Fpath%2Fto%2Ffile.zarr"
+                "https://s3.us-west-2.amazonaws.com/animatedcell-test-data/variance%2F10005.zarr"
             );
         });
     });
