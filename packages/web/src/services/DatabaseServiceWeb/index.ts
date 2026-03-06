@@ -1,8 +1,8 @@
 import { uniqueId } from "lodash";
 
-import { AICS_FMS_DATA_SOURCE_NAME } from "../../../core/constants";
-import Annotation, { AnnotationResponse } from "../../../core/entity/Annotation";
-import { Source } from "../../../core/entity/SearchParams";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../../../core/constants";
+import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
+import { Source } from "../../../../core/entity/SearchParams";
 import {
     CanceledError,
     Pending,
@@ -10,8 +10,8 @@ import {
     WorkerResPayload,
     WorkerResponse,
     WorkerResType,
-} from "../../../core/services/DatabaseService/types";
-import { DatabaseService } from "../../../core/services";
+} from "./types";
+import { DatabaseService } from "../../../../core/services";
 
 export default class DatabaseServiceWeb extends DatabaseService {
     // Initialize with AICS FMS data source name to pretend it always exists
@@ -28,7 +28,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
 
     constructor() {
         super();
-        this.worker = new Worker(new URL("./duckdb-worker-web.worker", import.meta.url), {
+        this.worker = new Worker(new URL("./duckdb-worker.worker", import.meta.url), {
             type: "module",
         });
         this.worker.onmessage = this.onMessage.bind(this);

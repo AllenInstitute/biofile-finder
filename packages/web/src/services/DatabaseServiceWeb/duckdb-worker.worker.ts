@@ -1,9 +1,9 @@
 import type { AsyncDuckDB } from "@duckdb/duckdb-wasm";
 import * as duckdb from "@duckdb/duckdb-wasm";
-import Annotation, { AnnotationResponse } from "../../../core/entity/Annotation";
-import SQLBuilder from "../../../core/entity/SQLBuilder";
+import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
+import SQLBuilder from "../../../../core/entity/SQLBuilder";
 import { isEmpty } from "lodash";
-import { AnnotationType } from "../../../core/entity/AnnotationFormatter";
+import { AnnotationType } from "../../../../core/entity/AnnotationFormatter";
 import {
     QueryRow,
     WorkerMsgType,
@@ -11,7 +11,7 @@ import {
     WorkerRequest,
     WorkerResPayload,
     WorkerResType,
-} from "../../../core/services/DatabaseService/types";
+} from "./types";
 import {
     getActualToPreDefinedColumnMap,
     getFileNameFromPathExpression,
@@ -23,9 +23,9 @@ import {
     truncateString,
     getUpdateHiddenUIDSQL,
     columnTypeToAnnotationType,
-} from "../../../core/services/DatabaseService/utils";
+} from "../../../../core/services/DatabaseService/utils";
 import axios from "axios";
-import DataSourcePreparationError from "../../../core/errors/DataSourcePreparationError";
+import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 
 declare const self: DedicatedWorkerGlobalScope & typeof globalThis;
 
