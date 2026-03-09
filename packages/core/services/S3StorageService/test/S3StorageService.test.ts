@@ -1,4 +1,3 @@
-import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 
 import S3StorageService from "..";
@@ -6,11 +5,7 @@ import S3StorageService from "..";
 describe("S3StorageService", () => {
     // This uses an external package, so is mostly just a consistency check
     describe("formatAsHttpResource", () => {
-        const httpClient = createMockHttpClient({
-            when: `https://example.com/directory-name/path/to/file.zarr`,
-            respondWith: {},
-        });
-        const s3StorageService = new S3StorageService({ httpClient });
+        const s3StorageService = new S3StorageService();
 
         const testUrls = [
             {
@@ -50,7 +45,6 @@ describe("S3StorageService", () => {
             const reformattedUrl = await s3StorageService.formatAsHttpResource(
                 "https://example.com/directory-name/path/to/file.zarr"
             );
-            console.info(reformattedUrl);
 
             // Assert
             expect(reformattedUrl).to.equal(

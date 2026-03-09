@@ -169,7 +169,6 @@ export default class S3StorageService extends HttpServiceBase {
     private async getHttpObjectSize(url: string): Promise<number> {
         try {
             const response = await axios.head(url);
-            console.info("response", response);
             return parseInt(response.headers["content-length"] || "0", 10);
         } catch (err) {
             console.error(`Failed to get file size (content-length): ${err}`);
@@ -192,12 +191,10 @@ export default class S3StorageService extends HttpServiceBase {
      * Returns undefined if unable to parse
      */
     private async parseVirtualizedDirectory(url: string): Promise<ParsedUrl | undefined> {
-        console.info("calling parse virtualized with url", url);
         let urlObj;
         try {
             urlObj = new URL(url);
         } catch (err) {
-            console.info("err", err);
             return undefined;
         }
         const hostname = urlObj.hostname;
