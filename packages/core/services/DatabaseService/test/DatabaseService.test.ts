@@ -18,6 +18,9 @@ describe("DatabaseService", () => {
             execute(): Promise<void> {
                 throw new Error("Not implemented in dummy impl");
             }
+            addDataSource(): Promise<void> {
+                throw new Error("Not implemented in dummy impl");
+            }
             query(): { promise: Promise<any> } {
                 return { promise: Promise.resolve(annotations) };
             }

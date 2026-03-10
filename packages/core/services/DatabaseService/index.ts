@@ -4,13 +4,9 @@ import { isEmpty, mapKeys } from "lodash";
 
 import {
     columnTypeToAnnotationType,
-    getActualToPreDefinedColumnMap,
-    getFileNameFromPathExpression,
-    getParquetFileNameSelectPart,
-    getUpdateHiddenUIDSQL,
+    HIDDEN_UID_ANNOTATION,
+    PRE_DEFINED_COLUMNS,
     PreDefinedColumn,
-    RAW_SUFFIX,
-    truncateString,
 } from "../../../core/services/DatabaseService/utils";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import Annotation from "../../entity/Annotation";
@@ -20,6 +16,67 @@ import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
+// Map each actual column name to the predefined column name when they fuzzy-match.
+export function getActualToPreDefinedColumnMap(columns: string[]): Map<string, string> {
+    const map = new Map<string, string>();
+    for (const preDefinedColumn of PRE_DEFINED_COLUMNS) {
+        const preDefinedColumnSimplified = preDefinedColumn.toLowerCase().replace(" ", "");
+        // Grab near matches to the pre-defined columns like "file_name" for "File Name"
+        const matches = [...columns].filter(
+            (column) =>
+                preDefinedColumnSimplified ===
+                // Matches regardless of caps, whitespace, hyphens, or underscores
+                column.toLowerCase().replaceAll(/\s|-|_/g, "")
+        );
+
+        // Doesn't seem like we should guess at a pre-defined column match in this case
+        // so just toss up a user-actionable error to try to get them to retry
+        if (matches.length > 1) {
+            throw new Error(
+                `Too many columns similar to pre-defined column: "${preDefinedColumn}", narrow
+                these down to just one column exactly equal or similar to "${preDefinedColumn}".
+                Found: ${matches}.`
+            );
+        }
+        if (matches.length === 1) {
+            map.set(matches[0], preDefinedColumn);
+        }
+    }
+    return map;
+}
+
+/**
+ * Derive a "File Name" from a path-like column (local path or URL).
+ */
+export function getFileNameFromPathExpression(quotedPathColumn: string): string {
+    const cleaned = `REGEXP_REPLACE(
+        REGEXP_REPLACE(${quotedPathColumn}, '[?#].*$', ''),
+        '/+$',
+        ''
+    )`;
+    const basename = `REGEXP_EXTRACT(${cleaned}, '([^/]+)$', 1)`;
+    const stripOme = `REGEXP_REPLACE(${basename}, '(?i)\\\\.ome$', '')`;
+
+    return `COALESCE(NULLIF(${stripOme}, ''), ${quotedPathColumn})`;
+}
+
+/**
+ * For parquets: add a computed "File Name" when we have "File Path" but not "File Name".
+ */
+export function getParquetFileNameSelectPart(
+    actualToPreDefined: Map<string, string>
+): string | null {
+    const hasFileName = [...actualToPreDefined.values()].includes(PreDefinedColumn.FILE_NAME);
+    if (hasFileName) return null;
+
+    const pathColumn = [...actualToPreDefined.entries()].find(
+        ([, predefined]) => predefined === PreDefinedColumn.FILE_PATH
+    )?.[0];
+    if (!pathColumn) return null;
+
+    return `${getFileNameFromPathExpression(`"${pathColumn}"`)} AS "${PreDefinedColumn.FILE_NAME}"`;
+}
+
 /**
  * Service reponsible for querying against a database
  */
@@ -27,7 +84,7 @@ export default abstract class DatabaseService {
     public static readonly LIST_DELIMITER = ",";
     // Name of the hidden column BFF uses to uniquely identify rows
     public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
-    // protected static readonly RAW_SUFFIX = "__bff_raw";
+    private static readonly RAW_SUFFIX = "__bff_raw";
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
     protected static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));
@@ -43,6 +100,7 @@ export default abstract class DatabaseService {
     protected database: duckdb.AsyncDuckDB | undefined;
 
     constructor() {
+        this.addDataSource = this.addDataSource.bind(this);
         this.execute = this.execute.bind(this);
         this.query = this.query.bind(this);
     }
@@ -55,6 +113,7 @@ export default abstract class DatabaseService {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
+
         const resultName = `${destination}.${format}`;
         const formatOptions = format === "json" ? ", ARRAY true" : "";
         const finalSQL = `COPY (${sql}) TO '${resultName}' (FORMAT '${format}'${formatOptions});`;
@@ -85,8 +144,7 @@ export default abstract class DatabaseService {
                 resultAsArray,
                 (_, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
             );
-            const parsedResults = JSON.parse(resultAsJSONString);
-            return parsedResults;
+            return JSON.parse(resultAsJSONString);
         } catch (err) {
             throw new Error(
                 `${(err as Error).message}. \nThe above error occured while executing query: ${sql}`
@@ -111,7 +169,7 @@ export default abstract class DatabaseService {
 
         // Register the user's input under an internal name so we can create a
         // table or view named `name`
-        const registerName = `${name}${RAW_SUFFIX}.${type}`;
+        const registerName = `${name}${DatabaseService.RAW_SUFFIX}.${type}`;
 
         if (uri instanceof File) {
             await this.database.registerFileHandle(
@@ -144,12 +202,19 @@ export default abstract class DatabaseService {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
+
         const connection = await this.database.connect();
         try {
             await connection.query(sql);
         } finally {
             await connection.close();
         }
+    }
+
+    private static truncateString(str: string, length: number): string {
+        return str.length > length
+            ? `${str.slice(0, length / 2)}...${str.slice(str.length - length / 2)}`
+            : str;
     }
 
     public hasDataSource(dataSourceName: string): boolean {
@@ -335,7 +400,7 @@ export default abstract class DatabaseService {
                 ALTER TABLE "${name}"
                 ADD COLUMN ${DatabaseService.HIDDEN_UID_ANNOTATION} INT
             `,
-            getUpdateHiddenUIDSQL(name),
+            this.getUpdateHiddenUIDSQL(name),
         ];
 
         const dataSourceColumns = await this.getColumnsOnDataSource(name);
@@ -375,6 +440,21 @@ export default abstract class DatabaseService {
         this.dataSourceToAnnotationsMap.delete(name);
     }
 
+    getUpdateHiddenUIDSQL(tableName: string): string {
+        // Altering tables to add primary keys or serially generated columns
+        // isn't yet supported in DuckDB, so this does a serially generated
+        // column addition manually
+        return `
+            UPDATE "${tableName}"
+            SET "${HIDDEN_UID_ANNOTATION}" = SQ.row
+            FROM (
+                SELECT "${PreDefinedColumn.FILE_PATH}", ROW_NUMBER() OVER (ORDER BY "${PreDefinedColumn.FILE_PATH}") AS row
+                FROM "${tableName}"
+            ) AS SQ
+            WHERE "${tableName}"."${PreDefinedColumn.FILE_PATH}" = SQ."${PreDefinedColumn.FILE_PATH}";
+        `;
+    }
+
     /*
         Checks the data source for unexpected formatting or issues in
         the expectations around uniqueness/blankness for pre-defined columns
@@ -386,7 +466,7 @@ export default abstract class DatabaseService {
 
         if (!columnsOnTable.has(PreDefinedColumn.FILE_PATH)) {
             let error = `"${PreDefinedColumn.FILE_PATH}" column is missing in the data source.
-                    Check the data source header row for a "${PreDefinedColumn.FILE_PATH}" column name and try again.`;
+                Check the data source header row for a "${PreDefinedColumn.FILE_PATH}" column name and try again.`;
 
             // Attempt to find a column with a similar name to "File Path"
             const columns = Array.from(columnsOnTable);
@@ -408,7 +488,10 @@ export default abstract class DatabaseService {
                 PreDefinedColumn.FILE_PATH
             );
             if (blankFilePathRows.length > 0) {
-                const rowNumbers = truncateString(blankFilePathRows.join(", "), 100);
+                const rowNumbers = DatabaseService.truncateString(
+                    blankFilePathRows.join(", "),
+                    100
+                );
                 errors.push(
                     `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`
                 );
@@ -557,7 +640,7 @@ export default abstract class DatabaseService {
         }
 
         // Reset hidden UID to avoid conflicts in previous auto-generation
-        await this.execute(getUpdateHiddenUIDSQL(viewName));
+        await this.execute(this.getUpdateHiddenUIDSQL(viewName));
     }
 
     public async processProvenance(provenanceSource: Source): Promise<EdgeDefinition[]> {
