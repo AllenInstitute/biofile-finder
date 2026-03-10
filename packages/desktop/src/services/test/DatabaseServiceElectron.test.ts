@@ -13,7 +13,6 @@ import AnnotationName from "../../../../core/entity/Annotation/AnnotationName";
 
 describe("DatabaseServiceElectron", () => {
     describe("addDataSource", () => {
-        sinon.stub(axios, "get").returns(Promise.resolve());
         const mockAnnotations = [
             new Annotation({
                 annotationDisplayName: AnnotationName.KIND,
@@ -51,6 +50,7 @@ describe("DatabaseServiceElectron", () => {
         const tempDir = path.join(os.tmpdir(), "DatabaseServiceTest");
 
         before(async () => {
+            sinon.stub(axios, "get").returns(Promise.resolve());
             await fs.promises.mkdir(tempDir);
             await service.initialize();
         });
