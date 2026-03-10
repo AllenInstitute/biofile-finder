@@ -261,22 +261,6 @@ describe("DatabaseFileService", () => {
             protected addDataSource(): Promise<void> {
                 return Promise.reject("MockDatabaseEditService:addDataSource");
             }
-
-            protected prepareDataSource(): Promise<void> {
-                return Promise.reject("DatabaseServiceNoop:prepareDataSource");
-            }
-
-            protected deleteDataSource(): Promise<void> {
-                return Promise.reject("DatabaseServiceNoop:deleteDataSource");
-            }
-
-            public fetchAnnotations(): Promise<any> {
-                return Promise.reject("DatabaseServiceNoop:fetchAnnotations");
-            }
-
-            public close() {
-                Promise.reject("DatabaseServiceNoop:close");
-            }
         }
         const databaseEditService = new MockDatabaseEditService();
 

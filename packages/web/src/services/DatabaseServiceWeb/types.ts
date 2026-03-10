@@ -97,6 +97,7 @@ export type WorkerResPayload<T extends WorkerResType> = {
     };
     [WorkerResType.ERROR]: {
         message: string;
+        queryId?: string;
     };
 }[T];
 

@@ -18,22 +18,6 @@ export default class DatabaseServiceNoop extends DatabaseService {
         return Promise.resolve();
     }
 
-    protected prepareDataSource(): Promise<void> {
-        return Promise.reject("DatabaseServiceNoop:prepareDataSource");
-    }
-
-    protected deleteDataSource(): Promise<void> {
-        return Promise.reject("DatabaseServiceNoop:deleteDataSource");
-    }
-
-    public close() {
-        Promise.reject("DatabaseServiceNoop:close");
-    }
-
-    public saveQuery(): Promise<Uint8Array> {
-        return Promise.reject("DatabaseServiceNoop:saveQuery");
-    }
-
     public query(): {
         promise: Promise<{ [key: string]: any }[]>;
         cancel?: (reason?: string) => void;

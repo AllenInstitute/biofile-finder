@@ -705,22 +705,6 @@ describe("Selection logics", () => {
             public query(): { promise: Promise<{ [key: string]: string }[]> } {
                 return { promise: Promise.reject("MockDatabaseService:query") };
             }
-
-            protected prepareDataSource(): Promise<void> {
-                return Promise.reject("DatabaseServiceNoop:prepareDataSource");
-            }
-
-            protected deleteDataSource(): Promise<void> {
-                return Promise.resolve();
-            }
-
-            public fetchAnnotations(): Promise<any> {
-                return Promise.reject("DatabaseServiceNoop:fetchAnnotations");
-            }
-
-            public close() {
-                Promise.reject("DatabaseServiceNoop:close");
-            }
         }
         const state = mergeState(initialState, {
             interaction: {

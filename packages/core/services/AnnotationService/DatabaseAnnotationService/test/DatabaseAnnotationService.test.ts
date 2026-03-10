@@ -157,30 +157,6 @@ describe("DatabaseAnnotationService", () => {
                 querySpy(sql); // pass SQL to the spy func
                 return { promise: Promise.resolve([]) };
             }
-
-            protected prepareDataSource(): Promise<void> {
-                return Promise.reject("DatabaseServiceNoop:prepareDataSource");
-            }
-
-            protected deleteDataSource(): Promise<void> {
-                return Promise.reject("DatabaseServiceNoop:deleteDataSource");
-            }
-
-            public fetchAnnotations(): Promise<any> {
-                return Promise.reject("DatabaseServiceNoop:fetchAnnotations");
-            }
-
-            public close() {
-                Promise.reject("DatabaseServiceNoop:close");
-            }
-
-            public saveQuery(): Promise<Uint8Array> {
-                return Promise.reject("DatabaseServiceNoop:saveQuery");
-            }
-
-            public execute(): Promise<void> {
-                return Promise.reject("DatabaseServiceNoop:execute");
-            }
         }
         const databaseService = new MockDatabaseService();
         const filterToRegex = (filter: FileFilter) => {
@@ -285,30 +261,6 @@ describe("DatabaseAnnotationService", () => {
                     };
                 }
                 return { promise: Promise.reject() };
-            }
-
-            protected prepareDataSource(): Promise<void> {
-                return Promise.reject("DatabaseServiceNoop:prepareDataSource");
-            }
-
-            protected deleteDataSource(): Promise<void> {
-                return Promise.reject("DatabaseServiceNoop:deleteDataSource");
-            }
-
-            public fetchAnnotations(): Promise<any> {
-                return Promise.reject("DatabaseServiceNoop:fetchAnnotations");
-            }
-
-            public close() {
-                Promise.reject("DatabaseServiceNoop:close");
-            }
-
-            public saveQuery(): Promise<Uint8Array> {
-                return Promise.reject("DatabaseServiceNoop:saveQuery");
-            }
-
-            public execute(): Promise<void> {
-                return Promise.reject("DatabaseServiceNoop:execute");
             }
         }
         const databaseService = new MockDatabaseService();
