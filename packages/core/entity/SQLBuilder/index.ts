@@ -1,5 +1,5 @@
 import { castArray } from "lodash";
-import { HIDDEN_UID_ANNOTATION } from "../../services/DatabaseService/utils";
+import { HIDDEN_UID_ANNOTATION } from "../../constants";
 
 /**
  * A simple SQL query builder.

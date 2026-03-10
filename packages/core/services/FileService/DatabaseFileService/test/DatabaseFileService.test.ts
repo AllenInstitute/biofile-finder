@@ -8,6 +8,7 @@ import NumericRange from "../../../../entity/NumericRange";
 import SQLBuilder from "../../../../entity/SQLBuilder";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
+import { HIDDEN_UID_ANNOTATION } from "../../../../constants";
 
 import DatabaseFileService from "..";
 
@@ -15,7 +16,7 @@ describe("DatabaseFileService", () => {
     const totalFileSize = 864452;
     const fileIds = ["abc123", "def456"];
     const files = fileIds.map((file_id) => ({
-        [DatabaseService.HIDDEN_UID_ANNOTATION]: file_id,
+        [HIDDEN_UID_ANNOTATION]: file_id,
         "File Size": `${totalFileSize / 2}`,
         "File Path": "path/to/file",
         "File Name": "file",
@@ -76,7 +77,7 @@ describe("DatabaseFileService", () => {
             // Arrange
             const parquetFiles = [
                 {
-                    [DatabaseService.HIDDEN_UID_ANNOTATION]: "1",
+                    [HIDDEN_UID_ANNOTATION]: "1",
                     "File ID": "123",
                 },
             ];
@@ -238,7 +239,7 @@ describe("DatabaseFileService", () => {
     });
 
     describe("editFiles", () => {
-        const uidField = DatabaseService.HIDDEN_UID_ANNOTATION;
+        const uidField = HIDDEN_UID_ANNOTATION;
         const fileUid = "a1b2c3d4";
         const sandbox = createSandbox();
         afterEach(() => {

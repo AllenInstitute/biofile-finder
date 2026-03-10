@@ -2,13 +2,7 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
 import { isEmpty, mapKeys } from "lodash";
 
-import {
-    columnTypeToAnnotationType,
-    HIDDEN_UID_ANNOTATION,
-    PRE_DEFINED_COLUMNS,
-    PreDefinedColumn,
-} from "../../../core/services/DatabaseService/utils";
-import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { EdgeDefinition } from "../../entity/Graph";
@@ -16,8 +10,19 @@ import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
+export enum PreDefinedColumn {
+    FILE_ID = "File ID",
+    FILE_PATH = "File Path",
+    FILE_NAME = "File Name",
+    FILE_SIZE = "File Size",
+    THUMBNAIL = "Thumbnail",
+    UPLOADED = "Uploaded",
+}
+
+const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
+
 // Map each actual column name to the predefined column name when they fuzzy-match.
-export function getActualToPreDefinedColumnMap(columns: string[]): Map<string, string> {
+function getActualToPreDefinedColumnMap(columns: string[]): Map<string, string> {
     const map = new Map<string, string>();
     for (const preDefinedColumn of PRE_DEFINED_COLUMNS) {
         const preDefinedColumnSimplified = preDefinedColumn.toLowerCase().replace(" ", "");
@@ -48,7 +53,7 @@ export function getActualToPreDefinedColumnMap(columns: string[]): Map<string, s
 /**
  * Derive a "File Name" from a path-like column (local path or URL).
  */
-export function getFileNameFromPathExpression(quotedPathColumn: string): string {
+function getFileNameFromPathExpression(quotedPathColumn: string): string {
     const cleaned = `REGEXP_REPLACE(
         REGEXP_REPLACE(${quotedPathColumn}, '[?#].*$', ''),
         '/+$',
@@ -83,20 +88,19 @@ export function getParquetFileNameSelectPart(
 export default abstract class DatabaseService {
     public static readonly LIST_DELIMITER = ",";
     // Name of the hidden column BFF uses to uniquely identify rows
-    public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
     private static readonly RAW_SUFFIX = "__bff_raw";
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
-    protected static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));
-    protected sourceMetadataName?: string;
+    private static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));
+    private sourceMetadataName?: string;
     public sourceProvenanceName?: string;
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
     protected readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
-    protected readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
+    private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
     // Data source names that are views (parquet), so we DROP VIEW on delete
-    protected readonly parquetDirectViewNames = new Set<string>();
+    private readonly parquetDirectViewNames = new Set<string>();
     protected database: duckdb.AsyncDuckDB | undefined;
 
     constructor() {
@@ -208,6 +212,20 @@ export default abstract class DatabaseService {
             await connection.query(sql);
         } finally {
             await connection.close();
+        }
+    }
+
+    protected static columnTypeToAnnotationType(columnType: string): AnnotationType {
+        switch (columnType) {
+            case "INTEGER":
+            case "BIGINT":
+            // TODO: Add support for column types
+            // https://github.com/AllenInstitute/biofile-finder/issues/60
+            // return AnnotationType.NUMBER;
+            case "VARCHAR":
+            case "TEXT":
+            default:
+                return AnnotationType.STRING;
         }
     }
 
@@ -398,7 +416,7 @@ export default abstract class DatabaseService {
             // Add hidden UID column to uniquely identify rows
             `
                 ALTER TABLE "${name}"
-                ADD COLUMN ${DatabaseService.HIDDEN_UID_ANNOTATION} INT
+                ADD COLUMN ${HIDDEN_UID_ANNOTATION} INT
             `,
             this.getUpdateHiddenUIDSQL(name),
         ];
@@ -553,7 +571,7 @@ export default abstract class DatabaseService {
         if (fileNameSelectPart !== null) {
             selectParts.push(fileNameSelectPart);
         }
-        selectParts.push(`"file_row_number" AS "${DatabaseService.HIDDEN_UID_ANNOTATION}"`);
+        selectParts.push(`"file_row_number" AS "${HIDDEN_UID_ANNOTATION}"`);
         // 4. Create the view for this data source
         const createViewSql = `CREATE VIEW "${viewName}"
             AS SELECT ${selectParts.join(", ")}
@@ -721,7 +739,7 @@ export default abstract class DatabaseService {
                 .select("column_name, data_type")
                 .from('information_schema"."columns')
                 .where(`table_name = '${aggregateDataSourceName}'`)
-                .where(`column_name != '${DatabaseService.HIDDEN_UID_ANNOTATION}'`)
+                .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
                 .toSQL();
             const rows = await this.query(sql).promise;
             if (isEmpty(rows)) {
@@ -740,7 +758,7 @@ export default abstract class DatabaseService {
                         description: annotationNameToDescriptionMap[row["column_name"]] || "",
                         type:
                             (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
-                            columnTypeToAnnotationType(row["data_type"]),
+                            DatabaseService.columnTypeToAnnotationType(row["data_type"]),
                     })
             );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);

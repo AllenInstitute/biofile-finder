@@ -14,11 +14,7 @@ import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotati
 import { AnnotationType } from "../../../../core/entity/AnnotationFormatter";
 import { Source } from "../../../../core/entity/SearchParams";
 import SQLBuilder from "../../../../core/entity/SQLBuilder";
-import {
-    HIDDEN_UID_ANNOTATION,
-    SOURCE_METADATA_TABLE,
-    columnTypeToAnnotationType,
-} from "../../../../core/services/DatabaseService/utils";
+import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 import { DatabaseService } from "../../../../core/services";
 
@@ -31,8 +27,6 @@ enum DataSourceStatus {
     NORMALIZING = "normalizing", // completed normalizing
     DONE = "done",
 }
-
-// const dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
 
 // Map to track connectionNumber -> connection object
 const activeConnections = new Map<number, duckdb.AsyncDuckDBConnection>();
@@ -352,7 +346,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             .get(aggregateDataSourceName)
             ?.some((annotation) => !!annotation.description);
 
-        const shouldHaveDescriptions = dataSourceNames.includes(SOURCE_METADATA_TABLE);
+        const shouldHaveDescriptions = dataSourceNames.includes(this.SOURCE_METADATA_TABLE);
         if (!hasAnnotations || (!hasDescriptions && shouldHaveDescriptions)) {
             const sql = new SQLBuilder()
                 .select("column_name, data_type")
@@ -377,7 +371,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                         description: annotationNameToDescriptionMap[row["column_name"]] || "",
                         type:
                             (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
-                            columnTypeToAnnotationType(row["data_type"]),
+                            DatabaseServiceWebWorker.columnTypeToAnnotationType(row["data_type"]),
                     })
             );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);

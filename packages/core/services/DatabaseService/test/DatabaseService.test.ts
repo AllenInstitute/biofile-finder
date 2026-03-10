@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { getParquetFileNameSelectPart } from "../utils";
+import { getParquetFileNameSelectPart } from "..";
 import DatabaseServiceNoop from "../DatabaseServiceNoop";
 
 describe("DatabaseService", () => {
