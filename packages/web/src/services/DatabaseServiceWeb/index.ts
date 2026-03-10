@@ -38,7 +38,6 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 p.reject(new Error(`Worker error: ${e?.message ?? "unknown"}`));
                 this.pending.delete(id);
             }
-            console.error("Error reached in DB Service", e);
         };
     }
 
@@ -55,9 +54,9 @@ export default class DatabaseServiceWeb extends DatabaseService {
         if (!this.ready) {
             throw new Error("Database failed to initialize in save query");
         }
-        const id = `save-${Date.now()}-${uniqueId()}`;
+        const queryId = `save-${Date.now()}-${uniqueId()}`;
         const promise = new Promise<any>((resolve, reject) => {
-            this.pending.set(id, {
+            this.pending.set(queryId, {
                 resolve,
                 reject,
                 connectionId: undefined,
@@ -67,11 +66,11 @@ export default class DatabaseServiceWeb extends DatabaseService {
             try {
                 this.worker.postMessage({
                     type: WorkerMsgType.SAVE,
-                    payload: { destination, sql, format, id },
+                    payload: { destination, sql, format, id: queryId },
                 });
             } catch (err) {
                 // Synchronous postMessage failure -> reject and clean up
-                this.pending.delete(id);
+                this.pending.delete(queryId);
                 reject(new Error("Failed to post query to worker: " + String(err)));
             }
         });
@@ -95,7 +94,10 @@ export default class DatabaseServiceWeb extends DatabaseService {
             });
 
             try {
-                this.worker.postMessage({ type: WorkerMsgType.QUERY, payload: { sql, queryId } });
+                this.worker.postMessage({
+                    type: WorkerMsgType.QUERY,
+                    payload: { sql, id: queryId },
+                });
             } catch (err) {
                 // Synchronous postMessage failure -> reject and clean up
                 this.pending.delete(queryId);
@@ -224,9 +226,6 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 return new Annotation(row);
             })
         );
-        // .finally(() => {
-        //     settled = true;
-        // });
 
         return wrappedPromise;
     }
@@ -242,10 +241,10 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 return;
             }
             case WorkerResType.STARTED: {
-                const { queryId, connectionId } = data.payload as WorkerResPayload<
+                const { id, connectionId } = data.payload as WorkerResPayload<
                     WorkerResType.STARTED
                 >;
-                const p = this.pending.get(queryId);
+                const p = this.pending.get(id);
                 if (!p) return;
                 p.connectionId = connectionId;
                 if (p.canceledBeforeStart) {
@@ -255,6 +254,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
                             type: WorkerMsgType.CANCEL,
                             payload: { connectionId: p.connectionId },
                         });
+                        this.pending.delete(id);
                     } catch (err) {
                         console.error(err);
                     }
@@ -262,11 +262,11 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 return;
             }
             case WorkerResType.RESULT: {
-                const { queryId, result } = data.payload as WorkerResPayload<WorkerResType.RESULT>;
-                const p = this.pending.get(queryId);
+                const { id, result } = data.payload as WorkerResPayload<WorkerResType.RESULT>;
+                const p = this.pending.get(id);
                 if (!p) return;
                 p.resolve(result);
-                this.pending.delete(queryId);
+                this.pending.delete(id);
                 return;
             }
             case WorkerResType.SOURCE_RESOLVED: {
@@ -284,10 +284,16 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 return;
             }
             case WorkerResType.ERROR: {
-                console.error("hit error", data.payload, data);
+                const { message, id } = data.payload as WorkerResPayload<WorkerResType.ERROR>;
+                if (id) {
+                    const p = this.pending.get(id);
+                    if (!p) return;
+                    p.reject(message);
+                    this.pending.delete(id);
+                }
+                console.error("Error in web worker: ", message);
                 return;
             }
-            // case 'cancel-ok':
             default:
                 return;
         }

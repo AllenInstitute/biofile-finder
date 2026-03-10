@@ -2,14 +2,7 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
 import { isEmpty } from "lodash";
 
-import {
-    QueryRow,
-    WorkerMsgType,
-    WorkerReqPayload,
-    WorkerRequest,
-    WorkerResPayload,
-    WorkerResType,
-} from "./types";
+import { QueryRow, WorkerMsgType, WorkerReqPayload, WorkerRequest, WorkerResType } from "./types";
 import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
 import { AnnotationType } from "../../../../core/entity/AnnotationFormatter";
 import { Source } from "../../../../core/entity/SearchParams";
@@ -21,16 +14,8 @@ import { DatabaseService } from "../../../../core/services";
 declare const self: DedicatedWorkerGlobalScope & typeof globalThis;
 let databaseService: DatabaseServiceWebWorker | null = null;
 
-enum DataSourceStatus {
-    STARTED = "started", // started the process of creating table
-    CREATED = "created", // table created but not normalized
-    NORMALIZING = "normalizing", // completed normalizing
-    DONE = "done",
-}
-
 // Map to track connectionNumber -> connection object
 const activeConnections = new Map<number, duckdb.AsyncDuckDBConnection>();
-const dataSourceStatusMap: Map<string, DataSourceStatus> = new Map();
 
 async function initDuckDB() {
     if (databaseService) return; // Already initialized successfully
@@ -51,23 +36,17 @@ function getConnectionId(connection: duckdb.AsyncDuckDBConnection): number {
 }
 
 function cancelActiveConnection(connection: duckdb.AsyncDuckDBConnection): void {
-    try {
-        connection.useUnsafe((bindings: any, conn_id: number) => {
-            bindings.cancelPendingQuery(conn_id);
-        });
-    } catch (err) {
-        console.error(err);
-    }
+    connection.useUnsafe((bindings: any, conn_id: number) => {
+        bindings.cancelPendingQuery(conn_id);
+    });
 }
 
-type MessageHandler<T extends WorkerMsgType> = (
-    payload: WorkerReqPayload<T>
-) => Promise<WorkerResPayload<any>>; // TO DO: THis is bad
+type MessageHandler<T extends WorkerMsgType> = (payload: WorkerReqPayload<T>) => Promise<void>;
 
 const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
     [WorkerMsgType.INIT]: async () => {
         if (!databaseService) await initDuckDB();
-        return Promise.resolve();
+        self.postMessage({ type: WorkerResType.READY });
     },
     [WorkerMsgType.CANCEL]: async ({ connectionId }) => {
         try {
@@ -83,7 +62,6 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
         } finally {
             activeConnections.delete(connectionId);
         }
-        return Promise.resolve({ connectionId });
     },
     [WorkerMsgType.EXECUTE]: async ({ sql, id }) => {
         if (!databaseService) {
@@ -91,21 +69,19 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
         }
         // To do: decide if executes should be cancelable
         const result = await databaseService.execute(sql);
-        self.postMessage({ type: WorkerResType.RESULT, payload: { result, queryId: id } });
-        return Promise.resolve({ result, id });
+        return self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
     },
-    [WorkerMsgType.QUERY]: async ({ sql, queryId }) => {
+    [WorkerMsgType.QUERY]: async ({ sql, id }) => {
         try {
             if (!databaseService) {
                 throw "DuckDB not initialized";
             }
-            const result = await databaseService.queryWorker(sql, queryId);
-            self.postMessage({ type: WorkerResType.RESULT, payload: { result, queryId } });
-            return Promise.resolve({ result, queryId });
+            const result = await databaseService.queryWorker(sql, id);
+            return self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
         } catch (err) {
             self.postMessage({
                 type: WorkerResType.ERROR,
-                payload: { message: (err as Error).message, queryId },
+                payload: { message: (err as Error).message, id },
             });
         }
     },
@@ -115,12 +91,11 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                 throw "DuckDB not initialized";
             }
             const result = await databaseService.saveQuery(destination, sql, format);
-            self.postMessage({ type: WorkerResType.RESULT, payload: { result, queryId: id } });
-            return Promise.resolve({ result, id });
+            return self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
         } catch (err) {
             self.postMessage({
                 type: WorkerResType.ERROR,
-                payload: { message: (err as Error).message, queryId: id },
+                payload: { message: (err as Error).message, id },
             });
         }
     },
@@ -140,12 +115,11 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                     };
                 }
             );
-            self.postMessage({ type: WorkerResType.RESULT, payload: { result, queryId: id } });
-            return Promise.resolve();
+            return self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
         } catch (err) {
             self.postMessage({
                 type: WorkerResType.ERROR,
-                payload: { message: (err as Error).message, queryId: id },
+                payload: { message: (err as Error).message, id },
             });
         }
     },
@@ -172,11 +146,10 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                 dataSource,
                 skipNormalization
             );
-            self.postMessage({
+            return self.postMessage({
                 type: WorkerResType.SOURCE_RESOLVED,
                 payload: { dataSourceName, added: true },
             });
-            return Promise.resolve({ dataSourceName, skipNormalization });
         } catch (err) {
             let formattedError = (err as Error).message;
             // DuckDB does not provide informative server errors, so send a
@@ -207,7 +180,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
         }
         try {
             await databaseService.deleteDataSourceWrapper(name);
-            self.postMessage({
+            return self.postMessage({
                 type: WorkerResType.SOURCE_RESOLVED,
                 payload: { dataSourceName: name, added: false },
             });
@@ -222,6 +195,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
         activeConnections.clear();
         databaseService.close();
         databaseService = null;
+        return Promise.resolve();
     },
 };
 
@@ -259,7 +233,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             this.database = new duckdb.AsyncDuckDB(logger, worker);
             await this.database.instantiate(bundle.mainModule, bundle.pthreadWorker);
             URL.revokeObjectURL(worker_url);
-            self.postMessage({ type: WorkerResType.READY });
+            return Promise.resolve();
         } catch (err: any) {
             console.error(err);
             throw err;
@@ -293,7 +267,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
 
     public query(
         sql: string
-    ): { promise: Promise<{ [key: string]: any }[]>; cancel?: (reason?: string) => void } {
+    ): { promise: Promise<QueryRow[]>; cancel?: (reason?: string) => void } {
         return { promise: this.queryWorker(sql) };
     }
 
@@ -308,7 +282,10 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
 
         // Tell main thread query has started; share connectionId for cancellation
         if (queryId)
-            self.postMessage({ type: WorkerResType.STARTED, payload: { connectionId, queryId } });
+            self.postMessage({
+                type: WorkerResType.STARTED,
+                payload: { connectionId, id: queryId },
+            });
         try {
             const result = await connection.query(sql);
             const resultAsArray = result.toArray();
@@ -328,17 +305,13 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
 
     async deleteDataSourceWrapper(dataSource: string): Promise<void> {
         this.deleteDataSource(dataSource);
-        dataSourceStatusMap.delete(dataSource);
     }
 
     async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
         return await this.fetchAnnotationsWrapper(dataSourceNames);
     }
 
-    async fetchAnnotationsWrapper(
-        dataSourceNames: string[],
-        queryId?: string
-    ): Promise<Annotation[]> {
+    async fetchAnnotationsWrapper(dataSourceNames: string[], id?: string): Promise<Annotation[]> {
         const aggregateDataSourceName = dataSourceNames.sort().join(", ");
 
         const hasAnnotations = this.dataSourceToAnnotationsMap.has(aggregateDataSourceName);
@@ -354,7 +327,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                 .where(`table_name = '${aggregateDataSourceName}'`)
                 .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
                 .toSQL();
-            const rows = await this.queryWorker(sql, queryId);
+            const rows = await this.queryWorker(sql, id);
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
             }

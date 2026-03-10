@@ -1,22 +1,23 @@
+import { ACCEPTED_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
+
 export enum WorkerMsgType {
-    INIT = "initialize",
+    ADD_SOURCE = "add_datasource",
+    ANNOTATIONS = "fetch_annotations",
     CANCEL = "cancel_query",
+    CLOSE = "close_database",
+    DELETE_SOURCE = "delete_datasource",
     EXECUTE = "execute_query",
+    INIT = "initialize",
     QUERY = "query",
     SAVE = "save_query",
-    ADD_SOURCE = "add_datasource",
-    DELETE_SOURCE = "delete_datasource",
-    ANNOTATIONS = "fetch_annotations",
-    CLOSE = "close_database",
 }
 
 export enum WorkerResType {
+    ERROR = "error",
     READY = "db ready",
-    STARTED = "query started",
-    SUCCESS = "success", // generic success response
     RESULT = "query result",
     SOURCE_RESOLVED = "source added or deleted",
-    ERROR = "error",
+    STARTED = "query started",
 }
 
 export type Pending = {
@@ -49,18 +50,18 @@ export type WorkerReqPayload<T extends WorkerMsgType> = {
         connectionId: number;
     };
     [WorkerMsgType.EXECUTE]: {
-        sql: string;
         id: string;
+        sql: string;
     };
     [WorkerMsgType.QUERY]: {
+        id: string;
         sql: string;
-        queryId: string;
     };
     [WorkerMsgType.SAVE]: {
         destination: string;
-        sql: string;
-        format: "parquet" | "csv" | "json";
+        format: typeof ACCEPTED_SOURCE_TYPES[number];
         id: string;
+        sql: string;
     };
     [WorkerMsgType.ANNOTATIONS]: {
         dataSourceNames: string[];
@@ -68,7 +69,7 @@ export type WorkerReqPayload<T extends WorkerMsgType> = {
     };
     [WorkerMsgType.ADD_SOURCE]: {
         name: string;
-        type: "csv" | "json" | "parquet";
+        type: typeof ACCEPTED_SOURCE_TYPES[number];
         uri: string | File;
         skipNormalization?: boolean;
     };
@@ -81,15 +82,12 @@ export type WorkerReqPayload<T extends WorkerMsgType> = {
 export type WorkerResPayload<T extends WorkerResType> = {
     [WorkerResType.READY]: void;
     [WorkerResType.STARTED]: {
-        queryId: string;
         connectionId: number;
-    };
-    [WorkerResType.SUCCESS]: {
-        result: QueryRow[];
+        id: string;
     };
     [WorkerResType.RESULT]: {
+        id: string;
         result: QueryRow[];
-        queryId: string;
     };
     [WorkerResType.SOURCE_RESOLVED]: {
         dataSourceName: string;
@@ -97,7 +95,7 @@ export type WorkerResPayload<T extends WorkerResType> = {
     };
     [WorkerResType.ERROR]: {
         message: string;
-        queryId?: string;
+        id?: string;
     };
 }[T];
 
