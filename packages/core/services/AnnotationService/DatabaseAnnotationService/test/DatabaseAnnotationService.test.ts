@@ -152,6 +152,7 @@ describe("DatabaseAnnotationService", () => {
         afterEach(() => {
             sandbox.restore();
         });
+
         class MockDatabaseService extends DatabaseService {
             public query(sql: string): { promise: Promise<{ [key: string]: string }[]> } {
                 querySpy(sql); // pass SQL to the spy func

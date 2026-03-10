@@ -10,7 +10,7 @@ import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
-export enum PreDefinedColumn {
+enum PreDefinedColumn {
     FILE_ID = "File ID",
     FILE_PATH = "File Path",
     FILE_NAME = "File Name",
@@ -18,7 +18,6 @@ export enum PreDefinedColumn {
     THUMBNAIL = "Thumbnail",
     UPLOADED = "Uploaded",
 }
-
 const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
 
 // Map each actual column name to the predefined column name when they fuzzy-match.
@@ -101,6 +100,7 @@ export default abstract class DatabaseService {
     private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
     // Data source names that are views (parquet), so we DROP VIEW on delete
     private readonly parquetDirectViewNames = new Set<string>();
+
     protected database: duckdb.AsyncDuckDB | undefined;
 
     constructor() {
@@ -458,7 +458,7 @@ export default abstract class DatabaseService {
         this.dataSourceToAnnotationsMap.delete(name);
     }
 
-    getUpdateHiddenUIDSQL(tableName: string): string {
+    private getUpdateHiddenUIDSQL(tableName: string): string {
         // Altering tables to add primary keys or serially generated columns
         // isn't yet supported in DuckDB, so this does a serially generated
         // column addition manually
