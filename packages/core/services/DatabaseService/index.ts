@@ -282,7 +282,7 @@ export default abstract class DatabaseService {
         try {
             await this.prepareDataSource(dataSource, skipNormalization);
         } catch (err) {
-            let formattedError = (err as Error).message;
+            let formattedError = (err as Error).message || (err as string);
             // DuckDB does not provide informative server errors, so send a
             // separate 'get' call to retrieve error messages for URL data sources
             if (!(uri instanceof File)) {

@@ -298,10 +298,17 @@ export default class DatabaseServiceWeb extends DatabaseService {
             case WorkerResType.ERROR: {
                 const { message, id } = data.payload as WorkerResPayload<WorkerResType.ERROR>;
                 if (id) {
-                    const p = this.pending.get(id);
-                    if (!p) return;
-                    p.reject(message);
-                    this.pending.delete(id);
+                    // Check if the message corresponds to any pending promises.
+                    // If so, reject them
+                    const pQuery = this.pending.get(id);
+                    const pSource = this.pendingSources.get(id);
+                    if (pQuery) {
+                        pQuery.reject(message);
+                        this.pending.delete(id);
+                    } else if (pSource) {
+                        pSource.reject(message);
+                        this.pendingSources.delete(id);
+                    }
                 }
                 console.error("Error in web worker: ", message);
                 return;

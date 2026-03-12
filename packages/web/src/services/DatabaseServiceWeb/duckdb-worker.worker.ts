@@ -175,6 +175,10 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                 });
             }
             await databaseService.deleteDataSourceWrapper(name);
+            self.postMessage({
+                type: WorkerResType.ERROR,
+                payload: { message: formattedError, id: name },
+            });
             throw new DataSourcePreparationError(formattedError, name);
         }
     },
