@@ -22,6 +22,7 @@ interface Props {
     title?: string;
     // default to all-caps except for link-like buttons
     useSentenceCase?: boolean;
+    style?: React.CSSProperties;
 }
 
 /**
@@ -73,6 +74,7 @@ export default function BaseButton(props: Props) {
                 menuIconProps={{ className: styles.hidden }}
                 menuProps={styledMenu}
                 onClick={props.onClick}
+                style={props.style}
             >
                 {content}
             </DefaultButton>

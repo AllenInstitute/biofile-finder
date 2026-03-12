@@ -5,6 +5,7 @@ import FileService, {
     SelectionAggregationResult,
     Selection,
     AnnotationNameToValuesMap,
+    FmsFileAnnotation,
 } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
@@ -50,12 +51,24 @@ export default class DatabaseFileService implements FileService {
                             // Omit hidden UID annotation
                             name !== DatabaseService.HIDDEN_UID_ANNOTATION
                     )
-                    .map(([name, values]) => ({
-                        name,
-                        values: `${values}`
-                            .split(DatabaseService.LIST_DELIMITER)
-                            .map((value: string) => value.trim()),
-                    })),
+                    .flatMap(([name, values]) => {
+                        if (typeof values === 'object' && values !== null && !Array.isArray(values)) {
+                            return [{
+                                name,
+                                values: Object.keys(values as Object), // TODO: should be array?? idk
+                                nestedValues: values as {
+                                    [key: string]: FmsFileAnnotation;
+                                }
+                            }];
+                        }
+
+                        return [{
+                            name,
+                            values: `${values}`
+                                .split(DatabaseService.LIST_DELIMITER)
+                                .map((value: string) => value.trim()),
+                        }];
+                    }),
             },
             env,
             uniqueId
@@ -125,6 +138,9 @@ export default class DatabaseFileService implements FileService {
 
         const rows = await this.databaseService.query(sql);
         const env = this.downloadService.getEnvironmentFromUrl();
+        console.log("sql", sql);
+        console.log("rows", rows);
+        console.log("rowsMapped", rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env)));
         return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
     }
 

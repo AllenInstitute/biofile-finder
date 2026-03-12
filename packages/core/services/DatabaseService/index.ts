@@ -81,10 +81,137 @@ export function getParquetFileNameSelectPart(
     return `${getFileNameFromPathExpression(`"${pathColumn}"`)} AS "${PreDefinedColumn.FILE_NAME}"`;
 }
 
+function splitAtTopLevel(input: string): string[] {
+    const parts: string[] = [];
+    let current = "";
+    let depth = 0;
+
+    for (const character of input) {
+        if (character === "(") {
+            depth += 1;
+            current += character;
+            continue;
+        }
+
+        if (character === ")") {
+            depth = Math.max(0, depth - 1);
+            current += character;
+            continue;
+        }
+
+        if (character === "," && depth === 0) {
+            const trimmed = current.trim();
+            if (trimmed) {
+                parts.push(trimmed);
+            }
+            current = "";
+            continue;
+        }
+
+        current += character;
+    }
+
+    const trimmed = current.trim();
+    if (trimmed) {
+        parts.push(trimmed);
+    }
+
+    return parts;
+}
+
+type StructField = {
+    name: string;
+    typeExpression: string;
+};
+
+function parseStructFields(typeExpression: string): StructField[] {
+    const match = typeExpression.match(/^STRUCT\((.*)\)$/i);
+    if (!match) {
+        return [];
+    }
+
+    return splitAtTopLevel(match[1])
+        .map((fieldDef) => {
+            const quoted = fieldDef.match(/^"([^"]+)"\s+(.+)$/);
+            if (quoted) {
+                return {
+                    name: quoted[1],
+                    typeExpression: quoted[2].trim(),
+                };
+            }
+
+            const unquoted = fieldDef.match(/^([^\s]+)\s+(.+)$/);
+            if (unquoted) {
+                return {
+                    name: unquoted[1],
+                    typeExpression: unquoted[2].trim(),
+                };
+            }
+
+            return {
+                name: "",
+                typeExpression: "",
+            };
+        })
+        .filter((field) => field.name.length > 0);
+}
+
+function collectNestedStructPaths(
+    typeExpression: string,
+    currentPath: string[] = []
+): string[][] {
+    const fields = parseStructFields(typeExpression);
+    if (fields.length === 0) {
+        return [];
+    }
+
+    return fields.flatMap((field) => {
+        const nextPath = [...currentPath, field.name];
+        const nestedPaths = collectNestedStructPaths(field.typeExpression, nextPath);
+        return nestedPaths.length > 0 ? nestedPaths : [nextPath];
+    });
+}
+
+function escapeSqlStringLiteral(value: string): string {
+    return value.replaceAll("'", "''");
+}
+
+function quoteIdentifier(identifier: string): string {
+    return `"${identifier.replaceAll('"', '""')}"`;
+}
+
+function buildStructExtractExpression(columnName: string, fieldPath: string[]): string {
+    return fieldPath.reduce(
+        (expr, fieldName) => `struct_extract(${expr}, '${escapeSqlStringLiteral(fieldName)}')`,
+        quoteIdentifier(columnName)
+    );
+}
+
+export function getParquetNestedMetadataSelectParts(
+    describedColumns: Array<{ column_name: string; data_type: string }>
+): string[] {
+    const nestedSelectParts: string[] = [];
+
+    for (const row of describedColumns) {
+        const nestedFieldPaths = collectNestedStructPaths(row.data_type || "");
+        for (const fieldPath of nestedFieldPaths) {
+            const alias = quoteIdentifier(`${row.column_name}.${fieldPath.join(".")}`);
+            const fieldExpression = buildStructExtractExpression(row.column_name, fieldPath);
+            nestedSelectParts.push(
+                `CAST(${fieldExpression} AS VARCHAR) AS ${alias}`
+            );
+        }
+    }
+
+    return nestedSelectParts;
+}
+
 /**
  * Service reponsible for querying against a database
  */
 export default class DatabaseService {
+    // TODO: use
+    public static readonly GROUP_DELIMITER = ".";
     public static readonly LIST_DELIMITER = ",";
     // Name of the hidden column BFF uses to uniquely identify rows
     public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
@@ -541,6 +668,9 @@ export default class DatabaseService {
         const sql = new SQLBuilder().describe().from(parquetInternalName);
         const rows = await this.query(sql.toSQL());
         const rawColumns = rows.map((row) => row["column_name"] as string);
+        const nestedSelectParts = getParquetNestedMetadataSelectParts(
+            rows as Array<{ column_name: string; data_type: string }>
+        );
         // 2. Determine which columns need to be renamed, if any
         const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
         // 3. Prepare the SQL for renaming columns in the CREATE VIEW
@@ -554,6 +684,9 @@ export default class DatabaseService {
         const fileNameSelectPart = getParquetFileNameSelectPart(actualToPreDefined);
         if (fileNameSelectPart !== null) {
             selectParts.push(fileNameSelectPart);
+        }
+        if (nestedSelectParts.length > 0) {
+            selectParts.push(...nestedSelectParts);
         }
         selectParts.push(`"file_row_number" AS "${DatabaseService.HIDDEN_UID_ANNOTATION}"`);
         // 4. Create the view for this data source
@@ -726,6 +859,7 @@ export default class DatabaseService {
                 .where(`column_name != '${DatabaseService.HIDDEN_UID_ANNOTATION}'`)
                 .toSQL();
             const rows = await this.query(sql);
+            console.log("Fetched annotations with SQL:", sql, rows);
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
             }

@@ -17,6 +17,7 @@ interface Props {
     onClick?: () => void;
     invertColor?: boolean;
     title: string;
+    style?: React.CSSProperties;
 }
 
 /**
@@ -38,6 +39,7 @@ export default function TertiaryButton(props: Props) {
             menuItems={props.menuItems}
             onClick={props.onClick}
             title={props.title}
+            style={props.style}
         />
     );
 }

@@ -9,6 +9,7 @@ import FileDetail from "../../entity/FileDetail";
 import { interaction, metadata } from "../../state";
 
 import styles from "./FileAnnotationList.module.css";
+import FileAnnotationRowGroup from "./FileAnnotationRowGroup";
 
 interface FileAnnotationListProps {
     className?: string;
@@ -89,16 +90,31 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                 return accum;
             }
 
-            return [
-                ...accum,
-                <FileAnnotationRow
-                    key={annotation.displayName}
-                    className={styles.row}
-                    name={annotation.displayName}
-                    value={annotationValue}
-                    fmsStateIndicator={fmsStateIndicator}
-                />,
-            ];
+            const nestedValues = fileDetails.getNestedValues(annotation.name);
+            if (nestedValues) {
+                return [
+                    ...accum,
+                    <FileAnnotationRowGroup
+                        key={annotation.displayName}
+                        className={classNames(styles.row, styles.nestedRow)}
+                        name={annotation.displayName}
+                        value={nestedValues}
+                        fmsStateIndicator={fmsStateIndicator}
+                        depth={0}
+                    />
+                ];
+            } else {
+                return [
+                    ...accum,
+                    <FileAnnotationRow
+                        key={annotation.displayName}
+                        className={styles.row}
+                        name={annotation.displayName}
+                        value={annotationValue}
+                        fmsStateIndicator={fmsStateIndicator}
+                    />
+                ];
+            }
         }, [] as JSX.Element[]);
     }, [annotations, fileDetails, isLoading, localPath]);
 

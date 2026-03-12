@@ -6,7 +6,10 @@ import * as os from "os";
 import * as path from "path";
 import sinon from "sinon";
 
-import DatabaseService, { getParquetFileNameSelectPart } from "..";
+import DatabaseService, {
+    getParquetFileNameSelectPart,
+    getParquetNestedMetadataSelectParts,
+} from "..";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
@@ -204,6 +207,56 @@ describe("DatabaseService", () => {
 
             // Assert
             expect(result).to.be.null;
+        });
+    });
+
+    describe("getParquetNestedMetadataSelectParts", () => {
+        it("returns flattened select parts for STRUCT columns", () => {
+            const rows = [
+                {
+                    column_name: "Well",
+                    data_type: "STRUCT(A3 VARCHAR, B7 VARCHAR)",
+                },
+            ];
+
+            const result = getParquetNestedMetadataSelectParts(rows);
+
+            expect(result).to.deep.equal([
+                `CAST(struct_extract("Well", 'A3') AS VARCHAR) AS "Well.A3"`,
+                `CAST(struct_extract("Well", 'B7') AS VARCHAR) AS "Well.B7"`,
+            ]);
+        });
+
+        it("recursively flattens nested STRUCT metadata", () => {
+            const rows = [
+                {
+                    column_name: "Well",
+                    data_type:
+                        "STRUCT(A3 STRUCT(Gene VARCHAR, Dose STRUCT(Value DOUBLE, Unit VARCHAR)), B7 STRUCT(Gene VARCHAR))",
+                },
+            ];
+
+            const result = getParquetNestedMetadataSelectParts(rows);
+
+            expect(result).to.deep.equal([
+                `CAST(struct_extract(struct_extract("Well", 'A3'), 'Gene') AS VARCHAR) AS "Well.A3.Gene"`,
+                `CAST(struct_extract(struct_extract(struct_extract("Well", 'A3'), 'Dose'), 'Value') AS VARCHAR) AS "Well.A3.Dose.Value"`,
+                `CAST(struct_extract(struct_extract(struct_extract("Well", 'A3'), 'Dose'), 'Unit') AS VARCHAR) AS "Well.A3.Dose.Unit"`,
+                `CAST(struct_extract(struct_extract("Well", 'B7'), 'Gene') AS VARCHAR) AS "Well.B7.Gene"`,
+            ]);
+        });
+
+        it("returns empty list when no STRUCT columns are present", () => {
+            const rows = [
+                {
+                    column_name: "File Path",
+                    data_type: "VARCHAR",
+                },
+            ];
+
+            const result = getParquetNestedMetadataSelectParts(rows);
+
+            expect(result).to.deep.equal([]);
         });
     });
 });

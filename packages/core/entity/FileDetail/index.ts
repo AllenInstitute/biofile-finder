@@ -185,6 +185,10 @@ export default class FileDetail {
         return this.fileDetail.annotations;
     }
 
+    public getNestedValues(annotationName: string) {
+        return this.getAnnotation(annotationName)?.nestedValues;
+    }
+
     public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {
         return this.getAnnotation(annotationName)?.values[0];
     }

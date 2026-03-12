@@ -15,6 +15,7 @@ interface FileAnnotationRowProps {
     name: string;
     value: string;
     fmsStateIndicator?: boolean;
+    style?: React.CSSProperties;
 }
 
 /**
@@ -84,7 +85,7 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
     };
 
     return (
-        <div className={classNames(props.className, styles.row)}>
+        <div className={classNames(props.className, styles.row)} style={props.style}>
             <Cell
                 className={classNames(styles.cell, styles.key, {
                     [styles.smallFont]: shouldDisplaySmallFont,

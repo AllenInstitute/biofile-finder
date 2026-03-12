@@ -6,13 +6,20 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import { JSONReadyRange } from "../../entity/NumericRange";
 
+export type FmsFileAnnotationValue = string | number | boolean;
+export interface NestedAnnotation {
+    [key: string]: {
+        [key: string]: NestedAnnotation | FmsFileAnnotationValue;
+    };
+}
 /**
  * Represents a sub-document that can be found within an FmsFile's `annotations` list.
  */
 export interface FmsFileAnnotation {
     [key: string]: any;
     name: string;
-    values: (string | number | boolean)[];
+    values: FmsFileAnnotationValue[];
+    nestedValues?: NestedAnnotation;
 }
 
 export interface GetFilesRequest {
