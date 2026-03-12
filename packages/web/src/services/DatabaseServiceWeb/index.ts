@@ -143,6 +143,18 @@ export default class DatabaseServiceWeb extends DatabaseService {
         }
     }
 
+    // Cancel ALL pending queries without terminating the worker itself
+    public cancelAllPending() {
+        for (const [id, p] of this.pending) {
+            p.reject(new Error("Query canceled"));
+            this.worker.postMessage({
+                type: WorkerMsgType.CANCEL,
+                payload: { connectionId: p.connectionId },
+            });
+            this.pending.delete(id);
+        }
+    }
+
     public async execute(sql: string): Promise<void> {
         if (!this.ready) {
             throw new Error(`Database failed to initialize in query with ${sql}`);

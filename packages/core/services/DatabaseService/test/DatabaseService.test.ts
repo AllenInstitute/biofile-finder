@@ -7,9 +7,9 @@ import * as path from "path";
 import sinon from "sinon";
 
 import DatabaseServiceNoop from "../DatabaseServiceNoop";
-import Annotation from "../../../../core/entity/Annotation";
-import { AnnotationType } from "../../../../core/entity/AnnotationFormatter";
-import AnnotationName from "../../../../core/entity/Annotation/AnnotationName";
+import Annotation from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
 
 import DatabaseService, { getParquetFileNameSelectPart } from "..";
 

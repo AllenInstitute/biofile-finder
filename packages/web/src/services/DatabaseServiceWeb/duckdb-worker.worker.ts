@@ -57,7 +57,6 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
             const connection = activeConnections.get(connectionId);
             if (connection) cancelActiveConnection(connection);
         } catch (err: any) {
-            console.warn("Failed to cancel connection", err);
             throw new Error("Failed to cancel connection: ", err);
         } finally {
             activeConnections.delete(connectionId);
@@ -69,7 +68,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
         }
         // To do: decide if executes should be cancelable
         const result = await databaseService.execute(sql);
-        return self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
+        self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
     },
     [WorkerMsgType.QUERY]: async ({ sql, id }) => {
         try {
@@ -77,8 +76,9 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                 throw "DuckDB not initialized";
             }
             const result = await databaseService.queryWorker(sql, id);
-            return self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
+            self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
         } catch (err) {
+            // post error with ID so parent class can cancel pending query
             self.postMessage({
                 type: WorkerResType.ERROR,
                 payload: { message: (err as Error).message, id },
@@ -91,8 +91,9 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                 throw "DuckDB not initialized";
             }
             const result = await databaseService.saveQuery(destination, sql, format);
-            return self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
+            self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
         } catch (err) {
+            // post error with ID so parent class can cancel pending query
             self.postMessage({
                 type: WorkerResType.ERROR,
                 payload: { message: (err as Error).message, id },
@@ -104,7 +105,9 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
             if (!databaseService) {
                 throw "DuckDB not initialized";
             }
-            const rows = await databaseService.fetchAnnotationsWrapper(dataSourceNames, id);
+            const rows = await databaseService.fetchAnnotationsWorker(dataSourceNames, id);
+            // Annotation rows need to be converted into flat AnnotationResponse objects for worker
+            // since message cannot contain functions
             const result: AnnotationResponse[] = rows.map(
                 (row): AnnotationResponse => {
                     return {
@@ -117,6 +120,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
             );
             return self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
         } catch (err) {
+            // post error with ID so parent class can cancel pending query
             self.postMessage({
                 type: WorkerResType.ERROR,
                 payload: { message: (err as Error).message, id },
@@ -184,8 +188,8 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                 type: WorkerResType.SOURCE_RESOLVED,
                 payload: { dataSourceName: name, added: false },
             });
-        } catch (err) {
-            throw err;
+        } catch (err: any) {
+            throw new Error("Failed to delete source: ", err);
         }
     },
     [WorkerMsgType.CLOSE]: async () => {
@@ -271,7 +275,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
         return { promise: this.queryWorker(sql) };
     }
 
-    async queryWorker(sql: string, queryId?: string): Promise<QueryRow[]> {
+    public async queryWorker(sql: string, queryId?: string): Promise<QueryRow[]> {
         if (!this.database) {
             throw "DuckDB not initialized";
         }
@@ -303,15 +307,20 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
         }
     }
 
-    async deleteDataSourceWrapper(dataSource: string): Promise<void> {
+    // public wrapper so that the worker can access the function
+    public async deleteDataSourceWrapper(dataSource: string): Promise<void> {
         this.deleteDataSource(dataSource);
     }
 
-    async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
-        return await this.fetchAnnotationsWrapper(dataSourceNames);
+    public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
+        return await this.fetchAnnotationsWorker(dataSourceNames);
     }
 
-    async fetchAnnotationsWrapper(dataSourceNames: string[], id?: string): Promise<Annotation[]> {
+    // Custom method to allow us to take an id and call the worker version of query; otherwise the same as parent fn
+    public async fetchAnnotationsWorker(
+        dataSourceNames: string[],
+        id?: string
+    ): Promise<Annotation[]> {
         const aggregateDataSourceName = dataSourceNames.sort().join(", ");
 
         const hasAnnotations = this.dataSourceToAnnotationsMap.has(aggregateDataSourceName);
