@@ -702,8 +702,8 @@ describe("Selection logics", () => {
                 return Promise.reject("MockDatabaseService:saveQuery");
             }
 
-            public query(): Promise<{ [key: string]: string }[]> {
-                return Promise.reject("MockDatabaseService:query");
+            public query(): { promise: Promise<{ [key: string]: string }[]> } {
+                return { promise: Promise.reject("MockDatabaseService:query") };
             }
         }
         const state = mergeState(initialState, {
