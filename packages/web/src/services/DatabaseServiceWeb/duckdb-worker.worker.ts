@@ -55,8 +55,8 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
             // Use the AsyncDuckDB.cancelSent API to interrupt the connection by id
             const connection = activeConnections.get(connectionId);
             if (connection) cancelActiveConnection(connection);
-        } catch (err: any) {
-            throw new Error("Failed to cancel connection: ", err);
+        } catch (err) {
+            throw new Error(`Failed to cancel connection: ${err}`);
         } finally {
             activeConnections.delete(connectionId);
         }
@@ -161,8 +161,8 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                 type: WorkerResType.SOURCE_RESOLVED,
                 payload: { dataSourceName: name, added: false },
             });
-        } catch (err: any) {
-            throw new Error("Failed to delete source: ", err);
+        } catch (err) {
+            throw new Error(`Failed to delete source: ${err}`);
         }
     },
     [WorkerMsgType.CLOSE]: async () => {
