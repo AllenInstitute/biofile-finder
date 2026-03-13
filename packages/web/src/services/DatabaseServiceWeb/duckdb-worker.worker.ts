@@ -1,5 +1,4 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
-import axios from "axios";
 import { isEmpty } from "lodash";
 
 import { QueryRow, WorkerMsgType, WorkerReqPayload, WorkerRequest, WorkerResType } from "./types";
@@ -51,7 +50,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
     [WorkerMsgType.CANCEL]: async ({ connectionId }) => {
         try {
             if (!databaseService) {
-                throw "DuckDB not initialized";
+                throw new Error("DuckDB not initialized");
             }
             // Use the AsyncDuckDB.cancelSent API to interrupt the connection by id
             const connection = activeConnections.get(connectionId);
@@ -64,7 +63,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
     },
     [WorkerMsgType.EXECUTE]: async ({ sql, id }) => {
         if (!databaseService) {
-            throw "DuckDB not initialized";
+            throw new Error("DuckDB not initialized");
         }
         // To do: decide if executes should be cancelable
         const result = await databaseService.execute(sql);
@@ -73,7 +72,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
     [WorkerMsgType.QUERY]: async ({ sql, id }) => {
         try {
             if (!databaseService) {
-                throw "DuckDB not initialized";
+                throw new Error("DuckDB not initialized");
             }
             const result = await databaseService.queryWorker(sql, id);
             self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
@@ -88,7 +87,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
     [WorkerMsgType.SAVE]: async ({ destination, sql, format, id }) => {
         try {
             if (!databaseService) {
-                throw "DuckDB not initialized";
+                throw new Error("DuckDB not initialized");
             }
             const result = await databaseService.saveQuery(destination, sql, format);
             self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
@@ -103,7 +102,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
     [WorkerMsgType.ANNOTATIONS]: async ({ dataSourceNames, id }) => {
         try {
             if (!databaseService) {
-                throw "DuckDB not initialized";
+                throw new Error("DuckDB not initialized");
             }
             const rows = await databaseService.fetchAnnotationsWorker(dataSourceNames, id);
             // Annotation rows need to be converted into flat AnnotationResponse objects for worker
@@ -129,22 +128,10 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
     },
     [WorkerMsgType.ADD_SOURCE]: async ({ name, type, uri, skipNormalization = false }) => {
         if (!databaseService) {
-            throw "DuckDB not initialized";
+            throw new Error("DuckDB not initialized");
         }
         // reconstruct source object
         const dataSource = { name, type, uri };
-        if (!type || !uri) {
-            throw new DataSourcePreparationError(
-                `Lost access to the data source.\
-                </br> \
-                Local data sources must be re-uploaded with each \
-                page refresh to gain access to the data source file \
-                on your computer. \
-                To avoid this, consider using cloud storage for the \
-                file and sharing the URL.`,
-                name
-            );
-        }
         try {
             const dataSourceName = await databaseService.prepareDataSourceWorker(
                 dataSource,
@@ -155,27 +142,8 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                 payload: { dataSourceName, added: true },
             });
         } catch (err) {
-            let formattedError = (err as Error).message;
-            // DuckDB does not provide informative server errors, so send a
-            // separate 'get' call to retrieve error messages for URL data sources
-            if (!(uri instanceof File)) {
-                await axios.get(uri).catch((error) => {
-                    // Error responses can be formatted differently
-                    // Get progressively less specific in where we look for the message
-                    if (error?.response) {
-                        formattedError = `Request failed with status ${error.response.status}: ${
-                            error.response?.data?.error ||
-                            error.response?.data?.message ||
-                            error.response?.statusText ||
-                            error.response.data
-                        }`;
-                    } else if (error?.message) {
-                        formattedError = error.message;
-                    } // else use default error message
-                });
-            }
             await databaseService.deleteDataSourceWrapper(name);
-            const errorObj = new DataSourcePreparationError(formattedError, name);
+            const errorObj = new DataSourcePreparationError((err as Error).message, name);
             self.postMessage({
                 type: WorkerResType.ERROR,
                 payload: { message: errorObj, id: name },
@@ -185,7 +153,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
     },
     [WorkerMsgType.DELETE_SOURCE]: async ({ name }) => {
         if (!databaseService) {
-            throw "DuckDB not initialized";
+            throw new Error("DuckDB not initialized");
         }
         try {
             await databaseService.deleteDataSourceWrapper(name);
@@ -265,13 +233,12 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
         }
     }
 
-    async prepareDataSourceWorker(dataSource: Source, skipNormalization: boolean): Promise<string> {
+    // public wrapper so that the worker can access the function
+    public async prepareDataSourceWorker(
+        dataSource: Source,
+        skipNormalization: boolean
+    ): Promise<void> {
         await this.prepareDataSource(dataSource, skipNormalization);
-        self.postMessage({
-            type: WorkerResType.SOURCE_RESOLVED,
-            payload: { dataSourceName: dataSource.name, added: true },
-        });
-        return Promise.resolve(dataSource.name);
     }
 
     public query(
@@ -282,7 +249,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
 
     public async queryWorker(sql: string, queryId?: string): Promise<QueryRow[]> {
         if (!this.database) {
-            throw "DuckDB not initialized";
+            throw new Error("DuckDB not initialized");
         }
         const connection = await this.database.connect();
         // Access ID directly (not typically provided by DuckDB)

@@ -337,7 +337,7 @@ export default abstract class DatabaseService {
 
             const errors = await this.checkDataSourceForErrors(name);
             if (errors.length) {
-                throw new Error(errors.join("</br></br>"));
+                throw new DataSourcePreparationError(errors.join("</br></br>"), name);
             }
 
             if (type !== "parquet") {

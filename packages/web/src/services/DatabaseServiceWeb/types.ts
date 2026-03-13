@@ -94,7 +94,7 @@ export type WorkerResPayload<T extends WorkerResType> = {
         added: boolean;
     };
     [WorkerResType.ERROR]: {
-        message: string;
+        message: string | Error;
         id?: string;
     };
 }[T];
