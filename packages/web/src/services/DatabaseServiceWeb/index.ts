@@ -69,7 +69,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
                     payload: { destination, sql, format, id: queryId },
                 });
             } catch (err) {
-                // Synchronous postMessage failure -> reject and clean up
+                // Failure in posting message: reject and clean up
                 this.pending.delete(queryId);
                 reject(new Error("Failed to post query to worker: " + String(err)));
             }
@@ -99,7 +99,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
                     payload: { sql, id: queryId },
                 });
             } catch (err) {
-                // Synchronous postMessage failure -> reject and clean up
+                // Failure in posting message: reject and clean up
                 this.pending.delete(queryId);
                 reject(new Error("Failed to post query to worker: " + String(err)));
             }
@@ -146,7 +146,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
     // Cancel ALL pending queries without terminating the worker itself
     public cancelAllPending() {
         for (const [id, p] of this.pending) {
-            p.reject(new Error("Query canceled"));
+            p.reject(new CanceledError());
             this.worker.postMessage({
                 type: WorkerMsgType.CANCEL,
                 payload: { connectionId: p.connectionId },
@@ -171,7 +171,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
             try {
                 this.worker.postMessage({ type: WorkerMsgType.EXECUTE, payload: { sql, id } });
             } catch (err) {
-                // Synchronous postMessage failure -> reject and clean up
+                // Failure in posting message: reject and clean up
                 this.pending.delete(id);
                 reject(new Error("Failed to post query to worker: " + String(err)));
             }
@@ -228,7 +228,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
                     payload: { dataSourceNames, id },
                 });
             } catch (err) {
-                // Synchronous postMessage failure -> reject and clean up
+                // Failure in posting message: reject and clean up
                 this.pending.delete(id);
                 reject(new Error("Failed to post query to worker: " + String(err)));
             }
@@ -260,7 +260,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 if (!p) return;
                 p.connectionId = connectionId;
                 if (p.canceledBeforeStart) {
-                    // send cancel now we know the conn number
+                    // Send cancel now that we know the conn ID number
                     try {
                         this.worker.postMessage({
                             type: WorkerMsgType.CANCEL,

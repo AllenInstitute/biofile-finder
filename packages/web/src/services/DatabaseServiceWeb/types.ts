@@ -1,15 +1,15 @@
 import { ACCEPTED_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
 
 export enum WorkerMsgType {
-    ADD_SOURCE = "add_datasource",
-    ANNOTATIONS = "fetch_annotations",
-    CANCEL = "cancel_query",
-    CLOSE = "close_database",
-    DELETE_SOURCE = "delete_datasource",
-    EXECUTE = "execute_query",
-    INIT = "initialize",
-    QUERY = "query",
-    SAVE = "save_query",
+    ADD_SOURCE = "add datasource",
+    ANNOTATIONS = "fetch annotations",
+    CANCEL = "cancel query",
+    CLOSE = "close db",
+    DELETE_SOURCE = "delete datasource",
+    EXECUTE = "execute query",
+    INIT = "initialize db",
+    QUERY = "run query",
+    SAVE = "save query",
 }
 
 export enum WorkerResType {
