@@ -201,15 +201,15 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
 
             // Selects the best bundle based on browser checks
             const bundle = await duckdb.selectBundle(allBundles);
-            const worker_url = URL.createObjectURL(
+            const workerUrl = URL.createObjectURL(
                 new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" })
             );
             // Instantiate the asynchronous version of DuckDB-wasm
-            const worker = new Worker(worker_url);
+            const worker = new Worker(workerUrl);
             const logger = new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING);
             this.database = new duckdb.AsyncDuckDB(logger, worker);
             await this.database.instantiate(bundle.mainModule, bundle.pthreadWorker);
-            URL.revokeObjectURL(worker_url);
+            URL.revokeObjectURL(workerUrl);
             return Promise.resolve();
         } catch (err: any) {
             console.error(err);
