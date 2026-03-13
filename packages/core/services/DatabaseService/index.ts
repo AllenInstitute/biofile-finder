@@ -243,14 +243,11 @@ export default abstract class DatabaseService {
         dataSources: Source[],
         skipNormalization = false
     ): Promise<void> {
-        const pending: Promise<any>[] = [];
-        dataSources
-            .filter((dataSource) => !this.hasDataSource(dataSource.name))
-            .map((dataSource) => {
-                const promise = this.prepareDataSourceWrapper(dataSource, skipNormalization);
-                pending.push(promise);
-            });
-        await Promise.all(pending);
+        await Promise.all(
+            dataSources
+                .filter((dataSource) => !this.hasDataSource(dataSource.name))
+                .map((dataSource) => this.prepareDataSourceWrapper(dataSource, skipNormalization))
+        );
 
         // Because when querying multiple data sources column differences can complicate the queries
         // preparing a table ahead of time that is the aggregate of the data sources is most optimal
