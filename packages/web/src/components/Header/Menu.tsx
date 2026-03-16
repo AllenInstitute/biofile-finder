@@ -2,11 +2,11 @@ import { DirectionalHint, PrimaryButton as PrimaryFluent } from "@fluentui/react
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { PrimaryButton, TertiaryButton, useButtonMenu } from "../../../../core/components/Buttons";
 import useHelpOptions from "../../../../core/hooks/useHelpOptions";
-import { interaction } from "../../../../core/state";
+import { interaction, selection } from "../../../../core/state";
 
 import styles from "./Menu.module.css";
 
@@ -15,6 +15,7 @@ import styles from "./Menu.module.css";
  */
 export default function Menu() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const currentPath = useLocation().pathname;
     const isApp: boolean = currentPath == "/app";
     const helpMenuOptions = useHelpOptions(dispatch, true, isApp);
@@ -23,6 +24,12 @@ export default function Menu() {
         directionalHint: DirectionalHint.bottomAutoEdge,
     });
     const hasUsedApp = useSelector(interaction.selectors.hasUsedApplicationBefore);
+    const launchApp = () => {
+        navigate({ pathname: "/app" });
+        if (!hasUsedApp) {
+            dispatch(selection.actions.runAllTutorials());
+        }
+    };
 
     return (
         <>
@@ -52,14 +59,12 @@ export default function Menu() {
                     text="Help"
                 />
                 {currentPath !== "/app" && (
-                    // Automatically load the tutorial for new user
-                    <Link to="app" state={{ tutorial: !hasUsedApp }}>
-                        <PrimaryButton
-                            className={styles.startButton}
-                            title="Get started in the app"
-                            text="LAUNCH APP"
-                        />
-                    </Link>
+                    <PrimaryButton
+                        onClick={launchApp}
+                        className={styles.startButton}
+                        title="Get started in the app"
+                        text="LAUNCH APP"
+                    />
                 )}
             </div>
             <div className={styles.smallMenu}>

@@ -3,7 +3,6 @@ import { initializeIcons, loadTheme } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation } from "react-router-dom";
 
 import ContextMenu from "./components/ContextMenu";
 import CoreContent from "./components/CoreContent/CoreContent";
@@ -42,10 +41,6 @@ interface AppProps {
 
 export default function App(props: AppProps) {
     const { environment = Environment.PRODUCTION } = props;
-    // Load the tutorial depending on which route the user came from
-    // e.g., from the main web page
-    const location = useLocation();
-    const shouldLaunchTutorial = !!location.state?.tutorial;
 
     const dispatch = useDispatch();
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
@@ -66,10 +61,6 @@ export default function App(props: AppProps) {
             })
         );
     }, [dispatch, environment]);
-
-    React.useEffect(() => {
-        if (shouldLaunchTutorial) dispatch(selection.actions.runAllTutorials());
-    }, [dispatch, shouldLaunchTutorial]);
 
     return (
         <div
