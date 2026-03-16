@@ -6,11 +6,15 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import { JSONReadyRange } from "../../entity/NumericRange";
 
-export type FmsFileAnnotationValue = string | number | boolean;
+type FmsFileAnnotationValue = string | number | boolean;
+/**
+ * A value within a nested annotation column. Can be a primitive or another
+ * nested object to arbitrary depth — matching the structure of VARCHAR JSON
+ * columns in a parquet file whose per-row content can vary freely.
+ */
+export type NestedAnnotationValue = FmsFileAnnotationValue | null | NestedAnnotation;
 export interface NestedAnnotation {
-    [key: string]: {
-        [key: string]: NestedAnnotation | FmsFileAnnotationValue;
-    };
+    [key: string]: NestedAnnotationValue;
 }
 /**
  * Represents a sub-document that can be found within an FmsFile's `annotations` list.
@@ -19,6 +23,7 @@ export interface FmsFileAnnotation {
     [key: string]: any;
     name: string;
     values: FmsFileAnnotationValue[];
+    /** Populated for columns whose value is (or parses as) a JSON object. */
     nestedValues?: NestedAnnotation;
 }
 

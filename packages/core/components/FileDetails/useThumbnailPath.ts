@@ -15,6 +15,7 @@ export default (fileDetails?: FileDetail) => {
             setIsThumbnailLoading(true);
             fileDetails.getPathToThumbnail(300)
                 .then((path) => {
+                    console.log("set thumbnail path to", path);
                     setThumbnailPath(path);
                 })
                 .finally(() => {

@@ -668,12 +668,13 @@ export default class DatabaseService {
         const sql = new SQLBuilder().describe().from(parquetInternalName);
         const rows = await this.query(sql.toSQL());
         const rawColumns = rows.map((row) => row["column_name"] as string);
-        const nestedSelectParts = getParquetNestedMetadataSelectParts(
-            rows as Array<{ column_name: string; data_type: string }>
-        );
         // 2. Determine which columns need to be renamed, if any
         const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
         // 3. Prepare the SQL for renaming columns in the CREATE VIEW
+        //    Columns stay as their native types (including STRUCT and JSON VARCHAR).
+        //    Nested structures are resolved in the application layer via JSON.parse
+        //    or native duckdb-wasm STRUCT deserialization, allowing per-row schema
+        //    flexibility when columns store JSON strings.
         const selectParts = rawColumns.map((col) => {
             const preDefined = actualToPreDefined.get(col);
             if (preDefined !== undefined) {
@@ -684,9 +685,6 @@ export default class DatabaseService {
         const fileNameSelectPart = getParquetFileNameSelectPart(actualToPreDefined);
         if (fileNameSelectPart !== null) {
             selectParts.push(fileNameSelectPart);
-        }
-        if (nestedSelectParts.length > 0) {
-            selectParts.push(...nestedSelectParts);
         }
         selectParts.push(`"file_row_number" AS "${DatabaseService.HIDDEN_UID_ANNOTATION}"`);
         // 4. Create the view for this data source

@@ -207,24 +207,22 @@ export default class FileDetail {
             );
         }
 
-        // If no thumbnail present try to render the file itself as the thumbnail
-        const pathToRender = this.thumbnail || this.path;
-
-        // Cannot currently read locally stored zarrs on web
-        if (pathToRender.includes(".zarr") && !FileDetail.isLikelyLocalFile(pathToRender)) {
-            return renderZarrThumbnailURL(pathToRender, targetSize);
+        // Try to render a thumbnail from the zarr if the thumbnail or path is a zarr
+        // and isn't a local file (since we can't read local zarrs in the browser)
+        const potentialZarrToRender = this.thumbnail || this.path;
+        if (potentialZarrToRender.includes(".zarr") && !FileDetail.isLikelyLocalFile(potentialZarrToRender)) {
+            return renderZarrThumbnailURL(potentialZarrToRender, targetSize);
         }
 
-        // If file can be easily rendered in the browser automatically (like a .png)
-        // then just go ahead and return it
-        const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
-            pathToRender.toLowerCase().endsWith(format)
-        );
-        if (!isFileRenderableImage) {
-            return undefined;
+        // If the actual file can be easily rendered in the browser automatically
+        // (like a .png) then just go ahead and return it instead
+        if (!this.thumbnail) {
+            const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
+                this.path.toLowerCase().endsWith(format)
+            );
+            if (isFileRenderableImage) return this.path;
         }
-
-        return pathToRender;
+        return this.thumbnail;
     }
 
     public getLinkToPlateUI(labkeyHost: string): string | undefined {

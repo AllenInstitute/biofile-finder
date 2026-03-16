@@ -15,6 +15,7 @@ interface FileAnnotationRowProps {
     name: string;
     value: string;
     fmsStateIndicator?: boolean;
+    depth?: number;
     style?: React.CSSProperties;
 }
 
@@ -86,6 +87,15 @@ export default function FileAnnotationRow(props: FileAnnotationRowProps) {
 
     return (
         <div className={classNames(props.className, styles.row)} style={props.style}>
+            {Array.from({ length: props.depth || 0 }, (_, i) => (
+                <span
+                    key={i}
+                    className={styles.indent}
+                    style={{
+                        marginRight: `calc(${0.75 / 2}em)`,
+                    }}
+                />
+            ))}
             <Cell
                 className={classNames(styles.cell, styles.key, {
                     [styles.smallFont]: shouldDisplaySmallFont,

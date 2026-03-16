@@ -1,18 +1,22 @@
 .row {
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
+    width: 100%;
 
     /* flex parent */
     display: flex;
     flex-direction: row;
 }
 
+.row > div {
+    border-top: 2px solid var(--border-color);
+}
+
 .row:first-child {
     border-top: none;
 }
 
-.row:last-child {
-    border-bottom: none;
+.indent {
+    border-left: 2px solid var(--border-color);
+
 }
 
 .cell {

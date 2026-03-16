@@ -5,7 +5,7 @@ import FileService, {
     SelectionAggregationResult,
     Selection,
     AnnotationNameToValuesMap,
-    FmsFileAnnotation,
+    NestedAnnotation,
 } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
@@ -52,14 +52,33 @@ export default class DatabaseFileService implements FileService {
                             name !== DatabaseService.HIDDEN_UID_ANNOTATION
                     )
                     .flatMap(([name, values]) => {
-                        if (typeof values === 'object' && values !== null && !Array.isArray(values)) {
+                        // Case 1: duckdb-wasm returned a STRUCT column as a native JS object
+                        if (typeof values === "object" && values !== null && !Array.isArray(values)) {
+                            const nested = values as NestedAnnotation;
                             return [{
                                 name,
-                                values: Object.keys(values as Object), // TODO: should be array?? idk
-                                nestedValues: values as {
-                                    [key: string]: FmsFileAnnotation;
-                                }
+                                values: Object.keys(nested),
+                                nestedValues: nested,
                             }];
+                        }
+
+                        // Case 2: VARCHAR column whose content is a JSON object string.
+                        // This is the recommended format for flexible per-row nested structures
+                        // since parquet STRUCT requires a fixed schema across all rows.
+                        if (typeof values === "string") {
+                            try {
+                                const parsed = JSON.parse(values);
+                                if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+                                    const nested = parsed as NestedAnnotation;
+                                    return [{
+                                        name,
+                                        values: Object.keys(nested),
+                                        nestedValues: nested,
+                                    }];
+                                }
+                            } catch {
+                                // Not JSON — fall through to plain string handling
+                            }
                         }
 
                         return [{
