@@ -1,11 +1,12 @@
 import { DirectionalHint, PrimaryButton as PrimaryFluent } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 
 import { PrimaryButton, TertiaryButton, useButtonMenu } from "../../../../core/components/Buttons";
 import useHelpOptions from "../../../../core/hooks/useHelpOptions";
+import { interaction } from "../../../../core/state";
 
 import styles from "./Menu.module.css";
 
@@ -21,6 +22,7 @@ export default function Menu() {
         items: helpMenuOptions,
         directionalHint: DirectionalHint.bottomAutoEdge,
     });
+    const hasUsedApp = useSelector(interaction.selectors.hasUsedApplicationBefore);
 
     return (
         <>
@@ -50,7 +52,8 @@ export default function Menu() {
                     text="Help"
                 />
                 {currentPath !== "/app" && (
-                    <Link to="app">
+                    // Automatically load the tutorial for new user
+                    <Link to="app" state={{ tutorial: !hasUsedApp }}>
                         <PrimaryButton
                             className={styles.startButton}
                             title="Get started in the app"

@@ -14,34 +14,60 @@ import styles from "./TutorialTooltip.module.css";
  */
 export default function TutorialTooltip() {
     const dispatch = useDispatch();
-    const tutorial = useSelector(selection.selectors.getTutorial);
+    const tutorials = useSelector(selection.selectors.getTutorials);
     const [tutorialStepIndex, setTutorialStepIndex] = React.useState(0);
-    if (!tutorial) {
+    const [currentTopicIndex, setCurrentTopicIndex] = React.useState(0);
+    const currentTopic = React.useMemo(() => {
+        return tutorials?.[currentTopicIndex];
+    }, [tutorials, currentTopicIndex]);
+
+    if (!tutorials || !currentTopic) {
         return null;
     }
     const resetToFirstStep = () => {
         setTutorialStepIndex(0);
-        return tutorial.getStep(0);
+        return currentTopic.getStep(0);
     };
 
     const nextStepIndex = tutorialStepIndex + 1;
     const previousStepIndex = tutorialStepIndex - 1;
     // If switching from another tooltip, may be out of index range and should reset
-    const currentTutorialStep = tutorial.hasStep(tutorialStepIndex)
-        ? tutorial.getStep(tutorialStepIndex)
+    const currentTutorialStep = currentTopic.hasStep(tutorialStepIndex)
+        ? currentTopic.getStep(tutorialStepIndex)
         : resetToFirstStep();
 
+    // Call as needed instead of re-rendering
+    const hasMoreTopics = () => currentTopicIndex < tutorials.length - 1;
+    const hasPreviousTopics = () => currentTopicIndex > 0;
+
     const onDismiss = () => {
+        setCurrentTopicIndex(0);
         setTutorialStepIndex(0);
         dispatch(selection.actions.selectTutorial(undefined));
     };
 
     const selectNextTutorial = () => {
-        if (tutorial.hasStep(nextStepIndex)) {
+        if (currentTopic.hasStep(nextStepIndex)) {
             setTutorialStepIndex(nextStepIndex);
+        } else if (hasMoreTopics()) {
+            setCurrentTopicIndex(currentTopicIndex + 1);
+            setTutorialStepIndex(0);
         } else {
             onDismiss();
         }
+    };
+
+    const selectPreviousTutorial = () => {
+        if (currentTopic?.hasStep(previousStepIndex)) {
+            setTutorialStepIndex(previousStepIndex);
+        }
+        // Go back to the last step of the previous topic
+        else if (hasPreviousTopics()) {
+            const previousIndex = currentTopicIndex - 1;
+            setCurrentTopicIndex(previousIndex);
+            // use indexing on const rather than currentTopic since state is currently being mutated
+            setTutorialStepIndex(tutorials[previousIndex].length - 1);
+        } // else do nothing, should be disabled
     };
 
     return (
@@ -55,7 +81,7 @@ export default function TutorialTooltip() {
             focusTrapZoneProps={{ disabled: true }}
         >
             <div className={styles.header}>
-                <h4>Tutorial: {tutorial.title}</h4>
+                <h4>{currentTopic.title}</h4>
                 <IconButton
                     className={styles.clearButton}
                     iconProps={{ iconName: "Clear" }}
@@ -65,32 +91,42 @@ export default function TutorialTooltip() {
             <p>{currentTutorialStep.message}</p>
             <div className={styles.buttonFooter}>
                 <h6>
-                    {tutorialStepIndex + 1} / {tutorial.length}
+                    {tutorialStepIndex + 1} / {currentTopic.length}
                 </h6>
                 <div className={styles.stepButtons}>
                     <TertiaryButton
                         className={classNames(
                             {
-                                [styles.disabled]: !tutorial.hasStep(previousStepIndex),
+                                [styles.disabled]:
+                                    !currentTopic.hasStep(previousStepIndex) &&
+                                    !hasPreviousTopics(),
                             },
                             styles.tutorialStepButton
                         )}
-                        disabled={!tutorial.hasStep(previousStepIndex)}
+                        disabled={!currentTopic.hasStep(previousStepIndex) && !hasPreviousTopics()}
                         iconName="CaretSolidLeft"
-                        onClick={() => setTutorialStepIndex(previousStepIndex)}
+                        onClick={selectPreviousTutorial}
                         title="Previous step"
                         id="tutorial-prev"
                     />
                     <TertiaryButton
                         className={classNames(
                             {
-                                [styles.biggerIcon]: !tutorial.hasStep(nextStepIndex),
+                                [styles.biggerIcon]: !currentTopic.hasStep(nextStepIndex),
                             },
                             styles.tutorialStepButton
                         )}
-                        iconName={tutorial.hasStep(nextStepIndex) ? "CaretSolidRight" : "Checkmark"}
+                        iconName={
+                            currentTopic.hasStep(nextStepIndex) || hasMoreTopics()
+                                ? "CaretSolidRight"
+                                : "Checkmark"
+                        }
                         onClick={selectNextTutorial}
-                        title={tutorial.hasStep(nextStepIndex) ? "Next step" : "Finished"}
+                        title={
+                            currentTopic.hasStep(nextStepIndex) || hasMoreTopics()
+                                ? "Next step"
+                                : "Finished"
+                        }
                         id="tutorial-next"
                     />
                 </div>

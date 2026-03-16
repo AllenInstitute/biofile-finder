@@ -18,15 +18,17 @@ describe("<TutorialTooltip />", () => {
 
         const state = mergeState(initialState, {
             selection: {
-                tutorial: new Tutorial(title)
-                    .addStep({
-                        targetId,
-                        message: stepOneMessage,
-                    })
-                    .addStep({
-                        targetId,
-                        message: stepTwoMessage,
-                    }),
+                tutorials: [
+                    new Tutorial(title)
+                        .addStep({
+                            targetId,
+                            message: stepOneMessage,
+                        })
+                        .addStep({
+                            targetId,
+                            message: stepTwoMessage,
+                        }),
+                ],
             },
         });
         const { store } = configureMockStore({ state });
@@ -59,15 +61,16 @@ describe("<TutorialTooltip />", () => {
     it("closes at end of tutorial", () => {
         // Arrange
         const title = "My Tutorial";
-        const formattedTutorial = `Tutorial: ${title}`;
         const targetId = "test-id-for-tutorial";
 
         const state = mergeState(initialState, {
             selection: {
-                tutorial: new Tutorial(title).addStep({
-                    targetId,
-                    message: "cool tutorial for you",
-                }),
+                tutorials: [
+                    new Tutorial(title).addStep({
+                        targetId,
+                        message: "cool tutorial for you",
+                    }),
+                ],
             },
         });
         const { store } = configureMockStore({
@@ -83,12 +86,12 @@ describe("<TutorialTooltip />", () => {
         );
 
         // (sanity-check)
-        expect(getByText(formattedTutorial)).to.exist;
+        expect(getByText(title)).to.exist;
 
         // Act
         fireEvent.click(getByTestId("base-button-tutorial-next"));
 
         // Assert
-        expect(() => getByText(formattedTutorial)).to.throw();
+        expect(() => getByText(title)).to.throw();
     });
 });

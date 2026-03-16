@@ -1,13 +1,7 @@
 import { IContextualMenuItem } from "@fluentui/react";
 import { Dispatch } from "redux";
 
-import { FILTER_FILES_TUTORIAL } from "./FilterFiles";
-import { GENERATE_MANIFEST_TUTORIAL } from "./GenerateManifest";
-import { MODIFY_COLUMNS_TUTORIAL } from "./ModifyColumns";
-import { OPEN_FILES_TUTORIAL } from "./OpenFiles";
-import { ORGANIZE_FILES_TUTORIAL } from "./OrganizeFiles";
-import { SHARE_VIEW_TUTORIAL } from "./ShareView";
-import { SORT_FILES_TUTORIAL } from "./SortFiles";
+import Tutorials from "./Tutorials";
 import { interaction, selection } from "../../state";
 import { ModalType } from "../../components/Modal";
 
@@ -39,13 +33,23 @@ export default function useHelpOptions(
                       subMenuProps: {
                           items: [
                               {
+                                  key: "All topics",
+                                  text: "All topics",
+                                  title: "Walk through all of the tutorial topics in sequence",
+                                  onClick: () => {
+                                      dispatch(selection.actions.runAllTutorials());
+                                  },
+                              },
+                              {
                                   key: "Grouping",
                                   text: "Grouping",
                                   title:
                                       "How to organize the files in the file list into hierarchical folders using the annotations",
                                   onClick: () => {
                                       dispatch(
-                                          selection.actions.selectTutorial(ORGANIZE_FILES_TUTORIAL)
+                                          selection.actions.selectTutorial(
+                                              Tutorials.ORGANIZE_FILES_TUTORIAL
+                                          )
                                       );
                                   },
                               },
@@ -55,7 +59,9 @@ export default function useHelpOptions(
                                   title: "How to filter files in the file list",
                                   onClick: () => {
                                       dispatch(
-                                          selection.actions.selectTutorial(FILTER_FILES_TUTORIAL)
+                                          selection.actions.selectTutorial(
+                                              Tutorials.FILTER_FILES_TUTORIAL
+                                          )
                                       );
                                   },
                               },
@@ -65,7 +71,9 @@ export default function useHelpOptions(
                                   title: "How to sort the files shown in the file list",
                                   onClick: () => {
                                       dispatch(
-                                          selection.actions.selectTutorial(SORT_FILES_TUTORIAL)
+                                          selection.actions.selectTutorial(
+                                              Tutorials.SORT_FILES_TUTORIAL
+                                          )
                                       );
                                   },
                               },
@@ -75,7 +83,9 @@ export default function useHelpOptions(
                                   title: "How to modify the columns present in the file list",
                                   onClick: () => {
                                       dispatch(
-                                          selection.actions.selectTutorial(MODIFY_COLUMNS_TUTORIAL)
+                                          selection.actions.selectTutorial(
+                                              Tutorials.MODIFY_COLUMNS_TUTORIAL
+                                          )
                                       );
                                   },
                               },
@@ -86,7 +96,9 @@ export default function useHelpOptions(
                                       "How to open a file in another application without downloading or copying and pasting the file path",
                                   onClick: () => {
                                       dispatch(
-                                          selection.actions.selectTutorial(OPEN_FILES_TUTORIAL)
+                                          selection.actions.selectTutorial(
+                                              Tutorials.OPEN_FILES_TUTORIAL
+                                          )
                                       );
                                   },
                               },
@@ -98,7 +110,7 @@ export default function useHelpOptions(
                                   onClick: () => {
                                       dispatch(
                                           selection.actions.selectTutorial(
-                                              GENERATE_MANIFEST_TUTORIAL
+                                              Tutorials.GENERATE_MANIFEST_TUTORIAL
                                           )
                                       );
                                   },
@@ -110,7 +122,9 @@ export default function useHelpOptions(
                                       "How to share your current query (i.e. your filters/sorts/open folders etc.)",
                                   onClick: () => {
                                       dispatch(
-                                          selection.actions.selectTutorial(SHARE_VIEW_TUTORIAL)
+                                          selection.actions.selectTutorial(
+                                              Tutorials.SHARE_VIEW_TUTORIAL
+                                          )
                                       );
                                   },
                               },
