@@ -194,33 +194,41 @@ export default class FileDetail {
     }
 
     public async getPathToThumbnail(targetSize?: number): Promise<string | undefined> {
+        // When no thumbnail is provided, try to render one from the file path if it's a
+        // zarr or a known renderable image format
+        if (!this.thumbnail) {
+            // If the actual file can be easily rendered in the browser automatically
+            // (like a .png) then just go ahead and return it instead
+            const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
+                this.path.toLowerCase().endsWith(format)
+            );
+            if (isFileRenderableImage) return this.path;
+
+            // Try to render a thumbnail from the zarr if the path is a zarr
+            // and isn't a local file (since we can't read local zarrs in the browser)
+            if (this.path.includes(".zarr") && !FileDetail.isLikelyLocalFile(this.path)) {
+                return renderZarrThumbnailURL(this.path, targetSize);
+            }
+
+            return undefined;
+        }
+
         // If the thumbnail is a relative path on the allen drive then preprend it to
         // the AICS FMS NGINX server path
-        if (this.thumbnail?.startsWith("/allen")) {
+        if (this.thumbnail.startsWith("/allen")) {
             const pathWithoutDrive = this.thumbnail.replace(NAS_HOST_PREFIXES[this.env], "");
             return FileDetail.convertAicsS3PathToHttpUrl(
                 `${AICS_FMS_S3_BUCKETS[this.env]}${pathWithoutDrive}`
             );
         }
 
-        // If no thumbnail present try to render the file itself as the thumbnail
-        const pathToRender = this.thumbnail || this.path;
-
-        // Cannot currently read locally stored zarrs on web
-        if (pathToRender.includes(".zarr") && !FileDetail.isLikelyLocalFile(pathToRender)) {
-            return renderZarrThumbnailURL(pathToRender, targetSize);
+        // Try to render a thumbnail from the zarr if the thumbnail is a zarr
+        // and isn't a local file (since we can't read local zarrs in the browser)
+        if (this.thumbnail.includes(".zarr") && !FileDetail.isLikelyLocalFile(this.thumbnail)) {
+            return renderZarrThumbnailURL(this.thumbnail, targetSize);
         }
 
-        // If file can be easily rendered in the browser automatically (like a .png)
-        // then just go ahead and return it
-        const isFileRenderableImage = RENDERABLE_IMAGE_FORMATS.some((format) =>
-            pathToRender.toLowerCase().endsWith(format)
-        );
-        if (!isFileRenderableImage) {
-            return undefined;
-        }
-
-        return pathToRender;
+        return this.thumbnail;
     }
 
     public getLinkToPlateUI(labkeyHost: string): string | undefined {
