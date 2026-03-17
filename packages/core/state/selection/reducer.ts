@@ -12,6 +12,7 @@ import {
     SET_SORT_COLUMN,
     CHANGE_DATA_SOURCES,
     SELECT_TUTORIAL,
+    RUN_ALL_TUTORIALS,
     ADJUST_GLOBAL_FONT_SIZE,
     Query,
     ADD_QUERY,
@@ -46,6 +47,7 @@ import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
+import Tutorials from "../../hooks/useHelpOptions/Tutorials";
 
 export interface SelectionStateBranch {
     annotationHierarchy: string[];
@@ -66,7 +68,7 @@ export interface SelectionStateBranch {
     sourceMetadata?: Source;
     sourceProvenance?: Source;
     queries: Query[];
-    tutorial?: Tutorial;
+    tutorials?: Tutorial[];
 }
 
 export const initialState = {
@@ -90,7 +92,11 @@ export default makeReducer<SelectionStateBranch>(
     {
         [SELECT_TUTORIAL]: (state, action) => ({
             ...state,
-            tutorial: action.payload,
+            tutorials: [action.payload],
+        }),
+        [RUN_ALL_TUTORIALS]: (state) => ({
+            ...state,
+            tutorials: Object.values(Tutorials),
         }),
         [ADJUST_GLOBAL_FONT_SIZE]: (state, action) => ({
             ...state,
