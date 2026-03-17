@@ -16,7 +16,7 @@ import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
 import SQLBuilder from "../../../entity/SQLBuilder";
-import { Environment } from "../../../constants";
+import { Environment, HIDDEN_UID_ANNOTATION } from "../../../constants";
 
 interface Config {
     databaseService: DatabaseService;
@@ -36,7 +36,7 @@ export default class DatabaseFileService implements FileService {
         row: { [key: string]: string },
         env: Environment
     ): FileDetail {
-        const uniqueId: string | undefined = row[DatabaseService.HIDDEN_UID_ANNOTATION];
+        const uniqueId: string | undefined = row[HIDDEN_UID_ANNOTATION];
         if (!uniqueId) {
             throw new Error("Missing auto-generated unique ID");
         }
@@ -48,7 +48,7 @@ export default class DatabaseFileService implements FileService {
                         ([name, values]) =>
                             !isNil(values) &&
                             // Omit hidden UID annotation
-                            name !== DatabaseService.HIDDEN_UID_ANNOTATION
+                            name !== HIDDEN_UID_ANNOTATION
                     )
                     .map(([name, values]) => ({
                         name,
@@ -92,7 +92,7 @@ export default class DatabaseFileService implements FileService {
             .removeOrderBy()
             .toSQL();
 
-        const rows = await this.databaseService.query(sql);
+        const rows = await this.databaseService.query(sql).promise;
         return parseInt(rows[0][select_key], 10);
     }
 
@@ -123,7 +123,7 @@ export default class DatabaseFileService implements FileService {
             .limit(request.limit)
             .toSQL();
 
-        const rows = await this.databaseService.query(sql);
+        const rows = await this.databaseService.query(sql).promise;
         const env = this.downloadService.getEnvironmentFromUrl();
         return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
     }
@@ -178,15 +178,13 @@ export default class DatabaseFileService implements FileService {
         selections.forEach((selection) => {
             selection.indexRanges.forEach((indexRange) => {
                 const subQuery = new SQLBuilder()
-                    .select(DatabaseService.HIDDEN_UID_ANNOTATION)
+                    .select(HIDDEN_UID_ANNOTATION)
                     .from(dataSourceNames)
                     .offset(indexRange.start)
                     .limit(indexRange.end - indexRange.start + 1);
 
                 DatabaseFileService.applyFiltersAndSorting(subQuery, selection);
-                subQueries.push(
-                    `${DatabaseService.HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`
-                );
+                subQueries.push(`${HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`);
             });
         });
         // sqlBuilder whereOr isnt implemented, so we add our own "OR"
@@ -265,7 +263,7 @@ export default class DatabaseFileService implements FileService {
         const sql = `\
             UPDATE '${tableName}' \
             SET ${columnAssignments.join(", ")} \
-            WHERE ${DatabaseService.HIDDEN_UID_ANNOTATION} = '${fileId}'; \
+            WHERE ${HIDDEN_UID_ANNOTATION} = '${fileId}'; \
         `;
         return this.databaseService.execute(sql);
     }

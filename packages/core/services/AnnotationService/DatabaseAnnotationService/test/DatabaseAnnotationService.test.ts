@@ -14,8 +14,8 @@ describe("DatabaseAnnotationService", () => {
             select_key: name.toLowerCase() + index,
         }));
         class MockDatabaseService extends DatabaseServiceNoop {
-            public query(): Promise<{ [key: string]: string }[]> {
-                return Promise.resolve(annotations);
+            public query(): { promise: Promise<{ [key: string]: string }[]> } {
+                return { promise: Promise.resolve(annotations) };
             }
         }
         const databaseService = new MockDatabaseService();
@@ -38,8 +38,8 @@ describe("DatabaseAnnotationService", () => {
             column_type: "VARCHAR",
         }));
         class MockDatabaseService extends DatabaseServiceNoop {
-            public query(): Promise<{ [key: string]: string }[]> {
-                return Promise.resolve(annotations);
+            public query(): { promise: Promise<{ [key: string]: string }[]> } {
+                return { promise: Promise.resolve(annotations) };
             }
         }
         const databaseService = new MockDatabaseService();
@@ -95,8 +95,8 @@ describe("DatabaseAnnotationService", () => {
             bar: name + index,
         }));
         class MockDatabaseService extends DatabaseServiceNoop {
-            public query(): Promise<{ [key: string]: string }[]> {
-                return Promise.resolve(annotations);
+            public query(): { promise: Promise<{ [key: string]: string }[]> } {
+                return { promise: Promise.resolve(annotations) };
             }
         }
         const databaseService = new MockDatabaseService();
@@ -154,9 +154,9 @@ describe("DatabaseAnnotationService", () => {
         });
 
         class MockDatabaseService extends DatabaseService {
-            public query(sql: string): Promise<any> {
+            public query(sql: string): { promise: Promise<{ [key: string]: string }[]> } {
                 querySpy(sql); // pass SQL to the spy func
-                return Promise.resolve([]);
+                return { promise: Promise.resolve([]) };
             }
         }
         const databaseService = new MockDatabaseService();
@@ -246,18 +246,22 @@ describe("DatabaseAnnotationService", () => {
         const annotationNames = ["Cell Line", "Is Split Scene", "Whatever"];
         const sampleRow = Object.fromEntries(annotationNames.map((name) => [name, "dummy value"]));
         class MockDatabaseService extends DatabaseService {
-            public query(sql: string): Promise<{ [key: string]: string }[]> {
+            public query(sql: string): { promise: Promise<{ [key: string]: string }[]> } {
                 if (sql.includes("SELECT *") && sql.includes("LIMIT 1")) {
                     // First query for fetchAvailableAnnotationsForHierarchy gets the available
                     // column names with a SELECT * FROM ... LIMIT 1
-                    return Promise.resolve([sampleRow]);
+                    return { promise: Promise.resolve([sampleRow]) };
                 }
                 // The remaining queries (one per column) check if each column has non-null values.
                 const columnNameMatch = sql.match(/SELECT '(?<columnName>.*)' AS column_name/);
                 if (columnNameMatch && columnNameMatch.groups) {
-                    return Promise.resolve([{ column_name: columnNameMatch.groups.columnName }]);
+                    return {
+                        promise: Promise.resolve([
+                            { column_name: columnNameMatch.groups.columnName },
+                        ]),
+                    };
                 }
-                return Promise.reject();
+                return { promise: Promise.reject() };
             }
         }
         const databaseService = new MockDatabaseService();
