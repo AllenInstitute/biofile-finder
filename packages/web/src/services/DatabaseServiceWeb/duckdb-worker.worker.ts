@@ -133,13 +133,10 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
         // reconstruct source object
         const dataSource = { name, type, uri };
         try {
-            const dataSourceName = await databaseService.prepareDataSourceWorker(
-                dataSource,
-                skipNormalization
-            );
+            await databaseService.prepareDataSourceWorker(dataSource, skipNormalization);
             return self.postMessage({
                 type: WorkerResType.SOURCE_RESOLVED,
-                payload: { dataSourceName, added: true },
+                payload: { dataSourceName: name, added: true },
             });
         } catch (err) {
             await databaseService.deleteDataSourceWrapper(name);
