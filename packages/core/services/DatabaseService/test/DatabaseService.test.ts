@@ -6,10 +6,12 @@ import * as os from "os";
 import * as path from "path";
 import sinon from "sinon";
 
-import DatabaseService from "..";
+import DatabaseServiceNoop from "../DatabaseServiceNoop";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
+
+import DatabaseService, { getParquetFileNameSelectPart } from "..";
 
 describe("DatabaseService", () => {
     describe("fetchAnnotations", () => {
@@ -19,7 +21,7 @@ describe("DatabaseService", () => {
 
         // DatabaseService is abstract so we need a dummy impl to test
         // implemented methods
-        class DatabaseServiceDummyImpl extends DatabaseService {
+        class DatabaseServiceDummyImpl extends DatabaseServiceNoop {
             saveQuery(): Promise<Uint8Array> {
                 throw new Error("Not implemented in dummy impl");
             }
@@ -29,8 +31,8 @@ describe("DatabaseService", () => {
             addDataSource(): Promise<void> {
                 throw new Error("Not implemented in dummy impl");
             }
-            query(): Promise<any> {
-                return Promise.resolve(annotations);
+            query(): { promise: Promise<any> } {
+                return { promise: Promise.resolve(annotations) };
             }
         }
 
@@ -42,7 +44,6 @@ describe("DatabaseService", () => {
     });
 
     describe("addDataSource", () => {
-        sinon.stub(axios, "get").returns(Promise.resolve());
         const mockAnnotations = [
             new Annotation({
                 annotationDisplayName: AnnotationName.KIND,
@@ -72,14 +73,15 @@ describe("DatabaseService", () => {
             execute(): Promise<void> {
                 return Promise.resolve();
             }
-            query(): Promise<any> {
-                return Promise.resolve([]);
+            query(): { promise: Promise<any> } {
+                return { promise: Promise.resolve([]) };
             }
         }
         const service = new MockDatabaseService();
         const tempDir = path.join(os.tmpdir(), "DatabaseServiceTest");
 
         before(async () => {
+            sinon.stub(axios, "get").returns(Promise.resolve());
             await fs.promises.mkdir(tempDir);
             await service.initialize();
         });
@@ -163,6 +165,47 @@ describe("DatabaseService", () => {
             // Assert
             expect(caughtError).to.be.undefined;
             expect(service.hasDataSource(tempFileName)).to.be.true;
+        });
+    });
+
+    describe("getParquetFileNameSelectPart", () => {
+        it("returns File Name SELECT expression when File Path exists and File Name does not", () => {
+            // Arrange
+            const actualToPreDefined = new Map([["file_path", "File Path"]]);
+
+            // Act
+            const result = getParquetFileNameSelectPart(actualToPreDefined);
+
+            // Assert
+            expect(result).to.not.be.null;
+            expect(result).to.include("File Name");
+            expect(result).to.include("file_path");
+            expect(result).to.include("REGEXP_REPLACE");
+        });
+
+        it("returns null when File Name column already exists", () => {
+            // Arrange
+            const actualToPreDefined = new Map([
+                ["file_path", "File Path"],
+                ["file_name", "File Name"],
+            ]);
+
+            // Act
+            const result = getParquetFileNameSelectPart(actualToPreDefined);
+
+            // Assert
+            expect(result).to.be.null;
+        });
+
+        it("returns null when File Path column does not exist", () => {
+            // Arrange
+            const actualToPreDefined = new Map();
+
+            // Act
+            const result = getParquetFileNameSelectPart(actualToPreDefined);
+
+            // Assert
+            expect(result).to.be.null;
         });
     });
 });

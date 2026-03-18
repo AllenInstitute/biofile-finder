@@ -63,11 +63,7 @@ export default class S3StorageService extends HttpServiceBase {
     public async formatAsHttpResource(url: string): Promise<string | undefined> {
         const parsedUrl = await this.parseUrl(url);
         if (!parsedUrl) return;
-
-        const bucketSimplified = parsedUrl.bucket.length > 0 ? `${parsedUrl.bucket}/` : "";
-        return `https://${parsedUrl.hostname}/${bucketSimplified}${encodeURIComponent(
-            parsedUrl.key
-        )}`;
+        return S3StorageService.formatAsHttpResource(parsedUrl);
     }
 
     /**
@@ -87,32 +83,44 @@ export default class S3StorageService extends HttpServiceBase {
 
     /**
      * Get the URL and name for each object within an S3 directory
+     *
+     * This can return several millions of files for something like a Zarr,
+     * so is a generator that yields one at a time rather than returning an array.
      */
-    public async getObjectsInDirectory(
+    public async *getObjectsInDirectory(
         parsedUrl: ParsedUrl
-    ): Promise<{ url: string; name: string }[]> {
-        const directoryUrl = `https://${parsedUrl.hostname}/${
+    ): AsyncGenerator<{ url: string; name: string }> {
+        let continuationToken: string | undefined;
+        const url = `https://${parsedUrl.hostname}/${
             parsedUrl.bucket
         }?list-type=2&prefix=${encodeURIComponent(parsedUrl.key)}`;
-        const response = await this.httpClient.get(directoryUrl);
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(response.data, "text/xml");
 
-        const objects: { url: string; name: string }[] = [];
-        const contents = xmlDoc.getElementsByTagName("Key");
+        do {
+            const listUrl = continuationToken
+                ? `${url}&continuation-token=${encodeURIComponent(continuationToken)}`
+                : url;
+            const response = await this.httpClient.get(listUrl);
 
-        for (let i = 0; i < contents.length; i++) {
-            const key = contents[i].textContent || "";
-            objects.push({
-                name: key,
-                url: S3StorageService.formatAsHttpResource({
-                    ...parsedUrl,
-                    key,
-                }),
-            });
-        }
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(response.data, "text/xml");
+            const nextToken = xmlDoc.getElementsByTagName("NextContinuationToken")[0];
+            continuationToken = nextToken?.textContent || undefined;
 
-        return objects;
+            const contents = xmlDoc.getElementsByTagName("Key");
+            for (let i = 0; i < contents.length; i++) {
+                const key = contents[i].textContent || "";
+                if (key.endsWith("/")) {
+                    continue;
+                }
+                yield {
+                    name: key,
+                    url: S3StorageService.formatAsHttpResource({
+                        ...parsedUrl,
+                        key,
+                    }),
+                };
+            }
+        } while (continuationToken);
     }
 
     /**

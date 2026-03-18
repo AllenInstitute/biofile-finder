@@ -2,6 +2,10 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "jsx": "react",
+    // Make sure specific type definition APIs are available on compile.
+    // Specifically added for WebWorker API, but seems that listing that one
+    // makes adding ESNext also necessary
+    "lib": ["WebWorker", "ESNext"],
     "module": "ESNext",
     "moduleResolution": "Node",
     "preserveConstEnums": true,

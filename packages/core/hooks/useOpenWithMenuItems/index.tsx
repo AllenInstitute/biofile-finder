@@ -17,6 +17,7 @@ const ONE_MEGABYTE = 1024 * 1024;
 enum AppKeys {
     AGAVE = "agave",
     BROWSER = "browser",
+    FIJI = "fiji",
     NEUROGLANCER = "neuroglancer",
     SIMULARIUM = "simularium",
     VALIDATOR = "validator",
@@ -28,6 +29,7 @@ enum AppKeys {
 interface Apps {
     [AppKeys.AGAVE]: IContextualMenuItem;
     [AppKeys.BROWSER]: IContextualMenuItem;
+    [AppKeys.FIJI]: IContextualMenuItem;
     [AppKeys.NEUROGLANCER]: IContextualMenuItem;
     [AppKeys.SIMULARIUM]: IContextualMenuItem;
     [AppKeys.VALIDATOR]: IContextualMenuItem;
@@ -39,6 +41,7 @@ interface Apps {
 type AppOptions = {
     openInCfe: () => void;
     openInVolE: () => void;
+    openInFiji: () => void;
 };
 
 const SUPPORTED_APPS_HEADER = {
@@ -102,6 +105,38 @@ const APPS = (
                 <>
                     {defaultRenders.renderItemName(props)}
                     <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
+    [AppKeys.FIJI]: {
+        key: AppKeys.FIJI,
+        className: styles.desktopMenuItem,
+        text: "FIJI",
+        title: "Open files with FIJI (may require updating FIJI)",
+        onClick: options?.openInFiji,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <a
+                        className={styles.viewLink}
+                        href="https://imagej.net/software/fiji/downloads"
+                        rel="noreferrer"
+                        target="_blank"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <DefaultButton
+                            className={styles.infoButton}
+                            title="Get info or download to enable use"
+                        >
+                            Info
+                            <Icon iconName="OpenInNewWindow" />
+                        </DefaultButton>
+                    </a>
+                    <span className={styles.secondaryText}>| Desktop</span>
                 </>
             );
         },
@@ -237,7 +272,7 @@ function getSupportedApps(
         case "svg":
         case "txt":
         case "xml":
-            return [apps.browser];
+            return isLikelyLocalFile ? [apps.fiji, apps.browser] : [apps.browser, apps.fiji];
         case "simularium":
             return [apps.simularium];
         case "dcm":
@@ -246,7 +281,9 @@ function getSupportedApps(
             return [apps.neuroglancer];
         case "tif":
         case "tiff":
-            return isSmallFile ? [apps.agave, apps.vole] : [apps.agave];
+            return isLikelyLocalFile || !isSmallFile
+                ? [apps.fiji, apps.agave]
+                : [apps.fiji, apps.agave, apps.vole];
         case "zarr":
         case "": // No extension
             return isLikelyLocalFile
@@ -266,7 +303,7 @@ function getSupportedApps(
             : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
     }
 
-    return [];
+    return [apps.fiji];
 }
 
 function getFileExtension({ path }: FileDetail): string {
@@ -346,8 +383,20 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         [annotationNameToAnnotationMap]
     );
     const [isSmallFile, setIsSmallFile] = React.useState(false);
+    const [isMacOS, setIsMacOS] = React.useState(false);
 
     const openInCfe = useOpenInCfe(fileSelection, annotationNames, fileService);
+
+    const openInFiji = React.useCallback(async (): Promise<void> => {
+        if (!fileDetails) return;
+        let path = fileDetails.path;
+        // Attempt to format the URL as an https resource so FIJI has an easier time opening it
+        if (fileDetails.path.startsWith("s3")) {
+            path = (await s3StorageService.formatAsHttpResource(fileDetails.path)) || path;
+        }
+        const fijiUrl = `fiji://open/source?p=${path}`;
+        window.open(fijiUrl);
+    }, [fileDetails, s3StorageService]);
 
     // custom hook this, like `useOpenInCfe`?
     const openInVolE = React.useCallback(async (): Promise<void> => {
@@ -481,7 +530,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const apps = APPS(fileDetails, { openInCfe, openInVolE });
+    const apps = APPS(fileDetails, { openInCfe, openInVolE, openInFiji });
 
     // Determine is the file is small or not asynchronously
     React.useEffect(() => {
@@ -505,7 +554,33 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         determineFileSize();
     }, [path, size, s3StorageService, setIsSmallFile]);
 
-    const supportedApps = [...getSupportedApps(apps, isSmallFile, fileDetails), ...userApps];
+    // Try to quickly check if user is on MacOS or not
+    React.useEffect(() => {
+        async function getIsMacOS() {
+            try {
+                // Typescript doesn't have support for this property yet
+                const userAgentData = (navigator as any).userAgentData;
+                if (userAgentData) {
+                    const ua = await userAgentData.getHighEntropyValues(["platform"]);
+                    return ua.platform === "macOS";
+                }
+
+                // Fallback
+                return navigator.platform.toUpperCase().includes("MAC");
+            } catch (e) {
+                console.error(
+                    "Unable to determine if user is on a MacOS. Assuming not, and disabling any MacOS specific features."
+                );
+                return false;
+            }
+        }
+        getIsMacOS().then(setIsMacOS);
+    }, []);
+
+    const supportedApps = [...getSupportedApps(apps, isSmallFile, fileDetails), ...userApps]
+        // TODO: This is a placeholder until FIJI finishes rolling out FIJI support across all
+        // platforms
+        .filter((app) => isMacOS || app.key !== AppKeys.FIJI);
     // Grab every other known app
     const unsupportedApps = Object.values(apps)
         .filter((app) => supportedApps.every((item) => item.key !== app.key))

@@ -1,6 +1,6 @@
 {
   "name": "fms-file-explorer-desktop",
-  "version": "8.7.1",
+  "version": "8.8.0",
   "description": "An application designed to simplify access and exploration of data produced by the Allen Institute for Cell Science, provide an intuitive mechanism for organizing data and provide simple hooks to incorporating that data into both programmatic and non-programmatic workflows.",
   "main": "dist/main/index.js",
   "repository": {
@@ -74,9 +74,9 @@
     "mini-css-extract-plugin": "2.x",
     "nock": "13.0.x",
     "null-loader": "4.0.x",
-    "react-svg-loader": "3.0.x",
     "postcss-loader": "6.x",
     "postcss-preset-env": "7.x",
+    "react-svg-loader": "3.0.x",
     "webpack": "5.x",
     "webpack-bundle-analyzer": "4.x",
     "webpack-cli": "4.x",
