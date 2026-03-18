@@ -87,7 +87,7 @@ export function getParquetFileNameSelectPart(
 export default abstract class DatabaseService {
     public static readonly LIST_DELIMITER = ",";
     // Name of the hidden column BFF uses to uniquely identify rows
-    private static readonly RAW_SUFFIX = "__bff_raw";
+    public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
     private static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));
@@ -171,13 +171,9 @@ export default abstract class DatabaseService {
             throw new Error("Database failed to initialize");
         }
 
-        // Register the user's input under an internal name so we can create a
-        // table or view named `name`
-        const registerName = `${name}${DatabaseService.RAW_SUFFIX}.${type}`;
-
         if (uri instanceof File) {
             await this.database.registerFileHandle(
-                registerName,
+                name,
                 uri,
                 duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
                 true
@@ -187,17 +183,17 @@ export default abstract class DatabaseService {
                 ? duckdb.DuckDBDataProtocol.S3
                 : duckdb.DuckDBDataProtocol.HTTP;
 
-            await this.database.registerFileURL(registerName, uri, protocol, false);
+            await this.database.registerFileURL(name, uri, protocol, false);
         }
 
         if (type === "parquet") {
-            await this.createParquetDirectView(name, registerName);
+            await this.createParquetDirectView(name);
         } else if (type === "json") {
-            await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${registerName}');`);
+            await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
         } else {
             // Default to CSV
             await this.execute(
-                `CREATE TABLE "${name}" AS FROM read_csv_auto('${registerName}', header=true, all_varchar=true);`
+                `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
             );
         }
     }
@@ -543,15 +539,12 @@ export default abstract class DatabaseService {
 
     // Create a view over the parquet file that exposes columns under predefined names (e.g. "File Path")
     // and adds hidden_bff_uid.
-    private async createParquetDirectView(
-        viewName: string,
-        parquetInternalName: string
-    ): Promise<void> {
+    private async createParquetDirectView(name: string): Promise<void> {
         // 1. Get original column names from the user's table.
         // Note: we don't use this.getColumnsOnDataSource, since that expects a
         // fully built data source, and this function is used for creating a
         // data source.
-        const sql = new SQLBuilder().describe().from(parquetInternalName);
+        const sql = new SQLBuilder().describe().from(`parquet_scan("${name}")`);
         const rows = await this.query(sql.toSQL()).promise;
         const rawColumns = rows.map((row) => row["column_name"] as string);
         // 2. Determine which columns need to be renamed, if any
@@ -570,11 +563,11 @@ export default abstract class DatabaseService {
         }
         selectParts.push(`"file_row_number" AS "${HIDDEN_UID_ANNOTATION}"`);
         // 4. Create the view for this data source
-        const createViewSql = `CREATE VIEW "${viewName}"
+        const createViewSql = `CREATE VIEW "${name}"
             AS SELECT ${selectParts.join(", ")}
-            FROM parquet_scan('${parquetInternalName}');`;
+            FROM parquet_scan('${name}');`;
         await this.execute(createViewSql);
-        this.parquetDirectViewNames.add(viewName);
+        this.parquetDirectViewNames.add(name);
     }
 
     private async getRowsWhereColumnIsBlank(dataSource: string, column: string): Promise<number[]> {
