@@ -511,16 +511,45 @@ export default abstract class DatabaseService {
                     `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`
                 );
             }
+
+            // Check for column names that contain characters that Javascript trims or won't parse
+            const columnsWithSpecialChars = await this.getColumnsWithDisallowedCharacters(name);
+            if (columnsWithSpecialChars.length > 0) {
+                const columnNames = DatabaseService.truncateString(
+                    columnsWithSpecialChars.join(", "),
+                    100
+                );
+                errors.push(
+                    `Found column name(s) that may contain special characters: ${columnNames}. Rename these columns and try again.`
+                );
+            }
         }
 
         return errors;
+    }
+
+    /**
+     * Certain non-printable characters (e.g., Ôªø etc.) sometimes make it past the csv/file parser.
+     * Javascript trims these when reading column names as strings, which causes errors
+     * in the database service when we then try to select or interact with those columns
+     * since they no longer match what's actually in the database.
+     */
+    private async getColumnsWithDisallowedCharacters(dataSourceName: string): Promise<string[]> {
+        const sql = new SQLBuilder()
+            .select("column_name, data_type")
+            .from('information_schema"."columns')
+            .where(`table_name = '${dataSourceName}'`)
+            .where(`regexp_matches(column_name, '[^ -~]+')`) // non-printable ascii characters
+            .toSQL();
+        const columnNameResult = await this.query(sql).promise;
+        return columnNameResult.map((row) => row.column_name);
     }
 
     /*
         Some columns like "File Path", "File ID", "Thumbnail", etc.
         have expectations around how they should be cased/formatted
         so this will attempt to find the nearest match to the pre-defined
-        columns and format them appropriatedly
+        columns and format them appropriately
     */
     private async normalizeDataSourceColumnNames(dataSourceName: string): Promise<void> {
         const columnsOnDataSource = await this.getColumnsOnDataSource(dataSourceName);
