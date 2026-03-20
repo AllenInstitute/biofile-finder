@@ -569,6 +569,7 @@ export default abstract class DatabaseService {
     }
 
     private async getRowsWhereColumnIsBlank(dataSource: string, column: string): Promise<number[]> {
+        return [];
         const blankColumnQueryResult = await this.query(`
             SELECT A.row
             FROM (

@@ -206,6 +206,11 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             const logger = new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING);
             this.database = new duckdb.AsyncDuckDB(logger, worker);
             await this.database.instantiate(bundle.mainModule, bundle.pthreadWorker);
+            await this.database.open({
+                filesystem: {
+                    forceFullHTTPReads: false,
+                },
+            });
             URL.revokeObjectURL(workerUrl);
             return Promise.resolve();
         } catch (err: any) {

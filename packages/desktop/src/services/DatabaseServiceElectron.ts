@@ -19,6 +19,11 @@ export default class DatabaseServiceElectron extends DatabaseService {
         const logger = new duckdb.ConsoleLogger(logLevel);
         this.database = new duckdb.AsyncDuckDB(logger, worker);
         await this.database.instantiate(bundle.mainModule, bundle.pthreadWorker);
+        await this.database.open({
+            filesystem: {
+                forceFullHTTPReads: false,
+            },
+        });
         URL.revokeObjectURL(workerUrl);
     }
 }
