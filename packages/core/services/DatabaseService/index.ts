@@ -629,51 +629,104 @@ export default abstract class DatabaseService {
         }
 
         const columnsSoFar = new Set<string>();
-        for (const dataSource of dataSources) {
-            // Fetch information about this data source
-            const annotationsInDataSource = await this.fetchAnnotations([dataSource.name]);
-            const columnsInDataSource = annotationsInDataSource.map(
-                (annotation) => annotation.name
-            );
-            const newColumns = columnsInDataSource.filter((column) => !columnsSoFar.has(column));
-
-            // If there are no columns / data added yet we need to create the table from
-            // scratch so we can provide an easy shortcut around the default way of adding
-            // data to a table
-            if (columnsSoFar.size === 0) {
-                await this.execute(
-                    `CREATE TABLE "${viewName}" AS SELECT *, '${dataSource.name}' AS "Data source" FROM "${dataSource.name}"`
+        const renamedColumnWarnings: string[] = [];
+        try {
+            for (const dataSource of dataSources) {
+                // Fetch information about this data source
+                const annotationsInDataSource = await this.fetchAnnotations([dataSource.name]);
+                const columnsInDataSource = annotationsInDataSource.map(
+                    (annotation) => annotation.name
                 );
-                this.currentAggregateSource = viewName;
-            } else {
-                // If adding data to an existing table we will need to add any new columns
-                // unsure why but seemingly unable to add multiple columns in one alter table
-                // statement so we will need to loop through and add them one by one
-                if (newColumns.length) {
-                    const alterTableSQL = newColumns
-                        .map((column) => `ALTER TABLE "${viewName}" ADD COLUMN "${column}" VARCHAR`)
-                        .join("; ");
-                    await this.execute(alterTableSQL);
+
+                // Set.has() is case sensitive, but columns in DuckDB are case INsensitive.
+                // If source A has column "Color" and source B has column "color",
+                // "color" will appear to be new, but will cause an error when attempting to
+                // create the new column with DuckDB
+                const newColumns: string[] = [];
+                const similarColumnMap = new Map<string, string>();
+                columnsInDataSource.forEach((column) => {
+                    if (!columnsSoFar.has(column)) {
+                        let hasMatch = false;
+                        for (const existingCol of columnsSoFar) {
+                            if (existingCol.toLowerCase() === column.toLowerCase()) {
+                                // The original table has a column that functionally matches the new column
+                                hasMatch = true;
+                                similarColumnMap.set(existingCol, column);
+                                break;
+                            }
+                        }
+                        if (!hasMatch) {
+                            // Completely new even with case-insensitivity
+                            newColumns.push(column);
+                        }
+                    }
+                });
+
+                // If there are no columns / data added yet, we need to create the table from
+                // scratch so we can provide an easy shortcut around the default way of adding
+                // data to a table
+                if (columnsSoFar.size === 0) {
+                    await this.execute(
+                        `CREATE TABLE "${viewName}" AS SELECT *, '${dataSource.name}' AS "Data source" FROM "${dataSource.name}"`
+                    );
+                    this.currentAggregateSource = viewName;
+                } else {
+                    // If adding data to an existing table, we will need to add any new columns.
+                    // DuckDB does not support adding multiple columns in one ALTER TABLE
+                    // statement, so we will need to loop through and add them one by one.
+                    if (newColumns.length) {
+                        const alterTableSQL = newColumns
+                            .map(
+                                (column) =>
+                                    `ALTER TABLE "${viewName}" ADD COLUMN "${column}" VARCHAR`
+                            )
+                            .join("; ");
+                        await this.execute(alterTableSQL);
+                    }
+
+                    // After we have added any new columns to the table schema,
+                    // insert the data from the new table into the existing one,
+                    // replacing any non-existent columns with an empty value (null)
+                    const columnsSoFarArr = [...columnsSoFar, ...newColumns];
+                    const columnToSql = (column: string) => {
+                        if (columnsInDataSource.includes(column)) {
+                            return `"${column}"`;
+                        } else if (similarColumnMap.has(column)) {
+                            // Match columns to their case-insensitive equivalent in the existing table
+                            return `"${similarColumnMap.get(column)}" as "${column}"`;
+                        } else return "NULL";
+                    };
+                    await this.execute(`
+                        INSERT INTO "${viewName}" ("${columnsSoFarArr.join('", "')}", "Data source")
+                        SELECT ${columnsSoFarArr
+                            .map((column) => columnToSql(column))
+                            .join(", ")}, '${dataSource.name}' AS "Data source"
+                        FROM "${dataSource.name}"
+                    `);
                 }
 
-                // After we have added any new columns to the table schema we just need
-                // to insert the data from the new table to this table replacing any non-existent
-                // columns with an empty value (null)
-                const columnsSoFarArr = [...columnsSoFar, ...newColumns];
-                await this.execute(`
-                    INSERT INTO "${viewName}" ("${columnsSoFarArr.join('", "')}", "Data source")
-                    SELECT ${columnsSoFarArr
-                        .map((column) =>
-                            columnsInDataSource.includes(column) ? `"${column}"` : "NULL"
-                        )
-                        .join(", ")}, '${dataSource.name}' AS "Data source"
-                    FROM "${dataSource.name}"
-                `);
-            }
+                // Add the new columns from this data source to the existing columns
+                // to avoid adding duplicate columns
+                newColumns.forEach((column) => columnsSoFar.add(column));
 
-            // Add the new columns from this data source to the existing columns
-            // to avoid adding duplicate columns
-            newColumns.forEach((column) => columnsSoFar.add(column));
+                Array.from(similarColumnMap.entries()).forEach((entry) => {
+                    renamedColumnWarnings.push(
+                        `Column "${entry[0]}" from data source ${dataSource.name} translated to "${entry[1]}".`
+                    );
+                });
+            }
+        } catch (err) {
+            const formattedError =
+                (err as Error)?.message || `Error while combining data sources. ${err}`;
+            throw new DataSourcePreparationError(formattedError, viewName);
+        }
+
+        // Unable to dispatch from a class definition; use warn for now
+        if (renamedColumnWarnings.length > 0) {
+            console.warn(
+                "Combining columns with similar names: \n ",
+                renamedColumnWarnings.join("\n")
+            );
         }
 
         // Reset hidden UID to avoid conflicts in previous auto-generation
