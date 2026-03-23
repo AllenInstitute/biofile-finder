@@ -9,6 +9,7 @@ import SQLBuilder from "../../../../core/entity/SQLBuilder";
 import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 import { DatabaseService } from "../../../../core/services";
+import { initializeDuckDB } from "../../../../core/services/DatabaseService";
 
 declare const self: DedicatedWorkerGlobalScope & typeof globalThis;
 let databaseService: DatabaseServiceWebWorker | null = null;
@@ -194,24 +195,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
     async initialize() {
         if (this.database) return; // Already initialized successfully
         try {
-            const allBundles = duckdb.getJsDelivrBundles();
-
-            // Selects the best bundle based on browser checks
-            const bundle = await duckdb.selectBundle(allBundles);
-            const workerUrl = URL.createObjectURL(
-                new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" })
-            );
-            // Instantiate the asynchronous version of DuckDB-wasm
-            const worker = new Worker(workerUrl);
-            const logger = new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING);
-            this.database = new duckdb.AsyncDuckDB(logger, worker);
-            await this.database.instantiate(bundle.mainModule, bundle.pthreadWorker);
-            await this.database.open({
-                filesystem: {
-                    forceFullHTTPReads: false,
-                },
-            });
-            URL.revokeObjectURL(workerUrl);
+            this.database = await initializeDuckDB(duckdb.LogLevel.WARNING);
             return Promise.resolve();
         } catch (err: any) {
             console.error(err);

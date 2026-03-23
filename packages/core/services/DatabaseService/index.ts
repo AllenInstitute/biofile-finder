@@ -81,6 +81,30 @@ export function getParquetFileNameSelectPart(
     return `${getFileNameFromPathExpression(`"${pathColumn}"`)} AS "${PreDefinedColumn.FILE_NAME}"`;
 }
 
+export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckdb.AsyncDuckDB> {
+    const allBundles = duckdb.getJsDelivrBundles();
+
+    // Selects the best bundle based on browser checks
+    const bundle = await duckdb.selectBundle(allBundles);
+    const workerUrl = URL.createObjectURL(
+        new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" })
+    );
+    // Instantiate the asynchronous version of DuckDB-wasm
+    const worker = new Worker(workerUrl);
+    const logger = new duckdb.ConsoleLogger(logLevel);
+    const db = new duckdb.AsyncDuckDB(logger, worker);
+    await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+    await db.open({
+        filesystem: {
+            // This configuration enables partial reads from parquet files,
+            // which is crucial for performance on 2M+ row tables.
+            forceFullHTTPReads: false,
+        },
+    });
+    URL.revokeObjectURL(workerUrl);
+    return db;
+}
+
 /**
  * Service reponsible for querying against a database
  */
