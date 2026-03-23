@@ -1,4 +1,4 @@
-import { isEmpty, isNil, uniqueId } from "lodash";
+import { isEmpty, isNil, uniq, uniqueId } from "lodash";
 
 import FileService, {
     GetFilesRequest,
@@ -116,9 +116,17 @@ export default class DatabaseFileService implements FileService {
         if (!this.dataSourceNames.length) {
             return [];
         }
-        const sql = request.fileSet
-            .toQuerySQLBuilder()
-            .from(this.dataSourceNames)
+        const query = request.fileSet.toQuerySQLBuilder().from(this.dataSourceNames);
+        const selectedAnnotations = uniq([
+            HIDDEN_UID_ANNOTATION,
+            ...(request.fileSet.requestedAnnotationNames || []),
+            ...request.fileSet.filters.map((filter) => filter.name),
+            ...(request.fileSet.sort ? [request.fileSet.sort.annotationName] : []),
+        ]);
+        if (request.fileSet.requestedAnnotationNames.length > 0) {
+            query.select(selectedAnnotations.map((annotation) => `"${annotation}"`).join(", "));
+        }
+        const sql = query
             .offset(request.from * request.limit)
             .limit(request.limit)
             .toSQL();

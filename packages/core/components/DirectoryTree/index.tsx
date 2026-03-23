@@ -40,6 +40,7 @@ export default function DirectoryTree(props: FileListProps) {
     const fileService = useSelector(interaction.selectors.getFileService);
     const globalFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
+    const columnNames = useSelector(selection.selectors.getColumnNames);
     const visibleModal = useSelector(interaction.selectors.getVisibleModal);
     // If user is loading a new data source, show root loading state in file list
     // since it may take time for the view to update with new query results
@@ -49,8 +50,9 @@ export default function DirectoryTree(props: FileListProps) {
             fileService: fileService,
             filters: globalFilters,
             sort: sortColumn,
+            requestedAnnotationNames: columnNames,
         });
-    }, [fileService, globalFilters, sortColumn]);
+    }, [fileService, globalFilters, sortColumn, columnNames]);
 
     // On a up arrow key or down arrow key press this event will update the file list selection & focused file
     // to be either the row above (if the up arrow was pressed) or the row below (if the down arrow was pressed)

@@ -14,6 +14,7 @@ export default function useFilteredSelection() {
     const filters = useSelector(interaction.selectors.getFileFiltersForVisibleModal);
     const fileService = useSelector(interaction.selectors.getFileService);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
+    const columnNames = useSelector(selection.selectors.getColumnNames);
 
     const [filteredSelection, setFilteredSelection] = React.useState(defaultSelection);
 
@@ -25,6 +26,7 @@ export default function useFilteredSelection() {
                     filters,
                     fileService,
                     sort: sortColumn,
+                    requestedAnnotationNames: columnNames,
                 });
                 const count = await fileSet.fetchTotalCount();
                 setFilteredSelection(
@@ -42,7 +44,7 @@ export default function useFilteredSelection() {
             // default to default selection if no filters
             setFilteredSelection(defaultSelection);
         }
-    }, [filters, sortColumn, fileService, defaultSelection]);
+    }, [filters, sortColumn, fileService, columnNames, defaultSelection]);
 
     return filteredSelection;
 }

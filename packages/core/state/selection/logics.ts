@@ -362,9 +362,11 @@ const expandAllFileFolders = createLogic({
         const globalFileFilters = selection.selectors.getFileFilters(getState());
         const shouldShowNullGroups = selection.selectors.getShouldShowNullGroups(getState());
         const fileService = interaction.selectors.getFileService(getState());
+        const columnNames = selection.selectors.getColumnNames(getState());
         const fileSet = new FileSet({
             fileService,
             filters: globalFileFilters,
+            requestedAnnotationNames: columnNames,
         });
         // Track internally rather than relying on selector (may be out of sync)
         const openedSoFar: FileFolder[] = [];
@@ -464,6 +466,7 @@ const selectNearbyFile = createLogic({
         const hierarchy = selectionSelectors.getAnnotationHierarchy(deps.getState());
         const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
         const sortColumn = selectionSelectors.getSortColumn(deps.getState());
+        const columnNames = selectionSelectors.getColumnNames(deps.getState());
 
         const openFileListPaths = openFileFolders.filter(
             (fileFolder) => fileFolder.size() === hierarchy.length
@@ -516,6 +519,7 @@ const selectNearbyFile = createLogic({
                         (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
+                    requestedAnnotationNames: columnNames,
                 });
                 const totalFileSetSize = await openFileSetAboveCurrent.fetchTotalCount();
                 newFileSelection = newFileSelection.select({
@@ -553,6 +557,7 @@ const selectNearbyFile = createLogic({
                         (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
+                    requestedAnnotationNames: columnNames,
                 });
                 newFileSelection = newFileSelection.select({
                     index: 0,

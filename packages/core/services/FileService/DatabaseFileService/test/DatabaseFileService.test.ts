@@ -106,6 +106,47 @@ describe("DatabaseFileService", () => {
             // Assert
             expect(querySpy.calledWith(match(/ORDER BY\s+hidden_bff_uid/i))).to.be.true;
         });
+
+        it("selects only requested and required columns when annotation list is provided", async () => {
+            class MockQueryableDatabaseService extends DatabaseServiceNoop {
+                protected readonly existingDataSources = new Set(["MockDataSource"]);
+                public query(_sql?: string): { promise: Promise<{ [key: string]: string }[]> } {
+                    return {
+                        promise: Promise.resolve([
+                            {
+                                [HIDDEN_UID_ANNOTATION]: "abc123",
+                                "File Name": "file",
+                                "File Path": "path/to/file",
+                            },
+                        ]),
+                    };
+                }
+            }
+
+            const mockDbService = new MockQueryableDatabaseService();
+            const querySpy = sandbox.spy(mockDbService, "query");
+            const databaseFileService = new DatabaseFileService({
+                dataSourceNames: ["MockDataSource"],
+                databaseService: mockDbService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+
+            await databaseFileService.getFiles({
+                from: 0,
+                limit: 10,
+                fileSet: new FileSet({
+                    requestedAnnotationNames: ["File Name", "File Path"],
+                }),
+            });
+
+            expect(querySpy.called).to.be.true;
+            expect(
+                querySpy.calledWith(
+                    match(/SELECT\s+"hidden_bff_uid",\s*"File Name",\s*"File Path"\s+FROM/i)
+                )
+            ).to.be.true;
+            expect(querySpy.calledWith(match(/SELECT\s+\*/i))).to.be.false;
+        });
     });
 
     describe("getAggregateInformation", () => {

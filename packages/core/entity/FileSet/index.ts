@@ -16,12 +16,14 @@ interface Opts {
     filters: FileFilter[];
     maxCacheSize: number;
     sort?: FileSort;
+    requestedAnnotationNames: string[];
 }
 
 const DEFAULT_OPTS: Opts = {
     fileService: new FileServiceNoop(),
     filters: [],
     maxCacheSize: 1000,
+    requestedAnnotationNames: [],
 };
 
 /**
@@ -43,6 +45,7 @@ export default class FileSet {
     public readonly excludeFilters?: ExcludeFilter[];
     public readonly includeFilters?: IncludeFilter[];
     public readonly sort?: FileSort;
+    public readonly requestedAnnotationNames: string[];
     private totalFileCount: number | undefined;
     private indexesForFilesCurrentlyLoading: Set<number> = new Set();
 
@@ -51,7 +54,11 @@ export default class FileSet {
     }
 
     constructor(opts: Partial<Opts> = {}) {
-        const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
+        const { fileService, filters, maxCacheSize, sort, requestedAnnotationNames } = defaults(
+            {},
+            opts,
+            DEFAULT_OPTS
+        );
 
         this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
         this._filters = filters;
@@ -59,6 +66,7 @@ export default class FileSet {
         this.excludeFilters = filters.filter((f) => f.type === FilterType.EXCLUDE);
         this.includeFilters = filters.filter((f) => f.type === FilterType.ANY);
         this.sort = sort;
+        this.requestedAnnotationNames = requestedAnnotationNames;
         this.fileService = fileService;
 
         this.fetchFileRange = this.fetchFileRange.bind(this);
