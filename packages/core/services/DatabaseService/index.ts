@@ -470,7 +470,6 @@ export default abstract class DatabaseService {
         like "File Path", "File ID", etc.
     */
     private async checkDataSourceForErrors(name: string): Promise<string[]> {
-        const errors: string[] = [];
         const columnsOnTable = await this.getColumnsOnDataSource(name);
 
         if (!columnsOnTable.has(PreDefinedColumn.FILE_PATH)) {
@@ -489,8 +488,34 @@ export default abstract class DatabaseService {
             // Unable to determine if the file path is empty or not
             // when it is not present so return here before checking
             // for other errors
-            errors.push(error);
+            return [error];
         } else {
+            // For large parquet tables, attempt to bypass the expensive
+            // getRowsWhereColumnIsBlank query.
+            if (
+                this.parquetDirectViewNames.has(name) &&
+                (await this.totalRowCount(name)) > 500000
+            ) {
+                const originalColumn = await this.getOriginalParquetColumnName(
+                    name,
+                    PreDefinedColumn.FILE_PATH
+                );
+                if (originalColumn !== null) {
+                    const hasBlankValues = await this.parquetHasBlankValues(name, originalColumn);
+                    if (hasBlankValues !== null) {
+                        if (hasBlankValues) {
+                            return [
+                                `"${PreDefinedColumn.FILE_PATH}" column contains some empty or purely whitespace paths.`,
+                            ];
+                        } else {
+                            return [];
+                        }
+                    }
+                    // If blankFilePathRowGroups is null, we don't have enough
+                    // information. Fall back to the full scan.
+                }
+            }
+
             // Check for empty or just whitespace File Path column values
             const blankFilePathRows = await this.getRowsWhereColumnIsBlank(
                 name,
@@ -501,13 +526,12 @@ export default abstract class DatabaseService {
                     blankFilePathRows.join(", "),
                     100
                 );
-                errors.push(
-                    `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`
-                );
+                return [
+                    `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`,
+                ];
             }
+            return [];
         }
-
-        return errors;
     }
 
     /*
@@ -542,9 +566,7 @@ export default abstract class DatabaseService {
         // Note: we don't use this.getColumnsOnDataSource, since that expects a
         // fully built data source, and this function is used for creating a
         // data source.
-        const sql = `DESCRIBE SELECT * FROM parquet_scan("${name}")`;
-        const rows = await this.query(sql).promise;
-        const rawColumns = rows.map((row) => row["column_name"] as string);
+        const rawColumns = await this.getRawParquetColumns(name);
         // 2. Determine which columns need to be renamed, if any
         const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
         // 3. Prepare the SQL for renaming columns in the CREATE VIEW
@@ -568,8 +590,118 @@ export default abstract class DatabaseService {
         this.parquetDirectViewNames.add(name);
     }
 
+    // Given a possibly-renamed column name, get the original column name used
+    // in the input parquet.
+    private async getOriginalParquetColumnName(
+        name: string,
+        logicalColumn: string
+    ): Promise<string | null> {
+        const rawColumns = await this.getRawParquetColumns(name);
+        const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
+        for (const [actual, predefined] of actualToPreDefined) {
+            if (predefined === logicalColumn) {
+                return actual;
+            }
+        }
+        return null;
+    }
+
+    private async totalRowCount(name: string): Promise<number> {
+        const sql = new SQLBuilder().select("COUNT(*) AS count").from(name).toSQL();
+        return (await this.query(sql).promise)[0].count;
+    }
+
+    /**
+     * Quickly check if a column of a parquet has blank values. Return null
+     * if result is uncertain.
+     *
+     * Definition: For the purposes of this function, a "blank" value is one
+     * made up of spaces, tabs, new lines, carriage returns, or other
+     * non-printable ASCII control characters. This differs from
+     * getRowsWhereColumnIsBlank, which treats other whitespace characters as
+     * blank and control characters as non-blank. This distinction is not
+     * expected to be of much importance to our users.
+     *
+     * Special cases to consider:
+     *   Condition: Any row group has a non-zero null count.
+     *   Result: The column certainly has blank values. Return true.
+     *
+     *   Condition: In the row group statistics, the min_value is a blank value.
+     *   Example: min_value = ' ', actual minimum = ' /my/file/path.tiff'.
+     *   Result: The column likely has blank values, but we cannot be sure.
+     *     min_value is a lower bound on the values in the column, but is not
+     *     necessarily one of the values in the column. Return null.
+     *
+     *   Condition: The minimum value starts with newline, tab, carriage
+     *     return, or vertical tab, and includes some printable characters.
+     *   Example: min_value = '\n/my/file/path.tiff', another value = ' '
+     *   Result: The column may have blank values. Return null.
+     *
+     *   Condition: The null counts are all zero and the min_values all start
+     *     with non-whitespace printable characters.
+     *   Result: The column has no blank values. Return false.
+     */
+    private async parquetHasBlankValues(filename: string, column: string): Promise<boolean | null> {
+        /**
+         * This function uses null_count and min_value to determine if any rows
+         * of a parquet file have null or blank values for the given column.
+         *
+         * If a row has a null value, that will show up in the null_count
+         * statistic for the row group.
+         *
+         * The min_value statistic for a string-type column gives a string
+         * that is "smaller" than all the values in the column, according to
+         * a lexicographic ordering by the UTF-8 byte values of each character.
+         * Space, tab, carriage return, and line feed all have lower UTF-8
+         * values than the non-whitespace characters. Therefore, if the
+         * min_value starts with a non-whitespace character, there are no blank
+         * values in the column.
+         */
+        const nullGroupCountSql = `
+            SELECT COUNT(*) AS null_group_count,
+            FROM parquet_metadata('${filename}')
+            WHERE path_in_schema = '${column}'
+            AND stats_null_count > 0`;
+        const nullGroupCount = (await this.query(nullGroupCountSql).promise)[0].null_group_count;
+        if (nullGroupCount > 0) {
+            return true;
+        }
+
+        const validationSql = `
+            SELECT COUNT(*) AS no_data_count,
+            FROM parquet_metadata('${filename}')
+            WHERE path_in_schema = '${column}'
+            AND (
+                stats_null_count IS NULL
+                OR stats_min_value IS NULL
+            )`;
+        const insufficientMetadataCount = (await this.query(validationSql).promise)[0]
+            .no_data_count;
+        if (insufficientMetadataCount > 0) {
+            // null_count or min_value are not defined. Cannot guarantee there
+            // are no blank values.
+            return null;
+        }
+        // ! is the first printable non-whitespace character (0x21), and it is
+        // immediately after space (0x20).
+        // If stats_min_value < '!', the min_value is entirely composed of
+        // whitespace and/or non-printable control characters.
+        const lowMinCountSql = `
+            SELECT COUNT(*) as low_min_count,
+            FROM parquet_metadata('${filename}')
+            WHERE path_in_schema = '${column}'
+            AND stats_min_value < '!'`;
+        const lowMinCount = (await this.query(lowMinCountSql).promise)[0].low_min_count;
+        if (lowMinCount > 0) {
+            return null;
+        } else {
+            // All null counts are zero, and all min values start with a
+            // non-blank character.
+            return false;
+        }
+    }
+
     private async getRowsWhereColumnIsBlank(dataSource: string, column: string): Promise<number[]> {
-        return [];
         const blankColumnQueryResult = await this.query(`
             SELECT A.row
             FROM (
@@ -754,6 +886,14 @@ export default abstract class DatabaseService {
         }
 
         return this.dataSourceToAnnotationsMap.get(aggregateDataSourceName) || [];
+    }
+
+    // Similar to getColumnsOnDataSource below, but suitable for use during the
+    // data source preparation step.
+    private async getRawParquetColumns(name: string): Promise<string[]> {
+        const sql = `DESCRIBE SELECT * FROM parquet_scan("${name}")`;
+        const rows = await this.query(sql).promise;
+        return rows.map((row) => row["column_name"] as string);
     }
 
     protected async getColumnsOnDataSource(name: string): Promise<Set<string>> {
