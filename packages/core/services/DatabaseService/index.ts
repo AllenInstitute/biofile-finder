@@ -516,10 +516,7 @@ export default abstract class DatabaseService {
         } else {
             // For large parquet tables, attempt to bypass the expensive
             // getRowsWhereColumnIsBlank query.
-            if (
-                this.parquetDirectViewNames.has(name) &&
-                (await this.totalRowCount(name)) > 500000
-            ) {
+            if (this.parquetDirectViewNames.has(name) && (await this.isLargeFile(name))) {
                 const originalColumn = await this.getOriginalParquetColumnName(
                     name,
                     PreDefinedColumn.FILE_PATH
@@ -630,9 +627,10 @@ export default abstract class DatabaseService {
         return null;
     }
 
-    private async totalRowCount(name: string): Promise<number> {
+    public async isLargeFile(name: string): Promise<boolean> {
+        const limit = 500 * 1000;
         const sql = new SQLBuilder().select("COUNT(*) AS count").from(name).toSQL();
-        return (await this.query(sql).promise)[0].count;
+        return (await this.query(sql).promise)[0].count > limit;
     }
 
     /**

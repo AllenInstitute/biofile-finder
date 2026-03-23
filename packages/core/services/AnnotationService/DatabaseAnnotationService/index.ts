@@ -145,9 +145,16 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         // Subquery 1
         const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
-        const columnNamesSql = new SQLBuilder().from(aggregateDataSourceName).limit(1).toSQL();
+        const columnNamesSql = new SQLBuilder().describe().from(aggregateDataSourceName).toSQL();
         const queryResult = await this.databaseService.query(columnNamesSql).promise;
-        const columnNames = Object.keys(queryResult[0]);
+        const columnNames = queryResult.map((row) => row.column_name);
+
+        // Short circuit if the table is too large to wait (this could be improved to instead make
+        // fetchAvailableAnnotationsForHierarchy its own logic that gets triggered after loading
+        // the file list).
+        if (await this.databaseService.isLargeFile(aggregateDataSourceName)) {
+            return columnNames;
+        }
 
         const queries = columnNames.map((columnName) => {
             const sql = new SQLBuilder()
