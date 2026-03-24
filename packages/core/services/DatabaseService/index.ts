@@ -86,8 +86,6 @@ export function getParquetFileNameSelectPart(
  */
 export default abstract class DatabaseService {
     public static readonly LIST_DELIMITER = ",";
-    // Name of the hidden column BFF uses to uniquely identify rows
-    public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
     protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
     private static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));
@@ -573,8 +571,8 @@ export default abstract class DatabaseService {
         // Note: we don't use this.getColumnsOnDataSource, since that expects a
         // fully built data source, and this function is used for creating a
         // data source.
-        const sql = new SQLBuilder().describe().from(`parquet_scan("${name}")`);
-        const rows = await this.query(sql.toSQL()).promise;
+        const sql = `DESCRIBE SELECT * FROM parquet_scan("${name}")`;
+        const rows = await this.query(sql).promise;
         const rawColumns = rows.map((row) => row["column_name"] as string);
         // 2. Determine which columns need to be renamed, if any
         const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
