@@ -146,56 +146,6 @@ describe("DatabaseService", () => {
             expect(service.hasDataSource(tempFileName)).to.be.false;
         });
 
-        it("throws error when column name has prohibited characters", async () => {
-            const unprintableChars = ["ø", "®", "ª", "∆"]; // just examples, there are many more
-            const unusableColumns = unprintableChars.map((char) => `ann_${char}`);
-            // Arrange
-            sinon
-                .stub(service, "fetchAnnotations")
-                .returns(Promise.resolve([...mockAnnotations, filePathAnnotation]));
-            sinon.stub(service, "query").callsFake((...args) => {
-                const sql: string = args.at(0) || "";
-                if (sql.includes("regexp_matches")) {
-                    return {
-                        promise: Promise.resolve(
-                            unusableColumns.map((col) => {
-                                return { column_name: col };
-                            })
-                        ),
-                    };
-                }
-                return { promise: Promise.resolve([]) };
-            });
-            const tempFileName = "testFailure.csv";
-            const tempFile = path.resolve(tempDir, tempFileName);
-            await fs.promises.writeFile(
-                tempFile,
-                `allowedAnnotation,${unusableColumns.join(
-                    ","
-                )},File Path\n1,2,3,4,5,path1\n6,7,8,9,10path2`
-            );
-            let caughtError;
-
-            // Act
-            try {
-                await service.prepareDataSources([
-                    { name: tempFileName, type: "csv", uri: tempFile },
-                ]);
-            } catch (error) {
-                caughtError = (error as Error).message;
-            }
-
-            // Assert
-            expect(caughtError).to.not.be.undefined;
-            expect(caughtError).not.to.contain("File Path");
-            expect(caughtError).to.contain(
-                "Found column name(s) that may contain special characters"
-            );
-            expect(caughtError).not.to.contain("allowedAnnotation");
-            expect(caughtError).to.contain(`${unusableColumns.join(", ")}`);
-            expect(service.hasDataSource(tempFileName)).to.be.false;
-        });
-
         it("successfully adds source when has File Path column", async () => {
             // Arrange
             sinon

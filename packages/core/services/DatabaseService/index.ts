@@ -327,6 +327,7 @@ export default abstract class DatabaseService {
         if (!skipNormalization) {
             if (type !== "parquet") {
                 await this.normalizeDataSourceColumnNames(name);
+                await this.renameNonprintableCharColumns(name);
             }
 
             const errors = await this.checkDataSourceForErrors(name);
@@ -505,38 +506,42 @@ export default abstract class DatabaseService {
                     `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`
                 );
             }
-
-            // Check for column names that contain characters that Javascript trims or won't parse
-            const columnsWithSpecialChars = await this.getColumnsWithDisallowedCharacters(name);
-            if (columnsWithSpecialChars.length > 0) {
-                const columnNames = DatabaseService.truncateString(
-                    columnsWithSpecialChars.join(", "),
-                    100
-                );
-                errors.push(
-                    `Found column name(s) that may contain special characters: ${columnNames}. Rename these columns and try again.`
-                );
-            }
         }
 
         return errors;
     }
 
     /**
-     * Certain non-printable characters (e.g., Ôªø etc.) sometimes make it past the csv/file parser.
-     * Javascript trims these when reading column names as strings, which causes errors
-     * in the database service when we then try to select or interact with those columns
-     * since they no longer match what's actually in the database.
+     * When converting DuckDB query results to strings, Javascript sometimes removes
+     * non-printable characters (e.g., Ôªø etc.), likely because of encoding mismatches.
+     * This can cause errors in the database service if we then try to select or interact
+     * with those columns, since they no longer match what's actually in the database.
      */
-    private async getColumnsWithDisallowedCharacters(dataSourceName: string): Promise<string[]> {
-        const sql = new SQLBuilder()
-            .select("column_name, data_type")
-            .from('information_schema"."columns')
-            .where(`table_name = '${dataSourceName}'`)
-            .where(`regexp_matches(column_name, '[^ -~]+')`) // non-printable ascii characters
-            .toSQL();
-        const columnNameResult = await this.query(sql).promise;
-        return columnNameResult.map((row) => row.column_name);
+    private async renameNonprintableCharColumns(dataSourceName: string): Promise<void> {
+        // Query for columns that contain ASCII characters that are outside of the printable range
+        const findNonPrintableCharsSql = `
+            SELECT column_name, regexp_replace(column_name, '[^ -~]+', '', 'g') as clean_name
+            FROM "information_schema"."columns"
+            WHERE (table_name = '${dataSourceName}') AND (regexp_matches(column_name, '[^ -~]+'))
+        `;
+        // Run the above query inside of a DuckDB command that generates `ALTER` statements
+        // rather than running two separate queries,
+        // to avoid risk of Javascript trimming column names in the results
+        const alterCommandsSql = `
+            SELECT string_agg('ALTER TABLE "${dataSourceName}" RENAME "' || column_name || '" TO "' || clean_name || '";', ' ') as sql_statement,
+                string_agg(column_name, ', ') as cols_to_rename
+            FROM (${findNonPrintableCharsSql}
+            ) problem_columns;
+        `;
+        // Retrieve the ALTER commands and names of columns that will be renamed
+        const executeResult = await this.query(alterCommandsSql).promise;
+        if (executeResult[0]?.sql_statement && executeResult[0]?.cols_to_rename) {
+            // Run the ALTER commands
+            this.execute(executeResult[0].sql_statement);
+            console.warn(
+                `Renamed columns with special characters: ${executeResult[0].cols_to_rename}`
+            );
+        }
     }
 
     /*
