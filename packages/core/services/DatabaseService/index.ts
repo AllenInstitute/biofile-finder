@@ -233,6 +233,11 @@ export default abstract class DatabaseService {
         return this.existingDataSources.has(dataSourceName);
     }
 
+    public hasAggregateSource(dataSourceNames: string[]): boolean {
+        const combinedName = DatabaseService.combineSourceNames(dataSourceNames);
+        return this.currentAggregateSource === combinedName;
+    }
+
     public async prepareDataSources(
         dataSources: Source[],
         skipNormalization = false
@@ -614,14 +619,18 @@ export default abstract class DatabaseService {
         return blankColumnQueryResult.map((row) => row.row);
     }
 
+    private static combineSourceNames(dataSources: Source[] | string[]) {
+        return dataSources
+            .map((source) => (typeof source === "string" ? source : source.name))
+            .sort()
+            .join(", ");
+    }
+
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {
         if (dataSources.some((source) => source.type === "parquet")) {
             throw new Error("Parquet tables cannot be combined to query multiple data sources.");
         }
-        const viewName = dataSources
-            .map((source) => source.name)
-            .sort()
-            .join(", ");
+        const viewName = DatabaseService.combineSourceNames(dataSources);
 
         if (this.currentAggregateSource === viewName) {
             // Prevent adding the same data source multiple times by shortcutting out here
