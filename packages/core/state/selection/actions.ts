@@ -825,3 +825,23 @@ export function removeDataSourceReloadError(): RemoveDataSourceReloadError {
         type: REMOVE_DATASOURCE_RELOAD_ERROR,
     };
 }
+
+/** SET_IS_LOADING_DATA_SOURCE
+ * Intention to toggle state indicating that a data source is currently being processed
+ */
+export const SET_IS_LOADING_DATA_SOURCE = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-is-loading-data-source"
+);
+
+export interface SetIsLoadingSource {
+    payload: boolean;
+    type: string;
+}
+
+export function setIsLoadingSource(isLoading: boolean): SetIsLoadingSource {
+    return {
+        payload: isLoading,
+        type: SET_IS_LOADING_DATA_SOURCE,
+    };
+}

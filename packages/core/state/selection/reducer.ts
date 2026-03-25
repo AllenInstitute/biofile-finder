@@ -39,6 +39,7 @@ import {
     TOGGLE_NULL_VALUE_GROUPS,
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
+    SET_IS_LOADING_DATA_SOURCE,
 } from "./actions";
 import interaction from "../interaction";
 import { FileView, Source } from "../../entity/SearchParams";
@@ -58,6 +59,7 @@ export interface SelectionStateBranch {
     fileSelection: FileSelection;
     fileView: FileView;
     filters: FileFilter[];
+    isLoadingDataSource: boolean;
     openFileFolders: FileFolder[];
     recentAnnotations: string[];
     requiresDataSourceReload?: boolean;
@@ -80,6 +82,7 @@ export const initialState = {
     fileSelection: new FileSelection(),
     fileView: FileView.LIST,
     filters: [],
+    isLoadingDataSource: false,
     openFileFolders: [],
     queries: [],
     recentAnnotations: [],
@@ -116,6 +119,10 @@ export default makeReducer<SelectionStateBranch>(
         [SET_FILE_VIEW]: (state, action: SetFileView) => ({
             ...state,
             fileView: action.payload,
+        }),
+        [SET_IS_LOADING_DATA_SOURCE]: (state, action) => ({
+            ...state,
+            isLoadingDataSource: action.payload,
         }),
         [SORT_COLUMN]: (state, action) => {
             if (state.sortColumn?.annotationName === action.payload) {
