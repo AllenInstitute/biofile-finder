@@ -1,5 +1,5 @@
 import { IContextualMenuItem } from "@fluentui/react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { ModalType } from "../components/Modal";
 import FileDetail from "../entity/FileDetail";
@@ -14,8 +14,9 @@ export default function useProcessMenuItems(
     folderFilters?: FileFilter[]
 ): IContextualMenuItem[] {
     const dispatch = useDispatch();
+    const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
 
-    return [
+    const items: IContextualMenuItem[] = [
         {
             key: "extract-metadata-python",
             text: "Extract standard metadata (BioIO)",
@@ -40,7 +41,10 @@ export default function useProcessMenuItems(
                 );
             },
         },
-        {
+    ];
+
+    if (isAicsEmployee) {
+        items.push({
             key: "all-cells-mask-segmentation",
             text: "Run all cells mask segmentation",
             title: "Generate an all-cells segmentation mask using a predefined pipeline",
@@ -52,6 +56,8 @@ export default function useProcessMenuItems(
                     )
                 );
             },
-        },
-    ];
+        });
+    }
+
+    return items;
 }
