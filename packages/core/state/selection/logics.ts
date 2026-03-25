@@ -580,7 +580,6 @@ const changeDataSourceLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         dispatch(setIsLoadingSource(true) as AnyAction);
         const { payload: selectedDataSources } = deps.action as ChangeDataSourcesAction;
-        console.info("calling changeDataSourceLogic", selectedDataSources);
         const dataSources = interaction.selectors.getAllDataSources(deps.getState());
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()

@@ -60,13 +60,6 @@ describe("DatabaseService", () => {
                 annotationId: 1,
             }),
         ];
-        const filePathAnnotation = new Annotation({
-            annotationDisplayName: AnnotationName.FILE_PATH,
-            annotationName: "File Path",
-            description: "",
-            type: AnnotationType.STRING,
-            annotationId: 3,
-        });
         class MockDatabaseService extends DatabaseService {
             async initialize(): Promise<void> {
                 // Node does not provide Workers, so need a mock initialization that skips them
@@ -148,6 +141,13 @@ describe("DatabaseService", () => {
 
         it("successfully adds source when has File Path column", async () => {
             // Arrange
+            const filePathAnnotation = new Annotation({
+                annotationDisplayName: AnnotationName.FILE_PATH,
+                annotationName: "File Path",
+                description: "",
+                type: AnnotationType.STRING,
+                annotationId: 3,
+            });
             sinon
                 .stub(service, "fetchAnnotations")
                 .returns(Promise.resolve([...mockAnnotations, filePathAnnotation]));
