@@ -254,37 +254,4 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             throw error;
         }
     }
-
-    // This is bad and we should never do it
-    public async waitForPath(
-        url: string,
-        options?: {
-            intervalMs?: number;
-            timeoutMs?: number;
-        }
-    ): Promise<void> {
-        const intervalMs = options?.intervalMs ?? 3000;
-        const timeoutMs = options?.timeoutMs ?? 5 * 60 * 1000;
-
-        const start = Date.now();
-
-        while (Date.now() - start < timeoutMs) {
-            try {
-                const res = await fetch(url, {
-                    method: "HEAD",
-                    credentials: "omit",
-                });
-
-                if (res.ok) {
-                    return;
-                }
-            } catch {
-                // Expected while file does not exist OR CORS blocks visibility
-            }
-
-            await new Promise((resolve) => setTimeout(resolve, intervalMs));
-        }
-
-        throw new Error(`Timed out waiting for file to appear: ${url}`);
-    }
 }
