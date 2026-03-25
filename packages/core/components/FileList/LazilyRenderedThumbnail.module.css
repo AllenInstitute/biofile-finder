@@ -39,7 +39,7 @@
 
 .thumbnail-wrapper > div > div {
   border-radius: var(--small-border-radius);
-  overflow-wrap: unset;
+  overflow-wrap: break-word;
   text-overflow: ellipsis;
   word-break: keep-all;
   margin: auto;
