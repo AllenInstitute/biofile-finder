@@ -944,7 +944,7 @@ const copyFilesLogic = createLogic({
 
 /**
  * Interceptor responsible for submitting an All Cells Mask segmentation job
- * and tracking readiness of the resulting CSV.
+ * and returning a dashboard URL for tracking job status.
  */
 const submitAllCellsMaskLogic = createLogic({
     type: SUBMIT_ALL_CELLS_MASK_SEGMENTATION,
@@ -961,35 +961,26 @@ const submitAllCellsMaskLogic = createLogic({
 
         try {
             dispatch(
-                interaction.actions.processStart(
-                    processId,
-                    "All Cells Mask job submitted. Generating CSV…"
-                )
+                interaction.actions.processStart(processId, "Submitting All Cells Mask job...")
             );
 
-            const { manifestCsvPath } = await httpFileService.submitAllCellsMaskJob({
+            const { computeTaskId, dashboardUrl } = await httpFileService.submitAllCellsMaskJob({
                 files: fileIds,
                 scene: sceneIndex,
                 channel: channelIndex,
             });
 
             dispatch(
-                interaction.actions.processInfo(
+                interaction.actions.processSuccess(
                     processId,
-                    `Waiting for CSV to be written:\n${manifestCsvPath}`
+                    `All Cells Mask job submitted successfully.\nJob ID: ${computeTaskId}\nTrack progress: ${dashboardUrl}`
                 )
-            );
-
-            await httpFileService.waitForPath(manifestCsvPath);
-
-            dispatch(
-                interaction.actions.processSuccess(processId, `CSV ready:\n${manifestCsvPath}`)
             );
         } catch (err) {
             dispatch(
                 interaction.actions.processError(
                     processId,
-                    `Failed to generate All Cells Mask CSV: ${
+                    `Failed to submit All Cells Mask job: ${
                         err instanceof Error ? err.message : err
                     }`
                 )

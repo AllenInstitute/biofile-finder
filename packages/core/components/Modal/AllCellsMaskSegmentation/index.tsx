@@ -5,14 +5,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
-import LoadingIcon from "../../Icons/LoadingIcon";
 import FileSelection from "../../../entity/FileSelection";
 import { interaction, selection } from "../../../state";
 
 import styles from "./AllCellsMaskSegmentation.module.css";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 
-type Status = "idle" | "submitting" | "waiting-for-manifest" | "ready" | "error";
+type Status = "idle" | "submitting" | "submitted" | "error";
 
 type UIOpts = {
     sceneIndex: string;
@@ -35,13 +34,11 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
     });
 
     const [status, setStatus] = React.useState<Status>("idle");
-    const [manifestUrl, setManifestUrl] = React.useState<string | null>(null);
+    const [dashboardUrl, setDashboardUrl] = React.useState<string | null>(null);
     const [computeTaskId, setComputeTaskId] = React.useState<string | null>(null);
     const [statusMessage, setStatusMessage] = React.useState<string | null>(null);
-
     const [hasNonLocalFiles, setHasNonLocalFiles] = React.useState(false);
 
-    // Determine whether all selected files are local
     React.useEffect(() => {
         let cancelled = false;
 
@@ -67,29 +64,11 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
         };
     }, [fileSelection]);
 
-    // Clipboard copy
-    const copyManifestUrl = async () => {
-        if (!manifestUrl) return;
-
-        try {
-            await navigator.clipboard.writeText(manifestUrl);
-            dispatch(
-                interaction.actions.processSuccess(
-                    "acmCopySuccess",
-                    "Manifest CSV path copied to clipboard."
-                )
-            );
-        } catch {
-            dispatch(
-                interaction.actions.processError(
-                    "acmCopyError",
-                    "Failed to copy manifest CSV path."
-                )
-            );
-        }
+    const openDashboard = () => {
+        if (!dashboardUrl) return;
+        window.open(dashboardUrl, "_blank", "noopener,noreferrer");
     };
 
-    // Submit ACM job
     const onSubmit = async () => {
         if (status !== "idle" || hasNonLocalFiles) return;
 
@@ -103,7 +82,6 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
             }
 
             const files: string[] = details.map((d) => {
-                // TODO: ideally switch to file IDs instead of local paths
                 const localPath = d.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH);
 
                 if (typeof localPath !== "string" || localPath.length === 0) {
@@ -125,39 +103,26 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
                     ? parseInt(opts.channelIndex, 10)
                     : 0;
 
-            const { computeTaskId, manifestCsvPath } = await httpFileService.submitAllCellsMaskJob({
+            const { computeTaskId, dashboardUrl } = await httpFileService.submitAllCellsMaskJob({
                 files,
                 scene,
                 channel,
             });
 
-            setComputeTaskId(computeTaskId);
-            setManifestUrl(manifestCsvPath);
-            setStatus("waiting-for-manifest");
+            setComputeTaskId(computeTaskId ?? null);
+            setDashboardUrl(dashboardUrl ?? null);
+            setStatus("submitted");
 
             dispatch(
                 interaction.actions.processSuccess(
                     "acmJobSubmitted",
-                    "All Cells Mask job submitted. Processing has started."
-                )
-            );
-
-            await httpFileService.waitForPath(manifestCsvPath);
-
-            setStatus("ready");
-
-            dispatch(
-                interaction.actions.processSuccess(
-                    "acmManifestReady",
-                    "Manifest CSV is now available."
+                    "All Cells Mask job submitted successfully."
                 )
             );
         } catch (err) {
             console.error(err);
             setStatus("error");
-            setStatusMessage(
-                "An error occurred while submitting or waiting for the All Cells Mask job."
-            );
+            setStatusMessage("An error occurred while submitting the All Cells Mask job.");
 
             dispatch(
                 interaction.actions.processError(
@@ -168,42 +133,15 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
         }
     };
 
-    // Open results in BFF (Query)
-    const onOpenResults = () => {
-        if (!manifestUrl) return;
-
-        const shortId = computeTaskId ? computeTaskId.slice(-6) : "unknown";
-
-        dispatch(
-            selection.actions.addQuery({
-                name: `All Cells Mask Results (${shortId})`,
-                parts: {
-                    sources: [
-                        {
-                            name: `ALL-CELLS-MASK-${shortId}`,
-                            type: "csv",
-                            uri: manifestUrl,
-                        },
-                    ],
-                },
-                loading: true,
-            })
-        );
-
-        onDismiss();
-    };
-
     const submitDisabled = status !== "idle" || hasNonLocalFiles;
 
     const submitTooltip = hasNonLocalFiles
         ? "All selected files must be available locally before submitting this job."
-        : "This job has already been submitted. Please wait for the manifest CSV.";
+        : "This job has already been submitted.";
 
-    // BODY
     const body = (
         <div className={styles.shell}>
             <div className={styles.columns}>
-                {/* LEFT COLUMN */}
                 <div className={styles.leftCol}>
                     <div className={styles.section}>
                         <div className={styles.label}>Scene</div>
@@ -242,25 +180,32 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN */}
                 <div className={styles.rightCol}>
                     {status === "idle" && (
                         <>
                             <h4>About this workflow</h4>
                             <p className={styles.text}>
                                 The All Cells Mask workflow generates segmentation masks for the
-                                selected files and produces a manifest CSV that is updated as
-                                processing runs.
+                                selected files. After submission, you can monitor progress in the
+                                job dashboard.
                             </p>
                         </>
                     )}
 
-                    {manifestUrl && (
-                        <div className={styles.manifestBox}>
-                            <h4>Manifest CSV location</h4>
-                            <code className={styles.code}>{manifestUrl}</code>
-                            <SecondaryButton onClick={copyManifestUrl} text="COPY PATH" />
-                        </div>
+                    {status === "submitting" && (
+                        <>
+                            <h4>Submitting job</h4>
+                            <p className={styles.text}>Your request is being submitted.</p>
+                        </>
+                    )}
+
+                    {status === "submitted" && computeTaskId && (
+                        <>
+                            <h4>Job submitted</h4>
+                            <p className={styles.text}>
+                                <strong>Job ID:</strong> {computeTaskId}
+                            </p>
+                        </>
                     )}
 
                     {status === "error" && (
@@ -272,29 +217,24 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
                 </div>
             </div>
 
-            {status === "waiting-for-manifest" && (
-                <div className={styles.fullWidthWaiting}>
-                    <LoadingIcon className={styles.statusSpinner} />
-                    Preparing manifest CSV…
-                </div>
-            )}
-
-            {status === "ready" && (
+            {status === "submitted" && (
                 <div className={styles.fullWidthSuccess}>
                     <Icon iconName="CheckMark" />
-                    Manifest CSV available
+                    Job submitted successfully
                 </div>
             )}
         </div>
     );
 
-    // FOOTER
     const footer = (
         <div className={styles.footerButtons}>
-            <SecondaryButton onClick={onDismiss} text="CANCEL" />
+            <SecondaryButton
+                onClick={onDismiss}
+                text={status === "submitted" ? "CLOSE" : "CANCEL"}
+            />
 
-            {status === "ready" ? (
-                <PrimaryButton onClick={onOpenResults} text="OPEN RESULTS IN BFF" />
+            {status === "submitted" && dashboardUrl ? (
+                <PrimaryButton onClick={openDashboard} text="OPEN JOB DASHBOARD" />
             ) : submitDisabled ? (
                 <TooltipHost content={submitTooltip}>
                     <div>

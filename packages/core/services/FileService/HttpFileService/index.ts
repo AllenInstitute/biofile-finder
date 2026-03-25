@@ -228,14 +228,14 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         files: string[];
         scene: number;
         channel: number;
-    }): Promise<{ computeTaskId: string; manifestCsvPath: string }> {
+    }): Promise<{ computeTaskId: string; dashboardUrl: string }> {
         // This will become the service base when deployed
         const requestUrl = `http://stg-aics.corp.alleninstitute.org/${HttpFileService.ALL_CELLS_MASK_URL}${this.pathSuffix}`;
 
         try {
             const result = await this.rawPost<{
                 computeTaskId: string;
-                manifestCsvPath: string;
+                dashboardUrl: string;
             }>(
                 requestUrl,
                 JSON.stringify({
@@ -245,17 +245,9 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
                 })
             );
 
-            /**
-             * Normalize the returned manifest path for browser access.
-             */
-            const manifestCsvPath = result.manifestCsvPath.replace(
-                "/allen/aics/",
-                "https://vast-files.int.allencell.org/"
-            );
-
             return {
                 computeTaskId: result.computeTaskId,
-                manifestCsvPath,
+                dashboardUrl: result.dashboardUrl,
             };
         } catch (error) {
             console.error("Failed to submit All Cells Mask job:", error);

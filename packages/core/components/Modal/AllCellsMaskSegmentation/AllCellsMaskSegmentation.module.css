@@ -1,34 +1,27 @@
 .shell {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
   width: 100%;
   box-sizing: border-box;
 }
 
 .columns {
   display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
+  grid-template-columns: 180px 1fr;
   column-gap: 24px;
   width: 100%;
-  min-height: 0;
-  box-sizing: border-box;
 }
 
 .leftCol {
   display: flex;
   flex-direction: column;
   row-gap: 24px;
-  min-width: 0;
 }
 
 .rightCol {
   display: flex;
   flex-direction: column;
   row-gap: 12px;
-  min-height: 0;
-  position: relative;
 }
 
 /* ===== Form ===== */
@@ -43,45 +36,9 @@
   margin-bottom: 8px;
 }
 
-.searchBox {
-  flex-grow: 1;
-}
-
 .searchBox :global(input.ms-TextField-field) {
   background-color: var(--secondary-background-color) !important;
   color: var(--secondary-text-color) !important;
-}
-
-/* ===== Text helpers ===== */
-
-.muted {
-  color: var(--secondary-text-color);
-  opacity: 0.85;
-}
-
-/* ===== Manifest ===== */
-
-.manifestBox {
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 8px;
-  background: var(--secondary-background-color);
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.code {
-  display: block;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.2);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
-  font-size: 12px;
-
-  white-space: normal;
-  word-break: break-all;
-  overflow-wrap: anywhere;
 }
 
 /* ===== Footer ===== */
@@ -93,19 +50,13 @@
   gap: 10px;
 }
 
-/* ===== Status banners ===== */
+/* ===== Status ===== */
 
-.fullWidthWaiting,
 .fullWidthSuccess,
 .fullWidthError {
   margin-top: 12px;
   padding: 12px 16px;
   border-radius: 8px;
-}
-
-.fullWidthWaiting {
-  background: rgba(255, 215, 0, 0.12);
-  border: 1px solid rgba(255, 215, 0, 0.35);
 }
 
 .fullWidthSuccess {
@@ -116,33 +67,6 @@
 .fullWidthError {
   background: rgba(255, 0, 0, 0.08);
   border: 1px solid rgba(255, 0, 0, 0.25);
-}
-
-/* ===== Status content ===== */
-
-.statusRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.statusIcon {
-  font-size: 18px;
-  min-width: 18px;
-}
-
-.statusContent {
-  display: flex;
-  flex-direction: column;
-  row-gap: 4px;
-}
-
-.statusTitle {
-  font-weight: 600;
-}
-
-.statusText {
-  color: var(--secondary-text-color);
 }
 
 /* ===== Responsive ===== */
