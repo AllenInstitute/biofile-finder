@@ -353,9 +353,9 @@ export default abstract class DatabaseService {
                 await this.normalizeDataSourceColumnNames(name);
             }
 
-            const errors = await this.checkDataSourceForErrors(name);
-            if (errors.length) {
-                throw new DataSourcePreparationError(errors.join("</br></br>"), name);
+            const error = await this.checkDataSourceForErrors(name);
+            if (error !== null) {
+                throw new DataSourcePreparationError(error, name);
             }
 
             if (type !== "parquet") {
@@ -493,7 +493,7 @@ export default abstract class DatabaseService {
         the expectations around uniqueness/blankness for pre-defined columns
         like "File Path", "File ID", etc.
     */
-    private async checkDataSourceForErrors(name: string): Promise<string[]> {
+    private async checkDataSourceForErrors(name: string): Promise<string | null> {
         const columnsOnTable = await this.getColumnsOnDataSource(name);
 
         if (!columnsOnTable.has(PreDefinedColumn.FILE_PATH)) {
@@ -512,7 +512,7 @@ export default abstract class DatabaseService {
             // Unable to determine if the file path is empty or not
             // when it is not present so return here before checking
             // for other errors
-            return [error];
+            return error;
         } else {
             // For large parquet tables, attempt to bypass the expensive
             // getRowsWhereColumnIsBlank query.
@@ -528,11 +528,9 @@ export default abstract class DatabaseService {
                     const hasBlankValues = await this.parquetHasBlankValues(name, originalColumn);
                     if (hasBlankValues !== null) {
                         if (hasBlankValues) {
-                            return [
-                                `"${PreDefinedColumn.FILE_PATH}" column contains some empty or purely whitespace paths.`,
-                            ];
+                            return `"${PreDefinedColumn.FILE_PATH}" column contains some empty or purely whitespace paths.`;
                         } else {
-                            return [];
+                            return null;
                         }
                     }
                     // If blankFilePathRowGroups is null, we don't have enough
@@ -550,11 +548,9 @@ export default abstract class DatabaseService {
                     blankFilePathRows.join(", "),
                     100
                 );
-                return [
-                    `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`,
-                ];
+                return `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`;
             }
-            return [];
+            return null;
         }
     }
 
