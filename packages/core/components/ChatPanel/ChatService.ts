@@ -1,18 +1,46 @@
 import Annotation from "../../entity/Annotation";
+import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
+import { AnnotationValue } from "../../services/AnnotationService";
 import { ChatMessage, LLMResponse } from "./types";
 
 const API_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-20250514";
 
-function serializeAnnotations(annotations: Annotation[]): string {
+// Max values to show per annotation to avoid prompt bloat
+const MAX_VALUES_PER_ANNOTATION = 50;
+
+// Annotation types worth fetching values for
+const VALUE_TYPES = new Set([
+    AnnotationType.STRING,
+    AnnotationType.DROPDOWN,
+    AnnotationType.LOOKUP,
+    AnnotationType.BOOLEAN,
+]);
+
+export function shouldFetchValues(annotation: Annotation): boolean {
+    return VALUE_TYPES.has(annotation.type as AnnotationType);
+}
+
+function serializeAnnotations(
+    annotations: Annotation[],
+    annotationValues: Record<string, AnnotationValue[]>
+): string {
     return annotations
-        .map(
-            (a) =>
-                `- "${a.name}" (display: "${a.displayName}", type: ${a.type}${
-                    a.units ? `, units: ${a.units}` : ""
-                }${a.description ? `, description: ${a.description}` : ""})`
-        )
+        .map((a) => {
+            let line = `- "${a.name}" (display: "${a.displayName}", type: ${a.type}${
+                a.units ? `, units: ${a.units}` : ""
+            }${a.description ? `, description: ${a.description}` : ""})`;
+            const values = annotationValues[a.name];
+            if (values && values.length > 0) {
+                const displayValues = values.slice(0, MAX_VALUES_PER_ANNOTATION);
+                line += `\n  Known values: ${displayValues.map((v) => `"${v}"`).join(", ")}`;
+                if (values.length > MAX_VALUES_PER_ANNOTATION) {
+                    line += ` ... and ${values.length - MAX_VALUES_PER_ANNOTATION} more`;
+                }
+            }
+            return line;
+        })
         .join("\n");
 }
 
@@ -21,8 +49,18 @@ function serializeCurrentFilters(filters: FileFilter[]): string {
     return filters.map((f) => `- ${f.name} ${f.type} "${f.value}"`).join("\n");
 }
 
-function buildSystemPrompt(annotations: Annotation[], currentFilters: FileFilter[]): string {
+function buildSystemPrompt(
+    annotations: Annotation[],
+    currentFilters: FileFilter[],
+    annotationValues: Record<string, AnnotationValue[]>
+): string {
+    const today = new Date();
+    const todayISO = today.toISOString();
     return `You are a file search assistant for a scientific data management application. Users describe files they want to find using natural language, and you translate their requests into structured filter and sort instructions.
+
+IMPORTANT: Today's date is ${
+        todayISO.split("T")[0]
+    } (${todayISO}). Use this for all relative date calculations ("last month", "past week", "yesterday", etc.).
 
 This is a multi-turn conversation. The user may refine their search incrementally across messages. Pay attention to context:
 - "also show X" or "add X" means ADD filters to existing ones
@@ -33,8 +71,8 @@ This is a multi-turn conversation. The user may refine their search incrementall
 - "what filters are active?" or "what am I looking at?" means describe current state in the message, no filter changes needed
 
 ## Available Annotations
-The following annotations (columns) are available for filtering and sorting:
-${serializeAnnotations(annotations)}
+The following annotations (columns) are available for filtering and sorting. For text/dropdown annotations, known valid values are listed. When the user's input has a typo or is close to a known value, use the correct known value instead (e.g., "imaege" → "Image", "csv" → "CSV").
+${serializeAnnotations(annotations, annotationValues)}
 
 ## Current Filters
 These filters are currently applied:
@@ -59,7 +97,8 @@ You MUST respond with a JSON object wrapped in <filters> tags. The JSON has this
       "annotationName": "annotation name to remove all filters for"
     }
   ],
-  "message": "A brief human-readable description of what you did"
+  "message": "A brief human-readable description of what you did",
+  "suggestions": ["suggested follow-up query 1", "suggested follow-up query 2"]
 }
 
 ## Filter Type Guide
@@ -69,8 +108,13 @@ You MUST respond with a JSON object wrapped in <filters> tags. The JSON has this
 - "exclude": Selects files where the annotation IS NULL. Use for "missing X", "without X", "no value for X".
 
 ## Type-Specific Value Formatting
-- Date/DateTime: Use ISO format strings like "2024-01-15" or "2024-01-15T10:30:00"
-- Number: Use plain numbers without units. For file_size, use bytes (1 MB = 1000000).
+- Date/DateTime: For date range queries (which is the most common case), use the RANGE format: "RANGE(startISO,endISO)" where both dates are full ISO 8601 strings with timezone. Examples:
+  - "last month": "RANGE(2026-02-01T00:00:00.000Z,2026-02-28T23:59:59.999Z)"
+  - "past week": "RANGE(2026-03-20T00:00:00.000Z,${todayISO})"
+  - "since January 2026": "RANGE(2026-01-01T00:00:00.000Z,${todayISO})"
+  - "past year": "RANGE(2025-03-27T00:00:00.000Z,${todayISO})"
+  Use filterType "default" (not "fuzzy") for RANGE values. Always use full ISO strings with .000Z timezone suffix.
+- Number: Use plain numbers without units. For file_size, use bytes (1 MB = 1000000). For numeric ranges use "RANGE(min,max)" with filterType "default".
 - YesNo: Use "true" or "false"
 - Text/Dropdown/Lookup: Use string values. For fuzzy matching, provide a regex pattern.
 
@@ -80,11 +124,12 @@ You MUST respond with a JSON object wrapped in <filters> tags. The JSON has this
 3. If ambiguous, pick the most likely annotation and explain your choice in the message.
 4. For "clear filters" or "reset" requests, return removeFilters for all currently active filter annotation names.
 5. Always include a helpful "message" explaining what you did. Summarize the current filter state after changes.
-6. For numeric range filtering (e.g., "larger than 1MB"), note that exact numeric comparisons are not supported. Use fuzzy filters where possible or suggest using the sidebar controls for precise ranges.
+6. For numeric range filtering (e.g., "larger than 1MB"), use the RANGE format: "RANGE(min,max)" with filterType "default". For "larger than 1MB": "RANGE(1000000,999999999999)". For "between 1MB and 10MB": "RANGE(1000000,10000000)".
 7. The "sort" field is optional. Only include it if the user asks for sorting. Set it to null if not needed.
 8. The "removeFilters" field is optional. Only include it if the user wants to remove specific filters.
 9. When refining, only output the CHANGES (new filters to add, filters to remove). Do NOT re-emit filters that are already active.
-10. If the user asks a question about the data or current state without requesting changes, return empty filters array and answer in the message field.`;
+10. If the user asks a question about the data or current state without requesting changes, return empty filters array and answer in the message field.
+11. Always include 2-3 "suggestions" — short, clickable follow-up queries the user might want to try next. Make them contextually relevant (e.g., after filtering by Kind, suggest sorting or filtering by another annotation). Keep each suggestion under 40 characters.`;
 }
 
 export function parseResponse(text: string): LLMResponse | null {
@@ -101,9 +146,10 @@ export async function sendChatMessage(
     messages: ChatMessage[],
     annotations: Annotation[],
     currentFilters: FileFilter[],
-    apiKey: string
+    apiKey: string,
+    annotationValues: Record<string, AnnotationValue[]> = {}
 ): Promise<LLMResponse> {
-    const systemPrompt = buildSystemPrompt(annotations, currentFilters);
+    const systemPrompt = buildSystemPrompt(annotations, currentFilters, annotationValues);
 
     const apiMessages = messages.map((m) => ({
         role: m.role,

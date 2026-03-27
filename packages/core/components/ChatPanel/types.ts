@@ -5,6 +5,8 @@ export interface ChatMessage {
     content: string;
     timestamp: number;
     appliedFilters?: FileFilter[];
+    suggestions?: string[];
+    fileCount?: number | null;
 }
 
 export interface LLMFilterInstruction {
@@ -23,4 +25,5 @@ export interface LLMResponse {
     sort?: LLMSortInstruction | null;
     removeFilters?: { annotationName: string }[];
     message: string;
+    suggestions?: string[];
 }

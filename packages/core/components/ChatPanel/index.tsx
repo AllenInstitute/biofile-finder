@@ -2,9 +2,11 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FileFilter, { FilterType } from "../../entity/FileFilter";
+import FileSet from "../../entity/FileSet";
 import FileSort, { SortOrder } from "../../entity/FileSort";
-import { metadata, selection } from "../../state";
-import { sendChatMessage } from "./ChatService";
+import { interaction, metadata, selection } from "../../state";
+import { AnnotationValue } from "../../services/AnnotationService";
+import { sendChatMessage, shouldFetchValues } from "./ChatService";
 import { ChatMessage, LLMResponse } from "./types";
 
 import styles from "./ChatPanel.module.css";
@@ -16,8 +18,13 @@ export default function ChatPanel() {
     const annotations = useSelector(metadata.selectors.getAnnotations);
     const annotationMap = useSelector(metadata.selectors.getAnnotationNameToAnnotationMap);
     const currentFilters = useSelector(selection.selectors.getFileFilters);
+    const fileService = useSelector(interaction.selectors.getFileService);
+    const annotationService = useSelector(interaction.selectors.getAnnotationService);
 
     const [isOpen, setIsOpen] = React.useState(false);
+    const [annotationValues, setAnnotationValues] = React.useState<
+        Record<string, AnnotationValue[]>
+    >({});
     const [messages, setMessages] = React.useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = React.useState("");
     const [isLoading, setIsLoading] = React.useState(false);
@@ -33,6 +40,33 @@ export default function ChatPanel() {
 
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
+
+    // Fetch known values for text/dropdown annotations
+    React.useEffect(() => {
+        if (!annotations.length || !annotationService) return;
+        let cancelled = false;
+        const toFetch = annotations.filter(shouldFetchValues);
+        Promise.all(
+            toFetch.map((a) =>
+                annotationService
+                    .fetchValues(a.name)
+                    .then((values) => ({ name: a.name, values }))
+                    .catch(() => ({ name: a.name, values: [] as AnnotationValue[] }))
+            )
+        ).then((results) => {
+            if (cancelled) return;
+            const valuesMap: Record<string, AnnotationValue[]> = {};
+            for (const r of results) {
+                if (r.values.length > 0) {
+                    valuesMap[r.name] = r.values;
+                }
+            }
+            setAnnotationValues(valuesMap);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [annotations, annotationService]);
 
     // Auto-scroll to bottom when messages change
     React.useEffect(() => {
@@ -131,6 +165,15 @@ export default function ChatPanel() {
         }
     }
 
+    async function fetchFileCount(filters: FileFilter[]): Promise<number | null> {
+        try {
+            const fileSet = new FileSet({ fileService, filters });
+            return await fileSet.fetchTotalCount();
+        } catch {
+            return null;
+        }
+    }
+
     async function handleSubmit(e?: React.FormEvent) {
         e?.preventDefault();
         const trimmed = inputValue.trim();
@@ -152,7 +195,8 @@ export default function ChatPanel() {
                 updatedMessages,
                 annotations,
                 currentFilters,
-                apiKey
+                apiKey,
+                annotationValues
             );
 
             const appliedFilters = applyLLMResponse(response);
@@ -162,9 +206,36 @@ export default function ChatPanel() {
                 content: response.message,
                 timestamp: Date.now(),
                 appliedFilters: appliedFilters.length > 0 ? appliedFilters : undefined,
+                suggestions: response.suggestions,
+                fileCount: null, // will be updated async
             };
 
-            setMessages([...updatedMessages, assistantMessage]);
+            const newMessages = [...updatedMessages, assistantMessage];
+            setMessages(newMessages);
+
+            // Fetch file count in background after filters are applied
+            if (appliedFilters.length > 0 || response.removeFilters?.length) {
+                // Need to compute what filters will be active after this response
+                const filtersAfterResponse = [
+                    ...currentFilters.filter(
+                        (f) =>
+                            !(response.removeFilters || []).some(
+                                (rf) => rf.annotationName === f.name
+                            )
+                    ),
+                    ...appliedFilters,
+                ];
+                fetchFileCount(filtersAfterResponse).then((count) => {
+                    setMessages((prev) => {
+                        const updated = [...prev];
+                        const lastIdx = updated.length - 1;
+                        if (updated[lastIdx]?.role === "assistant") {
+                            updated[lastIdx] = { ...updated[lastIdx], fileCount: count };
+                        }
+                        return updated;
+                    });
+                });
+            }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Unknown error";
             const assistantMessage: ChatMessage = {
@@ -178,10 +249,73 @@ export default function ChatPanel() {
         }
     }
 
+    function handleSuggestionClick(suggestion: string) {
+        setInputValue(suggestion);
+        // Auto-submit
+        const userMessage: ChatMessage = {
+            role: "user",
+            content: suggestion,
+            timestamp: Date.now(),
+        };
+        const updatedMessages = [...messages, userMessage];
+        setMessages(updatedMessages);
+        setInputValue("");
+        setIsLoading(true);
+
+        sendChatMessage(updatedMessages, annotations, currentFilters, apiKey, annotationValues)
+            .then((response) => {
+                const appliedFilters = applyLLMResponse(response);
+                const assistantMessage: ChatMessage = {
+                    role: "assistant",
+                    content: response.message,
+                    timestamp: Date.now(),
+                    appliedFilters: appliedFilters.length > 0 ? appliedFilters : undefined,
+                    suggestions: response.suggestions,
+                    fileCount: null,
+                };
+                const newMessages = [...updatedMessages, assistantMessage];
+                setMessages(newMessages);
+
+                if (appliedFilters.length > 0 || response.removeFilters?.length) {
+                    const filtersAfterResponse = [
+                        ...currentFilters.filter(
+                            (f) =>
+                                !(response.removeFilters || []).some(
+                                    (rf) => rf.annotationName === f.name
+                                )
+                        ),
+                        ...appliedFilters,
+                    ];
+                    fetchFileCount(filtersAfterResponse).then((count) => {
+                        setMessages((prev) => {
+                            const updated = [...prev];
+                            const lastIdx = updated.length - 1;
+                            if (updated[lastIdx]?.role === "assistant") {
+                                updated[lastIdx] = { ...updated[lastIdx], fileCount: count };
+                            }
+                            return updated;
+                        });
+                    });
+                }
+            })
+            .catch((error) => {
+                const errorMessage = error instanceof Error ? error.message : "Unknown error";
+                setMessages([
+                    ...updatedMessages,
+                    {
+                        role: "assistant",
+                        content: `Error: ${errorMessage}`,
+                        timestamp: Date.now(),
+                    },
+                ]);
+            })
+            .finally(() => setIsLoading(false));
+    }
+
     function renderMessage(msg: ChatMessage, index: number) {
         const isUser = msg.role === "user";
-        const isLatestAssistant =
-            !isUser && index === messages.length - 1 && msg.appliedFilters?.length;
+        const isLatest = index === messages.length - 1;
+        const isLatestAssistant = !isUser && isLatest;
 
         return (
             <div key={index}>
@@ -191,6 +325,16 @@ export default function ChatPanel() {
                     }`}
                 >
                     {msg.content}
+                    {msg.fileCount !== undefined && msg.fileCount !== null && (
+                        <div className={styles.fileCount}>
+                            {msg.fileCount.toLocaleString()} files match
+                        </div>
+                    )}
+                    {msg.fileCount === null &&
+                        msg.appliedFilters &&
+                        msg.appliedFilters.length > 0 && (
+                            <div className={styles.fileCount}>Counting files...</div>
+                        )}
                     {msg.appliedFilters && msg.appliedFilters.length > 0 && (
                         <div className={styles.filterChips}>
                             {msg.appliedFilters.map((f, i) => (
@@ -205,6 +349,19 @@ export default function ChatPanel() {
                     <button className={styles.undoButton} onClick={handleUndo}>
                         Undo
                     </button>
+                )}
+                {isLatestAssistant && msg.suggestions && msg.suggestions.length > 0 && !isLoading && (
+                    <div className={styles.suggestions}>
+                        {msg.suggestions.map((s, i) => (
+                            <button
+                                key={i}
+                                className={styles.suggestionButton}
+                                onClick={() => handleSuggestionClick(s)}
+                            >
+                                {s}
+                            </button>
+                        ))}
+                    </div>
                 )}
             </div>
         );
@@ -225,6 +382,16 @@ export default function ChatPanel() {
                     <div className={styles.header}>
                         <span className={styles.headerTitle}>AI File Search</span>
                         <div>
+                            <button
+                                className={styles.newChatButton}
+                                onClick={() => {
+                                    setMessages([]);
+                                    setPreviousFilters(null);
+                                }}
+                                title="New Chat"
+                            >
+                                New
+                            </button>
                             <button
                                 className={styles.settingsButton}
                                 onClick={() => setShowApiKeyInput(!showApiKeyInput)}

@@ -85,6 +85,9 @@
     line-height: 1.4;
     word-wrap: break-word;
     white-space: pre-wrap;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    cursor: text;
 }
 
 .userMessage {
@@ -256,6 +259,24 @@
     opacity: 1;
 }
 
+.newChatButton {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--primary-text-color);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 6px;
+    opacity: 0.8;
+    margin-right: 4px;
+}
+
+.newChatButton:hover {
+    opacity: 1;
+    border-color: var(--aqua);
+    color: var(--aqua);
+}
+
 .activeFiltersBar {
     padding: 8px 12px;
     border-bottom: 1px solid var(--border-color);
@@ -331,4 +352,34 @@
     color: var(--primary-text-color);
     opacity: 0.4;
     font-style: italic;
+}
+
+.suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.suggestionButton {
+    background-color: transparent;
+    border: 1px solid var(--aqua);
+    color: var(--aqua);
+    border-radius: 14px;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    text-align: left;
+}
+
+.suggestionButton:hover {
+    background-color: rgba(11, 154, 171, 0.15);
+}
+
+.fileCount {
+    font-size: 11px;
+    color: var(--aqua);
+    margin-top: 4px;
+    opacity: 0.9;
 }
