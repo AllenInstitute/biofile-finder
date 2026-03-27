@@ -13,9 +13,9 @@ module.exports = ({ analyze, production } = {}) => ({
         historyApiFallback: true,
         proxy: [
             {
-                context: ["/ollama"],
-                target: "http://localhost:11434",
-                pathRewrite: { "^/ollama": "" },
+                context: ["/llm"],
+                target: "http://dev-aics-smp-001:8080",
+                pathRewrite: { "^/llm": "" },
                 changeOrigin: true,
             },
         ],

@@ -3,7 +3,7 @@ import axios from "axios";
 import OllamaService, { AnnotationContext, OllamaFilterResult } from "../";
 import { FilterType } from "../../../entity/FileFilter";
 
-const DEFAULT_BASE_URL = "/ollama";
+const DEFAULT_BASE_URL = "/llm";
 const DEFAULT_MODEL = "llama3.2";
 
 function buildSystemPrompt(
@@ -132,7 +132,7 @@ export default class HttpOllamaService implements OllamaService {
 
     public async isAvailable(): Promise<boolean> {
         try {
-            const response = await axios.get(this.baseUrl, { timeout: 3000 });
+            const response = await axios.get(`${this.baseUrl}/v1/models`, { timeout: 3000 });
             return response.status === 200;
         } catch {
             return false;
@@ -146,28 +146,30 @@ export default class HttpOllamaService implements OllamaService {
     ): Promise<OllamaFilterResult> {
         const systemPrompt = buildSystemPrompt(annotations, currentFilters);
 
-        console.log("[OllamaService] === SYSTEM PROMPT ===\n", systemPrompt);
-        console.log("[OllamaService] === USER PROMPT ===\n", prompt);
-        console.log("[OllamaService] === ANNOTATIONS ===\n", JSON.stringify(annotations, null, 2));
+        console.log("[LLMService] === SYSTEM PROMPT ===\n", systemPrompt);
+        console.log("[LLMService] === USER PROMPT ===\n", prompt);
+        console.log("[LLMService] === ANNOTATIONS ===\n", JSON.stringify(annotations, null, 2));
         console.log(
-            "[OllamaService] === CURRENT FILTERS ===\n",
+            "[LLMService] === CURRENT FILTERS ===\n",
             JSON.stringify(currentFilters, null, 2)
         );
 
         const response = await axios.post(
-            `${this.baseUrl}/api/generate`,
+            `${this.baseUrl}/v1/chat/completions`,
             {
                 model: this.model,
-                prompt: prompt,
-                system: systemPrompt,
-                format: "json",
-                stream: false,
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: prompt },
+                ],
+                response_format: { type: "json_object" },
+                temperature: 0,
             },
-            { timeout: 120000 }
+            { timeout: 480000 }
         );
 
-        const rawResponse = response.data?.response;
-        console.log("[OllamaService] === RAW RESPONSE ===\n", rawResponse);
+        const rawResponse = response.data?.choices?.[0]?.message?.content;
+        console.log("[LLMService] === RAW RESPONSE ===\n", rawResponse);
         if (!rawResponse) {
             throw new Error("Empty response from Ollama");
         }
