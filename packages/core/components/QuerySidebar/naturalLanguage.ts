@@ -13,6 +13,7 @@ export interface ParsedNaturalLanguageQuery {
     ambiguities: AnnotationAmbiguity[];
     filters: FileFilter[];
     hierarchy: string[];
+    recognizedAnnotations: RecognizedAnnotationPhrase[];
     sortColumn?: FileSort;
     touchedFilters: boolean;
     touchedHierarchy: boolean;
@@ -35,6 +36,11 @@ export interface AnnotationAmbiguity {
     kind: "annotation";
     phrase: string;
     matches: Annotation[];
+}
+
+export interface RecognizedAnnotationPhrase {
+    annotationName: string;
+    phrase: string;
 }
 
 const QUERY_PREFIX_PATTERN = /\b(?:show|find|list|search|filter|files?|items?|results?|that|matching|me|all)\b/g;
@@ -109,7 +115,8 @@ function resolveAnnotation(
     aliases: AnnotationAlias[],
     ambiguities: AnnotationAmbiguity[],
     resolvedAnnotationsByPhrase: Record<string, string>,
-    availableAnnotationNames: Set<string>
+    availableAnnotationNames: Set<string>,
+    recognizedAnnotations: RecognizedAnnotationPhrase[]
 ): Annotation | undefined {
     const normalizedCandidate = normalizeNaturalLanguageText(candidate);
     if (!normalizedCandidate) {
@@ -118,8 +125,16 @@ function resolveAnnotation(
 
     const resolvedAnnotationName = resolvedAnnotationsByPhrase[normalizedCandidate];
     if (resolvedAnnotationName) {
-        return aliases.find(({ annotation }) => annotation.name === resolvedAnnotationName)
-            ?.annotation;
+        const annotation = aliases.find(
+            ({ annotation }) => annotation.name === resolvedAnnotationName
+        )?.annotation;
+        if (annotation) {
+            recognizedAnnotations.push({
+                annotationName: annotation.name,
+                phrase: normalizedCandidate,
+            });
+        }
+        return annotation;
     }
 
     const matches = Array.from(
@@ -132,6 +147,10 @@ function resolveAnnotation(
         ).values()
     );
     if (matches.length === 1) {
+        recognizedAnnotations.push({
+            annotationName: matches[0].name,
+            phrase: normalizedCandidate,
+        });
         return matches[0];
     }
 
@@ -196,7 +215,8 @@ function parseGroupClause(
     annotationAliases: AnnotationAlias[],
     ambiguities: AnnotationAmbiguity[],
     resolvedAnnotationsByPhrase: Record<string, string>,
-    availableAnnotationNames: Set<string>
+    availableAnnotationNames: Set<string>,
+    recognizedAnnotations: RecognizedAnnotationPhrase[]
 ): { hierarchy: string[]; touched: boolean } {
     const match = query.match(
         /\bgroup(?:ed)?(?:\s+results)?\s+by\s+(.+?)(?=(?:\b(?:sort(?:ed)?|order(?:ed)?)\s+by\b|\b(?:where|with|having|filter(?:ed)?(?:\s+by)?)\b|$))/i
@@ -216,7 +236,8 @@ function parseGroupClause(
                             annotationAliases,
                             ambiguities,
                             resolvedAnnotationsByPhrase,
-                            availableAnnotationNames
+                            availableAnnotationNames,
+                            recognizedAnnotations
                         )?.name
                 )
                 .filter((value): value is string => !!value)
@@ -231,7 +252,8 @@ function parseSortClause(
     annotationAliases: AnnotationAlias[],
     ambiguities: AnnotationAmbiguity[],
     resolvedAnnotationsByPhrase: Record<string, string>,
-    availableAnnotationNames: Set<string>
+    availableAnnotationNames: Set<string>,
+    recognizedAnnotations: RecognizedAnnotationPhrase[]
 ): { sortColumn?: FileSort; touched: boolean } {
     const match = query.match(
         /\b(?:sort(?:ed)?|order(?:ed)?)\s+by\s+(.+?)(?=(?:\bgroup(?:ed)?(?:\s+results)?\s+by\b|\b(?:where|with|having|filter(?:ed)?(?:\s+by)?)\b|$))/i
@@ -255,7 +277,8 @@ function parseSortClause(
         annotationAliases,
         ambiguities,
         resolvedAnnotationsByPhrase,
-        availableAnnotationNames
+        availableAnnotationNames,
+        recognizedAnnotations
     );
 
     return annotation
@@ -287,7 +310,8 @@ function parseConditionChunk(
     annotationAliases: AnnotationAlias[],
     ambiguities: AnnotationAmbiguity[],
     resolvedAnnotationsByPhrase: Record<string, string>,
-    availableAnnotationNames: Set<string>
+    availableAnnotationNames: Set<string>,
+    recognizedAnnotations: RecognizedAnnotationPhrase[]
 ): FileFilter[] {
     const normalizedChunk = normalizeNaturalLanguageText(chunk);
     if (!normalizedChunk) {
@@ -304,7 +328,8 @@ function parseConditionChunk(
             annotationAliases,
             ambiguities,
             resolvedAnnotationsByPhrase,
-            availableAnnotationNames
+            availableAnnotationNames,
+            recognizedAnnotations
         );
         return annotation
             ? [new FileFilter(annotation.name, coerceAnnotationValue(annotation, value), type)]
@@ -321,7 +346,8 @@ function parseConditionChunk(
             annotationAliases,
             ambiguities,
             resolvedAnnotationsByPhrase,
-            availableAnnotationNames
+            availableAnnotationNames,
+            recognizedAnnotations
         );
         if (!annotation) {
             return [];
@@ -338,7 +364,8 @@ function parseConditionChunk(
             annotationAliases,
             ambiguities,
             resolvedAnnotationsByPhrase,
-            availableAnnotationNames
+            availableAnnotationNames,
+            recognizedAnnotations
         );
         return annotation ? [new FileFilter(annotation.name, "", FilterType.EXCLUDE)] : [];
     }
@@ -350,7 +377,8 @@ function parseConditionChunk(
             annotationAliases,
             ambiguities,
             resolvedAnnotationsByPhrase,
-            availableAnnotationNames
+            availableAnnotationNames,
+            recognizedAnnotations
         );
         return annotation ? [new FileFilter(annotation.name, "", FilterType.EXCLUDE)] : [];
     }
@@ -362,7 +390,8 @@ function parseConditionChunk(
             annotationAliases,
             ambiguities,
             resolvedAnnotationsByPhrase,
-            availableAnnotationNames
+            availableAnnotationNames,
+            recognizedAnnotations
         );
         return annotation ? [new FileFilter(annotation.name, "", FilterType.ANY)] : [];
     }
@@ -374,7 +403,8 @@ function parseConditionChunk(
             annotationAliases,
             ambiguities,
             resolvedAnnotationsByPhrase,
-            availableAnnotationNames
+            availableAnnotationNames,
+            recognizedAnnotations
         );
         return annotation ? [new FileFilter(annotation.name, "", FilterType.ANY)] : [];
     }
@@ -444,6 +474,10 @@ function parseConditionChunk(
             return [];
         }
 
+        recognizedAnnotations.push({
+            annotationName: uniqueMatches[0].name,
+            phrase: normalizeNaturalLanguageText(prefixMatches[0].alias),
+        });
         return [
             new FileFilter(
                 uniqueMatches[0].name,
@@ -548,19 +582,22 @@ export function parseNaturalLanguageQuery(
     const annotationAliases = createAnnotationAliases(annotations);
     const availableAnnotationNameSet = new Set(availableAnnotationNames);
     const ambiguities: AnnotationAmbiguity[] = [];
+    const recognizedAnnotations: RecognizedAnnotationPhrase[] = [];
     const { hierarchy, touched: touchedHierarchy } = parseGroupClause(
         query,
         annotationAliases,
         ambiguities,
         resolvedAnnotationsByPhrase,
-        availableAnnotationNameSet
+        availableAnnotationNameSet,
+        recognizedAnnotations
     );
     const { sortColumn, touched: touchedSort } = parseSortClause(
         query,
         annotationAliases,
         ambiguities,
         resolvedAnnotationsByPhrase,
-        availableAnnotationNameSet
+        availableAnnotationNameSet,
+        recognizedAnnotations
     );
 
     const strippedQuery = stripRecognizedClauses(query);
@@ -575,7 +612,8 @@ export function parseNaturalLanguageQuery(
             annotationAliases,
             ambiguities,
             resolvedAnnotationsByPhrase,
-            availableAnnotationNameSet
+            availableAnnotationNameSet,
+            recognizedAnnotations
         )
     );
     const inferredFilters = inferFiltersFromSharedValues(
@@ -597,6 +635,14 @@ export function parseNaturalLanguageQuery(
         ambiguities,
         filters: Array.from(filtersByKey.values()),
         hierarchy,
+        recognizedAnnotations: Array.from(
+            new Map(
+                recognizedAnnotations.map((recognized) => [
+                    `${recognized.annotationName}::${recognized.phrase}`,
+                    recognized,
+                ])
+            ).values()
+        ),
         sortColumn,
         touchedFilters: filtersByKey.size > 0,
         touchedHierarchy,

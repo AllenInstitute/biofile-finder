@@ -1,4 +1,3 @@
-import { TextField } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
@@ -41,6 +40,7 @@ export default function NaturalLanguageQuery(props: Props) {
     const [pendingAmbiguity, setPendingAmbiguity] = React.useState<
         ReturnType<typeof parseNaturalLanguageQuery>["ambiguities"][number] | undefined
     >();
+    const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
     const loadAnnotationValues = React.useCallback(async () => {
         const annotationsToLoad = annotations.filter(
@@ -130,6 +130,95 @@ export default function NaturalLanguageQuery(props: Props) {
         },
         [describeAnnotation]
     );
+
+    const previewParse = React.useMemo(
+        () =>
+            parseNaturalLanguageQuery(queryText, {
+                annotations,
+                annotationValuesByName,
+                availableAnnotationNames,
+                resolvedAnnotationsByPhrase,
+            }),
+        [
+            annotationValuesByName,
+            annotations,
+            availableAnnotationNames,
+            queryText,
+            resolvedAnnotationsByPhrase,
+        ]
+    );
+
+    const highlightedMarkup = React.useMemo(() => {
+        const palette = ["var(--aqua)", "#f7b267", "#7bd389", "#f4845f", "#8ecae6", "#ff99c8"];
+        const annotationColorMap = new Map<string, string>();
+        previewParse.recognizedAnnotations.forEach((recognized) => {
+            if (!annotationColorMap.has(recognized.annotationName)) {
+                annotationColorMap.set(
+                    recognized.annotationName,
+                    palette[annotationColorMap.size % palette.length]
+                );
+            }
+        });
+
+        const matches = previewParse.recognizedAnnotations
+            .flatMap((recognized) => {
+                const regex = new RegExp(
+                    recognized.phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+                    "ig"
+                );
+                return Array.from(queryText.matchAll(regex)).map((match) => ({
+                    annotationName: recognized.annotationName,
+                    end: (match.index || 0) + match[0].length,
+                    start: match.index || 0,
+                    text: match[0],
+                }));
+            })
+            .sort((left, right) => left.start - right.start || right.end - left.end);
+
+        const nonOverlappingMatches = matches.reduce<typeof matches>((acc, match) => {
+            const overlapsExisting = acc.some(
+                (existing) => match.start < existing.end && match.end > existing.start
+            );
+            return overlapsExisting ? acc : [...acc, match];
+        }, []);
+
+        let currentIndex = 0;
+        const parts: React.ReactNode[] = [];
+        nonOverlappingMatches.forEach((match, index) => {
+            if (match.start > currentIndex) {
+                parts.push(
+                    <span key={`plain-${currentIndex}`}>
+                        {queryText.slice(currentIndex, match.start)}
+                    </span>
+                );
+            }
+            parts.push(
+                <span
+                    key={`match-${match.start}-${index}`}
+                    style={{ color: annotationColorMap.get(match.annotationName) }}
+                >
+                    {match.text}
+                </span>
+            );
+            currentIndex = match.end;
+        });
+
+        if (currentIndex < queryText.length) {
+            parts.push(<span key="plain-tail">{queryText.slice(currentIndex)}</span>);
+        }
+
+        return parts.length ? parts : [<span key="plain-empty">{queryText}</span>];
+    }, [previewParse.recognizedAnnotations, queryText]);
+
+    React.useEffect(() => {
+        const textarea = textareaRef.current;
+        if (!textarea) {
+            return;
+        }
+
+        textarea.style.height = "auto";
+        textarea.style.height = `${Math.min(textarea.scrollHeight, 220)}px`;
+    }, [queryText]);
 
     const onApply = React.useCallback(
         async (
@@ -226,27 +315,32 @@ export default function NaturalLanguageQuery(props: Props) {
                 are recognized automatically.
             </p>
             <div className={styles.inputRow}>
-                <TextField
-                    autoAdjustHeight
-                    className={classNames(styles.input, styles.multilineInput)}
-                    multiline
-                    onChange={(_event, value) => {
-                        setQueryText(value || "");
-                    }}
-                    onKeyDown={(event) => {
-                        if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-                            event.preventDefault();
-                            void onApply(queryText);
+                <div className={styles.input}>
+                    <div aria-hidden className={styles.highlightLayer}>
+                        {highlightedMarkup}
+                        {"\n"}
+                    </div>
+                    <textarea
+                        ref={textareaRef}
+                        className={classNames(styles.multilineInput)}
+                        onChange={(event) => {
+                            setQueryText(event.target.value || "");
+                        }}
+                        onKeyDown={(event) => {
+                            if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                                event.preventDefault();
+                                void onApply(queryText);
+                            }
+                        }}
+                        placeholder={
+                            isLoadingValues
+                                ? "Loading shared annotation values..."
+                                : "Example: group by cell line, donor plasmid and donor plasmid ACTB-mEGFP"
                         }
-                    }}
-                    placeholder={
-                        isLoadingValues
-                            ? "Loading shared annotation values..."
-                            : "Example: group by cell line, donor plasmid and donor plasmid ACTB-mEGFP"
-                    }
-                    resizable={false}
-                    value={queryText}
-                />
+                        rows={2}
+                        value={queryText}
+                    />
+                </div>
             </div>
             <div className={styles.buttonRow}>
                 <TertiaryButton
