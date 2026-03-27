@@ -9,6 +9,7 @@ import CoreContent from "./components/CoreContent/CoreContent";
 import FileDetailPanel from "./components/FileDetailPanel";
 import Modal from "./components/Modal";
 import StatusMessage from "./components/StatusMessage";
+import ChatPanel from "./components/ChatPanel";
 import TutorialTooltip from "./components/TutorialTooltip";
 import { Environment } from "./constants";
 import useCheckForScreenSizeChange from "./hooks/useCheckForScreenSizeChange";
@@ -80,6 +81,7 @@ export default function App(props: AppProps) {
             <StatusMessage />
             <Modal />
             <TutorialTooltip />
+            <ChatPanel />
         </div>
     );
 }

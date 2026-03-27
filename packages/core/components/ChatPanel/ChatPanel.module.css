@@ -1,0 +1,257 @@
+.toggleButton {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--aqua);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    font-size: 20px;
+    transition: background-color 0.2s;
+}
+
+.toggleButton:hover {
+    background-color: var(--highlight-background-color);
+}
+
+.panel {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 420px;
+    height: 520px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--primary-background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background-color: var(--accent-dark);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.headerTitle {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--primary-text-color);
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    color: var(--primary-text-color);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0 4px;
+    opacity: 0.7;
+}
+
+.closeButton:hover {
+    opacity: 1;
+}
+
+.messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message {
+    max-width: 85%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.userMessage {
+    align-self: flex-end;
+    background-color: var(--aqua);
+    color: white;
+}
+
+.assistantMessage {
+    align-self: flex-start;
+    background-color: var(--accent-dark);
+    color: var(--primary-text-color);
+}
+
+.filterChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.filterChip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background-color: rgba(11, 154, 171, 0.2);
+    color: var(--aqua);
+    font-size: 11px;
+    border: 1px solid var(--aqua);
+}
+
+.undoButton {
+    background: none;
+    border: none;
+    color: var(--aqua);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 0;
+    text-decoration: underline;
+    margin-top: 4px;
+}
+
+.undoButton:hover {
+    opacity: 0.8;
+}
+
+.inputArea {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--accent-dark);
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.textInput {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
+    font-size: 13px;
+    outline: none;
+    font-family: inherit;
+}
+
+.textInput:focus {
+    border-color: var(--aqua);
+}
+
+.sendButton {
+    background-color: var(--aqua);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.sendButton:hover {
+    opacity: 0.9;
+}
+
+.sendButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.apiKeyArea {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.apiKeyLabel {
+    font-size: 12px;
+    color: var(--primary-text-color);
+    opacity: 0.7;
+}
+
+.apiKeyRow {
+    display: flex;
+    gap: 6px;
+}
+
+.apiKeyInput {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--primary-background-color);
+    color: var(--primary-text-color);
+    font-size: 12px;
+    outline: none;
+    font-family: monospace;
+}
+
+.apiKeySaveButton {
+    background-color: var(--aqua);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.loadingDots {
+    align-self: flex-start;
+    padding: 8px 12px;
+    background-color: var(--accent-dark);
+    border-radius: 8px;
+    color: var(--primary-text-color);
+    font-size: 13px;
+    opacity: 0.7;
+}
+
+.emptyState {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-text-color);
+    opacity: 0.5;
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+}
+
+.settingsButton {
+    background: none;
+    border: none;
+    color: var(--primary-text-color);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 4px;
+    opacity: 0.7;
+}
+
+.settingsButton:hover {
+    opacity: 1;
+}
