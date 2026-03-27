@@ -131,4 +131,18 @@ describe("parseNaturalLanguageQuery", () => {
         expect(result.filters[0].name).to.equal("uploaded");
         expect(result.filters[0].value).to.match(/^RANGE\(2026-01-01T00:00:00.000Z,[\d\-:T.]+Z\)$/);
     });
+
+    it("parses a date filter and grouping clause in the same query", () => {
+        const result = parseNaturalLanguageQuery(
+            "Uploaded after 2026-01-01, grouped by cell type",
+            { annotations }
+        );
+
+        expect(result.touchedFilters).to.equal(true);
+        expect(result.filters).to.have.length(1);
+        expect(result.filters[0].name).to.equal("uploaded");
+        expect(result.filters[0].value).to.match(/^RANGE\(2026-01-01T00:00:00.000Z,[\d\-:T.]+Z\)$/);
+        expect(result.touchedHierarchy).to.equal(true);
+        expect(result.hierarchy).to.deep.equal(["cell_type_classification"]);
+    });
 });

@@ -11,6 +11,62 @@
     margin: 0 0 8px;
 }
 
+.inputRow {
+    display: flex;
+}
+
+.input {
+    flex: 1;
+}
+
+.buttonRow {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.multilineInput :global(.ms-TextField-fieldGroup) {
+    align-items: flex-start;
+    background-color: var(--secondary-background-color);
+    border-color: var(--border-color);
+    min-height: 56px;
+}
+
+.multilineInput :global(textarea) {
+    background-color: var(--secondary-background-color);
+    color: var(--secondary-text-color);
+    line-height: 1.5;
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 10px 12px;
+}
+
+.multilineInput :global(textarea::placeholder) {
+    color: var(--secondary-text-color);
+    font-style: italic;
+}
+
+.multilineInput :global(.ms-TextField-fieldGroup:hover) {
+    border-color: var(--border-color);
+}
+
+.multilineInput :global(.ms-TextField-fieldGroup:focus-within) {
+    border-color: var(--aqua);
+}
+
+.submitButton,
+.clearButton {
+    min-width: 36px;
+}
+
+.shortcutHint {
+    color: var(--secondary-text-color);
+    font-size: var(--s-paragraph-size);
+    line-height: 1.4;
+    margin: 6px 0 0;
+}
+
 .status {
     color: var(--secondary-text-color);
     font-size: var(--s-paragraph-size);

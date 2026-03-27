@@ -49,7 +49,7 @@ export function normalizeNaturalLanguageText(value: string): string {
         .toLowerCase()
         .replace(/[_/]/g, " ")
         .replace(/["'`]/g, "")
-        .replace(/[^\w\s-]/g, " ")
+        .replace(/[^\w\s,-]/g, " ")
         .replace(/\s+/g, " ")
         .trim();
 }
@@ -150,7 +150,7 @@ function resolveAnnotation(
 
 function splitClauseValues(value: string): string[] {
     return value
-        .split(/\b(?:and|then)\b|,/)
+        .split(/\s*(?:,|\band\b|\bthen\b)\s*/)
         .map((part) => normalizeNaturalLanguageText(part))
         .filter((part) => !!part);
 }
@@ -565,7 +565,7 @@ export function parseNaturalLanguageQuery(
 
     const strippedQuery = stripRecognizedClauses(query);
     const chunks = strippedQuery
-        .split(/\b(?:and|,)\b/)
+        .split(/\s*(?:,|\band\b)\s*/)
         .map((chunk) => chunk.trim())
         .filter((chunk) => !!chunk && !CLAUSE_BOUNDARY_PATTERN.test(chunk));
 

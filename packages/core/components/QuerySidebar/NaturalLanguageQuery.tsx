@@ -1,8 +1,9 @@
+import { TextField } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
 
-import SearchBox from "../SearchBox";
+import { TertiaryButton } from "../Buttons";
 import NaturalLanguageDisambiguationModal from "./NaturalLanguageDisambiguationModal";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import { parseNaturalLanguageQuery } from "./naturalLanguage";
@@ -30,6 +31,7 @@ export default function NaturalLanguageQuery(props: Props) {
     const [isError, setIsError] = React.useState(false);
     const [isLoadingValues, setIsLoadingValues] = React.useState(false);
     const [lastSubmittedQuery, setLastSubmittedQuery] = React.useState("");
+    const [queryText, setQueryText] = React.useState("");
     const [annotationValuesByName, setAnnotationValuesByName] = React.useState<
         Record<string, AnnotationValue[]>
     >({});
@@ -78,6 +80,7 @@ export default function NaturalLanguageQuery(props: Props) {
         setAnnotationValuesByName({});
         setResolvedAnnotationsByPhrase({});
         setPendingAmbiguity(undefined);
+        setQueryText("");
         setStatus("");
         setIsError(false);
         if (!props.disabled) {
@@ -140,6 +143,7 @@ export default function NaturalLanguageQuery(props: Props) {
             if (!trimmed) {
                 setStatus("");
                 setIsError(false);
+                setPendingAmbiguity(undefined);
                 return;
             }
 
@@ -221,20 +225,52 @@ export default function NaturalLanguageQuery(props: Props) {
                 Describe filters, grouping, or sorting in plain language. Shared annotation values
                 are recognized automatically.
             </p>
-            <SearchBox
-                defaultValue={undefined}
-                onReset={() => {
-                    setStatus("");
-                    setIsError(false);
-                }}
-                onSearch={onApply}
-                placeholder={
-                    isLoadingValues
-                        ? "Loading shared annotation values..."
-                        : "Example: group by cell line, donor plasmid and donor plasmid ACTB-mEGFP"
-                }
-                showSubmitButton
-            />
+            <div className={styles.inputRow}>
+                <TextField
+                    autoAdjustHeight
+                    className={classNames(styles.input, styles.multilineInput)}
+                    multiline
+                    onChange={(_event, value) => {
+                        setQueryText(value || "");
+                    }}
+                    onKeyDown={(event) => {
+                        if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                            event.preventDefault();
+                            void onApply(queryText);
+                        }
+                    }}
+                    placeholder={
+                        isLoadingValues
+                            ? "Loading shared annotation values..."
+                            : "Example: group by cell line, donor plasmid and donor plasmid ACTB-mEGFP"
+                    }
+                    resizable={false}
+                    value={queryText}
+                />
+            </div>
+            <div className={styles.buttonRow}>
+                <TertiaryButton
+                    className={styles.submitButton}
+                    title="Submit"
+                    onClick={() => void onApply(queryText)}
+                    iconName="ReturnKey"
+                />
+                <TertiaryButton
+                    className={styles.clearButton}
+                    title="Clear"
+                    onClick={() => {
+                        setQueryText("");
+                        setPendingAmbiguity(undefined);
+                        setResolvedAnnotationsByPhrase({});
+                        setStatus("");
+                        setIsError(false);
+                    }}
+                    iconName="Clear"
+                />
+            </div>
+            <p className={styles.shortcutHint}>
+                Press `Ctrl+Enter` or `Cmd+Enter` to submit a multi-line query.
+            </p>
             {!!status && (
                 <p className={classNames(styles.status, { [styles.error]: isError })}>{status}</p>
             )}
