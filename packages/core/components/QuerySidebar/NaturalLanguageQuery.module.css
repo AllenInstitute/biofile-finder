@@ -10,6 +10,20 @@
     gap: 8px;
 }
 
+.busyIndicator {
+    align-items: center;
+    color: var(--secondary-text-color);
+    display: flex;
+    font-size: var(--s-paragraph-size);
+    gap: 6px;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.busySpinner {
+    min-width: 16px;
+}
+
 .description {
     color: var(--secondary-text-color);
     flex: 1;

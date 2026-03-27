@@ -113,6 +113,12 @@ module.exports = ({ analyze, production } = {}) => ({
     },
     plugins: getPluginsByEnv(production, analyze),
     resolve: {
+        alias: {
+            "@aics/frontend-insights-plugin-amplitude-node$": require.resolve(
+                "@aics/frontend-insights-plugin-amplitude-node/lib/index.js"
+            ),
+            "@amplitude/node$": require.resolve("@amplitude/node/dist/src/index.js"),
+        },
         extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
         mainFields: ["module", "main"],
         symlinks: false,

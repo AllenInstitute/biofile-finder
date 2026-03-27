@@ -3,6 +3,7 @@ import * as React from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
 
 import { TertiaryButton } from "../Buttons";
+import LoadingIcon from "../Icons/LoadingIcon";
 import NaturalLanguageDisambiguationModal from "./NaturalLanguageDisambiguationModal";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import { parseNaturalLanguageQuery } from "./naturalLanguage";
@@ -22,9 +23,6 @@ export default function NaturalLanguageQuery(props: Props) {
     const availableAnnotationNames = useSelector(
         selection.selectors.getAvailableAnnotationsForHierarchy
     );
-    const currentFilters = useSelector(selection.selectors.getFileFilters);
-    const currentHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
-    const currentSort = useSelector(selection.selectors.getSortColumn);
 
     const [status, setStatus] = React.useState("");
     const [isError, setIsError] = React.useState(false);
@@ -98,36 +96,23 @@ export default function NaturalLanguageQuery(props: Props) {
     );
 
     const summarizeResult = React.useCallback(
-        (
-            touchedFilters: boolean,
-            nextFiltersCount: number,
-            touchedHierarchy: boolean,
-            hierarchy: string[],
-            touchedSort: boolean,
-            sortAnnotationName?: string
-        ) => {
+        (nextFiltersCount: number, hierarchy: string[], sortAnnotationName?: string) => {
             const parts: string[] = [];
-            if (touchedFilters) {
-                parts.push(
-                    nextFiltersCount
-                        ? `updated ${nextFiltersCount} filter${nextFiltersCount > 1 ? "s" : ""}`
-                        : "cleared filters"
-                );
-            }
-            if (touchedHierarchy) {
-                parts.push(
-                    hierarchy.length
-                        ? `grouped by ${hierarchy.map(describeAnnotation).join(", ")}`
-                        : "cleared grouping"
-                );
-            }
-            if (touchedSort) {
-                parts.push(
-                    sortAnnotationName
-                        ? `sorted by ${describeAnnotation(sortAnnotationName)}`
-                        : "cleared sort"
-                );
-            }
+            parts.push(
+                nextFiltersCount
+                    ? `updated ${nextFiltersCount} filter${nextFiltersCount > 1 ? "s" : ""}`
+                    : "cleared filters"
+            );
+            parts.push(
+                hierarchy.length
+                    ? `grouped by ${hierarchy.map(describeAnnotation).join(", ")}`
+                    : "cleared grouping"
+            );
+            parts.push(
+                sortAnnotationName
+                    ? `sorted by ${describeAnnotation(sortAnnotationName)}`
+                    : "cleared sort"
+            );
             return parts.join(", ");
         },
         [describeAnnotation]
@@ -271,28 +256,17 @@ export default function NaturalLanguageQuery(props: Props) {
                 setLastSubmittedQuery(trimmed);
                 setPendingAmbiguity(undefined);
                 batch(() => {
-                    if (parsed.touchedFilters) {
-                        dispatch(selection.actions.setFileFilters(parsed.filters));
-                    }
-                    if (parsed.touchedHierarchy) {
-                        dispatch(selection.actions.setAnnotationHierarchy(parsed.hierarchy));
-                    }
-                    if (parsed.touchedSort) {
-                        dispatch(selection.actions.setSortColumn(parsed.sortColumn));
-                    }
+                    dispatch(selection.actions.setFileFilters(parsed.filters));
+                    dispatch(selection.actions.setAnnotationHierarchy(parsed.hierarchy));
+                    dispatch(selection.actions.setSortColumn(parsed.sortColumn));
                 });
 
                 setIsError(false);
                 setStatus(
                     summarizeResult(
-                        parsed.touchedFilters,
-                        parsed.touchedFilters ? parsed.filters.length : currentFilters.length,
-                        parsed.touchedHierarchy,
-                        parsed.touchedHierarchy ? parsed.hierarchy : currentHierarchy,
-                        parsed.touchedSort,
-                        parsed.touchedSort
-                            ? parsed.sortColumn?.annotationName
-                            : currentSort?.annotationName
+                        parsed.filters.length,
+                        parsed.hierarchy,
+                        parsed.sortColumn?.annotationName
                     )
                 );
             } finally {
@@ -303,9 +277,6 @@ export default function NaturalLanguageQuery(props: Props) {
             annotationValuesByName,
             annotations,
             availableAnnotationNames,
-            currentFilters.length,
-            currentHierarchy,
-            currentSort?.annotationName,
             dispatch,
             loadAnnotationValues,
             props.disabled,
@@ -318,13 +289,25 @@ export default function NaturalLanguageQuery(props: Props) {
         return null;
     }
 
+    const isWorking = isBusy || isLoadingValues;
+
     return (
         <div className={styles.container}>
             <div className={styles.headerRow}>
-                <p className={styles.description}>
-                    Describe filters, grouping, or sorting in plain language. Shared annotation
-                    values are recognized automatically.
-                </p>
+                {!isCollapsed && (
+                    <p className={styles.description}>
+                        Describe filters, grouping, or sorting in plain language. Shared annotation
+                        values are recognized automatically.
+                    </p>
+                )}
+                {isWorking && (
+                    <div className={styles.busyIndicator}>
+                        <LoadingIcon className={styles.busySpinner} invertColor />
+                        <span>
+                            {isLoadingValues ? "Loading annotation values..." : "Thinking..."}
+                        </span>
+                    </div>
+                )}
                 <TertiaryButton
                     className={styles.collapseButton}
                     disabled={isBusy}
@@ -359,37 +342,40 @@ export default function NaturalLanguageQuery(props: Props) {
                                 : "Example: group by cell line, donor plasmid and donor plasmid ACTB-mEGFP"
                         }
                         rows={isCollapsed ? 1 : 2}
-                        disabled={isBusy}
                         value={queryText}
                     />
                 </div>
             </div>
-            <div className={styles.buttonRow}>
-                <TertiaryButton
-                    className={styles.submitButton}
-                    disabled={isBusy}
-                    title={isBusy ? "Working" : "Submit"}
-                    onClick={() => void onApply(queryText)}
-                    iconName={isBusy ? "Sync" : "ReturnKey"}
-                />
-                <TertiaryButton
-                    className={styles.clearButton}
-                    disabled={isBusy}
-                    title="Clear"
-                    onClick={() => {
-                        setQueryText("");
-                        setPendingAmbiguity(undefined);
-                        setResolvedAnnotationsByPhrase({});
-                        setStatus("");
-                        setIsError(false);
-                    }}
-                    iconName="Clear"
-                />
-            </div>
-            <p className={styles.shortcutHint}>
-                Press `Ctrl+Enter` or `Cmd+Enter` to submit a multi-line query.
-            </p>
-            {!!status && (
+            {!isCollapsed && (
+                <>
+                    <div className={styles.buttonRow}>
+                        <TertiaryButton
+                            className={styles.submitButton}
+                            disabled={isBusy}
+                            title={isBusy ? "Working" : "Submit"}
+                            onClick={() => void onApply(queryText)}
+                            iconName={isBusy ? "Sync" : "ReturnKey"}
+                        />
+                        <TertiaryButton
+                            className={styles.clearButton}
+                            disabled={isBusy}
+                            title="Clear"
+                            onClick={() => {
+                                setQueryText("");
+                                setPendingAmbiguity(undefined);
+                                setResolvedAnnotationsByPhrase({});
+                                setStatus("");
+                                setIsError(false);
+                            }}
+                            iconName="Clear"
+                        />
+                    </div>
+                    <p className={styles.shortcutHint}>
+                        Press `Ctrl+Enter` or `Cmd+Enter` to submit a multi-line query.
+                    </p>
+                </>
+            )}
+            {!!status && (!isCollapsed || isError) && (
                 <p className={classNames(styles.status, { [styles.error]: isError })}>{status}</p>
             )}
             {pendingAmbiguity && (
