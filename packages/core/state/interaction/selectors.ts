@@ -60,6 +60,7 @@ export const isGraphLoading = (state: State) => state.interaction.isGraphLoading
 export const isOnWeb = (state: State) => state.interaction.isOnWeb;
 export const isRemoteFileUploadServerAvailable = (state: State) =>
     state.interaction.isRemoteFileUploadServerAvailable;
+export const getOllamaAvailable = (state: State) => state.interaction.ollamaAvailable;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
@@ -286,3 +287,8 @@ export const getContextMenuKey = createSelector([getContextMenuPositionReference
 
     return JSON.stringify(target);
 });
+
+export const getOllamaService = createSelector(
+    [getPlatformDependentServices],
+    (services) => services.ollamaService
+);

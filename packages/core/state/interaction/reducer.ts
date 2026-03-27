@@ -41,6 +41,7 @@ import {
     SET_IS_GRAPH_LOADING,
     SET_IS_REMOTE_FILE_UPLOAD_SERVER_AVAILABLE,
     SetIsRemoteFileUploadServerAvailable,
+    SET_OLLAMA_AVAILABLE,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
@@ -77,6 +78,7 @@ export interface InteractionStateBranch {
     isGraphLoading: boolean;
     isOnWeb: boolean;
     isRemoteFileUploadServerAvailable?: boolean;
+    ollamaAvailable: boolean;
     graphRefreshKey?: string;
     platformDependentServices: PlatformDependentServices;
     extractMetadataPythonSnippet?: { setup: string; code: string };
@@ -110,6 +112,7 @@ export const initialState: InteractionStateBranch = {
     hasUsedApplicationBefore: false,
     isGraphLoading: false,
     isOnWeb: false,
+    ollamaAvailable: false,
     platformDependentServices: {
         applicationInfoService: new ApplicationInfoServiceNoop(),
         databaseService: new DatabaseServiceNoop(),
@@ -281,6 +284,10 @@ export default makeReducer<InteractionStateBranch>(
         ) => ({
             ...state,
             isRemoteFileUploadServerAvailable: action.payload.isRemoteFileServerAvailable,
+        }),
+        [SET_OLLAMA_AVAILABLE]: (state, action) => ({
+            ...state,
+            ollamaAvailable: action.payload,
         }),
     },
     initialState

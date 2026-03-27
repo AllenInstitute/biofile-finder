@@ -54,6 +54,8 @@ import {
     setColumns,
     EXPAND_ALL_FILE_FOLDERS,
     toggleNullValueGroups,
+    APPLY_NATURAL_LANGUAGE_QUERY,
+    ApplyNaturalLanguageQueryAction,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -873,6 +875,104 @@ const setDataSourceReloadErrorLogic = createLogic({
     type: [ADD_DATASOURCE_RELOAD_ERROR, REMOVE_DATASOURCE_RELOAD_ERROR],
 });
 
+/**
+ * Logic for processing a natural language query via Ollama.
+ * Gathers current annotations & filters, calls OllamaService, and dispatches
+ * the resulting filters and/or hierarchy changes.
+ */
+const applyNaturalLanguageQueryLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { action, getState } = deps;
+        const prompt = (action as ApplyNaturalLanguageQueryAction).payload;
+        const ollamaService = interaction.selectors.getOllamaService(getState());
+        if (!ollamaService) {
+            dispatch(
+                interaction.actions.processError("ollamaError", "Ollama service is not configured.")
+            );
+            done();
+            return;
+        }
+
+        const annotations = metadata.selectors.getAnnotations(getState());
+        const currentFilters = selectionSelectors.getFileFilters(getState());
+        const annotationService = interaction.selectors.getAnnotationService(getState());
+
+        // Fetch sample values for non-numeric/non-date annotations to give the LLM context
+        // about what values are available (e.g., Kind: ["OME-ZARR", "TIFF", ...])
+        const sampleValuesByName: Record<string, (string | number | boolean)[]> = {};
+        const fetchableAnnotations = annotations.filter(
+            (a: Annotation) => a.type === "Text" || a.type === "Dropdown" || a.type === "YesNo"
+        );
+        try {
+            const results = await Promise.allSettled(
+                fetchableAnnotations.map(async (a: Annotation) => {
+                    const values = await annotationService.fetchValues(a.name);
+                    // Cap at 50 unique sample values to keep the prompt manageable
+                    sampleValuesByName[a.name] = values
+                        .slice(0, 50)
+                        .map((v) => (v instanceof Date ? v.toISOString() : v)) as (
+                        | string
+                        | number
+                        | boolean
+                    )[];
+                })
+            );
+        } catch {
+            // Non-fatal: proceed without sample values
+        }
+
+        const annotationContexts = annotations.map((a: Annotation) => ({
+            name: a.name,
+            displayName: a.displayName,
+            description: a.description,
+            type: a.type as string,
+            sampleValues: sampleValuesByName[a.name],
+        }));
+
+        const currentFilterContext = currentFilters.map((f: FileFilter) => ({
+            name: f.name,
+            value: String(f.value),
+            type: f.type,
+        }));
+
+        try {
+            const result = await ollamaService.generateFilterQuery(
+                prompt,
+                annotationContexts,
+                currentFilterContext
+            );
+
+            batch(() => {
+                if (result.clear) {
+                    dispatch(setFileFilters([]));
+                    dispatch(setAnnotationHierarchy([]));
+                    dispatch(setSortColumn(undefined));
+                } else {
+                    if (result.filters.length > 0) {
+                        const newFilters = result.filters.map(
+                            (f) => new FileFilter(f.name, f.value, f.type)
+                        );
+                        dispatch(setFileFilters(newFilters));
+                    }
+                    if (result.hierarchy.length > 0) {
+                        dispatch(setAnnotationHierarchy(result.hierarchy));
+                    }
+                }
+            });
+        } catch (err: any) {
+            dispatch(
+                interaction.actions.processError(
+                    "ollamaError",
+                    `Failed to process natural language query: ${err.message || err}`
+                )
+            );
+        }
+
+        done();
+    },
+    type: APPLY_NATURAL_LANGUAGE_QUERY,
+});
+
 export default [
     selectFile,
     modifyAnnotationHierarchy,
@@ -890,4 +990,5 @@ export default [
     setDataSourceReloadErrorLogic,
     changeQueryLogic,
     removeQueryLogic,
+    applyNaturalLanguageQueryLogic,
 ];

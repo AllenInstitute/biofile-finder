@@ -983,3 +983,22 @@ export function setIsGraphLoading(isGraphLoading: boolean): SetIsGraphLoading {
         type: SET_IS_GRAPH_LOADING,
     };
 }
+
+/**
+ * SET_OLLAMA_AVAILABLE
+ *
+ * Intention to record whether a local Ollama instance is reachable.
+ */
+export const SET_OLLAMA_AVAILABLE = makeConstant(STATE_BRANCH_NAME, "set-ollama-available");
+
+export interface SetOllamaAvailableAction {
+    type: string;
+    payload: boolean;
+}
+
+export function setOllamaAvailable(available: boolean): SetOllamaAvailableAction {
+    return {
+        payload: available,
+        type: SET_OLLAMA_AVAILABLE,
+    };
+}

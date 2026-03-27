@@ -11,6 +11,14 @@ module.exports = ({ analyze, production } = {}) => ({
         host: devServer.host,
         port: devServer.port,
         historyApiFallback: true,
+        proxy: [
+            {
+                context: ["/ollama"],
+                target: "http://localhost:11434",
+                pathRewrite: { "^/ollama": "" },
+                changeOrigin: true,
+            },
+        ],
     },
     entry: {
         app: "./src/index.tsx",

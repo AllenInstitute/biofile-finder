@@ -5,6 +5,7 @@ import ExecutionEnvService from "./ExecutionEnvService";
 import FileDownloadService from "./FileDownloadService";
 import FileViewerService from "./FileViewerService";
 import NotificationService from "./NotificationService";
+import OllamaService from "./OllamaService";
 
 export { default as AnnotationService } from "./AnnotationService";
 export type { default as ApplicationInfoService } from "./ApplicationInfoService";
@@ -21,6 +22,7 @@ export type { default as FileViewerService } from "./FileViewerService";
 export { FileViewerCancellationToken } from "./FileViewerService";
 export { default as HttpServiceBase } from "./HttpServiceBase";
 export type { default as NotificationService } from "./NotificationService";
+export type { default as OllamaService } from "./OllamaService";
 export type {
     default as PersistentConfigService,
     PersistedConfig,
@@ -36,4 +38,5 @@ export interface PlatformDependentServices {
     frontendInsights: FrontendInsights;
     executionEnvService: ExecutionEnvService;
     notificationService: NotificationService;
+    ollamaService?: OllamaService;
 }

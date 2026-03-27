@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import QueryFooter from "./QueryFooter";
 import { TertiaryButton, TransparentIconButton } from "../Buttons";
 import LoadingIcon from "../Icons/LoadingIcon";
+import NaturalLanguagePrompt from "../NaturalLanguagePrompt";
 import QueryDataSource from "../QueryPart/QueryDataSource";
 import QueryFilter from "../QueryPart/QueryFilter";
 import QueryGroup from "../QueryPart/QueryGroup";
@@ -227,6 +228,7 @@ export default function Query(props: QueryProps) {
             <QueryGroup disabled={!hasDataSource} groups={queryComponents.hierarchy} />
             <QueryFilter disabled={!hasDataSource} filters={queryComponents.filters} />
             <QuerySort disabled={!hasDataSource} sort={queryComponents.sortColumn} />
+            <NaturalLanguagePrompt disabled={!hasDataSource} />
             <QueryFooter
                 isDeletable={queries.length > 1}
                 onQueryDelete={onQueryDelete}

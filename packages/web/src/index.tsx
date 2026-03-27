@@ -12,6 +12,8 @@ import DatabaseServiceWeb from "./services/DatabaseServiceWeb";
 import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
 import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
+import HttpOllamaService from "../../core/services/OllamaService/HttpOllamaService";
+import { interaction } from "../../core/state";
 import ErrorPage from "./components/ErrorPage";
 import Learn from "./components/Learn";
 import Home from "./components/Home";
@@ -61,6 +63,8 @@ async function asyncRender() {
     const databaseService = new DatabaseServiceWeb();
     await databaseService.initialize();
 
+    const ollamaService = new HttpOllamaService();
+
     // Memoized to make sure the object that collects these services doesn't
     // unnecessarily change with regard to referential equality between re-renders of the application
     const collectPlatformDependentServices = memoize(() => ({
@@ -70,11 +74,18 @@ async function asyncRender() {
         applicationInfoService: new ApplicationInfoServiceWeb(),
         fileViewerService: new FileViewerServiceWeb(),
         fileDownloadService: new FileDownloadServiceWeb(new S3StorageService()),
+        ollamaService,
     }));
     const store = createReduxStore({
         isOnWeb: true,
         platformDependentServices: collectPlatformDependentServices(),
     });
+
+    // Check Ollama availability asynchronously (non-blocking)
+    ollamaService.isAvailable().then((available) => {
+        store.dispatch(interaction.actions.setOllamaAvailable(available));
+    });
+
     render(
         <Provider store={store}>
             <RouterProvider router={router} />

@@ -825,3 +825,26 @@ export function removeDataSourceReloadError(): RemoveDataSourceReloadError {
         type: REMOVE_DATASOURCE_RELOAD_ERROR,
     };
 }
+
+/**
+ * APPLY_NATURAL_LANGUAGE_QUERY
+ *
+ * Intention to send a natural language prompt to Ollama and apply the resulting
+ * filters and grouping to the current query.
+ */
+export const APPLY_NATURAL_LANGUAGE_QUERY = makeConstant(
+    STATE_BRANCH_NAME,
+    "apply-natural-language-query"
+);
+
+export interface ApplyNaturalLanguageQueryAction {
+    type: string;
+    payload: string; // the natural language prompt
+}
+
+export function applyNaturalLanguageQuery(prompt: string): ApplyNaturalLanguageQueryAction {
+    return {
+        payload: prompt,
+        type: APPLY_NATURAL_LANGUAGE_QUERY,
+    };
+}
