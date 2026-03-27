@@ -1,0 +1,23 @@
+.container {
+    border-top: 1px solid var(--border-color);
+    margin: 12px 0 4px;
+    padding-top: 12px;
+}
+
+.description {
+    color: var(--secondary-text-color);
+    font-size: var(--s-paragraph-size);
+    line-height: 1.4;
+    margin: 0 0 8px;
+}
+
+.status {
+    color: var(--secondary-text-color);
+    font-size: var(--s-paragraph-size);
+    line-height: 1.4;
+    margin: 8px 0 0;
+}
+
+.error {
+    color: var(--warning-color);
+}

@@ -135,6 +135,31 @@ describe("<Query />", () => {
         expect(() => getByTestId("query-spinner")).to.throw();
     });
 
+    it("renders the natural language query helper when a data source is available", () => {
+        const { store } = configureMockStore({
+            state: initialState,
+        });
+
+        const { getByText } = render(
+            <Provider store={store}>
+                <Query
+                    isSelected
+                    query={{
+                        name: "Test Random Query",
+                        parts: {
+                            filters: [],
+                            hierarchy: [],
+                            sources: [{ name: "Test Source" }],
+                            openFolders: [],
+                        },
+                    }}
+                />
+            </Provider>
+        );
+
+        expect(getByText(/Describe filters, grouping, or sorting in plain language/i)).to.exist;
+    });
+
     it("renders spinner when loading an external source", () => {
         // Arrange
         const { store } = configureMockStore({

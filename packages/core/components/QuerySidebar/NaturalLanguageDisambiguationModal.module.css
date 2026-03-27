@@ -1,0 +1,22 @@
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.description {
+    line-height: 1.5;
+    margin: 0;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.option {
+    justify-content: flex-start;
+    text-align: left;
+    width: 100%;
+}

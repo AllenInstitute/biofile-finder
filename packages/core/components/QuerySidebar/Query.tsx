@@ -4,6 +4,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import QueryFooter from "./QueryFooter";
+import NaturalLanguageQuery from "./NaturalLanguageQuery";
 import { TertiaryButton, TransparentIconButton } from "../Buttons";
 import LoadingIcon from "../Icons/LoadingIcon";
 import QueryDataSource from "../QueryPart/QueryDataSource";
@@ -224,6 +225,7 @@ export default function Query(props: QueryProps) {
                 sourceMetadata={queryComponents.sourceMetadata}
                 sourceProvenance={queryComponents.prov}
             />
+            <NaturalLanguageQuery disabled={!hasDataSource} />
             <QueryGroup disabled={!hasDataSource} groups={queryComponents.hierarchy} />
             <QueryFilter disabled={!hasDataSource} filters={queryComponents.filters} />
             <QuerySort disabled={!hasDataSource} sort={queryComponents.sortColumn} />

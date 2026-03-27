@@ -1,0 +1,259 @@
+import classNames from "classnames";
+import * as React from "react";
+import { batch, useDispatch, useSelector } from "react-redux";
+
+import SearchBox from "../SearchBox";
+import NaturalLanguageDisambiguationModal from "./NaturalLanguageDisambiguationModal";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
+import { parseNaturalLanguageQuery } from "./naturalLanguage";
+import { AnnotationValue } from "../../services/AnnotationService";
+import { interaction, metadata, selection } from "../../state";
+
+import styles from "./NaturalLanguageQuery.module.css";
+
+interface Props {
+    disabled?: boolean;
+}
+
+export default function NaturalLanguageQuery(props: Props) {
+    const dispatch = useDispatch();
+    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const annotationService = useSelector(interaction.selectors.getAnnotationService);
+    const availableAnnotationNames = useSelector(
+        selection.selectors.getAvailableAnnotationsForHierarchy
+    );
+    const currentFilters = useSelector(selection.selectors.getFileFilters);
+    const currentHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
+    const currentSort = useSelector(selection.selectors.getSortColumn);
+
+    const [status, setStatus] = React.useState("");
+    const [isError, setIsError] = React.useState(false);
+    const [isLoadingValues, setIsLoadingValues] = React.useState(false);
+    const [lastSubmittedQuery, setLastSubmittedQuery] = React.useState("");
+    const [annotationValuesByName, setAnnotationValuesByName] = React.useState<
+        Record<string, AnnotationValue[]>
+    >({});
+    const [resolvedAnnotationsByPhrase, setResolvedAnnotationsByPhrase] = React.useState<
+        Record<string, string>
+    >({});
+    const [pendingAmbiguity, setPendingAmbiguity] = React.useState<
+        ReturnType<typeof parseNaturalLanguageQuery>["ambiguities"][number] | undefined
+    >();
+
+    const loadAnnotationValues = React.useCallback(async () => {
+        const annotationsToLoad = annotations.filter(
+            (annotation) => !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name)
+        );
+        if (!annotationsToLoad.length) {
+            return {};
+        }
+
+        setIsLoadingValues(true);
+        try {
+            const responses = await Promise.allSettled(
+                annotationsToLoad.map(async (annotation) => ({
+                    annotationName: annotation.name,
+                    values: await annotationService.fetchValues(annotation.name),
+                }))
+            );
+
+            const nextValues = responses.reduce(
+                (map, response) =>
+                    response.status === "fulfilled"
+                        ? {
+                              ...map,
+                              [response.value.annotationName]: response.value.values,
+                          }
+                        : map,
+                {} as Record<string, AnnotationValue[]>
+            );
+            setAnnotationValuesByName(nextValues);
+            return nextValues;
+        } finally {
+            setIsLoadingValues(false);
+        }
+    }, [annotationService, annotations]);
+
+    React.useEffect(() => {
+        setAnnotationValuesByName({});
+        setResolvedAnnotationsByPhrase({});
+        setPendingAmbiguity(undefined);
+        setStatus("");
+        setIsError(false);
+        if (!props.disabled) {
+            void loadAnnotationValues();
+        }
+    }, [loadAnnotationValues, props.disabled]);
+
+    const describeAnnotation = React.useCallback(
+        (annotationName: string) =>
+            annotations.find((annotation) => annotation.name === annotationName)?.displayName ||
+            annotationName,
+        [annotations]
+    );
+
+    const summarizeResult = React.useCallback(
+        (
+            touchedFilters: boolean,
+            nextFiltersCount: number,
+            touchedHierarchy: boolean,
+            hierarchy: string[],
+            touchedSort: boolean,
+            sortAnnotationName?: string
+        ) => {
+            const parts: string[] = [];
+            if (touchedFilters) {
+                parts.push(
+                    nextFiltersCount
+                        ? `updated ${nextFiltersCount} filter${nextFiltersCount > 1 ? "s" : ""}`
+                        : "cleared filters"
+                );
+            }
+            if (touchedHierarchy) {
+                parts.push(
+                    hierarchy.length
+                        ? `grouped by ${hierarchy.map(describeAnnotation).join(", ")}`
+                        : "cleared grouping"
+                );
+            }
+            if (touchedSort) {
+                parts.push(
+                    sortAnnotationName
+                        ? `sorted by ${describeAnnotation(sortAnnotationName)}`
+                        : "cleared sort"
+                );
+            }
+            return parts.join(", ");
+        },
+        [describeAnnotation]
+    );
+
+    const onApply = React.useCallback(
+        async (
+            input: string,
+            phraseOverrides: Record<string, string> = resolvedAnnotationsByPhrase
+        ) => {
+            if (props.disabled) {
+                return;
+            }
+            const trimmed = input.trim();
+            if (!trimmed) {
+                setStatus("");
+                setIsError(false);
+                return;
+            }
+
+            const valueMap =
+                Object.keys(annotationValuesByName).length > 0
+                    ? annotationValuesByName
+                    : await loadAnnotationValues();
+            const parsed = parseNaturalLanguageQuery(trimmed, {
+                annotations,
+                annotationValuesByName: valueMap,
+                availableAnnotationNames,
+                resolvedAnnotationsByPhrase: phraseOverrides,
+            });
+
+            if (parsed.ambiguities.length) {
+                setLastSubmittedQuery(trimmed);
+                setPendingAmbiguity(parsed.ambiguities[0]);
+                setIsError(false);
+                setStatus("");
+                return;
+            }
+
+            if (!parsed.touchedFilters && !parsed.touchedHierarchy && !parsed.touchedSort) {
+                setIsError(true);
+                setStatus("No grouping, filter, or sort instructions were recognized.");
+                return;
+            }
+
+            setLastSubmittedQuery(trimmed);
+            setPendingAmbiguity(undefined);
+            batch(() => {
+                if (parsed.touchedFilters) {
+                    dispatch(selection.actions.setFileFilters(parsed.filters));
+                }
+                if (parsed.touchedHierarchy) {
+                    dispatch(selection.actions.setAnnotationHierarchy(parsed.hierarchy));
+                }
+                if (parsed.touchedSort) {
+                    dispatch(selection.actions.setSortColumn(parsed.sortColumn));
+                }
+            });
+
+            setIsError(false);
+            setStatus(
+                summarizeResult(
+                    parsed.touchedFilters,
+                    parsed.touchedFilters ? parsed.filters.length : currentFilters.length,
+                    parsed.touchedHierarchy,
+                    parsed.touchedHierarchy ? parsed.hierarchy : currentHierarchy,
+                    parsed.touchedSort,
+                    parsed.touchedSort
+                        ? parsed.sortColumn?.annotationName
+                        : currentSort?.annotationName
+                )
+            );
+        },
+        [
+            annotationValuesByName,
+            annotations,
+            availableAnnotationNames,
+            currentFilters.length,
+            currentHierarchy,
+            currentSort?.annotationName,
+            dispatch,
+            loadAnnotationValues,
+            props.disabled,
+            resolvedAnnotationsByPhrase,
+            summarizeResult,
+        ]
+    );
+
+    if (props.disabled) {
+        return null;
+    }
+
+    return (
+        <div className={styles.container}>
+            <p className={styles.description}>
+                Describe filters, grouping, or sorting in plain language. Shared annotation values
+                are recognized automatically.
+            </p>
+            <SearchBox
+                defaultValue={undefined}
+                onReset={() => {
+                    setStatus("");
+                    setIsError(false);
+                }}
+                onSearch={onApply}
+                placeholder={
+                    isLoadingValues
+                        ? "Loading shared annotation values..."
+                        : "Example: group by cell line, donor plasmid and donor plasmid ACTB-mEGFP"
+                }
+                showSubmitButton
+            />
+            {!!status && (
+                <p className={classNames(styles.status, { [styles.error]: isError })}>{status}</p>
+            )}
+            {pendingAmbiguity && (
+                <NaturalLanguageDisambiguationModal
+                    matches={pendingAmbiguity.matches}
+                    phrase={pendingAmbiguity.phrase}
+                    onCancel={() => setPendingAmbiguity(undefined)}
+                    onSelect={(annotation) => {
+                        const nextOverrides = {
+                            ...resolvedAnnotationsByPhrase,
+                            [pendingAmbiguity.phrase]: annotation.name,
+                        };
+                        setResolvedAnnotationsByPhrase(nextOverrides);
+                        setPendingAmbiguity(undefined);
+                        void onApply(lastSubmittedQuery, nextOverrides);
+                    }}
+                />
+            )}
+        </div>
+    );
+}
