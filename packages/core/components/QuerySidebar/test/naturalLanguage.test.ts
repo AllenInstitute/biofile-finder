@@ -32,6 +32,18 @@ describe("parseNaturalLanguageQuery", () => {
             description: "",
             type: AnnotationType.STRING,
         }),
+        new Annotation({
+            annotationDisplayName: "Uploaded By",
+            annotationName: "uploadedby",
+            description: "",
+            type: AnnotationType.STRING,
+        }),
+        new Annotation({
+            annotationDisplayName: "MXS Processing",
+            annotationName: "mxs_processing",
+            description: "",
+            type: AnnotationType.STRING,
+        }),
     ];
 
     it("parses explicit grouping, filtering, and sorting instructions", () => {
@@ -144,5 +156,32 @@ describe("parseNaturalLanguageQuery", () => {
         expect(result.filters[0].value).to.match(/^RANGE\(2026-01-01T00:00:00.000Z,[\d\-:T.]+Z\)$/);
         expect(result.touchedHierarchy).to.equal(true);
         expect(result.hierarchy).to.deep.equal(["cell_type_classification"]);
+    });
+
+    it("parses relative date, group, filter, and sort instructions in one sentence", () => {
+        const result = parseNaturalLanguageQuery(
+            "files uploaded in the last 12 months, grouped by uploadedby and mxs processing failed sorted by uploadedby",
+            {
+                annotations,
+                annotationValuesByName: {
+                    mxs_processing: ["failed", "passed"],
+                },
+            }
+        );
+
+        expect(result.touchedFilters).to.equal(true);
+        expect(result.filters).to.have.length(2);
+        expect(result.filters.some((filter) => filter.name === "uploaded")).to.equal(true);
+        expect(result.filters.find((filter) => filter.name === "uploaded")?.value).to.match(
+            /^RANGE\([\d\-:T.]+Z,[\d\-:T.]+Z\)$/
+        );
+        expect(result.filters.some((filter) => filter.name === "mxs_processing")).to.equal(true);
+        expect(result.filters.find((filter) => filter.name === "mxs_processing")?.value).to.equal(
+            "failed"
+        );
+        expect(result.touchedHierarchy).to.equal(true);
+        expect(result.hierarchy).to.deep.equal(["uploadedby"]);
+        expect(result.touchedSort).to.equal(true);
+        expect(result.sortColumn?.equals(new FileSort("uploadedby", SortOrder.ASC))).to.equal(true);
     });
 });

@@ -28,6 +28,8 @@ export default function NaturalLanguageQuery(props: Props) {
 
     const [status, setStatus] = React.useState("");
     const [isError, setIsError] = React.useState(false);
+    const [isBusy, setIsBusy] = React.useState(false);
+    const [isCollapsed, setIsCollapsed] = React.useState(false);
     const [isLoadingValues, setIsLoadingValues] = React.useState(false);
     const [lastSubmittedQuery, setLastSubmittedQuery] = React.useState("");
     const [queryText, setQueryText] = React.useState("");
@@ -83,10 +85,10 @@ export default function NaturalLanguageQuery(props: Props) {
         setQueryText("");
         setStatus("");
         setIsError(false);
-        if (!props.disabled) {
-            void loadAnnotationValues();
-        }
-    }, [loadAnnotationValues, props.disabled]);
+        setIsBusy(false);
+        setIsCollapsed(false);
+        setIsLoadingValues(false);
+    }, [annotations, props.disabled]);
 
     const describeAnnotation = React.useCallback(
         (annotationName: string) =>
@@ -217,8 +219,9 @@ export default function NaturalLanguageQuery(props: Props) {
         }
 
         textarea.style.height = "auto";
-        textarea.style.height = `${Math.min(textarea.scrollHeight, 220)}px`;
-    }, [queryText]);
+        const maxHeight = isCollapsed ? 44 : 220;
+        textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
+    }, [isCollapsed, queryText]);
 
     const onApply = React.useCallback(
         async (
@@ -236,58 +239,65 @@ export default function NaturalLanguageQuery(props: Props) {
                 return;
             }
 
-            const valueMap =
-                Object.keys(annotationValuesByName).length > 0
-                    ? annotationValuesByName
-                    : await loadAnnotationValues();
-            const parsed = parseNaturalLanguageQuery(trimmed, {
-                annotations,
-                annotationValuesByName: valueMap,
-                availableAnnotationNames,
-                resolvedAnnotationsByPhrase: phraseOverrides,
-            });
-
-            if (parsed.ambiguities.length) {
-                setLastSubmittedQuery(trimmed);
-                setPendingAmbiguity(parsed.ambiguities[0]);
-                setIsError(false);
-                setStatus("");
-                return;
-            }
-
-            if (!parsed.touchedFilters && !parsed.touchedHierarchy && !parsed.touchedSort) {
-                setIsError(true);
-                setStatus("No grouping, filter, or sort instructions were recognized.");
-                return;
-            }
-
-            setLastSubmittedQuery(trimmed);
-            setPendingAmbiguity(undefined);
-            batch(() => {
-                if (parsed.touchedFilters) {
-                    dispatch(selection.actions.setFileFilters(parsed.filters));
-                }
-                if (parsed.touchedHierarchy) {
-                    dispatch(selection.actions.setAnnotationHierarchy(parsed.hierarchy));
-                }
-                if (parsed.touchedSort) {
-                    dispatch(selection.actions.setSortColumn(parsed.sortColumn));
-                }
-            });
-
+            setIsBusy(true);
+            setStatus("Thinking...");
             setIsError(false);
-            setStatus(
-                summarizeResult(
-                    parsed.touchedFilters,
-                    parsed.touchedFilters ? parsed.filters.length : currentFilters.length,
-                    parsed.touchedHierarchy,
-                    parsed.touchedHierarchy ? parsed.hierarchy : currentHierarchy,
-                    parsed.touchedSort,
-                    parsed.touchedSort
-                        ? parsed.sortColumn?.annotationName
-                        : currentSort?.annotationName
-                )
-            );
+            try {
+                const valueMap =
+                    Object.keys(annotationValuesByName).length > 0
+                        ? annotationValuesByName
+                        : await loadAnnotationValues();
+                const parsed = parseNaturalLanguageQuery(trimmed, {
+                    annotations,
+                    annotationValuesByName: valueMap,
+                    availableAnnotationNames,
+                    resolvedAnnotationsByPhrase: phraseOverrides,
+                });
+
+                if (parsed.ambiguities.length) {
+                    setLastSubmittedQuery(trimmed);
+                    setPendingAmbiguity(parsed.ambiguities[0]);
+                    setIsError(false);
+                    setStatus("");
+                    return;
+                }
+
+                if (!parsed.touchedFilters && !parsed.touchedHierarchy && !parsed.touchedSort) {
+                    setIsError(true);
+                    setStatus("No grouping, filter, or sort instructions were recognized.");
+                    return;
+                }
+
+                setLastSubmittedQuery(trimmed);
+                setPendingAmbiguity(undefined);
+                batch(() => {
+                    if (parsed.touchedFilters) {
+                        dispatch(selection.actions.setFileFilters(parsed.filters));
+                    }
+                    if (parsed.touchedHierarchy) {
+                        dispatch(selection.actions.setAnnotationHierarchy(parsed.hierarchy));
+                    }
+                    if (parsed.touchedSort) {
+                        dispatch(selection.actions.setSortColumn(parsed.sortColumn));
+                    }
+                });
+
+                setIsError(false);
+                setStatus(
+                    summarizeResult(
+                        parsed.touchedFilters,
+                        parsed.touchedFilters ? parsed.filters.length : currentFilters.length,
+                        parsed.touchedHierarchy,
+                        parsed.touchedHierarchy ? parsed.hierarchy : currentHierarchy,
+                        parsed.touchedSort,
+                        parsed.touchedSort
+                            ? parsed.sortColumn?.annotationName
+                            : currentSort?.annotationName
+                    )
+                );
+            } finally {
+                setIsBusy(false);
+            }
         },
         [
             annotationValuesByName,
@@ -310,19 +320,30 @@ export default function NaturalLanguageQuery(props: Props) {
 
     return (
         <div className={styles.container}>
-            <p className={styles.description}>
-                Describe filters, grouping, or sorting in plain language. Shared annotation values
-                are recognized automatically.
-            </p>
+            <div className={styles.headerRow}>
+                <p className={styles.description}>
+                    Describe filters, grouping, or sorting in plain language. Shared annotation
+                    values are recognized automatically.
+                </p>
+                <TertiaryButton
+                    className={styles.collapseButton}
+                    disabled={isBusy}
+                    iconName={isCollapsed ? "ChevronDown" : "ChevronUp"}
+                    onClick={() => setIsCollapsed((current) => !current)}
+                    title={isCollapsed ? "Expand query area" : "Collapse query area"}
+                />
+            </div>
             <div className={styles.inputRow}>
-                <div className={styles.input}>
+                <div className={classNames(styles.input, { [styles.collapsedInput]: isCollapsed })}>
                     <div aria-hidden className={styles.highlightLayer}>
                         {highlightedMarkup}
                         {"\n"}
                     </div>
                     <textarea
                         ref={textareaRef}
-                        className={classNames(styles.multilineInput)}
+                        className={classNames(styles.multilineInput, {
+                            [styles.collapsedTextarea]: isCollapsed,
+                        })}
                         onChange={(event) => {
                             setQueryText(event.target.value || "");
                         }}
@@ -337,7 +358,8 @@ export default function NaturalLanguageQuery(props: Props) {
                                 ? "Loading shared annotation values..."
                                 : "Example: group by cell line, donor plasmid and donor plasmid ACTB-mEGFP"
                         }
-                        rows={2}
+                        rows={isCollapsed ? 1 : 2}
+                        disabled={isBusy}
                         value={queryText}
                     />
                 </div>
@@ -345,12 +367,14 @@ export default function NaturalLanguageQuery(props: Props) {
             <div className={styles.buttonRow}>
                 <TertiaryButton
                     className={styles.submitButton}
-                    title="Submit"
+                    disabled={isBusy}
+                    title={isBusy ? "Working" : "Submit"}
                     onClick={() => void onApply(queryText)}
-                    iconName="ReturnKey"
+                    iconName={isBusy ? "Sync" : "ReturnKey"}
                 />
                 <TertiaryButton
                     className={styles.clearButton}
+                    disabled={isBusy}
                     title="Clear"
                     onClick={() => {
                         setQueryText("");

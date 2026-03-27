@@ -4,11 +4,22 @@
     padding-top: 12px;
 }
 
+.headerRow {
+    align-items: flex-start;
+    display: flex;
+    gap: 8px;
+}
+
 .description {
     color: var(--secondary-text-color);
+    flex: 1;
     font-size: var(--s-paragraph-size);
     line-height: 1.4;
     margin: 0 0 8px;
+}
+
+.collapseButton {
+    min-width: 32px;
 }
 
 .inputRow {
@@ -40,6 +51,10 @@
     border-radius: 2px;
 }
 
+.collapsedInput {
+    min-height: 44px;
+}
+
 .highlightLayer {
     color: var(--secondary-text-color);
     inset: 0;
@@ -64,9 +79,22 @@
     z-index: 1;
 }
 
+.collapsedTextarea {
+    max-height: 44px;
+    overflow: hidden;
+}
+
 .submitButton,
 .clearButton {
     min-width: 36px;
+}
+
+.submitButton[disabled] {
+    opacity: 1;
+}
+
+.submitButton[disabled] :global(i[data-icon-name="Sync"]) {
+    animation: natural-language-spin 1s linear infinite;
 }
 
 .multilineInput::placeholder {
@@ -98,4 +126,14 @@
 
 .error {
     color: var(--warning-color);
+}
+
+@keyframes natural-language-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }

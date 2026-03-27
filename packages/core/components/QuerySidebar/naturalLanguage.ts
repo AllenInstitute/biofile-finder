@@ -97,9 +97,7 @@ function getMatchingAnnotations(
     }
 
     const partialMatches = aliases.filter(({ aliases: annotationAliases }) =>
-        annotationAliases.some(
-            (alias) => alias.includes(normalizedCandidate) || normalizedCandidate.includes(alias)
-        )
+        annotationAliases.some((alias) => alias.includes(normalizedCandidate))
     );
 
     const mappedPartialMatches = partialMatches.map(({ annotation }) => annotation);
@@ -208,6 +206,41 @@ function formatDateRangeValue(
     }
 
     return `RANGE(${startOfInputDate.toISOString()},${startOfTomorrow.toISOString()})`;
+}
+
+function formatRelativeDateRangeValue(
+    annotation: Annotation,
+    amount: number,
+    unit: "day" | "days" | "week" | "weeks" | "month" | "months" | "year" | "years"
+) {
+    if (!isDateLikeAnnotation(annotation) || !Number.isFinite(amount) || amount <= 0) {
+        return undefined;
+    }
+
+    const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+    const startDate = new Date(endDate);
+
+    switch (unit) {
+        case "day":
+        case "days":
+            startDate.setDate(startDate.getDate() - amount);
+            break;
+        case "week":
+        case "weeks":
+            startDate.setDate(startDate.getDate() - amount * 7);
+            break;
+        case "month":
+        case "months":
+            startDate.setMonth(startDate.getMonth() - amount);
+            break;
+        case "year":
+        case "years":
+            startDate.setFullYear(startDate.getFullYear() - amount);
+            break;
+    }
+
+    return `RANGE(${startDate.toISOString()},${endDate.toISOString()})`;
 }
 
 function parseGroupClause(
@@ -357,6 +390,27 @@ function parseConditionChunk(
         return rangeValue ? [new FileFilter(annotation.name, rangeValue)] : [];
     };
 
+    const buildRelativeRangeFilter = (
+        annotationCandidate: string,
+        amount: number,
+        unit: "day" | "days" | "week" | "weeks" | "month" | "months" | "year" | "years"
+    ) => {
+        const annotation = resolveAnnotation(
+            annotationCandidate,
+            annotationAliases,
+            ambiguities,
+            resolvedAnnotationsByPhrase,
+            availableAnnotationNames,
+            recognizedAnnotations
+        );
+        if (!annotation) {
+            return [];
+        }
+
+        const rangeValue = formatRelativeDateRangeValue(annotation, amount, unit);
+        return rangeValue ? [new FileFilter(annotation.name, rangeValue)] : [];
+    };
+
     const excludeLeading = normalizedChunk.match(/^(?:no value for|without|missing) (.+)$/);
     if (excludeLeading?.[1]) {
         const annotation = resolveAnnotation(
@@ -420,6 +474,25 @@ function parseConditionChunk(
             sinceMatch[1],
             sinceMatch[2] as "since" | "after" | "before",
             sinceMatch[3]
+        );
+    }
+
+    const relativeDateMatch = normalizedChunk.match(
+        /^(.+) in the last (\d+) (day|days|week|weeks|month|months|year|years)$/
+    );
+    if (relativeDateMatch?.[1] && relativeDateMatch?.[2] && relativeDateMatch?.[3]) {
+        return buildRelativeRangeFilter(
+            relativeDateMatch[1],
+            Number(relativeDateMatch[2]),
+            relativeDateMatch[3] as
+                | "day"
+                | "days"
+                | "week"
+                | "weeks"
+                | "month"
+                | "months"
+                | "year"
+                | "years"
         );
     }
 
