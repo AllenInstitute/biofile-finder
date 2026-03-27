@@ -255,3 +255,80 @@
 .settingsButton:hover {
     opacity: 1;
 }
+
+.activeFiltersBar {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--secondary-background-color);
+    flex-shrink: 0;
+    max-height: 80px;
+    overflow-y: auto;
+}
+
+.activeFiltersHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.activeFiltersLabel {
+    font-size: 11px;
+    color: var(--primary-text-color);
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.clearAllButton {
+    background: none;
+    border: none;
+    color: var(--aqua);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.clearAllButton:hover {
+    opacity: 0.8;
+}
+
+.activeFilterChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.activeFilterChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background-color: rgba(11, 154, 171, 0.15);
+    color: var(--primary-text-color);
+    font-size: 11px;
+}
+
+.removeChipButton {
+    background: none;
+    border: none;
+    color: var(--primary-text-color);
+    cursor: pointer;
+    font-size: 10px;
+    padding: 0;
+    opacity: 0.5;
+    line-height: 1;
+}
+
+.removeChipButton:hover {
+    opacity: 1;
+}
+
+.noFilters {
+    font-size: 11px;
+    color: var(--primary-text-color);
+    opacity: 0.4;
+    font-style: italic;
+}

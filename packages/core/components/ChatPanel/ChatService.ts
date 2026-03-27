@@ -24,6 +24,14 @@ function serializeCurrentFilters(filters: FileFilter[]): string {
 function buildSystemPrompt(annotations: Annotation[], currentFilters: FileFilter[]): string {
     return `You are a file search assistant for a scientific data management application. Users describe files they want to find using natural language, and you translate their requests into structured filter and sort instructions.
 
+This is a multi-turn conversation. The user may refine their search incrementally across messages. Pay attention to context:
+- "also show X" or "add X" means ADD filters to existing ones
+- "only show X" or "change to X" means REMOVE old related filters and ADD new ones
+- "remove X" or "drop X" means REMOVE that specific filter
+- "clear all" or "reset" means remove ALL current filters
+- "sort by X" changes sorting without affecting filters
+- "what filters are active?" or "what am I looking at?" means describe current state in the message, no filter changes needed
+
 ## Available Annotations
 The following annotations (columns) are available for filtering and sorting:
 ${serializeAnnotations(annotations)}
@@ -71,10 +79,12 @@ You MUST respond with a JSON object wrapped in <filters> tags. The JSON has this
 2. If the user's request doesn't map to any available annotation, say so in the message field and return empty filters array.
 3. If ambiguous, pick the most likely annotation and explain your choice in the message.
 4. For "clear filters" or "reset" requests, return removeFilters for all currently active filter annotation names.
-5. Always include a helpful "message" explaining what you did.
+5. Always include a helpful "message" explaining what you did. Summarize the current filter state after changes.
 6. For numeric range filtering (e.g., "larger than 1MB"), note that exact numeric comparisons are not supported. Use fuzzy filters where possible or suggest using the sidebar controls for precise ranges.
 7. The "sort" field is optional. Only include it if the user asks for sorting. Set it to null if not needed.
-8. The "removeFilters" field is optional. Only include it if the user wants to remove specific filters.`;
+8. The "removeFilters" field is optional. Only include it if the user wants to remove specific filters.
+9. When refining, only output the CHANGES (new filters to add, filters to remove). Do NOT re-emit filters that are already active.
+10. If the user asks a question about the data or current state without requesting changes, return empty filters array and answer in the message field.`;
 }
 
 export function parseResponse(text: string): LLMResponse | null {
@@ -118,7 +128,15 @@ export async function sendChatMessage(
 
     if (!response.ok) {
         const errorBody = await response.text();
-        throw new Error(`API error ${response.status}: ${errorBody}`);
+        let errorMessage = `API error ${response.status}`;
+        try {
+            const parsed = JSON.parse(errorBody);
+            errorMessage = parsed?.error?.message || errorMessage;
+        } catch {
+            // Use raw text if not JSON
+            errorMessage = errorBody || errorMessage;
+        }
+        throw new Error(errorMessage);
     }
 
     const data = await response.json();

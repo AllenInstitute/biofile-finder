@@ -14,6 +14,7 @@ const API_KEY_STORAGE_KEY = "claude-api-key";
 export default function ChatPanel() {
     const dispatch = useDispatch();
     const annotations = useSelector(metadata.selectors.getAnnotations);
+    const annotationMap = useSelector(metadata.selectors.getAnnotationNameToAnnotationMap);
     const currentFilters = useSelector(selection.selectors.getFileFilters);
 
     const [isOpen, setIsOpen] = React.useState(false);
@@ -60,7 +61,7 @@ export default function ChatPanel() {
         // Remove filters if requested
         if (response.removeFilters?.length) {
             const toRemove = currentFilters.filter((f) =>
-                response.removeFilters!.some((rf) => rf.annotationName === f.name)
+                (response.removeFilters || []).some((rf) => rf.annotationName === f.name)
             );
             if (toRemove.length) {
                 dispatch(selection.actions.removeFileFilter(toRemove));
@@ -91,6 +92,27 @@ export default function ChatPanel() {
         }
 
         return appliedFilters;
+    }
+
+    function getFilterDisplayName(filter: FileFilter): string {
+        const annotation = annotationMap[filter.name];
+        const name = annotation ? annotation.displayName : filter.name;
+        if (filter.type === FilterType.ANY) return `${name}: any value`;
+        if (filter.type === FilterType.EXCLUDE) return `${name}: no value`;
+        if (filter.type === FilterType.FUZZY) return `${name} ~ "${filter.value}"`;
+        return `${name} = "${filter.value}"`;
+    }
+
+    function handleClearAll() {
+        if (currentFilters.length) {
+            setPreviousFilters([...currentFilters]);
+            setPreviousSort(sortColumn);
+            dispatch(selection.actions.removeFileFilter(currentFilters));
+        }
+    }
+
+    function handleRemoveFilter(filter: FileFilter) {
+        dispatch(selection.actions.removeFileFilter(filter));
     }
 
     function handleUndo() {
@@ -239,6 +261,36 @@ export default function ChatPanel() {
                             </div>
                         </div>
                     )}
+
+                    <div className={styles.activeFiltersBar}>
+                        <div className={styles.activeFiltersHeader}>
+                            <span className={styles.activeFiltersLabel}>
+                                Active Filters ({currentFilters.length})
+                            </span>
+                            {currentFilters.length > 0 && (
+                                <button className={styles.clearAllButton} onClick={handleClearAll}>
+                                    Clear all
+                                </button>
+                            )}
+                        </div>
+                        {currentFilters.length === 0 ? (
+                            <span className={styles.noFilters}>No filters applied</span>
+                        ) : (
+                            <div className={styles.activeFilterChips}>
+                                {currentFilters.map((f, i) => (
+                                    <span key={i} className={styles.activeFilterChip}>
+                                        {getFilterDisplayName(f)}
+                                        <button
+                                            className={styles.removeChipButton}
+                                            onClick={() => handleRemoveFilter(f)}
+                                        >
+                                            {"\u2715"}
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
                     <div className={styles.messages}>
                         {messages.length === 0 && (
