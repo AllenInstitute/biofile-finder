@@ -8,11 +8,10 @@ import { JSONReadyRange } from "../../entity/NumericRange";
 
 type FmsFileAnnotationValue = string | number | boolean;
 /**
- * A value within a nested annotation column. Can be a primitive or another
- * nested object to arbitrary depth — matching the structure of VARCHAR JSON
- * columns in a parquet file whose per-row content can vary freely.
+ * A value within a nested annotation entry. Can be a primitive, a nested object,
+ * or an array of nested entries — supporting arrays-of-objects at any depth.
  */
-export type NestedAnnotationValue = FmsFileAnnotationValue | null | NestedAnnotation;
+export type NestedAnnotationValue = FmsFileAnnotationValue | null | NestedAnnotation | NestedAnnotation[];
 export interface NestedAnnotation {
     [key: string]: NestedAnnotationValue;
 }
@@ -23,8 +22,11 @@ export interface FmsFileAnnotation {
     [key: string]: any;
     name: string;
     values: FmsFileAnnotationValue[];
-    /** Populated for columns whose value is (or parses as) a JSON object. */
-    nestedValues?: NestedAnnotation;
+    /**
+     * Populated for columns whose value is (or parses as) a JSON array of objects.
+     * Each element is one entry in the array (e.g. one Well record).
+     */
+    nestedValues?: NestedAnnotation[];
 }
 
 export interface GetFilesRequest {

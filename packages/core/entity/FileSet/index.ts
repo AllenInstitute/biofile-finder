@@ -197,13 +197,24 @@ export default class FileSet {
      * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses
      */
     public toQuerySQLBuilder(): SQLBuilder {
-        // Map the filter values to the annotation names they filter
+        // Map the filter values to the annotation names they filter.
+        //
+        // Nested-path filters on the same annotation but different JSONPaths (e.g.
+        // "Well":"$[*].Gene" vs "Well":"$[*].Dose[*].Value") must be placed in *separate*
+        // AND groups so that each path condition is independently required.
+        // Filters sharing the same annotation AND path are OR-ed together (multiple
+        // allowed values for that field, as usual).
         const filtersGroupedByAnnotation = this.filters.reduce(
-            (map, filter) => ({
-                ...map,
-                [filter.name]: filter.name in map ? [...map[filter.name], filter] : [filter],
-            }),
-            {} as { [name: string]: FileFilter[] }
+            (map, filter) => {
+                const key = filter.nestedJsonPath
+                    ? `${filter.name}:${filter.nestedJsonPath}`
+                    : filter.name;
+                return {
+                    ...map,
+                    [key]: key in map ? [...map[key], filter] : [filter],
+                };
+            },
+            {} as { [key: string]: FileFilter[] }
         );
 
         // Transform the map above into SQL comparison clauses

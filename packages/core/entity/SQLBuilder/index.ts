@@ -14,19 +14,50 @@ export default class SQLBuilder {
     private limitNum?: number;
 
     /**
-     * Utility function to create a regex match for a value in a list
+     * Utility function to create a regex match for a value in a list.
      *
      * Ex. This regex will match on a value
      * that is at the start, middle, end, or only value in a comma separated list
      * of values (,\s*Position,)|(^\s*Position\s*,)|(,\s*Position\s*$)|(^\s*Position\s*$)
+     *
+     * @param columnOrExpr  Either a bare column name (will be quoted) or, when
+     *                      `isExpression=true`, a SQL expression that is already valid
+     *                      (e.g. `CAST(json_extract("Well"::JSON, '$.*.Gene') AS VARCHAR)`).
      */
     public static regexMatchValueInList(
-        column: string,
-        value: string | boolean | number | null
+        columnOrExpr: string,
+        value: string | boolean | number | null,
+        isExpression = false
     ): string {
         // Escape special characters for regex
         const escapedValue = `${value}`.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-        return `REGEXP_MATCHES(CAST("${column}" AS VARCHAR), '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
+        const castExpr = isExpression
+            ? columnOrExpr
+            : `CAST("${columnOrExpr}" AS VARCHAR)`;
+        return `REGEXP_MATCHES(${castExpr}, '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
+    }
+
+    /**
+     * Build a WHERE-clause expression that tests whether a DuckDB JSON array expression
+     * contains a specific value.
+     *
+     * `json_extract("Well"::JSON, '$[*].Gene')` returns a JSON array like `["Chroma4","Chroma5"]`.
+     * This helper generates a `json_contains` call to check membership.
+     *
+     * @param arrayExpression  A SQL expression that produces a JSON array (not quoted as a column).
+     * @param value            The value to search for.
+     */
+    public static jsonArrayContains(
+        arrayExpression: string,
+        value: string | boolean | number | null
+    ): string {
+        // Escape single-quotes in the SQL string literal.
+        const escaped = `${value}`.replaceAll("'", "''");
+        // json_contains(array, element) where element is a JSON-encoded value.
+        // Wrap string values in JSON double-quotes; pass numbers/booleans as-is.
+        const jsonElement =
+            typeof value === "string" ? `'"${escaped}"'` : `'${escaped}'`;
+        return `json_contains(CAST(${arrayExpression} AS VARCHAR)::JSON, ${jsonElement}::JSON) = true`;
     }
 
     public describe(): SQLBuilder {

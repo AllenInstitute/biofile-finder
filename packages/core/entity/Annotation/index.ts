@@ -18,6 +18,21 @@ export interface AnnotationResponse {
     annotationName: string;
     description: string;
     isImmutable?: boolean;
+    /** True when this column stores a nested object (parquet STRUCT/MAP or JSON VARCHAR). */
+    isNested?: boolean;
+    /**
+     * True when this is a virtual annotation representing a specific sub-field path inside a
+     * JSON VARCHAR column (e.g. "Well.Gene" inside the "Well" column).
+     * When set, `nestedParent` and `nestedJsonPath` provide the SQL generation details.
+     */
+    isNestedSubField?: boolean;
+    /** The top-level column name that contains this sub-field (e.g. "Well"). */
+    nestedParent?: string;
+    /**
+     * Full DuckDB JSONPath expression for extracting all values of this sub-field from the
+     * parent array column (e.g. "$[*].Gene" or "$[*].Dose[*].Value").
+     */
+    nestedJsonPath?: string;
     type: AnnotationType;
     units?: string;
 }
@@ -93,6 +108,38 @@ export default class Annotation {
      */
     public get isImmutable(): boolean {
         return this.annotation.isImmutable || false;
+    }
+
+    /**
+     * Whether this annotation stores a nested object (parquet STRUCT/MAP or a VARCHAR column
+     * whose runtime values are JSON objects). Nested annotations have sub-field annotations
+     * available as dotted-path names (e.g. "Well.Gene", "Well.Dose.Value") and can be
+     * targeted for path-specific filtering at any depth.
+     */
+    public get isNested(): boolean {
+        return this.annotation.isNested || false;
+    }
+
+    /**
+     * Whether this is a virtual sub-field annotation (e.g. "Well.Gene") derived from sampling
+     * the JSON values of a parent annotation. When true, SQL queries must use json_extract with
+     * a wildcard over the dynamic top-level keys of the parent column.
+     */
+    public get isNestedSubField(): boolean {
+        return this.annotation.isNestedSubField || false;
+    }
+
+    /** The parent column name for a virtual sub-field annotation (e.g. "Well" for "Well.Gene"). */
+    public get nestedParent(): string | undefined {
+        return this.annotation.nestedParent;
+    }
+
+    /**
+     * Full DuckDB JSONPath expression for this virtual sub-field annotation.
+     * E.g. "$[*].Gene" for "Well.Gene", or "$[*].Dose[*].Value" for "Well.Dose.Value".
+     */
+    public get nestedJsonPath(): string | undefined {
+        return this.annotation.nestedJsonPath;
     }
 
     public get units(): string | undefined {

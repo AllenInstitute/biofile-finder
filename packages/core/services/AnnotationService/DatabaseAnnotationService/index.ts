@@ -5,7 +5,7 @@ import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import Annotation from "../../../entity/Annotation";
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
@@ -36,6 +36,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
      * Fetch all annotations.
      */
     public fetchAnnotations(): Promise<Annotation[]> {
+        // TODO:
         return this.databaseService.fetchAnnotations(this.dataSourceNames);
     }
 
@@ -63,6 +64,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
      * Fetch the unique values for a specific annotation.
      */
     public async fetchValues(annotation: string): Promise<AnnotationValue[]> {
+        // TODO:
         return this.fetchFilteredValuesForAnnotation(annotation);
     }
 
@@ -70,6 +72,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
         hierarchy: string[],
         filters: FileFilter[]
     ): Promise<string[]> {
+        // TODO:
         return this.fetchHierarchyValuesUnderPath(hierarchy, [], filters);
     }
 
@@ -78,6 +81,30 @@ export default class DatabaseAnnotationService implements AnnotationService {
         path: string[],
         filters: FileFilter[]
     ): Promise<string[]> {
+        // TODO:
+        // Look up annotation metadata so virtual sub-field annotations get correct FileFilters.
+        const allAnnotations = await this.databaseService.fetchAnnotations(this.dataSourceNames);
+        const annotationMetaMap = new Map(allAnnotations.map((a) => [a.name, a]));
+
+        // Build a FileFilter for an annotation, using json_extract SQL for virtual sub-fields.
+        const makeFilter = (annotationName: string, value?: string): FileFilter => {
+            const meta = annotationMetaMap.get(annotationName);
+            if (meta?.isNestedSubField && meta.nestedParent && meta.nestedJsonPath) {
+                const filterType = value !== undefined ? FilterType.DEFAULT : FilterType.ANY;
+                return new FileFilter(
+                    annotationName,
+                    value ?? "",
+                    filterType,
+                    meta.nestedJsonPath,
+                    meta.nestedParent
+                );
+            }
+            if (value !== undefined) {
+                return new FileFilter(annotationName, value);
+            }
+            return new IncludeFilter(annotationName);
+        };
+
         const filtersByAnnotation = filters.reduce(
             (map, filter) => ({
                 ...map,
@@ -92,8 +119,8 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 if (!filtersByAnnotation[annotation]) {
                     filtersByAnnotation[annotation] = [
                         index < path.length
-                            ? new FileFilter(annotation, path[index])
-                            : new IncludeFilter(annotation), // If no value provided in hierachy, equivalent to Include filter
+                            ? makeFilter(annotation, path[index])
+                            : makeFilter(annotation), // If no value provided, equivalent to Include filter
                     ];
                 }
             });
@@ -112,8 +139,32 @@ export default class DatabaseAnnotationService implements AnnotationService {
             return [];
         }
 
+        // Detect virtual sub-field annotations: names like "Well.Gene" that don't exist as
+        // physical columns. These come from JSON VARCHAR columns with dynamic outer keys.
+        // The Annotation cache holds `nestedParent` / `nestedJsonPath` for them; here we derive
+        // those from the name by looking up the registered annotations.
+        const allAnnotations = await this.databaseService.fetchAnnotations(this.dataSourceNames);
+        const annotationMeta = allAnnotations.find((a) => a.name === annotation);
+        const isVirtual = annotationMeta?.isNestedSubField === true;
+
+        let selectExpr: string;
+        let resultAlias: string;
+
+        if (isVirtual && annotationMeta?.nestedParent && annotationMeta?.nestedJsonPath) {
+            const parent = annotationMeta.nestedParent;
+            const jsonPath = annotationMeta.nestedJsonPath; // e.g. "$[*].Gene" or "$[*].Dose[*].Value"
+            // json_extract with a $[*] wildcard returns a JSON array of all matching values
+            // across every element of the array column (e.g. '["TP53","MYC",...]').
+            // We'll flatten the JSON arrays row-by-row below.
+            resultAlias = "__nested_values__";
+            selectExpr = `DISTINCT CAST(json_extract("${parent}"::JSON, '${jsonPath}') AS VARCHAR) AS "${resultAlias}"`;
+        } else {
+            resultAlias = annotation;
+            selectExpr = `DISTINCT "${annotation}"`;
+        }
+
         const sqlBuilder = new SQLBuilder()
-            .select(`DISTINCT "${annotation}"`)
+            .select(selectExpr)
             .from(this.dataSourceNames);
 
         Object.keys(filtersByAnnotation).forEach((annotationToFilter) => {
@@ -124,6 +175,31 @@ export default class DatabaseAnnotationService implements AnnotationService {
         });
 
         const rows = await this.databaseService.query(sqlBuilder.toSQL());
+
+        if (isVirtual) {
+            // Each result row is a JSON array string like '["TP53","MYC"]' — flatten all values.
+            const values = new Set<string>();
+            for (const row of rows) {
+                const raw = row[resultAlias];
+                if (isNil(raw)) continue;
+                try {
+                    const parsed = JSON.parse(String(raw));
+                    if (Array.isArray(parsed)) {
+                        parsed.forEach((v) => {
+                            if (v !== null && v !== undefined) values.add(String(v).trim());
+                        });
+                    } else if (parsed !== null) {
+                        values.add(String(parsed).trim());
+                    }
+                } catch {
+                    String(raw)
+                        .split(DatabaseService.LIST_DELIMITER)
+                        .forEach((v) => values.add(v.trim()));
+                }
+            }
+            return [...values];
+        }
+
         const rowsSplitByDelimiter = rows
             .flatMap((row) =>
                 isNil(row[annotation])
@@ -143,32 +219,63 @@ export default class DatabaseAnnotationService implements AnnotationService {
             return [];
         }
 
-        // Subquery 1
         const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
-        const columnNamesSql= new SQLBuilder()
+
+        // Fetch annotation metadata so virtual sub-field annotations get correct WHERE clauses.
+        const allAnnotations = await this.databaseService.fetchAnnotations(this.dataSourceNames);
+        const annotationMetaMap = new Map(allAnnotations.map((a) => [a.name, a]));
+
+        // Build the IS NOT NULL / json existence check for an annotation in the hierarchy.
+        const hierarchyExistsClause = (annotationName: string): string => {
+            const meta = annotationMetaMap.get(annotationName);
+            if (meta?.isNestedSubField && meta.nestedParent && meta.nestedJsonPath) {
+                return `json_array_length(json_extract("${meta.nestedParent}"::JSON, '${meta.nestedJsonPath}')) > 0`;
+            }
+            return `"${annotationName}" IS NOT NULL`;
+        };
+
+        const hierarchyWhereClauses = annotations.map(hierarchyExistsClause);
+
+        // Physical columns: discovered from a LIMIT 1 query.
+        const columnNamesSql = new SQLBuilder()
             .from(aggregateDataSourceName)
             .limit(1)
             .toSQL();
         const queryResult = await this.databaseService.query(columnNamesSql);
-        const columnNames = Object.keys(queryResult[0]);
+        const physicalColumnNames = Object.keys(queryResult[0]);
 
-        const queries = columnNames.map(columnName => {
+        // Virtual sub-field annotations are not physical columns but still need to be checked.
+        const virtualAnnotations = allAnnotations.filter((a) => a.isNestedSubField);
+
+        // For each candidate annotation, check whether at least one row satisfies both
+        // the candidate's own existence condition AND all current hierarchy constraints.
+        const candidates: Array<{ name: string; existsClause: string }> = [
+            ...physicalColumnNames.map((col) => ({
+                name: col,
+                existsClause: `"${col}" IS NOT NULL`,
+            })),
+            ...virtualAnnotations.map((a) => ({
+                name: a.name,
+                existsClause: `json_array_length(json_extract("${a.nestedParent!}"::JSON, '${a.nestedJsonPath!}')) > 0`,
+            })),
+        ];
+
+        const queries = candidates.map(({ name, existsClause }) => {
+            const escapedName = name.replaceAll("'", "''");
             const sql = new SQLBuilder()
-                .select(`'${columnName}' AS column_name`)
+                .select(`'${escapedName}' AS column_name`)
                 .from(aggregateDataSourceName)
-                .where(`"${columnName}" IS NOT NULL`)
-                .where(annotations.map(annotation => `"${annotation}" IS NOT NULL`))
-                // This limit is non-deterministic, but we just want to know if
-                // any rows are non-null for this column, and a
-                // non-deterministic query will be faster.
+                .where(existsClause)
+                .where(hierarchyWhereClauses)
                 .limit(1)
                 .toSQL();
             return this.databaseService.query(sql);
         });
+
         const results = (await Promise.all(queries)) as QueryResult[][];
         return results
-            .filter(result => result.length > 0)
-            .map(result => result[0].column_name);
+            .filter((result) => result.length > 0)
+            .map((result) => result[0].column_name);
     }
 
     /**

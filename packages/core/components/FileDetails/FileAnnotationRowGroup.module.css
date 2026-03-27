@@ -6,12 +6,8 @@
     flex-direction: row;
 }
 
-.row > div {
+.row:not(:first-child) > div {
     border-top: 2px solid var(--border-color);
-}
-
-.row:first-child {
-    border-top: none;
 }
 
 .indent {

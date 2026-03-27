@@ -52,7 +52,7 @@ export default class DatabaseFileService implements FileService {
                             name !== DatabaseService.HIDDEN_UID_ANNOTATION
                     )
                     .flatMap(([name, values]) => {
-                        // Case 1: duckdb-wasm returned a STRUCT column as a native JS object
+                        // Case 1: duckdb-wasm returned a STRUCT column as a native JS object.
                         if (typeof values === "object" && values !== null && !Array.isArray(values)) {
                             const nested = values as NestedAnnotation;
                             return [{
@@ -62,13 +62,31 @@ export default class DatabaseFileService implements FileService {
                             }];
                         }
 
-                        // Case 2: VARCHAR column whose content is a JSON object string.
-                        // This is the recommended format for flexible per-row nested structures
-                        // since parquet STRUCT requires a fixed schema across all rows.
+                        // Case 2: VARCHAR column whose content is a JSON object or array string.
+                        // JSON arrays-of-objects are the preferred format for flexible per-row
+                        // nested structures.  JSON objects are supported for backward compat.
                         if (typeof values === "string") {
                             try {
                                 const parsed = JSON.parse(values);
-                                if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+                                // Array of objects → nested array annotation
+                                if (
+                                    Array.isArray(parsed) &&
+                                    parsed.length > 0 &&
+                                    typeof parsed[0] === "object" &&
+                                    parsed[0] !== null
+                                ) {
+                                    return [{
+                                        name,
+                                        values: parsed.map((_: unknown, i: number) => String(i)),
+                                        nestedValues: parsed as NestedAnnotation[],
+                                    }];
+                                }
+                                // Plain object → single nested annotation (legacy format)
+                                if (
+                                    typeof parsed === "object" &&
+                                    parsed !== null &&
+                                    !Array.isArray(parsed)
+                                ) {
                                     const nested = parsed as NestedAnnotation;
                                     return [{
                                         name,
@@ -157,9 +175,9 @@ export default class DatabaseFileService implements FileService {
 
         const rows = await this.databaseService.query(sql);
         const env = this.downloadService.getEnvironmentFromUrl();
-        console.log("sql", sql);
-        console.log("rows", rows);
-        console.log("rowsMapped", rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env)));
+        // console.log("sql", sql);
+        // console.log("rows", rows);
+        // console.log("rowsMapped", rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env)));
         return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
     }
 

@@ -18,7 +18,7 @@ import FileList from "../FileList";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import { ValueError } from "../../errors";
-import { interaction, metadata, selection } from "../../state";
+import { interaction, selection } from "../../state";
 
 export interface UseDirectoryHierarchyParams {
     ancestorNodes?: string[];
@@ -100,7 +100,6 @@ const useDirectoryHierarchy = (
         params,
         DEFAULTS
     );
-    const annotations = useSelector(metadata.selectors.getAnnotations);
     const hierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const fileService = useSelector(interaction.selectors.getFileService);
@@ -150,10 +149,6 @@ const useDirectoryHierarchy = (
                 try {
                     const depth = pathToNode.length;
                     const annotationNameAtDepth = hierarchy[depth];
-                    const annotationAtDepth = find(
-                        annotations,
-                        (annotation) => annotation.name === annotationNameAtDepth
-                    );
                     const allChildNodes = await findChildNodes({
                         ancestorNodes,
                         currentNode,
@@ -163,6 +158,17 @@ const useDirectoryHierarchy = (
                         fileService,
                         shouldShowNullGroups,
                     });
+                    // Fetch annotations directly from the service after findChildNodes() so that
+                    // we are guaranteed to have the full list (including virtual sub-field
+                    // annotations) regardless of whether the Redux metadata state has been
+                    // populated yet.  DatabaseAnnotationService caches the result after the first
+                    // call, so this is effectively a synchronous cache-hit here — findChildNodes
+                    // already triggered fetchHierarchyValuesUnderPath which calls fetchAnnotations
+                    // internally.
+                    const freshAnnotations = await annotationService.fetchAnnotations();
+                    const annotationMetaMap = new Map(freshAnnotations.map((a) => [a.name, a]));
+                    const annotationAtDepth = annotationMetaMap.get(annotationNameAtDepth);
+
                     const nodes = allChildNodes.map((value, idx) => {
                         let childNodeSortOrder: number;
                         if (isRoot) {
@@ -184,8 +190,26 @@ const useDirectoryHierarchy = (
                             take(hierarchy, depth + 1),
                             take(pathToChildNode, depth + 1)
                         ).map((pair) => {
-                            const [name, value] = pair as [string, string];
-                            return new FileFilter(name, value);
+                            const [name, filterValue] = pair as [string, string];
+                            // For virtual sub-field annotations (e.g. "Well.Cell Line"), the filter
+                            // must use json_contains SQL rather than column equality. Pass
+                            // nestedJsonPath + nestedParent so toSQLWhereString() generates the
+                            // correct expression.
+                            const annotationMeta = annotationMetaMap.get(name);
+                            if (
+                                annotationMeta?.isNestedSubField &&
+                                annotationMeta.nestedParent &&
+                                annotationMeta.nestedJsonPath
+                            ) {
+                                return new FileFilter(
+                                    name,
+                                    filterValue,
+                                    FilterType.DEFAULT,
+                                    annotationMeta.nestedJsonPath,
+                                    annotationMeta.nestedParent
+                                );
+                            }
+                            return new FileFilter(name, filterValue);
                         });
                         // If we are grouping by a field (e.g., barcode)
                         // and also have filters applied for that field (e.g., barcode=1234, barcode=1357),
@@ -248,7 +272,6 @@ const useDirectoryHierarchy = (
         };
     }, [
         ancestorNodes,
-        annotations,
         annotationService,
         currentNode,
         collapsed,

@@ -464,6 +464,17 @@ const selectNearbyFile = createLogic({
         const hierarchy = selectionSelectors.getAnnotationHierarchy(deps.getState());
         const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
         const sortColumn = selectionSelectors.getSortColumn(deps.getState());
+        const annotations = metadata.selectors.getAnnotations(deps.getState());
+        const annotationMetaMap = new Map(annotations.map((a) => [a.name, a]));
+
+        // Build a correct FileFilter for a hierarchy annotation, using nested SQL when needed.
+        const makeHierarchyFilter = (name: string, filterValue: AnnotationValue): FileFilter => {
+            const meta = annotationMetaMap.get(name);
+            if (meta?.isNestedSubField && meta.nestedParent && meta.nestedJsonPath) {
+                return new FileFilter(name, filterValue, FilterType.DEFAULT, meta.nestedJsonPath, meta.nestedParent);
+            }
+            return new FileFilter(name, filterValue);
+        };
 
         const openFileListPaths = openFileFolders.filter(
             (fileFolder) => fileFolder.size() === hierarchy.length
@@ -513,7 +524,7 @@ const selectNearbyFile = createLogic({
                     filters: sortedOpenFileListPaths[
                         fileListIndexAboveCurrentFileList
                     ].fileFolder.map(
-                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
+                        (filterValue, index) => makeHierarchyFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });
@@ -550,7 +561,7 @@ const selectNearbyFile = createLogic({
                     filters: sortedOpenFileListPaths[
                         fileListIndexBelowCurrentFileList
                     ].fileFolder.map(
-                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
+                        (filterValue, index) => makeHierarchyFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });

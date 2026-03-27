@@ -247,7 +247,13 @@ export default class SearchParams {
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
                 .map(
                     (parsedFilter) =>
-                        new FileFilter(parsedFilter.name, parsedFilter.value, parsedFilter.type)
+                        new FileFilter(
+                            parsedFilter.name,
+                            parsedFilter.value,
+                            parsedFilter.type,
+                            parsedFilter.nestedJsonPath,
+                            parsedFilter.nestedParent
+                        )
                 ),
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))

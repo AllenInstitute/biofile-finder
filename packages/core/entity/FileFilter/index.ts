@@ -5,6 +5,12 @@ export interface FileFilterJson {
     name: string;
     value: any;
     type?: FilterType;
+    /**
+     * For virtual sub-field annotations (e.g. "Well.Gene"), the parent column name ("Well")
+     * and the DuckDB JSONPath expression (e.g. "$[*].Gene") used to build the WHERE clause.
+     */
+    nestedParent?: string;
+    nestedJsonPath?: string;
 }
 
 // Filter with formatted value
@@ -30,6 +36,17 @@ export default class FileFilter {
     private readonly annotationName: string;
     private readonly annotationValue: any;
     private filterType: FilterType;
+    /**
+     * For virtual sub-field annotations (e.g. "Well.Gene"), the parent column name ("Well").
+     * When set alongside `_nestedJsonPath`, `toSQLWhereString` targets the parent column
+     * rather than treating `annotationName` as a physical column.
+     */
+    private readonly _nestedParent?: string;
+    /**
+     * Full DuckDB JSONPath expression for the sub-field within the parent column.
+     * E.g. "$[*].Gene" for Well.Gene, or "$[*].Dose[*].Value" for Well.Dose.Value.
+     */
+    private readonly _nestedJsonPath?: string;
 
     public static isFileFilter(candidate: any): candidate is FileFilter {
         return candidate instanceof FileFilter;
@@ -38,11 +55,15 @@ export default class FileFilter {
     constructor(
         annotationName: string,
         annotationValue: any,
-        filterType: FilterType = FilterType.DEFAULT
+        filterType: FilterType = FilterType.DEFAULT,
+        nestedJsonPath?: string,
+        nestedParent?: string
     ) {
         this.annotationName = annotationName;
         this.annotationValue = annotationValue;
         this.filterType = annotationValue === NO_VALUE_NODE ? FilterType.EXCLUDE : filterType;
+        this._nestedJsonPath = nestedJsonPath || undefined;
+        this._nestedParent = nestedParent;
     }
 
     public get name() {
@@ -61,17 +82,28 @@ export default class FileFilter {
         this.filterType = filterType;
     }
 
+    /** The parent column name when this filter targets a virtual sub-field annotation. */
+    public get nestedParent(): string | undefined {
+        return this._nestedParent;
+    }
+
+    /** The DuckDB JSONPath expression for the sub-field (e.g. "$[*].Gene"). */
+    public get nestedJsonPath(): string | undefined {
+        return this._nestedJsonPath;
+    }
+
     public toQueryString(): string {
+        const pathSuffix = this._nestedJsonPath ? `[${this._nestedJsonPath}]` : "";
         switch (this.type) {
             case FilterType.ANY:
-                return `include=${this.annotationName}`;
+                return `include=${this.annotationName}${pathSuffix}`;
             case FilterType.EXCLUDE:
-                return `exclude=${this.annotationName}`;
+                return `exclude=${this.annotationName}${pathSuffix}`;
             case FilterType.FUZZY:
-                if (this.value === "") return `fuzzy=${this.annotationName}`;
-                return `${this.annotationName}=${this.annotationValue}&fuzzy=${this.annotationName}`;
+                if (this.value === "") return `fuzzy=${this.annotationName}${pathSuffix}`;
+                return `${this.annotationName}${pathSuffix}=${this.annotationValue}&fuzzy=${this.annotationName}${pathSuffix}`;
         }
-        return `${this.annotationName}=${this.annotationValue}`;
+        return `${this.annotationName}${pathSuffix}=${this.annotationValue}`;
     }
 
     /** Unlike with FileSort, we shouldn't construct a new SQLBuilder since these will
@@ -79,6 +111,28 @@ export default class FileFilter {
      * Instead, generate the string that can be passed into the .where() clause.
      */
     public toSQLWhereString(): string {
+        // --- Virtual sub-field annotation (e.g. "Well.Gene" or "Well.Dose.Value") ---
+        // `_nestedParent` is the physical column ("Well"); `_nestedJsonPath` is the full
+        // DuckDB JSONPath expression ("$[*].Gene" or "$[*].Dose[*].Value").
+        // json_extract returns a JSON array of all matching values across every array element.
+        if (this._nestedParent && this._nestedJsonPath) {
+            const col = this._nestedParent;
+            const path = this._nestedJsonPath;
+            switch (this.type) {
+                case FilterType.ANY:
+                    return `json_array_length(json_extract("${col}"::JSON, '${path}')) > 0`;
+                case FilterType.EXCLUDE:
+                    return `("${col}" IS NULL OR json_array_length(json_extract("${col}"::JSON, '${path}')) = 0)`;
+                case FilterType.FUZZY:
+                default:
+                    return SQLBuilder.jsonArrayContains(
+                        `json_extract("${col}"::JSON, '${path}')`,
+                        this.annotationValue
+                    );
+            }
+        }
+
+        // --- Flat (whole-column) filter — existing behaviour ---
         switch (this.type) {
             case FilterType.ANY:
                 return `"${this.annotationName}" IS NOT NULL`;
@@ -95,6 +149,8 @@ export default class FileFilter {
             name: this.annotationName,
             value: this.annotationValue,
             type: this.filterType,
+            ...(this._nestedParent ? { nestedParent: this._nestedParent } : {}),
+            ...(this._nestedJsonPath ? { nestedJsonPath: this._nestedJsonPath } : {}),
         };
     }
 
@@ -102,7 +158,9 @@ export default class FileFilter {
         return (
             this.annotationName === target.annotationName &&
             this.annotationValue === target.annotationValue &&
-            this.filterType === target.filterType
+            this.filterType === target.filterType &&
+            (this._nestedParent ?? "") === (target.nestedParent ?? "") &&
+            (this._nestedJsonPath ?? "") === (target.nestedJsonPath ?? "")
         );
     }
 }

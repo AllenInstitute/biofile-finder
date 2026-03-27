@@ -14,7 +14,8 @@ import styles from "./FileAnnotationRowGroup.module.css";
 interface Props {
     className?: string;
     name: string;
-    value: NestedAnnotation;
+    /** A single nested-object entry or an array of entries (JSON arrays-of-objects). */
+    value: NestedAnnotation | NestedAnnotation[];
     fmsStateIndicator?: boolean;
     style?: React.CSSProperties;
     /** Current nesting depth, used to drive left-padding on children. */
@@ -24,10 +25,8 @@ interface Props {
 const INDENT_EM = 0.75;
 
 /**
- * Renders a nested annotation (JSON object column value) as a collapsible group.
- * Recurses into child objects, so any depth of nesting is handled naturally.
- * Designed to work with VARCHAR columns whose values are JSON strings, giving
- * each row complete freedom to use different keys and nesting shapes.
+ * Renders a nested annotation (JSON object or array-of-objects column value) as a
+ * collapsible group.  Supports any depth of nesting.
  */
 export default function FileAnnotationRowGroup(props: Props) {
     const dispatch = useDispatch();
@@ -39,8 +38,14 @@ export default function FileAnnotationRowGroup(props: Props) {
     const annotation = annotationNameToAnnotationMap[props.name];
     const [isExpanded, setIsExpanded] = React.useState(false);
 
-    const topLevelKeys = Object.keys(props.value);
-    const summary = topLevelKeys.join(", ");
+    const isArray = Array.isArray(props.value);
+
+    // Build a short summary for the collapsed view.
+    const summary = isArray
+        ? `${(props.value as NestedAnnotation[]).length} entr${
+              (props.value as NestedAnnotation[]).length === 1 ? "y" : "ies"
+          }`
+        : Object.keys(props.value as NestedAnnotation).join(", ");
 
     const onContextMenu = (evt: React.MouseEvent) => {
         evt.preventDefault();
@@ -72,7 +77,7 @@ export default function FileAnnotationRowGroup(props: Props) {
     };
 
     return (
-        <>
+        <span>
             {/* Header row */}
             <div
                 className={classNames(props.className, styles.row)}
@@ -130,22 +135,39 @@ export default function FileAnnotationRowGroup(props: Props) {
 
             {/* Expanded children */}
             {isExpanded &&
-                topLevelKeys.map((key) =>
-                    renderNestedValue(
-                        key,
-                        props.value[key],
-                        props.depth + 1,
-                        props.fmsStateIndicator
-                    )
-                )}
-        </>
+                (isArray
+                    ? // Array of objects: render each element as an indexed sub-group
+                      (props.value as NestedAnnotation[]).map((entry) =>
+                          <>
+                            {Object.keys(entry).map((key) =>
+                                renderNestedValue(
+                                    key,
+                                    entry[key],
+                                    props.depth + 1,
+                                    props.fmsStateIndicator
+                                )
+                            )}
+                            <div>----</div>
+                          </>
+                      )
+                    : // Single object: render each key
+                      Object.keys(props.value as NestedAnnotation).map((key) =>
+                          renderNestedValue(
+                              key,
+                              (props.value as NestedAnnotation)[key],
+                              props.depth + 1,
+                              props.fmsStateIndicator
+                          )
+                      ))}
+        </span>
     );
 }
 
 /**
  * Renders a single nested key/value pair.
  * - Primitive values → FileAnnotationRow
- * - Object values → FileAnnotationRowGroup (recursive)
+ * - Object values → FileAnnotationRowGroup (recursive, single-entry)
+ * - Array values → FileAnnotationRowGroup (recursive, array)
  */
 function renderNestedValue(
     key: string,
@@ -153,12 +175,35 @@ function renderNestedValue(
     depth: number,
     fmsStateIndicator?: boolean
 ): React.ReactElement {
-    const indent = `${INDENT_EM / 2}em * ${depth}`;
-    const indentStyle = {
-        marginLeft: `calc(${indent})`,
-        paddingLeft: `calc(${indent})`,
-        width: `calc(100% - ${indent})`,
-    };
+    if (Array.isArray(value)) {
+        // Nested array of objects — the array elements should all be NestedAnnotation objects.
+        const arrOfObjects = value.filter(
+            (v) => typeof v === "object" && v !== null && !Array.isArray(v)
+        ) as NestedAnnotation[];
+        if (arrOfObjects.length > 0) {
+            return (
+                <FileAnnotationRowGroup
+                    key={key}
+                    className={classNames(styles.row, styles.nestedRow)}
+                    name={key}
+                    value={arrOfObjects}
+                    fmsStateIndicator={fmsStateIndicator}
+                    depth={depth}
+                />
+            );
+        }
+        // Array of primitives — render as a comma-separated row.
+        return (
+            <FileAnnotationRow
+                key={key}
+                className={classNames(styles.row, styles.nestedRow)}
+                name={key}
+                value={value.map((v) => (v === null ? "" : String(v))).join(", ")}
+                fmsStateIndicator={fmsStateIndicator}
+                depth={depth}
+            />
+        );
+    }
 
     if (typeof value === "object" && value !== null) {
         return (
@@ -169,7 +214,6 @@ function renderNestedValue(
                 value={value as NestedAnnotation}
                 fmsStateIndicator={fmsStateIndicator}
                 depth={depth}
-                // style={indentStyle}
             />
         );
     }
@@ -182,7 +226,6 @@ function renderNestedValue(
             value={value === null ? "" : String(value)}
             fmsStateIndicator={fmsStateIndicator}
             depth={depth}
-            // style={indentStyle}
         />
     );
 }
