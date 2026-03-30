@@ -63,12 +63,20 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
         }
     },
     [WorkerMsgType.EXECUTE]: async ({ sql, id }) => {
-        if (!databaseService) {
-            throw new Error("DuckDB not initialized");
+        try {
+            if (!databaseService) {
+                throw new Error("DuckDB not initialized");
+            }
+            // To do: decide if executes should be cancelable
+            const result = await databaseService.execute(sql);
+            self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
+        } catch (err) {
+            // post error with ID so parent class can reject pending
+            self.postMessage({
+                type: WorkerResType.ERROR,
+                payload: { message: (err as Error).message, id },
+            });
         }
-        // To do: decide if executes should be cancelable
-        const result = await databaseService.execute(sql);
-        self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
     },
     [WorkerMsgType.QUERY]: async ({ sql, id }) => {
         try {

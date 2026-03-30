@@ -18,6 +18,7 @@ export const getColumns = (state: State) => state.selection.columns;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getFileView = (state: State) => state.selection.fileView;
+export const getIsLoadingSource = (state: State) => state.selection.isLoadingDataSource;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getRecentAnnotations = (state: State) => state.selection.recentAnnotations;
 export const getRequiresDataSourceReload = (state: State) =>
@@ -126,6 +127,13 @@ export const getEncodedSearchParams = createSelector([getCurrentQueryParts], (qu
 
 export const getLoadingNewQuery = createSelector([getQueries], (queries): boolean =>
     queries.some((q) => q.loading)
+);
+
+export const getLoadingQueryOrSource = createSelector(
+    [getLoadingNewQuery, getIsLoadingSource],
+    (loadingQueries, loadingSources): boolean => {
+        return loadingQueries || loadingSources;
+    }
 );
 
 export const getPythonConversion = createSelector(

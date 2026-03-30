@@ -54,6 +54,7 @@ import {
     setColumns,
     EXPAND_ALL_FILE_FOLDERS,
     toggleNullValueGroups,
+    setIsLoadingSource,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -577,6 +578,7 @@ const selectNearbyFile = createLogic({
 const changeDataSourceLogic = createLogic({
     type: CHANGE_DATA_SOURCES,
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        dispatch(setIsLoadingSource(true) as AnyAction);
         const { payload: selectedDataSources } = deps.action as ChangeDataSourcesAction;
         const dataSources = interaction.selectors.getAllDataSources(deps.getState());
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
@@ -621,9 +623,10 @@ const changeDataSourceLogic = createLogic({
             } else {
                 dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
+        } finally {
+            dispatch(setIsLoadingSource(false) as AnyAction);
+            dispatch(interaction.actions.refresh() as AnyAction);
         }
-
-        dispatch(interaction.actions.refresh() as AnyAction);
         done();
     },
 });

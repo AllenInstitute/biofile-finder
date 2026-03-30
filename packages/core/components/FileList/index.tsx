@@ -146,7 +146,7 @@ export default function FileList(props: FileListProps) {
                 // Data source may not be prepared if the data source is taking longer to load
                 // than the component does to render. In this case, we can ignore the error.
                 // The component will re-render when the data source is prepared.
-                if (!err?.message.includes("Data source is not prepared")) {
+                if (!(err as Error)?.message?.includes("Data source is not prepared")) {
                     throw err;
                 }
             });
@@ -163,7 +163,6 @@ export default function FileList(props: FileListProps) {
             props.dispatch(setError(err as Error, isRoot));
             // Root has its own error handling
             if (!isRoot) setLocalError(err as Error);
-            throw err;
         }
     };
 
