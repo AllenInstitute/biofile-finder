@@ -21,9 +21,12 @@ export interface AnnotationContext {
 
 export default interface OllamaService {
     isAvailable(): Promise<boolean>;
+    embedQuery(query: string): Promise<number[]>;
+    generateSqlQuery(question: string, schema: string, model?: string): Promise<string>;
     generateFilterQuery(
         prompt: string,
         annotations: AnnotationContext[],
-        currentFilters?: { name: string; value: string; type: string }[]
+        currentFilters?: { name: string; value: string; type: string }[],
+        model?: string
     ): Promise<OllamaFilterResult>;
 }

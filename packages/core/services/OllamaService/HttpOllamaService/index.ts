@@ -3,8 +3,10 @@ import axios from "axios";
 import OllamaService, { AnnotationContext, OllamaFilterResult } from "../";
 import { FilterType } from "../../../entity/FileFilter";
 
-const DEFAULT_BASE_URL = "/llm";
-const DEFAULT_MODEL = "llama3.2";
+const DEFAULT_BASE_URL = "http://dev-aics-smp-001:8080";
+export const SLOW_MODEL = "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf";
+export const FAST_MODEL = "Llama-3.2-1B-Instruct-Q4_K_M.gguf";
+const DEFAULT_MODEL = FAST_MODEL;
 
 function buildSystemPrompt(
     annotations: AnnotationContext[],
@@ -139,25 +141,52 @@ export default class HttpOllamaService implements OllamaService {
         }
     }
 
+    public async embedQuery(query: string): Promise<number[]> {
+        const response = await axios.post(
+            `${this.baseUrl}/v1/embed`,
+            { query },
+            { timeout: 30000 }
+        );
+        const embedding = response.data?.embedding;
+        if (!Array.isArray(embedding)) {
+            throw new Error("Invalid embed response: missing embedding array");
+        }
+        return embedding as number[];
+    }
+
+    public async generateSqlQuery(question: string, schema: string, model?: string): Promise<string> {
+        const response = await axios.post(
+            `${this.baseUrl}/v1/sql`,
+            { question, schema, model: model ?? this.model },
+            { timeout: 60000 }
+        );
+        const sql = response.data?.sql;
+        if (!sql || typeof sql !== "string") {
+            throw new Error("Invalid SQL response from smart-query-server /v1/sql");
+        }
+        return sql;
+    }
+
     public async generateFilterQuery(
         prompt: string,
         annotations: AnnotationContext[],
-        currentFilters?: { name: string; value: string; type: string }[]
+        currentFilters?: { name: string; value: string; type: string }[],
+        model?: string
     ): Promise<OllamaFilterResult> {
         const systemPrompt = buildSystemPrompt(annotations, currentFilters);
 
-        console.log("[LLMService] === SYSTEM PROMPT ===\n", systemPrompt);
-        console.log("[LLMService] === USER PROMPT ===\n", prompt);
-        console.log("[LLMService] === ANNOTATIONS ===\n", JSON.stringify(annotations, null, 2));
-        console.log(
-            "[LLMService] === CURRENT FILTERS ===\n",
-            JSON.stringify(currentFilters, null, 2)
-        );
+        // console.log("[LLMService] === SYSTEM PROMPT ===\n", systemPrompt);
+        // console.log("[LLMService] === USER PROMPT ===\n", prompt);
+        // console.log("[LLMService] === ANNOTATIONS ===\n", JSON.stringify(annotations, null, 2));
+        // console.log(
+        //     "[LLMService] === CURRENT FILTERS ===\n",
+        //     JSON.stringify(currentFilters, null, 2)
+        // );
 
         const response = await axios.post(
             `${this.baseUrl}/v1/chat/completions`,
             {
-                model: this.model,
+                model: model ?? this.model,
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: prompt },

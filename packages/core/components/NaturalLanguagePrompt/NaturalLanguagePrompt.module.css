@@ -65,3 +65,120 @@
     opacity: 0.6;
     font-style: italic;
 }
+
+.mode-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.mode-tab {
+    background: none;
+    border: 1px solid var(--input-border-color, #ccc);
+    border-radius: var(--small-border-radius);
+    color: var(--primary-text-color);
+    cursor: pointer;
+    font-size: var(--xs-paragraph-size, 11px);
+    padding: 2px 8px;
+    opacity: 0.7;
+}
+
+.mode-tab:hover {
+    opacity: 1;
+}
+
+.mode-tab-active {
+    background-color: var(--highlight-background-color);
+    border-color: var(--highlight-background-color);
+    color: var(--highlight-text-color);
+    opacity: 1;
+}
+
+.mode-tab:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.mode-description {
+    font-size: var(--xs-paragraph-size, 11px);
+    opacity: 0.65;
+    font-style: italic;
+    margin: 0 0 6px 0;
+    line-height: 1.4;
+}
+
+.vss-results {
+    margin-top: 8px;
+}
+
+.vss-results-label {
+    font-size: var(--xs-paragraph-size, 11px);
+    opacity: 0.6;
+    margin: 0 0 4px 0;
+}
+
+.vss-results-list {
+    list-style: decimal inside;
+    margin: 0;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.vss-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--xs-paragraph-size, 11px);
+    padding: 2px 0;
+    border-bottom: 1px solid var(--separator-color, rgba(0,0,0,0.08));
+    gap: 6px;
+}
+
+.vss-result-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vss-result-dist {
+    opacity: 0.5;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.think-longer-row {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.think-longer-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--xs-paragraph-size, 11px);
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.8;
+}
+
+.think-longer-label:hover {
+    opacity: 1;
+}
+
+.think-longer-checkbox {
+    cursor: pointer;
+    margin: 0;
+}
+
+.inline-link {
+    background: none;
+    border: none;
+    color: var(--highlight-background-color);
+    cursor: pointer;
+    font-size: inherit;
+    padding: 0;
+    text-decoration: underline;
+}

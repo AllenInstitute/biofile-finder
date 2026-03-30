@@ -184,6 +184,70 @@ export default abstract class DatabaseService {
         this.database?.detach();
     }
 
+    private vssLoaded = false;
+
+    /**
+     * Installs and loads the DuckDB VSS extension (idempotent).
+     * Must be called before running array_distance queries.
+     */
+    public async ensureVssLoaded(): Promise<void> {
+        if (this.vssLoaded) return;
+        await this.execute("INSTALL vss; LOAD vss;");
+        this.vssLoaded = true;
+    }
+
+    /**
+     * Returns a CREATE TABLE DDL string for the given table using a stable alias
+     * `source_data` so it can be passed to the /v1/sql endpoint without exposing
+     * the real (potentially special-character) table name to the LLM.
+     */
+    public async getTableSchema(tableName: string): Promise<string> {
+        const escapedName = tableName.replace(/'/g, "''");
+        const rows = await this.query(
+            `SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '${escapedName}' ORDER BY ordinal_position`
+        ).promise;
+        if (rows.length === 0) return "";
+        const cols = rows
+            .map((r) => `"${String(r.column_name).replace(/"/g, '""')}" ${r.data_type}`)
+            .join(", ");
+        return `CREATE TABLE source_data (${cols});`;
+    }
+
+    /**
+     * Runs a vector similarity search against a table using DuckDB's VSS extension.
+     * Requires the table to have an `embedding` column of type FLOAT[<dim>].
+     *
+     * @param tableName  The name of the table/view to search.
+     * @param embedding  The query embedding returned by the /v1/embed endpoint.
+     * @param limit      Maximum number of results to return (default 20).
+     */
+    public async semanticSearch(
+        tableName: string,
+        embedding: number[],
+        limit = 20
+    ): Promise<{ [key: string]: any }[]> {
+        // Verify the table has an embedding column before trying VSS
+        const columnCheckSql = `SELECT column_name FROM information_schema.columns WHERE table_name = '${tableName.replace(/'/g, "''")}' AND column_name = 'embedding'`;
+        const colRows = await this.query(columnCheckSql).promise;
+        if (colRows.length === 0) {
+            throw new Error(
+                `Table "${tableName}" does not have an "embedding" column. ` +
+                    `To use semantic search, pre-populate the embedding column at index time using ` +
+                    `Transformers.js (e.g. Xenova/all-MiniLM-L6-v2) with the same model as the server.`
+            );
+        }
+
+        await this.ensureVssLoaded();
+        const dim = embedding.length;
+        const vecLiteral = `[${embedding.join(",")}]::FLOAT[${dim}]`;
+        const sql = `SELECT *, array_distance(embedding, ${vecLiteral}) AS _distance
+FROM "${tableName}"
+ORDER BY _distance
+LIMIT ${limit};`;
+console.log("doing array search with SQL:", sql);
+        return this.query(sql).promise;
+    }
+
     protected async addDataSource(
         name: string,
         type: "csv" | "json" | "parquet",

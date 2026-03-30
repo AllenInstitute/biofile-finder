@@ -61,6 +61,7 @@ export const isOnWeb = (state: State) => state.interaction.isOnWeb;
 export const isRemoteFileUploadServerAvailable = (state: State) =>
     state.interaction.isRemoteFileUploadServerAvailable;
 export const getOllamaAvailable = (state: State) => state.interaction.ollamaAvailable;
+export const getVssResults = (state: State) => state.interaction.vssResults;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;

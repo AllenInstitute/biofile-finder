@@ -839,12 +839,56 @@ export const APPLY_NATURAL_LANGUAGE_QUERY = makeConstant(
 
 export interface ApplyNaturalLanguageQueryAction {
     type: string;
-    payload: string; // the natural language prompt
+    payload: { prompt: string; model: string };
 }
 
-export function applyNaturalLanguageQuery(prompt: string): ApplyNaturalLanguageQueryAction {
+export function applyNaturalLanguageQuery(
+    prompt: string,
+    model: string
+): ApplyNaturalLanguageQueryAction {
     return {
-        payload: prompt,
+        payload: { prompt, model },
         type: APPLY_NATURAL_LANGUAGE_QUERY,
+    };
+}
+
+/**
+ * APPLY_VSS_QUERY
+ *
+ * Embeds the prompt via /v1/embed and runs a DuckDB VSS (vector similarity search)
+ * against sources that have a pre-computed `embedding` column.
+ * Results are stored in interaction.vssResults.
+ */
+export const APPLY_VSS_QUERY = makeConstant(STATE_BRANCH_NAME, "apply-vss-query");
+
+export interface ApplyVssQueryAction {
+    type: string;
+    payload: { prompt: string; model: string };
+}
+
+export function applyVssQuery(prompt: string, model: string): ApplyVssQueryAction {
+    return {
+        payload: { prompt, model },
+        type: APPLY_VSS_QUERY,
+    };
+}
+
+/**
+ * APPLY_SQL_QUERY
+ *
+ * Sends the prompt to /v1/sql to generate a DuckDB SQL query, then runs it
+ * locally against selected data sources. Results appear as a browsable file list.
+ */
+export const APPLY_SQL_QUERY = makeConstant(STATE_BRANCH_NAME, "apply-sql-query");
+
+export interface ApplySqlQueryAction {
+    type: string;
+    payload: { prompt: string; model: string };
+}
+
+export function applySqlQuery(prompt: string, model: string): ApplySqlQueryAction {
+    return {
+        payload: { prompt, model },
+        type: APPLY_SQL_QUERY,
     };
 }

@@ -1002,3 +1002,24 @@ export function setOllamaAvailable(available: boolean): SetOllamaAvailableAction
         type: SET_OLLAMA_AVAILABLE,
     };
 }
+
+/**
+ * SET_VSS_RESULTS
+ *
+ * Stores the results of a semantic (vector similarity) search performed via DuckDB VSS.
+ * Each entry is a raw row from the queried table, plus a `_distance` similarity score.
+ * Set to null to clear any previous results.
+ */
+export const SET_VSS_RESULTS = makeConstant(STATE_BRANCH_NAME, "set-vss-results");
+
+export interface SetVssResultsAction {
+    type: string;
+    payload: { [key: string]: any }[] | null;
+}
+
+export function setVssResults(results: { [key: string]: any }[] | null): SetVssResultsAction {
+    return {
+        payload: results,
+        type: SET_VSS_RESULTS,
+    };
+}

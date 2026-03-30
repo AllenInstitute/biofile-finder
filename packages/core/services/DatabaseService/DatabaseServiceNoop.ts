@@ -29,6 +29,14 @@ export default class DatabaseServiceNoop extends DatabaseService {
         return { promise: Promise.reject("DatabaseServiceNoop:query"), cancel: noop };
     }
 
+    public semanticSearch(): Promise<{ [key: string]: any }[]> {
+        return Promise.reject("DatabaseServiceNoop:semanticSearch");
+    }
+
+    public getTableSchema(): Promise<string> {
+        return Promise.reject("DatabaseServiceNoop:getTableSchema");
+    }
+
     protected addDataSource(): Promise<void> {
         return Promise.reject("DatabaseServiceNoop:addDataSource");
     }

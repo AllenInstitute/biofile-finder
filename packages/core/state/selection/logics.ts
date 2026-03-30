@@ -56,6 +56,10 @@ import {
     toggleNullValueGroups,
     APPLY_NATURAL_LANGUAGE_QUERY,
     ApplyNaturalLanguageQueryAction,
+    APPLY_VSS_QUERY,
+    ApplyVssQueryAction,
+    APPLY_SQL_QUERY,
+    ApplySqlQueryAction,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -883,7 +887,7 @@ const setDataSourceReloadErrorLogic = createLogic({
 const applyNaturalLanguageQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { action, getState } = deps;
-        const prompt = (action as ApplyNaturalLanguageQueryAction).payload;
+        const { prompt, model } = (action as ApplyNaturalLanguageQueryAction).payload;
         const ollamaService = interaction.selectors.getOllamaService(getState());
         if (!ollamaService) {
             dispatch(
@@ -939,7 +943,8 @@ const applyNaturalLanguageQueryLogic = createLogic({
             const result = await ollamaService.generateFilterQuery(
                 prompt,
                 annotationContexts,
-                currentFilterContext
+                currentFilterContext,
+                model
             );
 
             batch(() => {
@@ -973,6 +978,170 @@ const applyNaturalLanguageQueryLogic = createLogic({
     type: APPLY_NATURAL_LANGUAGE_QUERY,
 });
 
+/**
+ * LLMs commonly use double-quoted tokens for string values (e.g. WHERE col = "val")
+ * which DuckDB treats as column identifiers, not string literals. This fixes those
+ * cases by converting any double-quoted token that is NOT a known column name into a
+ * single-quoted string literal.
+ */
+function fixSqlQuoting(sql: string, knownColumns: string[]): string {
+    const knownSet = new Set(knownColumns.map((c) => c.toLowerCase()));
+    return sql.replace(/"([^"]+)"/g, (_match, token) => {
+        if (knownSet.has(token.toLowerCase())) {
+            return `"${token}"`; // keep as identifier
+        }
+        return `'${token.replace(/'/g, "''")}'`; // treat as string literal
+    });
+}
+
+/**
+ * EMBED mode: uses /v1/embed to get a query vector, then runs a DuckDB VSS
+ * array_distance search against sources that have a pre-computed `embedding` column.
+ */
+const applyVssQueryLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { action, getState } = deps;
+        const { prompt } = (action as ApplyVssQueryAction).payload;
+
+        const ollamaService = interaction.selectors.getOllamaService(getState());
+        if (!ollamaService) {
+            dispatch(interaction.actions.processError("vssError", "Ollama service is not configured."));
+            dispatch(interaction.actions.setVssResults([]) as AnyAction);
+            done();
+            return;
+        }
+
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(getState());
+        const selectedDataSources = selectionSelectors.getSelectedDataSources(getState());
+        if (!selectedDataSources.length) {
+            dispatch(interaction.actions.processError("vssError", "No data source selected."));
+            dispatch(interaction.actions.setVssResults([]) as AnyAction);
+            done();
+            return;
+        }
+
+        try {
+            // Only sources with a pre-computed embedding column can use VSS
+            const classified = await Promise.all(
+                selectedDataSources.map(async (source) => {
+                    const rows = await databaseService.query(
+                        `SELECT column_name FROM information_schema.columns WHERE table_name = '${source.name.replace(/'/g, "''")}' AND column_name = 'embedding'`
+                    ).promise;
+                    return { source, hasEmbedding: rows.length > 0 };
+                })
+            );
+
+            const vssSources = classified.filter((r) => r.hasEmbedding).map((r) => r.source);
+            if (vssSources.length === 0) {
+                dispatch(
+                    interaction.actions.processError(
+                        "vssError",
+                        "No embedding column found in the selected data source(s). Pre-computed embeddings are required for Semantic search. Try SQL Search instead."
+                    )
+                );
+                dispatch(interaction.actions.setVssResults([]) as AnyAction);
+                done();
+                return;
+            }
+
+            const embedding = await ollamaService.embedQuery(prompt);
+            const allResults = (
+                await Promise.all(
+                    vssSources.map((source) =>
+                        databaseService.semanticSearch(source.name, embedding)
+                    )
+                )
+            ).flat();
+
+            allResults.sort((a, b) => (a._distance ?? Infinity) - (b._distance ?? Infinity));
+            dispatch(interaction.actions.setVssResults(allResults.slice(0, 20)) as AnyAction);
+        } catch (err: any) {
+            dispatch(
+                interaction.actions.processError("vssError", `Semantic search failed: ${err.message || err}`)
+            );
+            dispatch(interaction.actions.setVssResults([]) as AnyAction);
+        }
+
+        done();
+    },
+    type: APPLY_VSS_QUERY,
+});
+
+/**
+ * SQL mode: sends the prompt to /v1/sql to generate a DuckDB SQL query, then
+ * runs it locally against all selected data sources. Shows results as a file list.
+ */
+const applySqlQueryLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { action, getState } = deps;
+        const { prompt, model } = (action as ApplySqlQueryAction).payload;
+
+        const ollamaService = interaction.selectors.getOllamaService(getState());
+        if (!ollamaService) {
+            dispatch(interaction.actions.processError("sqlError", "Ollama service is not configured."));
+            dispatch(interaction.actions.setVssResults([]) as AnyAction);
+            done();
+            return;
+        }
+
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(getState());
+        const selectedDataSources = selectionSelectors.getSelectedDataSources(getState());
+        if (!selectedDataSources.length) {
+            dispatch(interaction.actions.processError("sqlError", "No data source selected."));
+            dispatch(interaction.actions.setVssResults([]) as AnyAction);
+            done();
+            return;
+        }
+
+        try {
+            const allResults: { [key: string]: any }[] = [];
+
+            for (const source of selectedDataSources) {
+                const schema = await databaseService.getTableSchema(source.name);
+                if (!schema) continue;
+
+                const colNames: string[] = [];
+                for (const m of schema.matchAll(/"([^"]+)"\s+\w/g)) {
+                    colNames.push(m[1]);
+                }
+
+                const questionWithHint =
+                    prompt +
+                    " (IMPORTANT: use single quotes for all string values in WHERE clauses, never double quotes)";
+                const generatedSql = await ollamaService.generateSqlQuery(
+                    questionWithHint,
+                    schema,
+                    model
+                );
+
+                const fixedSql = fixSqlQuoting(generatedSql, colNames);
+                const quotedName = `"${source.name.replace(/"/g, '""')}"`;
+                const executableSql = fixedSql.replace(/\bsource_data\b/gi, quotedName);
+
+                try {
+                    const rows = await databaseService.query(executableSql).promise;
+                    allResults.push(...rows);
+                } catch (sqlErr: any) {
+                    console.warn(
+                        `[SQLSearch] Generated SQL failed for "${source.name}", treating as 0 results.`,
+                        sqlErr?.message ?? sqlErr
+                    );
+                }
+            }
+
+            dispatch(interaction.actions.setVssResults(allResults.slice(0, 100)) as AnyAction);
+        } catch (err: any) {
+            dispatch(
+                interaction.actions.processError("sqlError", `SQL search failed: ${err.message || err}`)
+            );
+            dispatch(interaction.actions.setVssResults([]) as AnyAction);
+        }
+
+        done();
+    },
+    type: APPLY_SQL_QUERY,
+});
+
 export default [
     selectFile,
     modifyAnnotationHierarchy,
@@ -991,4 +1160,6 @@ export default [
     changeQueryLogic,
     removeQueryLogic,
     applyNaturalLanguageQueryLogic,
+    applyVssQueryLogic,
+    applySqlQueryLogic,
 ];
