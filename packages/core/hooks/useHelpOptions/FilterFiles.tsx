@@ -7,7 +7,7 @@ export const FILTER_FILES_TUTORIAL = new Tutorial(
     .addStep({
         targetId: Tutorial.FILTER_HEADER_ID,
         message:
-            'Filter for specific annotation values by clicking "Filter +", which opens a menu of all fields available in these data source(s).',
+            'Filter for specific annotation values by clicking the "Filter" button, which opens a menu of all fields available in these data source(s).',
     })
     .addStep({
         targetId: Tutorial.FILTER_HEADER_ID,
