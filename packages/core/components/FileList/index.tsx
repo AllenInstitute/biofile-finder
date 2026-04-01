@@ -165,7 +165,6 @@ export default function FileList(props: FileListProps) {
                 dispatch(setError(err as Error, isRoot));
                 // Root has its own error handling
                 if (!isRoot) setLocalError(err as Error);
-                throw err;
             }
         },
         [fileSet, isRoot, dispatch]
