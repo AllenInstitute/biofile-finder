@@ -48,6 +48,7 @@ const TALL_ROW_HEIGHT = 24;
  * itself out to be 100% the height and width of its parent.
  */
 export default function FileList(props: FileListProps) {
+    const { dispatch } = props;
     const [totalCount, setTotalCount] = React.useState<number | null>(null);
     const [localError, setLocalError] = React.useState<Error>();
     const [lastVisibleRowIndex, setLastVisibleRowIndex] = React.useState<number>(0);
@@ -161,13 +162,13 @@ export default function FileList(props: FileListProps) {
             try {
                 await fileSet.fetchFileRange(startIndex, endIndex);
             } catch (err) {
-                props.dispatch(setError(err as Error, isRoot));
+                dispatch(setError(err as Error, isRoot));
                 // Root has its own error handling
                 if (!isRoot) setLocalError(err as Error);
                 throw err;
             }
         },
-        [fileSet, isRoot, props.dispatch]
+        [fileSet, isRoot, dispatch]
     );
 
     // Stable debounced fetch — must not be recreated on every render or the debounce
