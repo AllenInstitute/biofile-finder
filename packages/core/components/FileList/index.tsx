@@ -146,7 +146,7 @@ export default function FileList(props: FileListProps) {
                 // Data source may not be prepared if the data source is taking longer to load
                 // than the component does to render. In this case, we can ignore the error.
                 // The component will re-render when the data source is prepared.
-                if (!(err as Error)?.message?.includes("Data source is not prepared")) {
+                if (!err?.message.includes("Data source is not prepared")) {
                     throw err;
                 }
             });
@@ -155,16 +155,27 @@ export default function FileList(props: FileListProps) {
         };
     }, [fileSet]);
 
-    const fileFetchWrapper = async (startIndex: number, endIndex: number) => {
-        setLocalError(undefined); // reset
-        try {
-            await fileSet.fetchFileRange(startIndex, endIndex);
-        } catch (err) {
-            props.dispatch(setError(err as Error, isRoot));
-            // Root has its own error handling
-            if (!isRoot) setLocalError(err as Error);
-        }
-    };
+    const fileFetchWrapper = React.useCallback(
+        async (startIndex: number, endIndex: number) => {
+            setLocalError(undefined); // reset
+            try {
+                await fileSet.fetchFileRange(startIndex, endIndex);
+            } catch (err) {
+                props.dispatch(setError(err as Error, isRoot));
+                // Root has its own error handling
+                if (!isRoot) setLocalError(err as Error);
+                throw err;
+            }
+        },
+        [fileSet, isRoot, props.dispatch]
+    );
+
+    // Stable debounced fetch — must not be recreated on every render or the debounce
+    // never accumulates scroll events across renders.
+    const debouncedFetchWrapper = React.useMemo(
+        () => debouncePromise<any>(fileFetchWrapper, DEBOUNCE_WAIT_FOR_DATA_FETCHING),
+        [fileFetchWrapper]
+    );
 
     let content: React.ReactNode;
     if (!!localError) {
@@ -187,10 +198,7 @@ export default function FileList(props: FileListProps) {
                 <InfiniteLoader
                     key={fileSet.instanceId} // force a re-render whenever FileSet changes
                     isItemLoaded={fileSet.isFileMetadataLoadingOrLoaded}
-                    loadMoreItems={debouncePromise<any>(
-                        fileFetchWrapper,
-                        DEBOUNCE_WAIT_FOR_DATA_FETCHING
-                    )}
+                    loadMoreItems={debouncedFetchWrapper}
                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}
                 >
                     {({ onItemsRendered, ref: innerRef }) => {
