@@ -46,6 +46,7 @@ export interface NestedCondition {
  */
 export default class NestedCombinationFilter extends FileFilter {
     private readonly conditions: NestedCondition[];
+    private readonly _useNativeStruct: boolean;
 
     public static isNestedCombinationFilter(
         candidate: unknown
@@ -53,9 +54,10 @@ export default class NestedCombinationFilter extends FileFilter {
         return candidate instanceof NestedCombinationFilter;
     }
 
-    constructor(annotationName: string, conditions: NestedCondition[]) {
+    constructor(annotationName: string, conditions: NestedCondition[], useNativeStruct = false) {
         super(annotationName, JSON.stringify(conditions), FilterType.DEFAULT);
         this.conditions = conditions;
+        this._useNativeStruct = useNativeStruct;
     }
 
     public get nestedConditions(): NestedCondition[] {
@@ -69,17 +71,36 @@ export default class NestedCombinationFilter extends FileFilter {
 
         const col = this.name;
 
-        // Build a lambda expression over each element `x` of the JSON array.
-        // Scalar fields use json_extract_string; array sub-fields use json_contains.
+        if (this._useNativeStruct) {
+            return this.toNativeStructSQL(col);
+        }
+        return this.toJsonSQL(col);
+    }
+
+    /**
+     * Generate SQL using native STRUCT[] list_filter — vectorized, no JSON parsing.
+     */
+    private toNativeStructSQL(col: string): string {
+        const conditionExprs = this.conditions.map(({ path, value }) => {
+            const escapedValue = `${value}`.replaceAll("'", "''");
+            if (path.length === 0) return "true";
+            const fieldAccess = path.map((seg) => `"${seg}"`).join(".");
+            return `CAST(x.${fieldAccess} AS VARCHAR) = '${escapedValue}'`;
+        });
+
+        const lambda = conditionExprs.join(" AND ");
+        return `len(list_filter("${col}", x -> ${lambda})) > 0`;
+    }
+
+    /** Generate SQL using JSON path extraction (original behavior for JSON VARCHAR columns). */
+    private toJsonSQL(col: string): string {
         const conditionExprs = this.conditions.map(({ elementJsonPath, value }) => {
             const escapedValue = `${value}`.replaceAll("'", "''");
             // If the element JSONPath itself traverses an array (contains [*]), the result is
             // another JSON array — use json_contains to check membership.
             if (elementJsonPath.includes("[*]")) {
                 const jsonElement =
-                    typeof value === "string"
-                        ? `'"${escapedValue}"'`
-                        : `'${escapedValue}'`;
+                    typeof value === "string" ? `'"${escapedValue}"'` : `'${escapedValue}'`;
                 return (
                     `json_contains(` +
                     `CAST(json_extract(x, '${elementJsonPath}') AS VARCHAR)::JSON, ` +

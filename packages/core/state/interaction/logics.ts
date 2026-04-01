@@ -725,12 +725,14 @@ const refresh = createLogic({
             const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
             const annotationService = interactionSelectors.getAnnotationService(getState());
 
-            // Refresh list of annotations & which annotations are available
-            const [annotations, availableAnnotations] = await Promise.all([
-                annotationService.fetchAnnotations(),
-                annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy),
-            ]);
+            // Refresh list of annotations first so the result is cached before
+            // fetchAvailableAnnotationsForHierarchy calls it internally — avoids
+            // running duplicate concurrent sampling queries against the database.
+            const annotations = await annotationService.fetchAnnotations();
             dispatch(metadata.actions.receiveAnnotations(annotations));
+            const availableAnnotations = await annotationService.fetchAvailableAnnotationsForHierarchy(
+                hierarchy
+            );
             dispatch(selection.actions.setAvailableAnnotations(availableAnnotations));
         } catch (err) {
             console.error(`Error encountered while refreshing: ${err}`);

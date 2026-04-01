@@ -1,4 +1,4 @@
-import { defaults, find, pull, take, uniqWith, zip } from "lodash";
+import { defaults, pull, take, uniqWith, zip } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -199,14 +199,16 @@ const useDirectoryHierarchy = (
                             if (
                                 annotationMeta?.isNestedSubField &&
                                 annotationMeta.nestedParent &&
-                                annotationMeta.nestedJsonPath
+                                (annotationMeta.nestedJsonPath ||
+                                    annotationMeta.nestedListExpression)
                             ) {
                                 return new FileFilter(
                                     name,
                                     filterValue,
                                     FilterType.DEFAULT,
                                     annotationMeta.nestedJsonPath,
-                                    annotationMeta.nestedParent
+                                    annotationMeta.nestedParent,
+                                    annotationMeta.nestedListExpression
                                 );
                             }
                             return new FileFilter(name, filterValue);

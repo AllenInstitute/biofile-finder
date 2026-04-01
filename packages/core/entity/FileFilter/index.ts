@@ -11,6 +11,8 @@ export interface FileFilterJson {
      */
     nestedParent?: string;
     nestedJsonPath?: string;
+    /** Native DuckDB list expression for STRUCT[] columns — preferred over nestedJsonPath. */
+    nestedListExpression?: string;
 }
 
 // Filter with formatted value
@@ -47,6 +49,11 @@ export default class FileFilter {
      * E.g. "$[*].Gene" for Well.Gene, or "$[*].Dose[*].Value" for Well.Dose.Value.
      */
     private readonly _nestedJsonPath?: string;
+    /**
+     * DuckDB list expression for native STRUCT[] columns.
+     * When set, toSQLWhereString uses list_has / list_filter instead of json_extract.
+     */
+    private readonly _nestedListExpression?: string;
 
     public static isFileFilter(candidate: any): candidate is FileFilter {
         return candidate instanceof FileFilter;
@@ -57,13 +64,15 @@ export default class FileFilter {
         annotationValue: any,
         filterType: FilterType = FilterType.DEFAULT,
         nestedJsonPath?: string,
-        nestedParent?: string
+        nestedParent?: string,
+        nestedListExpression?: string
     ) {
         this.annotationName = annotationName;
         this.annotationValue = annotationValue;
         this.filterType = annotationValue === NO_VALUE_NODE ? FilterType.EXCLUDE : filterType;
         this._nestedJsonPath = nestedJsonPath || undefined;
         this._nestedParent = nestedParent;
+        this._nestedListExpression = nestedListExpression || undefined;
     }
 
     public get name() {
@@ -92,6 +101,11 @@ export default class FileFilter {
         return this._nestedJsonPath;
     }
 
+    /** DuckDB list expression for native STRUCT[] columns. */
+    public get nestedListExpression(): string | undefined {
+        return this._nestedListExpression;
+    }
+
     public toQueryString(): string {
         const pathSuffix = this._nestedJsonPath ? `[${this._nestedJsonPath}]` : "";
         switch (this.type) {
@@ -111,10 +125,24 @@ export default class FileFilter {
      * Instead, generate the string that can be passed into the .where() clause.
      */
     public toSQLWhereString(): string {
-        // --- Virtual sub-field annotation (e.g. "Well.Gene" or "Well.Dose.Value") ---
+        // --- Native STRUCT[] sub-field (e.g. list_transform("Well", x -> x."Gene")) ---
+        // Uses vectorized list operations — vastly faster than JSON parsing at scale.
+        if (this._nestedListExpression) {
+            const listExpr = this._nestedListExpression;
+            switch (this.type) {
+                case FilterType.ANY:
+                    return `len(${listExpr}) > 0`;
+                case FilterType.EXCLUDE:
+                    return `("${this._nestedParent}" IS NULL OR len(${listExpr}) = 0)`;
+                case FilterType.FUZZY:
+                default:
+                    return SQLBuilder.listContains(listExpr, this.annotationValue);
+            }
+        }
+
+        // --- JSON VARCHAR sub-field fallback ---
         // `_nestedParent` is the physical column ("Well"); `_nestedJsonPath` is the full
         // DuckDB JSONPath expression ("$[*].Gene" or "$[*].Dose[*].Value").
-        // json_extract returns a JSON array of all matching values across every array element.
         if (this._nestedParent && this._nestedJsonPath) {
             const col = this._nestedParent;
             const path = this._nestedJsonPath;
@@ -151,6 +179,9 @@ export default class FileFilter {
             type: this.filterType,
             ...(this._nestedParent ? { nestedParent: this._nestedParent } : {}),
             ...(this._nestedJsonPath ? { nestedJsonPath: this._nestedJsonPath } : {}),
+            ...(this._nestedListExpression
+                ? { nestedListExpression: this._nestedListExpression }
+                : {}),
         };
     }
 
@@ -160,7 +191,8 @@ export default class FileFilter {
             this.annotationValue === target.annotationValue &&
             this.filterType === target.filterType &&
             (this._nestedParent ?? "") === (target.nestedParent ?? "") &&
-            (this._nestedJsonPath ?? "") === (target.nestedJsonPath ?? "")
+            (this._nestedJsonPath ?? "") === (target.nestedJsonPath ?? "") &&
+            (this._nestedListExpression ?? "") === (target.nestedListExpression ?? "")
         );
     }
 }

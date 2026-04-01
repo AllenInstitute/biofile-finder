@@ -157,10 +157,7 @@ function parseStructFields(typeExpression: string): StructField[] {
         .filter((field) => field.name.length > 0);
 }
 
-function collectNestedStructPaths(
-    typeExpression: string,
-    currentPath: string[] = []
-): string[][] {
+function collectNestedStructPaths(typeExpression: string, currentPath: string[] = []): string[][] {
     const fields = parseStructFields(typeExpression);
     if (fields.length === 0) {
         return [];
@@ -170,6 +167,127 @@ function collectNestedStructPaths(
         const nextPath = [...currentPath, field.name];
         const nestedPaths = collectNestedStructPaths(field.typeExpression, nextPath);
         return nestedPaths.length > 0 ? nestedPaths : [nextPath];
+    });
+}
+
+/**
+ * A discovered sub-field path within a STRUCT[] annotation column, with both the
+ * human-readable display path and the DuckDB list expression for extracting values.
+ */
+interface StructArraySchemaPath {
+    displayPath: string;
+    /** DuckDB JSONPath (e.g. "$[*].Gene") — kept for JSON VARCHAR fallback / serialization. */
+    jsonPath: string;
+    /** Native DuckDB list expression using list_transform + flatten. */
+    listExpression: string;
+}
+
+/**
+ * Build a native DuckDB list expression that extracts all values of a leaf field from
+ * a STRUCT(...)[] column without converting to JSON.
+ *
+ * For a column "Well" of type STRUCT(Gene VARCHAR, Dose STRUCT(Unit VARCHAR, Value FLOAT)[])[]
+ *   fieldPath ["Gene"]         → `list_transform("Well", __x0 -> __x0."Gene")`
+ *   fieldPath ["Dose","Value"] → `flatten(list_transform("Well", __x0 -> list_transform(__x0."Dose", __x1 -> __x1."Value")))`
+ *
+ * Each nested STRUCT[] traversal adds a `list_transform` layer wrapped in `flatten`.
+ */
+function buildListTransformExpression(
+    columnName: string,
+    fieldPath: string[],
+    typeExpression: string
+): string {
+    // Walk the type tree alongside the field path to detect array boundaries.
+    let expr = quoteIdentifier(columnName);
+    let currentType = typeExpression; // Initially the full STRUCT(...)[] type
+    let varIdx = 0;
+
+    // Strip the outer [] since the column itself is already the array we iterate over.
+    // currentType holds the element type of the outermost array.
+    if (currentType.trimEnd().endsWith("[]")) {
+        currentType = currentType.trimEnd().slice(0, -2).trim();
+    }
+
+    for (let i = 0; i < fieldPath.length; i++) {
+        const fieldName = fieldPath[i];
+        const varName = `__x${varIdx++}`;
+        const fields = parseStructFields(currentType);
+        const field = fields.find((f) => f.name === fieldName);
+        const fieldType = field?.typeExpression ?? "";
+
+        if (i === fieldPath.length - 1) {
+            // Last segment — just access the field.
+            expr = `list_transform(${expr}, ${varName} -> ${varName}.${quoteIdentifier(
+                fieldName
+            )})`;
+        } else {
+            // Intermediate segment. Check if it's array-typed (STRUCT(...)[]); if so we need
+            // list_transform + flatten at this level.
+            const isArrayField = fieldType.trimEnd().endsWith("[]");
+            if (isArrayField) {
+                // Access the field (returns an array per row), then flatten after the outer transform.
+                expr = `list_transform(${expr}, ${varName} -> ${varName}.${quoteIdentifier(
+                    fieldName
+                )})`;
+                expr = `flatten(${expr})`;
+                // Advance currentType to the element type of the nested array.
+                currentType = fieldType.trimEnd().slice(0, -2).trim();
+            } else {
+                // Scalar struct — just descend with a single transform wrapping the remainder.
+                // For deeper nesting we continue building up the lambda.
+                expr = `list_transform(${expr}, ${varName} -> ${varName}.${quoteIdentifier(
+                    fieldName
+                )})`;
+                currentType = fieldType;
+            }
+            continue;
+        }
+    }
+
+    return expr;
+}
+
+/**
+ * Discover all leaf sub-field paths from a STRUCT(...)[] type expression and produce
+ * both the human-readable display path, a JSONPath string (for compatibility), and
+ * a native DuckDB list expression.
+ */
+function collectStructArraySchemaPaths(
+    columnName: string,
+    structArrayType: string
+): StructArraySchemaPath[] {
+    // The type is e.g. "STRUCT(Gene VARCHAR, Dose STRUCT(...)[])[]"
+    // collectNestedStructPaths works on the inner STRUCT(...) without the trailing [].
+    const innerType = structArrayType.trimEnd().endsWith("[]")
+        ? structArrayType.trimEnd().slice(0, -2).trim()
+        : structArrayType;
+    const fieldPaths = collectNestedStructPaths(innerType);
+
+    return fieldPaths.map((fieldPath) => {
+        const displayPath = fieldPath.join(".");
+        // Build a JSONPath for backward compat / serialization.
+        // Simple case: "$[*].Gene"; nested arrays: "$[*].Dose[*].Value".
+        // We approximate by checking the type tree for array boundaries.
+        let jsonSegments = "$[*]";
+        let curType = innerType;
+        for (const seg of fieldPath) {
+            const fields = parseStructFields(curType);
+            const f = fields.find((x) => x.name === seg);
+            const ft = f?.typeExpression ?? "";
+            jsonSegments += `.${seg}`;
+            if (ft.trimEnd().endsWith("[]")) {
+                jsonSegments += "[*]";
+                curType = ft.trimEnd().slice(0, -2).trim();
+            } else {
+                curType = ft;
+            }
+        }
+
+        return {
+            displayPath,
+            jsonPath: jsonSegments,
+            listExpression: buildListTransformExpression(columnName, fieldPath, structArrayType),
+        };
     });
 }
 
@@ -202,8 +320,8 @@ interface JsonSchemaPath {
  */
 function collectJsonArraySchemaPaths(
     items: unknown[],
-    jsonPrefix: string = "$[*]",
-    displayPrefix: string = ""
+    jsonPrefix = "$[*]",
+    displayPrefix = ""
 ): JsonSchemaPath[] {
     const seen = new Set<string>();
     const paths: JsonSchemaPath[] = [];
@@ -218,11 +336,7 @@ function collectJsonArraySchemaPaths(
 
             if (Array.isArray(val)) {
                 // Nested array — recurse with [*] wildcard
-                const sub = collectJsonArraySchemaPaths(
-                    val,
-                    `${jsonKey}[*]`,
-                    display
-                );
+                const sub = collectJsonArraySchemaPaths(val, `${jsonKey}[*]`, display);
                 if (sub.length > 0) {
                     for (const p of sub) {
                         if (!seen.has(p.displayPath)) {
@@ -286,9 +400,7 @@ export function getParquetNestedMetadataSelectParts(
         for (const fieldPath of nestedFieldPaths) {
             const alias = quoteIdentifier(`${row.column_name}.${fieldPath.join(".")}`);
             const fieldExpression = buildStructExtractExpression(row.column_name, fieldPath);
-            nestedSelectParts.push(
-                `CAST(${fieldExpression} AS VARCHAR) AS ${alias}`
-            );
+            nestedSelectParts.push(`CAST(${fieldExpression} AS VARCHAR) AS ${alias}`);
         }
     }
 
@@ -366,6 +478,7 @@ export default class DatabaseService {
     public async query(sql: string): Promise<{ [key: string]: any }[]> {
         // Time this
         const start = Date.now();
+        console.log(`Executing query at ${start}`, sql);
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
@@ -385,12 +498,16 @@ export default class DatabaseService {
         } finally {
             await connection.close();
             const end = Date.now();
-            if (end-start >= 30_000) {
-                console.warn(`Very slow query: Query executed in ${(end - start) / 1000}s: ${DatabaseService.truncateString(sql, 200)}`);
-            } else if (end-start >= 15_000) {
-                console.warn(`Slow query: Query executed in ${(end - start) / 1000}s: ${DatabaseService.truncateString(sql, 200)}`);
-            } else if (end-start >= 1_000) {
-                console.warn(`Slightly slow query: Query executed in ${(end - start) / 1000}s: ${DatabaseService.truncateString(sql, 200)}`);
+            if (end - start >= 30_000) {
+                console.error(
+                    `Very slow query: Query executed in ${(end - start) / 1000}s: ${sql}`
+                );
+            } else if (end - start >= 15_000) {
+                console.error(`Slow query: Query executed in ${(end - start) / 1000}s: ${sql}`);
+            } else if (end - start >= 2_500) {
+                console.warn(
+                    `Slightly slow query: Query executed in ${(end - start) / 1000}s: ${sql}`
+                );
             }
             // console.log(`Query executed in ${end - start}ms: ${sql.substring(0, 100)}...`);
         }
@@ -778,16 +895,12 @@ export default class DatabaseService {
         // 2. Determine which columns need to be renamed, if any
         const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
         // 3. Prepare the SQL for renaming columns in the CREATE VIEW.
-        //    STRUCT(...)[] columns (arrays of structs) are cast to JSON so that the runtime
-        //    discovery path in fetchAnnotations treats them uniformly with JSON VARCHAR arrays.
+        //    STRUCT(...)[] columns (arrays of structs) are kept in their native type so that
+        //    queries can use DuckDB's vectorized list_transform / list_filter operations
+        //    instead of slow row-by-row JSON parsing.
         //    Plain STRUCT(...) columns are kept as-is and expanded below.
         const selectParts = rawColumns.map((col) => {
-            const colType = colTypeMap.get(col) ?? "";
             const alias = actualToPreDefined.get(col) ?? col;
-            // Array-of-structs: cast to JSON so the application layer can JSON.parse it.
-            if (colType.startsWith("STRUCT(") && colType.trimEnd().endsWith("[]")) {
-                return `CAST("${col}" AS JSON) AS "${alias}"`;
-            }
             if (alias !== col) {
                 return `"${col}" AS "${alias}"`;
             }
@@ -997,6 +1110,10 @@ export default class DatabaseService {
 
             const annotations: Annotation[] = [];
 
+            // Collect VARCHAR/JSON columns that need runtime sampling for nested schema discovery.
+            // We'll batch them into a single query instead of one per column.
+            const jsonLikeCols: Array<{ colName: string; annotationIndex: number }> = [];
+
             for (const row of rows) {
                 const rawDataType = (row["data_type"] ?? "") as string;
                 const colName = row["column_name"] as string;
@@ -1006,6 +1123,8 @@ export default class DatabaseService {
                 // createParquetDirectView so they will appear in subsequent rows of this query.
                 const isStructOrMap =
                     rawDataType.startsWith("STRUCT(") || rawDataType.startsWith("MAP(");
+                const isStructArray =
+                    rawDataType.startsWith("STRUCT(") && rawDataType.trimEnd().endsWith("[]");
 
                 annotations.push(
                     new Annotation({
@@ -1015,35 +1134,66 @@ export default class DatabaseService {
                         type:
                             (annotationNameToTypeMap[colName] as AnnotationType) ||
                             DatabaseService.columnTypeToAnnotationType(rawDataType),
-                        isNested: isStructOrMap,
+                        isNested: isStructOrMap || isStructArray,
                     })
                 );
 
-                // For plain VARCHAR and JSON columns, sample a few rows to detect whether the
-                // values are JSON arrays of objects (e.g. [{"Label":"A3","Gene":"TP53",...},...]).
-                // JSON-typed columns arise when a STRUCT(...)[] parquet column is cast to JSON
-                // in createParquetDirectView. If confirmed, discover the value-schema paths
-                // ("Gene", "Dose.Value") and register a virtual sub-field annotation for each.
+                // STRUCT(...)[] columns — discover sub-fields from the type definition
+                // at build time (no row scanning needed). Uses native list_transform
+                // expressions for vectorized query execution.
+                if (isStructArray) {
+                    const structPaths = collectStructArraySchemaPaths(colName, rawDataType);
+                    for (const { displayPath, jsonPath, listExpression } of structPaths) {
+                        const virtualName = `${colName}.${displayPath}`;
+                        annotations.push(
+                            new Annotation({
+                                annotationName: virtualName,
+                                annotationDisplayName: virtualName,
+                                description: `Sub-field "${displayPath}" of "${colName}"`,
+                                type: AnnotationType.STRING,
+                                isNestedSubField: true,
+                                nestedParent: colName,
+                                nestedJsonPath: jsonPath,
+                                nestedListExpression: listExpression,
+                            })
+                        );
+                    }
+                }
+
+                // Track VARCHAR/JSON columns for batched sampling below.
                 const isJsonLike = rawDataType === "VARCHAR" || rawDataType === "JSON";
                 if (isJsonLike && !isStructOrMap) {
-                    try {
-                        const sampleSql = new SQLBuilder()
-                            .select(`"${colName}"`)
-                            .from(aggregateDataSourceName)
-                            .where(`"${colName}" IS NOT NULL`)
-                            .limit(DatabaseService.JSON_SCHEMA_SAMPLE_SIZE)
-                            .toSQL();
-                        const sampleRows = await this.query(sampleSql);
+                    jsonLikeCols.push({ colName, annotationIndex: annotations.length - 1 });
+                }
+            }
 
-                        // Collect schema paths across all sampled rows (union).
+            // For non-parquet data sources, VARCHAR/JSON columns may contain JSON arrays of
+            // objects (e.g. [{"Label":"A3","Gene":"TP53",...},...]).  Detect this by sampling
+            // a few rows.  All candidate columns are fetched in ONE query to avoid N round-trips.
+            if (jsonLikeCols.length > 0) {
+                try {
+                    const selectParts = jsonLikeCols
+                        .map(({ colName }) => `"${colName}"`)
+                        .join(", ");
+                    const sampleSql = new SQLBuilder()
+                        .select(selectParts)
+                        .from(aggregateDataSourceName)
+                        .limit(DatabaseService.JSON_SCHEMA_SAMPLE_SIZE)
+                        .toSQL();
+                    const sampleRows = await this.query(sampleSql);
+
+                    for (const { colName, annotationIndex } of jsonLikeCols) {
                         const schemaPaths = new Map<string, JsonSchemaPath>();
 
                         for (const sampleRow of sampleRows) {
                             const raw = sampleRow[colName];
                             if (typeof raw !== "string") continue;
                             let parsed: unknown;
-                            try { parsed = JSON.parse(raw); } catch { continue; }
-                            // Only handle JSON arrays of objects.
+                            try {
+                                parsed = JSON.parse(raw);
+                            } catch {
+                                continue;
+                            }
                             if (!Array.isArray(parsed) || parsed.length === 0) continue;
 
                             const discovered = collectJsonArraySchemaPaths(parsed);
@@ -1055,18 +1205,17 @@ export default class DatabaseService {
                         }
 
                         if (schemaPaths.size > 0) {
-                            // Mark the parent column as nested now that we confirmed it is.
-                            annotations[annotations.length - 1] = new Annotation({
+                            // Mark the parent column as nested.
+                            annotations[annotationIndex] = new Annotation({
                                 annotationName: colName,
                                 annotationDisplayName: colName,
                                 description: annotationNameToDescriptionMap[colName] || "",
                                 type:
                                     (annotationNameToTypeMap[colName] as AnnotationType) ||
-                                    DatabaseService.columnTypeToAnnotationType(rawDataType),
+                                    DatabaseService.columnTypeToAnnotationType("VARCHAR"),
                                 isNested: true,
                             });
 
-                            // Register one virtual annotation per unique value-schema path.
                             for (const { displayPath, jsonPath } of schemaPaths.values()) {
                                 const virtualName = `${colName}.${displayPath}`;
                                 annotations.push(
@@ -1082,9 +1231,9 @@ export default class DatabaseService {
                                 );
                             }
                         }
-                    } catch {
-                        // Sampling failed (e.g. column missing in aggregate) — skip virtual paths.
                     }
+                } catch {
+                    // Sampling failed — skip virtual path discovery for all JSON-like columns.
                 }
             }
 

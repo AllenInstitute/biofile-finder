@@ -1,6 +1,7 @@
 import { Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
+import { Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FileAnnotationRow from "./FileAnnotationRow";
@@ -77,7 +78,7 @@ export default function FileAnnotationRowGroup(props: Props) {
     };
 
     return (
-        <span>
+        <div className={styles["group-wrapper"]}>
             {/* Header row */}
             <div
                 className={classNames(props.className, styles.row)}
@@ -136,20 +137,22 @@ export default function FileAnnotationRowGroup(props: Props) {
             {/* Expanded children */}
             {isExpanded &&
                 (isArray
-                    ? // Array of objects: render each element as an indexed sub-group
-                      (props.value as NestedAnnotation[]).map((entry) =>
-                          <>
-                            {Object.keys(entry).map((key) =>
-                                renderNestedValue(
-                                    key,
-                                    entry[key],
-                                    props.depth + 1,
-                                    props.fmsStateIndicator
-                                )
-                            )}
-                            <div>----</div>
-                          </>
-                      )
+                    ? // Array of objects: render each element's fields, separated by a rule
+                      (props.value as NestedAnnotation[]).map((entry, index) => (
+                          <Fragment key={index}>
+                              {Object.keys(entry).map((key) =>
+                                  renderNestedValue(
+                                      key,
+                                      entry[key],
+                                      props.depth + 1,
+                                      props.fmsStateIndicator
+                                  )
+                              )}
+                              {index < (props.value as NestedAnnotation[]).length - 1 && (
+                                  <div className={styles["entry-separator"]} />
+                              )}
+                          </Fragment>
+                      ))
                     : // Single object: render each key
                       Object.keys(props.value as NestedAnnotation).map((key) =>
                           renderNestedValue(
@@ -159,7 +162,7 @@ export default function FileAnnotationRowGroup(props: Props) {
                               props.fmsStateIndicator
                           )
                       ))}
-        </span>
+        </div>
     );
 }
 

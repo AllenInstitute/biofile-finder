@@ -1,3 +1,7 @@
+.group-wrapper {
+    width: 100%;
+}
+
 .row {
     width: 100%;
 
@@ -105,4 +109,10 @@
     height: 27.5px;
     display: flex;
     align-items: center;
+}
+
+.entry-separator {
+    border-top: 1px dashed var(--border-color, rgba(0,0,0,0.15));
+    margin: 2px 0;
+    width: 100%;
 }

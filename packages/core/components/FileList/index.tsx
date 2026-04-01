@@ -48,6 +48,7 @@ const TALL_ROW_HEIGHT = 24;
  * itself out to be 100% the height and width of its parent.
  */
 export default function FileList(props: FileListProps) {
+    const { dispatch } = props;
     const [totalCount, setTotalCount] = React.useState<number | null>(null);
     const [localError, setLocalError] = React.useState<Error>();
     const [lastVisibleRowIndex, setLastVisibleRowIndex] = React.useState<number>(0);
@@ -155,17 +156,27 @@ export default function FileList(props: FileListProps) {
         };
     }, [fileSet]);
 
-    const fileFetchWrapper = async (startIndex: number, endIndex: number) => {
-        setLocalError(undefined); // reset
-        try {
-            await fileSet.fetchFileRange(startIndex, endIndex);
-        } catch (err) {
-            props.dispatch(setError(err as Error, isRoot));
-            // Root has its own error handling
-            if (!isRoot) setLocalError(err as Error);
-            throw err;
-        }
-    };
+    const fileFetchWrapper = React.useCallback(
+        async (startIndex: number, endIndex: number) => {
+            setLocalError(undefined); // reset
+            try {
+                await fileSet.fetchFileRange(startIndex, endIndex);
+            } catch (err) {
+                dispatch(setError(err as Error, isRoot));
+                // Root has its own error handling
+                if (!isRoot) setLocalError(err as Error);
+                throw err;
+            }
+        },
+        [fileSet, isRoot, dispatch]
+    );
+
+    // Stable debounced fetch — must not be recreated on every render or the debounce
+    // never accumulates scroll events across renders.
+    const debouncedFetchWrapper = React.useMemo(
+        () => debouncePromise<any>(fileFetchWrapper, DEBOUNCE_WAIT_FOR_DATA_FETCHING),
+        [fileFetchWrapper]
+    );
 
     let content: React.ReactNode;
     if (!!localError) {
@@ -188,10 +199,7 @@ export default function FileList(props: FileListProps) {
                 <InfiniteLoader
                     key={fileSet.instanceId} // force a re-render whenever FileSet changes
                     isItemLoaded={fileSet.isFileMetadataLoadingOrLoaded}
-                    loadMoreItems={debouncePromise<any>(
-                        fileFetchWrapper,
-                        DEBOUNCE_WAIT_FOR_DATA_FETCHING
-                    )}
+                    loadMoreItems={debouncedFetchWrapper}
                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}
                 >
                     {({ onItemsRendered, ref: innerRef }) => {

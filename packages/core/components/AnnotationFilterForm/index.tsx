@@ -16,7 +16,9 @@ import Annotation from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
-import NestedCombinationFilter, { NestedCondition } from "../../entity/FileFilter/NestedCombinationFilter";
+import NestedCombinationFilter, {
+    NestedCondition,
+} from "../../entity/FileFilter/NestedCombinationFilter";
 import { interaction, selection } from "../../state";
 
 import styles from "./AnnotationFilterForm.module.css";
@@ -142,14 +144,19 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             : props.annotation.valueOf(item.value);
 
         // For virtual sub-field annotations (e.g. "Well.Gene"), pass nestedParent and
-        // nestedJsonPath so the filter produces the correct json_contains SQL.
-        if (props.annotation.isNestedSubField && props.annotation.nestedParent && props.annotation.nestedJsonPath) {
+        // nestedJsonPath/nestedListExpression so the filter produces the correct SQL.
+        if (
+            props.annotation.isNestedSubField &&
+            props.annotation.nestedParent &&
+            (props.annotation.nestedJsonPath || props.annotation.nestedListExpression)
+        ) {
             return new FileFilter(
                 props.annotation.name,
                 value,
                 filterType,
                 props.annotation.nestedJsonPath,
-                props.annotation.nestedParent
+                props.annotation.nestedParent,
+                props.annotation.nestedListExpression
             );
         }
 
@@ -184,7 +191,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             const isVirtualSubField =
                 props.annotation.isNestedSubField &&
                 !!props.annotation.nestedParent &&
-                !!props.annotation.nestedJsonPath;
+                !!(props.annotation.nestedJsonPath || props.annotation.nestedListExpression);
 
             dispatch(
                 selection.actions.setFileFilters([
@@ -195,7 +202,8 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                               filterValue,
                               type,
                               props.annotation.nestedJsonPath,
-                              props.annotation.nestedParent
+                              props.annotation.nestedParent,
+                              props.annotation.nestedListExpression
                           )
                         : new FileFilter(props.annotation.name, filterValue, type),
                 ])
@@ -211,7 +219,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     function onApplyByField() {
         const path = fieldPath.trim();
         if (!path) return;
-        const segments = path.split(".").map((s) => s.trim()).filter(Boolean);
+        const segments = path
+            .split(".")
+            .map((s) => s.trim())
+            .filter(Boolean);
         if (!segments.length) return;
         // Build a JSON array wildcard path: $[*].Gene or $[*].Dose.Value
         const nestedJsonPath = `$[*].${segments.join(".")}`;
@@ -219,9 +230,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             selection.actions.setFileFilters([
                 // Remove any existing nested-path filters for this annotation+path.
                 ...allFilters.filter(
-                    (f) =>
-                        f.name !== props.annotation.name ||
-                        f.nestedJsonPath !== nestedJsonPath
+                    (f) => f.name !== props.annotation.name || f.nestedJsonPath !== nestedJsonPath
                 ),
                 new FileFilter(props.annotation.name, "", FilterType.ANY, nestedJsonPath),
             ])
@@ -250,7 +259,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         const conditions: NestedCondition[] = combRows
             .map((row) => {
                 const segments = (typeof row.path === "string"
-                    ? (row.path as unknown as string).split(".").map((s) => s.trim())
+                    ? ((row.path as unknown) as string).split(".").map((s) => s.trim())
                     : row.path
                 ).filter(Boolean);
                 // elementJsonPath is relative to a single array element; use $.segment.path
@@ -267,7 +276,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         dispatch(
             selection.actions.setFileFilters([
                 ...allFilters.filter((f) => f.name !== props.annotation.name),
-                new NestedCombinationFilter(props.annotation.name, conditions),
+                new NestedCombinationFilter(
+                    props.annotation.name,
+                    conditions,
+                    !!props.annotation.nestedListExpression
+                ),
             ])
         );
     }
@@ -357,13 +370,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         <div className={styles.nestedSection}>
             {/* Mode selector */}
             <div className={styles.nestedModeBar}>
-                {(
-                    [
-                        ["flat", "Flat"],
-                        ["byField", "By field"],
-                        ["byCombination", "Combined"],
-                    ] as [NestedFilterMode, string][]
-                ).map(([mode, label]) => (
+                {([
+                    ["flat", "Flat"],
+                    ["byField", "By field"],
+                    ["byCombination", "Combined"],
+                ] as [NestedFilterMode, string][]).map(([mode, label]) => (
                     <button
                         key={mode}
                         className={classNames(styles.nestedModeBtn, {
@@ -385,9 +396,8 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             {nestedMode === "byField" && (
                 <>
                     <p className={styles.nestedNote}>
-                        Target a specific sub-field at any depth (e.g.{" "}
-                        <code>Gene</code> or <code>Dose.Value</code>).
-                        All entries in the object will be searched.
+                        Target a specific sub-field at any depth (e.g. <code>Gene</code> or{" "}
+                        <code>Dose.Value</code>). All entries in the object will be searched.
                     </p>
                     <div className={styles.nestedConditionRow}>
                         <input
@@ -427,7 +437,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                                 value={
                                     Array.isArray(row.path)
                                         ? row.path.join(".")
-                                        : (row.path as unknown as string)
+                                        : ((row.path as unknown) as string)
                                 }
                                 onChange={(e) => {
                                     const updated = [...combRows];
@@ -516,4 +526,3 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         </div>
     );
 }
-

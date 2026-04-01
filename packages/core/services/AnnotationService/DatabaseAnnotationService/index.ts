@@ -86,17 +86,22 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const allAnnotations = await this.databaseService.fetchAnnotations(this.dataSourceNames);
         const annotationMetaMap = new Map(allAnnotations.map((a) => [a.name, a]));
 
-        // Build a FileFilter for an annotation, using json_extract SQL for virtual sub-fields.
+        // Build a FileFilter for an annotation, using native list or json_extract SQL for virtual sub-fields.
         const makeFilter = (annotationName: string, value?: string): FileFilter => {
             const meta = annotationMetaMap.get(annotationName);
-            if (meta?.isNestedSubField && meta.nestedParent && meta.nestedJsonPath) {
+            if (
+                meta?.isNestedSubField &&
+                meta.nestedParent &&
+                (meta.nestedJsonPath || meta.nestedListExpression)
+            ) {
                 const filterType = value !== undefined ? FilterType.DEFAULT : FilterType.ANY;
                 return new FileFilter(
                     annotationName,
                     value ?? "",
                     filterType,
                     meta.nestedJsonPath,
-                    meta.nestedParent
+                    meta.nestedParent,
+                    meta.nestedListExpression
                 );
             }
             if (value !== undefined) {
@@ -140,22 +145,24 @@ export default class DatabaseAnnotationService implements AnnotationService {
         }
 
         // Detect virtual sub-field annotations: names like "Well.Gene" that don't exist as
-        // physical columns. These come from JSON VARCHAR columns with dynamic outer keys.
-        // The Annotation cache holds `nestedParent` / `nestedJsonPath` for them; here we derive
-        // those from the name by looking up the registered annotations.
+        // physical columns. These come from STRUCT[] columns (native) or JSON VARCHAR columns.
+        // The Annotation cache holds `nestedParent` / `nestedJsonPath` / `nestedListExpression`.
         const allAnnotations = await this.databaseService.fetchAnnotations(this.dataSourceNames);
         const annotationMeta = allAnnotations.find((a) => a.name === annotation);
         const isVirtual = annotationMeta?.isNestedSubField === true;
+        const hasListExpr = !!annotationMeta?.nestedListExpression;
 
         let selectExpr: string;
         let resultAlias: string;
 
-        if (isVirtual && annotationMeta?.nestedParent && annotationMeta?.nestedJsonPath) {
+        if (isVirtual && hasListExpr && annotationMeta) {
+            // Native STRUCT[] path — use list_transform + UNNEST for vectorized extraction.
+            resultAlias = "__nested_values__";
+            selectExpr = `DISTINCT UNNEST(${annotationMeta.nestedListExpression}) AS "${resultAlias}"`;
+        } else if (isVirtual && annotationMeta?.nestedParent && annotationMeta?.nestedJsonPath) {
             const parent = annotationMeta.nestedParent;
-            const jsonPath = annotationMeta.nestedJsonPath; // e.g. "$[*].Gene" or "$[*].Dose[*].Value"
-            // json_extract with a $[*] wildcard returns a JSON array of all matching values
-            // across every element of the array column (e.g. '["TP53","MYC",...]').
-            // We'll flatten the JSON arrays row-by-row below.
+            const jsonPath = annotationMeta.nestedJsonPath; // e.g. "$[*].Gene"
+            // JSON fallback: json_extract returns a JSON array, flattened row-by-row below.
             resultAlias = "__nested_values__";
             selectExpr = `DISTINCT CAST(json_extract("${parent}"::JSON, '${jsonPath}') AS VARCHAR) AS "${resultAlias}"`;
         } else {
@@ -163,9 +170,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
             selectExpr = `DISTINCT "${annotation}"`;
         }
 
-        const sqlBuilder = new SQLBuilder()
-            .select(selectExpr)
-            .from(this.dataSourceNames);
+        const sqlBuilder = new SQLBuilder().select(selectExpr).from(this.dataSourceNames);
 
         Object.keys(filtersByAnnotation).forEach((annotationToFilter) => {
             const appliedFilters = filtersByAnnotation[annotationToFilter];
@@ -175,6 +180,17 @@ export default class DatabaseAnnotationService implements AnnotationService {
         });
 
         const rows = await this.databaseService.query(sqlBuilder.toSQL());
+
+        if (isVirtual && hasListExpr) {
+            // Native STRUCT[] path: UNNEST already flattened to scalar rows.
+            const values = new Set<string>();
+            for (const row of rows) {
+                const raw = row[resultAlias];
+                if (isNil(raw)) continue;
+                values.add(String(raw).trim());
+            }
+            return [...values];
+        }
 
         if (isVirtual) {
             // Each result row is a JSON array string like '["TP53","MYC"]' — flatten all values.
@@ -196,6 +212,20 @@ export default class DatabaseAnnotationService implements AnnotationService {
                         .split(DatabaseService.LIST_DELIMITER)
                         .forEach((v) => values.add(v.trim()));
                 }
+            }
+            return [...values];
+        }
+
+        if (annotationMeta?.isNested) {
+            // Parent nested annotation (e.g. "Well" storing JSON arrays of objects).
+            // Do NOT comma-split: the stored values are JSON strings that contain commas
+            // as structural characters, so splitting would break them into garbage fragments.
+            // Return each distinct raw JSON string as-is.
+            const values = new Set<string>();
+            for (const row of rows) {
+                const raw = row[annotation];
+                if (isNil(raw)) continue;
+                values.add(String(raw).trim());
             }
             return [...values];
         }
@@ -222,12 +252,16 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
 
         // Fetch annotation metadata so virtual sub-field annotations get correct WHERE clauses.
+        console.log("fetchAvailableAnnotationsForHierarchy", annotations);
         const allAnnotations = await this.databaseService.fetchAnnotations(this.dataSourceNames);
         const annotationMetaMap = new Map(allAnnotations.map((a) => [a.name, a]));
 
-        // Build the IS NOT NULL / json existence check for an annotation in the hierarchy.
+        // Build the IS NOT NULL / list length / json existence check for an annotation in the hierarchy.
         const hierarchyExistsClause = (annotationName: string): string => {
             const meta = annotationMetaMap.get(annotationName);
+            if (meta?.isNestedSubField && meta.nestedListExpression) {
+                return `len(${meta.nestedListExpression}) > 0`;
+            }
             if (meta?.isNestedSubField && meta.nestedParent && meta.nestedJsonPath) {
                 return `json_array_length(json_extract("${meta.nestedParent}"::JSON, '${meta.nestedJsonPath}')) > 0`;
             }
@@ -236,46 +270,47 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         const hierarchyWhereClauses = annotations.map(hierarchyExistsClause);
 
-        // Physical columns: discovered from a LIMIT 1 query.
-        const columnNamesSql = new SQLBuilder()
-            .from(aggregateDataSourceName)
-            .limit(1)
-            .toSQL();
-        const queryResult = await this.databaseService.query(columnNamesSql);
-        const physicalColumnNames = Object.keys(queryResult[0]);
+        // Physical column names are already available from the fetchAnnotations result above —
+        // no need for a separate LIMIT 1 query to enumerate them.
+        const physicalColumnNames = allAnnotations
+            .filter((a) => !a.isNestedSubField)
+            .map((a) => a.name);
 
         // Virtual sub-field annotations are not physical columns but still need to be checked.
         const virtualAnnotations = allAnnotations.filter((a) => a.isNestedSubField);
 
         // For each candidate annotation, check whether at least one row satisfies both
         // the candidate's own existence condition AND all current hierarchy constraints.
+        // Build a single UNION ALL query instead of N concurrent queries so that only one
+        // DuckDB connection is opened — avoids resource exhaustion with large schemas.
         const candidates: Array<{ name: string; existsClause: string }> = [
             ...physicalColumnNames.map((col) => ({
                 name: col,
                 existsClause: `"${col}" IS NOT NULL`,
             })),
-            ...virtualAnnotations.map((a) => ({
-                name: a.name,
-                existsClause: `json_array_length(json_extract("${a.nestedParent!}"::JSON, '${a.nestedJsonPath!}')) > 0`,
-            })),
+            ...virtualAnnotations.map((a) => {
+                const existsClause = a.nestedListExpression
+                    ? `len(${a.nestedListExpression}) > 0`
+                    : `json_array_length(json_extract("${a.nestedParent}"::JSON, '${a.nestedJsonPath}')) > 0`;
+                return { name: a.name, existsClause };
+            }),
         ];
 
-        const queries = candidates.map(({ name, existsClause }) => {
+        if (candidates.length === 0) {
+            return [];
+        }
+
+        const escapedDsName = aggregateDataSourceName.replaceAll('"', '""');
+        const subqueries = candidates.map(({ name, existsClause }) => {
             const escapedName = name.replaceAll("'", "''");
-            const sql = new SQLBuilder()
-                .select(`'${escapedName}' AS column_name`)
-                .from(aggregateDataSourceName)
-                .where(existsClause)
-                .where(hierarchyWhereClauses)
-                .limit(1)
-                .toSQL();
-            return this.databaseService.query(sql);
+            const allWhere = [existsClause, ...hierarchyWhereClauses].filter(Boolean);
+            const whereStr = allWhere.length > 0 ? ` WHERE ${allWhere.join(" AND ")}` : "";
+            return `(SELECT '${escapedName}' AS column_name FROM "${escapedDsName}"${whereStr} LIMIT 1)`;
         });
 
-        const results = (await Promise.all(queries)) as QueryResult[][];
-        return results
-            .filter((result) => result.length > 0)
-            .map((result) => result[0].column_name);
+        const unionSql = subqueries.join(" UNION ALL ");
+        const rows = (await this.databaseService.query(unionSql)) as QueryResult[];
+        return rows.map((r) => r.column_name);
     }
 
     /**

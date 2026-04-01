@@ -471,7 +471,14 @@ const selectNearbyFile = createLogic({
         const makeHierarchyFilter = (name: string, filterValue: AnnotationValue): FileFilter => {
             const meta = annotationMetaMap.get(name);
             if (meta?.isNestedSubField && meta.nestedParent && meta.nestedJsonPath) {
-                return new FileFilter(name, filterValue, FilterType.DEFAULT, meta.nestedJsonPath, meta.nestedParent);
+                return new FileFilter(
+                    name,
+                    filterValue,
+                    FilterType.DEFAULT,
+                    meta.nestedJsonPath,
+                    meta.nestedParent,
+                    meta.nestedListExpression
+                );
             }
             return new FileFilter(name, filterValue);
         };
@@ -523,8 +530,8 @@ const selectNearbyFile = createLogic({
                     // needed to open the file folder
                     filters: sortedOpenFileListPaths[
                         fileListIndexAboveCurrentFileList
-                    ].fileFolder.map(
-                        (filterValue, index) => makeHierarchyFilter(hierarchy[index], filterValue)
+                    ].fileFolder.map((filterValue, index) =>
+                        makeHierarchyFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });
@@ -560,8 +567,8 @@ const selectNearbyFile = createLogic({
                     // needed to open the file folder
                     filters: sortedOpenFileListPaths[
                         fileListIndexBelowCurrentFileList
-                    ].fileFolder.map(
-                        (filterValue, index) => makeHierarchyFilter(hierarchy[index], filterValue)
+                    ].fileFolder.map((filterValue, index) =>
+                        makeHierarchyFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });

@@ -52,14 +52,36 @@ export default class DatabaseFileService implements FileService {
                             name !== DatabaseService.HIDDEN_UID_ANNOTATION
                     )
                     .flatMap(([name, values]) => {
-                        // Case 1: duckdb-wasm returned a STRUCT column as a native JS object.
-                        if (typeof values === "object" && values !== null && !Array.isArray(values)) {
+                        // Case 1a: duckdb-wasm returned a STRUCT[] column as a native JS array of objects.
+                        if (
+                            Array.isArray(values) &&
+                            values.length > 0 &&
+                            typeof values[0] === "object" &&
+                            values[0] !== null
+                        ) {
+                            return [
+                                {
+                                    name,
+                                    values: values.map((_: unknown, i: number) => String(i)),
+                                    nestedValues: values as NestedAnnotation[],
+                                },
+                            ];
+                        }
+
+                        // Case 1b: duckdb-wasm returned a STRUCT column as a native JS object.
+                        if (
+                            typeof values === "object" &&
+                            values !== null &&
+                            !Array.isArray(values)
+                        ) {
                             const nested = values as NestedAnnotation;
-                            return [{
-                                name,
-                                values: Object.keys(nested),
-                                nestedValues: nested,
-                            }];
+                            return [
+                                {
+                                    name,
+                                    values: Object.keys(nested),
+                                    nestedValues: nested,
+                                },
+                            ];
                         }
 
                         // Case 2: VARCHAR column whose content is a JSON object or array string.
@@ -75,11 +97,15 @@ export default class DatabaseFileService implements FileService {
                                     typeof parsed[0] === "object" &&
                                     parsed[0] !== null
                                 ) {
-                                    return [{
-                                        name,
-                                        values: parsed.map((_: unknown, i: number) => String(i)),
-                                        nestedValues: parsed as NestedAnnotation[],
-                                    }];
+                                    return [
+                                        {
+                                            name,
+                                            values: parsed.map((_: unknown, i: number) =>
+                                                String(i)
+                                            ),
+                                            nestedValues: parsed as NestedAnnotation[],
+                                        },
+                                    ];
                                 }
                                 // Plain object → single nested annotation (legacy format)
                                 if (
@@ -88,23 +114,27 @@ export default class DatabaseFileService implements FileService {
                                     !Array.isArray(parsed)
                                 ) {
                                     const nested = parsed as NestedAnnotation;
-                                    return [{
-                                        name,
-                                        values: Object.keys(nested),
-                                        nestedValues: nested,
-                                    }];
+                                    return [
+                                        {
+                                            name,
+                                            values: Object.keys(nested),
+                                            nestedValues: nested,
+                                        },
+                                    ];
                                 }
                             } catch {
                                 // Not JSON — fall through to plain string handling
                             }
                         }
 
-                        return [{
-                            name,
-                            values: `${values}`
-                                .split(DatabaseService.LIST_DELIMITER)
-                                .map((value: string) => value.trim()),
-                        }];
+                        return [
+                            {
+                                name,
+                                values: `${values}`
+                                    .split(DatabaseService.LIST_DELIMITER)
+                                    .map((value: string) => value.trim()),
+                            },
+                        ];
                     }),
             },
             env,

@@ -14,6 +14,10 @@ export interface ListItem<T = any> {
     loading?: boolean;
     recent?: boolean;
     isDivider?: boolean;
+    /** Nesting depth for visually indented items (0 = top-level). */
+    depth?: number;
+    /** When true, renders as a non-interactive section label for an intermediate path node. */
+    isGroupHeader?: boolean;
     selected: boolean;
     displayValue: AnnotationValue;
     value: AnnotationValue;
@@ -44,6 +48,19 @@ export default function ListRow(props: Props) {
         return null;
     }
 
+    // Non-interactive group header for intermediate nested path segments (e.g. "Solution")
+    if (item.isGroupHeader) {
+        return (
+            <div
+                className={styles.groupHeader}
+                style={{ paddingLeft: (item.depth || 0) * 12 + 6 }}
+                title={String(item.displayValue)}
+            >
+                {String(item.displayValue)}
+            </div>
+        );
+    }
+
     return (
         <Tooltip content={`${item.displayValue}${item.description ? `: ${item.description}` : ""}`}>
             <DefaultButton
@@ -52,6 +69,7 @@ export default function ListRow(props: Props) {
                     [styles.disabled]: item.disabled,
                     [styles.divider]: item.isDivider,
                 })}
+                style={{ paddingLeft: (item.depth || 0) * 12 }}
                 menuIconProps={{
                     iconName: props.subMenuRenderer && !item.isDivider ? "ChevronRight" : undefined,
                 }}

@@ -31,8 +31,17 @@ export interface AnnotationResponse {
     /**
      * Full DuckDB JSONPath expression for extracting all values of this sub-field from the
      * parent array column (e.g. "$[*].Gene" or "$[*].Dose[*].Value").
+     * Used for JSON VARCHAR columns.
      */
     nestedJsonPath?: string;
+    /**
+     * DuckDB list expression for extracting all values of this sub-field from a native
+     * STRUCT[] column using list_transform / flatten.
+     * E.g. `list_transform("Well", x -> x."Gene")` or
+     * `flatten(list_transform("Well", x -> list_transform(x."Dose", y -> y."Value")))`.
+     * Preferred over nestedJsonPath when available — avoids JSON parsing overhead.
+     */
+    nestedListExpression?: string;
     type: AnnotationType;
     units?: string;
 }
@@ -140,6 +149,14 @@ export default class Annotation {
      */
     public get nestedJsonPath(): string | undefined {
         return this.annotation.nestedJsonPath;
+    }
+
+    /**
+     * DuckDB list expression for extracting values from a native STRUCT[] column.
+     * Preferred over nestedJsonPath when available.
+     */
+    public get nestedListExpression(): string | undefined {
+        return this.annotation.nestedListExpression;
     }
 
     public get units(): string | undefined {

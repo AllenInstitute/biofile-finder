@@ -252,7 +252,8 @@ export default class SearchParams {
                             parsedFilter.value,
                             parsedFilter.type,
                             parsedFilter.nestedJsonPath,
-                            parsedFilter.nestedParent
+                            parsedFilter.nestedParent,
+                            parsedFilter.nestedListExpression
                         )
                 ),
             openFolders: unparsedOpenFolders

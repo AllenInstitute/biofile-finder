@@ -34,19 +34,90 @@ interface Props {
 }
 
 /**
- * Separator string used in dotted annotation names to identify the parent annotation.
- * "Well.Gene" has parent "Well"; "Well.Dose.Value" has parent "Well".
+ * Build a visually nested list of items for the sub-fields of a parent nested annotation.
+ * Intermediate path segments that are not themselves selectable annotations are emitted as
+ * non-interactive group-header items so the path hierarchy is clear in the UI.
+ *
+ * Example – parent "Well", sub-fields ["Well.Gene", "Well.Solution.Name", "Well.Solution.Dose"]:
+ *   { displayValue: "Gene",      depth: 1, isGroupHeader: false }
+ *   { displayValue: "Solution",  depth: 1, isGroupHeader: true  }  ← non-selectable label
+ *   { displayValue: "Name",      depth: 2, isGroupHeader: false }
+ *   { displayValue: "Dose",      depth: 2, isGroupHeader: false }
  */
-const NESTED_PATH_SEPARATOR = ".";
+function buildSubFieldItems(
+    parentName: string,
+    subFields: Annotation[],
+    annotationToListItem: (a: Annotation) => ListItem<Annotation>
+): ListItem<Annotation>[] {
+    type Node = { annotation?: Annotation; children: Map<string, Node> };
+    const root = new Map<string, Node>();
+
+    for (const sf of subFields) {
+        const relative = sf.name.startsWith(parentName + ".")
+            ? sf.name.slice(parentName.length + 1)
+            : sf.name;
+        const parts = relative.split(".");
+        let level = root;
+        for (let i = 0; i < parts.length; i++) {
+            if (!level.has(parts[i])) level.set(parts[i], { children: new Map() });
+            const node = level.get(parts[i])!;
+            if (i === parts.length - 1) node.annotation = sf;
+            level = node.children;
+        }
+    }
+
+    function flatten(
+        prefix: string,
+        nodeMap: Map<string, Node>,
+        depth: number
+    ): ListItem<Annotation>[] {
+        const result: ListItem<Annotation>[] = [];
+        for (const [label, node] of nodeMap) {
+            if (node.children.size === 0) {
+                // Pure leaf — a real, selectable annotation
+                result.push({
+                    ...annotationToListItem(node.annotation!),
+                    displayValue: label,
+                    depth,
+                });
+            } else {
+                // Intermediate node
+                if (node.annotation) {
+                    // Selectable AND has children (unusual but handle)
+                    result.push({
+                        ...annotationToListItem(node.annotation),
+                        displayValue: label,
+                        depth,
+                    });
+                } else {
+                    // Non-selectable group label
+                    result.push({
+                        value: `__header__${prefix}.${label}`,
+                        displayValue: label,
+                        selected: false,
+                        disabled: false,
+                        isGroupHeader: true,
+                        depth,
+                        data: undefined,
+                    });
+                }
+                result.push(...flatten(`${prefix}.${label}`, node.children, depth + 1));
+            }
+        }
+        return result;
+    }
+
+    return flatten(parentName, root, 1);
+}
 
 /**
  * Form for selecting which annotations to use in some exterior context like
  * downloading a manifest.
  *
- * Annotations whose names contain a dot (e.g. "Well.Gene", "Well.Dose.Value") are
- * sub-field projections of a parent STRUCT/JSON annotation.  They are sorted so they
- * appear immediately after their parent annotation and are shown with a visual indent
- * prefix ("└ Gene", "└ Dose.Value") to make the hierarchy clear.
+ * Nested sub-field annotations (e.g. "Well.Gene", "Well.Solution.Name") are shown
+ * hierarchically underneath their parent using visual indentation.  Intermediate path
+ * segments that are not themselves selectable (e.g. "Solution" in "Well.Solution.Name")
+ * appear as non-interactive group-header labels.
  */
 export default function AnnotationPicker(props: Props) {
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
@@ -66,101 +137,80 @@ export default function AnnotationPicker(props: Props) {
         !props.disabledTopLevelAnnotations ||
         !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name);
 
-    /**
-     * Whether `name` is a dotted sub-field path (e.g. "Well.Gene").
-     * Returns the parent portion ("Well") or undefined if it is a top-level annotation.
-     */
-    const getParentName = (name: string): string | undefined => {
-        const dot = name.indexOf(NESTED_PATH_SEPARATOR);
-        return dot !== -1 ? name.slice(0, dot) : undefined;
-    };
-
-    /**
-     * Whether `annotation` is a nested sub-field (either a virtual JSON path or a
-     * STRUCT-flattened column). Both have dotted names; virtual ones additionally
-     * set `isNestedSubField`.  Fall back to dotted-name detection for STRUCT columns.
-     */
-    const isSubFieldAnnotation = (annotation: Annotation): boolean =>
-        annotation.isNestedSubField || getParentName(annotation.name) !== undefined;
-
-    /** Build the display label for a nested sub-field annotation. */
-    const nestedDisplayValue = (annotation: Annotation): string => {
-        // For virtual sub-field annotations derive the display path from the annotation name
-        // (e.g. "Well.Gene" → "└ Gene", "Well.Dose.Value" → "└ Dose └ Value").
-        if (annotation.isNestedSubField && annotation.nestedJsonPath) {
-            const parent = annotation.nestedParent ?? getParentName(annotation.name);
-            const subDisplay = parent
-                ? annotation.name.slice(parent.length + 1)
-                : annotation.displayName;
-            return `└ ${subDisplay.split(".").join(" └ ")}`;
-        }
-        const parent = getParentName(annotation.name);
-        if (!parent) return annotation.displayName;
-        // STRUCT column — show everything after the first dot
-        return `└ ${annotation.name.slice(parent.length + 1)}`;
-    };
-
     const annotationToListItem = (annotation: Annotation): ListItem<Annotation> => {
         const selected = props.selections.some((s) => s === annotation.name);
         const disabled =
             !selected &&
             props.disableUnavailableAnnotations &&
             unavailableAnnotations.some((u) => u.name === annotation.name);
-        const isSubField = isSubFieldAnnotation(annotation);
         return {
             disabled,
             selected,
             data: annotation,
             value: annotation.name,
             description: annotation.description,
-            displayValue: isSubField ? nestedDisplayValue(annotation) : annotation.displayName,
+            displayValue: annotation.displayName,
             recent: recentAnnotationNames.includes(annotation.name) && !selected,
             loading: props.disableUnavailableAnnotations && areAvailableAnnotationLoading,
         };
     };
 
-    /**
-     * Sort annotations so that sub-field annotations appear immediately after their parent,
-     * preserving the relative order of siblings.
-     *
-     * Works for both STRUCT-flattened columns ("Well.Gene" physical) and virtual JSON
-     * sub-field annotations ("Well.Gene" virtual) because both use dotted names with the
-     * same parent prefix.
-     *
-     * E.g. given [A, Well, B, Well.Gene, Well.Dose.Value]
-     *   → [A, Well, Well.Gene, Well.Dose.Value, B]
-     */
-    const sortWithNestedGrouped = (list: Annotation[]): Annotation[] => {
-        const topLevel: Annotation[] = [];
-        const byParent: Map<string, Annotation[]> = new Map();
+    // Separate top-level annotations from sub-field annotations.
+    // Sub-fields are identified by isNestedSubField flag or by dot in the name.
+    const isSubField = (a: Annotation) => a.isNestedSubField || a.name.includes(".");
 
-        for (const ann of list) {
-            // Use nestedParent for virtual annotations; fall back to string parsing for STRUCT.
-            const parent = ann.isNestedSubField
-                ? ann.nestedParent
-                : getParentName(ann.name);
-            if (parent) {
-                const siblings = byParent.get(parent) ?? [];
-                siblings.push(ann);
-                byParent.set(parent, siblings);
-            } else {
-                topLevel.push(ann);
-            }
+    const topLevelAnnotations = annotations.filter((a) => !isSubField(a));
+
+    // Group sub-fields by their top-level parent name.
+    const subFieldsByParent = new Map<string, Annotation[]>();
+    annotations
+        .filter((a) => isSubField(a) && isSelectable(a))
+        .forEach((a) => {
+            const parent = a.isNestedSubField
+                ? a.nestedParent ?? a.name.slice(0, a.name.indexOf("."))
+                : a.name.slice(0, a.name.indexOf("."));
+            if (!parent) return;
+            if (!subFieldsByParent.has(parent)) subFieldsByParent.set(parent, []);
+            subFieldsByParent.get(parent)!.push(a);
+        });
+
+    // Build the hierarchical flat list: top-level annotation then its nested sub-tree.
+    const hierarchicalItems: ListItem<Annotation>[] = [];
+    for (const ann of topLevelAnnotations) {
+        if (!isSelectable(ann)) continue;
+        const hasSubFields = subFieldsByParent.has(ann.name);
+        if (hasSubFields && ann.isNested) {
+            // Parent nested annotation (e.g. "Well"): show as a non-interactive group header.
+            // Selecting the raw JSON column directly is not meaningful for group-by or filtering;
+            // users should pick one of the sub-fields below it instead.
+            hierarchicalItems.push({
+                value: `__header__${ann.name}`,
+                displayValue: ann.displayName,
+                selected: false,
+                disabled: false,
+                isGroupHeader: true,
+                depth: 0,
+                data: undefined,
+            });
+        } else {
+            hierarchicalItems.push(annotationToListItem(ann));
         }
+        if (hasSubFields) {
+            hierarchicalItems.push(
+                ...buildSubFieldItems(
+                    ann.name,
+                    subFieldsByParent.get(ann.name)!,
+                    annotationToListItem
+                )
+            );
+        }
+    }
 
-        // Interleave: for each top-level annotation, insert its sub-fields right after it.
-        return topLevel.flatMap((ann) => [ann, ...(byParent.get(ann.name) ?? [])]);
-    };
+    // Recent annotations stay at the top at depth 0 with their full display name.
+    const recentItems = recentAnnotations.filter(isSelectable).map((a) => annotationToListItem(a));
 
-    // Map recent annotations into a list of items for selection
-    const nonUniqueItems = [...recentAnnotations, ...sortWithNestedGrouped(annotations)]
-        .filter(isSelectable)
-        .map(annotationToListItem);
+    const items = uniqBy([...recentItems, ...hierarchicalItems], "value");
 
-    const items = uniqBy(nonUniqueItems, "value");
-
-    // If there are any recent annotations add a divider between them
-    // and the rest of the annotations (assuming any left)
     if (recentAnnotations.length) {
         items.push(RECENT_ANNOTATIONS_DIVIDER);
     }
@@ -197,4 +247,3 @@ export default function AnnotationPicker(props: Props) {
         />
     );
 }
-
