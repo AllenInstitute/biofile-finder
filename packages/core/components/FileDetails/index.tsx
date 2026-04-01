@@ -17,6 +17,7 @@ import useTruncatedString from "../../hooks/useTruncatedString";
 import { interaction, selection } from "../../state";
 
 import styles from "./FileDetails.module.css";
+import Tutorial from "../../entity/Tutorial";
 
 interface Props {
     className?: string;
@@ -121,6 +122,7 @@ export default function FileDetails(props: Props) {
                                             />
                                         </Tooltip>
                                         <PrimaryButton
+                                            id={Tutorial.OPEN_WITH_ID}
                                             className={styles.openWithButton}
                                             iconName="ChevronDownMed"
                                             text="Open with"
