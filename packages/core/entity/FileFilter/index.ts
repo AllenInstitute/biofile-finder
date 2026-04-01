@@ -91,6 +91,9 @@ export default class FileFilter {
             case FilterType.FUZZY:
                 return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
             default:
+                if (typeof this.annotationValue === "boolean") {
+                    return `"${this.annotationName}" = ${this.annotationValue}`;
+                }
                 if (
                     typeof this.annotationValue === "string" &&
                     RANGE_OPERATOR_REGEX.test(this.annotationValue)

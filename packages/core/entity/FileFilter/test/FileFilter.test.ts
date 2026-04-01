@@ -31,6 +31,15 @@ describe("FileFilter", () => {
             expect(filter.toSQLWhereString()).to.include("REGEXP_MATCHES");
         });
 
+        // Boolean values must use direct equality, not regex, to avoid CAST case mismatch (DuckDB emits "true"/"false" lowercase)
+        it("emits a boolean equality clause for boolean filter values", () => {
+            const trueFilter = new FileFilter("Is Aligned", true);
+            expect(trueFilter.toSQLWhereString()).to.equal(`"Is Aligned" = true`);
+
+            const falseFilter = new FileFilter("Is Aligned", false);
+            expect(falseFilter.toSQLWhereString()).to.equal(`"Is Aligned" = false`);
+        });
+
         // Core numeric range behavior: RANGE() from NumberRangePicker must produce valid comparison SQL
         it("emits a numeric range SQL clause for RANGE() filter values", () => {
             const filter = new FileFilter("Cell Count", "RANGE(1, 50)");

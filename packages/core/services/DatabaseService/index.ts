@@ -252,6 +252,8 @@ export default abstract class DatabaseService {
             case "DOUBLE":
             case "REAL":
                 return AnnotationType.NUMBER;
+            case "BOOLEAN":
+                return AnnotationType.BOOLEAN;
             case "VARCHAR":
             case "TEXT":
             default:
