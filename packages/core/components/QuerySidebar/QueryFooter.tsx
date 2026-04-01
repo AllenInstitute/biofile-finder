@@ -128,6 +128,7 @@ export default function QueryFooter(props: Props) {
                 invertColor
                 disabled={isEmptyQuery}
                 iconName="Save"
+                id={Tutorial.SAVE_BUTTON_ID}
                 menuItems={saveQueryAsOptions}
                 title="Save query result as..."
             />
