@@ -154,9 +154,18 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         />
     );
 
+    // Types that have a dedicated picker component and should never fall back to the list picker.
+    // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
+    const typeHasDedicatedPicker =
+        props.annotation.name !== AnnotationName.FILE_SIZE &&
+        [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
+            props.annotation.type as AnnotationType
+        );
+
     const searchFormType = () => {
-        // Use the checkboxes if values exist and are few enough to reasonably scroll through
-        if (items.length > 0 && items.length <= 100) {
+        // Types with dedicated pickers (number, date, datetime) always use their own UI.
+        // All other types fall back to the list picker when values are available.
+        if (!typeHasDedicatedPicker && items.length > 0) {
             return listPickerComponent;
         }
 
@@ -173,22 +182,17 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     />
                 );
             case AnnotationType.NUMBER:
-                // File size is a special case where we don't have
-                // the ability to filter by range in the backend yet
-                // so we'll just let that case fall through to the string below
-                if (props.annotation.name !== AnnotationName.FILE_SIZE) {
-                    return (
-                        <NumberRangePicker
-                            className={styles.picker}
-                            items={items}
-                            loading={isLoading}
-                            errorMessage={errorMessage}
-                            onSearch={onSearch}
-                            currentRange={filtersForAnnotation?.[0]}
-                            units={props.annotation.units}
-                        />
-                    );
-                }
+                return (
+                    <NumberRangePicker
+                        className={styles.picker}
+                        items={items}
+                        loading={isLoading}
+                        errorMessage={errorMessage}
+                        onSearch={onSearch}
+                        currentRange={filtersForAnnotation?.[0]}
+                        units={props.annotation.units}
+                    />
+                );
             case AnnotationType.STRING:
                 // Annotations without a scrollable list of values, e.g., File Path
                 if (items.length == 0) {

@@ -1,5 +1,9 @@
 import SQLBuilder from "../SQLBuilder";
+import { extractValuesFromRangeOperatorFilterString } from "../AnnotationFormatter/number-formatter";
 import { NO_VALUE_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
+
+// Matches the RANGE(min, max) filter encoding used by NumberRangePicker and DateRangePicker
+const RANGE_OPERATOR_REGEX = /^RANGE\([\d\-.]+,\s?[\d\-.]+\)$/;
 
 export interface FileFilterJson {
     name: string;
@@ -85,7 +89,17 @@ export default class FileFilter {
             case FilterType.EXCLUDE:
                 return `"${this.annotationName}" IS NULL`;
             case FilterType.FUZZY:
+                return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
             default:
+                if (
+                    typeof this.annotationValue === "string" &&
+                    RANGE_OPERATOR_REGEX.test(this.annotationValue)
+                ) {
+                    const { minValue, maxValue } = extractValuesFromRangeOperatorFilterString(
+                        this.annotationValue
+                    );
+                    return `CAST("${this.annotationName}" AS DOUBLE) >= ${minValue} AND CAST("${this.annotationName}" AS DOUBLE) < ${maxValue}`;
+                }
                 return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
         }
     }

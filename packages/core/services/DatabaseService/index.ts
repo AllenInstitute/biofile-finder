@@ -234,12 +234,24 @@ export default abstract class DatabaseService {
     }
 
     protected static columnTypeToAnnotationType(columnType: string): AnnotationType {
+        // DECIMAL types include precision/scale info, e.g. "DECIMAL(18,3)"
+        if (columnType?.startsWith("DECIMAL")) {
+            return AnnotationType.NUMBER;
+        }
         switch (columnType) {
             case "INTEGER":
             case "BIGINT":
-            // TODO: Add support for column types
-            // https://github.com/AllenInstitute/biofile-finder/issues/60
-            // return AnnotationType.NUMBER;
+            case "HUGEINT":
+            case "UBIGINT":
+            case "UINTEGER":
+            case "SMALLINT":
+            case "USMALLINT":
+            case "TINYINT":
+            case "UTINYINT":
+            case "FLOAT":
+            case "DOUBLE":
+            case "REAL":
+                return AnnotationType.NUMBER;
             case "VARCHAR":
             case "TEXT":
             default:
