@@ -31,7 +31,7 @@ describe("FileFilter", () => {
             expect(filter.toSQLWhereString()).to.include("REGEXP_MATCHES");
         });
 
-        // Boolean values must use direct equality, not regex, to avoid CAST case mismatch (DuckDB emits "true"/"false" lowercase)
+        // Boolean values must use direct equality, not regex, to avoid CAST case mismatch.
         it("emits a boolean equality clause for boolean filter values", () => {
             const trueFilter = new FileFilter("Is Aligned", true);
             expect(trueFilter.toSQLWhereString()).to.equal(`"Is Aligned" = true`);

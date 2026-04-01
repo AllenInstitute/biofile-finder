@@ -254,6 +254,8 @@ export default abstract class DatabaseService {
                 return AnnotationType.NUMBER;
             case "BOOLEAN":
                 return AnnotationType.BOOLEAN;
+            case "INTERVAL":
+                return AnnotationType.DURATION;
             case "VARCHAR":
             case "TEXT":
             default:
