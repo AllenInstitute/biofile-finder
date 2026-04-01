@@ -81,6 +81,30 @@ export function getParquetFileNameSelectPart(
     return `${getFileNameFromPathExpression(`"${pathColumn}"`)} AS "${PreDefinedColumn.FILE_NAME}"`;
 }
 
+export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckdb.AsyncDuckDB> {
+    const allBundles = duckdb.getJsDelivrBundles();
+
+    // Selects the best bundle based on browser checks
+    const bundle = await duckdb.selectBundle(allBundles);
+    const workerUrl = URL.createObjectURL(
+        new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" })
+    );
+    // Instantiate the asynchronous version of DuckDB-wasm
+    const worker = new Worker(workerUrl);
+    const logger = new duckdb.ConsoleLogger(logLevel);
+    const db = new duckdb.AsyncDuckDB(logger, worker);
+    await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+    await db.open({
+        filesystem: {
+            // This configuration enables partial reads from parquet files,
+            // which is crucial for performance on 2M+ row tables.
+            forceFullHTTPReads: false,
+        },
+    });
+    URL.revokeObjectURL(workerUrl);
+    return db;
+}
+
 /**
  * Service reponsible for querying against a database
  */
@@ -233,6 +257,11 @@ export default abstract class DatabaseService {
         return this.existingDataSources.has(dataSourceName);
     }
 
+    public hasAggregateSource(dataSourceNames: string[]): boolean {
+        const combinedName = DatabaseService.combineSourceNames(dataSourceNames);
+        return this.currentAggregateSource === combinedName;
+    }
+
     public async prepareDataSources(
         dataSources: Source[],
         skipNormalization = false
@@ -327,11 +356,12 @@ export default abstract class DatabaseService {
         if (!skipNormalization) {
             if (type !== "parquet") {
                 await this.normalizeDataSourceColumnNames(name);
+                await this.renameNonprintableCharColumns(name);
             }
 
-            const errors = await this.checkDataSourceForErrors(name);
-            if (errors.length) {
-                throw new DataSourcePreparationError(errors.join("</br></br>"), name);
+            const error = await this.checkDataSourceForErrors(name);
+            if (error !== null) {
+                throw new DataSourcePreparationError(error, name);
             }
 
             if (type !== "parquet") {
@@ -469,8 +499,7 @@ export default abstract class DatabaseService {
         the expectations around uniqueness/blankness for pre-defined columns
         like "File Path", "File ID", etc.
     */
-    private async checkDataSourceForErrors(name: string): Promise<string[]> {
-        const errors: string[] = [];
+    private async checkDataSourceForErrors(name: string): Promise<string | null> {
         const columnsOnTable = await this.getColumnsOnDataSource(name);
 
         if (!columnsOnTable.has(PreDefinedColumn.FILE_PATH)) {
@@ -489,8 +518,32 @@ export default abstract class DatabaseService {
             // Unable to determine if the file path is empty or not
             // when it is not present so return here before checking
             // for other errors
-            errors.push(error);
+            return error;
         } else {
+            // For large parquet tables, attempt to bypass the expensive
+            // getRowsWhereColumnIsBlank query.
+            if (
+                this.parquetDirectViewNames.has(name) &&
+                (await this.totalRowCount(name)) > 500000
+            ) {
+                const originalColumn = await this.getOriginalParquetColumnName(
+                    name,
+                    PreDefinedColumn.FILE_PATH
+                );
+                if (originalColumn !== null) {
+                    const hasBlankValues = await this.parquetHasBlankValues(name, originalColumn);
+                    if (hasBlankValues !== null) {
+                        if (hasBlankValues) {
+                            return `"${PreDefinedColumn.FILE_PATH}" column contains some empty or purely whitespace paths.`;
+                        } else {
+                            return null;
+                        }
+                    }
+                    // If blankFilePathRowGroups is null, we don't have enough
+                    // information. Fall back to the full scan.
+                }
+            }
+
             // Check for empty or just whitespace File Path column values
             const blankFilePathRows = await this.getRowsWhereColumnIsBlank(
                 name,
@@ -501,20 +554,50 @@ export default abstract class DatabaseService {
                     blankFilePathRows.join(", "),
                     100
                 );
-                errors.push(
-                    `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`
-                );
+                return `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.length} empty or purely whitespace paths at rows ${rowNumbers}.`;
             }
+            return null;
         }
+    }
 
-        return errors;
+    /**
+     * When converting DuckDB query results to strings, Javascript sometimes removes
+     * non-printable characters (e.g., Ôªø etc.), likely because of encoding mismatches.
+     * This can cause errors in the database service if we then try to select or interact
+     * with those columns, since they no longer match what's actually in the database.
+     */
+    private async renameNonprintableCharColumns(dataSourceName: string): Promise<void> {
+        // Query for columns that contain ASCII characters that are outside of the printable range
+        const findNonPrintableCharsSql = `
+            SELECT column_name, regexp_replace(column_name, '[^ -~]+', '', 'g') as clean_name
+            FROM "information_schema"."columns"
+            WHERE (table_name = '${dataSourceName}') AND (regexp_matches(column_name, '[^ -~]+'))
+        `;
+        // Run the above query inside of a DuckDB command that generates `ALTER` statements
+        // rather than running two separate queries,
+        // to avoid risk of Javascript trimming column names in the results
+        const alterCommandsSql = `
+            SELECT string_agg('ALTER TABLE "${dataSourceName}" RENAME "' || column_name || '" TO "' || clean_name || '";', ' ') as sql_statement,
+                string_agg(column_name, ', ') as cols_to_rename
+            FROM (${findNonPrintableCharsSql}
+            ) problem_columns;
+        `;
+        // Retrieve the ALTER commands and names of columns that will be renamed
+        const executeResult = await this.query(alterCommandsSql).promise;
+        if (executeResult[0]?.sql_statement && executeResult[0]?.cols_to_rename) {
+            // Run the ALTER commands
+            this.execute(executeResult[0].sql_statement);
+            console.warn(
+                `Renamed columns with special characters: ${executeResult[0].cols_to_rename}`
+            );
+        }
     }
 
     /*
         Some columns like "File Path", "File ID", "Thumbnail", etc.
         have expectations around how they should be cased/formatted
         so this will attempt to find the nearest match to the pre-defined
-        columns and format them appropriatedly
+        columns and format them appropriately
     */
     private async normalizeDataSourceColumnNames(dataSourceName: string): Promise<void> {
         const columnsOnDataSource = await this.getColumnsOnDataSource(dataSourceName);
@@ -542,9 +625,7 @@ export default abstract class DatabaseService {
         // Note: we don't use this.getColumnsOnDataSource, since that expects a
         // fully built data source, and this function is used for creating a
         // data source.
-        const sql = `DESCRIBE SELECT * FROM parquet_scan("${name}")`;
-        const rows = await this.query(sql).promise;
-        const rawColumns = rows.map((row) => row["column_name"] as string);
+        const rawColumns = await this.getRawParquetColumns(name);
         // 2. Determine which columns need to be renamed, if any
         const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
         // 3. Prepare the SQL for renaming columns in the CREATE VIEW
@@ -568,6 +649,117 @@ export default abstract class DatabaseService {
         this.parquetDirectViewNames.add(name);
     }
 
+    // Given a possibly-renamed column name, get the original column name used
+    // in the input parquet.
+    private async getOriginalParquetColumnName(
+        name: string,
+        logicalColumn: string
+    ): Promise<string | null> {
+        const rawColumns = await this.getRawParquetColumns(name);
+        const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
+        for (const [actual, predefined] of actualToPreDefined) {
+            if (predefined === logicalColumn) {
+                return actual;
+            }
+        }
+        return null;
+    }
+
+    private async totalRowCount(name: string): Promise<number> {
+        const sql = new SQLBuilder().select("COUNT(*) AS count").from(name).toSQL();
+        return (await this.query(sql).promise)[0].count;
+    }
+
+    /**
+     * Quickly check if a column of a parquet has blank values. Return null
+     * if result is uncertain.
+     *
+     * Definition: For the purposes of this function, a "blank" value is one
+     * made up of spaces, tabs, new lines, carriage returns, or other
+     * non-printable ASCII control characters. This differs from
+     * getRowsWhereColumnIsBlank, which treats other whitespace characters as
+     * blank and control characters as non-blank. This distinction is not
+     * expected to be of much importance to our users.
+     *
+     * Special cases to consider:
+     *   Condition: Any row group has a non-zero null count.
+     *   Result: The column certainly has blank values. Return true.
+     *
+     *   Condition: In the row group statistics, the min_value is a blank value.
+     *   Example: min_value = ' ', actual minimum = ' /my/file/path.tiff'.
+     *   Result: The column likely has blank values, but we cannot be sure.
+     *     min_value is a lower bound on the values in the column, but is not
+     *     necessarily one of the values in the column. Return null.
+     *
+     *   Condition: The minimum value starts with newline, tab, carriage
+     *     return, or vertical tab, and includes some printable characters.
+     *   Example: min_value = '\n/my/file/path.tiff', another value = ' '
+     *   Result: The column may have blank values. Return null.
+     *
+     *   Condition: The null counts are all zero and the min_values all start
+     *     with non-whitespace printable characters.
+     *   Result: The column has no blank values. Return false.
+     */
+    private async parquetHasBlankValues(filename: string, column: string): Promise<boolean | null> {
+        /**
+         * This function uses null_count and min_value to determine if any rows
+         * of a parquet file have null or blank values for the given column.
+         *
+         * If a row has a null value, that will show up in the null_count
+         * statistic for the row group.
+         *
+         * The min_value statistic for a string-type column gives a string
+         * that is "smaller" than all the values in the column, according to
+         * a lexicographic ordering by the UTF-8 byte values of each character.
+         * Space, tab, carriage return, and line feed all have lower UTF-8
+         * values than the non-whitespace characters. Therefore, if the
+         * min_value starts with a non-whitespace character, there are no blank
+         * values in the column.
+         */
+        const nullGroupCountSql = `
+            SELECT COUNT(*) AS null_group_count,
+            FROM parquet_metadata('${filename}')
+            WHERE path_in_schema = '${column}'
+            AND stats_null_count > 0`;
+        const nullGroupCount = (await this.query(nullGroupCountSql).promise)[0].null_group_count;
+        if (nullGroupCount > 0) {
+            return true;
+        }
+
+        const validationSql = `
+            SELECT COUNT(*) AS no_data_count,
+            FROM parquet_metadata('${filename}')
+            WHERE path_in_schema = '${column}'
+            AND (
+                stats_null_count IS NULL
+                OR stats_min_value IS NULL
+            )`;
+        const insufficientMetadataCount = (await this.query(validationSql).promise)[0]
+            .no_data_count;
+        if (insufficientMetadataCount > 0) {
+            // null_count or min_value are not defined. Cannot guarantee there
+            // are no blank values.
+            return null;
+        }
+        // ! is the first printable non-whitespace character (0x21), and it is
+        // immediately after space (0x20).
+        // If stats_min_value < '!', the min_value is entirely composed of
+        // whitespace and/or non-printable control characters.
+        const lowMinCountSql = `
+            SELECT COUNT(*) as low_min_count,
+            FROM parquet_metadata('${filename}')
+            WHERE path_in_schema = '${column}'
+            AND stats_min_value < '!'`;
+        const lowMinCount = (await this.query(lowMinCountSql).promise)[0].low_min_count;
+        if (lowMinCount > 0) {
+            return null;
+        } else {
+            // All null counts are zero, and all min values start with a
+            // non-blank character.
+            return false;
+        }
+    }
+
     private async getRowsWhereColumnIsBlank(dataSource: string, column: string): Promise<number[]> {
         const blankColumnQueryResult = await this.query(`
             SELECT A.row
@@ -580,14 +772,18 @@ export default abstract class DatabaseService {
         return blankColumnQueryResult.map((row) => row.row);
     }
 
+    private static combineSourceNames(dataSources: Source[] | string[]) {
+        return dataSources
+            .map((source) => (typeof source === "string" ? source : source.name))
+            .sort()
+            .join(", ");
+    }
+
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {
         if (dataSources.some((source) => source.type === "parquet")) {
             throw new Error("Parquet tables cannot be combined to query multiple data sources.");
         }
-        const viewName = dataSources
-            .map((source) => source.name)
-            .sort()
-            .join(", ");
+        const viewName = DatabaseService.combineSourceNames(dataSources);
 
         if (this.currentAggregateSource === viewName) {
             // Prevent adding the same data source multiple times by shortcutting out here
@@ -598,51 +794,104 @@ export default abstract class DatabaseService {
         }
 
         const columnsSoFar = new Set<string>();
-        for (const dataSource of dataSources) {
-            // Fetch information about this data source
-            const annotationsInDataSource = await this.fetchAnnotations([dataSource.name]);
-            const columnsInDataSource = annotationsInDataSource.map(
-                (annotation) => annotation.name
-            );
-            const newColumns = columnsInDataSource.filter((column) => !columnsSoFar.has(column));
-
-            // If there are no columns / data added yet we need to create the table from
-            // scratch so we can provide an easy shortcut around the default way of adding
-            // data to a table
-            if (columnsSoFar.size === 0) {
-                await this.execute(
-                    `CREATE TABLE "${viewName}" AS SELECT *, '${dataSource.name}' AS "Data source" FROM "${dataSource.name}"`
+        const renamedColumnWarnings: string[] = [];
+        try {
+            for (const dataSource of dataSources) {
+                // Fetch information about this data source
+                const annotationsInDataSource = await this.fetchAnnotations([dataSource.name]);
+                const columnsInDataSource = annotationsInDataSource.map(
+                    (annotation) => annotation.name
                 );
-                this.currentAggregateSource = viewName;
-            } else {
-                // If adding data to an existing table we will need to add any new columns
-                // unsure why but seemingly unable to add multiple columns in one alter table
-                // statement so we will need to loop through and add them one by one
-                if (newColumns.length) {
-                    const alterTableSQL = newColumns
-                        .map((column) => `ALTER TABLE "${viewName}" ADD COLUMN "${column}" VARCHAR`)
-                        .join("; ");
-                    await this.execute(alterTableSQL);
+
+                // Set.has() is case sensitive, but columns in DuckDB are case INsensitive.
+                // If source A has column "Color" and source B has column "color",
+                // "color" will appear to be new, but will cause an error when attempting to
+                // create the new column with DuckDB
+                const newColumns: string[] = [];
+                const similarColumnMap = new Map<string, string>();
+                columnsInDataSource.forEach((column) => {
+                    if (!columnsSoFar.has(column)) {
+                        let hasMatch = false;
+                        for (const existingCol of columnsSoFar) {
+                            if (existingCol.toLowerCase() === column.toLowerCase()) {
+                                // The original table has a column that functionally matches the new column
+                                hasMatch = true;
+                                similarColumnMap.set(existingCol, column);
+                                break;
+                            }
+                        }
+                        if (!hasMatch) {
+                            // Completely new even with case-insensitivity
+                            newColumns.push(column);
+                        }
+                    }
+                });
+
+                // If there are no columns / data added yet, we need to create the table from
+                // scratch so we can provide an easy shortcut around the default way of adding
+                // data to a table
+                if (columnsSoFar.size === 0) {
+                    await this.execute(
+                        `CREATE TABLE "${viewName}" AS SELECT *, '${dataSource.name}' AS "Data source" FROM "${dataSource.name}"`
+                    );
+                    this.currentAggregateSource = viewName;
+                } else {
+                    // If adding data to an existing table, we will need to add any new columns.
+                    // DuckDB does not support adding multiple columns in one ALTER TABLE
+                    // statement, so we will need to loop through and add them one by one.
+                    if (newColumns.length) {
+                        const alterTableSQL = newColumns
+                            .map(
+                                (column) =>
+                                    `ALTER TABLE "${viewName}" ADD COLUMN "${column}" VARCHAR`
+                            )
+                            .join("; ");
+                        await this.execute(alterTableSQL);
+                    }
+
+                    // After we have added any new columns to the table schema,
+                    // insert the data from the new table into the existing one,
+                    // replacing any non-existent columns with an empty value (null)
+                    const columnsSoFarArr = [...columnsSoFar, ...newColumns];
+                    const columnToSql = (column: string) => {
+                        if (columnsInDataSource.includes(column)) {
+                            return `"${column}"`;
+                        } else if (similarColumnMap.has(column)) {
+                            // Match columns to their case-insensitive equivalent in the existing table
+                            return `"${similarColumnMap.get(column)}" as "${column}"`;
+                        } else return "NULL";
+                    };
+                    await this.execute(`
+                        INSERT INTO "${viewName}" ("${columnsSoFarArr.join('", "')}", "Data source")
+                        SELECT ${columnsSoFarArr
+                            .map((column) => columnToSql(column))
+                            .join(", ")}, '${dataSource.name}' AS "Data source"
+                        FROM "${dataSource.name}"
+                    `);
                 }
 
-                // After we have added any new columns to the table schema we just need
-                // to insert the data from the new table to this table replacing any non-existent
-                // columns with an empty value (null)
-                const columnsSoFarArr = [...columnsSoFar, ...newColumns];
-                await this.execute(`
-                    INSERT INTO "${viewName}" ("${columnsSoFarArr.join('", "')}", "Data source")
-                    SELECT ${columnsSoFarArr
-                        .map((column) =>
-                            columnsInDataSource.includes(column) ? `"${column}"` : "NULL"
-                        )
-                        .join(", ")}, '${dataSource.name}' AS "Data source"
-                    FROM "${dataSource.name}"
-                `);
-            }
+                // Add the new columns from this data source to the existing columns
+                // to avoid adding duplicate columns
+                newColumns.forEach((column) => columnsSoFar.add(column));
 
-            // Add the new columns from this data source to the existing columns
-            // to avoid adding duplicate columns
-            newColumns.forEach((column) => columnsSoFar.add(column));
+                Array.from(similarColumnMap.entries()).forEach((entry) => {
+                    renamedColumnWarnings.push(
+                        `Column "${entry[0]}" from data source ${dataSource.name} translated to "${entry[1]}".`
+                    );
+                });
+            }
+        } catch (err) {
+            const formattedError =
+                (err as Error)?.message || `Error while combining data sources. ${err}`;
+            throw new DataSourcePreparationError(formattedError, viewName);
+        }
+
+        // Unable to dispatch from a class definition; use warn for now
+        if (renamedColumnWarnings.length > 0) {
+            console.warn(
+                "Combining columns with similar names: \n ",
+                renamedColumnWarnings.join("\n")
+            );
         }
 
         // Reset hidden UID to avoid conflicts in previous auto-generation
@@ -753,6 +1002,14 @@ export default abstract class DatabaseService {
         }
 
         return this.dataSourceToAnnotationsMap.get(aggregateDataSourceName) || [];
+    }
+
+    // Similar to getColumnsOnDataSource below, but suitable for use during the
+    // data source preparation step.
+    private async getRawParquetColumns(name: string): Promise<string[]> {
+        const sql = `DESCRIBE SELECT * FROM parquet_scan("${name}")`;
+        const rows = await this.query(sql).promise;
+        return rows.map((row) => row["column_name"] as string);
     }
 
     protected async getColumnsOnDataSource(name: string): Promise<Set<string>> {

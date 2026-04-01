@@ -9,6 +9,7 @@ import SQLBuilder from "../../../../core/entity/SQLBuilder";
 import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 import { DatabaseService } from "../../../../core/services";
+import { initializeDuckDB } from "../../../../core/services/DatabaseService";
 
 declare const self: DedicatedWorkerGlobalScope & typeof globalThis;
 let databaseService: DatabaseServiceWebWorker | null = null;
@@ -62,12 +63,20 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
         }
     },
     [WorkerMsgType.EXECUTE]: async ({ sql, id }) => {
-        if (!databaseService) {
-            throw new Error("DuckDB not initialized");
+        try {
+            if (!databaseService) {
+                throw new Error("DuckDB not initialized");
+            }
+            // To do: decide if executes should be cancelable
+            const result = await databaseService.execute(sql);
+            self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
+        } catch (err) {
+            // post error with ID so parent class can reject pending
+            self.postMessage({
+                type: WorkerResType.ERROR,
+                payload: { message: (err as Error).message, id },
+            });
         }
-        // To do: decide if executes should be cancelable
-        const result = await databaseService.execute(sql);
-        self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
     },
     [WorkerMsgType.QUERY]: async ({ sql, id }) => {
         try {
@@ -194,19 +203,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
     async initialize() {
         if (this.database) return; // Already initialized successfully
         try {
-            const allBundles = duckdb.getJsDelivrBundles();
-
-            // Selects the best bundle based on browser checks
-            const bundle = await duckdb.selectBundle(allBundles);
-            const workerUrl = URL.createObjectURL(
-                new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" })
-            );
-            // Instantiate the asynchronous version of DuckDB-wasm
-            const worker = new Worker(workerUrl);
-            const logger = new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING);
-            this.database = new duckdb.AsyncDuckDB(logger, worker);
-            await this.database.instantiate(bundle.mainModule, bundle.pthreadWorker);
-            URL.revokeObjectURL(workerUrl);
+            this.database = await initializeDuckDB(duckdb.LogLevel.WARNING);
             return Promise.resolve();
         } catch (err: any) {
             console.error(err);

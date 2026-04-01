@@ -79,7 +79,16 @@ export default class DatabaseFileService implements FileService {
         const dataSourcesExistInDatabase = this.dataSourceNames.every((name) =>
             this.databaseService.hasDataSource(name)
         );
-        if (!this.dataSourceNames.length || !dataSourcesExistInDatabase) {
+        // Make sure that if querying multiple sources, we also have the aggregate table
+        const aggregateExistsInDatabase =
+            this.dataSourceNames.length === 1
+                ? dataSourcesExistInDatabase
+                : this.databaseService.hasAggregateSource(this.dataSourceNames);
+        if (
+            !this.dataSourceNames.length ||
+            !dataSourcesExistInDatabase ||
+            !aggregateExistsInDatabase
+        ) {
             throw new Error("Data source is not prepared");
         }
 
