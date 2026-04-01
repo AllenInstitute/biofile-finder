@@ -5,12 +5,13 @@ import { noop } from "lodash";
 import * as React from "react";
 import { Provider } from "react-redux";
 
+import QuerySidebar from "..";
 import Query from "../Query";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../../constants";
 import FileFilter from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
-import { initialState } from "../../../state";
+import { initialState, interaction, selection } from "../../../state";
 
 describe("<Query />", () => {
     it("expands and collapses when clicked", async () => {
@@ -352,6 +353,99 @@ describe("<Query />", () => {
             // Assert
             expect(getByText(new RegExp(`${includeFilterName} \\(any value\\)`))).to.exist;
             expect(getByText(new RegExp(`${excludeFilterName} \\(no value\\)`))).to.exist;
+        });
+    });
+
+    describe("provides options to create new queries", () => {
+        it("offers existing data sources as menu items", () => {
+            // Arrange
+            const mockSourceName = "Test Source";
+            const state = mergeState(initialState, {
+                metadata: {
+                    dataSources: [
+                        { id: "123abc", name: `${mockSourceName} 1` },
+                        { id: "456def", name: `${mockSourceName} 2` },
+                    ],
+                },
+            });
+            const { store } = configureMockStore({
+                state,
+            });
+            const { getByTestId, getAllByText } = render(
+                <Provider store={store}>
+                    <QuerySidebar />
+                </Provider>
+            );
+            const sourceRegex = new RegExp(`${mockSourceName}`);
+            // consistency checks
+            const addQueryButton = getByTestId(/add-query-button/);
+            expect(addQueryButton).to.exist;
+            expect(() => getAllByText(sourceRegex)).to.throw;
+
+            // Act
+            fireEvent.click(addQueryButton);
+
+            // Assert
+            expect(getAllByText(sourceRegex)).to.exist;
+            expect(getAllByText(sourceRegex)).to.be.lengthOf(2);
+        });
+
+        it("dispatches a new query using existing sources", () => {
+            // Arrange
+            const mockSourceName = "Test Source";
+            const state = mergeState(initialState, {
+                metadata: {
+                    dataSources: [{ id: "123abc", name: mockSourceName }],
+                },
+            });
+            const { store, actions } = configureMockStore({ state });
+            const { getByTestId, getByText } = render(
+                <Provider store={store}>
+                    <QuerySidebar />
+                </Provider>
+            );
+            // evergreen check
+            expect(
+                actions.includesMatch({
+                    type: selection.actions.ADD_QUERY,
+                })
+            ).to.be.false;
+
+            // Act
+            fireEvent.click(getByTestId(/add-query-button/));
+            fireEvent.click(getByText(mockSourceName));
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: selection.actions.ADD_QUERY,
+                })
+            ).to.be.true;
+        });
+
+        it("opens the data source modal without passing query info", () => {
+            // Arrange
+            const { store, actions } = configureMockStore({ state: initialState });
+            const { getByTestId, getByText } = render(
+                <Provider store={store}>
+                    <QuerySidebar />
+                </Provider>
+            );
+
+            // Act
+            fireEvent.click(getByTestId(/add-query-button/));
+            const newSourceButton = getByText(/New data source/);
+            // consistency check
+            expect(newSourceButton).to.exist;
+            fireEvent.click(newSourceButton);
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: interaction.actions.PROMPT_FOR_DATA_SOURCE,
+                    payload: {}, // should be empty since creating new query
+                })
+            ).to.be.true;
         });
     });
 });
