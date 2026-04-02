@@ -279,7 +279,6 @@ describe("<AnnotationFilterForm />", () => {
         });
 
         it("renders a NumberRangePicker instead of a list", async () => {
-            // NUMBER annotations always use the range picker regardless of distinct value count
             const responseStub = {
                 when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
                 respondWith: {

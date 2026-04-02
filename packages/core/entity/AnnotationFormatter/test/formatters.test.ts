@@ -71,9 +71,7 @@ describe("Annotation formatters", () => {
             })
         );
 
-        // duckdb-wasm returns TIMESTAMP as BigInt ms-since-epoch; JSON replacer converts to a
-        // numeric string (e.g. "1645833600000"). new Date("1645833600000") is Invalid Date —
-        // the formatter must coerce all-digit strings to Number before constructing the Date.
+        // the formatter coerces all-digit strings to Number before constructing the Date.
         it("formats a numeric string ms-since-epoch value as a datetime", () => {
             expect(dateTimeFormatter.displayValue("1645833600000")).to.not.equal("Invalid Date");
             expect(dateTimeFormatter.displayValue("1645833600000")).to.be.a("string").and.not.empty;
@@ -107,9 +105,7 @@ describe("Annotation formatters", () => {
             });
         });
 
-        // duckdb-wasm returns DATE as BigInt ms-since-epoch; JSON replacer converts to a
-        // numeric string (e.g. "1645833600000"). new Date("1645833600000") is Invalid Date —
-        // the formatter must coerce all-digit strings to Number before constructing the Date.
+        // the formatter coerces all-digit strings to Number before constructing the Date.
         it("formats a numeric string ms-since-epoch value as a date", () => {
             expect(dateFormatter.displayValue("1645833600000")).to.not.equal("Invalid Date");
             expect(dateFormatter.displayValue("1645833600000")).to.be.a("string").and.not.empty;
