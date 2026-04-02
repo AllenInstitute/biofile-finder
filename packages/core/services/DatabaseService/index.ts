@@ -379,6 +379,572 @@ function collectJsonArraySchemaPaths(
     return paths;
 }
 
+// ---------------------------------------------------------------------------
+// Fast Parquet schema reader — extracts column schema directly from the raw
+// Parquet footer bytes using a minimal Thrift Binary Protocol parser.
+//
+// DuckDB's parquet_schema() and DESCRIBE both deserialize the ENTIRE Thrift
+// FileMetaData footer, including the row_groups list which scales with
+// (num_row_groups × num_columns).  For large files (10M+ rows) this footer
+// can be hundreds of MB and take 70+ seconds to parse in WASM.
+//
+// The schema list, by contrast, is always near the start of the footer and
+// is typically < 10 KB.  By reading the raw bytes from the File API and
+// parsing only the schema field (stopping before row_groups), we get the
+// exact same information in milliseconds.
+// ---------------------------------------------------------------------------
+
+// Maps from Parquet Thrift enum ordinals to the string names that
+// parseParquetSchemaRows (and parquetPhysicalTypeToDuckDB) expect.
+const PARQUET_PHYSICAL_TYPES: Record<number, string> = {
+    0: "BOOLEAN",
+    1: "INT32",
+    2: "INT64",
+    3: "INT96",
+    4: "FLOAT",
+    5: "DOUBLE",
+    6: "BYTE_ARRAY",
+    7: "FIXED_LEN_BYTE_ARRAY",
+};
+const PARQUET_CONVERTED_TYPES: Record<number, string> = {
+    0: "UTF8",
+    1: "MAP",
+    2: "MAP_KEY_VALUE",
+    3: "LIST",
+    4: "ENUM",
+    5: "DECIMAL",
+    6: "DATE",
+    7: "TIME_MILLIS",
+    8: "TIME_MICROS",
+    9: "TIMESTAMP_MILLIS",
+    10: "TIMESTAMP_MICROS",
+    11: "UINT_8",
+    12: "UINT_16",
+    13: "UINT_32",
+    14: "UINT_64",
+    15: "INT_8",
+    16: "INT_16",
+    17: "INT_32",
+    18: "INT_64",
+    19: "JSON",
+    20: "BSON",
+    21: "INTERVAL",
+};
+const PARQUET_LOGICAL_TYPES: Record<number, string> = {
+    1: "STRING",
+    2: "MAP",
+    3: "LIST",
+    4: "ENUM",
+    5: "DECIMAL",
+    6: "DATE",
+    7: "TIME",
+    8: "TIMESTAMP",
+    10: "INTEGER",
+    11: "UNKNOWN",
+    12: "JSON",
+    13: "BSON",
+    14: "UUID",
+};
+
+// Thrift Compact Protocol type nibble values (low nibble of field header byte / list element type)
+// Parquet uses Thrift Compact Protocol — NOT Binary Protocol.
+// Compact Protocol differs from Binary in: variable-length zigzag integers, delta-encoded
+// field IDs packed with the type nibble in one byte, and combined count/type list headers.
+const THRIFT_COMPACT_STOP = 0;
+const THRIFT_COMPACT_BOOL_TRUE = 1;
+const THRIFT_COMPACT_BOOL_FALSE = 2;
+const THRIFT_COMPACT_BYTE = 3;
+const THRIFT_COMPACT_I16 = 4;
+const THRIFT_COMPACT_I32 = 5;
+const THRIFT_COMPACT_I64 = 6;
+const THRIFT_COMPACT_DOUBLE = 7;
+const THRIFT_COMPACT_BINARY = 8;
+const THRIFT_COMPACT_LIST = 9;
+const THRIFT_COMPACT_SET = 10;
+const THRIFT_COMPACT_MAP = 11;
+const THRIFT_COMPACT_STRUCT = 12;
+
+/**
+ * Minimal Thrift Compact Protocol reader — supports only what we need to
+ * extract SchemaElement fields from a Parquet FileMetaData footer.
+ *
+ * Key differences from Binary Protocol:
+ *  - Field header: 1 byte encodes both type (low nibble) and field-ID delta (high nibble).
+ *    Delta=0 means the full field ID follows as a zigzag varint.
+ *  - All integers are variable-length zigzag-encoded varints, not fixed-width.
+ *  - List/Set header: 1 byte encodes count (high nibble) and element type (low nibble).
+ *    If count >= 15, high nibble is 0xF and the true count follows as a varint.
+ *  - Struct field-ID tracking is relative (delta from previous field), so entering a
+ *    nested struct requires saving and resetting the running field-ID counter.
+ */
+class ThriftCompactReader {
+    private readonly bytes: Uint8Array;
+    private pos: number;
+    // Running field ID within the current struct level (delta-encoded per Compact spec)
+    private lastFieldId = 0;
+    // Stack for nested struct contexts
+    private readonly fieldIdStack: number[] = [];
+
+    constructor(buffer: ArrayBuffer, offset = 0) {
+        this.bytes = new Uint8Array(buffer);
+        this.pos = offset;
+    }
+
+    readByte(): number {
+        return this.bytes[this.pos++];
+    }
+
+    /** Read an unsigned base-128 varint. */
+    readVarint(): number {
+        let result = 0;
+        let shift = 0;
+        let b: number;
+        do {
+            b = this.readByte();
+            result |= (b & 0x7f) << shift;
+            shift += 7;
+        } while (b & 0x80);
+        return result;
+    }
+
+    /** Read a zigzag-encoded signed integer (used for all integer fields in Compact). */
+    private readZigzag(): number {
+        const v = this.readVarint();
+        return (v >>> 1) ^ -(v & 1);
+    }
+
+    readI32(): number {
+        return this.readZigzag();
+    }
+
+    readString(): string {
+        const len = this.readVarint();
+        const s = new TextDecoder().decode(this.bytes.subarray(this.pos, this.pos + len));
+        this.pos += len;
+        return s;
+    }
+
+    /**
+     * Read a Compact Protocol field header.
+     * Returns null on STOP (0x00).
+     * Updates the running lastFieldId used for delta decoding.
+     */
+    readFieldHeader(): { type: number; id: number } | null {
+        const byte = this.readByte();
+        if (byte === THRIFT_COMPACT_STOP) return null;
+        const type = byte & 0x0f;
+        const delta = (byte >> 4) & 0x0f;
+        if (delta === 0) {
+            // Long form: full field ID follows as zigzag int
+            this.lastFieldId = this.readZigzag();
+        } else {
+            this.lastFieldId += delta;
+        }
+        return { type, id: this.lastFieldId };
+    }
+
+    /** Save current struct field-ID context and reset for a nested struct. */
+    enterStruct(): void {
+        this.fieldIdStack.push(this.lastFieldId);
+        this.lastFieldId = 0;
+    }
+
+    /** Restore struct field-ID context after reading a nested struct's STOP byte. */
+    exitStruct(): void {
+        this.lastFieldId = this.fieldIdStack.pop() ?? 0;
+    }
+
+    skipValue(type: number): void {
+        switch (type) {
+            case THRIFT_COMPACT_BOOL_TRUE:
+            case THRIFT_COMPACT_BOOL_FALSE:
+                break; // value is encoded in the type nibble itself — no extra bytes
+            case THRIFT_COMPACT_BYTE:
+                this.pos++;
+                break;
+            case THRIFT_COMPACT_I16:
+            case THRIFT_COMPACT_I32:
+            case THRIFT_COMPACT_I64:
+                // Skip variable-length varint
+                while (this.bytes[this.pos++] & 0x80);
+                break;
+            case THRIFT_COMPACT_DOUBLE:
+                this.pos += 8;
+                break;
+            case THRIFT_COMPACT_BINARY: {
+                const len = this.readVarint();
+                this.pos += len;
+                break;
+            }
+            case THRIFT_COMPACT_STRUCT:
+                this.skipStruct();
+                break;
+            case THRIFT_COMPACT_LIST:
+            case THRIFT_COMPACT_SET: {
+                // List header byte: high nibble = count (0-14) or 0xF (count follows as varint)
+                const h = this.readByte();
+                const count = (h >> 4) === 0xf ? this.readVarint() : (h >> 4);
+                const et = h & 0x0f;
+                for (let i = 0; i < count; i++) this.skipValue(et);
+                break;
+            }
+            case THRIFT_COMPACT_MAP: {
+                const count = this.readVarint();
+                if (count > 0) {
+                    const tb = this.readByte();
+                    const kt = (tb >> 4) & 0x0f;
+                    const vt = tb & 0x0f;
+                    for (let i = 0; i < count; i++) {
+                        this.skipValue(kt);
+                        this.skipValue(vt);
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    private skipStruct(): void {
+        this.enterStruct();
+        for (let f = this.readFieldHeader(); f !== null; f = this.readFieldHeader()) {
+            this.skipValue(f.type);
+        }
+        this.exitStruct();
+    }
+}
+
+interface ParquetSchemaRow {
+    name: string;
+    type: string | null;
+    num_children: number;
+    converted_type: string | null;
+    logical_type: string | null;
+}
+
+/** Parse a Thrift-encoded Parquet LogicalType union, returning just the variant name. */
+function readLogicalType(reader: ThriftCompactReader): string | null {
+    let result: string | null = null;
+    // LogicalType is a nested struct — enter its field-ID context
+    reader.enterStruct();
+    for (let f = reader.readFieldHeader(); f !== null; f = reader.readFieldHeader()) {
+        result = PARQUET_LOGICAL_TYPES[f.id] ?? null;
+        reader.skipValue(f.type); // skip the inner variant struct (e.g. StringType = empty struct)
+    }
+    reader.exitStruct();
+    return result;
+}
+
+/** Parse a single Thrift-encoded SchemaElement struct. */
+function readSchemaElement(reader: ThriftCompactReader): ParquetSchemaRow {
+    let type: string | null = null;
+    let name = "";
+    let numChildren = 0;
+    let convertedType: string | null = null;
+    let logicalType: string | null = null;
+
+    for (let f = reader.readFieldHeader(); f !== null; f = reader.readFieldHeader()) {
+        switch (f.id) {
+            case 1: // type — Parquet physical type enum (i32)
+                type = PARQUET_PHYSICAL_TYPES[reader.readI32()] ?? null;
+                break;
+            case 4: // name — column / field name
+                name = reader.readString();
+                break;
+            case 5: // num_children
+                numChildren = reader.readI32();
+                break;
+            case 6: // converted_type enum (i32)
+                convertedType = PARQUET_CONVERTED_TYPES[reader.readI32()] ?? null;
+                break;
+            case 10: // logicalType (LogicalType union — encoded as a struct)
+                logicalType = readLogicalType(reader);
+                break;
+            default:
+                reader.skipValue(f.type);
+                break;
+        }
+    }
+    return {
+        name,
+        type,
+        num_children: numChildren,
+        converted_type: convertedType,
+        logical_type: logicalType,
+    };
+}
+
+/**
+ * Read the Parquet schema directly from a File's raw bytes.
+ *
+ * Only reads the last 8 bytes (footer length) plus enough of the footer to
+ * cover the schema list.  Stops parsing before the row_groups field, which
+ * is typically orders of magnitude larger than the schema.
+ */
+async function readParquetSchemaFromFile(file: File): Promise<ParquetSchemaRow[]> {
+    const fileSize = file.size;
+    if (fileSize < 12) throw new Error("File too small to be a valid Parquet file");
+
+    // 1. Read footer length + magic from last 8 bytes
+    const tailBuf = await file.slice(fileSize - 8, fileSize).arrayBuffer();
+    const tailView = new DataView(tailBuf);
+    const footerLength = tailView.getInt32(0, true); // little-endian
+
+    // Validate PAR1 magic
+    const magic = new Uint8Array(tailBuf, 4, 4);
+    if (magic[0] !== 0x50 || magic[1] !== 0x41 || magic[2] !== 0x52 || magic[3] !== 0x31) {
+        throw new Error("Not a valid Parquet file (missing PAR1 magic)");
+    }
+
+    // 2. Read enough of the footer for the schema.
+    //    The schema is field 2 of FileMetaData, right after field 1 (version, 7 bytes).
+    //    Even for thousands of columns the schema is rarely > 1 MB.
+    //    Reading 4 MB covers any realistic schema.
+    const footerStart = fileSize - 8 - footerLength;
+    const readSize = Math.min(footerLength, 4 * 1024 * 1024);
+    const footerBuf = await file.slice(footerStart, footerStart + readSize).arrayBuffer();
+
+    // 3. Parse Thrift FileMetaData — extract only the schema field (id=2)
+    const reader = new ThriftCompactReader(footerBuf);
+    const schemaElements: ParquetSchemaRow[] = [];
+
+    for (let fld = reader.readFieldHeader(); fld !== null; fld = reader.readFieldHeader()) {
+        if (fld.id === 2 && fld.type === THRIFT_COMPACT_LIST) {
+            // Field 2: list<SchemaElement>
+            // Compact list header: 1 byte where high nibble = count (or 0xF = count follows)
+            // and low nibble = element type (12 = STRUCT for SchemaElement)
+            const h = reader.readByte();
+            const count = (h >> 4) === 0xf ? reader.readVarint() : (h >> 4);
+            for (let i = 0; i < count; i++) {
+                reader.enterStruct();
+                schemaElements.push(readSchemaElement(reader));
+                reader.exitStruct();
+            }
+            break; // Schema extracted — skip row_groups and everything after
+        }
+        reader.skipValue(fld.type);
+    }
+
+    return schemaElements;
+}
+
+/**
+ * Fetch just the Parquet footer from an HTTP/HTTPS URL using Range requests and extract
+ * the schema — fast alternative to letting DuckDB read the entire file.
+ * Throws if the server does not support Range requests or the URL is not HTTP(S).
+ */
+async function readParquetSchemaFromUrl(url: string): Promise<ParquetSchemaRow[]> {
+    // 1. Determine file size via HEAD request (Content-Length).
+    //    More reliable than parsing the total from a suffix-range Content-Range
+    //    header, which some servers return as "bytes 0-7/*" (unknown total).
+    let totalSize: number;
+    const headResp = await fetch(url, { method: "HEAD" });
+    if (headResp.ok) {
+        const cl = headResp.headers.get("Content-Length");
+        totalSize = cl ? parseInt(cl, 10) : NaN;
+    } else {
+        totalSize = NaN;
+    }
+
+    // 2. Fetch last 8 bytes: footer length (int32 LE) + PAR1 magic.
+    let tailBuf: ArrayBuffer;
+    if (!isNaN(totalSize) && totalSize >= 12) {
+        // Explicit range — works even when Content-Range omits the total size.
+        const tailResp = await fetch(url, {
+            headers: { Range: `bytes=${totalSize - 8}-${totalSize - 1}` },
+        });
+        if (tailResp.status !== 206 && tailResp.status !== 200) {
+            throw new Error(
+                `Server returned ${tailResp.status}; Range requests not supported`
+            );
+        }
+        tailBuf = await tailResp.arrayBuffer();
+    } else {
+        // Fallback: suffix-range and recover total size from Content-Range.
+        const tailResp = await fetch(url, { headers: { Range: "bytes=-8" } });
+        if (tailResp.status !== 206) {
+            throw new Error(
+                `Server returned ${tailResp.status} (expected 206); Range requests not supported`
+            );
+        }
+        const contentRange = tailResp.headers.get("Content-Range"); // "bytes X-Y/Z"
+        const parsed = contentRange ? parseInt(contentRange.split("/")[1], 10) : NaN;
+        if (isNaN(parsed) || parsed < 12) {
+            throw new Error(
+                "Could not determine Parquet file size (HEAD gave no Content-Length " +
+                    "and Range response gave no Content-Range total)"
+            );
+        }
+        totalSize = parsed;
+        tailBuf = await tailResp.arrayBuffer();
+    }
+    if (tailBuf.byteLength < 8) throw new Error("Incomplete response for Parquet footer tail");
+
+    const tailView = new DataView(tailBuf);
+    const footerLength = tailView.getInt32(0, true); // little-endian
+    const magic = new Uint8Array(tailBuf, 4, 4);
+    if (magic[0] !== 0x50 || magic[1] !== 0x41 || magic[2] !== 0x52 || magic[3] !== 0x31) {
+        throw new Error("Not a valid Parquet file (missing PAR1 magic)");
+    }
+
+    // 3. Fetch enough of the footer to cover the schema (field 2 of FileMetaData).
+    const footerStart = totalSize - 8 - footerLength;
+    const readSize = Math.min(footerLength, 4 * 1024 * 1024);
+    const footerEnd = footerStart + readSize - 1;
+    const footerResp = await fetch(url, { headers: { Range: `bytes=${footerStart}-${footerEnd}` } });
+    if (footerResp.status !== 206) {
+        throw new Error("Failed to fetch Parquet footer bytes from URL");
+    }
+    const footerBuf = await footerResp.arrayBuffer();
+
+    // 3. Parse Thrift FileMetaData — same logic as readParquetSchemaFromFile.
+    const reader = new ThriftCompactReader(footerBuf);
+    const schemaElements: ParquetSchemaRow[] = [];
+
+    for (let fld = reader.readFieldHeader(); fld !== null; fld = reader.readFieldHeader()) {
+        if (fld.id === 2 && fld.type === THRIFT_COMPACT_LIST) {
+            const h = reader.readByte();
+            const count = (h >> 4) === 0xf ? reader.readVarint() : (h >> 4);
+            for (let i = 0; i < count; i++) {
+                reader.enterStruct();
+                schemaElements.push(readSchemaElement(reader));
+                reader.exitStruct();
+            }
+            break;
+        }
+        reader.skipValue(fld.type);
+    }
+
+    return schemaElements;
+}
+
+/**
+ * Map a Parquet leaf-node physical type to a DuckDB type string.
+ * Only called for leaf nodes (num_children === 0) from parseParquetSchemaRows.
+ */
+function parquetPhysicalTypeToDuckDB(
+    physicalType: string | null,
+    logicalType: string | null,
+    convertedType: string | null
+): string {
+    const lt = (logicalType ?? "").toLowerCase();
+    const ct = (convertedType ?? "").toUpperCase();
+    switch (physicalType) {
+        case "BYTE_ARRAY":
+            if (lt === "string" || lt === "json" || ct === "UTF8" || ct === "JSON" || ct === "ENUM")
+                return "VARCHAR";
+            return "BLOB";
+        case "FIXED_LEN_BYTE_ARRAY":
+            if (lt === "uuid") return "UUID";
+            if (lt.startsWith("decimal") || ct === "DECIMAL") return "DECIMAL";
+            return "BLOB";
+        case "INT32":
+            if (lt === "date" || ct === "DATE") return "DATE";
+            if (lt.startsWith("time")) return "TIME";
+            if (lt.startsWith("decimal") || ct === "DECIMAL") return "DECIMAL";
+            return "INTEGER";
+        case "INT64":
+            if (
+                lt.startsWith("timestamp") ||
+                ct === "TIMESTAMP_MILLIS" ||
+                ct === "TIMESTAMP_MICROS"
+            )
+                return "TIMESTAMP";
+            if (lt.startsWith("time")) return "TIME";
+            if (lt.startsWith("decimal") || ct === "DECIMAL") return "DECIMAL";
+            return "BIGINT";
+        case "INT96":
+            return "TIMESTAMP";
+        case "FLOAT":
+            return "FLOAT";
+        case "DOUBLE":
+            return "DOUBLE";
+        case "BOOLEAN":
+            return "BOOLEAN";
+        default:
+            return "VARCHAR"; // safe fallback
+    }
+}
+
+/**
+ * Convert the flat DFS output of `parquet_schema('file')` into
+ * `{ column_name, column_type }[]` matching the format returned by DESCRIBE.
+ *
+ * parquet_schema() reads only the schema section of the Parquet footer.  It does NOT
+ * read row-group statistics, which scale with (num_row_groups × num_columns) and can
+ * make the footer very large for files with many small row groups — causing DESCRIBE
+ * to be orders of magnitude slower on such files.
+ */
+function parseParquetSchemaRows(
+    rows: Array<{
+        name: string;
+        type: string | null;
+        num_children: number;
+        converted_type: string | null;
+        logical_type: string | null;
+    }>
+): Array<{ column_name: string; column_type: string }> {
+    if (rows.length === 0) return [];
+    // Row 0 is the root schema element (name "duckdb_schema"); top-level columns start at 1.
+    const rootNumChildren = Number(rows[0].num_children);
+    const result: Array<{ column_name: string; column_type: string }> = [];
+
+    // Recursive DFS parser.  Consumes the flat list using num_children counts.
+    // Returns [duckDBTypeString, nextIndex].
+    const parseNode = (index: number): [string, number] => {
+        const row = rows[index];
+        const numChildren = Number(row.num_children);
+
+        if (numChildren === 0) {
+            // Leaf node — map Parquet physical type to a DuckDB type string.
+            return [
+                parquetPhysicalTypeToDuckDB(row.type, row.logical_type, row.converted_type),
+                index + 1,
+            ];
+        }
+
+        const lt = (row.logical_type ?? "").toLowerCase();
+        const ct = (row.converted_type ?? "").toUpperCase();
+
+        if (lt.startsWith("list") || ct === "LIST") {
+            // Standard 3-level Parquet LIST encoding:
+            //   outer (logical_type=List, num_children=1)
+            //     intermediate (REPEATED group, num_children=1)   ← skip
+            //       item (the actual element type)
+            const itemIdx = index + 2; // skip outer and the intermediate node
+            const [itemType, nextIdx] = parseNode(itemIdx);
+            return [`${itemType}[]`, nextIdx];
+        }
+
+        if (lt === "map" || ct === "MAP" || ct === "MAP_KEY_VALUE") {
+            // Standard MAP: outer(Map) → key_value(REPEATED, 2 children) → key, value.
+            const keyIdx = index + 2; // skip outer and key_value intermediate
+            const [keyType, valueIdx] = parseNode(keyIdx);
+            const [valueType, nextIdx] = parseNode(valueIdx);
+            return [`MAP(${keyType}, ${valueType})`, nextIdx];
+        }
+
+        // STRUCT: named group node with typed fields.
+        const fields: string[] = [];
+        let curIdx = index + 1;
+        for (let i = 0; i < numChildren; i++) {
+            const fieldName = rows[curIdx].name;
+            const [fieldType, nextIdx] = parseNode(curIdx);
+            fields.push(`"${fieldName}" ${fieldType}`);
+            curIdx = nextIdx;
+        }
+        return [`STRUCT(${fields.join(", ")})`, curIdx];
+    };
+
+    let idx = 1;
+    for (let i = 0; i < rootNumChildren; i++) {
+        const colName = rows[idx].name;
+        const [colType, nextIdx] = parseNode(idx);
+        result.push({ column_name: colName, column_type: colType });
+        idx = nextIdx;
+    }
+    return result;
+}
+
 function quoteIdentifier(identifier: string): string {
     return `"${identifier.replaceAll('"', '""')}"`;
 }
@@ -546,7 +1112,11 @@ export default class DatabaseService {
         }
 
         if (type === "parquet") {
-            await this.createParquetDirectView(name, registerName);
+            await this.createParquetDirectView(
+                name,
+                registerName,
+                uri
+            );
         } else if (type === "json") {
             await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${registerName}');`);
         } else {
@@ -561,12 +1131,25 @@ export default class DatabaseService {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
+        const start = Date.now();
 
         const connection = await this.database.connect();
         try {
             await connection.query(sql);
         } finally {
             await connection.close();
+            const end = Date.now();
+            if (end - start >= 30_000) {
+                console.error(
+                    `Very slow query: SQL executed in ${(end - start) / 1000}s: ${sql}`
+                );
+            } else if (end - start >= 15_000) {
+                console.error(`Slow query: SQL executed in ${(end - start) / 1000}s: ${sql}`);
+            } else if (end - start >= 2_500) {
+                console.warn(
+                    `Slightly slow query: SQL executed in ${(end - start) / 1000}s: ${sql}`
+                );
+            }
         }
     }
 
@@ -643,7 +1226,10 @@ export default class DatabaseService {
                     await this.normalizeDataSourceColumnNames(name);
                 }
 
-                const errors = await this.checkDataSourceForErrors(name);
+                const errors = await this.checkDataSourceForErrors(
+                    name,
+                    type === "parquet"
+                );
                 if (errors.length) {
                     throw new Error(errors.join("</br></br>"));
                 }
@@ -806,7 +1392,10 @@ export default class DatabaseService {
         the expectations around uniqueness/blankness for pre-defined columns
         like "File Path", "File ID", etc.
     */
-    private async checkDataSourceForErrors(name: string): Promise<string[]> {
+    private async checkDataSourceForErrors(
+        name: string,
+        isParquet = false
+    ): Promise<string[]> {
         const errors: string[] = [];
         const columnsOnTable = await this.getColumnsOnDataSource(name);
 
@@ -827,8 +1416,11 @@ export default class DatabaseService {
             // when it is not present so return here before checking
             // for other errors
             errors.push(error);
-        } else {
-            // Check for empty or just whitespace File Path column values
+        } else if (!isParquet) {
+            // For non-parquet sources, check for empty or whitespace File Path values.
+            // Skipped for parquet because any DuckDB query against the Parquet view
+            // triggers full footer deserialization (~60-80 s for large files).
+            // The structural check (column exists) is already done above.
             const { totalCount, sampleRowNumbers } = await this.getRowsWhereColumnIsBlank(
                 name,
                 PreDefinedColumn.FILE_PATH
@@ -873,22 +1465,52 @@ export default class DatabaseService {
     // and adds hidden_bff_uid.
     private async createParquetDirectView(
         viewName: string,
-        parquetInternalName: string
+        parquetInternalName: string,
+        originalFile?: File | string
     ): Promise<void> {
-        // 1. Get original column names from the user's table.
-        // Note: we don't use this.getColumnsOnDataSource, since that expects a
-        // fully built data source, and this function is used for creating a
-        // data source.
-        // TODO: This is really slow
-        const sql = new SQLBuilder().describe().from(parquetInternalName);
-        const rows = await this.query(sql.toSQL());
+        // 1. Get original column names and types from the Parquet schema.
+        //
+        // Fast path: parse only the schema section of the Parquet footer in
+        // JavaScript.  DuckDB's parquet_schema() / DESCRIBE deserializes the
+        // ENTIRE Thrift footer — including the row_groups list which scales with
+        // (num_row_groups × num_columns) and can be hundreds of MB for large
+        // files, taking 70+ seconds in WASM.  By reading just the footer bytes
+        // and stopping after the schema field, we get the same information in
+        // milliseconds.
+        //
+        // • Local File  → File.slice().arrayBuffer()  (always works)
+        // • HTTP/HTTPS  → fetch() with Range headers   (requires server support)
+        // • S3 / other  → falls back to DuckDB
+        let rows: Array<{ column_name: string; column_type: string }>;
+        if (originalFile) {
+            try {
+                console.log("Attempting to read Parquet schema using fast JavaScript parser");
+                let rawSchemaRows: ParquetSchemaRow[];
+                if (originalFile instanceof File) {
+                    rawSchemaRows = await readParquetSchemaFromFile(originalFile);
+                } else if (
+                    originalFile.startsWith("http://") ||
+                    originalFile.startsWith("https://")
+                ) {
+                    rawSchemaRows = await readParquetSchemaFromUrl(originalFile);
+                } else {
+                    // S3 and other non-HTTP protocols — skip the fast path.
+                    throw new Error(`Unsupported URI scheme for fast schema read: ${originalFile}`);
+                }
+                rows = parseParquetSchemaRows(rawSchemaRows);
+                console.log("Successfully read Parquet schema using fast JavaScript parser");
+            } catch (err) {
+                // Fall back to DuckDB if JS parsing fails
+                console.error("Fast Parquet schema reader failed, falling back to DuckDB:", err);
+                rows = await this.getParquetSchemaViaDuckDB(parquetInternalName);
+            }
+        } else {
+            rows = await this.getParquetSchemaViaDuckDB(parquetInternalName);
+        }
         const rawColumns = rows.map((row) => row["column_name"] as string);
         // Build a map from column name to DuckDB type for later type-specific handling.
         const colTypeMap = new Map(
-            rows.map((row) => [
-                row["column_name"] as string,
-                (row["column_type"] ?? row["data_type"] ?? "") as string,
-            ])
+            rows.map((row) => [row["column_name"] as string, row["column_type"] as string])
         );
         // 2. Determine which columns need to be renamed, if any
         const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
@@ -928,12 +1550,105 @@ export default class DatabaseService {
             }
         }
         selectParts.push(`"file_row_number" AS "${DatabaseService.HIDDEN_UID_ANNOTATION}"`);
+
+        // 3c. Pre-populate the annotation cache from the parsed schema so that
+        //     fetchAnnotations() returns immediately without querying
+        //     information_schema.columns — which would force DuckDB to resolve
+        //     the view and deserialize the entire Parquet footer (~60-80 s for
+        //     large files).  The cache will be refreshed with descriptions/types
+        //     if/when a source metadata table is loaded later.
+        const annotations: Annotation[] = [];
+        for (const col of rawColumns) {
+            const alias = actualToPreDefined.get(col) ?? col;
+            const colType = colTypeMap.get(col) ?? "";
+            const isStructOrMap =
+                colType.startsWith("STRUCT(") || colType.startsWith("MAP(");
+            const isStructArray =
+                colType.startsWith("STRUCT(") && colType.trimEnd().endsWith("[]");
+
+            annotations.push(
+                new Annotation({
+                    annotationName: alias,
+                    annotationDisplayName: alias,
+                    description: "",
+                    type: DatabaseService.columnTypeToAnnotationType(colType),
+                    isNested: isStructOrMap || isStructArray,
+                })
+            );
+
+            // STRUCT(...)[] → add virtual sub-field annotations
+            if (isStructArray) {
+                const structPaths = collectStructArraySchemaPaths(alias, colType);
+                for (const { displayPath, jsonPath, listExpression } of structPaths) {
+                    const virtualName = `${alias}.${displayPath}`;
+                    annotations.push(
+                        new Annotation({
+                            annotationName: virtualName,
+                            annotationDisplayName: virtualName,
+                            description: `Sub-field "${displayPath}" of "${alias}"`,
+                            type: AnnotationType.STRING,
+                            isNestedSubField: true,
+                            nestedParent: alias,
+                            nestedJsonPath: jsonPath,
+                            nestedListExpression: listExpression,
+                        })
+                    );
+                }
+            }
+
+            // Plain STRUCT → expanded fields are real view columns
+            if (colType.startsWith("STRUCT") && !isStructArray) {
+                const nestedPaths = collectNestedStructPaths(colType);
+                for (const fieldPath of nestedPaths) {
+                    const aliasPrefix = actualToPreDefined.get(col) ?? col;
+                    const fieldAlias = `${aliasPrefix}.${fieldPath.join(".")}`;
+                    annotations.push(
+                        new Annotation({
+                            annotationName: fieldAlias,
+                            annotationDisplayName: fieldAlias,
+                            description: "",
+                            type: AnnotationType.STRING,
+                        })
+                    );
+                }
+            }
+        }
+        // Include auto-generated File Name if applicable
+        if (fileNameSelectPart !== null) {
+            annotations.push(
+                new Annotation({
+                    annotationName: PreDefinedColumn.FILE_NAME,
+                    annotationDisplayName: PreDefinedColumn.FILE_NAME,
+                    description: "",
+                    type: AnnotationType.STRING,
+                })
+            );
+        }
+        this.dataSourceToAnnotationsMap.set(viewName, annotations);
         // 4. Create the view for this data source
         const createViewSql = `CREATE VIEW "${viewName}"
             AS SELECT ${selectParts.join(", ")}
             FROM parquet_scan('${parquetInternalName}');`;
         await this.execute(createViewSql);
         this.parquetDirectViewNames.add(viewName);
+    }
+
+    /** Slow fallback: use DuckDB's parquet_schema() for URL-based sources. */
+    private async getParquetSchemaViaDuckDB(
+        parquetInternalName: string
+    ): Promise<Array<{ column_name: string; column_type: string }>> {
+        const escapedName = parquetInternalName.replaceAll("'", "''");
+        const rawSchemaRows = (await this.query(
+            `SELECT name, type, num_children, converted_type, logical_type
+             FROM parquet_schema('${escapedName}')`
+        )) as Array<{
+            name: string;
+            type: string | null;
+            num_children: number;
+            converted_type: string | null;
+            logical_type: string | null;
+        }>;
+        return parseParquetSchemaRows(rawSchemaRows);
     }
 
     private async getRowsWhereColumnIsBlank(
