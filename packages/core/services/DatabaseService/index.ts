@@ -165,7 +165,27 @@ export default abstract class DatabaseService {
         const connection = await this.database?.connect();
         try {
             const result = await connection.query(sql);
-            const resultAsArray = result.toArray();
+
+            // Apache Arrow JS (used by duckdb-wasm) doesn't decode INTERVAL_MONTH_DAY_NANO
+            // correctly — it reads only the first 8 of 16 bytes, losing the nanoseconds.
+            // Re-run with INTERVAL columns cast to ms integers so the data survives Arrow.
+            const intervalColumns = result.schema.fields
+                .filter((f) => f.typeId === 11) // Arrow Type.Interval
+                .map((f) => f.name);
+            const queryResult =
+                intervalColumns.length > 0
+                    ? await connection.query(
+                          `SELECT ${result.schema.fields
+                              .map((f) =>
+                                  intervalColumns.includes(f.name)
+                                      ? `CAST(EXTRACT(epoch FROM "${f.name}") * 1000 AS BIGINT) AS "${f.name}"`
+                                      : `"${f.name}"`
+                              )
+                              .join(", ")} FROM (${sql})`
+                      )
+                    : result;
+
+            const resultAsArray = queryResult.toArray();
             const resultAsJSONString = JSON.stringify(
                 resultAsArray,
                 (_, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged

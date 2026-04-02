@@ -1,6 +1,7 @@
 import { expect } from "chai";
 
 import FileFilter, { FilterType } from "../";
+import { AnnotationType } from "../../AnnotationFormatter";
 import IncludeFilter from "../IncludeFilter";
 import ExcludeFilter from "../ExcludeFilter";
 import FuzzyFilter from "../FuzzyFilter";
@@ -53,6 +54,40 @@ describe("FileFilter", () => {
             const filter = new FileFilter("Score", "RANGE(-1.5, 3.14)");
             expect(filter.toSQLWhereString()).to.equal(
                 `CAST("Score" AS DOUBLE) >= -1.5 AND CAST("Score" AS DOUBLE) < 3.14`
+            );
+        });
+
+        // Core date/datetime range behavior: RANGE(isoDate,isoDate) from DateRangePicker must produce TIMESTAMPTZ comparison SQL
+        it("emits a date range SQL clause for RANGE() filter values with ISO date strings", () => {
+            const filter = new FileFilter(
+                "Date Created",
+                "RANGE(2022-01-01T00:00:00.000Z,2022-01-31T00:00:00.000Z)"
+            );
+            expect(filter.toSQLWhereString()).to.equal(
+                `CAST("Date Created" AS TIMESTAMPTZ) >= CAST('2022-01-01T00:00:00.000Z' AS TIMESTAMPTZ) AND CAST("Date Created" AS TIMESTAMPTZ) < CAST('2022-01-31T00:00:00.000Z' AS TIMESTAMPTZ)`
+            );
+        });
+
+        // Guards against date RANGE() detection bleeding into fuzzy filters
+        it("does not treat a date RANGE()-shaped value as a range when filter type is FUZZY", () => {
+            const filter = new FileFilter(
+                "Date Created",
+                "RANGE(2022-01-01T00:00:00.000Z,2022-01-31T00:00:00.000Z)",
+                FilterType.FUZZY
+            );
+            expect(filter.toSQLWhereString()).to.include("REGEXP_MATCHES");
+        });
+
+        // INTERVAL columns can't be compared with regex — EXTRACT(epoch) converts to ms for equality
+        it("emits an epoch extraction SQL clause for DURATION annotation type", () => {
+            const filter = new FileFilter(
+                "Acquisition Duration",
+                60000,
+                FilterType.DEFAULT,
+                AnnotationType.DURATION
+            );
+            expect(filter.toSQLWhereString()).to.equal(
+                `EXTRACT(epoch FROM "Acquisition Duration")::BIGINT * 1000 = 60000`
             );
         });
 

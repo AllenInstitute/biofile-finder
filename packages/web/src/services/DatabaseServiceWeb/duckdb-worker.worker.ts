@@ -258,7 +258,24 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             });
         try {
             const result = await connection.query(sql);
-            const resultAsArray = result.toArray();
+            // Apache Arrow JS cannot decode month_day_nano_interval (typeId=11) — it reads only
+            // the first 8 bytes and loses the nanoseconds entirely, producing all-zero values.
+            // Re-run the query with INTERVAL columns pre-converted to BIGINT milliseconds so that
+            // Arrow never touches them.
+            const intervalFields = result.schema.fields.filter((f) => f.typeId === 11);
+            const finalResult =
+                intervalFields.length > 0
+                    ? await connection.query(
+                          `SELECT ${result.schema.fields
+                              .map((f) =>
+                                  intervalFields.some((iv) => iv.name === f.name)
+                                      ? `CAST(EXTRACT(epoch FROM "${f.name}") * 1000 AS BIGINT) AS "${f.name}"`
+                                      : `"${f.name}"`
+                              )
+                              .join(", ")} FROM (${sql})`
+                      )
+                    : result;
+            const resultAsArray = finalResult.toArray();
             const resultAsJSONString = JSON.stringify(
                 resultAsArray,
                 (_, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged

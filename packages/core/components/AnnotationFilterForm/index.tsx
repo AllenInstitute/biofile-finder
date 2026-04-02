@@ -96,7 +96,8 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             isNil(props.annotation.valueOf(item.value))
                 ? item.value
                 : props.annotation.valueOf(item.value),
-            filterType
+            filterType,
+            props.annotation.type as AnnotationType
         );
     };
 
