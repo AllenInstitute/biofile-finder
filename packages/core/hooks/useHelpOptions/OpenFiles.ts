@@ -1,13 +1,22 @@
 import Tutorial from "../../entity/Tutorial";
 
-export const OPEN_FILES_TUTORIAL = new Tutorial("Opening files")
+export const OPEN_FILES_TUTORIAL = new Tutorial(
+    "Opening files in another application",
+    "How to open a file in another application without downloading or copying and pasting the file path"
+)
     .addStep({
         targetId: Tutorial.FILE_LIST_ID,
         message:
             "You can open files from the file list using other applications. Start by selecting the file you want to open.",
     })
     .addStep({
+        targetId: Tutorial.OPEN_WITH_ID,
+        message: `Click "Open with" in the file details panel to view a list of available applications with which you can open the file.
+            Applications that are most likely to support your file are listed at the top of the menu. 
+            All other available applications can be found in the "Other apps" sub-menu.`,
+    })
+    .addStep({
         targetId: Tutorial.FILE_LIST_ID,
         message:
-            'Right-click the now highlighted file and select "Open with" to select a specific application with which to open the file in. You can also have the explorer guess at which application to open by selecting the "Open" option instead. This will open the file in the default application your computer has saved for this file type, or just the last application used to open the same type.',
+            'You can also find this menu by right-clicking your selected file in the file list and selecting "Open with".',
     });

@@ -88,7 +88,7 @@ export default function TutorialTooltip() {
                     onClick={onDismiss}
                 />
             </div>
-            <p>{currentTutorialStep.message}</p>
+            <p className={styles.content}>{currentTutorialStep.message}</p>
             <div className={styles.buttonFooter}>
                 <h6>
                     {tutorialStepIndex + 1} / {currentTopic.length}
