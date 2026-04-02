@@ -61,8 +61,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     // Propagate regular file filter values from state into UI
     const items = React.useMemo<ListItem[]>(() => {
-        // Stringify both sides: filter.value may be a number (e.g. DURATION → ms) while
-        // annotationValues are always strings, so a strict Set lookup would never match.
         const appliedFilters = new Set(filtersForAnnotation.map((filter) => String(filter.value)));
 
         return (annotationValues || []).map((value) => ({
@@ -157,7 +155,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         />
     );
 
-    // Types that have a dedicated picker component and should never fall back to the list picker.
     // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
     const typeHasDedicatedPicker =
         props.annotation.name !== AnnotationName.FILE_SIZE &&
@@ -166,7 +163,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         );
 
     const searchFormType = () => {
-        // Types with dedicated pickers (number, date, datetime) always use their own UI.
+        // Types with dedicated pickers (number, date, datetime) use their own UI.
         // All other types fall back to the list picker when values are available.
         if (!typeHasDedicatedPicker && items.length > 0) {
             return listPickerComponent;

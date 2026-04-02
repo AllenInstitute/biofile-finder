@@ -124,8 +124,6 @@ export default class FileFilter {
                     }" AS TIMESTAMPTZ) < CAST('${endDate?.toISOString()}' AS TIMESTAMPTZ)`;
                 }
                 if (this.annotationType === AnnotationType.DURATION) {
-                    // INTERVAL columns can't be compared with regex against ms values; use EXTRACT to
-                    // convert the interval to ms for equality comparison.
                     return `EXTRACT(epoch FROM "${this.annotationName}")::BIGINT * 1000 = ${Number(
                         this.annotationValue
                     )}`;

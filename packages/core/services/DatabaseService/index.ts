@@ -166,8 +166,7 @@ export default abstract class DatabaseService {
         try {
             const result = await connection.query(sql);
 
-            // Apache Arrow JS (used by duckdb-wasm) doesn't decode INTERVAL_MONTH_DAY_NANO
-            // correctly — it reads only the first 8 of 16 bytes, losing the nanoseconds.
+            // Apache Arrow JS (used by duckdb-wasm) only reads the first 8 bytes, losing the nanoseconds.
             // Re-run with INTERVAL columns cast to ms integers so the data survives Arrow.
             const intervalColumns = result.schema.fields
                 .filter((f) => f.typeId === 11) // Arrow Type.Interval

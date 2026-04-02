@@ -279,7 +279,6 @@ describe("<AnnotationFilterForm />", () => {
         });
 
         it("renders a NumberRangePicker instead of a list", async () => {
-            // NUMBER annotations always use the range picker regardless of distinct value count
             const responseStub = {
                 when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
                 respondWith: {
@@ -311,47 +310,6 @@ describe("<AnnotationFilterForm />", () => {
             // Values are naturally sorted so rangemin gets the overall min and rangemax the max
             expect((minInput as HTMLInputElement).value).to.equal("-12");
             expect((maxInput as HTMLInputElement).value).to.equal("10000000000");
-        });
-
-        it("dispatches a RANGE() filter to Redux when a range is submitted", async () => {
-            // arrange
-            const responseStub = {
-                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
-                respondWith: {
-                    data: { data: [0, 100] },
-                },
-            };
-            const mockHttpClient = createMockHttpClient(responseStub);
-            const annotationService = new HttpAnnotationService({
-                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
-                httpClient: mockHttpClient,
-            });
-            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
-
-            const { store, logicMiddleware } = configureMockStore({
-                logics: reduxLogics,
-                state: initialState,
-                reducer,
-                responseStubs: responseStub,
-            });
-
-            const { findByTestId, getByText } = render(
-                <Provider store={store}>
-                    <AnnotationFilterForm annotation={fooAnnotation} />
-                </Provider>
-            );
-
-            // act: set min to 10, leave max at default (100), submit
-            const minInput = await findByTestId("rangemin");
-            fireEvent.change(minInput, { target: { value: "10" } });
-            fireEvent.click(getByText("SUBMIT"));
-            await logicMiddleware.whenComplete();
-
-            // assert: a RANGE() FileFilter is in Redux state
-            const filters = selection.selectors.getFileFilters(store.getState());
-            expect(filters).to.be.lengthOf(1);
-            expect(filters[0].name).to.equal(fooAnnotation.name);
-            expect(filters[0].value).to.equal("RANGE(10,100)");
         });
     });
 

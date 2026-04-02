@@ -29,7 +29,6 @@ export default {
             try {
                 // duckdb-wasm returns date values as BigInt ms-since-epoch, which the
                 // runQuery JSON replacer converts to a numeric string (e.g. "1645833600000").
-                // new Date("1645833600000") parses as Invalid Date, so coerce to number first.
                 const coerced = /^\d+$/.test(String(value)) ? Number(value) : value;
                 const date = new Date(coerced);
                 return formatDate(date);

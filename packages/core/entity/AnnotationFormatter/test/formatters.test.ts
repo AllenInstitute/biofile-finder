@@ -70,6 +70,12 @@ describe("Annotation formatters", () => {
                 expect(dateTimeFormatter.displayValue(testCase.input)).to.equal(testCase.expected);
             })
         );
+
+        // the formatter coerces all-digit strings to Number before constructing the Date.
+        it("formats a numeric string ms-since-epoch value as a datetime", () => {
+            expect(dateTimeFormatter.displayValue("1645833600000")).to.not.equal("Invalid Date");
+            expect(dateTimeFormatter.displayValue("1645833600000")).to.be.a("string").and.not.empty;
+        });
     });
 
     describe("Date annotation formatter", () => {
@@ -97,6 +103,12 @@ describe("Annotation formatters", () => {
             it(`formats ${testCase.input} as a date (expected: ${testCase.expected})`, () => {
                 expect(dateFormatter.displayValue(testCase.input)).to.equal(testCase.expected);
             });
+        });
+
+        // the formatter coerces all-digit strings to Number before constructing the Date.
+        it("formats a numeric string ms-since-epoch value as a date", () => {
+            expect(dateFormatter.displayValue("1645833600000")).to.not.equal("Invalid Date");
+            expect(dateFormatter.displayValue("1645833600000")).to.be.a("string").and.not.empty;
         });
     });
 
