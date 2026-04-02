@@ -61,10 +61,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     // Propagate regular file filter values from state into UI
     const items = React.useMemo<ListItem[]>(() => {
-        const appliedFilters = new Set(filtersForAnnotation.map((filter) => filter.value));
+        // Stringify both sides: filter.value may be a number (e.g. DURATION → ms) while
+        // annotationValues are always strings, so a strict Set lookup would never match.
+        const appliedFilters = new Set(filtersForAnnotation.map((filter) => String(filter.value)));
 
         return (annotationValues || []).map((value) => ({
-            selected: appliedFilters.has(value),
+            selected: appliedFilters.has(String(value)),
             displayValue: props.annotation.getDisplayValue(value) || value,
             value,
         }));
