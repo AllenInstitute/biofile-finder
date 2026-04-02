@@ -8,6 +8,24 @@ import FuzzyFilter from "../FuzzyFilter";
 
 describe("FileFilter", () => {
     describe("toSQLWhereString", () => {
+        // BOOLEAN: direct equality avoids CAST/regex mismatch on true/false values
+        it("emits a boolean equality clause for boolean filter values", () => {
+            expect(new FileFilter("Is Control", true).toSQLWhereString()).to.equal(
+                `"Is Control" = true`
+            );
+            expect(new FileFilter("Is Control", false).toSQLWhereString()).to.equal(
+                `"Is Control" = false`
+            );
+        });
+
+        // NUMBER: RANGE(min,max) from NumberRangePicker must produce CAST AS DOUBLE comparison SQL
+        it("emits a numeric range SQL clause for RANGE() filter values", () => {
+            const filter = new FileFilter("Cell Count", "RANGE(1, 50)");
+            expect(filter.toSQLWhereString()).to.equal(
+                `CAST("Cell Count" AS DOUBLE) >= 1 AND CAST("Cell Count" AS DOUBLE) < 50`
+            );
+        });
+
         // DATE/DATETIME: RANGE(isoDate,isoDate) from DateRangePicker must produce TIMESTAMPTZ comparison SQL
         it("emits a date range SQL clause for RANGE() filter values with ISO date strings", () => {
             const filter = new FileFilter(
