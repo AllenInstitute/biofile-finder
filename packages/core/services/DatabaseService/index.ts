@@ -276,6 +276,12 @@ export default abstract class DatabaseService {
                 return AnnotationType.BOOLEAN;
             case "INTERVAL":
                 return AnnotationType.DURATION;
+            case "DATE":
+                return AnnotationType.DATE;
+            case "TIMESTAMP":
+            case "TIMESTAMPTZ":
+            case "TIMESTAMP WITH TIME ZONE":
+                return AnnotationType.DATETIME;
             case "VARCHAR":
             case "TEXT":
             default:
