@@ -233,10 +233,20 @@ export default abstract class DatabaseService {
         } else if (type === "json") {
             await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
         } else {
-            // Default to CSV
-            await this.execute(
-                `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
-            );
+            // Default to CSV. Use sample_size=-1 to scan the full file before deciding column
+            // types, eliminating "first N rows look numeric, later rows have strings" failures.
+            // Fall back to all_varchar=true if type inference fails (e.g. truly mixed-type column)
+            // so the file always loads successfully.
+            try {
+                await this.execute(
+                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, sample_size=-1);`
+                );
+            } catch {
+                await this.execute(`DROP TABLE IF EXISTS "${name}"`);
+                await this.execute(
+                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
+                );
+            }
         }
     }
 
@@ -504,6 +514,12 @@ export default abstract class DatabaseService {
             `);
             commandsToExecute.push(fileNameGenerationSQL);
         } else {
+            // CSV type inference may have produced a non-VARCHAR "File Name" column (e.g. if
+            // all values happen to look numeric). Coerce to VARCHAR so the COALESCE update and
+            // TRIM-based blank checks don't hit a type mismatch.
+            commandsToExecute.push(
+                `ALTER TABLE "${name}" ALTER COLUMN "${PreDefinedColumn.FILE_NAME}" TYPE VARCHAR`
+            );
             // Check for any blank "File Name" rows
             const blankFileNameRows = await this.getRowsWhereColumnIsBlank(
                 name,

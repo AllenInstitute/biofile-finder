@@ -171,6 +171,56 @@ describe("DatabaseService", () => {
         });
     });
 
+    describe("columnTypeToAnnotationType", () => {
+        class ExposedDatabaseService extends DatabaseServiceNoop {
+            static exposeColumnType(t: string) {
+                return DatabaseService.columnTypeToAnnotationType(t);
+            }
+        }
+        const map = ExposedDatabaseService.exposeColumnType.bind(ExposedDatabaseService);
+
+        // NUMBER types — integers
+        it("maps INTEGER to NUMBER", () => expect(map("INTEGER")).to.equal(AnnotationType.NUMBER));
+        it("maps BIGINT to NUMBER", () => expect(map("BIGINT")).to.equal(AnnotationType.NUMBER));
+        it("maps HUGEINT to NUMBER", () => expect(map("HUGEINT")).to.equal(AnnotationType.NUMBER));
+        it("maps SMALLINT to NUMBER", () =>
+            expect(map("SMALLINT")).to.equal(AnnotationType.NUMBER));
+        it("maps TINYINT to NUMBER", () => expect(map("TINYINT")).to.equal(AnnotationType.NUMBER));
+        it("maps UBIGINT to NUMBER", () => expect(map("UBIGINT")).to.equal(AnnotationType.NUMBER));
+        it("maps UINTEGER to NUMBER", () =>
+            expect(map("UINTEGER")).to.equal(AnnotationType.NUMBER));
+
+        // NUMBER types — floats
+        it("maps FLOAT to NUMBER", () => expect(map("FLOAT")).to.equal(AnnotationType.NUMBER));
+        it("maps DOUBLE to NUMBER", () => expect(map("DOUBLE")).to.equal(AnnotationType.NUMBER));
+        it("maps REAL to NUMBER", () => expect(map("REAL")).to.equal(AnnotationType.NUMBER));
+        it("maps DECIMAL(18,3) to NUMBER", () =>
+            expect(map("DECIMAL(18,3)")).to.equal(AnnotationType.NUMBER));
+
+        // BOOLEAN
+        it("maps BOOLEAN to BOOLEAN", () =>
+            expect(map("BOOLEAN")).to.equal(AnnotationType.BOOLEAN));
+
+        // DURATION
+        it("maps INTERVAL to DURATION", () =>
+            expect(map("INTERVAL")).to.equal(AnnotationType.DURATION));
+
+        // DATE / DATETIME
+        it("maps DATE to DATE", () => expect(map("DATE")).to.equal(AnnotationType.DATE));
+        it("maps TIMESTAMP to DATETIME", () =>
+            expect(map("TIMESTAMP")).to.equal(AnnotationType.DATETIME));
+        it("maps TIMESTAMPTZ to DATETIME", () =>
+            expect(map("TIMESTAMPTZ")).to.equal(AnnotationType.DATETIME));
+        it("maps TIMESTAMP WITH TIME ZONE to DATETIME", () =>
+            expect(map("TIMESTAMP WITH TIME ZONE")).to.equal(AnnotationType.DATETIME));
+
+        // STRING fallback
+        it("maps VARCHAR to STRING", () => expect(map("VARCHAR")).to.equal(AnnotationType.STRING));
+        it("maps TEXT to STRING", () => expect(map("TEXT")).to.equal(AnnotationType.STRING));
+        it("maps unknown types to STRING", () =>
+            expect(map("SOMEUNKNOWNTYPE")).to.equal(AnnotationType.STRING));
+    });
+
     describe("getParquetFileNameSelectPart", () => {
         it("returns File Name SELECT expression when File Path exists and File Name does not", () => {
             // Arrange
