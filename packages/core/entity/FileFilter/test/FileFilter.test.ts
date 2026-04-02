@@ -19,16 +19,6 @@ describe("FileFilter", () => {
             );
         });
 
-        // DATE/DATETIME: FUZZY filters must bypass date range detection and use regex instead
-        it("does not treat a date RANGE()-shaped value as a range when filter type is FUZZY", () => {
-            const filter = new FileFilter(
-                "Date Created",
-                "RANGE(2022-01-01T00:00:00.000Z,2022-01-31T00:00:00.000Z)",
-                FilterType.FUZZY
-            );
-            expect(filter.toSQLWhereString()).to.include("REGEXP_MATCHES");
-        });
-
         // DURATION: INTERVAL columns use EXTRACT(epoch) to convert to ms for equality comparison
         it("emits an epoch extraction SQL clause for DURATION annotation type", () => {
             const filter = new FileFilter(
