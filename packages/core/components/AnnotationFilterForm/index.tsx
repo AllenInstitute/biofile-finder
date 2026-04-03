@@ -164,8 +164,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const searchFormType = () => {
         // Types with dedicated pickers (number, date, datetime) use their own UI.
-        // All other types fall back to the list picker when values are available.
-        if (!typeHasDedicatedPicker && items.length > 0) {
+        // Non-string types without dedicated pickers fall back to the list picker when values are available.
+        if (
+            !typeHasDedicatedPicker &&
+            props.annotation.type !== AnnotationType.STRING &&
+            items.length > 0
+        ) {
             return listPickerComponent;
         }
 
@@ -194,21 +198,22 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     />
                 );
             case AnnotationType.STRING:
-                // Annotations without a scrollable list of values, e.g., File Path
-                if (items.length == 0) {
-                    return (
-                        <SearchBoxForm
-                            className={styles.picker}
-                            onSelectAll={onSelectAll}
-                            onDeselectAll={onDeselectAll}
-                            onSearch={onSearch}
-                            fuzzySearchEnabled={fuzzySearchEnabled}
-                            fieldName={props.annotation.displayName}
-                            defaultValue={filtersForAnnotation?.[0]}
-                            hideFuzzyToggle={!canFuzzySearch}
-                        />
-                    );
+                // Use list picker when there are a manageable number of values; fall back to search otherwise
+                if (items.length > 0 && items.length <= 100) {
+                    return listPickerComponent;
                 }
+                return (
+                    <SearchBoxForm
+                        className={styles.picker}
+                        onSelectAll={onSelectAll}
+                        onDeselectAll={onDeselectAll}
+                        onSearch={onSearch}
+                        fuzzySearchEnabled={fuzzySearchEnabled}
+                        fieldName={props.annotation.displayName}
+                        defaultValue={filtersForAnnotation?.[0]}
+                        hideFuzzyToggle={!canFuzzySearch}
+                    />
+                );
             case AnnotationType.DURATION:
             // prettier-ignore
             default: // FALL-THROUGH
