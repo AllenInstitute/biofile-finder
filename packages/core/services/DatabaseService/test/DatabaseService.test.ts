@@ -189,6 +189,10 @@ describe("DatabaseService", () => {
         it("maps UBIGINT to NUMBER", () => expect(map("UBIGINT")).to.equal(AnnotationType.NUMBER));
         it("maps UINTEGER to NUMBER", () =>
             expect(map("UINTEGER")).to.equal(AnnotationType.NUMBER));
+        it("maps USMALLINT to NUMBER", () =>
+            expect(map("USMALLINT")).to.equal(AnnotationType.NUMBER));
+        it("maps UTINYINT to NUMBER", () =>
+            expect(map("UTINYINT")).to.equal(AnnotationType.NUMBER));
 
         // NUMBER types — floats
         it("maps FLOAT to NUMBER", () => expect(map("FLOAT")).to.equal(AnnotationType.NUMBER));
