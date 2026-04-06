@@ -1,13 +1,16 @@
 import Tutorial from "../../entity/Tutorial";
 
-export const SHARE_VIEW_TUTORIAL = new Tutorial("Sharing current view (URL)")
+export const SHARE_VIEW_TUTORIAL = new Tutorial(
+    "Sharing current query as URL",
+    "How to share your current query (filters/sorts/open folders etc.)"
+)
     .addStep({
         targetId: Tutorial.SHARE_BUTTON_ID,
         message:
-            'Copy your current view (i.e. your combination of filters, sorts, and open files) by the "Shareable Link" option under the "Share" menu here. This will automatically copy the URL to your clipboard (like when you press Ctrl+C).',
+            'Copy your current view (i.e., your combination of filters, sorts, and open files) by clicking the "Shareable Link" option under the "Share" menu. This will automatically copy the URL to your clipboard (like when you press Ctrl+C).',
     })
     .addStep({
         targetId: Tutorial.ADD_QUERY_BUTTON_ID,
         message:
-            'If in a web browser, paste the link into your URL bar in a new tab. Otherwise, start a new query from a URL by clicking the New Query + button then "Import from URL" then pasting or typing a URL into the textbox. Press Enter to load the query.',
+            'If in a web browser, paste the link into your URL bar in a new tab. Otherwise, create a new query by clicking the "+ ADD" button, selecting "New data source", and pasting or typing a URL into the textbox. Hit "Enter" to load the URL, and click "Load".',
     });

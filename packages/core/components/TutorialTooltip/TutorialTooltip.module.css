@@ -32,6 +32,10 @@
     padding: 0
 }
 
+.content {
+    line-height: 1.5;
+}
+
 .tutorial-container > div {
     background-color: var(--accent-dark);
     border-radius: var(--small-border-radius);
