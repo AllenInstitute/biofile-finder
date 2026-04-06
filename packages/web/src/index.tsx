@@ -72,6 +72,7 @@ async function asyncRender() {
         applicationInfoService: new ApplicationInfoServiceWeb(),
         fileViewerService: new FileViewerServiceWeb(),
         fileDownloadService: new FileDownloadServiceWeb(new S3StorageService()),
+        persistentConfigService,
     }));
     const store = createReduxStore({
         isOnWeb: true,

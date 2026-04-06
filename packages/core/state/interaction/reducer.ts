@@ -52,6 +52,7 @@ import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDown
 import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerServiceNoop";
 import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
+import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
@@ -124,6 +125,7 @@ export const initialState: InteractionStateBranch = {
         }),
         executionEnvService: new ExecutionEnvServiceNoop(),
         notificationService: new NotificationServiceNoop(),
+        persistentConfigService: new PersistentConfigServiceNoop(),
     },
     extractMetadataPythonSnippet: { setup: "", code: "" },
     convertFilesSnippet: { setup: "", code: "", options: {} },
