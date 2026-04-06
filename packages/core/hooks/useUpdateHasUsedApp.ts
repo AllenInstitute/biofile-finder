@@ -15,7 +15,7 @@ export default () => {
         );
         if (!hasUsedApp) {
             // Mark as true for next time
-            dispatch(markAsUsedApplicationBefore);
+            dispatch(markAsUsedApplicationBefore());
             persistentConfigService.persist(PersistedConfigKeys.HasUsedApplicationBefore, true);
         }
     }, [dispatch]);
