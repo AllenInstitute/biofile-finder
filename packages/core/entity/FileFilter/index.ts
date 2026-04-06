@@ -98,11 +98,11 @@ export default class FileFilter {
             case FilterType.FUZZY:
                 return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
             default:
-                if (typeof this.annotationValue === "boolean") {
+                if (this.annotationType === AnnotationType.BOOLEAN) {
                     return `"${this.annotationName}" = ${this.annotationValue}`;
                 }
                 if (
-                    typeof this.annotationValue === "string" &&
+                    this.annotationType === AnnotationType.NUMBER &&
                     RANGE_OPERATOR_REGEX.test(this.annotationValue)
                 ) {
                     const { minValue, maxValue } = extractValuesFromRangeOperatorFilterString(
@@ -111,7 +111,8 @@ export default class FileFilter {
                     return `CAST("${this.annotationName}" AS DOUBLE) >= ${minValue} AND CAST("${this.annotationName}" AS DOUBLE) < ${maxValue}`;
                 }
                 if (
-                    typeof this.annotationValue === "string" &&
+                    (this.annotationType === AnnotationType.DATE ||
+                        this.annotationType === AnnotationType.DATETIME) &&
                     DATE_RANGE_OPERATOR_REGEX.test(this.annotationValue)
                 ) {
                     const { startDate, endDate } = extractDatesFromRangeOperatorFilterString(

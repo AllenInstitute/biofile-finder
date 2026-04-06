@@ -10,17 +10,32 @@ describe("FileFilter", () => {
     describe("toSQLWhereString", () => {
         // BOOLEAN: direct equality avoids CAST/regex mismatch on true/false values
         it("emits a boolean equality clause for boolean filter values", () => {
-            expect(new FileFilter("Is Control", true).toSQLWhereString()).to.equal(
-                `"Is Control" = true`
-            );
-            expect(new FileFilter("Is Control", false).toSQLWhereString()).to.equal(
-                `"Is Control" = false`
-            );
+            expect(
+                new FileFilter(
+                    "Is Control",
+                    true,
+                    FilterType.DEFAULT,
+                    AnnotationType.BOOLEAN
+                ).toSQLWhereString()
+            ).to.equal(`"Is Control" = true`);
+            expect(
+                new FileFilter(
+                    "Is Control",
+                    false,
+                    FilterType.DEFAULT,
+                    AnnotationType.BOOLEAN
+                ).toSQLWhereString()
+            ).to.equal(`"Is Control" = false`);
         });
 
         // NUMBER: RANGE(min,max) from NumberRangePicker must produce CAST AS DOUBLE comparison SQL
         it("emits a numeric range SQL clause for RANGE() filter values", () => {
-            const filter = new FileFilter("Cell Count", "RANGE(1, 50)");
+            const filter = new FileFilter(
+                "Cell Count",
+                "RANGE(1, 50)",
+                FilterType.DEFAULT,
+                AnnotationType.NUMBER
+            );
             expect(filter.toSQLWhereString()).to.equal(
                 `CAST("Cell Count" AS DOUBLE) >= 1 AND CAST("Cell Count" AS DOUBLE) < 50`
             );
@@ -30,7 +45,9 @@ describe("FileFilter", () => {
         it("emits a date range SQL clause for RANGE() filter values with ISO date strings", () => {
             const filter = new FileFilter(
                 "Date Created",
-                "RANGE(2022-01-01T00:00:00.000Z,2022-01-31T00:00:00.000Z)"
+                "RANGE(2022-01-01T00:00:00.000Z,2022-01-31T00:00:00.000Z)",
+                FilterType.DEFAULT,
+                AnnotationType.DATETIME
             );
             expect(filter.toSQLWhereString()).to.equal(
                 `CAST("Date Created" AS TIMESTAMPTZ) >= CAST('2022-01-01T00:00:00.000Z' AS TIMESTAMPTZ) AND CAST("Date Created" AS TIMESTAMPTZ) < CAST('2022-01-31T00:00:00.000Z' AS TIMESTAMPTZ)`

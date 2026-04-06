@@ -61,6 +61,9 @@ describe("Annotation formatters", () => {
                 input: "RANGE(2018-05-24T00:00:00-08:00,2019-05-26T00:00:00-08:00)",
                 expected: "5/24/2018, 1:00:00 AM; 5/26/2019, 1:00:00 AM",
             },
+
+            // duckdb-wasm returns timestamp values as BigInt ms-since-epoch numeric strings
+            { input: "1645833600000", expected: "2/25/2022, 4:00:00 PM" },
         ];
 
         spec.forEach((testCase) =>
@@ -70,12 +73,6 @@ describe("Annotation formatters", () => {
                 expect(dateTimeFormatter.displayValue(testCase.input)).to.equal(testCase.expected);
             })
         );
-
-        // the formatter coerces all-digit strings to Number before constructing the Date.
-        it("formats a numeric string ms-since-epoch value as a datetime", () => {
-            expect(dateTimeFormatter.displayValue("1645833600000")).to.not.equal("Invalid Date");
-            expect(dateTimeFormatter.displayValue("1645833600000")).to.be.a("string").and.not.empty;
-        });
     });
 
     describe("Date annotation formatter", () => {
@@ -97,18 +94,15 @@ describe("Annotation formatters", () => {
                 input: "RANGE(2018-05-24T00:00:00+0000,2019-05-26T00:00:00+0000)",
                 expected: "2018-05-24, 2019-05-26",
             },
+
+            // duckdb-wasm returns date values as BigInt ms-since-epoch numeric strings
+            { input: "1645833600000", expected: "2022-02-26" },
         ];
-        6;
+
         spec.forEach((testCase) => {
             it(`formats ${testCase.input} as a date (expected: ${testCase.expected})`, () => {
                 expect(dateFormatter.displayValue(testCase.input)).to.equal(testCase.expected);
             });
-        });
-
-        // the formatter coerces all-digit strings to Number before constructing the Date.
-        it("formats a numeric string ms-since-epoch value as a date", () => {
-            expect(dateFormatter.displayValue("1645833600000")).to.not.equal("Invalid Date");
-            expect(dateFormatter.displayValue("1645833600000")).to.be.a("string").and.not.empty;
         });
     });
 
