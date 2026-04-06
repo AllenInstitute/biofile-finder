@@ -128,7 +128,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             dispatch(
                 selection.actions.setFileFilters([
                     ...allFilters.filter((filter) => filter.name !== props.annotation.name),
-                    new FileFilter(props.annotation.name, filterValue, type),
+                    new FileFilter(
+                        props.annotation.name,
+                        filterValue,
+                        type,
+                        props.annotation.type as AnnotationType
+                    ),
                 ])
             );
         }
