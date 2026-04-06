@@ -14,7 +14,6 @@ import AnnotationName from "../../../entity/Annotation/AnnotationName";
 type Status = "idle" | "submitting" | "submitted" | "error";
 
 type UIOpts = {
-    sceneIndex: string;
     channelIndex: string;
 };
 
@@ -29,7 +28,6 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
     const httpFileService = useSelector(interaction.selectors.getHttpFileService);
 
     const [opts, setOpts] = React.useState<UIOpts>({
-        sceneIndex: "0",
         channelIndex: "0",
     });
 
@@ -93,10 +91,7 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
                 return localPath;
             });
 
-            const scene =
-                opts.sceneIndex.trim() && /^\d+$/.test(opts.sceneIndex)
-                    ? parseInt(opts.sceneIndex, 10)
-                    : 0;
+            const scene = 0;
 
             const channel =
                 opts.channelIndex.trim() && /^\d+$/.test(opts.channelIndex)
@@ -143,24 +138,6 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
         <div className={styles.shell}>
             <div className={styles.columns}>
                 <div className={styles.leftCol}>
-                    <div className={styles.section}>
-                        <div className={styles.label}>Scene</div>
-                        <div className={styles.searchBox}>
-                            <TextField
-                                value={opts.sceneIndex}
-                                type="number"
-                                onChange={(_, v) =>
-                                    setOpts((o) => ({
-                                        ...o,
-                                        sceneIndex: (v ?? "0").replace(/[^\d]/g, ""),
-                                    }))
-                                }
-                                placeholder="0"
-                                borderless
-                            />
-                        </div>
-                    </div>
-
                     <div className={styles.section}>
                         <div className={styles.label}>Channel</div>
                         <div className={styles.searchBox}>
