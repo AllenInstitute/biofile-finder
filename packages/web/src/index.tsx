@@ -12,6 +12,7 @@ import DatabaseServiceWeb from "./services/DatabaseServiceWeb";
 import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
 import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
+import PersistentConfigServiceWeb from "./services/PersistentConfigServiceWeb";
 import ErrorPage from "./components/ErrorPage";
 import Learn from "./components/Learn";
 import Home from "./components/Home";
@@ -58,6 +59,7 @@ const router = createBrowserRouter(
 );
 
 async function asyncRender() {
+    const persistentConfigService = new PersistentConfigServiceWeb();
     const databaseService = new DatabaseServiceWeb();
     await databaseService.initialize();
 
@@ -73,6 +75,7 @@ async function asyncRender() {
     }));
     const store = createReduxStore({
         isOnWeb: true,
+        persistedConfig: persistentConfigService.getAll(),
         platformDependentServices: collectPlatformDependentServices(),
     });
     render(
