@@ -13,7 +13,7 @@ export enum FileView {
     LARGE_THUMBNAIL = "3",
 }
 
-export const ACCEPTED_SOURCE_TYPES = ["csv", "json", "parquet"] as const;
+export const ACCEPTED_SOURCE_TYPES = ["csv", "json", "parquet", "delta"] as const;
 
 export interface Source {
     name: string;
@@ -74,15 +74,31 @@ export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
 };
 
 export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
-    const uriResource = dataSourceURL.substring(dataSourceURL.lastIndexOf("/") + 1).split("?")[0];
+    const pathWithoutParams = dataSourceURL.split(/[?#]/)[0];
+    const pathSegments = pathWithoutParams.split("/").filter(Boolean);
+    const lastSegment = pathSegments[pathSegments.length - 1] || pathWithoutParams;
+    const isDeltaLogPath = lastSegment === "_delta_log";
+    const uriResource =
+        isDeltaLogPath && pathSegments.length > 1
+            ? pathSegments[pathSegments.length - 2]
+            : lastSegment;
     const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
     // Returns undefined if can't find a match
     let extensionGuess = ACCEPTED_SOURCE_TYPES.find(
         (validSourcetype) => validSourcetype === uriResource.split(".").pop()
     );
     if (!extensionGuess) {
-        console.warn("Assuming the source is csv since no extension was recognized");
-        extensionGuess = "csv";
+        const looksLikeDelta =
+            isDeltaLogPath ||
+            pathWithoutParams.includes("/_delta_log/") ||
+            (pathWithoutParams.endsWith("/") && uriResource.toLowerCase().includes("delta"));
+
+        if (looksLikeDelta) {
+            extensionGuess = "delta";
+        } else {
+            console.warn("Assuming the source is csv since no extension was recognized");
+            extensionGuess = "csv";
+        }
     }
     return { name, type: extensionGuess };
 };

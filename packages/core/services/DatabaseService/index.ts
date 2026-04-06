@@ -9,6 +9,7 @@ import { EdgeDefinition } from "../../entity/Graph";
 import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
+import DeltaTableService from "../DeltaTableService";
 
 enum PreDefinedColumn {
     FILE_ID = "File ID",
@@ -62,6 +63,10 @@ function getFileNameFromPathExpression(quotedPathColumn: string): string {
     const stripOme = `REGEXP_REPLACE(${basename}, '(?i)\\\\.ome$', '')`;
 
     return `COALESCE(NULLIF(${stripOme}, ''), ${quotedPathColumn})`;
+}
+
+function escapeSqlString(value: string): string {
+    return value.replaceAll("'", "''");
 }
 
 /**
@@ -122,6 +127,8 @@ export default abstract class DatabaseService {
     private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
     // Data source names that are views (parquet), so we DROP VIEW on delete
     private readonly parquetDirectViewNames = new Set<string>();
+    // Data source names that are views materialized from Delta logs
+    private readonly deltaDirectViewNames = new Set<string>();
 
     protected database: duckdb.AsyncDuckDB | undefined;
 
@@ -186,11 +193,40 @@ export default abstract class DatabaseService {
 
     protected async addDataSource(
         name: string,
-        type: "csv" | "json" | "parquet",
+        type: "csv" | "json" | "parquet" | "delta",
         uri: string | File
     ): Promise<void> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
+        }
+
+        if (type === "delta") {
+            if (uri instanceof File) {
+                throw new Error(
+                    "Delta table loading from uploaded files is not supported yet. Use a Delta root URL."
+                );
+            }
+
+            const deltaTableService = this.getDeltaTableService();
+            const activeParquetFiles = await deltaTableService.resolveActiveParquetFiles(uri);
+            if (activeParquetFiles.length === 0) {
+                throw new Error(`Delta table has no active parquet files: ${uri}`);
+            }
+
+            const parquetRefs: string[] = [];
+            for (let idx = 0; idx < activeParquetFiles.length; idx++) {
+                const parquetUri = activeParquetFiles[idx];
+                const fileAlias = `${name}__delta__${idx}`;
+                const protocol = parquetUri.startsWith("s3")
+                    ? duckdb.DuckDBDataProtocol.S3
+                    : duckdb.DuckDBDataProtocol.HTTP;
+
+                await this.database.registerFileURL(fileAlias, parquetUri, protocol, false);
+                parquetRefs.push(fileAlias);
+            }
+
+            await this.createDeltaDirectView(name, parquetRefs);
+            return;
         }
 
         if (uri instanceof File) {
@@ -305,7 +341,10 @@ export default abstract class DatabaseService {
             let formattedError = (err as Error).message;
             // DuckDB does not provide informative server errors, so send a
             // separate 'get' call to retrieve error messages for URL data sources
-            if (!(uri instanceof File)) {
+            // For Delta sources, the root URI is often a virtual directory path
+            // and a direct GET can return 403 even when underlying objects are readable.
+            // Preserve the original Delta resolver error in that case.
+            if (!(uri instanceof File) && type !== "delta") {
                 await axios.get(uri).catch((error) => {
                     // Error responses can be formatted differently
                     // Get progressively less specific in where we look for the message
@@ -354,7 +393,7 @@ export default abstract class DatabaseService {
         // Unless skipped, this will ensure the table is prepared
         // for querying with the expected columns & uniqueness constraints
         if (!skipNormalization) {
-            if (type !== "parquet") {
+            if (type !== "parquet" && type !== "delta") {
                 await this.normalizeDataSourceColumnNames(name);
                 await this.renameNonprintableCharColumns(name);
             }
@@ -364,7 +403,7 @@ export default abstract class DatabaseService {
                 throw new DataSourcePreparationError(error, name);
             }
 
-            if (type !== "parquet") {
+            if (type !== "parquet" && type !== "delta") {
                 await this.addRequiredColumns(name);
             }
         }
@@ -422,9 +461,16 @@ export default abstract class DatabaseService {
         if (this.parquetDirectViewNames.has(dataSource)) {
             this.parquetDirectViewNames.delete(dataSource);
             await this.execute(`DROP VIEW IF EXISTS "${dataSource}"`);
+        } else if (this.deltaDirectViewNames.has(dataSource)) {
+            this.deltaDirectViewNames.delete(dataSource);
+            await this.execute(`DROP VIEW IF EXISTS "${dataSource}"`);
         } else {
             await this.execute(`DROP TABLE IF EXISTS "${dataSource}"`);
         }
+    }
+
+    protected getDeltaTableService(): DeltaTableService {
+        return new DeltaTableService();
     }
 
     /*
@@ -649,6 +695,45 @@ export default abstract class DatabaseService {
         this.parquetDirectViewNames.add(name);
     }
 
+    private async createDeltaDirectView(name: string, parquetRefs: string[]): Promise<void> {
+        const parquetArrayExpression = `[${parquetRefs
+            .map((ref) => `'${escapeSqlString(ref)}'`)
+            .join(", ")}]`;
+        const rawColumns = await this.getRawParquetColumnsFromArrayExpression(
+            parquetArrayExpression
+        );
+        const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
+        const hasFilePath = [...actualToPreDefined.values()].includes(PreDefinedColumn.FILE_PATH);
+        const hasFileName = [...actualToPreDefined.values()].includes(PreDefinedColumn.FILE_NAME);
+        const syntheticFilePathExpression = `CONCAT('delta://${escapeSqlString(
+            name
+        )}/', CAST(ROW_NUMBER() OVER () AS VARCHAR))`;
+
+        const selectParts = rawColumns.map((col) => {
+            const preDefined = actualToPreDefined.get(col);
+            if (preDefined !== undefined) {
+                return `"${col}" AS "${preDefined}"`;
+            }
+            return `"${col}"`;
+        });
+        if (!hasFilePath) {
+            selectParts.push(`${syntheticFilePathExpression} AS "${PreDefinedColumn.FILE_PATH}"`);
+        }
+        const fileNameSelectPart = getParquetFileNameSelectPart(actualToPreDefined);
+        if (fileNameSelectPart !== null) {
+            selectParts.push(fileNameSelectPart);
+        } else if (!hasFileName) {
+            selectParts.push(`${syntheticFilePathExpression} AS "${PreDefinedColumn.FILE_NAME}"`);
+        }
+        selectParts.push(`ROW_NUMBER() OVER () AS "${HIDDEN_UID_ANNOTATION}"`);
+
+        const createViewSql = `CREATE VIEW "${name}"
+            AS SELECT ${selectParts.join(", ")}
+            FROM parquet_scan(${parquetArrayExpression});`;
+        await this.execute(createViewSql);
+        this.deltaDirectViewNames.add(name);
+    }
+
     // Given a possibly-renamed column name, get the original column name used
     // in the input parquet.
     private async getOriginalParquetColumnName(
@@ -780,8 +865,10 @@ export default abstract class DatabaseService {
     }
 
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {
-        if (dataSources.some((source) => source.type === "parquet")) {
-            throw new Error("Parquet tables cannot be combined to query multiple data sources.");
+        if (dataSources.some((source) => source.type === "parquet" || source.type === "delta")) {
+            throw new Error(
+                "Parquet and Delta tables cannot be combined to query multiple data sources."
+            );
         }
         const viewName = DatabaseService.combineSourceNames(dataSources);
 
@@ -1008,6 +1095,14 @@ export default abstract class DatabaseService {
     // data source preparation step.
     private async getRawParquetColumns(name: string): Promise<string[]> {
         const sql = `DESCRIBE SELECT * FROM parquet_scan("${name}")`;
+        const rows = await this.query(sql).promise;
+        return rows.map((row) => row["column_name"] as string);
+    }
+
+    private async getRawParquetColumnsFromArrayExpression(
+        parquetArrayExpression: string
+    ): Promise<string[]> {
+        const sql = `DESCRIBE SELECT * FROM parquet_scan(${parquetArrayExpression})`;
         const rows = await this.query(sql).promise;
         return rows.map((row) => row["column_name"] as string);
     }

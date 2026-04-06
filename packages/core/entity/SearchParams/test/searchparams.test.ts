@@ -1,6 +1,12 @@
 import { expect } from "chai";
 
-import SearchParams, { SearchParamsComponents, FileView, Source, EMPTY_QUERY_COMPONENTS } from "..";
+import SearchParams, {
+    SearchParamsComponents,
+    FileView,
+    Source,
+    EMPTY_QUERY_COMPONENTS,
+    getNameAndTypeFromSourceUrl,
+} from "..";
 import AnnotationName from "../../Annotation/AnnotationName";
 import FileFilter from "../../FileFilter";
 import ExcludeFilter from "../../FileFilter/ExcludeFilter";
@@ -21,6 +27,26 @@ describe("SearchParams", () => {
     };
 
     const mockOS = "Darwin";
+
+    describe("getNameAndTypeFromSourceUrl", () => {
+        it("treats exact _delta_log URLs as delta sources", () => {
+            const result = getNameAndTypeFromSourceUrl(
+                "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/delta-table-example/_delta_log"
+            );
+
+            expect(result.type).to.equal("delta");
+            expect(result.name).to.contain("delta-table-example");
+        });
+
+        it("treats _delta_log directory URLs with trailing slash as delta sources", () => {
+            const result = getNameAndTypeFromSourceUrl(
+                "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/delta-table-example/_delta_log/"
+            );
+
+            expect(result.type).to.equal("delta");
+            expect(result.name).to.contain("delta-table-example");
+        });
+    });
 
     describe("encode", () => {
         it("Encodes hierarchy, filters, open folders, and collection", () => {

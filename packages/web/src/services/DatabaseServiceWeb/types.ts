@@ -1,5 +1,7 @@
 import { ACCEPTED_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
 
+type SaveFormat = "csv" | "json" | "parquet";
+
 export enum WorkerMsgType {
     ADD_SOURCE = "add datasource",
     ANNOTATIONS = "fetch annotations",
@@ -59,7 +61,7 @@ export type WorkerReqPayload<T extends WorkerMsgType> = {
     };
     [WorkerMsgType.SAVE]: {
         destination: string;
-        format: typeof ACCEPTED_SOURCE_TYPES[number];
+        format: SaveFormat;
         id: string;
         sql: string;
     };

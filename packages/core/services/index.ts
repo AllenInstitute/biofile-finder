@@ -9,6 +9,7 @@ import NotificationService from "./NotificationService";
 export { default as AnnotationService } from "./AnnotationService";
 export type { default as ApplicationInfoService } from "./ApplicationInfoService";
 export { default as DatabaseService } from "./DatabaseService";
+export { default as DeltaTableService } from "./DeltaTableService";
 export { default as DatasetService } from "./DataSourceService";
 export type { default as ExecutionEnvService } from "./ExecutionEnvService";
 export { ExecutableEnvCancellationToken, SystemDefaultAppLocation } from "./ExecutionEnvService";

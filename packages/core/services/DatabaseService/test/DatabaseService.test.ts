@@ -115,6 +115,123 @@ describe("DatabaseService", () => {
             });
         });
 
+        describe("delta", () => {
+            class DeltaMockDatabaseService extends DatabaseService {
+                public executedSql: string[] = [];
+                private readonly resolvedFiles: string[];
+
+                constructor(resolvedFiles: string[]) {
+                    super();
+                    this.resolvedFiles = resolvedFiles;
+                    // Minimal database mock for registerFileURL usage in addDataSource
+                    this.database = ({
+                        registerFileURL: async () => Promise.resolve(),
+                    } as unknown) as duckdb.AsyncDuckDB;
+                }
+
+                protected getDeltaTableService() {
+                    return {
+                        resolveActiveParquetFiles: async () => this.resolvedFiles,
+                    } as any;
+                }
+
+                execute(sql: string): Promise<void> {
+                    this.executedSql.push(sql);
+                    return Promise.resolve();
+                }
+
+                query(): { promise: Promise<any> } {
+                    return {
+                        promise: Promise.resolve([
+                            { column_name: "File Path" },
+                            { column_name: "Gene" },
+                        ]),
+                    };
+                }
+            }
+
+            it("creates a view from resolved active parquet files", async () => {
+                const service = new DeltaMockDatabaseService([
+                    "https://example-bucket.s3.us-west-2.amazonaws.com/delta/part-0000.parquet",
+                    "https://example-bucket.s3.us-west-2.amazonaws.com/delta/part-0001.parquet",
+                ]);
+
+                await service.prepareDataSources(
+                    [
+                        {
+                            name: "delta_source",
+                            type: "delta",
+                            uri: "https://example-bucket.s3.us-west-2.amazonaws.com/delta/",
+                        },
+                    ],
+                    true
+                );
+
+                expect(service.hasDataSource("delta_source")).to.equal(true);
+                expect(service.executedSql.join("\n")).to.contain('CREATE VIEW "delta_source"');
+                expect(service.executedSql.join("\n")).to.contain(
+                    "parquet_scan(['delta_source__delta__0', 'delta_source__delta__1'])"
+                );
+            });
+
+            it("throws when no active parquet files are resolved", async () => {
+                const service = new DeltaMockDatabaseService([]);
+
+                let caughtError;
+                try {
+                    await service.prepareDataSources(
+                        [
+                            {
+                                name: "delta_source",
+                                type: "delta",
+                                uri: "https://example-bucket.s3.us-west-2.amazonaws.com/delta/",
+                            },
+                        ],
+                        true
+                    );
+                } catch (error) {
+                    caughtError = error;
+                }
+
+                expect(caughtError).to.not.be.undefined;
+                expect(`${caughtError}`).to.contain("DataSourcePreparationError");
+                expect(`${caughtError}`).to.contain("no active parquet files");
+            });
+
+            it("synthesizes File Path when delta data has no path-like columns", async () => {
+                class DeltaNoPathMockDatabaseService extends DeltaMockDatabaseService {
+                    query(): { promise: Promise<any> } {
+                        return {
+                            promise: Promise.resolve([
+                                { column_name: "Gene" },
+                                { column_name: "Cell Line" },
+                            ]),
+                        };
+                    }
+                }
+
+                const service = new DeltaNoPathMockDatabaseService([
+                    "https://example-bucket.s3.us-west-2.amazonaws.com/delta/part-0000.parquet",
+                ]);
+
+                await service.prepareDataSources(
+                    [
+                        {
+                            name: "delta_source",
+                            type: "delta",
+                            uri: "https://example-bucket.s3.us-west-2.amazonaws.com/delta/",
+                        },
+                    ],
+                    true
+                );
+
+                const allSql = service.executedSql.join("\n");
+                expect(allSql).to.contain('AS "File Path"');
+                expect(allSql).to.contain('AS "File Name"');
+                expect(allSql).to.contain("delta://delta_source/");
+            });
+        });
+
         it("throws error when missing File Path column", async () => {
             // Arrange
             sinon.stub(service, "fetchAnnotations").returns(Promise.resolve(mockAnnotations));
