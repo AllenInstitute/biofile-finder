@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 
 import { PersistedConfigKeys } from "../services";
 import { markAsUsedApplicationBefore } from "../state/interaction/actions";
+import { runAllTutorials } from "../state/selection/actions";
 import PersistentConfigServiceWeb from "../../web/src/services/PersistentConfigServiceWeb";
 
 export default () => {
@@ -14,6 +15,9 @@ export default () => {
             PersistedConfigKeys.HasUsedApplicationBefore
         );
         if (!hasUsedApp) {
+            // If first time using app, start running tutorials
+            dispatch(runAllTutorials());
+
             // Mark as true for next time
             dispatch(markAsUsedApplicationBefore());
             persistentConfigService.persist(PersistedConfigKeys.HasUsedApplicationBefore, true);
