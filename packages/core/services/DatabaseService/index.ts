@@ -241,6 +241,9 @@ export default abstract class DatabaseService {
                     `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, sample_size=-1);`
                 );
             } catch {
+                console.warn(
+                    `Failed to infer column types for CSV "${name}"; falling back to all_varchar=true. All columns will be loaded as strings.`
+                );
                 await this.execute(`DROP TABLE IF EXISTS "${name}"`);
                 await this.execute(
                     `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
