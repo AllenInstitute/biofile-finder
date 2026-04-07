@@ -3,6 +3,7 @@ import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import DeltaTableService from "../../services/DeltaTableService";
 import { Column } from "../../state/selection/actions";
 
 // These values CANNOT change otherwise it would break compatibility
@@ -20,6 +21,15 @@ export interface Source {
     type?: typeof ACCEPTED_SOURCE_TYPES[number];
     uri?: string | File;
 }
+
+type ResolvedSourceType = typeof ACCEPTED_SOURCE_TYPES[number];
+
+type ParsedSourceUrl = {
+    extensionGuess?: ResolvedSourceType;
+    name: string;
+    pathWithoutParams: string;
+    shouldProbeForDelta: boolean;
+};
 
 // Components of the application state this captures
 export interface SearchParamsComponents {
@@ -73,7 +83,7 @@ export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
     sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
 };
 
-export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
+function parseSourceUrl(dataSourceURL: string): ParsedSourceUrl {
     const pathWithoutParams = dataSourceURL.split(/[?#]/)[0];
     const pathSegments = pathWithoutParams.split("/").filter(Boolean);
     const lastSegment = pathSegments[pathSegments.length - 1] || pathWithoutParams;
@@ -88,20 +98,73 @@ export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
         (validSourcetype) => validSourcetype === uriResource.split(".").pop()
     );
     if (!extensionGuess) {
-        const looksLikeDelta =
-            isDeltaLogPath ||
-            pathWithoutParams.includes("/_delta_log/") ||
-            (pathWithoutParams.endsWith("/") && uriResource.toLowerCase().includes("delta"));
+        const looksLikeDelta = isDeltaLogPath || pathWithoutParams.includes("/_delta_log/");
 
         if (looksLikeDelta) {
             extensionGuess = "delta";
-        } else {
-            console.warn("Assuming the source is csv since no extension was recognized");
-            extensionGuess = "csv";
         }
     }
-    return { name, type: extensionGuess };
+
+    const shouldProbeForDelta =
+        extensionGuess === undefined &&
+        (isDeltaLogPath ||
+            pathWithoutParams.includes("/_delta_log/") ||
+            dataSourceURL.endsWith("/"));
+
+    return { extensionGuess, name, pathWithoutParams, shouldProbeForDelta };
+}
+
+export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
+    const { extensionGuess, name } = parseSourceUrl(dataSourceURL);
+    if (!extensionGuess) {
+        console.warn("Assuming the source is csv since no extension was recognized");
+    }
+    return { name, type: extensionGuess || "csv" };
 };
+
+export const shouldProbeForDeltaSourceUrl = (dataSourceURL: string) =>
+    parseSourceUrl(dataSourceURL).shouldProbeForDelta;
+
+export const resolveNameAndTypeFromSourceUrl = async (
+    dataSourceURL: string,
+    deltaTableService: Pick<DeltaTableService, "isDeltaTableRoot"> = new DeltaTableService()
+) => {
+    const { extensionGuess, name, pathWithoutParams, shouldProbeForDelta } = parseSourceUrl(
+        dataSourceURL
+    );
+    if (extensionGuess) {
+        return { name, type: extensionGuess };
+    }
+
+    if (shouldProbeForDelta && (await deltaTableService.isDeltaTableRoot(pathWithoutParams))) {
+        return { name, type: "delta" as const };
+    }
+
+    console.warn("Assuming the source is csv since no extension was recognized");
+    return { name, type: "csv" as const };
+};
+
+export const resolveSourcesFromUrls = async (sources: Source[]): Promise<Source[]> =>
+    Promise.all(
+        sources.map(async (source) => {
+            if (typeof source.uri !== "string") {
+                return source;
+            }
+
+            if (source.name && source.type) {
+                return source;
+            }
+
+            const resolved = await resolveNameAndTypeFromSourceUrl(source.uri);
+
+            return {
+                ...resolved,
+                ...source,
+                name: source.name || resolved.name,
+                type: source.type || resolved.type,
+            };
+        })
+    );
 
 // We want to eventually use shorthands and other tricks to
 // try to shortern the resulting URL however we can

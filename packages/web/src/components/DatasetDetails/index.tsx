@@ -18,7 +18,7 @@ import {
 import styles from "./DatasetDetails.module.css";
 
 interface DatasetDetailsProps {
-    onLoadDataset: (datasetDetails: PublicDataset | undefined) => void;
+    onLoadDataset: (datasetDetails: PublicDataset | undefined) => void | Promise<void>;
 }
 
 export default function DatasetDetails(props: DatasetDetailsProps) {
@@ -108,7 +108,7 @@ export default function DatasetDetails(props: DatasetDetailsProps) {
                         iconName="View"
                         title="View dataset in the app"
                         text="VIEW"
-                        onClick={() => props.onLoadDataset(datasetDetails)}
+                        onClick={() => void props.onLoadDataset(datasetDetails)}
                     />
                     <a href={datasetDetails?.path} target="_blank" rel="noreferrer">
                         <SecondaryButton

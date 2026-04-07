@@ -9,7 +9,7 @@ import Modal from "../../../../core/components/Modal";
 import { metadata, selection } from "../../../../core/state";
 import SearchParams, {
     SearchParamsComponents,
-    getNameAndTypeFromSourceUrl,
+    resolveNameAndTypeFromSourceUrl,
     Source,
 } from "../../../../core/entity/SearchParams";
 
@@ -50,7 +50,7 @@ export default function OpenSourceDatasets() {
         });
     };
 
-    const loadDataset = (datasetDetails?: PublicDataset) => {
+    const loadDataset = async (datasetDetails?: PublicDataset) => {
         if (!datasetDetails) throw new Error("No dataset provided");
 
         const dataSourceURL = datasetDetails.path;
@@ -58,7 +58,7 @@ export default function OpenSourceDatasets() {
         openDatasetInApp(
             datasetDetails.name,
             {
-                ...getNameAndTypeFromSourceUrl(dataSourceURL),
+                ...(await resolveNameAndTypeFromSourceUrl(dataSourceURL)),
                 uri: dataSourceURL,
             },
             url

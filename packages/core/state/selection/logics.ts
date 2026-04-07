@@ -61,7 +61,7 @@ import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import Annotation from "../../entity/Annotation";
-import SearchParams from "../../entity/SearchParams";
+import SearchParams, { resolveSourcesFromUrls } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -434,9 +434,10 @@ const decodeSearchParamsLogics = createLogic({
             sourceMetadata,
             prov,
         } = SearchParams.decode(encodedURL);
+        const resolvedSources = await resolveSourcesFromUrls(sources);
 
         batch(() => {
-            dispatch(changeDataSources(sources));
+            dispatch(changeDataSources(resolvedSources));
             dispatch(setAnnotationHierarchy(hierarchy));
             columns && dispatch(setColumns(columns));
             dispatch(setFileFilters(filters));
@@ -580,6 +581,7 @@ const changeDataSourceLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         dispatch(setIsLoadingSource(true) as AnyAction);
         const { payload: selectedDataSources } = deps.action as ChangeDataSourcesAction;
+        const resolvedSelectedDataSources = await resolveSourcesFromUrls(selectedDataSources);
         const dataSources = interaction.selectors.getAllDataSources(deps.getState());
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
@@ -591,7 +593,7 @@ const changeDataSourceLogic = createLogic({
 
         const newSelectedDataSources: DataSource[] = [];
         const existingSelectedDataSources: DataSource[] = [];
-        selectedDataSources.forEach((source) => {
+        resolvedSelectedDataSources.forEach((source) => {
             const existingSource = dataSources.find((s) => s.name === source.name);
             if (existingSource) {
                 existingSelectedDataSources.push(existingSource);
@@ -601,7 +603,7 @@ const changeDataSourceLogic = createLogic({
         });
 
         // It is possible the user was sent a novel data source in the URL
-        if (selectedDataSources.length > existingSelectedDataSources.length) {
+        if (resolvedSelectedDataSources.length > existingSelectedDataSources.length) {
             dispatch(
                 metadata.actions.receiveDataSources([...dataSources, ...newSelectedDataSources])
             );
@@ -609,7 +611,7 @@ const changeDataSourceLogic = createLogic({
 
         // Prepare the data sources ahead of querying against them below
         try {
-            await databaseService.prepareDataSources(selectedDataSources);
+            await databaseService.prepareDataSources(resolvedSelectedDataSources);
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
@@ -689,15 +691,23 @@ const changeProvenanceSourceLogic = createLogic({
 const addQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: newQuery } = deps.action as AddQuery;
+        const resolvedSources = await resolveSourcesFromUrls(newQuery.parts.sources);
+        const resolvedQuery = {
+            ...newQuery,
+            parts: {
+                ...newQuery.parts,
+                sources: resolvedSources,
+            },
+        };
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
 
         // Prepare the data sources ahead of querying against them below
         try {
-            await databaseService.prepareDataSources(newQuery.parts.sources);
-            if (newQuery.parts.sourceMetadata) {
-                await databaseService.prepareSourceMetadata(newQuery.parts.sourceMetadata);
+            await databaseService.prepareDataSources(resolvedQuery.parts.sources);
+            if (resolvedQuery.parts.sourceMetadata) {
+                await databaseService.prepareSourceMetadata(resolvedQuery.parts.sourceMetadata);
             } else {
                 await databaseService.deleteSourceMetadata();
             }
@@ -713,7 +723,7 @@ const addQueryLogic = createLogic({
             }
         }
 
-        dispatch(changeQuery(deps.action.payload));
+        dispatch(changeQuery(resolvedQuery));
         done();
     },
     transform(deps: ReduxLogicDeps, next) {

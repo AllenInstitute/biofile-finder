@@ -150,6 +150,16 @@ export default class DeltaTableService {
         this.listDeltaLogJsonFiles = io.listDeltaLogJsonFiles || this.listDeltaLogJsonFilesDefault;
     }
 
+    public async isDeltaTableRoot(rootUri: string): Promise<boolean> {
+        try {
+            const normalizedRootUri = toHttpsTableRootUri(rootUri);
+            const logFiles = await this.listDeltaLogJsonFiles(normalizedRootUri);
+            return logFiles.length > 0;
+        } catch (_err) {
+            return false;
+        }
+    }
+
     public async resolveActiveParquetFiles(rootUri: string): Promise<string[]> {
         const normalizedRootUri = toHttpsTableRootUri(rootUri);
         const logFiles = await this.listDeltaLogJsonFiles(normalizedRootUri);

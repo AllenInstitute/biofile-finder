@@ -6,7 +6,12 @@ import { useDropzone } from "react-dropzone";
 
 import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
-import { Source, getNameAndTypeFromSourceUrl } from "../../entity/SearchParams";
+import {
+    Source,
+    getNameAndTypeFromSourceUrl,
+    resolveNameAndTypeFromSourceUrl,
+    shouldProbeForDeltaSourceUrl,
+} from "../../entity/SearchParams";
 
 import styles from "./FilePrompt.module.css";
 
@@ -74,9 +79,17 @@ export default function FilePrompt(props: Props) {
     }, [fileRejections]);
 
     const onEnterURL = throttle(
-        (evt?: React.FormEvent) => {
+        async (evt?: React.FormEvent) => {
             evt?.preventDefault();
             if (dataSourceURL) {
+                if (shouldProbeForDeltaSourceUrl(dataSourceURL)) {
+                    props.onSelectFile({
+                        ...(await resolveNameAndTypeFromSourceUrl(dataSourceURL)),
+                        uri: dataSourceURL,
+                    });
+                    return;
+                }
+
                 props.onSelectFile({
                     ...getNameAndTypeFromSourceUrl(dataSourceURL),
                     uri: dataSourceURL,

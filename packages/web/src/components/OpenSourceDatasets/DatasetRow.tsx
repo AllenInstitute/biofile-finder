@@ -12,7 +12,7 @@ import styles from "./DatasetRow.module.css";
 interface DatasetRowProps {
     rowProps: IDetailsRowProps;
     defaultRender: IRenderFunction<IDetailsRowProps>;
-    onLoadDataset: (dataset: PublicDataset) => void;
+    onLoadDataset: (dataset: PublicDataset) => void | Promise<void>;
 }
 
 export default function DatasetRow(props: DatasetRowProps) {
@@ -48,7 +48,7 @@ export default function DatasetRow(props: DatasetRowProps) {
                     iconName="Upload"
                     title="Load dataset"
                     text="LOAD"
-                    onClick={() => props.onLoadDataset(dataset)}
+                    onClick={() => void props.onLoadDataset(dataset)}
                 />
             </div>
         </div>

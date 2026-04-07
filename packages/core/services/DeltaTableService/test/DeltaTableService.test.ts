@@ -4,6 +4,32 @@ import "mocha";
 import DeltaTableService from "..";
 
 describe("DeltaTableService", () => {
+    it("detects delta table roots when log files are discoverable", async () => {
+        const service = new DeltaTableService({
+            listDeltaLogJsonFiles: async () => [
+                "https://example-bucket.s3.us-west-2.amazonaws.com/table/_delta_log/00000000000000000000.json",
+            ],
+        });
+
+        const result = await service.isDeltaTableRoot(
+            "https://example-bucket.s3.us-west-2.amazonaws.com/table/"
+        );
+
+        expect(result).to.equal(true);
+    });
+
+    it("returns false for roots that cannot be resolved as delta", async () => {
+        const service = new DeltaTableService({
+            listDeltaLogJsonFiles: async () => {
+                throw new Error("not delta");
+            },
+        });
+
+        const result = await service.isDeltaTableRoot("https://example.com/table/");
+
+        expect(result).to.equal(false);
+    });
+
     it("replays add/remove actions across log versions", async () => {
         const rootUri = "https://example-bucket.s3.us-west-2.amazonaws.com/delta-table-example";
         const logFiles = [

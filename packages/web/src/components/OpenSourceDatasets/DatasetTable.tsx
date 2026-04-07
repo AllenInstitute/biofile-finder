@@ -24,7 +24,7 @@ import FileSort, { SortOrder } from "../../../../core/entity/FileSort";
 import styles from "./DatasetTable.module.css";
 
 interface DatasetTableProps {
-    onLoadDataset: (dataset: PublicDataset) => void;
+    onLoadDataset: (dataset: PublicDataset) => void | Promise<void>;
     featured?: boolean; // Flag to filter down to only the featured datasets
 }
 

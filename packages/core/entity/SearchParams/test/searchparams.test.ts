@@ -6,6 +6,7 @@ import SearchParams, {
     Source,
     EMPTY_QUERY_COMPONENTS,
     getNameAndTypeFromSourceUrl,
+    resolveNameAndTypeFromSourceUrl,
 } from "..";
 import AnnotationName from "../../Annotation/AnnotationName";
 import FileFilter from "../../FileFilter";
@@ -45,6 +46,36 @@ describe("SearchParams", () => {
 
             expect(result.type).to.equal("delta");
             expect(result.name).to.contain("delta-table-example");
+        });
+
+        it("uses the table root name for directory URLs", () => {
+            const result = getNameAndTypeFromSourceUrl(
+                "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/run-42-output/"
+            );
+
+            expect(result.name).to.contain("run-42-output");
+        });
+    });
+
+    describe("resolveNameAndTypeFromSourceUrl", () => {
+        it("detects delta table roots even when the name does not mention delta", async () => {
+            const result = await resolveNameAndTypeFromSourceUrl(
+                "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/run-42-output/",
+                {
+                    isDeltaTableRoot: async () => true,
+                }
+            );
+
+            expect(result.type).to.equal("delta");
+            expect(result.name).to.contain("run-42-output");
+        });
+
+        it("falls back to csv when the root does not look like delta", async () => {
+            const result = await resolveNameAndTypeFromSourceUrl("https://example.com/run-42/", {
+                isDeltaTableRoot: async () => false,
+            });
+
+            expect(result.type).to.equal("csv");
         });
     });
 
