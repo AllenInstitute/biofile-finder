@@ -194,6 +194,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                 return (
                     <NumberRangePicker
                         className={styles.picker}
+                        title={props.annotation.displayName}
                         items={items}
                         loading={isLoading}
                         errorMessage={errorMessage}
