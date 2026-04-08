@@ -41,6 +41,10 @@ function isHttpUrl(uri: string): boolean {
     return /^https?:\/\//i.test(uri);
 }
 
+function isAbsoluteUri(uri: string): boolean {
+    return /^[a-z][a-z\d+\-.]*:\/\//i.test(uri);
+}
+
 function isS3ProtocolUrl(uri: string): boolean {
     return /^s3:\/\//i.test(uri);
 }
@@ -192,7 +196,7 @@ export default class DeltaTableService {
 
                 const addedPath = parsed.add?.path;
                 if (addedPath) {
-                    const resolvedPath = isHttpUrl(addedPath)
+                    const resolvedPath = isAbsoluteUri(addedPath)
                         ? addedPath
                         : pathJoin(normalizedRootUri, addedPath);
                     activeFiles.add(encodeURI(resolvedPath));
@@ -200,7 +204,7 @@ export default class DeltaTableService {
 
                 const removedPath = parsed.remove?.path;
                 if (removedPath) {
-                    const resolvedPath = isHttpUrl(removedPath)
+                    const resolvedPath = isAbsoluteUri(removedPath)
                         ? removedPath
                         : pathJoin(normalizedRootUri, removedPath);
                     activeFiles.delete(encodeURI(resolvedPath));
@@ -250,6 +254,9 @@ export default class DeltaTableService {
         let low = -1;
         let high = 1;
 
+        // this is a good place to start for performance optimization, as many tables
+        // will have a checkpoint and this can save multiple round trips to discover
+        // the latest version. Avoiding the complexity for now.  KPM 2026-04-08
         if (checkpointVersion !== null && (await hasLogVersion(checkpointVersion))) {
             low = checkpointVersion;
             high = checkpointVersion + 1;

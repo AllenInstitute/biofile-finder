@@ -80,6 +80,24 @@ describe("DeltaTableService", () => {
         expect(files).to.deep.equal([]);
     });
 
+    it("supports absolute non-http URI paths in add/remove actions", async () => {
+        const rootUri = "https://example-bucket.s3.us-west-2.amazonaws.com/delta-table-example";
+        const absolutePath = "s3://example-bucket/delta-table-example/part-abs.parquet";
+
+        const service = new DeltaTableService({
+            listDeltaLogJsonFiles: async () => [`${rootUri}/_delta_log/00000000000000000000.json`],
+            fetchText: async () =>
+                [
+                    JSON.stringify({ add: { path: absolutePath } }),
+                    JSON.stringify({ remove: { path: absolutePath } }),
+                ].join("\n"),
+        });
+
+        const files = await service.resolveActiveParquetFiles(rootUri);
+
+        expect(files).to.deep.equal([]);
+    });
+
     it("throws when log listing is empty", async () => {
         const service = new DeltaTableService({
             listDeltaLogJsonFiles: async () => [],
