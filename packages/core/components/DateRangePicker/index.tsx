@@ -125,7 +125,9 @@ export default function DateRangePicker(props: DateRangePickerProps) {
                 <DateTimePicker
                     placeholder="End of date range"
                     onSelectDate={(v) => (v ? onDateRangeSelection(null, v) : onReset())}
-                    defaultDate={AnnotationType.DATE ? addTimeZoneOffset(endDate) : endDate}
+                    defaultDate={
+                        props?.type == AnnotationType.DATE ? addTimeZoneOffset(endDate) : endDate
+                    }
                 />
                 <TertiaryButton
                     className={styles.clearButton}
