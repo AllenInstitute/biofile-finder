@@ -5,7 +5,9 @@ export default {
         const { minValue, maxValue } = extractValuesFromRangeOperatorFilterString(value.toString());
         const formatNumber = (val: string | number) => {
             if (units === "bytes") {
-                return filesize(Number(val));
+                const num = Number(val);
+                if (isNaN(num)) return String(val);
+                return filesize(num);
             }
             return `${val}${units ? " " + units : ""}`;
         };
