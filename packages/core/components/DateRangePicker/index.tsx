@@ -116,7 +116,9 @@ export default function DateRangePicker(props: DateRangePickerProps) {
                     placeholder="Start of date range"
                     onSelectDate={(v) => (v ? onDateRangeSelection(v, null) : onReset())}
                     defaultDate={
-                        props.type == AnnotationType.DATE ? addTimeZoneOffset(startDate) : startDate
+                        props.type === AnnotationType.DATE
+                            ? addTimeZoneOffset(startDate)
+                            : startDate
                     }
                 />
                 <div className={styles.dateRangeSeparator}>
@@ -126,7 +128,7 @@ export default function DateRangePicker(props: DateRangePickerProps) {
                     placeholder="End of date range"
                     onSelectDate={(v) => (v ? onDateRangeSelection(null, v) : onReset())}
                     defaultDate={
-                        props?.type == AnnotationType.DATE ? addTimeZoneOffset(endDate) : endDate
+                        props?.type === AnnotationType.DATE ? addTimeZoneOffset(endDate) : endDate
                     }
                 />
                 <TertiaryButton
