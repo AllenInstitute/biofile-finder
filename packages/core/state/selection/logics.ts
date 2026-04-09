@@ -649,13 +649,14 @@ const changeSourceMetadataLogic = createLogic({
                 await databaseService.deleteSourceMetadata();
             }
         } catch (err) {
-            const errMsg = (err as Error).message || "Unknown error while adding query";
+            const errMsg = (err as Error).message || "Unknown error while adding metadata source";
             if (err instanceof DataSourcePreparationError) {
                 dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
             } else {
                 dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
         }
+
         dispatch(metadata.actions.requestAnnotations());
         done();
     },

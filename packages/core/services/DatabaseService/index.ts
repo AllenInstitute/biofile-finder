@@ -374,7 +374,7 @@ export default abstract class DatabaseService {
         if (isPreviousSource && this.hasDataSource(sourceMetadata.name)) {
             return;
         }
-        // If the data source needs replacing (e.g., we've been passed a new source with a URI), delete the old instance before preparing the new one
+        // If the metadata source is being replaced, delete the old instance before preparing the new one
         if (sourceMetadata.uri) {
             await this.deleteSourceMetadata();
             // Make sure we don't still have a cached version of the metadata source
@@ -388,6 +388,7 @@ export default abstract class DatabaseService {
                 );
             }
         }
+        // If the source doesn't have a uri, we should instead try to use the cached table
         this.sourceMetadataName = sourceMetadata.name;
     }
 
