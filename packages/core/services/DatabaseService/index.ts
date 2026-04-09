@@ -165,26 +165,7 @@ export default abstract class DatabaseService {
         const connection = await this.database?.connect();
         try {
             const result = await connection.query(sql);
-
-            // Apache Arrow JS (used by duckdb-wasm) only reads the first 8 bytes, losing the nanoseconds.
-            // Re-run with INTERVAL columns cast to ms integers so the data survives Arrow.
-            const intervalColumns = result.schema.fields
-                .filter((f) => f.typeId === 11) // Arrow Type.Interval
-                .map((f) => f.name);
-            const queryResult =
-                intervalColumns.length > 0
-                    ? await connection.query(
-                          `SELECT ${result.schema.fields
-                              .map((f) =>
-                                  intervalColumns.includes(f.name)
-                                      ? `CAST(EXTRACT(epoch FROM "${f.name}") * 1000 AS BIGINT) AS "${f.name}"`
-                                      : `"${f.name}"`
-                              )
-                              .join(", ")} FROM (${sql})`
-                      )
-                    : result;
-
-            const resultAsArray = queryResult.toArray();
+            const resultAsArray = result.toArray();
             const resultAsJSONString = JSON.stringify(
                 resultAsArray,
                 (_, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
@@ -232,23 +213,10 @@ export default abstract class DatabaseService {
         } else if (type === "json") {
             await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
         } else {
-            // Default to CSV. Use sample_size=-1 to scan the full file before deciding column
-            // types, eliminating "first N rows look numeric, later rows have strings" failures.
-            // Fall back to all_varchar=true if type inference fails (e.g. truly mixed-type column)
-            // so the file always loads successfully.
-            try {
-                await this.execute(
-                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, sample_size=-1);`
-                );
-            } catch {
-                console.warn(
-                    `Failed to infer column types for CSV "${name}"; falling back to all_varchar=true. All columns will be loaded as strings.`
-                );
-                await this.execute(`DROP TABLE IF EXISTS "${name}"`);
-                await this.execute(
-                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
-                );
-            }
+            // Default to CSV
+            await this.execute(
+                `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
+            );
         }
     }
 
@@ -266,34 +234,12 @@ export default abstract class DatabaseService {
     }
 
     protected static columnTypeToAnnotationType(columnType: string): AnnotationType {
-        // DECIMAL types include precision/scale info, e.g. "DECIMAL(18,3)"
-        if (columnType?.startsWith("DECIMAL")) {
-            return AnnotationType.NUMBER;
-        }
         switch (columnType) {
             case "INTEGER":
             case "BIGINT":
-            case "HUGEINT":
-            case "UBIGINT":
-            case "UINTEGER":
-            case "SMALLINT":
-            case "USMALLINT":
-            case "TINYINT":
-            case "UTINYINT":
-            case "FLOAT":
-            case "DOUBLE":
-            case "REAL":
-                return AnnotationType.NUMBER;
-            case "BOOLEAN":
-                return AnnotationType.BOOLEAN;
-            case "INTERVAL":
-                return AnnotationType.DURATION;
-            case "DATE":
-                return AnnotationType.DATE;
-            case "TIMESTAMP":
-            case "TIMESTAMPTZ":
-            case "TIMESTAMP WITH TIME ZONE":
-                return AnnotationType.DATETIME;
+            // TODO: Add support for column types
+            // https://github.com/AllenInstitute/biofile-finder/issues/60
+            // return AnnotationType.NUMBER;
             case "VARCHAR":
             case "TEXT":
             default:
@@ -516,12 +462,6 @@ export default abstract class DatabaseService {
             `);
             commandsToExecute.push(fileNameGenerationSQL);
         } else {
-            // CSV type inference may have produced a non-VARCHAR "File Name" column (e.g. if
-            // all values happen to look numeric). Coerce to VARCHAR so the COALESCE update and
-            // TRIM-based blank checks don't hit a type mismatch.
-            commandsToExecute.push(
-                `ALTER TABLE "${name}" ALTER COLUMN "${PreDefinedColumn.FILE_NAME}" TYPE VARCHAR`
-            );
             // Check for any blank "File Name" rows
             const blankFileNameRows = await this.getRowsWhereColumnIsBlank(
                 name,

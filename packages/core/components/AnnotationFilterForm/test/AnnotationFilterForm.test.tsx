@@ -278,7 +278,8 @@ describe("<AnnotationFilterForm />", () => {
             sandbox.restore();
         });
 
-        it("renders a NumberRangePicker instead of a list", async () => {
+        it("naturally sorts values", async () => {
+            // arrange
             const responseStub = {
                 when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
                 respondWith: {
@@ -297,19 +298,24 @@ describe("<AnnotationFilterForm />", () => {
                 responseStubs: responseStub,
             });
 
-            const { findByTestId } = render(
+            const { findAllByRole } = render(
                 <Provider store={store}>
                     <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
 
-            // NumberRangePicker renders min/max inputs with these test ids
-            const minInput = await findByTestId("rangemin");
-            const maxInput = await findByTestId("rangemax");
+            // wait a couple render cycles for the async react hook to retrieve the annotation values
+            const annotationValueListItems = await findAllByRole("listitem");
 
-            // Values are naturally sorted so rangemin gets the overall min and rangemax the max
-            expect((minInput as HTMLInputElement).value).to.equal("-12");
-            expect((maxInput as HTMLInputElement).value).to.equal("10000000000");
+            expect(annotationValueListItems.length).to.equal(6);
+            const expectedOrder = [-12, 0, 5, 6.3, 8, 10000000000];
+            annotationValueListItems.forEach((listItem, index) => {
+                const { getByTestId } = within(listItem);
+
+                // getByLabelText will throw if it can't find a matching node
+                expect(getByTestId(`${LISTROW_TESTID_PREFIX}${expectedOrder[index]}`)).to.not.be
+                    .undefined;
+            });
         });
     });
 

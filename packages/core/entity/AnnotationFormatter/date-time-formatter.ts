@@ -13,10 +13,7 @@ export default {
             )}`;
         } else {
             try {
-                // duckdb-wasm returns timestamp values as BigInt ms-since-epoch, which the
-                // runQuery JSON replacer converts to a numeric string (e.g. "1645833600000").
-                const coerced = /^\d+$/.test(String(value)) ? Number(value) : value;
-                const date = new Date(coerced);
+                const date = new Date(value);
                 return date.toLocaleString(undefined, options);
             } catch {
                 // If can't convert the value to a date,

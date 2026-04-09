@@ -123,7 +123,7 @@ describe("FileSet", () => {
                 'WHERE (REGEXP_MATCHES(CAST("scientist" AS VARCHAR)'
             );
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
-                'AND ("matrigel_is_hardened" = true)'
+                'AND (REGEXP_MATCHES(CAST("matrigel_is_hardened" AS VARCHAR)'
             );
         });
 
