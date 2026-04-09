@@ -108,12 +108,16 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
             });
         }
     },
-    [WorkerMsgType.ANNOTATIONS]: async ({ dataSourceNames, id }) => {
+    [WorkerMsgType.ANNOTATIONS]: async ({ dataSourceNames, metadataSource, id }) => {
         try {
             if (!databaseService) {
                 throw new Error("DuckDB not initialized");
             }
-            const rows = await databaseService.fetchAnnotationsWorker(dataSourceNames, id);
+            const rows = await databaseService.fetchAnnotationsWorker(
+                dataSourceNames,
+                metadataSource,
+                id
+            );
             // Annotation rows need to be converted into flat AnnotationResponse objects for worker
             // since message cannot contain functions
             const result: AnnotationResponse[] = rows.map(
@@ -278,13 +282,17 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
         this.deleteDataSource(dataSource);
     }
 
-    public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
-        return await this.fetchAnnotationsWorker(dataSourceNames);
+    public async fetchAnnotations(
+        dataSourceNames: string[],
+        metadataSource?: Source
+    ): Promise<Annotation[]> {
+        return await this.fetchAnnotationsWorker(dataSourceNames, metadataSource);
     }
 
     // Custom method to allow us to take an id and call the worker version of query; otherwise the same as parent fn
     public async fetchAnnotationsWorker(
         dataSourceNames: string[],
+        metadataSource: Source | undefined,
         id?: string
     ): Promise<Annotation[]> {
         const aggregateDataSourceName = dataSourceNames.sort().join(", ");
@@ -294,8 +302,11 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             .get(aggregateDataSourceName)
             ?.some((annotation) => !!annotation.description);
 
-        const shouldHaveDescriptions = dataSourceNames.includes(this.SOURCE_METADATA_TABLE);
+        const shouldHaveDescriptions =
+            metadataSource && this.existingDataSources.has(metadataSource.name);
         if (!hasAnnotations || (!hasDescriptions && shouldHaveDescriptions)) {
+            // Make sure dbservice is referencing the correct metadata source
+            this.sourceMetadataName = metadataSource?.name;
             const sql = new SQLBuilder()
                 .select("column_name, data_type")
                 .from('information_schema"."columns')
