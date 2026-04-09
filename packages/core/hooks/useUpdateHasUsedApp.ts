@@ -2,8 +2,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { PersistedConfigKeys } from "../services";
-import { interaction } from "../state";
-import { runAllTutorials } from "../state/selection/actions";
+import { interaction, selection } from "../state";
 
 export default () => {
     const dispatch = useDispatch();
@@ -17,7 +16,7 @@ export default () => {
         );
         if (!hasUsedApp) {
             // If first time using app, start running tutorials
-            dispatch(runAllTutorials());
+            dispatch(selection.actions.runAllTutorials());
 
             // Mark as true for next time
             dispatch(interaction.actions.markAsUsedApplicationBefore());
