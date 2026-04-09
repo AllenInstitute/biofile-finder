@@ -40,13 +40,11 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
     const { errorMessage, items, loading, onSearch, currentRange, units } = props;
 
     const overallMin = React.useMemo(() => {
-        return items[0]?.value?.toString() ?? "";
+        return items[0]?.displayValue.toString() ?? "";
     }, [items]);
     const overallMax = React.useMemo(() => {
-        return items.at(-1)?.value?.toString() ?? "";
+        return items.at(-1)?.displayValue.toString() ?? "";
     }, [items]);
-    const overallMinDisplay = items[0]?.displayValue?.toString() ?? overallMin;
-    const overallMaxDisplay = items.at(-1)?.displayValue?.toString() ?? overallMax;
 
     const [searchMinValue, setSearchMinValue] = React.useState(
         extractValuesFromRangeOperatorFilterString(currentRange?.value).minValue ?? overallMin
@@ -59,9 +57,7 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
     function onResetSearch() {
         setSearchMinValue(overallMin);
         setSearchMaxValue(overallMax);
-        if (overallMin && overallMax) {
-            onSearch(`RANGE(${overallMin},${overallMax})`);
-        }
+        onSearch(`RANGE(${overallMin},${overallMax})`);
     }
 
     const onSubmitRange = () => {
@@ -149,7 +145,7 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                     <div className={styles.footerLeft}>
                         <div> Full range available: </div>
                         <div>
-                            {overallMinDisplay}, {overallMaxDisplay}
+                            {overallMin}, {overallMax}
                         </div>
                     </div>
                 )}

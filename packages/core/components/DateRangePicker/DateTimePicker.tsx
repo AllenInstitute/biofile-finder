@@ -20,11 +20,6 @@ export default function DateTimePicker(props: DateTimePickerProps) {
     const [date, setDate] = React.useState<Date | undefined>(props?.defaultDate);
     const [time, setTime] = React.useState<string | undefined>("");
 
-    const onSelectDateRef = React.useRef(onSelectDate);
-    React.useLayoutEffect(() => {
-        onSelectDateRef.current = onSelectDate;
-    });
-
     React.useEffect(() => {
         if (!date && !time) return;
         // Prioritize the date from datePicked, otherwise set to today
@@ -34,8 +29,8 @@ export default function DateTimePicker(props: DateTimePickerProps) {
             combinedDateTime.setMinutes(Number(time.split(":")[1]));
             combinedDateTime.setSeconds(Number(time.split(":")[2]));
         }
-        onSelectDateRef.current(combinedDateTime);
-    }, [date, time]);
+        onSelectDate(combinedDateTime);
+    }, [date, time, onSelectDate]);
 
     return (
         <>

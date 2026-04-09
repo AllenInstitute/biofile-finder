@@ -4,8 +4,7 @@ import { createSandbox } from "sinon";
 
 import FileSet from "../";
 import { FESBaseUrl } from "../../../constants";
-import FileFilter, { FilterType } from "../../FileFilter";
-import { AnnotationType } from "../../AnnotationFormatter";
+import FileFilter from "../../FileFilter";
 import FileSort, { SortOrder } from "../../FileSort";
 import { makeFileDetailMock } from "../../FileDetail/mocks";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
@@ -17,12 +16,7 @@ import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileD
 describe("FileSet", () => {
     const scientistEqualsJane = new FileFilter("scientist", "jane");
     const scientistEqualsJohn = new FileFilter("scientist", "john");
-    const matrigelIsHard = new FileFilter(
-        "matrigel_is_hardened",
-        true,
-        FilterType.DEFAULT,
-        AnnotationType.BOOLEAN
-    );
+    const matrigelIsHard = new FileFilter("matrigel_is_hardened", true);
     const dateCreatedDescending = new FileSort("date_created", SortOrder.DESC);
     const fuzzyFileName = new FuzzyFilter("file_name");
     const fuzzyFilePath = new FuzzyFilter("file_path");
@@ -123,7 +117,7 @@ describe("FileSet", () => {
                 'WHERE (REGEXP_MATCHES(CAST("scientist" AS VARCHAR)'
             );
             expect(fileSet.toQuerySQLBuilder().from(mockDatasource).toString()).to.contain(
-                'AND ("matrigel_is_hardened" = true)'
+                'AND (REGEXP_MATCHES(CAST("matrigel_is_hardened" AS VARCHAR)'
             );
         });
 
