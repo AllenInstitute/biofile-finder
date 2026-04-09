@@ -1,5 +1,6 @@
 import axios from "axios";
-import { parseS3Url } from "amazon-s3-url";
+
+import S3StorageService from "../S3StorageService";
 
 type DeltaLogObject = {
     add?: {
@@ -45,46 +46,6 @@ function isAbsoluteUri(uri: string): boolean {
     return /^[a-z][a-z\d+\-.]*:\/\//i.test(uri);
 }
 
-function isS3ProtocolUrl(uri: string): boolean {
-    return /^s3:\/\//i.test(uri);
-}
-
-function isS3HttpUrl(uri: string): boolean {
-    return isHttpUrl(uri) && uri.includes("amazonaws.com");
-}
-
-function getS3HostBucketAndPrefix(
-    rootUri: string
-): { host: string; bucket: string; prefix: string } {
-    if (isS3ProtocolUrl(rootUri)) {
-        const parsed = parseS3Url(rootUri);
-        return {
-            host: `s3.${parsed.region ? `${parsed.region}.` : ""}amazonaws.com`,
-            bucket: parsed.bucket,
-            prefix: parsed.key,
-        };
-    }
-
-    const url = new URL(rootUri);
-    const parsed = parseS3Url(rootUri);
-    const normalizedPath = url.pathname.replace(/^\/+/, "");
-
-    if (parsed.bucket && url.hostname.startsWith(`${parsed.bucket}.`)) {
-        return {
-            host: url.hostname.slice(parsed.bucket.length + 1),
-            bucket: parsed.bucket,
-            prefix: parsed.key || "",
-        };
-    }
-
-    const [bucketFromPath, ...restPath] = normalizedPath.split("/");
-    return {
-        host: url.hostname,
-        bucket: parsed.bucket || bucketFromPath,
-        prefix: parsed.key || restPath.join("/"),
-    };
-}
-
 function normalizeTableRootUri(rootUri: string): string {
     const normalized = stripTrailingSlash(stripQueryAndFragment(rootUri));
     if (normalized.endsWith("/_delta_log")) {
@@ -98,9 +59,9 @@ function toHttpsTableRootUri(rootUri: string): string {
         return normalizeTableRootUri(rootUri);
     }
 
-    if (isS3ProtocolUrl(rootUri)) {
-        const { host, bucket, prefix } = getS3HostBucketAndPrefix(rootUri);
-        const tableRoot = `https://${host}/${bucket}${prefix ? `/${prefix}` : ""}`;
+    if (S3StorageService.isS3Url(rootUri)) {
+        const { hostname, bucket, key } = S3StorageService.parseS3Url(rootUri);
+        const tableRoot = `https://${hostname}/${bucket}${key ? `/${key}` : ""}`;
         return normalizeTableRootUri(tableRoot);
     }
 
@@ -216,7 +177,7 @@ export default class DeltaTableService {
     }
 
     private listDeltaLogJsonFilesDefault = async (rootUri: string): Promise<string[]> => {
-        if (!(isS3ProtocolUrl(rootUri) || isS3HttpUrl(rootUri))) {
+        if (!S3StorageService.isS3Url(rootUri)) {
             throw new Error(
                 `Listing delta logs is currently supported only for S3 URLs. Received: ${rootUri}`
             );

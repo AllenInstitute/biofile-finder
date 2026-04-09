@@ -12,6 +12,7 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 
 import DatabaseService, { getParquetFileNameSelectPart } from "..";
+import DeltaTableService from "../../DeltaTableService";
 
 describe("DatabaseService", () => {
     describe("fetchAnnotations", () => {
@@ -118,21 +119,15 @@ describe("DatabaseService", () => {
         describe("delta", () => {
             class DeltaMockDatabaseService extends DatabaseService {
                 public executedSql: string[] = [];
-                private readonly resolvedFiles: string[];
 
                 constructor(resolvedFiles: string[]) {
-                    super();
-                    this.resolvedFiles = resolvedFiles;
+                    super(({
+                        resolveActiveParquetFiles: async () => resolvedFiles,
+                    } as unknown) as DeltaTableService);
                     // Minimal database mock for registerFileURL usage in addDataSource
                     this.database = ({
                         registerFileURL: async () => Promise.resolve(),
                     } as unknown) as duckdb.AsyncDuckDB;
-                }
-
-                protected getDeltaTableService() {
-                    return {
-                        resolveActiveParquetFiles: async () => this.resolvedFiles,
-                    } as any;
                 }
 
                 execute(sql: string): Promise<void> {

@@ -141,8 +141,10 @@ export default abstract class DatabaseService {
     private readonly deltaDirectViewNames = new Set<string>();
 
     protected database: duckdb.AsyncDuckDB | undefined;
+    protected readonly deltaTableService: DeltaTableService;
 
-    constructor() {
+    constructor(deltaTableService: DeltaTableService = new DeltaTableService()) {
+        this.deltaTableService = deltaTableService;
         this.addDataSource = this.addDataSource.bind(this);
         this.execute = this.execute.bind(this);
         this.query = this.query.bind(this);
@@ -236,7 +238,7 @@ export default abstract class DatabaseService {
                 );
             }
 
-            const deltaTableService = this.getDeltaTableService();
+            const deltaTableService = this.deltaTableService;
             const activeParquetFiles = await deltaTableService.resolveActiveParquetFiles(uri);
             if (activeParquetFiles.length === 0) {
                 throw new Error(`Delta table has no active parquet files: ${uri}`);
@@ -531,10 +533,6 @@ export default abstract class DatabaseService {
         } else {
             await this.execute(`DROP TABLE IF EXISTS "${dataSource}"`);
         }
-    }
-
-    protected getDeltaTableService(): DeltaTableService {
-        return new DeltaTableService();
     }
 
     /*

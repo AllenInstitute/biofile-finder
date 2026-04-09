@@ -1,4 +1,4 @@
-import { parseS3Url, isS3Url } from "amazon-s3-url";
+import { parseS3Url, isS3Url as isS3UrlLib } from "amazon-s3-url";
 import axios from "axios";
 
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
@@ -9,7 +9,7 @@ import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 export const isMultiObjectFile = (url: string) =>
     [".zarr", ".zarr/", ".sldy", ".sldy/"].some((ext) => url.endsWith(ext));
 
-interface ParsedUrl {
+export interface ParsedUrl {
     hostname: string;
     bucket: string;
     key: string;
@@ -30,20 +30,20 @@ export default class S3StorageService extends HttpServiceBase {
     }
 
     /**
-     * Return true if s3 file.
+     * Return true if this is a recognised S3 URL (s3:// protocol or HTTP amazonaws.com).
      */
-    private static isSimpleS3Url(url: string): boolean {
+    public static isS3Url(url: string): boolean {
         try {
-            return isS3Url(url);
+            return isS3UrlLib(url);
         } catch (error) {
             return false;
         }
     }
 
     /**
-     * Break down S3 URL to host, bucket, and path (key).
+     * Break down an S3 URL (s3:// or HTTP amazonaws.com) into host, bucket, and key.
      */
-    private static parseSimpleUrl(url: string): ParsedUrl {
+    public static parseS3Url(url: string): ParsedUrl {
         const { protocol, hostname } = new URL(url);
         const { region, bucket, key } = parseS3Url(url);
         let parsedHost = hostname;
@@ -192,8 +192,8 @@ export default class S3StorageService extends HttpServiceBase {
      * Parse URL into hostname, bucket, key from a url
      */
     private parseUrl(url: string): Promise<ParsedUrl | undefined> {
-        return S3StorageService.isSimpleS3Url(url)
-            ? Promise.resolve(S3StorageService.parseSimpleUrl(url))
+        return S3StorageService.isS3Url(url)
+            ? Promise.resolve(S3StorageService.parseS3Url(url))
             : // TODO: what about virtualized objects not directories???
               this.parseVirtualizedDirectory(url);
     }

@@ -87,29 +87,28 @@ function parseSourceUrl(dataSourceURL: string): ParsedSourceUrl {
     const pathWithoutParams = dataSourceURL.split(/[?#]/)[0];
     const pathSegments = pathWithoutParams.split("/").filter(Boolean);
     const lastSegment = pathSegments[pathSegments.length - 1] || pathWithoutParams;
-    const isDeltaLogPath = lastSegment === "_delta_log";
+    const isDeltaLogPath =
+        lastSegment === "_delta_log" || pathWithoutParams.includes("/_delta_log/");
     const uriResource =
         isDeltaLogPath && pathSegments.length > 1
             ? pathSegments[pathSegments.length - 2]
             : lastSegment;
     const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
-    // Returns undefined if can't find a match
-    let extensionGuess = ACCEPTED_SOURCE_TYPES.find(
-        (validSourcetype) => validSourcetype === uriResource.split(".").pop()
-    );
-    if (!extensionGuess) {
-        const looksLikeDelta = isDeltaLogPath || pathWithoutParams.includes("/_delta_log/");
 
-        if (looksLikeDelta) {
-            extensionGuess = "delta";
-        }
+    // If the URL explicitly references a delta log directory, commit to delta immediately —
+    // no network probe needed.
+    if (isDeltaLogPath) {
+        return { extensionGuess: "delta", name, pathWithoutParams, shouldProbeForDelta: false };
     }
 
-    const shouldProbeForDelta =
-        extensionGuess === undefined &&
-        (isDeltaLogPath ||
-            pathWithoutParams.includes("/_delta_log/") ||
-            dataSourceURL.endsWith("/"));
+    // Try to detect type from the file extension.
+    const extensionGuess = ACCEPTED_SOURCE_TYPES.find(
+        (validSourcetype) => validSourcetype === uriResource.split(".").pop()
+    );
+
+    // For directory-like URLs (trailing slash, no recognised extension), probe the network
+    // to determine whether the root is a delta table.
+    const shouldProbeForDelta = extensionGuess === undefined && dataSourceURL.endsWith("/");
 
     return { extensionGuess, name, pathWithoutParams, shouldProbeForDelta };
 }

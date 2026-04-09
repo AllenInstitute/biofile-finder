@@ -122,8 +122,8 @@ export default function DataSourcePrompt(props: Props) {
                     [styles.datasourceSubhead]: !props?.isModal,
                 })}
             >
-                Load a CSV, Parquet, JSON, or Delta table containing metadata key-value pairs
-                (annotations) associated with your files.
+                Load a CSV, Parquet(PyArrow or Deltalake), or JSON table containing metadata
+                key-value pairs (annotations) associated with your files.
             </p>
             <div className={styles.filePromptOuterWrapper}>
                 <FilePrompt
