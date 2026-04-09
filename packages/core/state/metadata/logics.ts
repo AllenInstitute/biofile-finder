@@ -24,6 +24,7 @@ import * as metadataSelectors from "./selectors";
 import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationFormatter";
+import FileFilter from "../../entity/FileFilter";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
@@ -99,6 +100,35 @@ const receiveAnnotationsLogic = createLogic({
                 })),
         ];
         dispatch(selection.actions.setColumns(columns));
+
+        // Enrich any filters that are missing annotationType with the type from the loaded annotations.
+        // This handles filters deserialized from URLs or persisted state that predate annotationType tracking.
+        const annotationTypeByName = new Map(
+            annotations.map((annotation) => [annotation.name, annotation.type as AnnotationType])
+        );
+        const queries = selection.selectors.getQueries(deps.getState());
+        const enrichedQueries = queries.map((query) => ({
+            ...query,
+            parts: {
+                ...query.parts,
+                filters: query.parts.filters.map((filter) =>
+                    filter.annotationType
+                        ? filter
+                        : new FileFilter(
+                              filter.name,
+                              filter.value,
+                              filter.type,
+                              annotationTypeByName.get(filter.name)
+                          )
+                ),
+            },
+        }));
+        const hasEnrichedFilters = enrichedQueries.some((query, i) =>
+            query.parts.filters.some((filter, j) => filter !== queries[i].parts.filters[j])
+        );
+        if (hasEnrichedFilters) {
+            dispatch(selection.actions.setQueries(enrichedQueries));
+        }
 
         const isCurrentSortColumnValid =
             currentSortColumn && annotationNamesInDataSource.has(currentSortColumn.annotationName);

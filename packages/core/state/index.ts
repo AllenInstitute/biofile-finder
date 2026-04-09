@@ -97,14 +97,7 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
                           )
                         : undefined,
                     filters: query.parts.filters.map(
-                        (filter) =>
-                            new FileFilter(
-                                filter.name,
-                                filter.value,
-                                filter.type,
-                                filter.annotationType ??
-                                    FileFilter.inferAnnotationType(filter.value)
-                            )
+                        (filter) => new FileFilter(filter.name, filter.value)
                     ),
                     openFolders: query.parts.openFolders.map(
                         (folder) => new FileFolder(((folder as unknown) as string).split("."))

@@ -247,13 +247,7 @@ export default class SearchParams {
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
                 .map(
                     (parsedFilter) =>
-                        new FileFilter(
-                            parsedFilter.name,
-                            parsedFilter.value,
-                            parsedFilter.type,
-                            parsedFilter.annotationType ??
-                                FileFilter.inferAnnotationType(parsedFilter.value)
-                        )
+                        new FileFilter(parsedFilter.name, parsedFilter.value, parsedFilter.type)
                 ),
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
