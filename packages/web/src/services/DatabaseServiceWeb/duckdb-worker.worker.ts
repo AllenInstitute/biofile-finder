@@ -262,7 +262,23 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             });
         try {
             const result = await connection.query(sql);
-            const resultAsArray = result.toArray();
+
+            // Apache Arrow JS (used by duckdb-wasm) only reads the first 8 bytes, losing the nanoseconds.
+            // Re-run with INTERVAL columns cast to ms integers so the data survives Arrow.
+            const intervalFields = result.schema.fields.filter((f) => f.typeId === 11);
+            const finalResult =
+                intervalFields.length > 0
+                    ? await connection.query(
+                          `SELECT ${result.schema.fields
+                              .map((f) =>
+                                  intervalFields.some((iv) => iv.name === f.name)
+                                      ? `CAST(EXTRACT(epoch FROM "${f.name}") * 1000 AS BIGINT) AS "${f.name}"`
+                                      : `"${f.name}"`
+                              )
+                              .join(", ")} FROM (${sql})`
+                      )
+                    : result;
+            const resultAsArray = finalResult.toArray();
             const resultAsJSONString = JSON.stringify(
                 resultAsArray,
                 (_, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
