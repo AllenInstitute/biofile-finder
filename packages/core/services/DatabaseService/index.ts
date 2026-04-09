@@ -106,6 +106,16 @@ export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckd
             forceFullHTTPReads: false,
         },
     });
+
+    // Enable native Delta Lake support for DuckDB queries.
+    const setupConnection = await db.connect();
+    try {
+        await setupConnection.query("INSTALL delta");
+        await setupConnection.query("LOAD delta");
+    } finally {
+        await setupConnection.close();
+    }
+
     URL.revokeObjectURL(workerUrl);
     return db;
 }
