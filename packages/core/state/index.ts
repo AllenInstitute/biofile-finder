@@ -48,11 +48,7 @@ export const reduxLogicDependencies: Partial<ReduxLogicDeps> = {
     httpClient: axios,
 };
 
-export const reduxLogics = [
-    ...metadata.logics,
-    ...selection.logics,
-    ...interaction.logics,
-];
+export const reduxLogics = [...metadata.logics, ...selection.logics, ...interaction.logics];
 
 const logicMiddleware = createLogicMiddleware(reduxLogics);
 logicMiddleware.addDeps(reduxLogicDependencies);
@@ -101,7 +97,13 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
                           )
                         : undefined,
                     filters: query.parts.filters.map(
-                        (filter) => new FileFilter(filter.name, filter.value)
+                        (filter) =>
+                            new FileFilter(
+                                filter.name,
+                                filter.value,
+                                filter.type,
+                                filter.annotationType
+                            )
                     ),
                     openFolders: query.parts.openFolders.map(
                         (folder) => new FileFolder(((folder as unknown) as string).split("."))

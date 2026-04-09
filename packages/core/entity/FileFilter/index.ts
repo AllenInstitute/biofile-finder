@@ -13,6 +13,7 @@ export interface FileFilterJson {
     name: string;
     value: any;
     type?: FilterType;
+    annotationType?: AnnotationType;
 }
 
 // Filter with formatted value
@@ -38,7 +39,7 @@ export default class FileFilter {
     private readonly annotationName: string;
     private readonly annotationValue: any;
     private filterType: FilterType;
-    private readonly annotationType?: AnnotationType;
+    public readonly annotationType?: AnnotationType;
 
     public static isFileFilter(candidate: any): candidate is FileFilter {
         return candidate instanceof FileFilter;
@@ -145,6 +146,7 @@ export default class FileFilter {
             name: this.annotationName,
             value: this.annotationValue,
             type: this.filterType,
+            annotationType: this.annotationType,
         };
     }
 
