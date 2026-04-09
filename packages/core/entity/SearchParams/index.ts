@@ -251,7 +251,8 @@ export default class SearchParams {
                             parsedFilter.name,
                             parsedFilter.value,
                             parsedFilter.type,
-                            parsedFilter.annotationType
+                            parsedFilter.annotationType ??
+                                FileFilter.inferAnnotationType(parsedFilter.value)
                         )
                 ),
             openFolders: unparsedOpenFolders

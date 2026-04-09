@@ -45,6 +45,12 @@ export default class FileFilter {
         return candidate instanceof FileFilter;
     }
 
+    public static inferAnnotationType(value: string): AnnotationType | undefined {
+        if (RANGE_OPERATOR_REGEX.test(value)) return AnnotationType.NUMBER;
+        if (DATE_RANGE_OPERATOR_REGEX.test(value)) return AnnotationType.DATETIME;
+        return undefined;
+    }
+
     constructor(
         annotationName: string,
         annotationValue: any,
