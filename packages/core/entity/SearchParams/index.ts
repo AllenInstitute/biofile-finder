@@ -87,19 +87,9 @@ function parseSourceUrl(dataSourceURL: string): ParsedSourceUrl {
     const pathWithoutParams = dataSourceURL.split(/[?#]/)[0];
     const pathSegments = pathWithoutParams.split("/").filter(Boolean);
     const lastSegment = pathSegments[pathSegments.length - 1] || pathWithoutParams;
-    const isDeltaLogPath =
-        lastSegment === "_delta_log" || pathWithoutParams.includes("/_delta_log/");
     const uriResource =
-        isDeltaLogPath && pathSegments.length > 1
-            ? pathSegments[pathSegments.length - 2]
-            : lastSegment;
+        pathSegments.length > 1 ? pathSegments[pathSegments.length - 2] : lastSegment;
     const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
-
-    // If the URL explicitly references a delta log directory, commit to delta immediately —
-    // no network probe needed.
-    if (isDeltaLogPath) {
-        return { extensionGuess: "delta", name, pathWithoutParams, shouldProbeForDelta: false };
-    }
 
     // Try to detect type from the file extension.
     const extensionGuess = ACCEPTED_SOURCE_TYPES.find(
@@ -289,10 +279,7 @@ export default class SearchParams {
         const unparsedURLs = params.getAll("url");
         return {
             ...EMPTY_QUERY_COMPONENTS,
-            sources: unparsedURLs.map((uri) => ({
-                uri,
-                ...getNameAndTypeFromSourceUrl(uri),
-            })),
+            sources: unparsedURLs.map((uri) => ({ uri, ...getNameAndTypeFromSourceUrl(uri) })),
         };
     }
 

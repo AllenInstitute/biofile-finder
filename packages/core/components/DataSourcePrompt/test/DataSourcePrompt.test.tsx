@@ -1,5 +1,5 @@
 import { configureMockStore } from "@aics/redux-utils";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
@@ -20,7 +20,7 @@ describe("<DataSourcePrompt />", () => {
         expect(loadButton?.hasAttribute("disabled")).to.be.true;
     });
 
-    it("enables the load button after a file is selected", () => {
+    it("enables the load button after a file is selected", async () => {
         // Arrange
         const { store } = configureMockStore({ state: initialState });
         const { getByText, getByRole, getByTestId } = render(
@@ -43,10 +43,12 @@ describe("<DataSourcePrompt />", () => {
 
         // Assert
         const loadButton = getByText(/LOAD/).closest("button");
-        expect(loadButton?.hasAttribute("disabled")).to.be.false;
+        await waitFor(() => {
+            expect(loadButton?.hasAttribute("disabled")).to.be.false;
+        });
     });
 
-    it("can distinguish between two FilePrompt components when advanced options are open", () => {
+    it("can distinguish between two FilePrompt components when advanced options are open", async () => {
         const { store } = configureMockStore({ state: initialState, reducer });
         const { getByText, getByTestId, getAllByText, getAllByRole } = render(
             <Provider store={store}>
@@ -75,9 +77,11 @@ describe("<DataSourcePrompt />", () => {
         }
 
         // Only the first prompt still renders
-        expect(getAllByText(/click to browse/).length).to.equal(1);
-        expect(getByTestId("urlform-file-prompt-main")).to.exist;
-        expect(() => getByTestId("urlform-file-prompt-metadata-main")).to.throw;
+        await waitFor(() => {
+            expect(getAllByText(/click to browse/).length).to.equal(1);
+            expect(getByTestId("urlform-file-prompt-main")).to.exist;
+            expect(() => getByTestId("urlform-file-prompt-metadata-main")).to.throw;
+        });
     });
 
     it("hides the advanced guidance info by default", () => {

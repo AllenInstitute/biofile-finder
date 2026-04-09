@@ -107,11 +107,21 @@ export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckd
         },
     });
 
-    // Enable native Delta Lake support for DuckDB queries.
+    // Try enabling native Delta Lake support for DuckDB queries.
+    // In duckdb-wasm, this extension may not be published for every runtime build.
     const setupConnection = await db.connect();
     try {
         await setupConnection.query("INSTALL delta");
         await setupConnection.query("LOAD delta");
+    } catch (err) {
+        const message = (err as Error)?.message || String(err);
+        if (message.includes("delta.duckdb_extension.wasm is not available")) {
+            console.warn(
+                "DuckDB delta extension is unavailable for this WASM bundle; continuing without native delta extension."
+            );
+        } else {
+            throw err;
+        }
     } finally {
         await setupConnection.close();
     }

@@ -5,7 +5,6 @@ import SearchParams, {
     FileView,
     Source,
     EMPTY_QUERY_COMPONENTS,
-    getNameAndTypeFromSourceUrl,
     resolveNameAndTypeFromSourceUrl,
 } from "..";
 import AnnotationName from "../../Annotation/AnnotationName";
@@ -29,17 +28,18 @@ describe("SearchParams", () => {
 
     const mockOS = "Darwin";
 
-    describe("getNameAndTypeFromSourceUrl", () => {
-        it("uses the table root name for directory URLs", () => {
-            const result = getNameAndTypeFromSourceUrl(
-                "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/run-42-output/"
+    describe("resolveNameAndTypeFromSourceUrl", () => {
+        it("uses the table root name for directory URLs", async () => {
+            const result = await resolveNameAndTypeFromSourceUrl(
+                "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/run-42-output/",
+                {
+                    isDeltaTableRoot: async () => false,
+                }
             );
 
             expect(result.name).to.contain("run-42-output");
         });
-    });
 
-    describe("resolveNameAndTypeFromSourceUrl", () => {
         it("detects delta table roots even when the name does not mention delta", async () => {
             const result = await resolveNameAndTypeFromSourceUrl(
                 "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/run-42-output/",
