@@ -171,7 +171,7 @@ export default class PublicDataset {
     }
 
     public get featured(): boolean {
-        return this.datasetDetails.featured === "TRUE";
+        return this.datasetDetails.featured?.toLowerCase() === "true";
     }
 
     public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {
