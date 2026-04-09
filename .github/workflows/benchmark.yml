@@ -1,0 +1,139 @@
+name: Query Benchmark
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# Only run one benchmark per PR at a time; cancel in-progress runs on new pushes
+concurrency:
+  group: benchmark-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Run benchmarks on the base branch (main)
+  # -------------------------------------------------------------------------
+  benchmark-base:
+    name: Benchmark (base)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+        working-directory: packages/web
+
+      - name: Run benchmark
+        run: node scripts/run-benchmark.js
+        working-directory: packages/web
+        env:
+          GITHUB_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_REF_NAME: ${{ github.base_ref }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-base
+          path: packages/web/benchmark-results.json
+          retention-days: 7
+
+  # -------------------------------------------------------------------------
+  # Run benchmarks on the PR branch
+  # -------------------------------------------------------------------------
+  benchmark-pr:
+    name: Benchmark (PR)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+        working-directory: packages/web
+
+      - name: Run benchmark
+        run: node scripts/run-benchmark.js
+        working-directory: packages/web
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.head_ref }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-pr
+          path: packages/web/benchmark-results.json
+          retention-days: 7
+
+  # -------------------------------------------------------------------------
+  # Compare results and post a PR comment
+  # -------------------------------------------------------------------------
+  comment:
+    name: Post results comment
+    runs-on: ubuntu-latest
+    needs: [benchmark-base, benchmark-pr]
+    permissions:
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: benchmark-base
+          path: ./artifacts/base
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: benchmark-pr
+          path: ./artifacts/pr
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate comparison comment
+        id: compare
+        run: |
+          COMMENT=$(node packages/web/scripts/compare-results.js \
+            ./artifacts/base/benchmark-results.json \
+            ./artifacts/pr/benchmark-results.json)
+          # Store multiline output safely
+          {
+            echo "body<<BENCHMARK_EOF"
+            echo "$COMMENT"
+            echo "BENCHMARK_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Find existing benchmark comment
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "BFF Query Benchmark Results"
+
+      - name: Create or update PR comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.compare.outputs.body }}
+          edit-mode: replace
