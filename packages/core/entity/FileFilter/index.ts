@@ -1,7 +1,7 @@
 import SQLBuilder from "../SQLBuilder";
 import { extractValuesFromRangeOperatorFilterString } from "../AnnotationFormatter/number-formatter";
 import { extractDatesFromRangeOperatorFilterString } from "../AnnotationFormatter/date-time-formatter";
-import { AnnotationType } from "../AnnotationFormatter";
+import annotationFormatterFactory, { AnnotationType } from "../AnnotationFormatter";
 import { NO_VALUE_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 
 // Matches the RANGE(min, max) filter encoding used by NumberRangePicker (numeric bounds)
@@ -98,36 +98,43 @@ export default class FileFilter {
             case FilterType.FUZZY:
                 return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
             default:
-                if (this.annotationType === AnnotationType.BOOLEAN) {
-                    return `"${this.annotationName}" = ${this.annotationValue}`;
-                }
-                if (
-                    this.annotationType === AnnotationType.NUMBER &&
-                    RANGE_OPERATOR_REGEX.test(this.annotationValue)
-                ) {
-                    const { minValue, maxValue } = extractValuesFromRangeOperatorFilterString(
-                        this.annotationValue
-                    );
-                    return `CAST("${this.annotationName}" AS DOUBLE) >= ${minValue} AND CAST("${this.annotationName}" AS DOUBLE) < ${maxValue}`;
-                }
-                if (
-                    (this.annotationType === AnnotationType.DATE ||
-                        this.annotationType === AnnotationType.DATETIME) &&
-                    DATE_RANGE_OPERATOR_REGEX.test(this.annotationValue)
-                ) {
-                    const { startDate, endDate } = extractDatesFromRangeOperatorFilterString(
-                        this.annotationValue
-                    );
-                    return `CAST("${
-                        this.annotationName
-                    }" AS TIMESTAMPTZ) >= CAST('${startDate?.toISOString()}' AS TIMESTAMPTZ) AND CAST("${
-                        this.annotationName
-                    }" AS TIMESTAMPTZ) < CAST('${endDate?.toISOString()}' AS TIMESTAMPTZ)`;
-                }
-                if (this.annotationType === AnnotationType.DURATION) {
-                    return `EXTRACT(epoch FROM "${this.annotationName}")::BIGINT * 1000 = ${Number(
-                        this.annotationValue
-                    )}`;
+                switch (this.annotationType) {
+                    case AnnotationType.BOOLEAN:
+                        return `"${this.annotationName}" = ${this.annotationValue}`;
+                    case AnnotationType.NUMBER:
+                        if (RANGE_OPERATOR_REGEX.test(this.annotationValue)) {
+                            const {
+                                minValue,
+                                maxValue,
+                            } = extractValuesFromRangeOperatorFilterString(this.annotationValue);
+                            return `CAST("${this.annotationName}" AS DOUBLE) >= ${minValue} AND CAST("${this.annotationName}" AS DOUBLE) < ${maxValue}`;
+                        }
+                        return `CAST("${this.annotationName}" AS DOUBLE) = ${this.annotationValue}`;
+                    case AnnotationType.DATE:
+                    case AnnotationType.DATETIME:
+                        if (DATE_RANGE_OPERATOR_REGEX.test(this.annotationValue)) {
+                            const {
+                                startDate,
+                                endDate,
+                            } = extractDatesFromRangeOperatorFilterString(this.annotationValue);
+                            return `CAST("${
+                                this.annotationName
+                            }" AS TIMESTAMPTZ) >= CAST('${startDate?.toISOString()}' AS TIMESTAMPTZ) AND CAST("${
+                                this.annotationName
+                            }" AS TIMESTAMPTZ) < CAST('${endDate?.toISOString()}' AS TIMESTAMPTZ)`;
+                        } else {
+                            const dateFormatter = annotationFormatterFactory(this.annotationType);
+                            const dateString = dateFormatter.displayValue(this.annotationValue);
+                            return `CAST("${
+                                this.annotationName
+                            }" AS TIMESTAMPTZ) =  CAST('${new Date(
+                                dateString
+                            ).toISOString()}' as TIMESTAMPTZ)`;
+                        }
+                    case AnnotationType.DURATION:
+                        return `EXTRACT(epoch FROM "${
+                            this.annotationName
+                        }")::BIGINT * 1000 = ${Number(this.annotationValue)}`;
                 }
                 return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
         }
