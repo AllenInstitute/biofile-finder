@@ -29,6 +29,8 @@ function pathJoin(base: string, child: string): string {
     return `${stripTrailingSlash(base)}/${normalizedChild}`;
 }
 
+// Fallback-only: used to order _delta_log JSON files when native DuckDB delta
+// support is unavailable in WASM and we must replay the log ourselves.
 function parseVersionFromDeltaLogFile(uri: string): number {
     const filename = stripQueryAndFragment(uri).split("/").pop() || "";
     const match = filename.match(/^(\d+)\.json$/);
@@ -117,6 +119,8 @@ export default class DeltaTableService {
 
     public async isDeltaTableRoot(rootUri: string): Promise<boolean> {
         try {
+            // Fallback-only probe: checks for _delta_log presence when native delta
+            // reads are not available to DuckDB WASM.
             const normalizedRootUri = toHttpsTableRootUri(rootUri);
             const logFiles = await this.listDeltaLogJsonFiles(normalizedRootUri);
             return logFiles.length > 0;
@@ -126,6 +130,8 @@ export default class DeltaTableService {
     }
 
     public async resolveActiveParquetFiles(rootUri: string): Promise<string[]> {
+        // Fallback-only path: replay add/remove actions from _delta_log to produce
+        // the active parquet set for engines without native delta support.
         const normalizedRootUri = toHttpsTableRootUri(rootUri);
         const logFiles = await this.listDeltaLogJsonFiles(normalizedRootUri);
         if (logFiles.length === 0) {
@@ -177,6 +183,8 @@ export default class DeltaTableService {
     }
 
     private listDeltaLogJsonFilesDefault = async (rootUri: string): Promise<string[]> => {
+        // Fallback-only implementation: discovers available _delta_log versions
+        // directly in object storage for environments without native delta reads.
         if (!S3StorageService.isS3Url(rootUri)) {
             throw new Error(
                 `Listing delta logs is currently supported only for S3 URLs. Received: ${rootUri}`

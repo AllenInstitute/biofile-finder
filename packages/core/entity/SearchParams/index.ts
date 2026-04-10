@@ -28,7 +28,6 @@ type ParsedSourceUrl = {
     extensionGuess?: ResolvedSourceType;
     name: string;
     pathWithoutParams: string;
-    shouldProbeForDelta: boolean;
 };
 
 // Components of the application state this captures
@@ -95,11 +94,7 @@ export function parseSourceUrl(dataSourceURL: string): ParsedSourceUrl {
         (validSourcetype) => validSourcetype === uriResource.split(".").pop()
     );
 
-    // For directory-like URLs (trailing slash, no recognised extension), probe the network
-    // to determine whether the root is a delta table.
-    const shouldProbeForDelta = extensionGuess === undefined && dataSourceURL.endsWith("/");
-
-    return { extensionGuess, name, pathWithoutParams, shouldProbeForDelta };
+    return { extensionGuess, name, pathWithoutParams };
 }
 
 export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
@@ -110,25 +105,23 @@ export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
     return { name, type: extensionGuess || "csv" };
 };
 
-export const shouldProbeForDeltaSourceUrl = (dataSourceURL: string) =>
-    parseSourceUrl(dataSourceURL).shouldProbeForDelta;
-
 export const resolveNameAndTypeFromSourceUrl = async (
     dataSourceURL: string,
     deltaTableService: Pick<DeltaTableService, "isDeltaTableRoot"> = new DeltaTableService()
 ) => {
-    const { extensionGuess, name, pathWithoutParams, shouldProbeForDelta } = parseSourceUrl(
-        dataSourceURL
-    );
+    const { extensionGuess, name, pathWithoutParams } = parseSourceUrl(dataSourceURL);
     if (extensionGuess) {
         return { name, type: extensionGuess };
     }
 
-    if (shouldProbeForDelta && (await deltaTableService.isDeltaTableRoot(pathWithoutParams))) {
+    if (
+        pathWithoutParams.endsWith("/") &&
+        (await deltaTableService.isDeltaTableRoot(pathWithoutParams))
+    ) {
         return { name, type: "delta" as const };
     }
 
-    console.warn("Assuming the source is csv since no extension was recognized");
+    console.warn("Assuming the source is csv since no extension/format was recognized");
     return { name, type: "csv" as const };
 };
 

@@ -6,8 +6,7 @@ import { useDropzone } from "react-dropzone";
 
 import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
-import { Source, parseSourceUrl } from "../../entity/SearchParams";
-import DeltaTableService from "../../services/DeltaTableService";
+import { Source, resolveNameAndTypeFromSourceUrl } from "../../entity/SearchParams";
 
 import styles from "./FilePrompt.module.css";
 
@@ -78,27 +77,8 @@ export default function FilePrompt(props: Props) {
         async (evt?: React.FormEvent) => {
             evt?.preventDefault();
             if (dataSourceURL) {
-                const parsed = parseSourceUrl(dataSourceURL);
-                const deltaTableService = new DeltaTableService();
-                let type: Source["type"];
-
-                if (parsed.shouldProbeForDelta) {
-                    const isDelta = await deltaTableService.isDeltaTableRoot(
-                        parsed.pathWithoutParams
-                    );
-                    type = isDelta ? "delta" : "csv";
-                } else {
-                    type = parsed.extensionGuess || "csv";
-                    if (!parsed.extensionGuess) {
-                        console.warn(
-                            "Assuming the source is csv since no extension was recognized"
-                        );
-                    }
-                }
-
                 props.onSelectFile({
-                    name: parsed.name,
-                    type,
+                    ...(await resolveNameAndTypeFromSourceUrl(dataSourceURL)),
                     uri: dataSourceURL,
                 });
             }
