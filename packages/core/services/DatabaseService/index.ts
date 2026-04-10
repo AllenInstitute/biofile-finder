@@ -86,6 +86,24 @@ export function getParquetFileNameSelectPart(
     return `${getFileNameFromPathExpression(`"${pathColumn}"`)} AS "${PreDefinedColumn.FILE_NAME}"`;
 }
 
+function getDirectViewColumnProjection(
+    rawColumns: string[]
+): {
+    actualToPreDefined: Map<string, string>;
+    selectParts: string[];
+} {
+    const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
+    const selectParts = rawColumns.map((col) => {
+        const preDefined = actualToPreDefined.get(col);
+        if (preDefined !== undefined) {
+            return `"${col}" AS "${preDefined}"`;
+        }
+        return `"${col}"`;
+    });
+
+    return { actualToPreDefined, selectParts };
+}
+
 export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckdb.AsyncDuckDB> {
     const allBundles = duckdb.getJsDelivrBundles();
 
@@ -109,6 +127,8 @@ export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckd
 
     // Try enabling native Delta Lake support for DuckDB queries.
     // In duckdb-wasm, this extension may not be published for every runtime build.
+    // If unavailable, we fall back to manual Delta table support via DeltaTableService,
+    // which recovers active parquet files by replaying _delta_log entries.
     const setupConnection = await db.connect();
     try {
         await setupConnection.query("INSTALL delta");
@@ -117,7 +137,7 @@ export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckd
         const message = (err as Error)?.message || String(err);
         if (message.includes("delta.duckdb_extension.wasm is not available")) {
             console.warn(
-                "DuckDB delta extension is unavailable for this WASM bundle; continuing without native delta extension."
+                "DuckDB delta extension is unavailable for this WASM bundle; falling back to manual Delta log replay."
             );
         } else {
             throw err;
@@ -145,10 +165,9 @@ export default abstract class DatabaseService {
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
     protected readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
     private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
-    // Data source names that are views (parquet), so we DROP VIEW on delete
-    private readonly parquetDirectViewNames = new Set<string>();
-    // Data source names that are views materialized from Delta logs
-    private readonly deltaDirectViewNames = new Set<string>();
+    // Data source names that are direct views and their underlying type.
+    // This lets us use one tracking structure while preserving parquet-specific behavior.
+    private readonly directViewKinds = new Map<string, "parquet" | "delta">();
 
     protected database: duckdb.AsyncDuckDB | undefined;
     protected readonly deltaTableService: DeltaTableService;
@@ -534,11 +553,8 @@ export default abstract class DatabaseService {
     protected async deleteDataSource(dataSource: string): Promise<void> {
         this.existingDataSources.delete(dataSource);
         this.dataSourceToAnnotationsMap.delete(dataSource);
-        if (this.parquetDirectViewNames.has(dataSource)) {
-            this.parquetDirectViewNames.delete(dataSource);
-            await this.execute(`DROP VIEW IF EXISTS "${dataSource}"`);
-        } else if (this.deltaDirectViewNames.has(dataSource)) {
-            this.deltaDirectViewNames.delete(dataSource);
+        if (this.directViewKinds.has(dataSource)) {
+            this.directViewKinds.delete(dataSource);
             await this.execute(`DROP VIEW IF EXISTS "${dataSource}"`);
         } else {
             await this.execute(`DROP TABLE IF EXISTS "${dataSource}"`);
@@ -647,7 +663,7 @@ export default abstract class DatabaseService {
             // For large parquet tables, attempt to bypass the expensive
             // getRowsWhereColumnIsBlank query.
             if (
-                this.parquetDirectViewNames.has(name) &&
+                this.directViewKinds.get(name) === "parquet" &&
                 (await this.totalRowCount(name)) > 500000
             ) {
                 const originalColumn = await this.getOriginalParquetColumnName(
@@ -750,16 +766,8 @@ export default abstract class DatabaseService {
         // fully built data source, and this function is used for creating a
         // data source.
         const rawColumns = await this.getRawParquetColumns(name);
-        // 2. Determine which columns need to be renamed, if any
-        const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
-        // 3. Prepare the SQL for renaming columns in the CREATE VIEW
-        const selectParts = rawColumns.map((col) => {
-            const preDefined = actualToPreDefined.get(col);
-            if (preDefined !== undefined) {
-                return `"${col}" AS "${preDefined}"`;
-            }
-            return `"${col}"`;
-        });
+        // 2. Determine which columns need to be renamed and build base projection.
+        const { actualToPreDefined, selectParts } = getDirectViewColumnProjection(rawColumns);
         const fileNameSelectPart = getParquetFileNameSelectPart(actualToPreDefined);
         if (fileNameSelectPart !== null) {
             selectParts.push(fileNameSelectPart);
@@ -770,7 +778,7 @@ export default abstract class DatabaseService {
             AS SELECT ${selectParts.join(", ")}
             FROM parquet_scan('${name}');`;
         await this.execute(createViewSql);
-        this.parquetDirectViewNames.add(name);
+        this.directViewKinds.set(name, "parquet");
     }
 
     private async createDeltaDirectView(name: string, parquetRefs: string[]): Promise<void> {
@@ -780,20 +788,12 @@ export default abstract class DatabaseService {
         const rawColumns = await this.getRawParquetColumnsFromArrayExpression(
             parquetArrayExpression
         );
-        const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
+        const { actualToPreDefined, selectParts } = getDirectViewColumnProjection(rawColumns);
         const hasFilePath = [...actualToPreDefined.values()].includes(PreDefinedColumn.FILE_PATH);
         const hasFileName = [...actualToPreDefined.values()].includes(PreDefinedColumn.FILE_NAME);
         const syntheticFilePathExpression = `CONCAT('delta://${escapeSqlString(
             name
         )}/', CAST(ROW_NUMBER() OVER () AS VARCHAR))`;
-
-        const selectParts = rawColumns.map((col) => {
-            const preDefined = actualToPreDefined.get(col);
-            if (preDefined !== undefined) {
-                return `"${col}" AS "${preDefined}"`;
-            }
-            return `"${col}"`;
-        });
         if (!hasFilePath) {
             selectParts.push(`${syntheticFilePathExpression} AS "${PreDefinedColumn.FILE_PATH}"`);
         }
@@ -809,7 +809,7 @@ export default abstract class DatabaseService {
             AS SELECT ${selectParts.join(", ")}
             FROM parquet_scan(${parquetArrayExpression});`;
         await this.execute(createViewSql);
-        this.deltaDirectViewNames.add(name);
+        this.directViewKinds.set(name, "delta");
     }
 
     // Given a possibly-renamed column name, get the original column name used

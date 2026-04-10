@@ -83,12 +83,11 @@ export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
     sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
 };
 
-function parseSourceUrl(dataSourceURL: string): ParsedSourceUrl {
+export function parseSourceUrl(dataSourceURL: string): ParsedSourceUrl {
     const pathWithoutParams = dataSourceURL.split(/[?#]/)[0];
     const pathSegments = pathWithoutParams.split("/").filter(Boolean);
     const lastSegment = pathSegments[pathSegments.length - 1] || pathWithoutParams;
-    const uriResource =
-        pathSegments.length > 1 ? pathSegments[pathSegments.length - 2] : lastSegment;
+    const uriResource = lastSegment;
     const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
 
     // Try to detect type from the file extension.
