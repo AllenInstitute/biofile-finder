@@ -14,7 +14,7 @@ import FileList from "..";
 
 describe("<FileList />", () => {
     it("Calls getCountOfMatchingFiles() on mount and properly updates state afterwards", async () => {
-        const state = mergeState(initialState, {});
+        const state = mergeState(initialState, { metadata: { annotationsLoaded: true } });
         const { store } = configureMockStore({ state });
 
         const sandbox = createSandbox();
@@ -38,7 +38,8 @@ describe("<FileList />", () => {
 
     it("displays 'No files match your query' when no files found", async () => {
         // Arrange
-        const { store } = configureMockStore({ state: initialState });
+        const state = mergeState(initialState, { metadata: { annotationsLoaded: true } });
+        const { store } = configureMockStore({ state });
 
         const sandbox = createSandbox();
         const fileService = new HttpFileService();
