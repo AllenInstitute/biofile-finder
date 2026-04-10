@@ -6,6 +6,7 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 
 // BASIC SELECTORS
 export const getAnnotations = (state: State) => state.metadata.annotations;
+export const getAnnotationsLoaded = (state: State) => state.metadata.annotationsLoaded;
 export const getDataSources = (state: State) => state.metadata.dataSources;
 export const getDatasetManifestSource = (state: State) => state.metadata.datasetManifestSource;
 export const getEdgeDefinitions = (state: State) => state.metadata.edgeDefinitions;

@@ -3,6 +3,7 @@ import { createLogic } from "redux-logic";
 
 import { interaction, metadata, ReduxLogicDeps, selection } from "..";
 import {
+    annotationsReady,
     CREATE_ANNOTATION,
     CreateAnnotationAction,
     RECEIVE_ANNOTATIONS,
@@ -101,35 +102,6 @@ const receiveAnnotationsLogic = createLogic({
         ];
         dispatch(selection.actions.setColumns(columns));
 
-        // Enrich any filters that are missing annotationType with the type from the loaded annotations.
-        // This handles filters deserialized from URLs or persisted state that predate annotationType tracking.
-        const annotationTypeByName = new Map(
-            annotations.map((annotation) => [annotation.name, annotation.type as AnnotationType])
-        );
-        const queries = selection.selectors.getQueries(deps.getState());
-        const enrichedQueries = queries.map((query) => ({
-            ...query,
-            parts: {
-                ...query.parts,
-                filters: query.parts.filters.map((filter) =>
-                    filter.annotationType
-                        ? filter
-                        : new FileFilter(
-                              filter.name,
-                              filter.value,
-                              filter.type,
-                              annotationTypeByName.get(filter.name)
-                          )
-                ),
-            },
-        }));
-        const hasEnrichedFilters = enrichedQueries.some((query, i) =>
-            query.parts.filters.some((filter, j) => filter !== queries[i].parts.filters[j])
-        );
-        if (hasEnrichedFilters) {
-            dispatch(selection.actions.setQueries(enrichedQueries));
-        }
-
         const isCurrentSortColumnValid =
             currentSortColumn && annotationNamesInDataSource.has(currentSortColumn.annotationName);
         if (!isCurrentSortColumnValid) {
@@ -142,6 +114,33 @@ const receiveAnnotationsLogic = createLogic({
             }
         }
 
+        // Enrich active filters with annotationType from the loaded annotations.
+        // This handles filters deserialized from URLs or persisted state that lack annotationType,
+        // ensuring toSQLWhereString() generates correct SQL instead of falling back to regex match.
+        const annotationTypeByName = new Map(
+            annotations.map((annotation) => [annotation.name, annotation.type as AnnotationType])
+        );
+        const currentFilters = selection.selectors.getFileFilters(deps.getState());
+        const enrichedFilters = currentFilters.map((filter) =>
+            filter.annotationType
+                ? filter
+                : new FileFilter(
+                      filter.name,
+                      filter.value,
+                      filter.type,
+                      annotationTypeByName.get(filter.name)
+                  )
+        );
+        const hasEnrichedFilters = enrichedFilters.some(
+            (filter, i) => filter !== currentFilters[i]
+        );
+        if (hasEnrichedFilters) {
+            dispatch(selection.actions.setFileFilters(enrichedFilters));
+        }
+
+        // Signal that annotations and filter enrichment are complete.
+        // FileList gates its first query on this to ensure correct annotationType on all filters.
+        dispatch(annotationsReady());
         done();
     },
     type: RECEIVE_ANNOTATIONS,
