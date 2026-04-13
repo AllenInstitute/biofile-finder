@@ -3,7 +3,6 @@ import { createLogic } from "redux-logic";
 
 import { interaction, metadata, ReduxLogicDeps, selection } from "..";
 import {
-    annotationsReady,
     CREATE_ANNOTATION,
     CreateAnnotationAction,
     RECEIVE_ANNOTATIONS,
@@ -138,9 +137,6 @@ const receiveAnnotationsLogic = createLogic({
             dispatch(selection.actions.setFileFilters(enrichedFilters));
         }
 
-        // Signal that annotations and filter enrichment are complete.
-        // FileList gates its first query on this to ensure correct annotationType on all filters.
-        dispatch(annotationsReady());
         done();
     },
     type: RECEIVE_ANNOTATIONS,

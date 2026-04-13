@@ -9,12 +9,23 @@ import { createSandbox } from "sinon";
 import FileSet from "../../../entity/FileSet";
 import { initialState, metadata, reduxLogics, reducer } from "../../../state";
 import HttpFileService from "../../../services/FileService/HttpFileService";
+import Annotation from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 import FileList from "..";
 
+const FILE_NAME_ANNOTATION = new Annotation({
+    annotationDisplayName: "File Name",
+    annotationName: "file_name",
+    description: "",
+    type: AnnotationType.STRING,
+});
+
 describe("<FileList />", () => {
     it("Calls getCountOfMatchingFiles() on mount and properly updates state afterwards", async () => {
-        const state = mergeState(initialState, { metadata: { annotationsLoaded: true } });
+        const state = mergeState(initialState, {
+            metadata: { annotations: [FILE_NAME_ANNOTATION] },
+        });
         const { store } = configureMockStore({ state });
 
         const sandbox = createSandbox();
@@ -38,7 +49,9 @@ describe("<FileList />", () => {
 
     it("displays 'No files match your query' when no files found", async () => {
         // Arrange
-        const state = mergeState(initialState, { metadata: { annotationsLoaded: true } });
+        const state = mergeState(initialState, {
+            metadata: { annotations: [FILE_NAME_ANNOTATION] },
+        });
         const { store } = configureMockStore({ state });
 
         const sandbox = createSandbox();
@@ -65,11 +78,8 @@ describe("<FileList />", () => {
 
     it("waits for annotations to load before fetching files", async () => {
         // arrange
-        const state = mergeState(initialState, {
-            metadata: { annotationsLoaded: false },
-        });
         const { store, logicMiddleware } = configureMockStore({
-            state,
+            state: initialState,
             reducer,
             logics: reduxLogics,
         });
@@ -93,7 +103,7 @@ describe("<FileList />", () => {
         expect(() => getByText("Counting files...")).not.to.throw();
 
         // act
-        store.dispatch(metadata.actions.receiveAnnotations([]));
+        store.dispatch(metadata.actions.receiveAnnotations([FILE_NAME_ANNOTATION]));
         await logicMiddleware.whenComplete();
 
         // assert

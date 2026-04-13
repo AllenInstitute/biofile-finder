@@ -5,19 +5,16 @@ import { EdgeDefinition } from "../../entity/Graph";
 import { DataSource } from "../../services/DataSourceService";
 
 import {
-    ANNOTATIONS_READY,
     RECEIVE_ANNOTATIONS,
     RECEIVE_DATA_SOURCES,
     RECEIVE_DATASET_MANIFEST,
     RECEIVE_EDGE_DEFINITIONS,
     RECEIVE_PASSWORD_MAPPING,
-    REQUEST_ANNOTATIONS,
     ReceiveEdgeDefinitions,
 } from "./actions";
 
 export interface MetadataStateBranch {
     annotations: Annotation[];
-    annotationsLoaded: boolean;
     dataSources: DataSource[];
     datasetManifestSource?: DataSource;
     edgeDefinitions: EdgeDefinition[];
@@ -26,7 +23,6 @@ export interface MetadataStateBranch {
 
 export const initialState = {
     annotations: [],
-    annotationsLoaded: false,
     dataSources: [],
     datasetManifestSource: undefined,
     edgeDefinitions: [],
@@ -34,14 +30,6 @@ export const initialState = {
 
 export default makeReducer<MetadataStateBranch>(
     {
-        [REQUEST_ANNOTATIONS]: (state) => ({
-            ...state,
-            annotationsLoaded: false,
-        }),
-        [ANNOTATIONS_READY]: (state) => ({
-            ...state,
-            annotationsLoaded: true,
-        }),
         [RECEIVE_ANNOTATIONS]: (state, action) => ({
             ...state,
             annotations: action.payload,

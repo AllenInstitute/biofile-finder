@@ -57,7 +57,7 @@ export default function FileList(props: FileListProps) {
     const fileGridColumnCount = useSelector(selection.selectors.getFileGridColCount);
     const isDisplayingSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const isColumnWidthOverflowing = useSelector(selection.selectors.isColumnWidthOverflowing);
-    const annotationsLoaded = useSelector(metadata.selectors.getAnnotationsLoaded);
+    const annotationsLoaded = useSelector(metadata.selectors.areAnnotationsLoaded);
     const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
         HTMLDivElement
     >();

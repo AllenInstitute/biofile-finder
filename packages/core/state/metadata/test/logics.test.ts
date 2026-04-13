@@ -15,12 +15,12 @@ import {
 } from "../actions";
 import metadataLogics from "../logics";
 import { initialState, interaction } from "../../";
+import { SET_COLUMNS, SET_FILE_FILTERS } from "../../selection/actions";
 import DatasetService, { DataSource } from "../../../services/DataSourceService";
 import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
-import { SET_COLUMNS, SET_FILE_FILTERS } from "../../selection/actions";
 
 describe("Metadata logics", () => {
     describe("requestAnnotations", () => {

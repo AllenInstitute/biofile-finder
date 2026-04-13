@@ -193,20 +193,6 @@ export function storeNewAnnotation(annotation: AnnotationResponseMms): StoreNewA
 }
 
 /**
- * ANNOTATIONS_READY
- *
- * Dispatched after RECEIVE_ANNOTATIONS has been processed and any filter enrichment
- * has completed. Used to gate file queries until annotationType is correct on all filters.
- */
-export const ANNOTATIONS_READY = makeConstant(STATE_BRANCH_NAME, "annotations-ready");
-
-export function annotationsReady() {
-    return {
-        type: ANNOTATIONS_READY,
-    };
-}
-
-/**
  * REQUEST_PASSWORD_MAPPING
  *
  * Intention to request password mapping for AICS FMS - this is a temporary solution
