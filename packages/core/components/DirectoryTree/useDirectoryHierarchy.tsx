@@ -15,6 +15,7 @@ import {
 } from "./directory-hierarchy-state";
 import { findChildNodes } from "./findChildNodes";
 import FileList from "../FileList";
+import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import { ValueError } from "../../errors";
@@ -185,7 +186,14 @@ const useDirectoryHierarchy = (
                             take(pathToChildNode, depth + 1)
                         ).map((pair) => {
                             const [name, value] = pair as [string, string];
-                            return new FileFilter(name, value);
+                            const annotationType = annotations.find((ann) => ann.name === name)
+                                ?.type;
+                            return new FileFilter(
+                                name,
+                                value,
+                                FilterType.DEFAULT,
+                                annotationType as AnnotationType
+                            );
                         });
                         // If we are grouping by a field (e.g., barcode)
                         // and also have filters applied for that field (e.g., barcode=1234, barcode=1357),
