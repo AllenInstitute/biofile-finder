@@ -7,7 +7,7 @@ import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
 import FileSet from "../../../entity/FileSet";
-import { initialState } from "../../../state";
+import { initialState, metadata, reduxLogics, reducer } from "../../../state";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 
 import FileList from "..";
@@ -61,5 +61,43 @@ describe("<FileList />", () => {
 
         // Assert
         expect(queryByText("Counting files...")).to.not.exist;
+    });
+
+    it("waits for annotations to load before fetching files", async () => {
+        // arrange
+        const state = mergeState(initialState, {
+            metadata: { annotationsLoaded: false },
+        });
+        const { store, logicMiddleware } = configureMockStore({
+            state,
+            reducer,
+            logics: reduxLogics,
+        });
+        const sandbox = createSandbox();
+        const getCountSpy = sandbox.spy();
+        const fileService = new HttpFileService();
+        sandbox.replace(fileService, "getCountOfMatchingFiles", () => {
+            getCountSpy();
+            return Promise.resolve(0);
+        });
+        const fileSet = new FileSet({ fileService });
+
+        const { getByText } = render(
+            <Provider store={store}>
+                <FileList fileSet={fileSet} isRoot={false} sortOrder={4} dispatch={noop} />
+            </Provider>
+        );
+
+        // pre-check
+        expect(getCountSpy.called).to.equal(false);
+        expect(() => getByText("Counting files...")).not.to.throw();
+
+        // act
+        store.dispatch(metadata.actions.receiveAnnotations([]));
+        await logicMiddleware.whenComplete();
+
+        // assert
+        expect(getCountSpy.called).to.equal(true);
+        expect(() => getByText("Counting files...")).to.throw;
     });
 });

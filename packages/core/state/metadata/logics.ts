@@ -69,6 +69,7 @@ const receiveAnnotationsLogic = createLogic({
         const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
         const currentColumns = selection.selectors.getColumns(deps.getState());
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
+        const currentFilters = selection.selectors.getFileFilters(deps.getState());
 
         const annotationNamesInDataSource = annotations.reduce(
             (set, annotation) => set.add(annotation.name),
@@ -120,7 +121,6 @@ const receiveAnnotationsLogic = createLogic({
         const annotationTypeByName = new Map(
             annotations.map((annotation) => [annotation.name, annotation.type as AnnotationType])
         );
-        const currentFilters = selection.selectors.getFileFilters(deps.getState());
         const enrichedFilters = currentFilters.map((filter) =>
             filter.annotationType
                 ? filter
