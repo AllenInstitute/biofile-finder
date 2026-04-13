@@ -57,7 +57,7 @@ export default function FileList(props: FileListProps) {
     const fileGridColumnCount = useSelector(selection.selectors.getFileGridColCount);
     const isDisplayingSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const isColumnWidthOverflowing = useSelector(selection.selectors.isColumnWidthOverflowing);
-    const annotationsLoaded = useSelector(metadata.selectors.areAnnotationsLoaded);
+    const areAnnotationsLoaded = useSelector(metadata.selectors.areAnnotationsLoaded);
     const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
         HTMLDivElement
     >();
@@ -134,7 +134,7 @@ export default function FileList(props: FileListProps) {
     // Get a count of all files in the FileList, but don't wait on it.
     // Wait for annotations to load first so filters have correct annotationType before querying.
     React.useEffect(() => {
-        if (!annotationsLoaded) return;
+        if (!areAnnotationsLoaded) return;
         // Set the file count to null so that the UI will display the loading message until a
         // new count is retrieved. Otherwise, may display stale count from previous fileSet
         setTotalCount(null);
@@ -157,7 +157,7 @@ export default function FileList(props: FileListProps) {
         return () => {
             cancel = true;
         };
-    }, [annotationsLoaded, fileSet]);
+    }, [areAnnotationsLoaded, fileSet]);
 
     const fileFetchWrapper = React.useCallback(
         async (startIndex: number, endIndex: number) => {
