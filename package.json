@@ -44,6 +44,7 @@
     "@types/react-syntax-highlighter": "13.5.x",
     "@types/react-window": "1.8.x",
     "@types/react-window-infinite-loader": "1.0.x",
+    "@types/semver": "7.7.x",
     "@types/sinon": "10.x",
     "@types/streamsaver": "2.0.x",
     "@types/string-natural-compare": "3.0.x",
@@ -100,6 +101,7 @@
     "redux": "4.0.x",
     "redux-logic": "3.x",
     "reselect": "4.0.x",
+    "semver": "7.7.x",
     "streamsaver": "2.0.x",
     "string-natural-compare": "3.0.x"
   }

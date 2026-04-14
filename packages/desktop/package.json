@@ -61,7 +61,6 @@
   "author": "Allen Institute for Cell Science",
   "license": "SEE LICENSE IN LICENSE.txt",
   "devDependencies": {
-    "@types/semver": "7.3.x",
     "babel-loader": "8.2.x",
     "clean-webpack-plugin": "4.x",
     "css-loader": "6.x",
@@ -88,7 +87,6 @@
     "@aics/frontend-insights-plugin-amplitude-node": "0.2.x",
     "electron-store": "8.0.x",
     "regenerator-runtime": "0.13.x",
-    "semver": "7.3.x",
     "webpack-node-externals": "^3.0.0"
   }
 }
