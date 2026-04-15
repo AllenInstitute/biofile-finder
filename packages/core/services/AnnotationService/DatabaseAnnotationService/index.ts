@@ -18,7 +18,10 @@ export function buildDistinctValuesSQL(
     dataSourceNames: string | string[],
     filters: FileFilter[] = []
 ): string {
-    const builder = new SQLBuilder().select(`DISTINCT "${annotation}"`).from(dataSourceNames);
+    const builder = new SQLBuilder()
+        .select(`DISTINCT "${annotation}"`)
+        .from(dataSourceNames)
+        .orderBy("1");
     const filtersByAnnotation = filters.reduce(
         (map, filter) => ({
             ...map,

@@ -88,6 +88,7 @@ export function buildFetchAnnotationsSQL(tableName: string): string {
         .from('information_schema"."columns')
         .where(`table_name = '${tableName}'`)
         .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
+        .orderBy("column_name")
         .toSQL();
 }
 
