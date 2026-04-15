@@ -195,6 +195,7 @@ async function main() {
         console.log("[playwright] Waiting for in-memory benchmark to complete...");
         await page.waitForFunction(
             () => window.__inMemoryDone === true || typeof window.__benchmarkError !== "undefined",
+            null,
             { timeout: TIMEOUT_MS }
         );
 
@@ -225,6 +226,7 @@ async function main() {
             () =>
                 typeof window.__benchmarkResults !== "undefined" ||
                 typeof window.__benchmarkError !== "undefined",
+            null,
             { timeout: TIMEOUT_MS }
         );
 
