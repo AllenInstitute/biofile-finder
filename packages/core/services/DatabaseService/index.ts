@@ -81,6 +81,16 @@ export function getParquetFileNameSelectPart(
     return `${getFileNameFromPathExpression(`"${pathColumn}"`)} AS "${PreDefinedColumn.FILE_NAME}"`;
 }
 
+/** SQL used by fetchAnnotations — exported so the benchmark can run the same query. */
+export function buildFetchAnnotationsSQL(tableName: string): string {
+    return new SQLBuilder()
+        .select("column_name, data_type")
+        .from('information_schema"."columns')
+        .where(`table_name = '${tableName}'`)
+        .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
+        .toSQL();
+}
+
 export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckdb.AsyncDuckDB> {
     const allBundles = duckdb.getJsDelivrBundles();
 
@@ -1032,12 +1042,7 @@ export default abstract class DatabaseService {
             ?.some((annotation) => !!annotation.description);
         const shouldHaveDescriptions = dataSourceNames.includes(this.SOURCE_METADATA_TABLE);
         if (!hasAnnotations || (!hasDescriptions && shouldHaveDescriptions)) {
-            const sql = new SQLBuilder()
-                .select("column_name, data_type")
-                .from('information_schema"."columns')
-                .where(`table_name = '${aggregateDataSourceName}'`)
-                .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
-                .toSQL();
+            const sql = buildFetchAnnotationsSQL(aggregateDataSourceName);
             const rows = await this.query(sql).promise;
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);

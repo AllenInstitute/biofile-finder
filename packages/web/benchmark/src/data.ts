@@ -56,7 +56,8 @@ export async function createBenchmarkTable(
                 (FLOOR(RANDOM() * ${Math.max(
                     1,
                     Math.ceil(modulo / 4)
-                )}))::INTEGER AS channel${extraColExprs}
+                )}))::INTEGER AS channel${extraColExprs},
+                range::INTEGER                                          AS hidden_bff_uid
             FROM range(${rowCount})
         `);
     } finally {

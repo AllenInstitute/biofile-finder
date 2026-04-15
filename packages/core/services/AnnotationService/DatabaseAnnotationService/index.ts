@@ -9,6 +9,29 @@ import FileFilter from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
+/**
+ * SQL used by fetchFilteredValuesForAnnotation — exported so the benchmark can run the same query.
+ * Filters are optional; pass none for an unfiltered distinct-values query.
+ */
+export function buildDistinctValuesSQL(
+    annotation: string,
+    dataSourceNames: string | string[],
+    filters: FileFilter[] = []
+): string {
+    const builder = new SQLBuilder().select(`DISTINCT "${annotation}"`).from(dataSourceNames);
+    const filtersByAnnotation = filters.reduce(
+        (map, filter) => ({
+            ...map,
+            [filter.name]: map[filter.name] ? [...map[filter.name], filter] : [filter],
+        }),
+        {} as { [name: string]: FileFilter[] }
+    );
+    Object.values(filtersByAnnotation).forEach((appliedFilters) => {
+        builder.where(appliedFilters.map((f) => f.toSQLWhereString()).join(" OR "));
+    });
+    return builder.toSQL();
+}
+
 interface Config {
     databaseService: DatabaseService;
     dataSourceNames: string[];
@@ -112,18 +135,10 @@ export default class DatabaseAnnotationService implements AnnotationService {
             return [];
         }
 
-        const sqlBuilder = new SQLBuilder()
-            .select(`DISTINCT "${annotation}"`)
-            .from(this.dataSourceNames);
-
-        Object.keys(filtersByAnnotation).forEach((annotationToFilter) => {
-            const appliedFilters = filtersByAnnotation[annotationToFilter];
-            sqlBuilder.where(
-                appliedFilters.map((filter) => filter.toSQLWhereString()).join(" OR ")
-            );
-        });
-
-        const rows = await this.databaseService.query(sqlBuilder.toSQL()).promise;
+        const allFilters = Object.values(filtersByAnnotation).flat();
+        const rows = await this.databaseService.query(
+            buildDistinctValuesSQL(annotation, this.dataSourceNames, allFilters)
+        ).promise;
         const rowsSplitByDelimiter = rows
             .flatMap((row) =>
                 isNil(row[annotation])

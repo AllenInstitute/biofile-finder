@@ -18,6 +18,34 @@ import FileDetail from "../../../entity/FileDetail";
 import SQLBuilder from "../../../entity/SQLBuilder";
 import { Environment, HIDDEN_UID_ANNOTATION } from "../../../constants";
 
+/**
+ * SQL used by getFiles — exported so the benchmark can run the same query.
+ * `from` is a page index (0-based); the row offset is `from * limit`.
+ */
+export function buildGetFilesSQL(
+    dataSourceNames: string | string[],
+    fileSet: FileSet,
+    from: number,
+    limit: number
+): string {
+    return fileSet
+        .toQuerySQLBuilder()
+        .from(dataSourceNames)
+        .offset(from * limit)
+        .limit(limit)
+        .toSQL();
+}
+
+/** SQL used by getCountOfMatchingFiles — exported so the benchmark can run the same query. */
+export function buildGetCountSQL(dataSourceNames: string | string[], fileSet: FileSet): string {
+    return fileSet
+        .toQuerySQLBuilder()
+        .select("COUNT(*) AS num_files")
+        .from(dataSourceNames)
+        .removeOrderBy()
+        .toSQL();
+}
+
 interface Config {
     databaseService: DatabaseService;
     dataSourceNames: string[];
@@ -93,13 +121,7 @@ export default class DatabaseFileService implements FileService {
         }
 
         const select_key = "num_files";
-        const sql = fileSet
-            .toQuerySQLBuilder()
-            .select(`COUNT(*) AS ${select_key}`)
-            .from(this.dataSourceNames)
-            // Remove sort if present
-            .removeOrderBy()
-            .toSQL();
+        const sql = buildGetCountSQL(this.dataSourceNames, fileSet);
 
         const rows = await this.databaseService.query(sql).promise;
         return parseInt(rows[0][select_key], 10);
@@ -125,12 +147,12 @@ export default class DatabaseFileService implements FileService {
         if (!this.dataSourceNames.length) {
             return [];
         }
-        const sql = request.fileSet
-            .toQuerySQLBuilder()
-            .from(this.dataSourceNames)
-            .offset(request.from * request.limit)
-            .limit(request.limit)
-            .toSQL();
+        const sql = buildGetFilesSQL(
+            this.dataSourceNames,
+            request.fileSet,
+            request.from,
+            request.limit
+        );
 
         const rows = await this.databaseService.query(sql).promise;
         const env = this.downloadService.getEnvironmentFromUrl();
