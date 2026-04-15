@@ -1,17 +1,44 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 
+import { SchemaConfig } from "./types";
+
+const CARDINALITY_MODULO: Record<SchemaConfig["cardinality"], number | null> = {
+    // Low: 4 distinct values per column (like cell_line / channel in real data)
+    low: 4,
+    // Medium: 100 distinct values
+    medium: 100,
+    // High: cardinality equals row count (every value unique) — null signals this
+    high: null,
+};
+
 /**
  * Create a synthetic data table inside DuckDB using its built-in range() generator.
- * The schema mirrors a realistic BFF parquet source with file metadata columns and
- * a few typed annotation columns.
  *
- * The table is named "bench_<rowCount>" (e.g. "bench_10000").
+ * The base schema mirrors a realistic BFF parquet source:
+ *   File ID, File Path, File Name, File Size, Uploaded, cell_line, plate_id, channel
+ *
+ * `schema.extraColumns` additional annotation columns are appended, each with the
+ * cardinality defined by `schema.cardinality`.
+ *
+ * The table is named "bench_<rowCount>_<schemaLabel>" (e.g. "bench_100000_narrow").
  */
 export async function createBenchmarkTable(
     db: duckdb.AsyncDuckDB,
     tableName: string,
-    rowCount: number
+    rowCount: number,
+    schema: SchemaConfig
 ): Promise<void> {
+    const modulo = CARDINALITY_MODULO[schema.cardinality] ?? rowCount;
+
+    const extraColExprs =
+        schema.extraColumns > 0
+            ? ",\n" +
+              Array.from(
+                  { length: schema.extraColumns },
+                  (_, i) => `                (FLOOR(RANDOM() * ${modulo}))::INTEGER AS "extra_${i}"`
+              ).join(",\n")
+            : "";
+
     const conn = await db.connect();
     try {
         await conn.query(`
@@ -24,9 +51,12 @@ export async function createBenchmarkTable(
                 (FLOOR(RANDOM() * 10_000_000))::BIGINT                 AS "File Size",
                 (DATE '2024-01-01'
                     + (FLOOR(RANDOM() * 365))::INTEGER)                AS "Uploaded",
-                (FLOOR(RANDOM() * 10))::INTEGER                        AS cell_line,
-                (FLOOR(RANDOM() * 5))::INTEGER                         AS plate_id,
-                (FLOOR(RANDOM() * 4))::INTEGER                         AS channel
+                (FLOOR(RANDOM() * ${modulo}))::INTEGER                 AS cell_line,
+                (FLOOR(RANDOM() * ${Math.max(1, Math.ceil(modulo / 2))}))::INTEGER AS plate_id,
+                (FLOOR(RANDOM() * ${Math.max(
+                    1,
+                    Math.ceil(modulo / 4)
+                )}))::INTEGER AS channel${extraColExprs}
             FROM range(${rowCount})
         `);
     } finally {

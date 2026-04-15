@@ -1,13 +1,13 @@
 export interface BenchmarkQuery {
     name: string;
-    // tableName is the synthetic data table created at a given scale
+    /** Generate the SQL for a given table name */
     sql: (tableName: string) => string;
 }
 
 /**
  * Suite of queries that mirrors the types of operations BFF performs against DuckDB-WASM.
  *
- * Each query is run at every scale (100 / 1k / 10k rows) with a warm-up pass
+ * Each query is run at every scale × schema config combination with one warm-up pass
  * before the timed iterations begin.
  */
 export const BENCHMARK_QUERIES: BenchmarkQuery[] = [

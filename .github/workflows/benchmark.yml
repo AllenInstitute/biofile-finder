@@ -43,7 +43,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: benchmark-base
-          path: packages/web/benchmark-results.json
+          path: packages/web/benchmark-results-*.json
           retention-days: 7
 
   # -------------------------------------------------------------------------
@@ -79,7 +79,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: benchmark-pr
-          path: packages/web/benchmark-results.json
+          path: packages/web/benchmark-results-*.json
           retention-days: 7
 
   # -------------------------------------------------------------------------
@@ -112,9 +112,9 @@ jobs:
       - name: Generate comparison comment
         id: compare
         run: |
-          COMMENT=$(node packages/web/scripts/compare-results.js \
-            ./artifacts/base/benchmark-results.json \
-            ./artifacts/pr/benchmark-results.json)
+          BASE_FILE=$(ls ./artifacts/base/benchmark-results-*.json | head -1)
+          PR_FILE=$(ls ./artifacts/pr/benchmark-results-*.json | head -1)
+          COMMENT=$(node packages/web/scripts/compare-results.js "$BASE_FILE" "$PR_FILE")
           # Store multiline output safely
           {
             echo "body<<BENCHMARK_EOF"
