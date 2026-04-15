@@ -47,7 +47,7 @@ jobs:
         working-directory: packages/web
         env:
           GITHUB_SHA: ${{ github.sha }}
-          GITHUB_REF_NAME: ${{ github.event.inputs.base_branch }}
+          BENCHMARK_BRANCH: ${{ github.event.inputs.base_branch }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -83,7 +83,7 @@ jobs:
         working-directory: packages/web
         env:
           GITHUB_SHA: ${{ github.sha }}
-          GITHUB_REF_NAME: ${{ github.event.inputs.compare_branch }}
+          BENCHMARK_BRANCH: ${{ github.event.inputs.compare_branch }}
 
       - uses: actions/upload-artifact@v4
         with:

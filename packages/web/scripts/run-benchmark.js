@@ -137,8 +137,10 @@ function buildBenchmark() {
 // ---------------------------------------------------------------------------
 
 function getCurrentBranch() {
-    // CI sets GITHUB_REF_NAME; fall back to git locally
-    if (process.env.GITHUB_REF_NAME) return process.env.GITHUB_REF_NAME;
+    // CI passes the branch being benchmarked as BENCHMARK_BRANCH.
+    // GITHUB_REF_NAME cannot be overridden in step env — it always reflects
+    // the workflow trigger ref, not the checked-out branch.
+    if (process.env.BENCHMARK_BRANCH) return process.env.BENCHMARK_BRANCH;
     try {
         return execSync("git rev-parse --abbrev-ref HEAD", { stdio: "pipe" }).toString().trim();
     } catch {
