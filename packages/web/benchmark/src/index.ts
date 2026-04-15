@@ -206,12 +206,14 @@ async function main() {
                 }
             }
             const parquetBuffer = await db.copyFileToBuffer(`/${parquetFile}`);
-            await db.registerFileBuffer(parquetFile, parquetBuffer);
 
-            // Capture the cloud fixture buffer before dropping the table
+            // Save fixture buffer BEFORE registering — registerFileBuffer transfers ownership
+            // of the underlying ArrayBuffer to the WASM worker, detaching it in this context.
             if (tableName === CLOUD_FIXTURE_TABLE) {
-                fixtureBuffer = parquetBuffer;
+                fixtureBuffer = parquetBuffer.slice();
             }
+
+            await db.registerFileBuffer(parquetFile, parquetBuffer);
 
             // 3. Drop the staging table; replace with a parquet_scan view that injects
             //    hidden_bff_uid from DuckDB's file_row_number virtual column — exactly
