@@ -19,13 +19,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # -------------------------------------------------------------------------
-  # Run benchmarks on the base branch
-  # -------------------------------------------------------------------------
-  benchmark-base:
-    name: Benchmark (${{ github.event.inputs.base_branch }})
+  benchmark:
+    name: Benchmark (${{ github.event.inputs.base_branch }} vs ${{ github.event.inputs.compare_branch }})
     runs-on: ubuntu-latest
+    # 30 minutes: large-scale table creation (10M rows) + full query suite × 2 branches
+    timeout-minutes: 60
+
     steps:
+      # -----------------------------------------------------------------------
+      # Base branch
+      # -----------------------------------------------------------------------
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.base_branch }}
@@ -42,83 +45,47 @@ jobs:
         run: npx playwright install chromium --with-deps
         working-directory: packages/web
 
-      - name: Run benchmark
+      - name: Run benchmark (${{ github.event.inputs.base_branch }})
         run: node scripts/run-benchmark.js
         working-directory: packages/web
         env:
-          GITHUB_SHA: ${{ github.sha }}
           BENCHMARK_BRANCH: ${{ github.event.inputs.base_branch }}
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-base
-          path: packages/web/benchmark-results-*.json
-          retention-days: 7
+      - name: Save base results
+        run: mv packages/web/benchmark-results-*.json /tmp/benchmark-base.json
 
-  # -------------------------------------------------------------------------
-  # Run benchmarks on the compare branch
-  # -------------------------------------------------------------------------
-  benchmark-compare:
-    name: Benchmark (${{ github.event.inputs.compare_branch }})
-    runs-on: ubuntu-latest
-    steps:
+      # -----------------------------------------------------------------------
+      # Compare branch
+      # -----------------------------------------------------------------------
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.compare_branch }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
+          # Preserve untracked files (e.g. node_modules) to speed up npm ci
+          clean: false
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright Chromium
-        run: npx playwright install chromium --with-deps
-        working-directory: packages/web
-
-      - name: Run benchmark
+      - name: Run benchmark (${{ github.event.inputs.compare_branch }})
         run: node scripts/run-benchmark.js
         working-directory: packages/web
         env:
-          GITHUB_SHA: ${{ github.sha }}
           BENCHMARK_BRANCH: ${{ github.event.inputs.compare_branch }}
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-compare
-          path: packages/web/benchmark-results-*.json
-          retention-days: 7
-
-  # -------------------------------------------------------------------------
-  # Compare results and post a workflow summary
-  # -------------------------------------------------------------------------
-  compare:
-    name: Compare results
-    runs-on: ubuntu-latest
-    needs: [benchmark-base, benchmark-compare]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: benchmark-base
-          path: ./artifacts/base
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: benchmark-compare
-          path: ./artifacts/compare
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
+      # -----------------------------------------------------------------------
+      # Compare results
+      # -----------------------------------------------------------------------
       - name: Generate comparison
         run: |
-          BASE_FILE=$(ls ./artifacts/base/benchmark-results-*.json | head -1)
-          COMPARE_FILE=$(ls ./artifacts/compare/benchmark-results-*.json | head -1)
-          COMMENT=$(node packages/web/scripts/compare-results.js "$BASE_FILE" "$COMPARE_FILE")
-          echo "$COMMENT" >> "$GITHUB_STEP_SUMMARY"
+          COMPARE_FILE=$(ls packages/web/benchmark-results-*.json | head -1)
+          node packages/web/scripts/compare-results.js /tmp/benchmark-base.json "$COMPARE_FILE" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-results
+          path: |
+            /tmp/benchmark-base.json
+            packages/web/benchmark-results-*.json
+          retention-days: 7
