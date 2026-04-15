@@ -47,7 +47,7 @@ function inMemKey(r) {
 }
 
 function cloudKey(r) {
-    return r.name;
+    return `${r.name}@${r.scale ?? "unknown"}`;
 }
 
 function indexBy(arr, keyFn) {
@@ -181,23 +181,51 @@ for (const [queryName, queryKeys] of byQuery) {
 const allCloudKeys = [...new Set([...prCloudIndex.keys(), ...baseCloudIndex.keys()])];
 
 if (allCloudKeys.length > 0) {
-    const prNetBaseline = pr.cloudResults?.[0]?.networkBaselineMs;
-    const baseNetBaseline = base.cloudResults?.[0]?.networkBaselineMs;
-    const netNote =
-        prNetBaseline !== undefined
-            ? ` _(network baseline: \`${base.branch}\` ${baseNetBaseline?.toFixed(1) ?? "?"}ms, \`${
-                  pr.branch
-              }\` ${prNetBaseline.toFixed(1)}ms)_`
-            : "";
+    // Group network baselines by scale for display
+    const allCloudScales = [
+        ...new Set(
+            [...(base.cloudResults ?? []), ...(pr.cloudResults ?? [])].map(
+                (r) => r.scale ?? "unknown"
+            )
+        ),
+    ].sort((a, b) => Number(a) - Number(b));
+
+    const netNotes = allCloudScales
+        .map((scale) => {
+            const baseNet = base.cloudResults?.find((r) => r.scale === scale)?.networkBaselineMs;
+            const prNet = pr.cloudResults?.find((r) => r.scale === scale)?.networkBaselineMs;
+            if (baseNet === undefined && prNet === undefined) return null;
+            return `${Number(scale).toLocaleString()} rows: \`${base.branch}\` ${
+                baseNet?.toFixed(1) ?? "?"
+            }ms / \`${pr.branch}\` ${prNet?.toFixed(1) ?? "?"}ms`;
+        })
+        .filter(Boolean);
+
+    const netNote = netNotes.length > 0 ? ` _(network baseline — ${netNotes.join("; ")})_` : "";
 
     lines.push("| | | | |");
     lines.push(`| **Cloud queries — HTTP parquet fixture (p50 ms)**${netNote} | | | |`);
 
-    for (const key of allCloudKeys) {
+    // Sort by scale then query name
+    const sortedCloudKeys = [...allCloudKeys].sort((a, b) => {
+        const [nameA, scaleA] = a.split("@");
+        const [nameB, scaleB] = b.split("@");
+        if (Number(scaleA) !== Number(scaleB)) return Number(scaleA) - Number(scaleB);
+        return nameA.localeCompare(nameB);
+    });
+
+    let lastScale = null;
+    for (const key of sortedCloudKeys) {
+        const [name, scaleStr] = key.split("@");
+        const scale = Number(scaleStr);
+        if (scale !== lastScale) {
+            lines.push(`| _@ ${scale.toLocaleString()} rows_ | | | |`);
+            lastScale = scale;
+        }
         const baseP50 = baseCloudIndex.get(key)?.p50 ?? null;
         const prP50 = prCloudIndex.get(key)?.p50 ?? null;
         lines.push(
-            `| \`${key}\`` +
+            `| \`${name}\`` +
                 ` | ${baseP50 !== null ? fmt(baseP50) : "—"}` +
                 ` | ${prP50 !== null ? fmt(prP50) : "—"}` +
                 ` | ${baseP50 !== null && prP50 !== null ? deltaBadge(baseP50, prP50) : "—"} |`

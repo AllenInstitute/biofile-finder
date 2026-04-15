@@ -17,6 +17,7 @@ export interface QueryResult {
 
 export interface CloudQueryResult {
     name: string;
+    scale: number;
     /** Time in ms to HEAD the fixture URL — used to contextualise query timings relative to network speed */
     networkBaselineMs: number;
     iterations: number;

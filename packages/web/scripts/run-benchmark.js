@@ -206,22 +206,29 @@ async function main() {
             throw new Error(`Benchmark failed in browser (phase 1): ${phaseOneError}`);
         }
 
-        // Read the parquet fixture buffer from the browser and write it to disk
-        console.log("[playwright] Reading fixture parquet from browser...");
-        const fixtureArray = await page.evaluate(() => window.__fixtureParquet);
+        // Read all fixture buffers (keyed by scale) from the browser and write to disk
+        console.log("[playwright] Reading fixture parquets from browser...");
+        const fixtureArrays = await page.evaluate(() => window.__fixtureParquets);
         const fixturesDir = path.join(DIST_DIR, "fixtures");
         fs.mkdirSync(fixturesDir, { recursive: true });
-        fs.writeFileSync(path.join(fixturesDir, "fixture.parquet"), Buffer.from(fixtureArray));
-        console.log(
-            `[playwright] Wrote fixture (${fixtureArray.length} bytes) to ${fixturesDir}/fixture.parquet`
-        );
+
+        const cloudUrls = {};
+        for (const [scale, arr] of Object.entries(fixtureArrays)) {
+            const filename = `fixture-${scale}.parquet`;
+            fs.writeFileSync(path.join(fixturesDir, filename), Buffer.from(arr));
+            console.log(`[playwright] Wrote fixture-${scale}.parquet (${arr.length} bytes)`);
+            cloudUrls[scale] = `http://localhost:${PORT}/fixtures/${filename}`;
+        }
 
         // -----------------------------------------------------------------------
         // Phase 2: signal the browser to start the cloud benchmark
         // -----------------------------------------------------------------------
-        const cloudUrl = `http://localhost:${PORT}/fixtures/fixture.parquet`;
-        console.log(`[playwright] Starting cloud benchmark phase (${cloudUrl})...`);
-        await page.evaluate((url) => window.__startCloudPhase(url), cloudUrl);
+        console.log(
+            `[playwright] Starting cloud benchmark phase (${
+                Object.keys(cloudUrls).length
+            } scales)...`
+        );
+        await page.evaluate((urls) => window.__startCloudPhase(urls), cloudUrls);
 
         console.log("[playwright] Waiting for cloud benchmark to complete...");
         await page.waitForFunction(

@@ -33,14 +33,14 @@ const SCHEMA_CONFIGS: Array<SchemaConfig & { maxScale: number }> = [
     { label: "wide", extraColumns: 20, cardinality: "high", maxScale: 1_000_000 },
 ];
 
-const ALL_SCALES = [10_000, 100_000, 1_000_000, 10_000_000];
+const ALL_SCALES = [100_000, 1_000_000, 10_000_000];
 
 /**
- * The cloud fixture is exported from the narrow 10k-row in-memory table and served
+ * Cloud fixtures are exported from the narrow-schema tables at each scale and served
  * over HTTP by the Playwright runner. This exercises DuckDB's HTTP range-request code
  * path — the same path used for real S3/cloud parquet sources in BFF.
  */
-const CLOUD_FIXTURE_TABLE = "bench_10000_narrow";
+const CLOUD_FIXTURE_SCALES = ALL_SCALES; // narrow schema only; wide adds no new signal for HTTP path
 
 function setStatus(msg: string) {
     const el = document.getElementById("status");
@@ -131,12 +131,15 @@ async function benchmarkTable(
 async function benchmarkCloudTable(
     db: duckdb.AsyncDuckDB,
     viewName: string,
+    scale: number,
     networkBaselineMs: number
 ): Promise<CloudQueryResult[]> {
     const sqls = BENCHMARK_QUERIES.map((q) => ({ name: q.name, sql: q.sql(viewName) }));
 
     // --- Warmup ---
-    setStatus(`Warming up cloud benchmark (${WARMUP_ROUNDS} rounds)...`);
+    setStatus(
+        `Warming up cloud benchmark ${scale.toLocaleString()} rows (${WARMUP_ROUNDS} rounds)...`
+    );
     for (let w = 0; w < WARMUP_ROUNDS; w++) {
         for (const { sql } of sqls) {
             await runQuery(db, sql);
@@ -147,7 +150,9 @@ async function benchmarkCloudTable(
     const timingsMap = new Map<string, number[]>(sqls.map(({ name }) => [name, []]));
 
     for (let i = 0; i < ITERATIONS; i++) {
-        setStatus(`Timing cloud benchmark — iteration ${i + 1}/${ITERATIONS}...`);
+        setStatus(
+            `Timing cloud ${scale.toLocaleString()} rows — iteration ${i + 1}/${ITERATIONS}...`
+        );
         for (const { name, sql } of shuffle(sqls)) {
             const start = performance.now();
             await runQuery(db, sql);
@@ -159,6 +164,7 @@ async function benchmarkCloudTable(
         const timings = [...(timingsMap.get(name) ?? [])].sort((a, b) => a - b);
         return {
             name,
+            scale,
             networkBaselineMs,
             iterations: ITERATIONS,
             timings,
@@ -183,7 +189,8 @@ async function main() {
     // → create a view over the parquet (matching production's createParquetDirectView path).
     // Only one table/view exists at a time to stay within the ~3 GB WASM heap limit.
     const results: QueryResult[] = [];
-    let fixtureBuffer: Uint8Array | null = null;
+    // Collect fixture buffers (narrow schema only) keyed by scale for the cloud phase.
+    const fixtureBuffers = new Map<number, Uint8Array>();
 
     for (const schema of SCHEMA_CONFIGS) {
         const scales = ALL_SCALES.filter((s) => s <= schema.maxScale);
@@ -225,20 +232,20 @@ async function main() {
                 }
             }
 
-            // 4. Export the cloud fixture from the view after it is set up.
-            //    Re-exporting via COPY ensures a clean buffer independent of the
-            //    parquetBuffer that was transferred to the WASM worker above.
-            if (tableName === CLOUD_FIXTURE_TABLE) {
-                setStatus("Exporting fixture parquet for cloud benchmark...");
+            // 4. Export cloud fixture for narrow tables (re-export from view to get a clean
+            //    buffer that was never transferred to the WASM worker).
+            if (schema.label === "narrow" && CLOUD_FIXTURE_SCALES.includes(scale)) {
+                setStatus(`Exporting cloud fixture for ${scale.toLocaleString()} rows...`);
+                const fixturePath = `/fixture_${scale}.parquet`;
                 const conn = await db.connect();
                 try {
                     await conn.query(
-                        `COPY (SELECT * FROM "${CLOUD_FIXTURE_TABLE}") TO '/fixture.parquet' (FORMAT PARQUET)`
+                        `COPY (SELECT * FROM "${tableName}") TO '${fixturePath}' (FORMAT PARQUET)`
                     );
                 } finally {
                     await conn.close();
                 }
-                fixtureBuffer = await db.copyFileToBuffer("/fixture.parquet");
+                fixtureBuffers.set(scale, await db.copyFileToBuffer(fixturePath));
             }
 
             // 5. Benchmark the view (same name, same queries — now exercises parquet_scan)
@@ -257,49 +264,69 @@ async function main() {
         }
     }
 
-    if (!fixtureBuffer) {
+    if (fixtureBuffers.size === 0) {
         throw new Error(
-            `Cloud fixture table "${CLOUD_FIXTURE_TABLE}" was never created. ` +
-                `Check that SCHEMA_CONFIGS includes a narrow schema and ALL_SCALES includes 10,000.`
+            `No cloud fixture buffers collected. ` +
+                `Check that SCHEMA_CONFIGS includes a narrow schema and CLOUD_FIXTURE_SCALES is non-empty.`
         );
     }
 
-    // Expose as a plain array so Playwright can read it via page.evaluate
-    (window as any).__fixtureParquet = Array.from(fixtureBuffer);
+    // Expose fixture buffers as { [scale]: number[] } so Playwright can read them.
+    const fixtureArrays: Record<number, number[]> = {};
+    for (const [scale, buf] of fixtureBuffers) {
+        fixtureArrays[scale] = Array.from(buf);
+    }
+    (window as any).__fixtureParquets = fixtureArrays;
     (window as any).__inMemoryDone = true;
 
-    // --- Wait for Playwright to write the fixture file and signal the cloud phase ---
+    // --- Wait for Playwright to write the fixture files and signal the cloud phase ---
     setStatus("Waiting for cloud benchmark signal from Playwright...");
-    const cloudFixtureUrl: string = await new Promise<string>((resolve) => {
+    const cloudFixtureUrls: Record<number, string> = await new Promise((resolve) => {
         (window as any).__startCloudPhase = resolve;
     });
 
-    // --- Cloud benchmark ---
-    setStatus(`Registering cloud fixture: ${cloudFixtureUrl}`);
-    await db.registerFileURL(
-        "cloud_fixture.parquet",
-        cloudFixtureUrl,
-        (duckdb as any).DuckDBDataProtocol.HTTP,
-        false
-    );
-    {
-        const conn = await db.connect();
-        try {
-            await conn.query(
-                `CREATE OR REPLACE VIEW cloud_bench AS SELECT * FROM read_parquet('cloud_fixture.parquet')`
-            );
-        } finally {
-            await conn.close();
+    // --- Cloud benchmark (one pass per scale) ---
+    const cloudResults: CloudQueryResult[] = [];
+
+    for (const scale of CLOUD_FIXTURE_SCALES) {
+        const cloudFixtureUrl = cloudFixtureUrls[scale];
+        if (!cloudFixtureUrl) continue;
+
+        const cloudFile = `cloud_fixture_${scale}.parquet`;
+        setStatus(`Registering cloud fixture ${scale.toLocaleString()} rows: ${cloudFixtureUrl}`);
+        await db.registerFileURL(
+            cloudFile,
+            cloudFixtureUrl,
+            (duckdb as any).DuckDBDataProtocol.HTTP,
+            false
+        );
+        {
+            const conn = await db.connect();
+            try {
+                await conn.query(
+                    `CREATE OR REPLACE VIEW cloud_bench_${scale} AS SELECT * FROM read_parquet('${cloudFile}')`
+                );
+            } finally {
+                await conn.close();
+            }
         }
+
+        // Measure network baseline: time a HEAD request to the fixture URL
+        const netStart = performance.now();
+        await fetch(cloudFixtureUrl, { method: "HEAD" });
+        const networkBaselineMs = performance.now() - netStart;
+        setStatus(
+            `Network baseline @ ${scale.toLocaleString()} rows: ${networkBaselineMs.toFixed(1)}ms`
+        );
+
+        const scaleResults = await benchmarkCloudTable(
+            db,
+            `cloud_bench_${scale}`,
+            scale,
+            networkBaselineMs
+        );
+        cloudResults.push(...scaleResults);
     }
-
-    // Measure network baseline: time a HEAD request to the fixture URL
-    const netStart = performance.now();
-    await fetch(cloudFixtureUrl, { method: "HEAD" });
-    const networkBaselineMs = performance.now() - netStart;
-    setStatus(`Network baseline: ${networkBaselineMs.toFixed(1)}ms`);
-
-    const cloudResults = await benchmarkCloudTable(db, "cloud_bench", networkBaselineMs);
 
     setStatus("Done.");
 
