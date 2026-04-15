@@ -206,13 +206,6 @@ async function main() {
                 }
             }
             const parquetBuffer = await db.copyFileToBuffer(`/${parquetFile}`);
-
-            // Save fixture buffer BEFORE registering — registerFileBuffer transfers ownership
-            // of the underlying ArrayBuffer to the WASM worker, detaching it in this context.
-            if (tableName === CLOUD_FIXTURE_TABLE) {
-                fixtureBuffer = parquetBuffer.slice();
-            }
-
             await db.registerFileBuffer(parquetFile, parquetBuffer);
 
             // 3. Drop the staging table; replace with a parquet_scan view that injects
@@ -232,11 +225,27 @@ async function main() {
                 }
             }
 
-            // 4. Benchmark the view (same name, same queries — now exercises parquet_scan)
+            // 4. Export the cloud fixture from the view after it is set up.
+            //    Re-exporting via COPY ensures a clean buffer independent of the
+            //    parquetBuffer that was transferred to the WASM worker above.
+            if (tableName === CLOUD_FIXTURE_TABLE) {
+                setStatus("Exporting fixture parquet for cloud benchmark...");
+                const conn = await db.connect();
+                try {
+                    await conn.query(
+                        `COPY (SELECT * FROM "${CLOUD_FIXTURE_TABLE}") TO '/fixture.parquet' (FORMAT PARQUET)`
+                    );
+                } finally {
+                    await conn.close();
+                }
+                fixtureBuffer = await db.copyFileToBuffer("/fixture.parquet");
+            }
+
+            // 5. Benchmark the view (same name, same queries — now exercises parquet_scan)
             const tableResults = await benchmarkTable(db, tableName, scale, schema.label);
             results.push(...tableResults);
 
-            // 5. Drop the view to free memory before the next allocation
+            // 6. Drop the view to free memory before the next allocation
             {
                 const conn = await db.connect();
                 try {
