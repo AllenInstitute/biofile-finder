@@ -1,5 +1,6 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 
+import { HIDDEN_UID_ANNOTATION } from "../../../core/constants";
 import { initializeDuckDB } from "../../../core/services/DatabaseService";
 import { createBenchmarkTable } from "./data";
 import { BENCHMARK_QUERIES } from "./queries";
@@ -178,8 +179,9 @@ async function main() {
     setStatus(`DuckDB initialized in ${initTimeMs.toFixed(0)}ms. Starting benchmark...`);
 
     // --- In-memory benchmark ---
-    // Create → benchmark → drop one table at a time to stay within the WASM heap limit.
-    // The cloud fixture parquet is exported from CLOUD_FIXTURE_TABLE before it is dropped.
+    // For each scale × schema: create a staging table → export to parquet → drop the table
+    // → create a view over the parquet (matching production's createParquetDirectView path).
+    // Only one table/view exists at a time to stay within the ~3 GB WASM heap limit.
     const results: QueryResult[] = [];
     let fixtureBuffer: Uint8Array | null = null;
 
@@ -187,32 +189,59 @@ async function main() {
         const scales = ALL_SCALES.filter((s) => s <= schema.maxScale);
         for (const scale of scales) {
             const tableName = `bench_${scale}_${schema.label}`;
+            const parquetFile = `${tableName}.parquet`;
+
+            // 1. Build the staging table (no hidden_bff_uid — parquet doesn't store it)
             setStatus(`Creating table ${tableName}...`);
             await createBenchmarkTable(db, tableName, scale, schema);
 
-            const tableResults = await benchmarkTable(db, tableName, scale, schema.label);
-            results.push(...tableResults);
-
-            // Export the cloud fixture while this table is still in memory
-            if (tableName === CLOUD_FIXTURE_TABLE) {
-                setStatus("Exporting fixture parquet for cloud benchmark...");
+            // 2. Export to parquet and re-register the buffer so parquet_scan can read it
+            setStatus(`Exporting ${tableName} to parquet...`);
+            {
                 const conn = await db.connect();
                 try {
+                    await conn.query(`COPY "${tableName}" TO '/${parquetFile}' (FORMAT PARQUET)`);
+                } finally {
+                    await conn.close();
+                }
+            }
+            const parquetBuffer = await db.copyFileToBuffer(`/${parquetFile}`);
+            await db.registerFileBuffer(parquetFile, parquetBuffer);
+
+            // Capture the cloud fixture buffer before dropping the table
+            if (tableName === CLOUD_FIXTURE_TABLE) {
+                fixtureBuffer = parquetBuffer;
+            }
+
+            // 3. Drop the staging table; replace with a parquet_scan view that injects
+            //    hidden_bff_uid from DuckDB's file_row_number virtual column — exactly
+            //    what DatabaseService.createParquetDirectView does in production.
+            {
+                const conn = await db.connect();
+                try {
+                    await conn.query(`DROP TABLE IF EXISTS "${tableName}"`);
                     await conn.query(
-                        `COPY "${CLOUD_FIXTURE_TABLE}" TO '/fixture.parquet' (FORMAT PARQUET)`
+                        `CREATE VIEW "${tableName}" AS
+                         SELECT *, file_row_number AS "${HIDDEN_UID_ANNOTATION}"
+                         FROM parquet_scan('${parquetFile}')`
                     );
                 } finally {
                     await conn.close();
                 }
-                fixtureBuffer = await db.copyFileToBuffer("/fixture.parquet");
             }
 
-            // Drop the table to free memory before the next allocation
-            const dropConn = await db.connect();
-            try {
-                await dropConn.query(`DROP TABLE IF EXISTS "${tableName}"`);
-            } finally {
-                await dropConn.close();
+            // 4. Benchmark the view (same name, same queries — now exercises parquet_scan)
+            const tableResults = await benchmarkTable(db, tableName, scale, schema.label);
+            results.push(...tableResults);
+
+            // 5. Drop the view to free memory before the next allocation
+            {
+                const conn = await db.connect();
+                try {
+                    await conn.query(`DROP VIEW IF EXISTS "${tableName}"`);
+                } finally {
+                    await conn.close();
+                }
             }
         }
     }

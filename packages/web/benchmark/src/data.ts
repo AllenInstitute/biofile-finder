@@ -12,10 +12,18 @@ const CARDINALITY_MODULO: Record<SchemaConfig["cardinality"], number | null> = {
 };
 
 /**
- * Create a synthetic data table inside DuckDB using its built-in range() generator.
+ * Create a synthetic staging table inside DuckDB using its built-in range() generator.
+ * This table is a temporary intermediate — callers should export it to parquet and
+ * replace it with a view (see convertTableToParquetView in index.ts), matching the
+ * production code path where data lives in parquet files accessed via parquet_scan views.
  *
  * The base schema mirrors a realistic BFF parquet source:
  *   File ID, File Path, File Name, File Size, Uploaded, cell_line, plate_id, channel
+ *
+ * Note: hidden_bff_uid is intentionally omitted here. Production parquets don't contain
+ * it as a stored column — it is injected by the view layer from DuckDB's file_row_number
+ * virtual column (see DatabaseService.createParquetDirectView). The same happens here
+ * after export.
  *
  * `schema.extraColumns` additional annotation columns are appended, each with the
  * cardinality defined by `schema.cardinality`.
@@ -56,8 +64,7 @@ export async function createBenchmarkTable(
                 (FLOOR(RANDOM() * ${Math.max(
                     1,
                     Math.ceil(modulo / 4)
-                )}))::INTEGER AS channel${extraColExprs},
-                range::INTEGER                                          AS hidden_bff_uid
+                )}))::INTEGER AS channel${extraColExprs}
             FROM range(${rowCount})
         `);
     } finally {
