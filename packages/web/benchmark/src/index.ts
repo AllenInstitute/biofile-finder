@@ -5,7 +5,18 @@ import { createBenchmarkTable } from "./data";
 import { BENCHMARK_QUERIES } from "./queries";
 import { BenchmarkResults, CloudQueryResult, QueryResult, SchemaConfig } from "./types";
 
-const ITERATIONS = 10;
+/**
+ * Number of timed iterations per query per scale × schema combination.
+ * Each iteration runs all queries in a freshly shuffled order (see below).
+ */
+const ITERATIONS = 20;
+
+/**
+ * Number of full passes through all queries before timing begins.
+ * Multiple warmup rounds ensure DuckDB's buffer pool and query planner
+ * are in a stable, warm state for every query — not just the later ones.
+ */
+const WARMUP_ROUNDS = 3;
 
 /**
  * Schema configurations to test. Each query is run at every applicable scale × schema
@@ -41,6 +52,15 @@ function percentile(sorted: number[], p: number): number {
     return sorted[Math.max(0, idx)];
 }
 
+function shuffle<T>(arr: T[]): T[] {
+    const out = [...arr];
+    for (let i = out.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+}
+
 async function runQuery(db: duckdb.AsyncDuckDB, sql: string): Promise<void> {
     const conn = await db.connect();
     try {
@@ -50,64 +70,102 @@ async function runQuery(db: duckdb.AsyncDuckDB, sql: string): Promise<void> {
     }
 }
 
-async function benchmarkQuery(
+/**
+ * Benchmark all queries against a single table using a round-robin approach:
+ *
+ *   1. Warmup — WARMUP_ROUNDS full passes through all queries in fixed order.
+ *      This brings DuckDB's buffer pool and query planner to a stable warm state
+ *      for every query before any timing begins.
+ *
+ *   2. Timing — ITERATIONS rounds. In each round all queries run in a freshly
+ *      shuffled order. Shuffling prevents any one query from consistently running
+ *      in a "hotter" cache position than another, which would dilute comparisons.
+ */
+async function benchmarkTable(
     db: duckdb.AsyncDuckDB,
-    name: string,
-    sql: string,
+    tableName: string,
     scale: number,
     schemaLabel: string
-): Promise<QueryResult> {
-    // Warm-up: one untimed run to prime DuckDB's query planner / caches
-    await runQuery(db, sql);
+): Promise<QueryResult[]> {
+    const sqls = BENCHMARK_QUERIES.map((q) => ({ name: q.name, sql: q.sql(tableName) }));
 
-    const timings: number[] = [];
-    for (let i = 0; i < ITERATIONS; i++) {
-        const start = performance.now();
-        await runQuery(db, sql);
-        timings.push(performance.now() - start);
+    // --- Warmup ---
+    setStatus(`Warming up ${tableName} (${WARMUP_ROUNDS} rounds)...`);
+    for (let w = 0; w < WARMUP_ROUNDS; w++) {
+        for (const { sql } of sqls) {
+            await runQuery(db, sql);
+        }
     }
 
-    timings.sort((a, b) => a - b);
+    // --- Timed iterations (shuffled round-robin) ---
+    const timingsMap = new Map<string, number[]>(sqls.map(({ name }) => [name, []]));
 
-    return {
-        name,
-        scale,
-        schemaLabel,
-        iterations: ITERATIONS,
-        timings,
-        p50: percentile(timings, 50),
-        p95: percentile(timings, 95),
-        p99: percentile(timings, 99),
-    };
+    for (let i = 0; i < ITERATIONS; i++) {
+        setStatus(`Timing ${tableName} — iteration ${i + 1}/${ITERATIONS}...`);
+        for (const { name, sql } of shuffle(sqls)) {
+            const start = performance.now();
+            await runQuery(db, sql);
+            timingsMap.get(name)!.push(performance.now() - start);
+        }
+    }
+
+    return BENCHMARK_QUERIES.map(({ name }) => {
+        const timings = [...(timingsMap.get(name) ?? [])].sort((a, b) => a - b);
+        return {
+            name,
+            scale,
+            schemaLabel,
+            iterations: ITERATIONS,
+            timings,
+            p50: percentile(timings, 50),
+            p95: percentile(timings, 95),
+            p99: percentile(timings, 99),
+        };
+    });
 }
 
-async function benchmarkCloudQuery(
+/**
+ * Same round-robin approach for cloud queries.
+ */
+async function benchmarkCloudTable(
     db: duckdb.AsyncDuckDB,
-    name: string,
-    sql: string,
+    viewName: string,
     networkBaselineMs: number
-): Promise<CloudQueryResult> {
-    // Warm-up: one untimed run
-    await runQuery(db, sql);
+): Promise<CloudQueryResult[]> {
+    const sqls = BENCHMARK_QUERIES.map((q) => ({ name: q.name, sql: q.sql(viewName) }));
 
-    const timings: number[] = [];
-    for (let i = 0; i < ITERATIONS; i++) {
-        const start = performance.now();
-        await runQuery(db, sql);
-        timings.push(performance.now() - start);
+    // --- Warmup ---
+    setStatus(`Warming up cloud benchmark (${WARMUP_ROUNDS} rounds)...`);
+    for (let w = 0; w < WARMUP_ROUNDS; w++) {
+        for (const { sql } of sqls) {
+            await runQuery(db, sql);
+        }
     }
 
-    timings.sort((a, b) => a - b);
+    // --- Timed iterations (shuffled round-robin) ---
+    const timingsMap = new Map<string, number[]>(sqls.map(({ name }) => [name, []]));
 
-    return {
-        name,
-        networkBaselineMs,
-        iterations: ITERATIONS,
-        timings,
-        p50: percentile(timings, 50),
-        p95: percentile(timings, 95),
-        p99: percentile(timings, 99),
-    };
+    for (let i = 0; i < ITERATIONS; i++) {
+        setStatus(`Timing cloud benchmark — iteration ${i + 1}/${ITERATIONS}...`);
+        for (const { name, sql } of shuffle(sqls)) {
+            const start = performance.now();
+            await runQuery(db, sql);
+            timingsMap.get(name)!.push(performance.now() - start);
+        }
+    }
+
+    return BENCHMARK_QUERIES.map(({ name }) => {
+        const timings = [...(timingsMap.get(name) ?? [])].sort((a, b) => a - b);
+        return {
+            name,
+            networkBaselineMs,
+            iterations: ITERATIONS,
+            timings,
+            p50: percentile(timings, 50),
+            p95: percentile(timings, 95),
+            p99: percentile(timings, 99),
+        };
+    });
 }
 
 async function main() {
@@ -132,17 +190,8 @@ async function main() {
             setStatus(`Creating table ${tableName}...`);
             await createBenchmarkTable(db, tableName, scale, schema);
 
-            for (const query of BENCHMARK_QUERIES) {
-                setStatus(`Running ${query.name} @ ${scale} rows / ${schema.label}...`);
-                const result = await benchmarkQuery(
-                    db,
-                    query.name,
-                    query.sql(tableName),
-                    scale,
-                    schema.label
-                );
-                results.push(result);
-            }
+            const tableResults = await benchmarkTable(db, tableName, scale, schema.label);
+            results.push(...tableResults);
 
             // Export the cloud fixture while this table is still in memory
             if (tableName === CLOUD_FIXTURE_TABLE) {
@@ -210,13 +259,7 @@ async function main() {
     const networkBaselineMs = performance.now() - netStart;
     setStatus(`Network baseline: ${networkBaselineMs.toFixed(1)}ms`);
 
-    const cloudResults: CloudQueryResult[] = [];
-    for (const query of BENCHMARK_QUERIES) {
-        setStatus(`Running cloud ${query.name}...`);
-        cloudResults.push(
-            await benchmarkCloudQuery(db, query.name, query.sql("cloud_bench"), networkBaselineMs)
-        );
-    }
+    const cloudResults = await benchmarkCloudTable(db, "cloud_bench", networkBaselineMs);
 
     setStatus("Done.");
 
