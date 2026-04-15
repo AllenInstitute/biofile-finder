@@ -135,7 +135,7 @@ const lines = [];
 
 lines.push("## BFF Query Benchmark Results");
 lines.push("");
-lines.push(`| | Base (\`${base.branch}\`) | PR (\`${pr.branch}\`) | Delta |`);
+lines.push(`| | \`${base.branch}\` | \`${pr.branch}\` | Delta |`);
 lines.push("|-|-|-|-|");
 
 const initDelta = deltaBadge(base.initTimeMs, pr.initTimeMs);
@@ -185,9 +185,9 @@ if (allCloudKeys.length > 0) {
     const baseNetBaseline = base.cloudResults?.[0]?.networkBaselineMs;
     const netNote =
         prNetBaseline !== undefined
-            ? ` _(network baseline: base ${
-                  baseNetBaseline?.toFixed(1) ?? "?"
-              }ms, PR ${prNetBaseline.toFixed(1)}ms)_`
+            ? ` _(network baseline: \`${base.branch}\` ${baseNetBaseline?.toFixed(1) ?? "?"}ms, \`${
+                  pr.branch
+              }\` ${prNetBaseline.toFixed(1)}ms)_`
             : "";
 
     lines.push("| | | | |");
@@ -208,14 +208,14 @@ if (allCloudKeys.length > 0) {
 // --- Details: wide schema + p95 ---
 lines.push("");
 lines.push("<details><summary>Wide schema results (p50 ms)</summary>\n");
-lines.push(`| | Base (\`${base.branch}\`) | PR (\`${pr.branch}\`) | Delta |`);
+lines.push(`| | \`${base.branch}\` | \`${pr.branch}\` | Delta |`);
 lines.push("|-|-|-|-|");
 for (const l of wideLines) lines.push(l);
 lines.push("\n</details>");
 
 lines.push("");
 lines.push("<details><summary>p95 timings (narrow schema)</summary>\n");
-lines.push("| Query | Scale | Base p95 | PR p95 | Delta |");
+lines.push(`| Query | Scale | \`${base.branch}\` p95 | \`${pr.branch}\` p95 | Delta |`);
 lines.push("|-------|-------|----------|--------|-------|");
 
 for (const [queryName, queryKeys] of byQuery) {
@@ -277,7 +277,7 @@ if (regressions.length === 0 && improvements.length === 0) {
 
 lines.push(
     `_Benchmarks run in headless Chromium with DuckDB-WASM. ` +
-        `Each query: 1 warm-up + ${pr.results[0]?.iterations ?? 10} timed iterations. ` +
+        `${pr.results[0]?.iterations ?? 20} iterations per query, round-robin shuffled order. ` +
         `Flags: ⚠️ ≥${REGRESSION_WARN_PCT}% slower · ❌ ≥${REGRESSION_SEVERE_PCT}% slower · ✅ ≥${IMPROVEMENT_PCT}% faster_`
 );
 
