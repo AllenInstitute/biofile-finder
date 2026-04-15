@@ -31,6 +31,7 @@ export function buildGetFilesSQL(
     return fileSet
         .toQuerySQLBuilder()
         .from(dataSourceNames)
+        .orderBy(`MD5(CAST("${HIDDEN_UID_ANNOTATION}" AS VARCHAR))`)
         .offset(from * limit)
         .limit(limit)
         .toSQL();
@@ -40,7 +41,7 @@ export function buildGetFilesSQL(
 export function buildGetCountSQL(dataSourceNames: string | string[], fileSet: FileSet): string {
     return fileSet
         .toQuerySQLBuilder()
-        .select("COUNT(*) AS num_files")
+        .select(`COUNT(DISTINCT "${HIDDEN_UID_ANNOTATION}") AS num_files`)
         .from(dataSourceNames)
         .removeOrderBy()
         .toSQL();
