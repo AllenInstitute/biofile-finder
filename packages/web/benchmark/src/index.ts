@@ -40,7 +40,11 @@ const ALL_SCALES = [100_000, 1_000_000, 10_000_000];
  * over HTTP by the Playwright runner. This exercises DuckDB's HTTP range-request code
  * path — the same path used for real S3/cloud parquet sources in BFF.
  */
-const CLOUD_FIXTURE_SCALES = ALL_SCALES; // narrow schema only; wide adds no new signal for HTTP path
+// Cloud fixtures are capped at 1M rows: the parquet buffer must be transferred from
+// the browser to the Playwright process via CDP (page.evaluate), which can't handle
+// the multi-hundred-MB arrays that a 10M row parquet produces. 100k and 1M are
+// sufficient to test HTTP range-request predicate pushdown at realistic scales.
+const CLOUD_FIXTURE_SCALES = ALL_SCALES.filter((s) => s <= 1_000_000);
 
 function setStatus(msg: string) {
     const el = document.getElementById("status");
