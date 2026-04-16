@@ -470,11 +470,9 @@ export default abstract class DatabaseService {
         }
     }
 
-    public async deleteSourceMetadata(name?: string): Promise<void> {
-        // If a specific metadata file name is passed, delete it
-        // Otherwise, delete the currently selected one
-        if (name) await this.deleteDataSource(name);
-        else if (this.sourceMetadataName) this.deleteDataSource(this.sourceMetadataName);
+    public async deleteSourceMetadata(): Promise<void> {
+        // Avoid trying to delete a file that doesn't exist
+        if (this.sourceMetadataName) await this.deleteDataSource(this.sourceMetadataName);
         this.dataSourceToAnnotationsMap.clear();
     }
 
