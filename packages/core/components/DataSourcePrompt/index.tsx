@@ -53,7 +53,9 @@ export default function DataSourcePrompt(props: Props) {
     };
 
     const onSubmit = () => {
-        if (!dataSource) return; // TO DO: Allow users to add just a prov/metadata descriptor files without adding a dataSource
+        // TO DO: https://github.com/AllenInstitute/biofile-finder/issues/742
+        // Allow users to add just prov/metadata descriptor files without adding a dataSource
+        if (!dataSource) return;
         if (requiresDataSourceReload || query) {
             if (metadataSource) {
                 dispatch(selection.actions.changeSourceMetadata(metadataSource));
@@ -195,7 +197,8 @@ export default function DataSourcePrompt(props: Props) {
                 <div className={styles.loadButtonContainer}>
                     <PrimaryButton
                         className={classNames(styles.loadButton)}
-                        disabled={!dataSource} // TO DO: Allow users to upload just metadata/prov files
+                        // TO DO: https://github.com/AllenInstitute/biofile-finder/issues/742 Allow users to upload just metadata/prov files
+                        disabled={!dataSource}
                         text="LOAD"
                         onClick={onSubmit}
                     />
