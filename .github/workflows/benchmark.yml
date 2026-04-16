@@ -22,7 +22,13 @@ jobs:
   benchmark:
     name: Benchmark (${{ github.event.inputs.base_branch }} vs ${{ github.event.inputs.compare_branch }})
     runs-on: ubuntu-latest
-    # 30 minutes: large-scale table creation (10M rows) + full query suite × 2 branches
+    # Both branches run sequentially in a single job on the same VM. This is intentional:
+    # if each branch ran in its own job, GitHub could schedule them on different physical
+    # machines with different CPU speeds, cache sizes, or competing workloads. A ~15%
+    # hardware variance between VMs would mask the small regressions we actually care about.
+    # Running back-to-back on the same VM ensures both measurements share the same hardware
+    # baseline, so deltas reflect code differences only.
+    # 60 minutes: large-scale table creation (10M rows) + full query suite × 2 branches
     timeout-minutes: 60
 
     steps:
