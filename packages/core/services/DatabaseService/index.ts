@@ -110,10 +110,9 @@ export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckd
  */
 export default abstract class DatabaseService {
     public static readonly LIST_DELIMITER = ",";
-    protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
     private static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));
-    private sourceMetadataName?: string;
+    protected sourceMetadataName?: string;
     public sourceProvenanceName?: string;
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
@@ -342,7 +341,7 @@ export default abstract class DatabaseService {
 
         if (!type || !uri) {
             throw new DataSourcePreparationError(
-                `Lost access to the data source.\
+                `Lost access to data source "${name}".\
                 </br> \
                 Local data sources must be re-uploaded with each \
                 page refresh to gain access to the data source file \
@@ -388,7 +387,7 @@ export default abstract class DatabaseService {
 
         if (!type || !uri) {
             throw new DataSourcePreparationError(
-                `Lost access to the data source.\
+                `Lost access to data source "${name}".\
                 </br> \
                 Local data sources must be re-uploaded with each \
                 page refresh to gain access to the data source file \
@@ -426,18 +425,24 @@ export default abstract class DatabaseService {
 
     public async prepareSourceMetadata(sourceMetadata: Source): Promise<void> {
         const isPreviousSource = sourceMetadata.name === this.sourceMetadataName;
-        if (isPreviousSource) {
+        if (isPreviousSource && this.hasDataSource(sourceMetadata.name)) {
             return;
         }
-
-        await this.deleteSourceMetadata();
-        await this.prepareDataSourceWrapper(
-            {
-                ...sourceMetadata,
-                name: this.SOURCE_METADATA_TABLE,
-            },
-            true
-        );
+        // If the metadata source is being replaced, delete the old instance before preparing the new one
+        if (sourceMetadata.uri) {
+            await this.deleteSourceMetadata();
+            // Make sure we don't still have a cached version of the metadata source
+            if (!this.hasDataSource(sourceMetadata.name)) {
+                await this.prepareDataSourceWrapper(
+                    {
+                        ...sourceMetadata,
+                        name: sourceMetadata.name,
+                    },
+                    true
+                );
+            }
+        }
+        // If the source doesn't have a uri, we should instead try to use the cached table
         this.sourceMetadataName = sourceMetadata.name;
     }
 
@@ -466,7 +471,8 @@ export default abstract class DatabaseService {
     }
 
     public async deleteSourceMetadata(): Promise<void> {
-        await this.deleteDataSource(this.SOURCE_METADATA_TABLE);
+        // Avoid trying to delete a file that doesn't exist
+        if (this.sourceMetadataName) await this.deleteDataSource(this.sourceMetadataName);
         this.dataSourceToAnnotationsMap.clear();
     }
 
@@ -1024,14 +1030,19 @@ export default abstract class DatabaseService {
         }
     }
 
-    public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
+    public async fetchAnnotations(
+        dataSourceNames: string[],
+        metadataSource?: Source
+    ): Promise<Annotation[]> {
         const aggregateDataSourceName = dataSourceNames.sort().join(", ");
         const hasAnnotations = this.dataSourceToAnnotationsMap.has(aggregateDataSourceName);
         const hasDescriptions = this.dataSourceToAnnotationsMap
             .get(aggregateDataSourceName)
             ?.some((annotation) => !!annotation.description);
-        const shouldHaveDescriptions = dataSourceNames.includes(this.SOURCE_METADATA_TABLE);
+        const shouldHaveDescriptions =
+            metadataSource && this.existingDataSources.has(metadataSource?.name);
         if (!hasAnnotations || (!hasDescriptions && shouldHaveDescriptions)) {
+            this.sourceMetadataName = metadataSource?.name;
             const sql = new SQLBuilder()
                 .select("column_name, data_type")
                 .from('information_schema"."columns')
@@ -1079,13 +1090,13 @@ export default abstract class DatabaseService {
 
     protected async fetchAnnotationDescriptions(): Promise<Record<string, string>> {
         // Unless we have actually added the source metadata table we can't fetch the descriptions
-        if (!this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
+        if (!this.sourceMetadataName || !this.existingDataSources.has(this.sourceMetadataName)) {
             return {};
         }
 
         const sql = new SQLBuilder()
             .select('"Column Name", "Description"')
-            .from(this.SOURCE_METADATA_TABLE)
+            .from(this.sourceMetadataName)
             .toSQL();
         try {
             const rows = await this.query(sql).promise;
@@ -1106,13 +1117,13 @@ export default abstract class DatabaseService {
 
     public async fetchAnnotationTypes(): Promise<Record<string, string>> {
         // Unless we have actually added the source metadata table we can't fetch the types
-        if (!this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
+        if (!this.sourceMetadataName || !this.existingDataSources.has(this.sourceMetadataName)) {
             return {};
         }
 
         const sql = new SQLBuilder()
             .select('"Column Name", "Type"')
-            .from(this.SOURCE_METADATA_TABLE)
+            .from(this.sourceMetadataName)
             .toSQL();
 
         try {
@@ -1147,9 +1158,13 @@ export default abstract class DatabaseService {
         // Cache is now invalid since we added a column
         this.dataSourceToAnnotationsMap.delete(datasourceName);
 
-        if (description?.trim() && this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
+        if (
+            description?.trim() &&
+            this.sourceMetadataName &&
+            this.existingDataSources.has(this.sourceMetadataName)
+        ) {
             await this
-                .execute(`INSERT INTO "${this.SOURCE_METADATA_TABLE}" ("Column Name", "Description")
+                .execute(`INSERT INTO "${this.sourceMetadataName}" ("Column Name", "Description")
                     VALUES ('${columnName}', '${description}');`);
         }
     }

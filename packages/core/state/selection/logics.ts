@@ -642,10 +642,19 @@ const changeSourceMetadataLogic = createLogic({
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
-        if (selectedSourceMetadata) {
-            await databaseService.prepareSourceMetadata(selectedSourceMetadata);
-        } else {
-            await databaseService.deleteSourceMetadata();
+        try {
+            if (selectedSourceMetadata) {
+                await databaseService.prepareSourceMetadata(selectedSourceMetadata);
+            } else {
+                await databaseService.deleteSourceMetadata();
+            }
+        } catch (err) {
+            const errMsg = (err as Error).message || "Unknown error while adding metadata source";
+            if (err instanceof DataSourcePreparationError) {
+                dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
+            } else {
+                dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
+            }
         }
 
         dispatch(metadata.actions.requestAnnotations());
