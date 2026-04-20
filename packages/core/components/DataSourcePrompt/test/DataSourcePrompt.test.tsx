@@ -46,7 +46,7 @@ describe("<DataSourcePrompt />", () => {
         expect(loadButton?.hasAttribute("disabled")).to.be.false;
     });
 
-    it("can distinguish between two FilePrompt components when advanced options are open", () => {
+    it("can distinguish between all FilePrompt components when advanced options are open", () => {
         const { store } = configureMockStore({ state: initialState, reducer });
         const { getByText, getByTestId, getAllByText, getAllByRole } = render(
             <Provider store={store}>
@@ -55,12 +55,14 @@ describe("<DataSourcePrompt />", () => {
         );
 
         // Expand advanced options
-        fireEvent.click(getByText(/Add metadata descriptor file/));
+        fireEvent.click(getByText(/Metadata descriptor file/));
+        fireEvent.click(getByText(/Provenance descriptor file/));
 
         // Two separate prompts render
-        expect(getAllByText(/click to browse/).length).to.equal(2);
+        expect(getAllByText(/click to browse/).length).to.equal(3);
         expect(getByTestId("urlform-file-prompt-main")).to.exist;
         expect(getByTestId("urlform-file-prompt-metadata-main")).to.exist;
+        expect(getByTestId("urlform-file-prompt-provenance-main")).to.exist;
 
         const urlForm = getAllByRole("textbox").at(1);
         // Enter values in the second form
@@ -75,8 +77,9 @@ describe("<DataSourcePrompt />", () => {
         }
 
         // Only the first prompt still renders
-        expect(getAllByText(/click to browse/).length).to.equal(1);
+        expect(getAllByText(/click to browse/).length).to.equal(2);
         expect(getByTestId("urlform-file-prompt-main")).to.exist;
+        expect(getByTestId("urlform-file-prompt-provenance-main")).to.exist;
         expect(() => getByTestId("urlform-file-prompt-metadata-main")).to.throw;
     });
 
