@@ -833,7 +833,8 @@ export default abstract class DatabaseService {
                 SELECT ROW_NUMBER() OVER () AS row, "${column}"
                 FROM "${dataSource}"
             ) AS A
-            WHERE TRIM(A."${column}") IS NULL
+            WHERE TRIM(CAST(A."${column}" AS VARCHAR)) IS NULL
+               OR TRIM(CAST(A."${column}" AS VARCHAR)) = ''
         `).promise;
         return blankColumnQueryResult.map((row) => row.row);
     }
