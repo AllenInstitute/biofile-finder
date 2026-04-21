@@ -1,10 +1,7 @@
-import "regenerator-runtime/runtime";
-
 import { memoize } from "lodash";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import NotificationServiceWeb from "./services/NotificationServiceWeb";
 import ApplicationInfoServiceWeb from "./services/ApplicationInfoServiceWeb";
@@ -13,12 +10,6 @@ import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
 import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
 import PersistentConfigServiceWeb from "./services/PersistentConfigServiceWeb";
-import ErrorPage from "./components/ErrorPage";
-import Learn from "./components/Learn";
-import Home from "./components/Home";
-import Layout from "./components/Layout";
-import OpenSourceDatasets from "./components/OpenSourceDatasets";
-import SiteLogo from "../assets/site-logo.png";
 import FmsFileExplorer from "../../core/App";
 import { createReduxStore } from "../../core/state";
 
@@ -27,36 +18,6 @@ import styles from "./src.module.css";
 import S3StorageService from "../../core/services/S3StorageService";
 
 const APP_ID = "biofile-finder";
-
-const router = createBrowserRouter(
-    [
-        {
-            element: <Layout />,
-            ErrorBoundary: ErrorPage,
-            children: [
-                {
-                    path: "/",
-                    element: <Home />, // Splash page
-                },
-                {
-                    path: "learn",
-                    element: <Learn />,
-                },
-                {
-                    path: "app",
-                    element: <FmsFileExplorer className={styles.app} />,
-                },
-                {
-                    path: "datasets",
-                    element: <OpenSourceDatasets />,
-                },
-            ],
-        },
-    ],
-    {
-        basename: "",
-    }
-);
 
 async function asyncRender() {
     const persistentConfigService = new PersistentConfigServiceWeb();
@@ -81,17 +42,10 @@ async function asyncRender() {
     });
     render(
         <Provider store={store}>
-            <RouterProvider router={router} />
+            <FmsFileExplorer className={styles.app} />
         </Provider>,
         document.getElementById(APP_ID)
     );
-
-    try {
-        (document.getElementById("og-image") as any).content = SiteLogo;
-        (document.getElementById("tw-image") as any).content = SiteLogo;
-    } catch (err) {
-        console.error("Failed to set <head /> meta tags", err);
-    }
 }
 
 asyncRender();

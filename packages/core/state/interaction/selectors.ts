@@ -49,7 +49,6 @@ export const getDatasetDetailsVisibility = (state: State) =>
     state.interaction.datasetDetailsPanelIsVisible;
 export const getGraphRefreshKey = (state: State) => state.interaction.graphRefreshKey;
 export const getOriginForProvenance = (state: State) => state.interaction.originForProvenance;
-export const getSelectedPublicDataset = (state: State) => state.interaction.selectedPublicDataset;
 export const getFileFiltersForVisibleModal = (state: State) =>
     state.interaction.fileFiltersForVisibleModal;
 export const getFileForDetailPanel = (state: State) => state.interaction.fileForDetailPanel;
@@ -208,25 +207,6 @@ export const getFileService = createSelector(
 );
 
 export const getS3StorageService = createSelector([], () => new S3StorageService());
-
-/**
- * Selector specifically for open-source dataset manifest, re-using regular file service interface.
- * Unlike getFileService, returns undefined if no dataset manifest is present
- * Used in web only
- */
-export const getPublicDatasetManifestService = createSelector(
-    [getDatasetManifestSource, getPlatformDependentServices],
-    (datasetManifestSource, platformDependentServices): FileService | undefined => {
-        if (!datasetManifestSource || !platformDependentServices) {
-            return undefined;
-        }
-        return new DatabaseFileService({
-            databaseService: platformDependentServices.databaseService,
-            dataSourceNames: [datasetManifestSource.name],
-            downloadService: platformDependentServices.fileDownloadService,
-        });
-    }
-);
 
 export const getAnnotationService = createSelector(
     [

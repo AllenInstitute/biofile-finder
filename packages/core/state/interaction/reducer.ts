@@ -27,7 +27,6 @@ import {
     DOWNLOAD_MANIFEST,
     DataSourcePromptInfo,
     PromptForDataSource,
-    SET_SELECTED_PUBLIC_DATASET,
     SET_EXTRACT_METADATA_PYTHON_SNIPPET,
     SET_CONVERT_FILES_SNIPPET,
     SetVisibleModalAction,
@@ -55,7 +54,6 @@ import { UserSelectedApplication } from "../../services/PersistentConfigService"
 import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
-import PublicDataset from "../../../web/src/entity/PublicDataset";
 import FileDetail from "../../entity/FileDetail";
 
 export interface InteractionStateBranch {
@@ -88,7 +86,6 @@ export interface InteractionStateBranch {
     };
     originForProvenance?: FileDetail;
     refreshKey?: string;
-    selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
     userSelectedApplications?: UserSelectedApplication[];
     visibleModal?: ModalType;
@@ -237,10 +234,6 @@ export default makeReducer<InteractionStateBranch>(
         [HIDE_DATASET_DETAILS_PANEL]: (state) => ({
             ...state,
             datasetDetailsPanelIsVisible: false,
-        }),
-        [SET_SELECTED_PUBLIC_DATASET]: (state, action) => ({
-            ...state,
-            selectedPublicDataset: action.payload,
         }),
         [SHOW_COPY_FILE_MANIFEST]: (state) => ({
             ...state,

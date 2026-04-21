@@ -10,7 +10,6 @@ import { UserSelectedApplication } from "../../services/PersistentConfigService"
 import FileDetail from "../../entity/FileDetail";
 import { Source } from "../../entity/SearchParams";
 import { FileInfo } from "../../services";
-import PublicDataset from "../../../web/src/entity/PublicDataset";
 
 const STATE_BRANCH_NAME = "interaction";
 
@@ -778,29 +777,6 @@ export interface ShowDatasetDetailsPanelAction {
 export function showDatasetDetailsPanel(): ShowDatasetDetailsPanelAction {
     return {
         type: SHOW_DATASET_DETAILS_PANEL,
-    };
-}
-
-/**
- * SET_SELECTED_PUBLIC_DATASET
- *
- * Intention to select an open-source dataset to view.
- * Used in web only
- */
-export const SET_SELECTED_PUBLIC_DATASET = makeConstant(
-    STATE_BRANCH_NAME,
-    "set-selected-public-dataset"
-);
-
-export interface SetSelectedPublicDataset {
-    payload: PublicDataset;
-    type: string;
-}
-
-export function setSelectedPublicDataset(dataset: PublicDataset): SetSelectedPublicDataset {
-    return {
-        payload: dataset,
-        type: SET_SELECTED_PUBLIC_DATASET,
     };
 }
 

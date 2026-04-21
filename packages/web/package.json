@@ -32,7 +32,6 @@
     "webpack-dev-server": "4.x"
   },
   "dependencies": {
-    "react-router-dom": "^6.23.1",
-    "regenerator-runtime": "0.13.x"
+
   }
 }
