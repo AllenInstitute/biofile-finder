@@ -133,8 +133,7 @@ export default class DatabaseFileService implements FileService {
             .toSQL();
 
         const rows = await this.databaseService.query(sql).promise;
-        const env = this.downloadService.getEnvironmentFromUrl();
-        return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
+        return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, Environment.PRODUCTION));
     }
 
     private getSelectionSql(annotations: string[], selections: Selection[]): string {

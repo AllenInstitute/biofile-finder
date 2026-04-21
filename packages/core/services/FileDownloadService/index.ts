@@ -1,7 +1,3 @@
-import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
-import S3StorageService from "../S3StorageService";
-import S3StorageServiceNoop from "../S3StorageService/S3StorageServiceNoop";
-
 /**
  * Stub FileDownloadService kept only to satisfy type references in services
  * that still accept a download service parameter. No actual download UI exists.
@@ -26,17 +22,8 @@ export interface FileInfo {
     data?: Uint8Array | Blob | string;
 }
 
-export default abstract class FileDownloadService extends HttpServiceBase {
+export default abstract class FileDownloadService {
     abstract isFileSystemAccessible: boolean;
-    protected readonly s3StorageService: S3StorageService;
-
-    constructor(
-        s3StorageService: S3StorageService = new S3StorageServiceNoop(),
-        config: ConnectionConfig = {}
-    ) {
-        super({ ...config, includeCustomHeaders: false });
-        this.s3StorageService = s3StorageService;
-    }
 
     abstract download(
         fileInfo: FileInfo,
@@ -46,9 +33,12 @@ export default abstract class FileDownloadService extends HttpServiceBase {
 
     abstract getDefaultDownloadDirectory(): Promise<string>;
 
-    public async prepareHttpResourceForDownload(url: string, postBody: string): Promise<Blob> {
-        const response = await this.rawPost<string>(url, postBody);
-        return new Blob([response], { type: "application/json" });
+    public async prepareHttpResourceForDownload(_url: string, _postBody: string): Promise<Blob> {
+        return new Blob([], { type: "application/json" });
+    }
+
+    public getEnvironmentFromUrl(_url: string): string {
+        return "production";
     }
 
     public cancelActiveRequest(_downloadRequestId: string): void {

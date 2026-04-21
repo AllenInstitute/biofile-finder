@@ -67,7 +67,6 @@ import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import { AnnotationValue } from "../../services/AnnotationService";
-import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
@@ -211,16 +210,9 @@ const modifyAnnotationHierarchy = createLogic({
 
 const setAvailableAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { action, httpClient, getState } = deps;
+        const { action, getState } = deps;
         const { payload: annotationHierarchy } = action as SetAnnotationHierarchyAction;
         const annotationService = interaction.selectors.getAnnotationService(getState());
-        const applicationVersion = interaction.selectors.getApplicationVersion(getState());
-        if (annotationService instanceof HttpAnnotationService) {
-            if (applicationVersion) {
-                annotationService.setApplicationVersion(applicationVersion);
-            }
-            annotationService.setHttpClient(httpClient);
-        }
 
         try {
             dispatch(

@@ -138,14 +138,13 @@ export const getLoadingQueryOrSource = createSelector(
 
 export const getPythonConversion = createSelector(
     [
-        getPlatformDependentServices,
         getAnnotationHierarchy,
         getFileFilters,
         getOpenFileFolders,
         getSortColumn,
         getSelectedDataSources,
     ],
-    (platformDependentServices, hierarchy, filters, openFolders, sortColumn, sources) => {
+    (hierarchy, filters, openFolders, sortColumn, sources) => {
         return SearchParams.convertToPython(
             {
                 hierarchy,
@@ -154,7 +153,7 @@ export const getPythonConversion = createSelector(
                 sortColumn,
                 sources,
             },
-            platformDependentServices.executionEnvService.getOS()
+            "Linux"
         );
     }
 );

@@ -23,31 +23,15 @@ interface FileAnnotationListProps {
 export default function FileAnnotationList(props: FileAnnotationListProps) {
     const { className, fileDetails, isLoading } = props;
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
-    const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
-    // The path to this file on the host this application is running on
-    // may not match the path to this file stored in the database.
-    // Determine this local path.
+    // Host-local path formatting was provided by ExecutionEnvService in the
+    // original application. In the simplified build we just surface the raw
+    // stored value, if present.
     const [localPath, setLocalPath] = React.useState<string | null>(null);
     React.useEffect(() => {
-        let active = true;
-
-        async function formatPathForHost() {
-            if (!active) return;
-            const localPath = fileDetails?.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH);
-            const formatted =
-                typeof localPath === "string"
-                    ? await executionEnvService.formatPathForHost(localPath)
-                    : null;
-            setLocalPath(formatted);
-        }
-
-        formatPathForHost();
-
-        return () => {
-            active = false;
-        };
-    }, [fileDetails, executionEnvService]);
+        const raw = fileDetails?.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH);
+        setLocalPath(typeof raw === "string" ? raw : null);
+    }, [fileDetails]);
 
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
         if (isLoading) {

@@ -1,38 +1,17 @@
-import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
 import { ModalType } from "../../components/Modal";
-import {
-    AICS_FMS_DATA_SOURCE_NAME,
-    CellFeatureExplorerBaseUrl,
-    DatasetBucketUrl,
-    FESBaseUrl,
-    LoadBalancerBaseUrl,
-    MMSBaseUrl,
-    TemporaryFileServiceBaseUrl,
-    VolEBaseUrl,
-} from "../../constants";
-import {
-    getDatasetManifestSource,
-    getDataSources,
-    getEdgeDefinitions,
-} from "../metadata/selectors";
+import { getDataSources, getEdgeDefinitions } from "../metadata/selectors";
 import {
     getSelectedDataSources,
     getPythonConversion,
     getSelectedSourceMetadata,
 } from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
-import DatasetService, {
-    DataSource,
-    PythonicDataAccessSnippet,
-} from "../../services/DataSourceService";
+import { DataSource } from "../../services/DataSourceService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
-import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
-import HttpFileService from "../../services/FileService/HttpFileService";
-import S3StorageService from "../../services/S3StorageService";
 import Graph from "../../entity/Graph";
 
 // BASIC SELECTORS
@@ -70,72 +49,16 @@ export const getRefreshKey = (state: State) => state.interaction.refreshKey;
 export const getUserSelectedApplications = (state: State) =>
     state.interaction.userSelectedApplications;
 export const getVisibleModal = (state: State) => state.interaction.visibleModal;
-export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee;
-
-// URL Mapping Selectors
-export const getFileExplorerServiceBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => FESBaseUrl[environment]
-);
-
-export const getDatasetBucketUrl = createSelector(
-    [getEnvironment],
-    (environment) => DatasetBucketUrl[environment]
-);
-
-export const getLoadBalancerBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => LoadBalancerBaseUrl[environment]
-);
-
-export const getMetadataManagementServiceBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => MMSBaseUrl[environment]
-);
-
-export const getCellFeatureExplorerBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => CellFeatureExplorerBaseUrl[environment]
-);
-
-export const getVolEBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => VolEBaseUrl[environment]
-);
-
-export const getTemporaryFileServiceBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => TemporaryFileServiceBaseUrl[environment]
-);
 
 // COMPOSED SELECTORS
-export const getApplicationVersion = createSelector(
-    [getPlatformDependentServices],
-    ({ applicationInfoService }): string => applicationInfoService.getApplicationVersion()
-);
-
 export const getIsDisplayingSmallScreenWarning = createSelector(
     [getVisibleModal],
     (visibleModal): boolean => visibleModal === ModalType.SmallScreenWarning
 );
 
 export const getAllDataSources = createSelector(
-    [getDataSources, isAicsEmployee],
-    (dataSources, isAicsEmployee): DataSource[] =>
-        isAicsEmployee
-            ? uniqBy(
-                  [
-                      ...dataSources,
-                      {
-                          id: AICS_FMS_DATA_SOURCE_NAME,
-                          name: AICS_FMS_DATA_SOURCE_NAME,
-                          type: "csv",
-                          version: 1,
-                      },
-                  ],
-                  "id"
-              )
-            : dataSources
+    [getDataSources],
+    (dataSources): DataSource[] => dataSources
 );
 
 export const getExtractMetadataPythonSnippet = (state: State) =>
@@ -143,114 +66,29 @@ export const getExtractMetadataPythonSnippet = (state: State) =>
 
 export const getConvertFilesSnippet = (state: State) => state.interaction.convertFilesSnippet;
 
-export const getPythonSnippet = createSelector(
-    [getPythonConversion],
-    (pythonQuery): PythonicDataAccessSnippet => {
-        const setup = `pip install \"pandas>=1.5\"`;
-        const code = `${pythonQuery}`;
+export const getPythonSnippet = createSelector([getPythonConversion], (pythonQuery) => {
+    const setup = `pip install \"pandas>=1.5\"`;
+    const code = `${pythonQuery}`;
+    return { setup, code };
+});
 
-        return { setup, code };
-    }
-);
-
-export const getUserName = createSelector(
-    [getPlatformDependentServices],
-    (platformDependentServices) => {
-        if (!platformDependentServices || !platformDependentServices.applicationInfoService) {
-            return undefined;
-        }
-        return platformDependentServices.applicationInfoService.getUserName();
-    }
-);
-
-export const getHttpFileService = createSelector(
-    [
-        getApplicationVersion,
-        getFileExplorerServiceBaseUrl,
-        getLoadBalancerBaseUrl,
-        getMetadataManagementServiceBaseUrl,
-        getUserName,
-        getPlatformDependentServices,
-        getRefreshKey,
-    ],
-    (
-        applicationVersion,
-        fileExplorerServiceBaseUrl,
-        loadBalancerBaseUrl,
-        metadataManagementServiceBaseURL,
-        userName,
-        platformDependentServices
-    ) =>
-        new HttpFileService({
-            userName,
-            applicationVersion,
-            fileExplorerServiceBaseUrl,
-            loadBalancerBaseUrl,
-            metadataManagementServiceBaseURl: metadataManagementServiceBaseURL,
+export const getFileService = createSelector(
+    [getSelectedDataSources, getPlatformDependentServices, getRefreshKey],
+    (dataSourceNames, platformDependentServices): FileService =>
+        new DatabaseFileService({
+            databaseService: platformDependentServices.databaseService,
+            dataSourceNames: dataSourceNames.map((source) => source.name),
             downloadService: platformDependentServices.fileDownloadService,
         })
 );
 
-export const getFileService = createSelector(
-    [getHttpFileService, getSelectedDataSources, getPlatformDependentServices, getRefreshKey],
-    (httpFileService, dataSourceNames, platformDependentServices): FileService => {
-        if (dataSourceNames[0]?.name !== AICS_FMS_DATA_SOURCE_NAME) {
-            return new DatabaseFileService({
-                databaseService: platformDependentServices.databaseService,
-                dataSourceNames: dataSourceNames.map((source) => source.name),
-                downloadService: platformDependentServices.fileDownloadService,
-            });
-        }
-
-        return httpFileService;
-    }
-);
-
-export const getS3StorageService = createSelector([], () => new S3StorageService());
-
 export const getAnnotationService = createSelector(
-    [
-        getApplicationVersion,
-        getUserName,
-        getFileExplorerServiceBaseUrl,
-        getMetadataManagementServiceBaseUrl,
-        getSelectedDataSources,
-        getSelectedSourceMetadata,
-        getPlatformDependentServices,
-        getRefreshKey,
-    ],
-    (
-        applicationVersion,
-        userName,
-        fileExplorerServiceBaseUrl,
-        metadataManagementServiceBaseUrl,
-        dataSources,
-        metadataSource,
-        platformDependentServices
-    ): AnnotationService => {
-        if (dataSources.length && dataSources[0]?.name !== AICS_FMS_DATA_SOURCE_NAME) {
-            return new DatabaseAnnotationService({
-                databaseService: platformDependentServices.databaseService,
-                dataSourceNames: dataSources.map((source) => source.name),
-                metadataSource,
-            });
-        }
-        return new HttpAnnotationService({
-            applicationVersion,
-            userName,
-            fileExplorerServiceBaseUrl,
-            metadataManagementServiceBaseURl: metadataManagementServiceBaseUrl,
-        });
-    }
-);
-
-export const getDatasetService = createSelector(
-    [getApplicationVersion, getUserName, getFileExplorerServiceBaseUrl, getRefreshKey],
-    (applicationVersion, userName, fileExplorerServiceBaseUrl) =>
-        new DatasetService({
-            applicationVersion,
-            userName,
-            fileExplorerServiceBaseUrl,
+    [getSelectedDataSources, getSelectedSourceMetadata, getPlatformDependentServices, getRefreshKey],
+    (dataSources, metadataSource, platformDependentServices): AnnotationService =>
+        new DatabaseAnnotationService({
+            databaseService: platformDependentServices.databaseService,
+            dataSourceNames: dataSources.map((source) => source.name),
+            metadataSource,
         })
 );
 
@@ -259,17 +97,9 @@ export const getGraph = createSelector(
     (fileService, edgeDefinitions) => new Graph(fileService, edgeDefinitions)
 );
 
-/**
- * In order to make certain a new ContextMenu is rendered on each contextmenu event (e.g., a right-click),
- * we pass a new `key` (as in, a React key) to the component so that React knows to replace, not update,
- * the ContextMenu component. This application _should_ generally store MouseEvents in `contextMenuPositionReference`,
- * in which case treat the event's timestamp as the key. For completeness, if the value is not an event,
- * JSON.stringify it so that it can be treated as a React key no matter its type.
- */
 export const getContextMenuKey = createSelector([getContextMenuPositionReference], (target) => {
     if (target instanceof Event) {
         return target.timeStamp;
     }
-
     return JSON.stringify(target);
 });

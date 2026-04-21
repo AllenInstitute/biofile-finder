@@ -1,4 +1,3 @@
-import FrontendInsights from "@aics/frontend-insights";
 import { makeReducer } from "@aics/redux-utils";
 import { filter, sortBy, uniqueId } from "lodash";
 
@@ -46,10 +45,7 @@ import { ModalType } from "../../components/Modal";
 import { Environment } from "../../constants";
 import FileFilter from "../../entity/FileFilter";
 import { PlatformDependentServices } from "../../services";
-import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
-import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerServiceNoop";
-import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
@@ -109,18 +105,8 @@ export const initialState: InteractionStateBranch = {
     isGraphLoading: false,
     isOnWeb: false,
     platformDependentServices: {
-        applicationInfoService: new ApplicationInfoServiceNoop(),
         databaseService: new DatabaseServiceNoop(),
         fileDownloadService: new FileDownloadServiceNoop(),
-        fileViewerService: new FileViewerServiceNoop(),
-        frontendInsights: new FrontendInsights({
-            application: {
-                // Kept old name to compare usage more easily in Amplitude UI
-                name: "FMS File Explorer",
-                version: "0.0.0-noop",
-            },
-        }),
-        executionEnvService: new ExecutionEnvServiceNoop(),
         notificationService: new NotificationServiceNoop(),
         persistentConfigService: new PersistentConfigServiceNoop(),
     },

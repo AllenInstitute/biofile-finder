@@ -2,9 +2,13 @@ import Annotation from "../entity/Annotation";
 import AnnotationName from "../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../entity/AnnotationFormatter";
 
-export const APP_ID = "fms-file-explorer-core";
+export const APP_ID = "file-explorer-core";
 
-// Refer to packages/fms-file-explorer-electron/src/main/menu
+/**
+ * Legacy environment enum. Only a single default (PRODUCTION) is used now that
+ * AICS backends are no longer contacted, but the shape is preserved for callers
+ * that still parameterize on environment.
+ */
 export enum Environment {
     LOCALHOST = "LOCALHOST",
     STAGING = "STAGING",
@@ -12,6 +16,10 @@ export enum Environment {
     TEST = "TEST",
 }
 
+/**
+ * "Top-level" (i.e. predefined) file annotations. These are surfaced in the UI
+ * even before a data source is loaded.
+ */
 export const TOP_LEVEL_FILE_ANNOTATIONS = [
     new Annotation({
         annotationDisplayName: "File ID",
@@ -28,9 +36,9 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
         isImmutable: true,
     }),
     new Annotation({
-        annotationDisplayName: "File Path (Cloud)",
+        annotationDisplayName: "File Path",
         annotationName: AnnotationName.FILE_PATH,
-        description: "Path to file in the cloud.",
+        description: "Path to file.",
         type: AnnotationType.STRING,
         isImmutable: true,
     }),
@@ -60,60 +68,14 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
 
 export const TOP_LEVEL_FILE_ANNOTATION_NAMES = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.name);
 
-export const AICS_FMS_DATA_SOURCE_NAME = "AICS FMS";
+/**
+ * Sentinel name. No real AICS FMS backend is configured; this constant is kept
+ * only so legacy "is this the AICS FMS data source" checks continue to
+ * type-check and evaluate to false for any user-provided data source.
+ */
+export const AICS_FMS_DATA_SOURCE_NAME = "__disabled_aics_fms_data_source__";
 export const HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
 
-export enum FESBaseUrl {
-    LOCALHOST = "http://localhost:9081",
-    STAGING = "https://staging.int.allencell.org",
-    PRODUCTION = "https://production.int.allencell.org",
-    TEST = "http://test.int.allencell.org",
-}
-
-export enum MMSBaseUrl {
-    LOCALHOST = "https://localhost:9060",
-    STAGING = "https://stg-aics.corp.alleninstitute.org",
-    PRODUCTION = "https://aics.corp.alleninstitute.org",
-    TEST = "http://test-aics-mms-api.corp.alleninstitute.org",
-}
-
-export enum LoadBalancerBaseUrl {
-    LOCALHOST = "http://localhost:8080",
-    STAGING = "http://stg-aics.corp.alleninstitute.org",
-    PRODUCTION = "http://aics.corp.alleninstitute.org",
-    TEST = "http://test-aics.corp.alleninstitute.org",
-}
-
-export enum DatasetBucketUrl {
-    LOCALHOST = "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com",
-    STAGING = "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com",
-    PRODUCTION = "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com",
-    TEST = "http://test-aics.corp.alleninstitute.org",
-}
-
-export enum CellFeatureExplorerBaseUrl {
-    LOCALHOST = "http://localhost:9002",
-    // TODO: Update this once the public build of CFE includes support for the
-    // csvUrl param, e.g.:
-    // STAGING = "https://cfe.allencell.org"
-    STAGING = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist",
-    PRODUCTION = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist",
-    TEST = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist",
-}
-
-export enum VolEBaseUrl {
-    LOCALHOST = "http://localhost:9020/viewer",
-    STAGING = "https://staging.volumeviewer.allencell.org/viewer",
-    PRODUCTION = "https://vole.allencell.org/viewer",
-    TEST = "https://staging.volumeviewer.allencell.org/viewer",
-}
-
-export enum TemporaryFileServiceBaseUrl {
-    LOCALHOST = "http://localhost:5000",
-    STAGING = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080",
-    PRODUCTION = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080",
-    TEST = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080",
-}
-
 export const UNSAVED_DATA_WARNING =
-    "Edits to data source files are not preserved by this app. Download to save a copy with your changes.";
+    "Edits to data source files are not preserved by this app.";
+
