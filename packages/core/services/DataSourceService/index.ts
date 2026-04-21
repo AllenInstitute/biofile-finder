@@ -8,8 +8,3 @@ export interface DataSource extends Source {
     id: string;
     version?: number;
 }
-
-export interface PythonicDataAccessSnippet {
-    code: string;
-    setup: string;
-}
