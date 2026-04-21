@@ -9,13 +9,9 @@ import CoreContent from "./components/CoreContent/CoreContent";
 import FileDetailPanel from "./components/FileDetailPanel";
 import Modal from "./components/Modal";
 import StatusMessage from "./components/StatusMessage";
-import TutorialTooltip from "./components/TutorialTooltip";
 import { Environment } from "./constants";
 import useCheckForScreenSizeChange from "./hooks/useCheckForScreenSizeChange";
-import useCheckForUpdates from "./hooks/useCheckForUpdates";
-import useUpdateHasUsedApp from "./hooks/useUpdateHasUsedApp";
 import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
-import useUnsavedDataWarning from "./hooks/useUnsavedDataWarning";
 import { interaction, selection } from "./state";
 
 import styles from "./App.module.css";
@@ -33,10 +29,6 @@ loadTheme({
 
 interface AppProps {
     className?: string;
-    // E.g.:
-    // Localhost: "https://localhost:9081"
-    // Stage: "http://stg-aics-api.corp.alleninstitute.org"
-    // From the web (behind load balancer): "/"
     environment?: Environment;
 }
 
@@ -50,9 +42,6 @@ export default function App(props: AppProps) {
         HTMLDivElement
     >();
 
-    useCheckForUpdates();
-    useUpdateHasUsedApp();
-    useUnsavedDataWarning();
     useCheckForScreenSizeChange(measuredWidth);
 
     // Set data source base urls
@@ -81,7 +70,6 @@ export default function App(props: AppProps) {
             <ContextMenu key={useSelector(interaction.selectors.getContextMenuKey)} />
             <StatusMessage />
             <Modal />
-            <TutorialTooltip />
         </div>
     );
 }

@@ -1,7 +1,4 @@
-import { FileViewerService } from "../../../core/services";
+import FileViewerServiceNoop from "../../../core/services/FileViewerService/FileViewerServiceNoop";
 
-export default class FileViewerServiceWeb implements FileViewerService {
-    public async open(): Promise<void> {
-        throw new Error("FileViewerServiceWeb::open is not yet implemented");
-    }
-}
+// Stub. No real viewer integration in this simplified build.
+export default class FileViewerServiceWeb extends FileViewerServiceNoop {}

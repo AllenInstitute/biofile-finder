@@ -1,14 +1,6 @@
-import { castArray } from "lodash";
-
-interface TutorialStep {
-    targetId: string;
-    message: string | React.ReactNode;
-}
-
 /**
- * Entity responsible for containing information about a tutorial in which to guide
- * a user through. The "targetId" on each step is what the <TutorialTooltip /> uses to
- * find and display the corresponding "message".
+ * Stub kept solely to satisfy element-id references sprinkled through the UI
+ * (e.g. `id={Tutorial.COLUMN_HEADERS_ID}`). No tutorial/walkthrough feature exists.
  */
 export default class Tutorial {
     public static readonly ADD_QUERY_BUTTON_ID = "add-query-button";
@@ -21,35 +13,4 @@ export default class Tutorial {
     public static readonly SAVE_BUTTON_ID = "save-button";
     public static readonly SHARE_BUTTON_ID = "share-button";
     public static readonly SORT_HEADER_ID = "sort-header";
-
-    public readonly title: string;
-    public readonly description: string;
-    private steps: TutorialStep[];
-
-    public constructor(title: string, description = "", steps: TutorialStep[] = []) {
-        this.title = title;
-        this.description = description;
-        this.steps = steps;
-    }
-
-    public get length(): number {
-        return this.steps.length;
-    }
-
-    public hasStep(index: number): boolean {
-        return index >= 0 && index < this.steps.length;
-    }
-
-    public getStep(index: number): TutorialStep {
-        return this.steps[index];
-    }
-
-    public addStep(step: TutorialStep | TutorialStep[]): Tutorial {
-        this.steps = [...this.steps, ...castArray(step)];
-        return this;
-    }
-
-    public toString(): string {
-        return `<Tutorial(title: ${this.title}, steps: ${JSON.stringify(this.steps)})>`;
-    }
 }

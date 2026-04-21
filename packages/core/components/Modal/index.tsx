@@ -3,14 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 import About from "./About";
-import QueryCodeSnippet from "./QueryCodeSnippet";
-import CopyFileManifest from "./CopyFileManifest";
 import DataSource from "./DataSource";
-import EditMetadata from "./EditMetadata";
-import ExtractMetadataCodeSnippet from "./ExtractMetadataCodeSnippet";
-import MetadataManifest from "./MetadataManifest";
-import SmallScreenWarning from "./SmallScreenWarning";
-import ConvertFiles from "./ZarrConversionModal";
 
 export interface ModalProps {
     onDismiss: () => void;
@@ -42,22 +35,8 @@ export default function Modal() {
     switch (visibleModal) {
         case ModalType.About:
             return <About onDismiss={onDismiss} />;
-        case ModalType.QueryCodeSnippet:
-            return <QueryCodeSnippet onDismiss={onDismiss} />;
-        case ModalType.CopyFileManifest:
-            return <CopyFileManifest onDismiss={onDismiss} />;
         case ModalType.DataSource:
             return <DataSource onDismiss={onDismiss} />;
-        case ModalType.EditMetadata:
-            return <EditMetadata onDismiss={onDismiss} />;
-        case ModalType.MetadataManifest:
-            return <MetadataManifest onDismiss={onDismiss} />;
-        case ModalType.SmallScreenWarning:
-            return <SmallScreenWarning onDismiss={onDismiss} />;
-        case ModalType.ExtractMetadataCodeSnippet:
-            return <ExtractMetadataCodeSnippet onDismiss={onDismiss} />;
-        case ModalType.ConvertFiles:
-            return <ConvertFiles onDismiss={onDismiss} />;
         default:
             return null;
     }
