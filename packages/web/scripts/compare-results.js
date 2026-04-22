@@ -2,7 +2,7 @@
  * compare-results.js
  *
  * Reads two benchmark result JSON files (base branch and PR branch) and outputs
- * a Markdown comparison table suitable for posting as a GitHub PR comment.
+ * a Markdown comparison table for the GitHub Step Summary.
  *
  * Usage:
  *   node scripts/compare-results.js <base-results.json> <pr-results.json>
@@ -23,11 +23,12 @@ const IMPROVEMENT_PCT = 10; // ≥10% faster → ✅
 // ---------------------------------------------------------------------------
 
 function fmt(ms) {
+    if (ms === undefined || ms === null) return "—";
     return ms < 10 ? `${ms.toFixed(2)}ms` : `${ms.toFixed(1)}ms`;
 }
 
 function pctDelta(base, pr) {
-    if (base === 0) return null;
+    if (!base) return null;
     return ((pr - base) / base) * 100;
 }
 
@@ -40,20 +41,6 @@ function deltaBadge(base, pr) {
     if (delta >= REGRESSION_WARN_PCT) return `${label} ⚠️`;
     if (delta <= -IMPROVEMENT_PCT) return `${label} ✅`;
     return label;
-}
-
-function inMemKey(r) {
-    return `${r.name}@${r.scale}@${r.schemaLabel}`;
-}
-
-function cloudKey(r) {
-    return `${r.name}@${r.scale ?? "unknown"}`;
-}
-
-function indexBy(arr, keyFn) {
-    const map = new Map();
-    for (const r of arr) map.set(keyFn(r), r);
-    return map;
 }
 
 // ---------------------------------------------------------------------------
@@ -70,65 +57,54 @@ if (!baseFile || !prFile) {
 const base = JSON.parse(fs.readFileSync(baseFile, "utf8"));
 const pr = JSON.parse(fs.readFileSync(prFile, "utf8"));
 
-const baseIndex = indexBy(base.results, inMemKey);
-const prIndex = indexBy(pr.results, inMemKey);
+// Index sources by label for fast lookup
+const baseSources = new Map(base.sources.map((s) => [s.label, s]));
+const prSources = new Map(pr.sources.map((s) => [s.label, s]));
 
-const baseCloudIndex = indexBy(base.cloudResults ?? [], cloudKey);
-const prCloudIndex = indexBy(pr.cloudResults ?? [], cloudKey);
+// All source labels, preserving order from the PR result (superset of base)
+const allLabels = [
+    ...new Set([...pr.sources.map((s) => s.label), ...base.sources.map((s) => s.label)]),
+];
 
-// Collect all unique in-memory keys, grouped by query name
-const allKeys = [...new Set([...prIndex.keys(), ...baseIndex.keys()])];
-
-const byQuery = new Map();
-for (const key of allKeys) {
-    const [name] = key.split("@");
-    if (!byQuery.has(name)) byQuery.set(name, []);
-    byQuery.get(name).push(key);
-}
-
-for (const keys of byQuery.values()) {
-    keys.sort((a, b) => {
-        const [, scaleA, schemaA] = a.split("@");
-        const [, scaleB, schemaB] = b.split("@");
-        const scaleDiff = parseInt(scaleA, 10) - parseInt(scaleB, 10);
-        if (scaleDiff !== 0) return scaleDiff;
-        return (schemaA ?? "").localeCompare(schemaB ?? "");
-    });
-}
+// All query names across both result sets
+const allQueryNames = [
+    ...new Set([
+        ...pr.sources.flatMap((s) => s.queries.map((q) => q.name)),
+        ...base.sources.flatMap((s) => s.queries.map((q) => q.name)),
+    ]),
+];
 
 // ---------------------------------------------------------------------------
-// Collect deltas for the summary section
+// Collect deltas for the summary section (use p50 of largest scale)
 // ---------------------------------------------------------------------------
 
-const allDeltas = []; // { label, delta, baseP50, prP50 }
+const allDeltas = [];
 
-for (const [, queryKeys] of byQuery) {
-    const narrowKeys = queryKeys.filter((k) => k.split("@")[2] === "narrow");
-    for (const key of narrowKeys) {
-        const [name, scaleStr] = key.split("@");
-        const baseP50 = baseIndex.get(key)?.p50 ?? null;
-        const prP50 = prIndex.get(key)?.p50 ?? null;
-        if (baseP50 !== null && prP50 !== null) {
+for (const qName of allQueryNames) {
+    for (const label of allLabels) {
+        const baseQ = baseSources.get(label)?.queries.find((q) => q.name === qName);
+        const prQ = prSources.get(label)?.queries.find((q) => q.name === qName);
+        if (baseQ && prQ) {
             allDeltas.push({
-                label: `\`${name}\` @ ${Number(scaleStr).toLocaleString()} rows`,
-                delta: pctDelta(baseP50, prP50),
-                baseP50,
-                prP50,
+                label: `\`${qName}\` @ ${label}`,
+                delta: pctDelta(baseQ.p50, prQ.p50),
+                baseP50: baseQ.p50,
+                prP50: prQ.p50,
             });
         }
     }
 }
 
 const regressions = allDeltas
-    .filter((d) => d.delta >= REGRESSION_WARN_PCT)
+    .filter((d) => d.delta !== null && d.delta >= REGRESSION_WARN_PCT)
     .sort((a, b) => b.delta - a.delta);
 
 const improvements = allDeltas
-    .filter((d) => d.delta <= -IMPROVEMENT_PCT)
+    .filter((d) => d.delta !== null && d.delta <= -IMPROVEMENT_PCT)
     .sort((a, b) => a.delta - b.delta);
 
 // ---------------------------------------------------------------------------
-// Build PR comment
+// Build Markdown output
 // ---------------------------------------------------------------------------
 
 const lines = [];
@@ -138,131 +114,70 @@ lines.push("");
 lines.push(`| | \`${base.branch}\` | \`${pr.branch}\` | Delta |`);
 lines.push("|-|-|-|-|");
 
-const initDelta = deltaBadge(base.initTimeMs, pr.initTimeMs);
-lines.push(`| **DuckDB init** | ${fmt(base.initTimeMs)} | ${fmt(pr.initTimeMs)} | ${initDelta} |`);
+// DuckDB init time
+lines.push(
+    `| **DuckDB init** | ${fmt(base.initTimeMs)} | ${fmt(pr.initTimeMs)} | ${deltaBadge(
+        base.initTimeMs,
+        pr.initTimeMs
+    )} |`
+);
 
-// --- Narrow schema (main table) ---
+// Registration time per source
 lines.push("| | | | |");
-lines.push("| **In-memory queries — narrow schema (p50 ms)** | | | |");
+lines.push("| **Registration (parquet → view)** | | | |");
 
-const wideLines = [];
-wideLines.push("| **In-memory queries — wide schema (p50 ms)** | | | |");
+for (const label of allLabels) {
+    const baseReg = baseSources.get(label)?.registrationMs ?? null;
+    const prReg = prSources.get(label)?.registrationMs ?? null;
+    lines.push(
+        `| \`${label}\`` +
+            ` | ${fmt(baseReg)}` +
+            ` | ${fmt(prReg)}` +
+            ` | ${baseReg !== null && prReg !== null ? deltaBadge(baseReg, prReg) : "—"} |`
+    );
+}
 
-for (const [queryName, queryKeys] of byQuery) {
-    const narrowKeys = queryKeys.filter((k) => k.split("@")[2] === "narrow");
-    const wideKeys = queryKeys.filter((k) => k.split("@")[2] === "wide");
+// Query timings per source (p50)
+lines.push("| | | | |");
+lines.push("| **Query timings — p50** | | | |");
 
-    for (const key of narrowKeys) {
-        const scale = parseInt(key.split("@")[1], 10);
-        const baseP50 = baseIndex.get(key)?.p50 ?? null;
-        const prP50 = prIndex.get(key)?.p50 ?? null;
+for (const label of allLabels) {
+    lines.push(`| _${label}_ | | | |`);
+    for (const qName of allQueryNames) {
+        const baseQ = baseSources.get(label)?.queries.find((q) => q.name === qName);
+        const prQ = prSources.get(label)?.queries.find((q) => q.name === qName);
         lines.push(
-            `| \`${queryName}\` @ ${scale.toLocaleString()} rows` +
-                ` | ${baseP50 !== null ? fmt(baseP50) : "—"}` +
-                ` | ${prP50 !== null ? fmt(prP50) : "—"}` +
-                ` | ${baseP50 !== null && prP50 !== null ? deltaBadge(baseP50, prP50) : "—"} |`
-        );
-    }
-
-    for (const key of wideKeys) {
-        const scale = parseInt(key.split("@")[1], 10);
-        const baseP50 = baseIndex.get(key)?.p50 ?? null;
-        const prP50 = prIndex.get(key)?.p50 ?? null;
-        wideLines.push(
-            `| \`${queryName}\` @ ${scale.toLocaleString()} rows` +
-                ` | ${baseP50 !== null ? fmt(baseP50) : "—"}` +
-                ` | ${prP50 !== null ? fmt(prP50) : "—"}` +
-                ` | ${baseP50 !== null && prP50 !== null ? deltaBadge(baseP50, prP50) : "—"} |`
+            `| \`${qName}\`` +
+                ` | ${fmt(baseQ?.p50)}` +
+                ` | ${fmt(prQ?.p50)}` +
+                ` | ${baseQ && prQ ? deltaBadge(baseQ.p50, prQ.p50) : "—"} |`
         );
     }
 }
 
-// --- Cloud results ---
-const allCloudKeys = [...new Set([...prCloudIndex.keys(), ...baseCloudIndex.keys()])];
-
-if (allCloudKeys.length > 0) {
-    // Group network baselines by scale for display
-    const allCloudScales = [
-        ...new Set(
-            [...(base.cloudResults ?? []), ...(pr.cloudResults ?? [])].map(
-                (r) => r.scale ?? "unknown"
-            )
-        ),
-    ].sort((a, b) => Number(a) - Number(b));
-
-    const netNotes = allCloudScales
-        .map((scale) => {
-            const baseNet = base.cloudResults?.find((r) => r.scale === scale)?.networkBaselineMs;
-            const prNet = pr.cloudResults?.find((r) => r.scale === scale)?.networkBaselineMs;
-            if (baseNet === undefined && prNet === undefined) return null;
-            return `${Number(scale).toLocaleString()} rows: \`${base.branch}\` ${
-                baseNet?.toFixed(1) ?? "?"
-            }ms / \`${pr.branch}\` ${prNet?.toFixed(1) ?? "?"}ms`;
-        })
-        .filter(Boolean);
-
-    const netNote = netNotes.length > 0 ? ` _(network baseline — ${netNotes.join("; ")})_` : "";
-
-    lines.push("| | | | |");
-    lines.push(`| **Cloud queries — HTTP parquet fixture (p50 ms)**${netNote} | | | |`);
-
-    // Sort by scale then query name
-    const sortedCloudKeys = [...allCloudKeys].sort((a, b) => {
-        const [nameA, scaleA] = a.split("@");
-        const [nameB, scaleB] = b.split("@");
-        if (Number(scaleA) !== Number(scaleB)) return Number(scaleA) - Number(scaleB);
-        return nameA.localeCompare(nameB);
-    });
-
-    let lastScale = null;
-    for (const key of sortedCloudKeys) {
-        const [name, scaleStr] = key.split("@");
-        const scale = Number(scaleStr);
-        if (scale !== lastScale) {
-            lines.push(`| _@ ${scale.toLocaleString()} rows_ | | | |`);
-            lastScale = scale;
-        }
-        const baseP50 = baseCloudIndex.get(key)?.p50 ?? null;
-        const prP50 = prCloudIndex.get(key)?.p50 ?? null;
-        lines.push(
-            `| \`${name}\`` +
-                ` | ${baseP50 !== null ? fmt(baseP50) : "—"}` +
-                ` | ${prP50 !== null ? fmt(prP50) : "—"}` +
-                ` | ${baseP50 !== null && prP50 !== null ? deltaBadge(baseP50, prP50) : "—"} |`
-        );
-    }
-}
-
-// --- Details: wide schema + p95 ---
+// p95 in a collapsible section
 lines.push("");
-lines.push("<details><summary>Wide schema results (p50 ms)</summary>\n");
+lines.push("<details><summary>p95 timings</summary>\n");
 lines.push(`| | \`${base.branch}\` | \`${pr.branch}\` | Delta |`);
 lines.push("|-|-|-|-|");
-for (const l of wideLines) lines.push(l);
-lines.push("\n</details>");
 
-lines.push("");
-lines.push("<details><summary>p95 timings (narrow schema)</summary>\n");
-lines.push(`| Query | Scale | \`${base.branch}\` p95 | \`${pr.branch}\` p95 | Delta |`);
-lines.push("|-------|-------|----------|--------|-------|");
-
-for (const [queryName, queryKeys] of byQuery) {
-    for (const key of queryKeys.filter((k) => k.split("@")[2] === "narrow")) {
-        const scale = key.split("@")[1];
-        const baseP95 = baseIndex.get(key)?.p95 ?? null;
-        const prP95 = prIndex.get(key)?.p95 ?? null;
+for (const label of allLabels) {
+    lines.push(`| _${label}_ | | | |`);
+    for (const qName of allQueryNames) {
+        const baseQ = baseSources.get(label)?.queries.find((q) => q.name === qName);
+        const prQ = prSources.get(label)?.queries.find((q) => q.name === qName);
         lines.push(
-            `| \`${queryName}\` | ${Number(scale).toLocaleString()}` +
-                ` | ${baseP95 !== null ? fmt(baseP95) : "—"}` +
-                ` | ${prP95 !== null ? fmt(prP95) : "—"}` +
-                ` | ${baseP95 !== null && prP95 !== null ? deltaBadge(baseP95, prP95) : "—"} |`
+            `| \`${qName}\`` +
+                ` | ${fmt(baseQ?.p95)}` +
+                ` | ${fmt(prQ?.p95)}` +
+                ` | ${baseQ && prQ ? deltaBadge(baseQ.p95, prQ.p95) : "—"} |`
         );
     }
 }
 
 lines.push("\n</details>");
 
-// --- Summary ---
+// Summary
 lines.push("");
 lines.push("### Summary");
 lines.push("");
@@ -303,9 +218,10 @@ if (regressions.length === 0 && improvements.length === 0) {
     }
 }
 
+const iters = pr.sources[0]?.queries[0]?.timings?.length ?? "?";
 lines.push(
     `_Benchmarks run in headless Chromium with DuckDB-WASM. ` +
-        `${pr.results[0]?.iterations ?? 20} iterations per query, round-robin shuffled order. ` +
+        `${iters} iterations per query. ` +
         `Flags: ⚠️ ≥${REGRESSION_WARN_PCT}% slower · ❌ ≥${REGRESSION_SEVERE_PCT}% slower · ✅ ≥${IMPROVEMENT_PCT}% faster_`
 );
 

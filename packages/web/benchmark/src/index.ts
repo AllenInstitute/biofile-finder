@@ -1,50 +1,9 @@
-import * as duckdb from "@duckdb/duckdb-wasm";
+import { BENCHMARK_TASKS, createServices } from "./tasks";
+import { BenchmarkConfig, BenchmarkResults, QueryResult, SourceResult } from "./types";
+import DatabaseServiceWebWorker from "../../src/services/DatabaseServiceWeb/duckdb-worker.worker";
 
-import { HIDDEN_UID_ANNOTATION } from "../../../core/constants";
-import { initializeDuckDB } from "../../../core/services/DatabaseService";
-import { createBenchmarkTable } from "./data";
-import { BENCHMARK_QUERIES } from "./queries";
-import { BenchmarkResults, CloudQueryResult, QueryResult, SchemaConfig } from "./types";
-
-/**
- * Number of timed iterations per query per scale × schema combination.
- * Each iteration runs all queries in a freshly shuffled order (see below).
- */
-const ITERATIONS = 20;
-
-/**
- * Number of full passes through all queries before timing begins.
- * Multiple warmup rounds ensure DuckDB's buffer pool and query planner
- * are in a stable, warm state for every query — not just the later ones.
- */
-const WARMUP_ROUNDS = 3;
-
-/**
- * Schema configurations to test. Each query is run at every applicable scale × schema
- * combination. Only one table exists in DuckDB at a time (create → benchmark → drop) to
- * stay within the ~3 GB WASM heap limit.
- *
- * narrow: matches the minimal BFF schema (8 columns, low cardinality) — the baseline.
- * wide:   20 extra annotation columns with high cardinality — stress-tests projection cost.
- *         Capped at 1M rows; the interesting dimension is column width, not row count.
- */
-const SCHEMA_CONFIGS: Array<SchemaConfig & { maxScale: number }> = [
-    { label: "narrow", extraColumns: 0, cardinality: "low", maxScale: 10_000_000 },
-    { label: "wide", extraColumns: 20, cardinality: "high", maxScale: 1_000_000 },
-];
-
-const ALL_SCALES = [100_000, 1_000_000, 10_000_000];
-
-/**
- * Cloud fixtures are exported from the narrow-schema tables at each scale and served
- * over HTTP by the Playwright runner. This exercises DuckDB's HTTP range-request code
- * path — the same path used for real S3/cloud parquet sources in BFF.
- */
-// Cloud fixtures are capped at 1M rows: the parquet buffer must be transferred from
-// the browser to the Playwright process via CDP (page.evaluate), which can't handle
-// the multi-hundred-MB arrays that a 10M row parquet produces. 100k and 1M are
-// sufficient to test HTTP range-request predicate pushdown at realistic scales.
-const CLOUD_FIXTURE_SCALES = ALL_SCALES.filter((s) => s <= 1_000_000);
+const DEFAULT_ITERATIONS = 20;
+const DEFAULT_WARMUP_ROUNDS = 3;
 
 function setStatus(msg: string) {
     const el = document.getElementById("status");
@@ -66,111 +25,44 @@ function shuffle<T>(arr: T[]): T[] {
     return out;
 }
 
-async function runQuery(db: duckdb.AsyncDuckDB, sql: string): Promise<void> {
-    const conn = await db.connect();
-    try {
-        await conn.query(sql);
-    } finally {
-        await conn.close();
-    }
-}
-
 /**
- * Benchmark all queries against a single table using a round-robin approach:
+ * Run the full task suite against a registered source using round-robin timing:
+ * warmup rounds first, then timed rounds with shuffled task order.
  *
- *   1. Warmup — WARMUP_ROUNDS full passes through all queries in fixed order.
- *      This brings DuckDB's buffer pool and query planner to a stable warm state
- *      for every query before any timing begins.
- *
- *   2. Timing — ITERATIONS rounds. In each round all queries run in a freshly
- *      shuffled order. Shuffling prevents any one query from consistently running
- *      in a "hotter" cache position than another, which would dilute comparisons.
+ * Tasks are called at the service layer (fetchValues, getFiles, etc.) — the same
+ * methods the app calls in response to user interactions. Timing covers the full
+ * round-trip: service call → worker IPC → DuckDB → result deserialization.
  */
-async function benchmarkTable(
-    db: duckdb.AsyncDuckDB,
-    tableName: string,
-    scale: number,
-    schemaLabel: string
+async function benchmarkSource(
+    service: DatabaseServiceWebWorker,
+    sourceName: string,
+    iterations: number,
+    warmupRounds: number
 ): Promise<QueryResult[]> {
-    const sqls = BENCHMARK_QUERIES.map((q) => ({ name: q.name, sql: q.sql(tableName) }));
+    const { annotationSvc, fileSvc } = createServices(service, sourceName);
 
-    // --- Warmup ---
-    setStatus(`Warming up ${tableName} (${WARMUP_ROUNDS} rounds)...`);
-    for (let w = 0; w < WARMUP_ROUNDS; w++) {
-        for (const { sql } of sqls) {
-            await runQuery(db, sql);
+    setStatus(`Warming up ${sourceName} (${warmupRounds} rounds)...`);
+    for (let w = 0; w < warmupRounds; w++) {
+        for (const task of BENCHMARK_TASKS) {
+            await task.run(annotationSvc, fileSvc);
         }
     }
 
-    // --- Timed iterations (shuffled round-robin) ---
-    const timingsMap = new Map<string, number[]>(sqls.map(({ name }) => [name, []]));
+    const timingsMap = new Map<string, number[]>(BENCHMARK_TASKS.map(({ name }) => [name, []]));
 
-    for (let i = 0; i < ITERATIONS; i++) {
-        setStatus(`Timing ${tableName} — iteration ${i + 1}/${ITERATIONS}...`);
-        for (const { name, sql } of shuffle(sqls)) {
+    for (let i = 0; i < iterations; i++) {
+        setStatus(`Timing ${sourceName} — iteration ${i + 1}/${iterations}...`);
+        for (const task of shuffle(BENCHMARK_TASKS)) {
             const start = performance.now();
-            await runQuery(db, sql);
-            timingsMap.get(name)!.push(performance.now() - start);
+            await task.run(annotationSvc, fileSvc);
+            timingsMap.get(task.name)!.push(performance.now() - start);
         }
     }
 
-    return BENCHMARK_QUERIES.map(({ name }) => {
+    return BENCHMARK_TASKS.map(({ name }) => {
         const timings = [...(timingsMap.get(name) ?? [])].sort((a, b) => a - b);
         return {
             name,
-            scale,
-            schemaLabel,
-            iterations: ITERATIONS,
-            timings,
-            p50: percentile(timings, 50),
-            p95: percentile(timings, 95),
-            p99: percentile(timings, 99),
-        };
-    });
-}
-
-/**
- * Same round-robin approach for cloud queries.
- */
-async function benchmarkCloudTable(
-    db: duckdb.AsyncDuckDB,
-    viewName: string,
-    scale: number,
-    networkBaselineMs: number
-): Promise<CloudQueryResult[]> {
-    const sqls = BENCHMARK_QUERIES.map((q) => ({ name: q.name, sql: q.sql(viewName) }));
-
-    // --- Warmup ---
-    setStatus(
-        `Warming up cloud benchmark ${scale.toLocaleString()} rows (${WARMUP_ROUNDS} rounds)...`
-    );
-    for (let w = 0; w < WARMUP_ROUNDS; w++) {
-        for (const { sql } of sqls) {
-            await runQuery(db, sql);
-        }
-    }
-
-    // --- Timed iterations (shuffled round-robin) ---
-    const timingsMap = new Map<string, number[]>(sqls.map(({ name }) => [name, []]));
-
-    for (let i = 0; i < ITERATIONS; i++) {
-        setStatus(
-            `Timing cloud ${scale.toLocaleString()} rows — iteration ${i + 1}/${ITERATIONS}...`
-        );
-        for (const { name, sql } of shuffle(sqls)) {
-            const start = performance.now();
-            await runQuery(db, sql);
-            timingsMap.get(name)!.push(performance.now() - start);
-        }
-    }
-
-    return BENCHMARK_QUERIES.map(({ name }) => {
-        const timings = [...(timingsMap.get(name) ?? [])].sort((a, b) => a - b);
-        return {
-            name,
-            scale,
-            networkBaselineMs,
-            iterations: ITERATIONS,
             timings,
             p50: percentile(timings, 50),
             p95: percentile(timings, 95),
@@ -180,171 +72,49 @@ async function benchmarkCloudTable(
 }
 
 async function main() {
+    const config: BenchmarkConfig = (window as any).__benchmarkConfig;
+    if (!config?.sources?.length) {
+        throw new Error("No benchmark config found. Runner must inject window.__benchmarkConfig.");
+    }
+    const iterations = config.iterations ?? DEFAULT_ITERATIONS;
+    const warmupRounds = config.warmupRounds ?? DEFAULT_WARMUP_ROUNDS;
+
     setStatus("Initializing DuckDB-WASM...");
-
     const initStart = performance.now();
-    const db = await initializeDuckDB(duckdb.LogLevel.WARNING);
+    const service = new DatabaseServiceWebWorker();
+    await service.initialize();
     const initTimeMs = performance.now() - initStart;
+    setStatus(`DuckDB initialized in ${initTimeMs.toFixed(0)}ms.`);
 
-    setStatus(`DuckDB initialized in ${initTimeMs.toFixed(0)}ms. Starting benchmark...`);
+    const sources: SourceResult[] = [];
 
-    // --- In-memory benchmark ---
-    // For each scale × schema: create a staging table → export to parquet → drop the table
-    // → create a view over the parquet (matching production's createParquetDirectView path).
-    // Only one table/view exists at a time to stay within the ~3 GB WASM heap limit.
-    const results: QueryResult[] = [];
-    // Collect fixture buffers (narrow schema only) keyed by scale for the cloud phase.
-    const fixtureBuffers = new Map<number, Uint8Array>();
+    for (const source of config.sources) {
+        setStatus(`Registering ${source.label} (${source.url})...`);
 
-    for (const schema of SCHEMA_CONFIGS) {
-        const scales = ALL_SCALES.filter((s) => s <= schema.maxScale);
-        for (const scale of scales) {
-            const tableName = `bench_${scale}_${schema.label}`;
-            const parquetFile = `${tableName}.parquet`;
-
-            // 1. Build the staging table (no hidden_bff_uid — parquet doesn't store it)
-            setStatus(`Creating table ${tableName}...`);
-            await createBenchmarkTable(db, tableName, scale, schema);
-
-            // 2. Export to parquet and re-register the buffer so parquet_scan can read it
-            setStatus(`Exporting ${tableName} to parquet...`);
-            {
-                const conn = await db.connect();
-                try {
-                    await conn.query(`COPY "${tableName}" TO '/${parquetFile}' (FORMAT PARQUET)`);
-                } finally {
-                    await conn.close();
-                }
-            }
-            const parquetBuffer = await db.copyFileToBuffer(`/${parquetFile}`);
-            await db.registerFileBuffer(parquetFile, parquetBuffer);
-
-            // 3. Drop the staging table; replace with a parquet_scan view that injects
-            //    hidden_bff_uid from DuckDB's file_row_number virtual column — exactly
-            //    what DatabaseService.createParquetDirectView does in production.
-            {
-                const conn = await db.connect();
-                try {
-                    await conn.query(`DROP TABLE IF EXISTS "${tableName}"`);
-                    await conn.query(
-                        `CREATE VIEW "${tableName}" AS
-                         SELECT *, file_row_number AS "${HIDDEN_UID_ANNOTATION}"
-                         FROM parquet_scan('${parquetFile}')`
-                    );
-                } finally {
-                    await conn.close();
-                }
-            }
-
-            // 4. Export cloud fixture for narrow tables (re-export from view to get a clean
-            //    buffer that was never transferred to the WASM worker).
-            if (schema.label === "narrow" && CLOUD_FIXTURE_SCALES.includes(scale)) {
-                setStatus(`Exporting cloud fixture for ${scale.toLocaleString()} rows...`);
-                const fixturePath = `/fixture_${scale}.parquet`;
-                const conn = await db.connect();
-                try {
-                    await conn.query(
-                        `COPY (SELECT * FROM "${tableName}") TO '${fixturePath}' (FORMAT PARQUET)`
-                    );
-                } finally {
-                    await conn.close();
-                }
-                fixtureBuffers.set(scale, await db.copyFileToBuffer(fixturePath));
-            }
-
-            // 5. Benchmark the view (same name, same queries — now exercises parquet_scan)
-            const tableResults = await benchmarkTable(db, tableName, scale, schema.label);
-            results.push(...tableResults);
-
-            // 6. Drop the view to free memory before the next allocation
-            {
-                const conn = await db.connect();
-                try {
-                    await conn.query(`DROP VIEW IF EXISTS "${tableName}"`);
-                } finally {
-                    await conn.close();
-                }
-            }
-        }
-    }
-
-    if (fixtureBuffers.size === 0) {
-        throw new Error(
-            `No cloud fixture buffers collected. ` +
-                `Check that SCHEMA_CONFIGS includes a narrow schema and CLOUD_FIXTURE_SCALES is non-empty.`
+        const regStart = performance.now();
+        await service.prepareDataSources(
+            [{ name: source.label, type: "parquet", uri: source.url }],
+            /* skipNormalization */ true
         );
-    }
+        const registrationMs = performance.now() - regStart;
 
-    // Expose fixture buffers as { [scale]: number[] } so Playwright can read them.
-    const fixtureArrays: Record<number, number[]> = {};
-    for (const [scale, buf] of fixtureBuffers) {
-        fixtureArrays[scale] = Array.from(buf);
-    }
-    (window as any).__fixtureParquets = fixtureArrays;
-    (window as any).__inMemoryDone = true;
+        const queries = await benchmarkSource(service, source.label, iterations, warmupRounds);
+        sources.push({ label: source.label, registrationMs, queries });
 
-    // --- Wait for Playwright to write the fixture files and signal the cloud phase ---
-    setStatus("Waiting for cloud benchmark signal from Playwright...");
-    const cloudFixtureUrls: Record<number, string> = await new Promise((resolve) => {
-        (window as any).__startCloudPhase = resolve;
-    });
-
-    // --- Cloud benchmark (one pass per scale) ---
-    const cloudResults: CloudQueryResult[] = [];
-
-    for (const scale of CLOUD_FIXTURE_SCALES) {
-        const cloudFixtureUrl = cloudFixtureUrls[scale];
-        if (!cloudFixtureUrl) continue;
-
-        const cloudFile = `cloud_fixture_${scale}.parquet`;
-        setStatus(`Registering cloud fixture ${scale.toLocaleString()} rows: ${cloudFixtureUrl}`);
-        await db.registerFileURL(
-            cloudFile,
-            cloudFixtureUrl,
-            (duckdb as any).DuckDBDataProtocol.HTTP,
-            false
-        );
-        {
-            const conn = await db.connect();
-            try {
-                await conn.query(
-                    `CREATE OR REPLACE VIEW cloud_bench_${scale} AS SELECT * FROM read_parquet('${cloudFile}')`
-                );
-            } finally {
-                await conn.close();
-            }
-        }
-
-        // Measure network baseline: time a HEAD request to the fixture URL
-        const netStart = performance.now();
-        await fetch(cloudFixtureUrl, { method: "HEAD" });
-        const networkBaselineMs = performance.now() - netStart;
-        setStatus(
-            `Network baseline @ ${scale.toLocaleString()} rows: ${networkBaselineMs.toFixed(1)}ms`
-        );
-
-        const scaleResults = await benchmarkCloudTable(
-            db,
-            `cloud_bench_${scale}`,
-            scale,
-            networkBaselineMs
-        );
-        cloudResults.push(...scaleResults);
+        await service.execute(`DROP VIEW IF EXISTS "${source.label}"`);
     }
 
     setStatus("Done.");
 
-    const benchmarkResults: BenchmarkResults = {
+    const results: BenchmarkResults = {
         timestamp: new Date().toISOString(),
-        // commit/branch are injected by the Playwright runner after collection
         commit: "unknown",
         branch: "unknown",
         initTimeMs,
-        results,
-        cloudResults,
+        sources,
     };
 
-    (window as any).__benchmarkResults = benchmarkResults;
+    (window as any).__benchmarkResults = results;
 }
 
 main().catch((err: Error) => {

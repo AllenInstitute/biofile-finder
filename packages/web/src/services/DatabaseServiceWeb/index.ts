@@ -42,8 +42,19 @@ export default class DatabaseServiceWeb extends DatabaseService {
     }
 
     public async initialize() {
-        this.worker.postMessage({ type: WorkerMsgType.INIT });
+        this.worker.postMessage({
+            type: WorkerMsgType.INIT,
+            payload: { queryTiming: localStorage.getItem("bff_query_timing") === "1" },
+        });
         await this.dbInitialized;
+        if (localStorage.getItem("bff_query_timing") === "1") {
+            (window as any).__getQueryTimings = () => this.dumpTimings();
+            console.log("[bff] Query timing enabled. Call __getQueryTimings() to see a report.");
+        }
+    }
+
+    public dumpTimings(): void {
+        this.worker.postMessage({ type: WorkerMsgType.DUMP_TIMING });
     }
 
     public async saveQuery(
@@ -311,6 +322,35 @@ export default class DatabaseServiceWeb extends DatabaseService {
                     }
                 }
                 console.error("Error in web worker: ", message);
+                return;
+            }
+            case WorkerResType.TIMING_REPORT: {
+                const { timings } = data.payload as WorkerResPayload<WorkerResType.TIMING_REPORT>;
+                const pct = (arr: number[], p: number) => {
+                    const s = [...arr].sort((a, b) => a - b);
+                    return s[Math.max(0, Math.ceil((p / 100) * s.length) - 1)].toFixed(1);
+                };
+                console.group("[bff] Query timing report");
+                console.log(
+                    "query".padEnd(40) +
+                        "n".padStart(5) +
+                        "  p50(ms)".padStart(10) +
+                        "  p95(ms)".padStart(10) +
+                        "  max(ms)".padStart(10)
+                );
+                for (const [label, values] of Object.entries(timings).sort((a, b) =>
+                    a[0].localeCompare(b[0])
+                )) {
+                    const max = Math.max(...values).toFixed(1);
+                    console.log(
+                        label.padEnd(40) +
+                            String(values.length).padStart(5) +
+                            pct(values, 50).padStart(10) +
+                            pct(values, 95).padStart(10) +
+                            max.padStart(10)
+                    );
+                }
+                console.groupEnd();
                 return;
             }
             default:

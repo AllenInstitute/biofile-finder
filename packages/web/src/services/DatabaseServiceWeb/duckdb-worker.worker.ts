@@ -13,6 +13,20 @@ import { initializeDuckDB } from "../../../../core/services/DatabaseService";
 
 declare const self: DedicatedWorkerGlobalScope & typeof globalThis;
 let databaseService: DatabaseServiceWebWorker | null = null;
+let queryTimingEnabled = false;
+const accumulatedTimings = new Map<string, number[]>();
+
+function inferQueryLabel(sql: string): string {
+    const s = sql.replace(/\s+/g, " ");
+    if (s.includes("information_schema")) return "fetch_annotations";
+    if (s.includes("AS column_name") && s.includes("IS NOT NULL")) return "available_annotations";
+    if (s.includes("SELECT DISTINCT")) return "distinct_values";
+    if (s.includes("SELECT COUNT(")) return "count";
+    if (s.includes("ILIKE") || s.includes("ilike")) return "text_search";
+    if (s.includes("ORDER BY") && s.includes("LIMIT")) return "sort_and_paginate";
+    if (s.includes("LIMIT 1")) return "schema_probe";
+    return "query";
+}
 
 // Map to track connectionNumber -> connection object
 const activeConnections = new Map<number, duckdb.AsyncDuckDBConnection>();
@@ -44,7 +58,8 @@ function cancelActiveConnection(connection: duckdb.AsyncDuckDBConnection): void 
 type MessageHandler<T extends WorkerMsgType> = (payload: WorkerReqPayload<T>) => Promise<void>;
 
 const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
-    [WorkerMsgType.INIT]: async () => {
+    [WorkerMsgType.INIT]: async (payload) => {
+        queryTimingEnabled = payload?.queryTiming ?? false;
         if (!databaseService) await initDuckDB();
         self.postMessage({ type: WorkerResType.READY });
     },
@@ -171,6 +186,13 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
             throw new Error(`Failed to delete source: ${err}`);
         }
     },
+    [WorkerMsgType.DUMP_TIMING]: async () => {
+        const timings: Record<string, number[]> = {};
+        accumulatedTimings.forEach((values, key) => {
+            timings[key] = values;
+        });
+        self.postMessage({ type: WorkerResType.TIMING_REPORT, payload: { timings } });
+    },
     [WorkerMsgType.CLOSE]: async () => {
         if (!databaseService) {
             return;
@@ -256,8 +278,21 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                 type: WorkerResType.STARTED,
                 payload: { connectionId, id: queryId },
             });
+        const t0 = queryTimingEnabled ? performance.now() : 0;
         try {
             const result = await connection.query(sql);
+            if (queryTimingEnabled) {
+                const elapsed = performance.now() - t0;
+                const labelMatch = sql.match(/^--\s*(.+)\n/);
+                const label = labelMatch ? labelMatch[1].trim() : inferQueryLabel(sql);
+                const existing = accumulatedTimings.get(label) ?? [];
+                accumulatedTimings.set(label, [...existing, elapsed]);
+                const body = sql
+                    .replace(/^--[^\n]*\n/, "")
+                    .replace(/\s+/g, " ")
+                    .slice(0, 100);
+                console.log(`[duckdb] ${elapsed.toFixed(1)}ms — [${label}] ${body}`);
+            }
 
             // Apache Arrow JS (used by duckdb-wasm) only reads the first 8 bytes, losing the nanoseconds.
             // Re-run with INTERVAL columns cast to ms integers so the data survives Arrow.

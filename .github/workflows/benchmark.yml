@@ -3,24 +3,48 @@ name: Query Benchmark
 on:
   workflow_dispatch:
     inputs:
-      base_branch:
-        description: "Base branch (reference)"
+      mode:
+        description: "Benchmark mode"
         required: true
+        type: choice
+        default: "regression"
+        options:
+          - regression
+          - baseline
+      base_branch:
+        description: "Base branch (regression mode only)"
+        required: false
         type: string
         default: "main"
       compare_branch:
-        description: "Branch to compare against base"
+        description: "Branch to benchmark (both modes)"
         required: true
         type: string
+      iterations:
+        description: "Timed iterations per task (default 20)"
+        required: false
+        type: string
+        default: "20"
+      warmup:
+        description: "Warmup rounds before timing (default 3)"
+        required: false
+        type: string
+        default: "3"
 
 # Only run one benchmark at a time per base+compare pair
 concurrency:
   group: benchmark-${{ github.event.inputs.base_branch }}-${{ github.event.inputs.compare_branch }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   benchmark:
-    name: Benchmark (${{ github.event.inputs.base_branch }} vs ${{ github.event.inputs.compare_branch }})
+    name: >-
+      ${{ github.event.inputs.mode == 'baseline'
+          && format('Baseline ({0})', github.event.inputs.compare_branch)
+          || format('Regression ({0} vs {1})', github.event.inputs.base_branch, github.event.inputs.compare_branch) }}
     runs-on: ubuntu-latest
     # Both branches run sequentially in a single job on the same VM. This is intentional:
     # if each branch ran in its own job, GitHub could schedule them on different physical
@@ -28,16 +52,27 @@ jobs:
     # hardware variance between VMs would mask the small regressions we actually care about.
     # Running back-to-back on the same VM ensures both measurements share the same hardware
     # baseline, so deltas reflect code differences only.
-    # 60 minutes: large-scale table creation (10M rows) + full query suite × 2 branches
-    timeout-minutes: 60
+    # 180 minutes: fixture download + full task suite (including change_grouping on 10m) × 2 branches
+    timeout-minutes: 180
 
     steps:
       # -----------------------------------------------------------------------
-      # Base branch
+      # Fixtures — downloaded once, reused by both branch runs
+      # -----------------------------------------------------------------------
+      - name: Download benchmark fixtures
+        run: |
+          mkdir -p packages/web/fixtures
+          BASE=https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1
+          curl -fL "$BASE/synthetic-100k.parquet" -o packages/web/fixtures/synthetic-100k.parquet
+          curl -fL "$BASE/synthetic-1m.parquet"   -o packages/web/fixtures/synthetic-1m.parquet
+          curl -fL "$BASE/synthetic-10m.parquet"  -o packages/web/fixtures/synthetic-10m.parquet
+
+      # -----------------------------------------------------------------------
+      # Compare branch (both modes)
       # -----------------------------------------------------------------------
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.base_branch }}
+          ref: ${{ github.event.inputs.compare_branch }}
 
       - uses: actions/setup-node@v4
         with:
@@ -51,47 +86,69 @@ jobs:
         run: npx playwright install chromium --with-deps
         working-directory: packages/web
 
-      - name: Run benchmark (${{ github.event.inputs.base_branch }})
-        run: node scripts/run-benchmark.js
-        working-directory: packages/web
-        env:
-          BENCHMARK_BRANCH: ${{ github.event.inputs.base_branch }}
-
-      - name: Save base results
-        run: mv packages/web/benchmark-results-*.json /tmp/benchmark-base.json
-
-      # -----------------------------------------------------------------------
-      # Compare branch
-      # -----------------------------------------------------------------------
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.compare_branch }}
-          # Preserve untracked files (e.g. node_modules) to speed up npm ci
-          clean: false
-
-      - name: Install dependencies
-        run: npm ci
-
       - name: Run benchmark (${{ github.event.inputs.compare_branch }})
-        run: node scripts/run-benchmark.js
+        run: node scripts/run-regression.js --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
         working-directory: packages/web
         env:
           BENCHMARK_BRANCH: ${{ github.event.inputs.compare_branch }}
 
       # -----------------------------------------------------------------------
-      # Compare results
+      # Baseline mode: summarize and finish
       # -----------------------------------------------------------------------
-      - name: Generate comparison
+      - name: Summarize baseline results
+        if: github.event.inputs.mode == 'baseline'
         run: |
-          COMPARE_FILE=$(ls packages/web/benchmark-results-*.json | head -1)
-          node packages/web/scripts/compare-results.js /tmp/benchmark-base.json "$COMPARE_FILE" >> "$GITHUB_STEP_SUMMARY"
+          RESULTS_FILE=$(ls packages/web/benchmark-results-*.json | head -1)
+          echo "## BFF Query Benchmark — Baseline (${{ github.event.inputs.compare_branch }})" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          node packages/web/scripts/summarize-results.js "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          node packages/web/scripts/summarize-results.js "$RESULTS_FILE"
 
-      - name: Upload results
+      - name: Upload baseline results
+        if: github.event.inputs.mode == 'baseline'
         uses: actions/upload-artifact@v4
-        if: always()
+        with:
+          name: benchmark-baseline-${{ github.event.inputs.compare_branch }}
+          path: packages/web/benchmark-results-*.json
+          retention-days: 90
+
+      # -----------------------------------------------------------------------
+      # Regression mode: run base branch, then compare
+      # -----------------------------------------------------------------------
+      - name: Save compare branch results
+        if: github.event.inputs.mode == 'regression'
+        run: mv packages/web/benchmark-results-*.json /tmp/benchmark-compare.json
+
+      - uses: actions/checkout@v4
+        if: github.event.inputs.mode == 'regression'
+        with:
+          ref: ${{ github.event.inputs.base_branch }}
+          clean: false
+
+      - name: Install dependencies (base branch)
+        if: github.event.inputs.mode == 'regression'
+        run: npm ci
+
+      - name: Run benchmark (${{ github.event.inputs.base_branch }})
+        if: github.event.inputs.mode == 'regression'
+        run: node scripts/run-regression.js --skip-build --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
+        working-directory: packages/web
+        env:
+          BENCHMARK_BRANCH: ${{ github.event.inputs.base_branch }}
+
+      - name: Generate comparison
+        if: github.event.inputs.mode == 'regression'
+        run: |
+          BASE_FILE=$(ls packages/web/benchmark-results-*.json | head -1)
+          node packages/web/scripts/compare-results.js "$BASE_FILE" /tmp/benchmark-compare.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload regression results
+        if: always() && github.event.inputs.mode == 'regression'
+        uses: actions/upload-artifact@v4
         with:
           name: benchmark-results
           path: |
-            /tmp/benchmark-base.json
             packages/web/benchmark-results-*.json
+            /tmp/benchmark-compare.json
           retention-days: 7

@@ -690,7 +690,7 @@ export default abstract class DatabaseService {
 
     // Create a view over the parquet file that exposes columns under predefined names (e.g. "File Path")
     // and adds hidden_bff_uid.
-    private async createParquetDirectView(name: string): Promise<void> {
+    protected async createParquetDirectView(name: string): Promise<void> {
         // 1. Get original column names from the user's table.
         // Note: we don't use this.getColumnsOnDataSource, since that expects a
         // fully built data source, and this function is used for creating a

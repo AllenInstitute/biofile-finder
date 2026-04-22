@@ -8,11 +8,17 @@
 
   "scripts": {
 
-    "benchmark": "node scripts/run-benchmark.js && node scripts/summarize-results.js",
+    "benchmark": "node scripts/run-local.js",
+
+    "benchmark:regression": "node scripts/run-regression.js",
 
     "benchmark:compare": "node scripts/compare-results.js",
 
     "benchmark:summary": "node scripts/summarize-results.js",
+
+    "benchmark:generate-fixtures": "python scripts/generate-fixtures.py",
+
+    "benchmark:upload-fixtures": "node scripts/upload-synthetic-fixtures.js",
 
     "build": "webpack --config ./webpack/webpack.config.js --env production",
 

@@ -6,23 +6,24 @@
  * Usage:
  *   node scripts/summarize-results.js [results.json]
  *
- * Defaults to benchmark-results.json in the packages/web directory.
+ * Defaults to benchmark-results-local.json, then the branch-stamped file.
  */
 
 "use strict";
 
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 
 function defaultResultsFile() {
-    // If an explicit path was given, use it
     if (process.argv[2]) return process.argv[2];
 
-    // Otherwise find the branch-stamped file for the current branch
+    const local = path.join(__dirname, "..", "benchmark-results-local.json");
+    if (fs.existsSync(local)) return local;
+
     try {
-        const { execSync } = require("child_process");
         const branch =
-            process.env.GITHUB_REF_NAME ||
+            process.env.BENCHMARK_BRANCH ||
             execSync("git rev-parse --abbrev-ref HEAD", { stdio: "pipe" }).toString().trim();
         const slug = branch.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
         const stamped = path.join(__dirname, "..", `benchmark-results-${slug}.json`);
@@ -31,7 +32,6 @@ function defaultResultsFile() {
         /* fall through */
     }
 
-    // Last resort: generic name
     return path.join(__dirname, "..", "benchmark-results.json");
 }
 
@@ -39,7 +39,6 @@ const file = defaultResultsFile();
 
 if (!fs.existsSync(file)) {
     console.error(`No results file found at ${file}`);
-    console.error("Run 'npm run benchmark' first.");
     process.exit(1);
 }
 
@@ -58,56 +57,46 @@ function rcol(str, width) {
     return String(str).padStart(width);
 }
 
-const SEP = "─".repeat(80);
+const SEP = "─".repeat(82);
 
 console.log("");
 console.log("BFF Query Benchmark Results");
 console.log(SEP);
-console.log(`Branch:     ${data.branch}`);
-console.log(`Commit:     ${data.commit}`);
-console.log(`Timestamp:  ${data.timestamp}`);
+console.log(`Branch:      ${data.branch}`);
+console.log(`Commit:      ${data.commit}`);
+console.log(`Timestamp:   ${data.timestamp}`);
 console.log(`DuckDB init: ${fmt(data.initTimeMs)}`);
 console.log("");
 
-// --- In-memory results ---
-const schemas = [...new Set(data.results.map((r) => r.schemaLabel))];
+const sourceLabels = data.sources.map((s) => s.label);
 
-for (const schema of schemas) {
-    const schemaResults = data.results.filter((r) => r.schemaLabel === schema);
-    const schemaScales = [...new Set(schemaResults.map((r) => r.scale))].sort((a, b) => a - b);
+// Header row
+const COL_W = 20;
+console.log(col("  Query", 26) + sourceLabels.map((l) => rcol(l, COL_W)).join(""));
+console.log("  " + "─".repeat(24 + sourceLabels.length * COL_W));
 
-    console.log(`In-memory — ${schema} schema (p50 / p95)`);
-    console.log(
-        col("  Query", 26) +
-            schemaScales.map((s) => rcol(Number(s).toLocaleString() + " rows", 18)).join("")
-    );
-    console.log("  " + "─".repeat(24 + schemaScales.length * 18));
+// Registration row
+const regCells = data.sources.map((s) => rcol(fmt(s.registrationMs), COL_W));
+console.log("  " + col("registration", 24) + regCells.join(""));
+console.log("");
 
-    const queries = [...new Set(schemaResults.map((r) => r.name))];
-    for (const name of queries) {
-        const cells = schemaScales.map((scale) => {
-            const r = schemaResults.find((x) => x.name === name && x.scale === scale);
-            if (!r) return rcol("—", 18);
-            return rcol(`${fmt(r.p50)} / ${fmt(r.p95)}`, 18);
-        });
-        console.log("  " + col(name, 24) + cells.join(""));
-    }
-    console.log("");
+// Query rows (p50 / p95)
+const queryNames = [...new Set(data.sources.flatMap((s) => s.queries.map((q) => q.name)))];
+
+for (const name of queryNames) {
+    const cells = data.sources.map((s) => {
+        const q = s.queries.find((x) => x.name === name);
+        if (!q) return rcol("—", COL_W);
+        return rcol(`${fmt(q.p50)} / ${fmt(q.p95)}`, COL_W);
+    });
+    console.log("  " + col(name, 24) + cells.join(""));
 }
 
-// --- Cloud results ---
-if (data.cloudResults && data.cloudResults.length > 0) {
-    const baseline = data.cloudResults[0]?.networkBaselineMs;
-    console.log(`Cloud — HTTP parquet fixture (network baseline: ${fmt(baseline)}) (p50 / p95)`);
-    console.log("  " + "─".repeat(50));
-    for (const r of data.cloudResults) {
-        console.log("  " + col(r.name, 24) + rcol(`${fmt(r.p50)} / ${fmt(r.p95)}`, 20));
-    }
-    console.log("");
-}
-
+console.log("");
 console.log(SEP);
 console.log(
-    `Total results: ${data.results.length} in-memory, ${data.cloudResults?.length ?? 0} cloud`
+    `  ${data.sources.length} source(s) · ${queryNames.length} queries · ` +
+        `${data.sources[0]?.queries[0]?.timings?.length ?? "?"} iterations each`
 );
+console.log("  Timings shown as p50 / p95");
 console.log("");
