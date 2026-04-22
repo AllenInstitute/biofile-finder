@@ -494,6 +494,9 @@ export default abstract class DatabaseService {
                 ADD COLUMN ${HIDDEN_UID_ANNOTATION} INT
             `,
             this.getUpdateHiddenUIDSQL(name),
+            // CSV type inference may produce non-VARCHAR "File Path" (e.g. all-numeric values
+            // inferred as BIGINT). Coerce to VARCHAR so regex-based operations succeed.
+            `ALTER TABLE "${name}" ALTER COLUMN "${PreDefinedColumn.FILE_PATH}" TYPE VARCHAR`,
         ];
 
         const dataSourceColumns = await this.getColumnsOnDataSource(name);
@@ -827,7 +830,7 @@ export default abstract class DatabaseService {
                 SELECT ROW_NUMBER() OVER () AS row, "${column}"
                 FROM "${dataSource}"
             ) AS A
-            WHERE TRIM(A."${column}") IS NULL
+            WHERE TRIM(CAST(A."${column}" AS VARCHAR)) IS NULL
         `).promise;
         return blankColumnQueryResult.map((row) => row.row);
     }
