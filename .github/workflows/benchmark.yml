@@ -57,22 +57,32 @@ jobs:
 
     steps:
       # -----------------------------------------------------------------------
-      # Fixtures — downloaded once, reused by both branch runs
+      # Compare branch (both modes)
       # -----------------------------------------------------------------------
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.compare_branch }}
+
+      # -----------------------------------------------------------------------
+      # Fixtures — cached by version; downloaded once, reused by both branch runs.
+      # Must come after checkout so git clean -ffdx (run by checkout) does not
+      # wipe the fixtures before the benchmark can use them.
+      # -----------------------------------------------------------------------
+      - name: Cache benchmark fixtures
+        id: fixture-cache
+        uses: actions/cache@v4
+        with:
+          path: packages/web/fixtures
+          key: benchmark-fixtures-v1
+
       - name: Download benchmark fixtures
+        if: steps.fixture-cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p packages/web/fixtures
           BASE=https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1
           curl -fL "$BASE/synthetic-100k.parquet" -o packages/web/fixtures/synthetic-100k.parquet
           curl -fL "$BASE/synthetic-1m.parquet"   -o packages/web/fixtures/synthetic-1m.parquet
           curl -fL "$BASE/synthetic-10m.parquet"  -o packages/web/fixtures/synthetic-10m.parquet
-
-      # -----------------------------------------------------------------------
-      # Compare branch (both modes)
-      # -----------------------------------------------------------------------
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.compare_branch }}
 
       - uses: actions/setup-node@v4
         with:
