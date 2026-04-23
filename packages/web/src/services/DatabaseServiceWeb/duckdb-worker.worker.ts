@@ -222,10 +222,10 @@ self.onerror = (ev) => {
 };
 
 export default class DatabaseServiceWebWorker extends DatabaseService {
-    async initialize() {
+    async initialize({ forceFullHTTPReads = false }: { forceFullHTTPReads?: boolean } = {}) {
         if (this.database) return; // Already initialized successfully
         try {
-            this.database = await initializeDuckDB(duckdb.LogLevel.WARNING);
+            this.database = await initializeDuckDB(duckdb.LogLevel.WARNING, { forceFullHTTPReads });
             return Promise.resolve();
         } catch (err: any) {
             console.error(err);
@@ -322,6 +322,27 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             await connection.close();
             activeConnections.delete(connectionId);
         }
+    }
+
+    public enableQueryTiming(): void {
+        queryTimingEnabled = true;
+    }
+
+    public clearAnnotationCache(sourceName: string): void {
+        this.dataSourceToAnnotationsMap.delete(sourceName);
+    }
+
+    public clearTimings(): void {
+        accumulatedTimings.clear();
+    }
+
+    /** Sum of all accumulated DuckDB query times across all labels since last clearTimings(). */
+    public sumTimings(): number {
+        let total = 0;
+        accumulatedTimings.forEach((values) => {
+            total += values.reduce((a, b) => a + b, 0);
+        });
+        return total;
     }
 
     // public wrapper so that the worker can access the function

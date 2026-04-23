@@ -9,6 +9,20 @@ import FileSort, { SortOrder } from "../../../core/entity/FileSort";
 
 export interface BenchmarkTask {
     name: string;
+    /**
+     * "worker" (default): sum DuckDB-internal query times (accurate for single-query tasks
+     * and tasks with large result sets where Arrow/JSON serialization is expensive).
+     * "wall-clock": measure elapsed time at the task level (correct for compound tasks that
+     * fire many parallel queries — summing their worker timings gives O(N²) due to each
+     * query's elapsed including wait time for all preceding parallel queries).
+     */
+    timing?: "worker" | "wall-clock";
+    /**
+     * If true, the annotation cache is cleared before each timed iteration so the task
+     * always issues a real DuckDB query. Without this, warmup populates the cache and
+     * timed iterations return immediately, reporting 0ms.
+     */
+    resetAnnotationCache?: boolean;
     /** Simulate one user action. Receives service layer instances, not raw SQL. */
     run: (
         annotationSvc: DatabaseAnnotationService,
@@ -27,6 +41,7 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
     // App startup: loads the column list to populate the annotation picker.
     {
         name: "fetch_annotations",
+        resetAnnotationCache: true,
         run: (a) => a.fetchAnnotations(),
     },
 
@@ -54,9 +69,23 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
         run: (_, f) => f.getFiles({ fileSet: new FileSet(), from: 0, limit: 100 }),
     },
 
-    // File list sorted by File Size — requires reading the full sort column to rank.
+    // File list sorted by File Size.
+    // Two page sizes because DuckDB uses different execution plans depending on LIMIT:
+    //   small N  → Top-N heap + row-group pruning via zonemap stats (fast path, ~50 rows)
+    //   large N  → full materialized sort of all rows (slow path, ~100 rows)
+    // Real users typically see the fast path (viewport ≈ 50 rows); the large-limit task
+    // benchmarks worst-case sort cost.
     {
         name: "sort_file_list",
+        run: (_, f) =>
+            f.getFiles({
+                fileSet: new FileSet({ sort: new FileSort("File Size", SortOrder.DESC) }),
+                from: 0,
+                limit: 50,
+            }),
+    },
+    {
+        name: "sort_file_list_large_page",
         run: (_, f) =>
             f.getFiles({
                 fileSet: new FileSet({ sort: new FileSort("File Size", SortOrder.DESC) }),
@@ -91,8 +120,13 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
 
     // Changing the grouping annotation — schema probe + one IS NOT NULL query per schema
     // column, run in parallel (matching app behavior).
+    // Uses wall-clock timing: the parallel queries each record elapsed time from when they
+    // were launched (not when DuckDB actually started them), so sumTimings() gives O(N²).
+    // Wall-clock is accurate here because each individual query returns a single row
+    // (no Arrow/JSON serialization overhead to exclude).
     {
         name: "change_grouping",
+        timing: "wall-clock",
         run: (a) => a.fetchAvailableAnnotationsForHierarchy(["cell_line"]),
     },
 

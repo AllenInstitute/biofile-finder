@@ -30,8 +30,13 @@ function shuffle<T>(arr: T[]): T[] {
  * warmup rounds first, then timed rounds with shuffled task order.
  *
  * Tasks are called at the service layer (fetchValues, getFiles, etc.) — the same
- * methods the app calls in response to user interactions. Timing covers the full
- * round-trip: service call → worker IPC → DuckDB → result deserialization.
+ * methods the app calls in response to user interactions.
+ *
+ * Timing strategy per task (see BenchmarkTask.timing):
+ *   "worker" (default): sums DuckDB-internal query times, excluding Arrow→JS conversion
+ *     and JSON serialization. Accurate for single-query tasks and tasks with large result sets.
+ *   "wall-clock": measures elapsed time at the task level. Used for compound tasks that fire
+ *     parallel queries — worker timings for those give O(N²) due to cumulative wait time.
  */
 async function benchmarkSource(
     service: DatabaseServiceWebWorker,
@@ -41,9 +46,12 @@ async function benchmarkSource(
 ): Promise<QueryResult[]> {
     const { annotationSvc, fileSvc } = createServices(service, sourceName);
 
+    service.enableQueryTiming();
+
     setStatus(`Warming up ${sourceName} (${warmupRounds} rounds)...`);
     for (let w = 0; w < warmupRounds; w++) {
         for (const task of BENCHMARK_TASKS) {
+            service.clearTimings();
             await task.run(annotationSvc, fileSvc);
         }
     }
@@ -53,9 +61,18 @@ async function benchmarkSource(
     for (let i = 0; i < iterations; i++) {
         setStatus(`Timing ${sourceName} — iteration ${i + 1}/${iterations}...`);
         for (const task of shuffle(BENCHMARK_TASKS)) {
-            const start = performance.now();
-            await task.run(annotationSvc, fileSvc);
-            timingsMap.get(task.name)!.push(performance.now() - start);
+            if (task.resetAnnotationCache) {
+                service.clearAnnotationCache(sourceName);
+            }
+            if (task.timing === "wall-clock") {
+                const start = performance.now();
+                await task.run(annotationSvc, fileSvc);
+                timingsMap.get(task.name)!.push(performance.now() - start);
+            } else {
+                service.clearTimings();
+                await task.run(annotationSvc, fileSvc);
+                timingsMap.get(task.name)!.push(service.sumTimings());
+            }
         }
     }
 
@@ -86,14 +103,40 @@ async function main() {
     const initTimeMs = performance.now() - initStart;
     setStatus(`DuckDB initialized in ${initTimeMs.toFixed(0)}ms.`);
 
+    // Playwright injects local File objects (via setInputFiles) into window.__localFiles
+    // before signalling window.__resolveLocalFiles. We wait up to 5 seconds; if Playwright
+    // doesn't respond (e.g. running outside Playwright), we fall back to URL registration.
+    const localFiles: Record<string, File> = await new Promise<Record<string, File>>((resolve) => {
+        (window as any).__resolveLocalFiles = resolve;
+        (window as any).__localFilesRequested = true;
+        setTimeout(() => resolve({}), 5000);
+    });
+
+    // Absorb DuckDB's one-time parquet cold-start cost (scanner JIT, VFS setup,
+    // buffer pool init) before timing any real source registrations. Without this,
+    // the first source always shows inflated registration time regardless of file size.
+    if (config.sources.length > 0) {
+        const warmup = config.sources[0];
+        const warmupFile = localFiles[warmup.label];
+        await service.prepareDataSources(
+            [{ name: "__bff_warmup__", type: "parquet", uri: warmupFile ?? warmup.url }],
+            /* skipNormalization */ true
+        );
+        await service.execute('DROP VIEW IF EXISTS "__bff_warmup__"');
+    }
+
     const sources: SourceResult[] = [];
 
     for (const source of config.sources) {
         setStatus(`Registering ${source.label} (${source.url})...`);
 
         const regStart = performance.now();
+        // Use the Playwright-injected File object when available so DuckDB reads via
+        // BROWSER_FILEREADER (direct local disk reads). This matches how a real user
+        // loads a file via the browser file picker — no HTTP range-request overhead.
+        const localFile = localFiles[source.label];
         await service.prepareDataSources(
-            [{ name: source.label, type: "parquet", uri: source.url }],
+            [{ name: source.label, type: "parquet", uri: localFile ?? source.url }],
             /* skipNormalization */ true
         );
         const registrationMs = performance.now() - regStart;

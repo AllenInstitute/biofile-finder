@@ -10,7 +10,7 @@
  *   BENCHMARK_REAL_100K_URL=s3://... \
  *   BENCHMARK_REAL_1M_URL=s3://...  \
  *   BENCHMARK_REAL_10M_URL=s3://... \
- *   node scripts/run-local.js [--scale 100k|1m|10m] [--iterations N] [--warmup N] [--local] [--full] [--skip-build]
+ *   node scripts/run-local.js [--scale 100k|1m|10m] [--iterations N] [--warmup N] [--local] [--full] [--skip-build] [--chromium]
  *
  * --scale limits the run to a single fixture size. Omit to run all set URLs.
  * --iterations overrides the number of timed iterations (default 20).
@@ -19,6 +19,8 @@
  *   URL env vars are not required when using --local.
  * --full runs all three scales for both cloud and local in one session, labelled
  *   "<scale>-cloud" and "<scale>-local". Requires all three URL env vars to be set.
+ * --chromium uses Playwright's bundled Chromium instead of system Chrome. Use this if Chrome
+ *   is not installed. Timings will be slower and will not match real user experience.
  * At least one URL must be set (unless --local or --full with no URLs is used). URLs may be s3:// or https://.
  *
  * Output:
@@ -40,9 +42,15 @@ const LOCAL_FIXTURE_MAP = {
 };
 
 const REMOTE_URL_MAP = {
-    "100k": process.env.BENCHMARK_REAL_100K_URL,
-    "1m": process.env.BENCHMARK_REAL_1M_URL,
-    "10m": process.env.BENCHMARK_REAL_10M_URL,
+    "100k":
+        process.env.BENCHMARK_REAL_100K_URL ??
+        "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1/synthetic-100k.parquet",
+    "1m":
+        process.env.BENCHMARK_REAL_1M_URL ??
+        "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1/synthetic-1m.parquet",
+    "10m":
+        process.env.BENCHMARK_REAL_10M_URL ??
+        "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1/synthetic-10m.parquet",
 };
 
 const useLocal = process.argv.includes("--local");
@@ -106,6 +114,8 @@ function getArgValue(flag) {
 
 async function main() {
     const skipBuild = process.argv.includes("--skip-build");
+    const useChromium = process.argv.includes("--chromium");
+    const channel = useChromium ? undefined : "chrome";
     const iterations = getArgValue("--iterations");
     const warmup = getArgValue("--warmup");
 
@@ -115,12 +125,18 @@ async function main() {
     }
     if (iterations) console.log(`[local] Iterations: ${iterations}`);
     if (warmup !== undefined) console.log(`[local] Warmup rounds: ${warmup}`);
+    console.log(
+        `[local] Browser: ${
+            channel ? `system Chrome (channel: ${channel})` : "Playwright bundled Chromium"
+        }`
+    );
 
     const rawResults = await runBenchmarkPage({
         sources,
         skipBuild,
         iterations,
         warmupRounds: warmup,
+        channel,
     });
 
     // Attach git metadata
