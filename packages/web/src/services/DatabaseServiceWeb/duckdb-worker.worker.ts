@@ -16,18 +16,6 @@ let databaseService: DatabaseServiceWebWorker | null = null;
 let queryTimingEnabled = false;
 const accumulatedTimings = new Map<string, number[]>();
 
-function inferQueryLabel(sql: string): string {
-    const s = sql.replace(/\s+/g, " ");
-    if (s.includes("information_schema")) return "fetch_annotations";
-    if (s.includes("AS column_name") && s.includes("IS NOT NULL")) return "available_annotations";
-    if (s.includes("SELECT DISTINCT")) return "distinct_values";
-    if (s.includes("SELECT COUNT(")) return "count";
-    if (s.includes("ILIKE") || s.includes("ilike")) return "text_search";
-    if (s.includes("ORDER BY") && s.includes("LIMIT")) return "sort_and_paginate";
-    if (s.includes("LIMIT 1")) return "schema_probe";
-    return "query";
-}
-
 // Map to track connectionNumber -> connection object
 const activeConnections = new Map<number, duckdb.AsyncDuckDBConnection>();
 
@@ -222,10 +210,10 @@ self.onerror = (ev) => {
 };
 
 export default class DatabaseServiceWebWorker extends DatabaseService {
-    async initialize({ forceFullHTTPReads = false }: { forceFullHTTPReads?: boolean } = {}) {
+    async initialize() {
         if (this.database) return; // Already initialized successfully
         try {
-            this.database = await initializeDuckDB(duckdb.LogLevel.WARNING, { forceFullHTTPReads });
+            this.database = await initializeDuckDB(duckdb.LogLevel.WARNING);
             return Promise.resolve();
         } catch (err: any) {
             console.error(err);
@@ -284,7 +272,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             if (queryTimingEnabled) {
                 const elapsed = performance.now() - t0;
                 const labelMatch = sql.match(/^--\s*(.+)\n/);
-                const label = labelMatch ? labelMatch[1].trim() : inferQueryLabel(sql);
+                const label = labelMatch ? labelMatch[1].trim() : "query";
                 const existing = accumulatedTimings.get(label) ?? [];
                 accumulatedTimings.set(label, [...existing, elapsed]);
                 const body = sql

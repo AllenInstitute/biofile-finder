@@ -3,21 +3,13 @@ name: Query Benchmark
 on:
   workflow_dispatch:
     inputs:
-      mode:
-        description: "Benchmark mode"
-        required: true
-        type: choice
-        default: "regression"
-        options:
-          - regression
-          - baseline
       base_branch:
-        description: "Base branch (regression mode only)"
+        description: "Base branch to compare against"
         required: false
         type: string
         default: "main"
       compare_branch:
-        description: "Branch to benchmark (both modes)"
+        description: "Branch to benchmark"
         required: true
         type: string
       iterations:
@@ -41,10 +33,7 @@ permissions:
 
 jobs:
   benchmark:
-    name: >-
-      ${{ github.event.inputs.mode == 'baseline'
-          && format('Baseline ({0})', github.event.inputs.compare_branch)
-          || format('Regression ({0} vs {1})', github.event.inputs.base_branch, github.event.inputs.compare_branch) }}
+    name: "Regression (${{ github.event.inputs.base_branch }} vs ${{ github.event.inputs.compare_branch }})"
     runs-on: ubuntu-latest
     # Both branches run sequentially in a single job on the same VM. This is intentional:
     # if each branch ran in its own job, GitHub could schedule them on different physical
@@ -56,18 +45,12 @@ jobs:
     timeout-minutes: 180
 
     steps:
-      # -----------------------------------------------------------------------
-      # Compare branch (both modes)
-      # -----------------------------------------------------------------------
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.compare_branch }}
 
-      # -----------------------------------------------------------------------
-      # Fixtures — cached by version; downloaded once, reused by both branch runs.
-      # Must come after checkout so git clean -ffdx (run by checkout) does not
-      # wipe the fixtures before the benchmark can use them.
-      # -----------------------------------------------------------------------
+      # Fixtures cached by version; downloaded once, reused by both branch runs.
+      # Must come after checkout so git clean -ffdx does not wipe them.
       - name: Cache benchmark fixtures
         id: fixture-cache
         uses: actions/cache@v4
@@ -102,59 +85,30 @@ jobs:
         env:
           BENCHMARK_BRANCH: ${{ github.event.inputs.compare_branch }}
 
-      # -----------------------------------------------------------------------
-      # Baseline mode: summarize and finish
-      # -----------------------------------------------------------------------
-      - name: Summarize baseline results
-        if: github.event.inputs.mode == 'baseline'
-        run: |
-          RESULTS_FILE=$(ls packages/web/benchmark-results-*.json | head -1)
-          echo "## BFF Query Benchmark — Baseline (${{ github.event.inputs.compare_branch }})" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          node packages/web/scripts/summarize-results.js "$RESULTS_FILE" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          node packages/web/scripts/summarize-results.js "$RESULTS_FILE"
-
-      - name: Upload baseline results
-        if: github.event.inputs.mode == 'baseline'
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-baseline-${{ github.event.inputs.compare_branch }}
-          path: packages/web/benchmark-results-*.json
-          retention-days: 90
-
-      # -----------------------------------------------------------------------
-      # Regression mode: run base branch, then compare
-      # -----------------------------------------------------------------------
       - name: Save compare branch results
-        if: github.event.inputs.mode == 'regression'
         run: mv packages/web/benchmark-results-*.json /tmp/benchmark-compare.json
 
       - uses: actions/checkout@v4
-        if: github.event.inputs.mode == 'regression'
         with:
           ref: ${{ github.event.inputs.base_branch }}
           clean: false
 
       - name: Install dependencies (base branch)
-        if: github.event.inputs.mode == 'regression'
         run: npm ci
 
       - name: Run benchmark (${{ github.event.inputs.base_branch }})
-        if: github.event.inputs.mode == 'regression'
         run: node scripts/run-regression.js --skip-build --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
         working-directory: packages/web
         env:
           BENCHMARK_BRANCH: ${{ github.event.inputs.base_branch }}
 
       - name: Generate comparison
-        if: github.event.inputs.mode == 'regression'
         run: |
           BASE_FILE=$(ls packages/web/benchmark-results-*.json | head -1)
           node packages/web/scripts/compare-results.js "$BASE_FILE" /tmp/benchmark-compare.json >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload regression results
-        if: always() && github.event.inputs.mode == 'regression'
+      - name: Upload results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-results

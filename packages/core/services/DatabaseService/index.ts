@@ -91,10 +91,7 @@ export function buildFetchAnnotationsSQL(tableName: string): string {
         .toSQL();
 }
 
-export async function initializeDuckDB(
-    logLevel: duckdb.LogLevel,
-    { forceFullHTTPReads = false }: { forceFullHTTPReads?: boolean } = {}
-): Promise<duckdb.AsyncDuckDB> {
+export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckdb.AsyncDuckDB> {
     const allBundles = duckdb.getJsDelivrBundles();
 
     // Selects the best bundle based on browser checks
@@ -109,13 +106,9 @@ export async function initializeDuckDB(
     await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
     await db.open({
         filesystem: {
-            // When false (production default): DuckDB uses HTTP range requests to read
-            // only the parquet columns and row groups needed for each query. Efficient
-            // for large remote files but slow if many queries re-read the same data.
-            // When true (benchmark): DuckDB downloads the full file once into its buffer
-            // pool so all subsequent queries run from memory — matching warm-cache
-            // performance a real user experiences after loading the file.
-            forceFullHTTPReads,
+            // This configuration enables partial reads from parquet files,
+            // which is crucial for performance on 2M+ row tables.
+            forceFullHTTPReads: false,
         },
     });
     URL.revokeObjectURL(workerUrl);
