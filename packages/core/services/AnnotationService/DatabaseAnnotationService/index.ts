@@ -7,6 +7,7 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import { Source } from "../../../entity/SearchParams";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
 /**
@@ -35,6 +36,7 @@ export function buildDistinctValuesSQL(
 interface Config {
     databaseService: DatabaseService;
     dataSourceNames: string[];
+    metadataSource?: Source;
 }
 
 interface QueryResult {
@@ -47,19 +49,21 @@ interface QueryResult {
 export default class DatabaseAnnotationService implements AnnotationService {
     private readonly databaseService: DatabaseService;
     private readonly dataSourceNames: string[];
+    private readonly metadataSource: Source | undefined;
 
     constructor(
         config: Config = { dataSourceNames: [], databaseService: new DatabaseServiceNoop() }
     ) {
         this.dataSourceNames = config.dataSourceNames;
         this.databaseService = config.databaseService;
+        this.metadataSource = config.metadataSource;
     }
 
     /**
      * Fetch all annotations.
      */
     public fetchAnnotations(): Promise<Annotation[]> {
-        return this.databaseService.fetchAnnotations(this.dataSourceNames);
+        return this.databaseService.fetchAnnotations(this.dataSourceNames, this.metadataSource);
     }
 
     /**

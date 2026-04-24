@@ -213,14 +213,13 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 payload: { name: dataSource },
             });
         });
-        const wrappedPromise = promise.finally(() => {
-            this.existingDataSources.delete(dataSource);
-            this.dataSourceToAnnotationsMap.delete(dataSource);
-        });
-        return wrappedPromise;
+        return promise;
     }
 
-    public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
+    public async fetchAnnotations(
+        dataSourceNames: string[],
+        metadataSource?: Source
+    ): Promise<Annotation[]> {
         if (!this.ready) {
             throw new Error("Database failed to initialize in fetchAnnotations");
         }
@@ -236,7 +235,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
             try {
                 this.worker.postMessage({
                     type: WorkerMsgType.ANNOTATIONS,
-                    payload: { dataSourceNames, id },
+                    payload: { dataSourceNames, metadataSource, id },
                 });
             } catch (err) {
                 // Failure in posting message: reject and clean up

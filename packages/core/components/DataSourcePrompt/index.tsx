@@ -43,24 +43,25 @@ export default function DataSourcePrompt(props: Props) {
 
     const [dataSource, setDataSource] = React.useState<Source>();
     const [metadataSource, setMetadataSource] = React.useState<Source>();
-    const [showAdvancedOptions, setShowAdvancedOptions] = React.useState(false);
+    const [provenanceSource, setProvenanceSource] = React.useState<Source>();
+    const [showMetadataPrompt, setShowMetadataPrompt] = React.useState(false);
+    const [showProvenancePrompt, setShowProvenancePrompt] = React.useState(false);
     const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
     const onDismiss = () => {
         dispatch(interaction.actions.hideVisibleModal());
     };
 
-    const onSubmit = (dataSource: Source, metadataSource?: Source) => {
-        if (sourceType === DataSourceType.provenance) {
-            if (dataSource) {
-                dispatch(selection.actions.changeProvenanceSource(dataSource));
-            }
-            // To do: include provenance source in query as with metadatasource
-            return onDismiss();
-        }
+    const onSubmit = () => {
+        // TO DO: https://github.com/AllenInstitute/biofile-finder/issues/742
+        // Allow users to add just prov/metadata descriptor files without adding a dataSource
+        if (!dataSource) return;
         if (requiresDataSourceReload || query) {
             if (metadataSource) {
                 dispatch(selection.actions.changeSourceMetadata(metadataSource));
+            }
+            if (provenanceSource) {
+                dispatch(selection.actions.changeProvenanceSource(provenanceSource));
             }
 
             if (requiresDataSourceReload) {
@@ -69,10 +70,15 @@ export default function DataSourcePrompt(props: Props) {
                 dispatch(selection.actions.changeDataSources([...selectedDataSources, dataSource]));
             }
         } else {
+            // brand new query
             dispatch(
                 selection.actions.addQuery({
                     name: `New ${dataSource.name} Query`,
-                    parts: { sources: [dataSource], sourceMetadata: metadataSource },
+                    parts: {
+                        sources: [dataSource],
+                        sourceMetadata: metadataSource,
+                        prov: provenanceSource,
+                    },
                     loading: true,
                 })
             );
@@ -81,7 +87,7 @@ export default function DataSourcePrompt(props: Props) {
         onDismiss();
     };
 
-    const advancedOptions = (
+    const metadataDescriptorPrompt = (
         <div
             className={classNames(
                 styles.fullWidth,
@@ -96,7 +102,7 @@ export default function DataSourcePrompt(props: Props) {
                         iconName="Cancel"
                         onClick={() => {
                             setMetadataSource(undefined);
-                            setShowAdvancedOptions(false);
+                            setShowMetadataPrompt(false);
                         }}
                     />
                 </div>
@@ -108,6 +114,39 @@ export default function DataSourcePrompt(props: Props) {
                     selectedFile={metadataSource}
                     parentId={`file-prompt-metadata-${props.isModal ? "modal" : "main"}`}
                     fileLabel={"Metadata descriptor file: "}
+                    lightBackground={props.isModal}
+                />
+            </div>
+        </div>
+    );
+
+    const provenanceFilePrompt = (
+        <div
+            className={classNames(
+                styles.fullWidth,
+                provenanceSource ? styles.advancedOptionsFilled : styles.advancedOptionsEmpty
+            )}
+        >
+            {!provenanceSource && (
+                <div className={styles.advancedOptionsHeader}>
+                    <h4 className={styles.fullWidth}>Add provenance descriptor file (optional)</h4>
+                    <TransparentIconButton
+                        className={styles.iconButton}
+                        iconName="Cancel"
+                        onClick={() => {
+                            setProvenanceSource(undefined);
+                            setShowProvenancePrompt(false);
+                        }}
+                    />
+                </div>
+            )}
+            <div className={styles.filePromptWrapper}>
+                <FilePrompt
+                    className={classNames(styles.filePrompt, styles.filePromptWide)}
+                    onSelectFile={setProvenanceSource}
+                    selectedFile={provenanceSource}
+                    parentId={`file-prompt-provenance-${props.isModal ? "modal" : "main"}`}
+                    fileLabel={"Provenance descriptor file: "}
                     lightBackground={props.isModal}
                 />
             </div>
@@ -133,21 +172,35 @@ export default function DataSourcePrompt(props: Props) {
                     parentId={`file-prompt-${props.isModal ? "modal" : "main"}`}
                     lightBackground={props.isModal}
                 />
-                {showAdvancedOptions
-                    ? advancedOptions
-                    : sourceType === DataSourceType.default && (
-                          <LinkLikeButton
-                              className={styles.advancedOptionsButton}
-                              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                              text="Add metadata descriptor file (optional)"
-                          />
-                      )}
+                <div className={styles.advancedOptionsButtons}>
+                    {!(showMetadataPrompt && showProvenancePrompt) && <p>Optional includes: </p>}
+                    {!showMetadataPrompt && (
+                        <LinkLikeButton
+                            className={styles.advancedOptionsButton}
+                            onClick={() => setShowMetadataPrompt(!showMetadataPrompt)}
+                            text="Metadata descriptor file"
+                            title="Select a file that describes your metadata columns"
+                        />
+                    )}
+                    {!(showMetadataPrompt || showProvenancePrompt) && <p>|</p>}
+                    {!showProvenancePrompt && (
+                        <LinkLikeButton
+                            className={styles.advancedOptionsButton}
+                            onClick={() => setShowProvenancePrompt(!showProvenancePrompt)}
+                            text="Provenance descriptor file"
+                            title="Select a file that describes provenance relationships"
+                        />
+                    )}
+                </div>
+                {showMetadataPrompt && metadataDescriptorPrompt}
+                {showProvenancePrompt && provenanceFilePrompt}
                 <div className={styles.loadButtonContainer}>
                     <PrimaryButton
                         className={classNames(styles.loadButton)}
-                        disabled={!dataSource && !metadataSource}
+                        // TO DO: https://github.com/AllenInstitute/biofile-finder/issues/742 Allow users to upload just metadata/prov files
+                        disabled={!dataSource}
                         text="LOAD"
-                        onClick={() => dataSource && onSubmit(dataSource, metadataSource)}
+                        onClick={onSubmit}
                     />
                 </div>
             </div>

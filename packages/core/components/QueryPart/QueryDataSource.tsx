@@ -83,21 +83,6 @@ export default function QueryDataSource(props: Props) {
                         );
                     },
                 },
-                // TODO: Hide this for now until we have better docs for explaining this
-                // Temporary menu item for adding provenance data
-                // {
-                //     key: "New Provenance Data Source",
-                //     text: "New provenance data source",
-                //     onClick: () => {
-                //         dispatch(
-                //             interaction.actions.promptForDataSource({
-                //                 query: selectedQuery,
-                //                 source: selectedDataSources[0],
-                //                 sourceType: DataSourceType.provenance,
-                //             })
-                //         );
-                //     },
-                // },
             ]}
             rows={[
                 ...props.dataSources.map((dataSource) => ({
