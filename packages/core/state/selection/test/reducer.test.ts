@@ -2,14 +2,18 @@ import { expect } from "chai";
 
 import selection from "..";
 import { initialState } from "../..";
+import { initialState as initialSelectionState } from "../reducer";
 import interaction from "../../interaction";
+import { Environment } from "../../../constants";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
+import FileDetail from "../../../entity/FileDetail";
 import FileFilter from "../../../entity/FileFilter";
+import FileFolder from "../../../entity/FileFolder";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
-import NumericRange from "../../../entity/NumericRange";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
-import AnnotationName from "../../../entity/Annotation/AnnotationName";
-import FileFolder from "../../../entity/FileFolder";
+import NumericRange from "../../../entity/NumericRange";
+import { FileView, SearchParamsComponents } from "../../../entity/SearchParams";
 import { DataSource } from "../../../services/DataSourceService";
 
 describe("Selection reducer", () => {
@@ -76,6 +80,111 @@ describe("Selection reducer", () => {
             expect(actual.dataSources).to.deep.equal(dataSources);
             expect(actual.fileSelection.count()).to.equal(0);
             expect(actual.openFileFolders).to.be.empty;
+        });
+    });
+
+    describe("RESET_QUERY_FIELDS", () => {
+        it("clears all search params", () => {
+            // Arrange
+            const dataSources: DataSource[] = [{ name: "Test file", id: "987654321" }];
+            const sourceMetadata: DataSource = { id: "123", name: "Metadata info" };
+            const sourceProvenance: DataSource = { id: "456", name: "Provenance info" };
+            const state = {
+                ...selection.initialState,
+                annotationHierarchy: ["Cell Line"],
+                columns: [{ name: "file_id", width: 0.5 }],
+                filters: [new FileFilter("file_id", "1238401234")],
+                fileView: FileView.LIST,
+                openFileFolders: [new FileFolder(["AICS-11"])],
+                shouldShowNullGroups: false,
+                sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
+                dataSources: dataSources,
+                sourceMetadata,
+                sourceProvenance,
+            };
+            // This a method of enumerating all keys in an interface and mapping them to a
+            // state variable. If we add more search params in the future,
+            // this will error if they aren't present in the reset method
+            type KeysEnum<T> = { [P in keyof Required<T>]: string };
+            const searchParamsExpected: KeysEnum<SearchParamsComponents> = {
+                columns: "columns",
+                hierarchy: "annotationHierarchy",
+                fileView: "fileView",
+                sources: "dataSources",
+                sourceMetadata: "sourceMetadata",
+                prov: "sourceProvenance",
+                filters: "filters",
+                openFolders: "openFileFolders",
+                sortColumn: "sortColumn",
+                showNoValueGroups: "shouldShowNullGroups",
+            };
+
+            // Act
+            const actual = selection.reducer(state, selection.actions.resetQueryProperties());
+
+            // Assert
+            const actualStateAsObj = Object.entries(actual);
+            const actualWithoutUndefined = Object.entries(actual).filter((entry) => {
+                return entry[1] !== undefined;
+            });
+            // The state was fully reset to initial values
+            expect(actualWithoutUndefined).to.deep.equal(Object.entries(initialSelectionState));
+
+            // Every possible search param was reset in state
+            Object.entries(searchParamsExpected).forEach((param) => {
+                expect(
+                    actualStateAsObj.some((entry) => {
+                        return entry[0] === param[1];
+                    })
+                ).to.be.true;
+            });
+        });
+
+        it("deselects selected files", () => {
+            const mockFileDetail = new FileDetail(
+                {
+                    annotations: [],
+                    file_path: "testfile.txt",
+                    file_id: "abc13",
+                    file_name: "MyFile.txt",
+                    file_size: 7,
+                    uploaded: "01/01/01",
+                },
+                Environment.TEST
+            );
+            const fileSet = new FileSet({
+                filters: [new FileFilter("foo", "bar")],
+            });
+            const prevSelection = new FileSelection().select({
+                fileSet: fileSet,
+                index: new NumericRange(3, 10),
+                sortOrder: 0,
+            });
+            const state = {
+                ...selection.initialState,
+                fileSelection: prevSelection,
+                fileForDetailPanel: mockFileDetail,
+            };
+
+            // Act
+            const nextSelectionState = selection.reducer(
+                state,
+                selection.actions.resetQueryProperties()
+            );
+
+            // Assert
+            expect(
+                selection.selectors.getFileSelection({
+                    ...initialState,
+                    selection: nextSelectionState,
+                })
+            ).to.deep.equal(new FileSelection());
+            expect(
+                interaction.selectors.getFileForDetailPanel({
+                    ...initialState,
+                    selection: nextSelectionState,
+                })
+            ).to.equal(undefined);
         });
     });
 

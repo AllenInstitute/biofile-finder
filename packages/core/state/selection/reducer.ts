@@ -185,6 +185,11 @@ export default makeReducer<SelectionStateBranch>(
             sortColumn: undefined,
             dataSources: initialState.dataSources,
             sourceMetadata: undefined,
+            sourceProvenance: undefined,
+
+            // If a file is selected, deselect it
+            fileForDetailPanel: undefined,
+            fileSelection: new FileSelection(),
         }),
         [SET_QUERIES]: (state, action: SetQueries) => ({
             ...state,
