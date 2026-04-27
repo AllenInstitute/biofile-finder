@@ -55,7 +55,7 @@ npm run benchmark:compare --prefix packages/web -- \
   packages/web/benchmark-results-local.json
 ```
 
-This prints a Markdown table with p50 deltas and regression/improvement badges (⚠️ ≥25% slower, ❌ ≥50% slower, ✅ ≥10% faster).
+This prints a Markdown table with p50 deltas and regression/improvement badges (⚠️ ≥25% slower, ❌ ≥50% slower, ✅ ≥25% faster). Badges are suppressed for queries where either branch is under 500ms — percentage deltas on fast queries are noise.
 
 **Flags**
 

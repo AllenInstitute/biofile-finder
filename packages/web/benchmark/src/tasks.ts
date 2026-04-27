@@ -3,7 +3,8 @@ import DatabaseFileService from "../../../core/services/FileService/DatabaseFile
 import FileDownloadServiceNoop from "../../../core/services/FileDownloadService/FileDownloadServiceNoop";
 import DatabaseServiceWebWorker from "../../src/services/DatabaseServiceWeb/duckdb-worker.worker";
 import FileSet from "../../../core/entity/FileSet";
-import FileFilter from "../../../core/entity/FileFilter";
+import FileFilter, { FilterType } from "../../../core/entity/FileFilter";
+import { AnnotationType } from "../../../core/entity/AnnotationFormatter";
 import ExcludeFilter from "../../../core/entity/FileFilter/ExcludeFilter";
 import FileSort, { SortOrder } from "../../../core/entity/FileSort";
 
@@ -112,6 +113,27 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
     {
         name: "expand_folder",
         run: (a) => a.fetchHierarchyValuesUnderPath(["cell_line", "plate_id"], ["3"], []),
+    },
+
+    // Date range filter covering ~half the fixture rows (acquisition_date spans 2024-01-01
+    // to 2024-12-31). Exercises DuckDB's date predicate pushdown against the parquet row groups.
+    {
+        name: "filter_date_range",
+        run: (_, f) =>
+            f.getFiles({
+                fileSet: new FileSet({
+                    filters: [
+                        new FileFilter(
+                            "acquisition_date",
+                            "RANGE(2024-01-01,2024-06-30)",
+                            FilterType.DEFAULT,
+                            AnnotationType.DATE
+                        ),
+                    ],
+                }),
+                from: 0,
+                limit: 100,
+            }),
     },
 ];
 

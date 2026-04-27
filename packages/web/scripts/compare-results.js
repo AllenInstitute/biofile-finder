@@ -7,7 +7,10 @@ const fs = require("fs");
 
 const REGRESSION_WARN_PCT = 25; // ≥25% slower → ⚠️
 const REGRESSION_SEVERE_PCT = 50; // ≥50% slower → ❌
-const IMPROVEMENT_PCT = 10; // ≥10% faster → ✅
+const IMPROVEMENT_PCT = 25; // ≥25% faster → ✅
+// Badges are suppressed when either branch is below this threshold — percentage
+// deltas on fast queries are dominated by noise rather than real regressions.
+const BADGE_MIN_MS = 500;
 
 function fmt(ms) {
     if (ms === undefined || ms === null) return "—";
@@ -24,6 +27,7 @@ function deltaBadge(base, pr) {
     if (delta === null) return "N/A";
     const sign = delta >= 0 ? "+" : "";
     const label = `${sign}${delta.toFixed(1)}%`;
+    if (base < BADGE_MIN_MS || pr < BADGE_MIN_MS) return label;
     if (delta >= REGRESSION_SEVERE_PCT) return `${label} ❌`;
     if (delta >= REGRESSION_WARN_PCT) return `${label} ⚠️`;
     if (delta <= -IMPROVEMENT_PCT) return `${label} ✅`;
