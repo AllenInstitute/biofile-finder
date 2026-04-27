@@ -9,13 +9,7 @@ import FileSort, { SortOrder } from "../../../core/entity/FileSort";
 
 export interface BenchmarkTask {
     name: string;
-    /**
-     * "worker" (default): sum DuckDB-internal query times (accurate for single-query tasks
-     * and tasks with large result sets where Arrow/JSON serialization is expensive).
-     * "wall-clock": measure elapsed time at the task level (correct for compound tasks that
-     * fire many parallel queries — summing their worker timings gives O(N²) due to each
-     * query's elapsed including wait time for all preceding parallel queries).
-     */
+    /** Timing strategy — see benchmarkSource in index.ts for details. Default: "worker". */
     timing?: "worker" | "wall-clock";
     /**
      * If true, the annotation cache is cleared before each timed iteration so the task
@@ -23,20 +17,12 @@ export interface BenchmarkTask {
      * timed iterations return immediately, reporting 0ms.
      */
     resetAnnotationCache?: boolean;
-    /** Simulate one user action. Receives service layer instances, not raw SQL. */
     run: (
         annotationSvc: DatabaseAnnotationService,
         fileSvc: DatabaseFileService
     ) => Promise<unknown>;
 }
 
-/**
- * Suite of tasks defined at the service layer, matching the code paths the app
- * actually executes in response to user interactions.
- *
- * Each task corresponds to a specific user action so benchmark times are
- * directly comparable to what a user experiences.
- */
 export const BENCHMARK_TASKS: BenchmarkTask[] = [
     // App startup: loads the column list to populate the annotation picker.
     {
@@ -69,12 +55,7 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
         run: (_, f) => f.getFiles({ fileSet: new FileSet(), from: 0, limit: 100 }),
     },
 
-    // File list sorted by File Size.
-    // Two page sizes because DuckDB uses different execution plans depending on LIMIT:
-    //   small N  → Top-N heap + row-group pruning via zonemap stats (fast path, ~50 rows)
-    //   large N  → full materialized sort of all rows (slow path, ~100 rows)
-    // Real users typically see the fast path (viewport ≈ 50 rows); the large-limit task
-    // benchmarks worst-case sort cost.
+    // File list sorted by File Size with two limit sizes. Emulates different zoom levels.
     {
         name: "sort_file_list",
         run: (_, f) =>
@@ -118,12 +99,8 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
             f.getCountOfMatchingFiles(new FileSet({ filters: [new ExcludeFilter("cell_line")] })),
     },
 
-    // Changing the grouping annotation — schema probe + one IS NOT NULL query per schema
-    // column, run in parallel (matching app behavior).
-    // Uses wall-clock timing: the parallel queries each record elapsed time from when they
-    // were launched (not when DuckDB actually started them), so sumTimings() gives O(N²).
-    // Wall-clock is accurate here because each individual query returns a single row
-    // (no Arrow/JSON serialization overhead to exclude).
+    // Changing the grouping annotation — fires parallel IS NOT NULL queries, one per schema
+    // column. Uses wall-clock timing because the queries run in parallel (see benchmarkSource).
     {
         name: "change_grouping",
         timing: "wall-clock",

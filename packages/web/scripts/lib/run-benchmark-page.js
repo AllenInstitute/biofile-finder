@@ -19,6 +19,8 @@ const FIXTURES_DIR = path.join(__dirname, "..", "..", "fixtures");
 const PORT = 18765;
 const TIMEOUT_MS = 90 * 60 * 1000; // 90 min: 10M row source + full task suite
 
+// Content-type map for benchmark bundle assets served to the Playwright browser.
+// WASM must be served as application/wasm or the browser will refuse to compile it.
 const MIME = {
     ".html": "text/html",
     ".js": "application/javascript",
@@ -35,111 +37,15 @@ function mimeFor(filePath) {
     return "application/octet-stream";
 }
 
-// fs.readFileSync is limited to 2 GB. For larger fixtures we read in 512 MB chunks
-// and store them as an array so slice() can reconstruct any byte range on demand.
-const PRELOAD_CHUNK_SIZE = 512 * 1024 * 1024;
-
-function readFileChunked(filePath, totalSize) {
-    const fd = fs.openSync(filePath, "r");
-    const chunks = []; // [{ offset, buf }]
-    try {
-        let offset = 0;
-        while (offset < totalSize) {
-            const chunkSize = Math.min(PRELOAD_CHUNK_SIZE, totalSize - offset);
-            const buf = Buffer.allocUnsafe(chunkSize);
-            let pos = 0;
-            while (pos < chunkSize) {
-                const n = fs.readSync(fd, buf, pos, chunkSize - pos, offset + pos);
-                if (n === 0) break;
-                pos += n;
-            }
-            chunks.push({ offset, buf });
-            offset += chunkSize;
-        }
-    } finally {
-        fs.closeSync(fd);
-    }
-    return { chunks, totalSize };
-}
-
-function sliceChunked({ chunks, totalSize: _totalSize }, start, end) {
-    const size = end - start + 1;
-    const out = Buffer.allocUnsafe(size);
-    let written = 0;
-    for (const { offset, buf } of chunks) {
-        const chunkEnd = offset + buf.length - 1;
-        if (chunkEnd < start || offset > end) continue;
-        const from = Math.max(start, offset) - offset;
-        const to = Math.min(end, chunkEnd) - offset + 1;
-        buf.copy(out, written, from, to);
-        written += to - from;
-    }
-    return out;
-}
-
-/**
- * Pre-load fixture files into Node.js Buffers so DuckDB's HTTP range requests
- * are served from RAM instead of disk. This eliminates per-request I/O latency
- * that would otherwise make compute-heavy queries like full-table sorts appear
- * much slower than they do in a real browser session (where the data is cached).
- */
-function preloadFixtures(sources) {
-    const fixtureBuffers = new Map();
-    for (const source of sources) {
-        const localMatch = source.url.match(new RegExp(`^http://localhost:${PORT}/fixtures/(.+)$`));
-        if (!localMatch) continue;
-        const fixturePath = path.join(FIXTURES_DIR, localMatch[1]);
-        if (!fs.existsSync(fixturePath)) continue;
-        const { size } = fs.statSync(fixturePath);
-        const sizeMB = (size / 1024 / 1024).toFixed(0);
-        console.log(`[server] Preloading ${localMatch[1]} (${sizeMB} MB) into memory...`);
-        const t = Date.now();
-        fixtureBuffers.set(fixturePath, readFileChunked(fixturePath, size));
-        console.log(`[server] Done in ${Date.now() - t}ms.`);
-    }
-    return fixtureBuffers;
-}
-
-function startServer(fixtureBuffers = new Map()) {
+function startServer() {
     return new Promise((resolve, reject) => {
         const server = http.createServer((req, res) => {
             const relPath = req.url === "/" ? "/index.html" : req.url.split("?")[0];
 
-            // Serve local fixture files from /fixtures/
+            // Serve fixture files from /fixtures/ — fallback path if file injection fails.
             const fixtureMatch = relPath.match(/^\/fixtures\/(.+)$/);
             if (fixtureMatch) {
                 const fixturePath = path.join(FIXTURES_DIR, fixtureMatch[1]);
-                const memFile = fixtureBuffers.get(fixturePath);
-                if (memFile) {
-                    // Serve from pre-loaded in-memory chunks
-                    const range = req.headers["range"];
-                    if (range) {
-                        const [, start, end] = range.match(/bytes=(\d+)-(\d*)/) || [];
-                        const startByte = parseInt(start, 10);
-                        const endByte = end ? parseInt(end, 10) : memFile.totalSize - 1;
-                        const chunk = sliceChunked(memFile, startByte, endByte);
-                        res.writeHead(206, {
-                            "Content-Type": "application/octet-stream",
-                            "Content-Range": `bytes ${startByte}-${endByte}/${memFile.totalSize}`,
-                            "Content-Length": chunk.length,
-                            "Accept-Ranges": "bytes",
-                            "Cross-Origin-Opener-Policy": "same-origin",
-                            "Cross-Origin-Embedder-Policy": "credentialless",
-                        });
-                        res.end(chunk);
-                    } else {
-                        const full = sliceChunked(memFile, 0, memFile.totalSize - 1);
-                        res.writeHead(200, {
-                            "Content-Type": "application/octet-stream",
-                            "Content-Length": memFile.totalSize,
-                            "Accept-Ranges": "bytes",
-                            "Cross-Origin-Opener-Policy": "same-origin",
-                            "Cross-Origin-Embedder-Policy": "credentialless",
-                        });
-                        res.end(full);
-                    }
-                    return;
-                }
                 try {
                     const stat = fs.statSync(fixturePath);
                     const range = req.headers["range"];
@@ -156,11 +62,9 @@ function startServer(fixtureBuffers = new Map()) {
                             "Cross-Origin-Opener-Policy": "same-origin",
                             "Cross-Origin-Embedder-Policy": "credentialless",
                         });
-                        const stream = fs.createReadStream(fixturePath, {
-                            start: startByte,
-                            end: endByte,
-                        });
-                        stream.pipe(res);
+                        fs.createReadStream(fixturePath, { start: startByte, end: endByte }).pipe(
+                            res
+                        );
                     } else {
                         res.writeHead(200, {
                             "Content-Type": "application/octet-stream",
@@ -236,8 +140,7 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
     const launchOptions = { headless: true };
     if (channel) launchOptions.channel = channel;
 
-    const fixtureBuffers = preloadFixtures(sources);
-    const server = await startServer(fixtureBuffers);
+    const server = await startServer();
     const browser = await chromium.launch(launchOptions);
 
     try {

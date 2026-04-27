@@ -13,20 +13,15 @@ on:
         required: true
         type: string
       iterations:
-        description: "Timed iterations per task (default 20)"
+        description: "Timed iterations per task (default 5)"
         required: false
         type: string
-        default: "20"
+        default: "5"
       warmup:
-        description: "Warmup rounds before timing (default 3)"
+        description: "Warmup rounds before timing (default 1)"
         required: false
         type: string
-        default: "3"
-
-# Only run one benchmark at a time per base+compare pair
-concurrency:
-  group: benchmark-${{ github.event.inputs.base_branch }}-${{ github.event.inputs.compare_branch }}
-  cancel-in-progress: true
+        default: "1"
 
 permissions:
   contents: read

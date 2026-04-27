@@ -1,14 +1,5 @@
-/**
- * compare-results.js
- *
- * Reads two benchmark result JSON files (base branch and PR branch) and outputs
- * a Markdown comparison table for the GitHub Step Summary.
- *
- * Usage:
- *   node scripts/compare-results.js <base-results.json> <pr-results.json>
- *
- * Output: Markdown to stdout
- */
+// Compares two benchmark result JSON files and outputs a Markdown table to stdout.
+// Used by benchmark.yml for the GitHub Step Summary; also runnable manually.
 
 "use strict";
 
@@ -17,10 +8,6 @@ const fs = require("fs");
 const REGRESSION_WARN_PCT = 25; // ≥25% slower → ⚠️
 const REGRESSION_SEVERE_PCT = 50; // ≥50% slower → ❌
 const IMPROVEMENT_PCT = 10; // ≥10% faster → ✅
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 function fmt(ms) {
     if (ms === undefined || ms === null) return "—";
@@ -43,10 +30,6 @@ function deltaBadge(base, pr) {
     return label;
 }
 
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
-
 const [, , baseFile, prFile] = process.argv;
 
 if (!baseFile || !prFile) {
@@ -57,26 +40,20 @@ if (!baseFile || !prFile) {
 const base = JSON.parse(fs.readFileSync(baseFile, "utf8"));
 const pr = JSON.parse(fs.readFileSync(prFile, "utf8"));
 
-// Index sources by label for fast lookup
 const baseSources = new Map(base.sources.map((s) => [s.label, s]));
 const prSources = new Map(pr.sources.map((s) => [s.label, s]));
 
-// All source labels, preserving order from the PR result (superset of base)
+// PR result order is authoritative; base may have fewer sources.
 const allLabels = [
     ...new Set([...pr.sources.map((s) => s.label), ...base.sources.map((s) => s.label)]),
 ];
 
-// All query names across both result sets
 const allQueryNames = [
     ...new Set([
         ...pr.sources.flatMap((s) => s.queries.map((q) => q.name)),
         ...base.sources.flatMap((s) => s.queries.map((q) => q.name)),
     ]),
 ];
-
-// ---------------------------------------------------------------------------
-// Collect deltas for the summary section (use p50 of largest scale)
-// ---------------------------------------------------------------------------
 
 const allDeltas = [];
 
@@ -103,10 +80,6 @@ const improvements = allDeltas
     .filter((d) => d.delta !== null && d.delta <= -IMPROVEMENT_PCT)
     .sort((a, b) => a.delta - b.delta);
 
-// ---------------------------------------------------------------------------
-// Build Markdown output
-// ---------------------------------------------------------------------------
-
 const lines = [];
 
 lines.push("## BFF Query Benchmark Results");
@@ -114,7 +87,6 @@ lines.push("");
 lines.push(`| | \`${base.branch}\` | \`${pr.branch}\` | Delta |`);
 lines.push("|-|-|-|-|");
 
-// DuckDB init time
 lines.push(
     `| **DuckDB init** | ${fmt(base.initTimeMs)} | ${fmt(pr.initTimeMs)} | ${deltaBadge(
         base.initTimeMs,
@@ -122,7 +94,6 @@ lines.push(
     )} |`
 );
 
-// Registration time per source
 lines.push("| | | | |");
 lines.push("| **Registration (parquet → view)** | | | |");
 
@@ -137,7 +108,6 @@ for (const label of allLabels) {
     );
 }
 
-// Query timings per source (p50)
 lines.push("| | | | |");
 lines.push("| **Query timings — p50** | | | |");
 
@@ -155,7 +125,6 @@ for (const label of allLabels) {
     }
 }
 
-// p95 in a collapsible section
 lines.push("");
 lines.push("<details><summary>p95 timings</summary>\n");
 lines.push(`| | \`${base.branch}\` | \`${pr.branch}\` | Delta |`);
@@ -177,7 +146,6 @@ for (const label of allLabels) {
 
 lines.push("\n</details>");
 
-// Summary
 lines.push("");
 lines.push("### Summary");
 lines.push("");

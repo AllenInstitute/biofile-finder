@@ -4,15 +4,15 @@
  * these come from (real S3, synthetic S3, local server, etc.).
  */
 export interface ParquetSource {
-    url: string; // s3:// or https:// URL
-    label: string; // human-readable scale identifier, e.g. "100k", "1m", "10m"
+    url: string;
+    label: string;
 }
 
 /** Injected as window.__benchmarkConfig before the page loads. */
 export interface BenchmarkConfig {
     sources: ParquetSource[];
-    iterations?: number; // default 20
-    warmupRounds?: number; // default 3
+    iterations?: number;
+    warmupRounds?: number;
 }
 
 export interface QueryResult {
@@ -25,7 +25,6 @@ export interface QueryResult {
 
 export interface SourceResult {
     label: string;
-    /** Time in ms for prepareDataSources — covers registerFileURL + createParquetDirectView. */
     registrationMs: number;
     queries: QueryResult[];
 }
@@ -34,7 +33,6 @@ export interface BenchmarkResults {
     timestamp: string;
     commit: string;
     branch: string;
-    /** Time in ms to initialize DuckDB-WASM. */
     initTimeMs: number;
     sources: SourceResult[];
 }

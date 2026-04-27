@@ -1,13 +1,5 @@
-/**
- * summarize-results.js
- *
- * Prints a human-readable summary of a benchmark-results.json file.
- *
- * Usage:
- *   node scripts/summarize-results.js [results.json]
- *
- * Defaults to benchmark-results-local.json, then the branch-stamped file.
- */
+// Prints a human-readable p50/p95 table from a benchmark-results.json file.
+// Called automatically by run-local.js; also runnable standalone.
 
 "use strict";
 

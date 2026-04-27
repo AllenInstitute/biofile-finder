@@ -1,25 +1,5 @@
-/**
- * run-regression.js  —  Tool 2: CI branch regression runner (per-branch)
- *
- * Runs the benchmark against pre-downloaded synthetic parquets served over
- * localhost. Fixtures must be present at packages/web/fixtures/ before this
- * script is called — the workflow downloads them from S3 as a setup step.
- *
- * Called once per branch by the GitHub Actions workflow; the workflow then
- * diffs the two result files with compare-results.js.
- *
- * Using local fixtures (not direct S3 URLs) eliminates network variance between
- * branch runs and avoids S3 protocol issues in the Playwright browser context.
- *
- * Usage (in workflow):
- *   BENCHMARK_BRANCH=main node scripts/run-regression.js [--skip-build]
- *
- * Env vars:
- *   BENCHMARK_BRANCH  — branch name to stamp on the result file
- *
- * Output:
- *   packages/web/benchmark-results-<branch>.json
- */
+// CI regression runner — benchmarks one branch against local fixtures and writes
+// benchmark-results-<branch>.json. Called once per branch by benchmark.yml.
 
 "use strict";
 
@@ -37,7 +17,6 @@ const LOCAL_FIXTURE_MAP = {
     "10m": "http://localhost:18765/fixtures/synthetic-10m.parquet",
 };
 
-// Verify all fixtures are present before starting
 const missing = SCALES.filter(
     (scale) => !fs.existsSync(path.join(FIXTURES_DIR, `synthetic-${scale}.parquet`))
 );

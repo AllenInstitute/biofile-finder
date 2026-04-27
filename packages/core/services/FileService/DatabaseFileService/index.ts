@@ -18,10 +18,7 @@ import FileDetail from "../../../entity/FileDetail";
 import SQLBuilder from "../../../entity/SQLBuilder";
 import { Environment, HIDDEN_UID_ANNOTATION } from "../../../constants";
 
-/**
- * SQL used by getFiles — exported so the benchmark can run the same query.
- * `from` is a page index (0-based); the row offset is `from * limit`.
- */
+/** SQL used by getFiles — exported so the benchmark can run the same query.*/
 export function buildGetFilesSQL(
     dataSourceNames: string | string[],
     fileSet: FileSet,

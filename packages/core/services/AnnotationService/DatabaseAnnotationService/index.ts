@@ -12,7 +12,6 @@ import SQLBuilder from "../../../entity/SQLBuilder";
 
 /**
  * SQL used by fetchFilteredValuesForAnnotation — exported so the benchmark can run the same query.
- * Filters are optional; pass none for an unfiltered distinct-values query.
  */
 export function buildDistinctValuesSQL(
     annotation: string,

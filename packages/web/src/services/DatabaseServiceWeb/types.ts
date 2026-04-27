@@ -6,7 +6,6 @@ export enum WorkerMsgType {
     CANCEL = "cancel query",
     CLOSE = "close db",
     DELETE_SOURCE = "delete datasource",
-    DUMP_TIMING = "dump timing",
     EXECUTE = "execute query",
     INIT = "initialize db",
     QUERY = "run query",
@@ -19,7 +18,6 @@ export enum WorkerResType {
     RESULT = "query result",
     SOURCE_RESOLVED = "source added or deleted",
     STARTED = "query started",
-    TIMING_REPORT = "timing report",
 }
 
 export type Pending = {
@@ -80,7 +78,6 @@ export type WorkerReqPayload<T extends WorkerMsgType> = {
         name: string;
     };
     [WorkerMsgType.CLOSE]: void;
-    [WorkerMsgType.DUMP_TIMING]: void;
 }[T];
 
 export type WorkerResPayload<T extends WorkerResType> = {
@@ -100,9 +97,6 @@ export type WorkerResPayload<T extends WorkerResType> = {
     [WorkerResType.ERROR]: {
         message: string | Error;
         id?: string;
-    };
-    [WorkerResType.TIMING_REPORT]: {
-        timings: Record<string, number[]>;
     };
 }[T];
 

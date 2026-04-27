@@ -178,13 +178,6 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
             throw new Error(`Failed to delete source: ${err}`);
         }
     },
-    [WorkerMsgType.DUMP_TIMING]: async () => {
-        const timings: Record<string, number[]> = {};
-        accumulatedTimings.forEach((values, key) => {
-            timings[key] = values;
-        });
-        self.postMessage({ type: WorkerResType.TIMING_REPORT, payload: { timings } });
-    },
     [WorkerMsgType.CLOSE]: async () => {
         if (!databaseService) {
             return;
@@ -275,13 +268,17 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             const result = await connection.query(sql);
             if (queryTimingEnabled) {
                 const elapsed = performance.now() - t0;
+                // Service-layer methods prefix SQL with a `-- label\n` comment so timings
+                // can be grouped by logical operation rather than raw SQL text.
                 const labelMatch = sql.match(/^--\s*(.+)\n/);
                 const label = labelMatch ? labelMatch[1].trim() : "query";
                 const existing = accumulatedTimings.get(label) ?? [];
                 accumulatedTimings.set(label, [...existing, elapsed]);
+                // Strip the label comment from the first line, collapse whitespace,
+                // and truncate so the console log stays readable.
                 const body = sql
-                    .replace(/^--[^\n]*\n/, "")
-                    .replace(/\s+/g, " ")
+                    .replace(/^--[^\n]*\n/, "") // remove `-- label\n` prefix
+                    .replace(/\s+/g, " ") // collapse newlines/indentation
                     .slice(0, 100);
                 console.log(`[duckdb] ${elapsed.toFixed(1)}ms — [${label}] ${body}`);
             }
@@ -316,10 +313,14 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
         }
     }
 
+    // Benchmark-facing activation path. The production path passes queryTiming via the
+    // INIT payload (read from localStorage) so the flag is set before any queries run.
     public enableQueryTiming(): void {
         queryTimingEnabled = true;
     }
 
+    // Benchmark only — clears the in-memory annotation cache so each timed iteration
+    // hits DuckDB rather than returning a cached result from a prior warmup pass.
     public clearAnnotationCache(sourceName: string): void {
         this.dataSourceToAnnotationsMap.delete(sourceName);
     }

@@ -2,20 +2,29 @@ import { BENCHMARK_TASKS, createServices } from "./tasks";
 import { BenchmarkConfig, BenchmarkResults, QueryResult, SourceResult } from "./types";
 import DatabaseServiceWebWorker from "../../src/services/DatabaseServiceWeb/duckdb-worker.worker";
 
-const DEFAULT_ITERATIONS = 20;
-const DEFAULT_WARMUP_ROUNDS = 3;
+const DEFAULT_ITERATIONS = 5;
+const DEFAULT_WARMUP_ROUNDS = 1;
 
+// Updates the #status element in the benchmark HTML page and mirrors to console.
+// The page can run headlessly in CI (Playwright), so the console log is the
+// only visible progress signal when there is no browser UI to observe.
 function setStatus(msg: string) {
     const el = document.getElementById("status");
     if (el) el.textContent = msg;
     console.log("[benchmark]", msg);
 }
 
+// Nearest-rank percentile over a pre-sorted array. Used to report p50 and p95
+// across timed iterations — p95 surfaces occasional slow outliers (GC pauses,
+// DuckDB cache misses) that the median would hide.
 function percentile(sorted: number[], p: number): number {
     const idx = Math.ceil((p / 100) * sorted.length) - 1;
     return sorted[Math.max(0, idx)];
 }
 
+// Fisher-Yates shuffle — randomizes task order each timed iteration so that a
+// consistently slow task doesn't inflate the times of everything that follows it
+// (DuckDB buffer pool and OS page cache warm up over repeated runs).
 function shuffle<T>(arr: T[]): T[] {
     const out = [...arr];
     for (let i = out.length - 1; i > 0; i--) {
@@ -37,6 +46,8 @@ function shuffle<T>(arr: T[]): T[] {
  *     and JSON serialization. Accurate for single-query tasks and tasks with large result sets.
  *   "wall-clock": measures elapsed time at the task level. Used for compound tasks that fire
  *     parallel queries — worker timings for those give O(N²) due to cumulative wait time.
+ *
+ * Returns p50/p95/p99 across timed iterations for each task.
  */
 async function benchmarkSource(
     service: DatabaseServiceWebWorker,
@@ -48,6 +59,9 @@ async function benchmarkSource(
 
     service.enableQueryTiming();
 
+    // Warmup ensures DuckDB's buffer pool, query planner, and V8 JIT are in a
+    // stable state before timing begins. Without it, the first few iterations
+    // of every task reflect cold-start overhead rather than steady-state cost.
     setStatus(`Warming up ${sourceName} (${warmupRounds} rounds)...`);
     for (let w = 0; w < warmupRounds; w++) {
         for (const task of BENCHMARK_TASKS) {
@@ -103,9 +117,15 @@ async function main() {
     const initTimeMs = performance.now() - initStart;
     setStatus(`DuckDB initialized in ${initTimeMs.toFixed(0)}ms.`);
 
-    // Playwright injects local File objects (via setInputFiles) into window.__localFiles
-    // before signalling window.__resolveLocalFiles. We wait up to 5 seconds; if Playwright
-    // doesn't respond (e.g. running outside Playwright), we fall back to URL registration.
+    // DuckDB reads parquet differently depending on how the file is registered:
+    // BROWSER_FILEREADER (local File object) skips all HTTP overhead; URL registration
+    // uses HTTP range requests, which adds per-request I/O latency and makes sort-heavy
+    // queries appear slower. Both paths must be consistent across compared runs or the
+    // delta reflects I/O differences, not code differences.
+    //
+    // Playwright injects File objects via setInputFiles and resolves __resolveLocalFiles
+    // directly. The 5-second timeout is a fallback for running the page manually outside
+    // of Playwright — in CI this promise is always resolved before the timeout fires.
     const localFiles: Record<string, File> = await new Promise<Record<string, File>>((resolve) => {
         (window as any).__resolveLocalFiles = resolve;
         (window as any).__localFilesRequested = true;
@@ -131,10 +151,12 @@ async function main() {
         setStatus(`Registering ${source.label} (${source.url})...`);
 
         const regStart = performance.now();
-        // Use the Playwright-injected File object when available so DuckDB reads via
-        // BROWSER_FILEREADER (direct local disk reads). This matches how a real user
-        // loads a file via the browser file picker — no HTTP range-request overhead.
         const localFile = localFiles[source.label];
+        if (!localFile) {
+            console.warn(
+                `[benchmark] No local file for ${source.label} — falling back to HTTP reads; timings will differ from local-file runs`
+            );
+        }
         await service.prepareDataSources(
             [{ name: source.label, type: "parquet", uri: localFile ?? source.url }],
             /* skipNormalization */ true

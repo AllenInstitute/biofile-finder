@@ -1,32 +1,5 @@
-/**
- * run-local.js  —  Tool 1: Local performance profiler
- *
- * Runs the full benchmark query suite against real BFF parquets hosted on S3,
- * using the production DuckDB code paths (prepareDataSources → queryWorker).
- * Designed to be run by a developer on their own machine to get accurate
- * absolute timing numbers that reflect real-world query performance.
- *
- * Usage:
- *   BENCHMARK_REAL_100K_URL=s3://... \
- *   BENCHMARK_REAL_1M_URL=s3://...  \
- *   BENCHMARK_REAL_10M_URL=s3://... \
- *   node scripts/run-local.js [--scale 100k|1m|10m] [--iterations N] [--warmup N] [--local] [--full] [--skip-build] [--chromium]
- *
- * --scale limits the run to a single fixture size. Omit to run all set URLs.
- * --iterations overrides the number of timed iterations (default 20).
- * --warmup overrides the number of warmup rounds (default 3).
- * --local serves fixtures from packages/web/fixtures/ over localhost instead of using S3 URLs.
- *   URL env vars are not required when using --local.
- * --full runs all three scales for both cloud and local in one session, labelled
- *   "<scale>-cloud" and "<scale>-local". Requires all three URL env vars to be set.
- * --chromium uses Playwright's bundled Chromium instead of system Chrome. Use this if Chrome
- *   is not installed. Timings will be slower and will not match real user experience.
- * At least one URL must be set (unless --local or --full with no URLs is used). URLs may be s3:// or https://.
- *
- * Output:
- *   Prints a human-readable timing table to stdout.
- *   Optionally writes benchmark-results-local.json for later comparison.
- */
+// Local benchmark runner for developer machines. Supports cloud (S3/https) and local
+// fixtures, single scale or all scales, and side-by-side cloud vs local comparison (--full).
 
 "use strict";
 
@@ -139,7 +112,6 @@ async function main() {
         channel,
     });
 
-    // Attach git metadata
     const branch = getBranch();
     const results = {
         ...rawResults,
@@ -147,12 +119,10 @@ async function main() {
         branch,
     };
 
-    // Write JSON so developers can run compare-results.js between local runs
     const outFile = path.join(__dirname, "..", "benchmark-results-local.json");
     fs.writeFileSync(outFile, JSON.stringify(results, null, 2));
     console.log(`\n[local] Results written to ${path.relative(process.cwd(), outFile)}`);
 
-    // Print human-readable summary
     execSync(`node ${path.join(__dirname, "summarize-results.js")} "${outFile}"`, {
         stdio: "inherit",
     });
