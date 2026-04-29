@@ -1,0 +1,113 @@
+name: Query Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_branch:
+        description: "Base branch to compare against"
+        required: false
+        type: string
+        default: "main"
+      compare_branch:
+        description: "Branch to benchmark"
+        required: true
+        type: string
+      iterations:
+        description: "Timed iterations per task (default 5)"
+        required: false
+        type: string
+        default: "5"
+      warmup:
+        description: "Warmup rounds before timing (default 1)"
+        required: false
+        type: string
+        default: "1"
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: "Regression (${{ github.event.inputs.base_branch }} vs ${{ github.event.inputs.compare_branch }})"
+    runs-on: ubuntu-latest
+    # Both branches run sequentially in a single job on the same VM. This is intentional:
+    # if each branch ran in its own job, GitHub could schedule them on different physical
+    # machines with different CPU speeds, cache sizes, or competing workloads. A ~15%
+    # hardware variance between VMs would mask the small regressions we actually care about.
+    # Running back-to-back on the same VM ensures both measurements share the same hardware
+    # baseline, so deltas reflect code differences only.
+    # 180 minutes: fixture download + full task suite (including change_grouping on 10m) × 2 branches
+    timeout-minutes: 180
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.compare_branch }}
+
+      # Fixtures cached by version; downloaded once, reused by both branch runs.
+      # Must come after checkout so git clean -ffdx does not wipe them.
+      - name: Cache benchmark fixtures
+        id: fixture-cache
+        uses: actions/cache@v4
+        with:
+          path: packages/web/fixtures
+          key: benchmark-fixtures-v1
+
+      - name: Download benchmark fixtures
+        if: steps.fixture-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p packages/web/fixtures
+          BASE=https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1
+          curl -fL "$BASE/synthetic-100k.parquet" -o packages/web/fixtures/synthetic-100k.parquet
+          curl -fL "$BASE/synthetic-1m.parquet"   -o packages/web/fixtures/synthetic-1m.parquet
+          curl -fL "$BASE/synthetic-10m.parquet"  -o packages/web/fixtures/synthetic-10m.parquet
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+        working-directory: packages/web
+
+      - name: Run benchmark (${{ github.event.inputs.compare_branch }})
+        run: node scripts/run-regression.js --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
+        working-directory: packages/web
+        env:
+          BENCHMARK_BRANCH: ${{ github.event.inputs.compare_branch }}
+
+      - name: Save compare branch results
+        run: mv packages/web/benchmark-results-*.json /tmp/benchmark-compare.json
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.base_branch }}
+          clean: false
+
+      - name: Install dependencies (base branch)
+        run: npm ci
+
+      - name: Run benchmark (${{ github.event.inputs.base_branch }})
+        run: node scripts/run-regression.js --skip-build --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
+        working-directory: packages/web
+        env:
+          BENCHMARK_BRANCH: ${{ github.event.inputs.base_branch }}
+
+      - name: Generate comparison
+        run: |
+          BASE_FILE=$(ls packages/web/benchmark-results-*.json | head -1)
+          node packages/web/scripts/compare-results.js "$BASE_FILE" /tmp/benchmark-compare.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            packages/web/benchmark-results-*.json
+            /tmp/benchmark-compare.json
+          retention-days: 7

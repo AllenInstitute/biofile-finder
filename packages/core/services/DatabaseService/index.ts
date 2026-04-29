@@ -81,6 +81,16 @@ export function getParquetFileNameSelectPart(
     return `${getFileNameFromPathExpression(`"${pathColumn}"`)} AS "${PreDefinedColumn.FILE_NAME}"`;
 }
 
+/** SQL used by fetchAnnotations — exported so the benchmark can run the same query. */
+export function buildFetchAnnotationsSQL(tableName: string): string {
+    return new SQLBuilder()
+        .select("column_name, data_type")
+        .from('information_schema"."columns')
+        .where(`table_name = '${tableName}'`)
+        .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
+        .toSQL();
+}
+
 export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckdb.AsyncDuckDB> {
     const allBundles = duckdb.getJsDelivrBundles();
 
@@ -689,7 +699,7 @@ export default abstract class DatabaseService {
 
     // Create a view over the parquet file that exposes columns under predefined names (e.g. "File Path")
     // and adds hidden_bff_uid.
-    private async createParquetDirectView(name: string): Promise<void> {
+    protected async createParquetDirectView(name: string): Promise<void> {
         // 1. Get original column names from the user's table.
         // Note: we don't use this.getColumnsOnDataSource, since that expects a
         // fully built data source, and this function is used for creating a
@@ -1046,12 +1056,7 @@ export default abstract class DatabaseService {
             metadataSource && this.existingDataSources.has(metadataSource?.name);
         if (!hasAnnotations || (!hasDescriptions && shouldHaveDescriptions)) {
             this.sourceMetadataName = metadataSource?.name;
-            const sql = new SQLBuilder()
-                .select("column_name, data_type")
-                .from('information_schema"."columns')
-                .where(`table_name = '${aggregateDataSourceName}'`)
-                .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
-                .toSQL();
+            const sql = buildFetchAnnotationsSQL(aggregateDataSourceName);
             const rows = await this.query(sql).promise;
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);

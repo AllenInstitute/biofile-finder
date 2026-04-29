@@ -45,7 +45,7 @@ type WorkerMsgBase<T extends WorkerMsgType | WorkerResType, P> = {
 };
 
 export type WorkerReqPayload<T extends WorkerMsgType> = {
-    [WorkerMsgType.INIT]: void;
+    [WorkerMsgType.INIT]: { queryTiming?: boolean } | undefined;
     [WorkerMsgType.CANCEL]: {
         connectionId: number;
     };
