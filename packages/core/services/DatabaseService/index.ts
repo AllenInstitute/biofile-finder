@@ -369,6 +369,17 @@ export default abstract class DatabaseService {
                             error.response?.statusText ||
                             error.response.data
                         }`;
+                    } else if (axios.isAxiosError(error) && error.request && !error.response) {
+                        // A request was made but no response was received — this is the
+                        // hallmark of a CORS (Cross-Origin Resource Sharing) error in browsers,
+                        // where the server does not allow cross-origin requests.
+                        formattedError =
+                            `Failed to load "${name}". This is likely caused by ` +
+                            `CORS (Cross-Origin Resource Sharing) restrictions. ` +
+                            `The server hosting the data source may not be configured to allow ` +
+                            `requests from this application. For help resolving this, please visit our ` +
+                            `<a href="https://github.com/AllenInstitute/biofile-finder/discussions/categories/q-a" ` +
+                            `target="_blank" rel="noopener noreferrer">support forum</a>.`;
                     } else if (error?.message) {
                         formattedError = error.message;
                     } // else use default error message
