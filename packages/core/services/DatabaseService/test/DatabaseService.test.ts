@@ -10,6 +10,7 @@ import DatabaseServiceNoop from "../DatabaseServiceNoop";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
+import DataSourcePreparationError from "../../../errors/DataSourcePreparationError";
 
 import DatabaseService, { getParquetFileNameSelectPart } from "..";
 
@@ -168,6 +169,96 @@ describe("DatabaseService", () => {
             // Assert
             expect(caughtError).to.be.undefined;
             expect(service.hasDataSource(tempFileName)).to.be.true;
+        });
+    });
+
+    describe("prepareDataSources parquet aggregation", () => {
+        class MockAggregateParquetDatabaseService extends DatabaseService {
+            public executedSQL: string[] = [];
+
+            constructor(private readonly parquetColumnsBySource: Record<string, string[]>) {
+                super();
+                Object.keys(parquetColumnsBySource).forEach((sourceName) =>
+                    this.existingDataSources.add(sourceName)
+                );
+            }
+
+            protected addDataSource(): Promise<void> {
+                return Promise.resolve();
+            }
+
+            public execute(sql: string): Promise<void> {
+                this.executedSQL.push(sql);
+                return Promise.resolve();
+            }
+
+            public query(sql: string): { promise: Promise<{ [key: string]: any }[]> } {
+                const parquetDescribeMatch = sql.match(
+                    /DESCRIBE SELECT \* FROM parquet_scan\("(.+)"\)/
+                );
+                if (parquetDescribeMatch) {
+                    const sourceName = parquetDescribeMatch[1];
+                    const columns = this.parquetColumnsBySource[sourceName] || [];
+                    return {
+                        promise: Promise.resolve(columns.map((column_name) => ({ column_name }))),
+                    };
+                }
+                return { promise: Promise.resolve([]) };
+            }
+        }
+
+        it("aggregates multiple parquet sources and records aggregate source", async () => {
+            const service = new MockAggregateParquetDatabaseService({
+                "a.parquet": ["file_path"],
+                "b.parquet": ["File Size"],
+            });
+
+            await service.prepareDataSources([
+                { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
+                { name: "b.parquet", type: "parquet", uri: "https://example.com/b.parquet" },
+            ]);
+
+            expect(service.hasAggregateSource(["a.parquet", "b.parquet"])).to.be.true;
+        });
+
+        it("rejects aggregation when parquet and non-parquet sources are mixed", async () => {
+            const service = new MockAggregateParquetDatabaseService({
+                "a.parquet": ["file_path"],
+                "b.csv": ["File Path"],
+            });
+
+            let caughtError;
+            try {
+                await service.prepareDataSources([
+                    { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
+                    { name: "b.csv", type: "csv", uri: "https://example.com/b.csv" },
+                ]);
+            } catch (error) {
+                caughtError = error;
+            }
+
+            expect(caughtError).to.be.instanceOf(DataSourcePreparationError);
+            expect((caughtError as Error).message).to.include(
+                "Parquet tables cannot be aggregated with non-parquet tables."
+            );
+        });
+
+        it("creates aggregate parquet view using union_by_name and data source projection", async () => {
+            const service = new MockAggregateParquetDatabaseService({
+                "a.parquet": ["file_path"],
+                "b.parquet": ["File Size"],
+            });
+
+            await service.prepareDataSources([
+                { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
+                { name: "b.parquet", type: "parquet", uri: "https://example.com/b.parquet" },
+            ]);
+
+            const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
+            expect(createViewSql).to.not.be.undefined;
+            expect(createViewSql).to.include("parquet_scan(ARRAY[");
+            expect(createViewSql).to.include("union_by_name = true");
+            expect(createViewSql).to.include(`"filename" AS "Data source"`);
         });
     });
 
