@@ -105,7 +105,7 @@ export async function convertOsfUrlToDownloadUrl(url: string): Promise<string> {
             return downloadUrl;
         }
     } catch (err) {
-        console.warn(`Failed to resolve OSF URL via OSF API for GUID "${guid}":`, err);
+        console.warn("Failed to resolve OSF URL via OSF API for GUID:", guid, err);
     }
 
     return url;

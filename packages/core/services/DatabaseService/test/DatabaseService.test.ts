@@ -283,6 +283,13 @@ describe("DatabaseService", () => {
             expect(result).to.equal(url);
         });
 
+        it("returns original URL unchanged for other non-HTTP protocol schemes", async () => {
+            for (const url of ["ftp://example.com/data.csv", "file:///local/data.csv"]) {
+                const result = await convertOsfUrlToDownloadUrl(url); // eslint-disable-line no-await-in-loop
+                expect(result).to.equal(url);
+            }
+        });
+
         it("returns original URL unchanged when URL is already on files.osf.io (Waterbutler)", async () => {
             const url =
                 "https://files.osf.io/v1/resources/abc12/providers/osfstorage/def34?direct";
@@ -347,6 +354,26 @@ describe("DatabaseService", () => {
             const inputUrl = `https://osf.io/${osfGuid}/`;
 
             sinon.stub(axios, "get").resolves({ data: { data: { links: {} } } });
+
+            const result = await convertOsfUrlToDownloadUrl(inputUrl);
+            expect(result).to.equal(inputUrl);
+        });
+
+        it("returns original URL when the OSF API response has no data.links field", async () => {
+            const osfGuid = "abc12";
+            const inputUrl = `https://osf.io/${osfGuid}/`;
+
+            sinon.stub(axios, "get").resolves({ data: { data: {} } });
+
+            const result = await convertOsfUrlToDownloadUrl(inputUrl);
+            expect(result).to.equal(inputUrl);
+        });
+
+        it("returns original URL when the OSF API response has null data", async () => {
+            const osfGuid = "abc12";
+            const inputUrl = `https://osf.io/${osfGuid}/`;
+
+            sinon.stub(axios, "get").resolves({ data: null });
 
             const result = await convertOsfUrlToDownloadUrl(inputUrl);
             expect(result).to.equal(inputUrl);
