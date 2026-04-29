@@ -379,7 +379,7 @@ export default abstract class DatabaseService {
                             `The server hosting the data source may not be configured to allow ` +
                             `requests from this application. For help resolving this, please visit our ` +
                             `<a href="https://github.com/AllenInstitute/biofile-finder/discussions/categories/q-a" ` +
-                            `target="_blank" rel="noreferrer">support forum</a>.`;
+                            `target="_blank" rel="noopener noreferrer">support forum</a>.`;
                     } else if (error?.message) {
                         formattedError = error.message;
                     } // else use default error message
