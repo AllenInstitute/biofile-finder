@@ -48,6 +48,8 @@ import {
     EXPAND_GRAPH,
     setIsGraphLoading,
     setIsRemoteFileUploadServerAvailable,
+    SUBMIT_ALL_CELLS_MASK_SEGMENTATION,
+    SubmitAllCellsMaskSegmentationAction,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { ModalType } from "../../components/Modal";
@@ -940,6 +942,55 @@ const copyFilesLogic = createLogic({
     type: COPY_FILES,
 });
 
+/**
+ * Interceptor responsible for submitting an All Cells Mask segmentation job
+ * and returning a dashboard URL for tracking job status.
+ */
+const submitAllCellsMaskLogic = createLogic({
+    type: SUBMIT_ALL_CELLS_MASK_SEGMENTATION,
+    warnTimeout: 0,
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { action, getState } = deps;
+
+        const {
+            payload: { fileIds, sceneIndex, channelIndex },
+        } = action as SubmitAllCellsMaskSegmentationAction;
+
+        const httpFileService = interactionSelectors.getHttpFileService(getState());
+        const processId = uniqueId("all-cells-mask-");
+
+        try {
+            dispatch(
+                interaction.actions.processStart(processId, "Submitting All Cells Mask job...")
+            );
+
+            const { computeTaskId, dashboardUrl } = await httpFileService.submitAllCellsMaskJob({
+                files: fileIds,
+                scene: sceneIndex,
+                channel: channelIndex,
+            });
+
+            dispatch(
+                interaction.actions.processSuccess(
+                    processId,
+                    `All Cells Mask job submitted successfully.\nJob ID: ${computeTaskId}\nTrack progress: ${dashboardUrl}`
+                )
+            );
+        } catch (err) {
+            dispatch(
+                interaction.actions.processError(
+                    processId,
+                    `Failed to submit All Cells Mask job: ${
+                        err instanceof Error ? err.message : err
+                    }`
+                )
+            );
+        } finally {
+            done();
+        }
+    },
+});
+
 export default [
     cancelFileDownloadLogic,
     copyFilesLogic,
@@ -956,4 +1007,5 @@ export default [
     setIsSmallScreen,
     setOriginForProvenance,
     showContextMenu,
+    submitAllCellsMaskLogic,
 ];
