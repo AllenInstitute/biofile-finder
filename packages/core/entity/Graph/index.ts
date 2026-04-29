@@ -9,7 +9,7 @@ import FileService, { FmsFileAnnotation } from "../../services/FileService";
 const FILE_NODE_WIDTH = 110;
 const FILE_NODE_HEIGHT = 125;
 const METADATA_NODE_WIDTH = 180;
-const METADATA_NODE_HEIGHT = 45;
+const METADATA_NODE_HEIGHT = 90;
 const ROW_SPACING = Math.max(FILE_NODE_HEIGHT, METADATA_NODE_HEIGHT) + 25;
 const COLUMN_SPACING = Math.max(FILE_NODE_WIDTH, METADATA_NODE_WIDTH) + 25;
 
@@ -138,6 +138,7 @@ function createFileNode(file: FileDetail, isSelected = false): FileNode {
             file,
             isSelected,
         },
+        draggable: false,
         // Placeholder values: Overwritten in this.nodes()
         position: { x: 0, y: 0 },
         width: FILE_NODE_WIDTH,
@@ -603,6 +604,7 @@ export default class Graph {
                 file: undefined,
                 isSelected: false,
             },
+            draggable: false,
             width: METADATA_NODE_WIDTH,
             height: METADATA_NODE_HEIGHT,
             // Placeholder values: Overwritten in this.nodes()
