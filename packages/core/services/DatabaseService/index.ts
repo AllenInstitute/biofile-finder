@@ -1,6 +1,6 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
-import { isEmpty, mapKeys } from "lodash";
+import { isEmpty, mapKeys, uniq } from "lodash";
 
 import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
@@ -19,6 +19,8 @@ enum PreDefinedColumn {
     UPLOADED = "Uploaded",
 }
 const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
+
+const DATA_SOURCE_COLUMN = "Data source";
 
 // Map each actual column name to the predefined column name when they fuzzy-match.
 function getActualToPreDefinedColumnMap(columns: string[]): Map<string, string> {
@@ -687,14 +689,22 @@ export default abstract class DatabaseService {
         this.dataSourceToAnnotationsMap.delete(dataSourceName);
     }
 
+    private async createParquetDirectView(name: string): Promise<void> {
+        return this.createAggregateParquetDirectView(name, [name]);
+    }
+
     // Create a view over the parquet file that exposes columns under predefined names (e.g. "File Path")
     // and adds hidden_bff_uid.
-    private async createParquetDirectView(name: string): Promise<void> {
+    private async createAggregateParquetDirectView(
+        aggregateName: string,
+        sourceNames: string[]
+    ): Promise<void> {
         // 1. Get original column names from the user's table.
         // Note: we don't use this.getColumnsOnDataSource, since that expects a
         // fully built data source, and this function is used for creating a
         // data source.
-        const rawColumns = await this.getRawParquetColumns(name);
+        const rawColumnQueries = sourceNames.map((name) => this.getRawParquetColumns(name));
+        const rawColumns = uniq((await Promise.all(rawColumnQueries)).flat());
         // 2. Determine which columns need to be renamed, if any
         const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
         // 3. Prepare the SQL for renaming columns in the CREATE VIEW
@@ -710,12 +720,16 @@ export default abstract class DatabaseService {
             selectParts.push(fileNameSelectPart);
         }
         selectParts.push(`"file_row_number" AS "${HIDDEN_UID_ANNOTATION}"`);
+        if (sourceNames.length > 1) {
+            selectParts.push(`"filename" AS "${DATA_SOURCE_COLUMN}"`);
+        }
         // 4. Create the view for this data source
-        const createViewSql = `CREATE VIEW "${name}"
+        const quotedNames = sourceNames.map((name) => `'${name}'`).join(", ");
+        const createViewSql = `CREATE VIEW "${aggregateName}"
             AS SELECT ${selectParts.join(", ")}
-            FROM parquet_scan('${name}');`;
+            FROM parquet_scan(ARRAY[${quotedNames}], union_by_name = true);`;
         await this.execute(createViewSql);
-        this.parquetDirectViewNames.add(name);
+        this.parquetDirectViewNames.add(aggregateName); // TODO change this for aggregates?
     }
 
     // Given a possibly-renamed column name, get the original column name used
@@ -849,9 +863,6 @@ export default abstract class DatabaseService {
     }
 
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {
-        if (dataSources.some((source) => source.type === "parquet")) {
-            throw new Error("Parquet tables cannot be combined to query multiple data sources.");
-        }
         const viewName = DatabaseService.combineSourceNames(dataSources);
 
         if (this.currentAggregateSource === viewName) {
@@ -862,97 +873,114 @@ export default abstract class DatabaseService {
             await this.deleteDataSource(this.currentAggregateSource);
         }
 
-        const columnsSoFar = new Set<string>();
-        const renamedColumnWarnings: string[] = [];
         try {
-            for (const dataSource of dataSources) {
-                // Fetch information about this data source
-                const annotationsInDataSource = await this.fetchAnnotations([dataSource.name]);
-                const columnsInDataSource = annotationsInDataSource.map(
-                    (annotation) => annotation.name
-                );
-
-                // Set.has() is case sensitive, but columns in DuckDB are case INsensitive.
-                // If source A has column "Color" and source B has column "color",
-                // "color" will appear to be new, but will cause an error when attempting to
-                // create the new column with DuckDB
-                const newColumns: string[] = [];
-                const similarColumnMap = new Map<string, string>();
-                columnsInDataSource.forEach((column) => {
-                    if (!columnsSoFar.has(column)) {
-                        let hasMatch = false;
-                        for (const existingCol of columnsSoFar) {
-                            if (existingCol.toLowerCase() === column.toLowerCase()) {
-                                // The original table has a column that functionally matches the new column
-                                hasMatch = true;
-                                similarColumnMap.set(existingCol, column);
-                                break;
-                            }
-                        }
-                        if (!hasMatch) {
-                            // Completely new even with case-insensitivity
-                            newColumns.push(column);
-                        }
-                    }
-                });
-
-                // If there are no columns / data added yet, we need to create the table from
-                // scratch so we can provide an easy shortcut around the default way of adding
-                // data to a table
-                if (columnsSoFar.size === 0) {
-                    await this.execute(
-                        `CREATE TABLE "${viewName}" AS SELECT *, '${dataSource.name}' AS "Data source" FROM "${dataSource.name}"`
+            if (dataSources.some((source) => source.type === "parquet")) {
+                if (!dataSources.every((source) => source.type === "parquet")) {
+                    throw new DataSourcePreparationError(
+                        "Parquet tables cannot be aggregated with non-parquet tables.",
+                        viewName
                     );
-                    this.currentAggregateSource = viewName;
-                } else {
-                    // If adding data to an existing table, we will need to add any new columns.
-                    // DuckDB does not support adding multiple columns in one ALTER TABLE
-                    // statement, so we will need to loop through and add them one by one.
-                    if (newColumns.length) {
-                        const alterTableSQL = newColumns
-                            .map(
-                                (column) =>
-                                    `ALTER TABLE "${viewName}" ADD COLUMN "${column}" VARCHAR`
-                            )
-                            .join("; ");
-                        await this.execute(alterTableSQL);
-                    }
-
-                    // After we have added any new columns to the table schema,
-                    // insert the data from the new table into the existing one,
-                    // replacing any non-existent columns with an empty value (null)
-                    const columnsSoFarArr = [...columnsSoFar, ...newColumns];
-                    const columnToSql = (column: string) => {
-                        if (columnsInDataSource.includes(column)) {
-                            return `"${column}"`;
-                        } else if (similarColumnMap.has(column)) {
-                            // Match columns to their case-insensitive equivalent in the existing table
-                            return `"${similarColumnMap.get(column)}" as "${column}"`;
-                        } else return "NULL";
-                    };
-                    await this.execute(`
-                        INSERT INTO "${viewName}" ("${columnsSoFarArr.join('", "')}", "Data source")
-                        SELECT ${columnsSoFarArr
-                            .map((column) => columnToSql(column))
-                            .join(", ")}, '${dataSource.name}' AS "Data source"
-                        FROM "${dataSource.name}"
-                    `);
                 }
-
-                // Add the new columns from this data source to the existing columns
-                // to avoid adding duplicate columns
-                newColumns.forEach((column) => columnsSoFar.add(column));
-
-                Array.from(similarColumnMap.entries()).forEach((entry) => {
-                    renamedColumnWarnings.push(
-                        `Column "${entry[0]}" from data source ${dataSource.name} translated to "${entry[1]}".`
-                    );
-                });
+                await this.createAggregateParquetDirectView(
+                    viewName,
+                    dataSources.map((source) => source.name)
+                );
+            } else {
+                await this.createAggregateInMemory(viewName, dataSources);
             }
         } catch (err) {
             const formattedError =
                 (err as Error)?.message || `Error while combining data sources. ${err}`;
             throw new DataSourcePreparationError(formattedError, viewName);
+        }
+
+        this.currentAggregateSource = viewName;
+    }
+
+    private async createAggregateInMemory(viewName: string, dataSources: Source[]): Promise<void> {
+        const columnsSoFar = new Set<string>();
+        const renamedColumnWarnings: string[] = [];
+        for (const dataSource of dataSources) {
+            // Fetch information about this data source
+            const annotationsInDataSource = await this.fetchAnnotations([dataSource.name]);
+            const columnsInDataSource = annotationsInDataSource.map(
+                (annotation) => annotation.name
+            );
+
+            // Set.has() is case sensitive, but columns in DuckDB are case INsensitive.
+            // If source A has column "Color" and source B has column "color",
+            // "color" will appear to be new, but will cause an error when attempting to
+            // create the new column with DuckDB
+            const newColumns: string[] = [];
+            const similarColumnMap = new Map<string, string>();
+            columnsInDataSource.forEach((column) => {
+                if (!columnsSoFar.has(column)) {
+                    let hasMatch = false;
+                    for (const existingCol of columnsSoFar) {
+                        if (existingCol.toLowerCase() === column.toLowerCase()) {
+                            // The original table has a column that functionally matches the new column
+                            hasMatch = true;
+                            similarColumnMap.set(existingCol, column);
+                            break;
+                        }
+                    }
+                    if (!hasMatch) {
+                        // Completely new even with case-insensitivity
+                        newColumns.push(column);
+                    }
+                }
+            });
+
+            // If there are no columns / data added yet, we need to create the table from
+            // scratch so we can provide an easy shortcut around the default way of adding
+            // data to a table
+            if (columnsSoFar.size === 0) {
+                await this.execute(
+                    `CREATE TABLE "${viewName}" AS SELECT *, '${dataSource.name}' AS "${DATA_SOURCE_COLUMN}" FROM "${dataSource.name}"`
+                );
+            } else {
+                // If adding data to an existing table, we will need to add any new columns.
+                // DuckDB does not support adding multiple columns in one ALTER TABLE
+                // statement, so we will need to loop through and add them one by one.
+                if (newColumns.length) {
+                    const alterTableSQL = newColumns
+                        .map((column) => `ALTER TABLE "${viewName}" ADD COLUMN "${column}" VARCHAR`)
+                        .join("; ");
+                    await this.execute(alterTableSQL);
+                }
+
+                // After we have added any new columns to the table schema,
+                // insert the data from the new table into the existing one,
+                // replacing any non-existent columns with an empty value (null)
+                const columnsSoFarArr = [...columnsSoFar, ...newColumns];
+                const columnToSql = (column: string) => {
+                    if (columnsInDataSource.includes(column)) {
+                        return `"${column}"`;
+                    } else if (similarColumnMap.has(column)) {
+                        // Match columns to their case-insensitive equivalent in the existing table
+                        return `"${similarColumnMap.get(column)}" as "${column}"`;
+                    } else return "NULL";
+                };
+                await this.execute(`
+                    INSERT INTO "${viewName}" ("${columnsSoFarArr.join(
+                    '", "'
+                )}", "${DATA_SOURCE_COLUMN}")
+                    SELECT ${columnsSoFarArr.map((column) => columnToSql(column)).join(", ")}, '${
+                    dataSource.name
+                }' AS "${DATA_SOURCE_COLUMN}"
+                    FROM "${dataSource.name}"
+                `);
+            }
+
+            // Add the new columns from this data source to the existing columns
+            // to avoid adding duplicate columns
+            newColumns.forEach((column) => columnsSoFar.add(column));
+
+            Array.from(similarColumnMap.entries()).forEach((entry) => {
+                renamedColumnWarnings.push(
+                    `Column "${entry[0]}" from data source ${dataSource.name} translated to "${entry[1]}".`
+                );
+            });
         }
 
         // Unable to dispatch from a class definition; use warn for now
