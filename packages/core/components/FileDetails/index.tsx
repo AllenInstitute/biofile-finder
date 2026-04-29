@@ -162,6 +162,7 @@ export default function FileDetails(props: Props) {
                                         (e.key === "Enter" || e.key === " ") &&
                                         isThumbnailClickable
                                     ) {
+                                        e.preventDefault();
                                         setIsFullscreenThumbnail(true);
                                     }
                                 }}
@@ -189,7 +190,14 @@ export default function FileDetails(props: Props) {
                                     alt={props.fileDetails?.name}
                                     className={styles.fullscreenImage}
                                     src={thumbnailPath}
+                                    tabIndex={0}
                                     onClick={() => setIsFullscreenThumbnail(false)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault();
+                                            setIsFullscreenThumbnail(false);
+                                        }
+                                    }}
                                 />
                             </Modal>
                             {!props.onClose && (
