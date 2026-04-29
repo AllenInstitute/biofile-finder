@@ -283,11 +283,14 @@ describe("DatabaseService", () => {
             expect(result).to.equal(url);
         });
 
-        it("returns original URL unchanged for other non-HTTP protocol schemes", async () => {
-            for (const url of ["ftp://example.com/data.csv", "file:///local/data.csv"]) {
-                const result = await convertOsfUrlToDownloadUrl(url); // eslint-disable-line no-await-in-loop
-                expect(result).to.equal(url);
-            }
+        it("returns original URL unchanged for ftp:// protocol", async () => {
+            const result = await convertOsfUrlToDownloadUrl("ftp://example.com/data.csv");
+            expect(result).to.equal("ftp://example.com/data.csv");
+        });
+
+        it("returns original URL unchanged for file:// protocol", async () => {
+            const result = await convertOsfUrlToDownloadUrl("file:///local/data.csv");
+            expect(result).to.equal("file:///local/data.csv");
         });
 
         it("returns original URL unchanged when URL is already on files.osf.io (Waterbutler)", async () => {
@@ -297,7 +300,7 @@ describe("DatabaseService", () => {
             expect(result).to.equal(url);
         });
 
-        it("resolves an osf.io file URL to the direct download URL via the OSF API", async () => {
+        it("resolves an osf.io GUID URL to the direct download URL via the OSF API", async () => {
             const osfGuid = "abc12";
             const inputUrl = `https://osf.io/${osfGuid}/`;
             const expectedDownloadUrl =
