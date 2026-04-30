@@ -7,6 +7,7 @@ import {
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
+    SET_LAST_TOUCHED_FOLDER,
     RESIZE_COLUMN,
     SORT_COLUMN,
     SET_SORT_COLUMN,
@@ -43,7 +44,7 @@ import {
 } from "./actions";
 import interaction from "../interaction";
 import { FileView, Source } from "../../entity/SearchParams";
-import FileFilter, { FilterType } from "../../entity/FileFilter";
+import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../entity/FileSort";
@@ -223,31 +224,14 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             columns: action.payload,
         }),
-        [SET_FILE_SELECTION]: (state, action) => {
-            const newFileSelection: FileSelection = action.payload;
-            let lastTouchedFolder: FileFolder | undefined = state.lastTouchedFolder;
-
-            // When a file is selected, track which folder it belongs to so Ctrl+A
-            // can target that folder rather than the full directory tree.
-            const focusedItem = newFileSelection.focusedItem;
-            if (focusedItem && state.annotationHierarchy.length > 0) {
-                const rawFolderPath = state.annotationHierarchy.map((name) => {
-                    const hierarchyFilter = focusedItem.fileSet.filters.find(
-                        (f) => f.name === name && f.type === FilterType.DEFAULT
-                    );
-                    return hierarchyFilter?.value;
-                });
-                if (rawFolderPath.every((v) => v !== undefined)) {
-                    lastTouchedFolder = new FileFolder(rawFolderPath);
-                }
-            }
-
-            return {
-                ...state,
-                fileSelection: newFileSelection,
-                lastTouchedFolder,
-            };
-        },
+        [SET_FILE_SELECTION]: (state, action) => ({
+            ...state,
+            fileSelection: action.payload,
+        }),
+        [SET_LAST_TOUCHED_FOLDER]: (state, action) => ({
+            ...state,
+            lastTouchedFolder: action.payload,
+        }),
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,
             annotationHierarchy: action.payload,
@@ -279,7 +263,6 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [interaction.actions.INITIALIZE_APP]: (state) => ({
             ...state,
-            lastTouchedFolder: undefined,
 
             // Reset file selections when pointed at a new backend
             fileSelection: new FileSelection(),

@@ -4,18 +4,16 @@ import { useDispatch, useSelector } from "react-redux";
 
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
+import useSelectAll from "./useSelectAll";
 import AggregateInfoBox from "../AggregateInfoBox";
 import EmptyFileListMessage from "../EmptyFileListMessage";
-import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
-import NumericRange from "../../entity/NumericRange";
 import Tutorial from "../../entity/Tutorial";
 import { interaction, selection } from "../../state";
 
 import styles from "./DirectoryTree.module.css";
 
 enum KeyboardCode {
-    A = "a",
     ArrowDown = "ArrowDown",
     ArrowUp = "ArrowUp",
 }
@@ -44,9 +42,6 @@ export default function DirectoryTree(props: FileListProps) {
     const globalFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const visibleModal = useSelector(interaction.selectors.getVisibleModal);
-    const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
-    const lastTouchedFolder = useSelector(selection.selectors.getLastTouchedFolder);
-    const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
     // If user is loading a new data source, show root loading state in file list
     // since it may take time for the view to update with new query results
     const isLoadingNewQueryOrSource = useSelector(selection.selectors.getLoadingQueryOrSource);
@@ -80,83 +75,8 @@ export default function DirectoryTree(props: FileListProps) {
         return () => window.removeEventListener("keydown", onArrowKeyDown, true);
     }, [dispatch, visibleModal]);
 
-    // On Ctrl+A (or Cmd+A on Mac) select all files in the current file set.
-    // If there is an annotation hierarchy, uses the last folder the user touched
-    // (tracked in Redux state as `lastTouchedFolder`) provided it is still open;
-    // if the folder is closed or the user has not touched any folder, does nothing.
-    // For flat lists (no hierarchy), always selects all in the root file set.
-    // Should not register key presses when an overlay modal is active.
-    React.useEffect(() => {
-        const onSelectAllKeyDown = async (event: KeyboardEvent) => {
-            if (!!visibleModal) return;
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === KeyboardCode.A) {
-                event.preventDefault();
-
-                let targetFileSet: FileSet;
-
-                if (annotationHierarchy.length === 0) {
-                    // Flat list — no folder concept, always select all in root
-                    targetFileSet = fileSet;
-                } else if (
-                    lastTouchedFolder &&
-                    lastTouchedFolder.fileFolder.length === annotationHierarchy.length &&
-                    openFileFolders.some((f) => f.equals(lastTouchedFolder))
-                ) {
-                    // Rebuild the FileSet for the last-touched folder by combining
-                    // the hierarchy filters (one per level from the folder path) with
-                    // any non-hierarchy global filters the user may have applied.
-                    const hierarchyFilters = annotationHierarchy.map(
-                        (annotationName, idx) =>
-                            new FileFilter(
-                                annotationName,
-                                lastTouchedFolder.fileFolder[idx],
-                                FilterType.DEFAULT
-                            )
-                    );
-                    const nonHierarchyFilters = globalFilters.filter(
-                        (f) =>
-                            !(
-                                annotationHierarchy.includes(f.name) &&
-                                f.type === FilterType.DEFAULT
-                            )
-                    );
-                    targetFileSet = new FileSet({
-                        fileService,
-                        filters: [...hierarchyFilters, ...nonHierarchyFilters],
-                        sort: sortColumn,
-                    });
-                } else {
-                    // No last-touched folder or the folder has since been closed — do nothing
-                    return;
-                }
-
-                const totalCount = await targetFileSet.fetchTotalCount();
-                if (totalCount > 0) {
-                    dispatch(
-                        selection.actions.selectFile({
-                            fileSet: targetFileSet,
-                            selection: new NumericRange(0, totalCount - 1),
-                            sortOrder: 0,
-                            updateExistingSelection: false,
-                        })
-                    );
-                }
-            }
-        };
-
-        window.addEventListener("keydown", onSelectAllKeyDown, true);
-        return () => window.removeEventListener("keydown", onSelectAllKeyDown, true);
-    }, [
-        annotationHierarchy,
-        dispatch,
-        fileService,
-        fileSet,
-        globalFilters,
-        lastTouchedFolder,
-        openFileFolders,
-        sortColumn,
-        visibleModal,
-    ]);
+    // Ctrl+A / Cmd+A: select all files in the last-opened folder (or root for flat lists)
+    useSelectAll();
 
     const {
         state: { content, error, isLoading },

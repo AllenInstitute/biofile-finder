@@ -589,6 +589,30 @@ export function setOpenFileFolders(openFileFolders: FileFolder[]): SetOpenFileFo
 }
 
 /**
+ * SET_LAST_TOUCHED_FOLDER
+ * Intention to record which folder the user most recently opened,
+ * used by the Select All (Ctrl+A) shortcut to target the correct file set.
+ */
+export const SET_LAST_TOUCHED_FOLDER = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-last-touched-folder"
+);
+
+export interface SetLastTouchedFolderAction {
+    payload: FileFolder | undefined;
+    type: string;
+}
+
+export function setLastTouchedFolder(
+    folder: FileFolder | undefined
+): SetLastTouchedFolderAction {
+    return {
+        payload: folder,
+        type: SET_LAST_TOUCHED_FOLDER,
+    };
+}
+
+/**
  * TOGGLE_NULL_VALUE_GROUPS
  *
  * Intention to set whether to include groups of files that don't have any value for a given annotation.
