@@ -231,14 +231,14 @@ export default makeReducer<SelectionStateBranch>(
             // can target that folder rather than the full directory tree.
             const focusedItem = newFileSelection.focusedItem;
             if (focusedItem && state.annotationHierarchy.length > 0) {
-                const folderPath = state.annotationHierarchy.map((name) => {
+                const rawFolderPath = state.annotationHierarchy.map((name) => {
                     const hierarchyFilter = focusedItem.fileSet.filters.find(
                         (f) => f.name === name && f.type === FilterType.DEFAULT
                     );
                     return hierarchyFilter?.value;
                 });
-                if (folderPath.every((v) => v !== undefined)) {
-                    lastTouchedFolder = new FileFolder(folderPath);
+                if (rawFolderPath.every((v) => v !== undefined)) {
+                    lastTouchedFolder = new FileFolder(rawFolderPath);
                 }
             }
 

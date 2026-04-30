@@ -99,6 +99,7 @@ export default function DirectoryTree(props: FileListProps) {
                     targetFileSet = fileSet;
                 } else if (
                     lastTouchedFolder &&
+                    lastTouchedFolder.fileFolder.length === annotationHierarchy.length &&
                     openFileFolders.some((f) => f.equals(lastTouchedFolder))
                 ) {
                     // Rebuild the FileSet for the last-touched folder by combining
