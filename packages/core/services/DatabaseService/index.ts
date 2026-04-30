@@ -373,9 +373,10 @@ export default abstract class DatabaseService {
                         // A request was made but no response was received — this is the
                         // hallmark of a CORS (Cross-Origin Resource Sharing) error in browsers,
                         // where the server does not allow cross-origin requests.
+                        // TODO: Update this once user guide is complete:
+                        // https://github.com/AllenInstitute/biofile-finder/issues/723
                         formattedError =
-                            `Failed to load "${name}". This is likely caused by ` +
-                            `CORS (Cross-Origin Resource Sharing) restrictions. ` +
+                            `This is likely caused by CORS restrictions. ` +
                             `The server hosting the data source may not be configured to allow ` +
                             `requests from this application. For help resolving this, please visit our ` +
                             `<a href="https://github.com/AllenInstitute/biofile-finder/discussions/categories/q-a" ` +
