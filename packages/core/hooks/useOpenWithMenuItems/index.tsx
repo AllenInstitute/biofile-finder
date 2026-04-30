@@ -19,6 +19,7 @@ enum AppKeys {
     BROWSER = "browser",
     FIJI = "fiji",
     NEUROGLANCER = "neuroglancer",
+    OMERO_VIEWER = "omero-viewer",
     SIMULARIUM = "simularium",
     VALIDATOR = "validator",
     VOLE = "vole",
@@ -31,6 +32,7 @@ interface Apps {
     [AppKeys.BROWSER]: IContextualMenuItem;
     [AppKeys.FIJI]: IContextualMenuItem;
     [AppKeys.NEUROGLANCER]: IContextualMenuItem;
+    [AppKeys.OMERO_VIEWER]: IContextualMenuItem;
     [AppKeys.SIMULARIUM]: IContextualMenuItem;
     [AppKeys.VALIDATOR]: IContextualMenuItem;
     [AppKeys.VOLE]: IContextualMenuItem;
@@ -227,6 +229,22 @@ const APPS = (
         text: "VolView",
         title: `Open files with VolView`,
         href: `https://volview.kitware.app/?urls=[${fileDetails?.path}]`,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
+    [AppKeys.OMERO_VIEWER]: {
+        key: AppKeys.OMERO_VIEWER,
+        text: "OMERO Viewer",
+        title: "Open image in OMERO Viewer",
+        href: fileDetails?.path,
         disabled: !fileDetails?.path,
         target: "_blank",
         onRenderContent(props, defaultRenders) {
@@ -576,6 +594,19 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         }
         getIsMacOS().then(setIsMacOS);
     }, []);
+
+    // For IDR images, the only supported viewer is the OMERO Viewer.
+    // The file path itself is the OMERO Viewer URL, so return early with just that item.
+    // Use URL parsing to precisely match the IDR hostname and avoid substring false-positives.
+    if (fileDetails?.path) {
+        try {
+            if (new URL(fileDetails.path).hostname === "idr.openmicroscopy.org") {
+                return [apps[AppKeys.OMERO_VIEWER]];
+            }
+        } catch (_e) {
+            // Not a valid URL; skip IDR check
+        }
+    }
 
     const supportedApps = [...getSupportedApps(apps, isSmallFile, fileDetails), ...userApps]
         // TODO: This is a placeholder until FIJI finishes rolling out FIJI support across all
