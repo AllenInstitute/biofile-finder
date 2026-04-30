@@ -19,7 +19,7 @@ enum AppKeys {
     BROWSER = "browser",
     FIJI = "fiji",
     NEUROGLANCER = "neuroglancer",
-    OMERO_VIEWER = "omero-viewer",
+    OMERO_VIEWER = "omeroviewer",
     SIMULARIUM = "simularium",
     VALIDATOR = "validator",
     VOLE = "vole",
@@ -278,7 +278,6 @@ function getSupportedApps(
     const fileExt = getFileExtension(fileDetails);
 
     // Check for common file extensions first
-
     switch (fileExt) {
         case "bmp":
         case "html":
@@ -304,6 +303,18 @@ function getSupportedApps(
                 : [apps.fiji, apps.agave, apps.vole];
         case "zarr":
         case "": // No extension
+            // For IDR images, the only supported viewer is the OMERO Viewer.
+            // The file path itself is the OMERO Viewer URL, so return early with just that item.
+            // Use URL parsing to precisely match the IDR hostname and avoid substring false-positives.
+            // Ex. https://idr.openmicroscopy.org/webclient/img_detail/14239685/
+            try {
+                if (new URL(fileDetails.path).hostname === "idr.openmicroscopy.org") {
+                    return [apps.omeroviewer];
+                }
+            } catch (_e) {
+                // Not a valid URL; skip IDR check
+            }
+
             return isLikelyLocalFile
                 ? [apps.agave, apps.neuroglancer, apps.vole, apps.cfe]
                 : [apps.vole, apps.neuroglancer, apps.agave, apps.cfe, apps.validator];
@@ -594,19 +605,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         }
         getIsMacOS().then(setIsMacOS);
     }, []);
-
-    // For IDR images, the only supported viewer is the OMERO Viewer.
-    // The file path itself is the OMERO Viewer URL, so return early with just that item.
-    // Use URL parsing to precisely match the IDR hostname and avoid substring false-positives.
-    if (fileDetails?.path) {
-        try {
-            if (new URL(fileDetails.path).hostname === "idr.openmicroscopy.org") {
-                return [apps[AppKeys.OMERO_VIEWER]];
-            }
-        } catch (_e) {
-            // Not a valid URL; skip IDR check
-        }
-    }
 
     const supportedApps = [...getSupportedApps(apps, isSmallFile, fileDetails), ...userApps]
         // TODO: This is a placeholder until FIJI finishes rolling out FIJI support across all
