@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { selection } from "../../state";
 import FileSet from "../../entity/FileSet";
@@ -28,13 +28,36 @@ export interface OnSelect {
  */
 export default function useFileSelector(fileSet: FileSet, sortOrder: number): OnSelect {
     const dispatch = useDispatch();
+    const fileSelection = useSelector(selection.selectors.getFileSelection);
     const [lastSelectedFileIndex, setLastSelectedFileIndex] = React.useState<undefined | number>(
         undefined
     );
 
+    // Track whether the most recent fileSelection change was caused by a click in this component.
+    // Used to prevent the effect below from overwriting lastSelectedFileIndex in response to
+    // click-driven Redux updates (arrow key navigation should update it; clicks handle it directly).
+    const isLocalClickPending = React.useRef(false);
+
+    // Sync lastSelectedFileIndex with keyboard-driven navigation (e.g. arrow keys).
+    // When the user presses arrow keys to move the selection, the Redux fileSelection changes but
+    // the local lastSelectedFileIndex does not, causing a subsequent shift+click to start from the
+    // wrong position. Skipping the update for local click events avoids double-setting the value
+    // and preserves correct anchor behaviour for consecutive shift+clicks.
+    React.useEffect(() => {
+        if (isLocalClickPending.current) {
+            isLocalClickPending.current = false;
+            return;
+        }
+        const focusedItem = fileSelection.focusedItem;
+        if (focusedItem && focusedItem.fileSet.equals(fileSet)) {
+            setLastSelectedFileIndex(focusedItem.indexWithinFileSet);
+        }
+    }, [fileSelection, fileSet]);
+
     // To be called as an `onSelect` callback by individual FileRows.
     return React.useCallback(
         async (fileRow: { index: number; id: string }, eventParams: EventParams) => {
+            isLocalClickPending.current = true;
             if (eventParams.shiftKeyIsPressed) {
                 const rangeBoundary =
                     lastSelectedFileIndex === undefined ? fileRow.index : lastSelectedFileIndex;
