@@ -169,7 +169,7 @@ export default function ListPicker(props: ListPickerProps) {
                             content={
                                 shouldShowNullGroups
                                     ? "Hide (do not include) files without values in results"
-                                    : "Show (include) files with no value in results"
+                                    : "Show (include) files without values in results"
                             }
                         >
                             <Checkbox
