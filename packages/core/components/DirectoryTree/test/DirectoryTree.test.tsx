@@ -24,7 +24,10 @@ import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import { FmsFileAnnotation } from "../../../services/FileService";
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../entity/FileFilter";
+import FileFolder from "../../../entity/FileFolder";
+import FileSelection from "../../../entity/FileSelection";
+import FileSet from "../../../entity/FileSet";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
@@ -513,6 +516,132 @@ describe("<DirectoryTree />", () => {
         await waitFor(() => {
             const fileSelection = selection.selectors.getFileSelection(store.getState());
             expect(fileSelection.count()).to.equal(totalFilesCount);
+        });
+    });
+
+    it("selects all files in the last-touched folder when Ctrl+A is pressed and its folder is open", async () => {
+        // Build a file set for a specific sub-folder (foo=first, bar=b)
+        const subFolderFileSet = new FileSet({
+            fileService,
+            filters: [
+                new FileFilter(fooAnnotation.name, topLevelHierarchyValues[0], FilterType.DEFAULT),
+                new FileFilter(
+                    barAnnotation.name,
+                    secondLevelHierarchyValues[1],
+                    FilterType.DEFAULT
+                ),
+            ],
+        });
+        // Pre-select a file in the sub-folder so it becomes the last-touched file set
+        const subFolderFileSelection = new FileSelection().select({
+            fileSet: subFolderFileSet,
+            index: 0,
+            sortOrder: 1,
+        });
+        // The corresponding open folder path is [foo value, bar value]
+        const openFolder = new FileFolder([
+            topLevelHierarchyValues[0],
+            secondLevelHierarchyValues[1],
+        ]);
+
+        const stateWithFocusedSubFolder = mergeState(initialState, {
+            metadata: {
+                annotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
+            },
+            selection: {
+                annotationHierarchy: [fooAnnotation.name, barAnnotation.name],
+                columns: [...baseDisplayAnnotations, fooAnnotation, barAnnotation].map((a) => ({
+                    name: a.name,
+                    width: 0.1,
+                })),
+                fileSelection: subFolderFileSelection,
+                openFileFolders: [openFolder],
+            },
+        });
+
+        const { store } = configureMockStore({
+            state: stateWithFocusedSubFolder,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // Simulate Ctrl+A keydown
+        fireEvent.keyDown(window, { key: "a", ctrlKey: true });
+
+        // The entire sub-folder file set should now be selected
+        await waitFor(() => {
+            const fileSelection = selection.selectors.getFileSelection(store.getState());
+            expect(fileSelection.count()).to.equal(totalFilesCount);
+            // The focused item should be in the sub-folder file set, not the root
+            expect(fileSelection.isFocused(subFolderFileSet)).to.be.true;
+        });
+    });
+
+    it("falls back to root file set for Ctrl+A when the last-touched folder is closed", async () => {
+        // Build a file set for a specific sub-folder (foo=first, bar=b)
+        const subFolderFileSet = new FileSet({
+            fileService,
+            filters: [
+                new FileFilter(fooAnnotation.name, topLevelHierarchyValues[0], FilterType.DEFAULT),
+                new FileFilter(
+                    barAnnotation.name,
+                    secondLevelHierarchyValues[1],
+                    FilterType.DEFAULT
+                ),
+            ],
+        });
+        // Pre-select a file in the sub-folder so it becomes the last-touched file set
+        const subFolderFileSelection = new FileSelection().select({
+            fileSet: subFolderFileSet,
+            index: 0,
+            sortOrder: 1,
+        });
+
+        // openFileFolders is empty: the folder has been collapsed since the selection was made
+        const stateWithClosedFolder = mergeState(initialState, {
+            metadata: {
+                annotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
+            },
+            selection: {
+                annotationHierarchy: [fooAnnotation.name, barAnnotation.name],
+                columns: [...baseDisplayAnnotations, fooAnnotation, barAnnotation].map((a) => ({
+                    name: a.name,
+                    width: 0.1,
+                })),
+                fileSelection: subFolderFileSelection,
+                openFileFolders: [], // folder is closed
+            },
+        });
+
+        const { store } = configureMockStore({
+            state: stateWithClosedFolder,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // Simulate Ctrl+A keydown
+        fireEvent.keyDown(window, { key: "a", ctrlKey: true });
+
+        // Should fall back to root: 15 files selected, but focused on the root file set
+        await waitFor(() => {
+            const fileSelection = selection.selectors.getFileSelection(store.getState());
+            expect(fileSelection.count()).to.equal(totalFilesCount);
+            // The focused item should NOT be in the sub-folder (should be in the root file set)
+            expect(fileSelection.isFocused(subFolderFileSet)).to.be.false;
         });
     });
 
