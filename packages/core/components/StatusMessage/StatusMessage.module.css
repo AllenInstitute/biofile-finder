@@ -92,6 +92,21 @@
     color: var(--error-status-text-color) !important;
 }
 
+.view-more-button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: var(--s-paragraph-size);
+    padding: 4px 0;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+}
+
+.view-more-button:hover {
+    opacity: 0.8;
+}
+
 .progress-indicator > div > div:first-child {
     height: 3px;
     background-color: var(--secondary-dark);

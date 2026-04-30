@@ -862,12 +862,13 @@ const setDataSourceReloadErrorLogic = createLogic({
             } = deps.action as AddDataSourceReloadError;
             // Trim error message to only the first few lines
             const truncatedError = truncate(error, { length: 200 });
-            const datasourceErrorDefaultMessage = `
+            const isTruncated = error.length > 200;
+            const makeMessage = (errorContent: string) => `
                 The following error occurred while loading the data source
                 &quot;${dataSourceName}&quot;:
                 </br>
                 </br>
-                ${truncatedError}
+                ${errorContent}
                 </br>
                 </br>
                 Please re-select the data source or a replacement.
@@ -875,7 +876,8 @@ const setDataSourceReloadErrorLogic = createLogic({
             dispatch(
                 interaction.actions.processError(
                     "dataSourceReloadError",
-                    datasourceErrorDefaultMessage
+                    makeMessage(truncatedError),
+                    isTruncated ? makeMessage(error) : undefined
                 )
             );
         } else dispatch(interaction.actions.removeStatus("dataSourceReloadError"));
