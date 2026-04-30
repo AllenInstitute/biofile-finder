@@ -26,7 +26,6 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import { FmsFileAnnotation } from "../../../services/FileService";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import FileFolder from "../../../entity/FileFolder";
-import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -496,9 +495,20 @@ describe("<DirectoryTree />", () => {
         expect(header.classList.contains(styles.focused)).to.be.true;
     });
 
-    it("selects all files in current file set when Ctrl+A is pressed", async () => {
+    it("selects all files in root file set when Ctrl+A is pressed and there is no annotation hierarchy", async () => {
+        // Flat list: no annotation hierarchy, no folder tracking needed
+        const flatState = mergeState(initialState, {
+            metadata: {
+                annotations: [...baseDisplayAnnotations],
+            },
+            selection: {
+                annotationHierarchy: [],
+                columns: baseDisplayAnnotations.map((a) => ({ name: a.name, width: 0.1 })),
+            },
+        });
+
         const { store } = configureMockStore({
-            state,
+            state: flatState,
             responseStubs,
             reducer,
             logics: reduxLogics,
@@ -521,31 +531,14 @@ describe("<DirectoryTree />", () => {
     });
 
     it("selects all files in the last-touched folder when Ctrl+A is pressed and its folder is open", async () => {
-        // Build a file set for a specific sub-folder (foo=first, bar=b)
-        const subFolderFileSet = new FileSet({
-            fileService,
-            filters: [
-                new FileFilter(fooAnnotation.name, topLevelHierarchyValues[0], FilterType.DEFAULT),
-                new FileFilter(
-                    barAnnotation.name,
-                    secondLevelHierarchyValues[1],
-                    FilterType.DEFAULT
-                ),
-            ],
-        });
-        // Pre-select a file in the sub-folder so it becomes the last-touched file set
-        const subFolderFileSelection = new FileSelection().select({
-            fileSet: subFolderFileSet,
-            index: 0,
-            sortOrder: 1,
-        });
-        // The corresponding open folder path is [foo value, bar value]
-        const openFolder = new FileFolder([
+        // Track the last-touched folder directly in Redux state (set by the reducer
+        // when a file is selected, mimicked here by setting it directly for this test)
+        const lastTouchedFolder = new FileFolder([
             topLevelHierarchyValues[0],
             secondLevelHierarchyValues[1],
         ]);
 
-        const stateWithFocusedSubFolder = mergeState(initialState, {
+        const stateWithLastTouchedFolder = mergeState(initialState, {
             metadata: {
                 annotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
             },
@@ -555,13 +548,13 @@ describe("<DirectoryTree />", () => {
                     name: a.name,
                     width: 0.1,
                 })),
-                fileSelection: subFolderFileSelection,
-                openFileFolders: [openFolder],
+                lastTouchedFolder,
+                openFileFolders: [lastTouchedFolder],
             },
         });
 
         const { store } = configureMockStore({
-            state: stateWithFocusedSubFolder,
+            state: stateWithLastTouchedFolder,
             responseStubs,
             reducer,
             logics: reduxLogics,
@@ -576,21 +569,8 @@ describe("<DirectoryTree />", () => {
         // Simulate Ctrl+A keydown
         fireEvent.keyDown(window, { key: "a", ctrlKey: true });
 
-        // The entire sub-folder file set should now be selected
-        await waitFor(() => {
-            const fileSelection = selection.selectors.getFileSelection(store.getState());
-            expect(fileSelection.count()).to.equal(totalFilesCount);
-            // All selected files must belong to the sub-folder file set, not the root
-            expect(
-                fileSelection.isSelected(subFolderFileSet, new NumericRange(0, totalFilesCount - 1))
-            ).to.be.true;
-            expect(fileSelection.isFocused(subFolderFileSet)).to.be.true;
-        });
-    });
-
-    it("falls back to root file set for Ctrl+A when the last-touched folder is closed", async () => {
-        // Build a file set for a specific sub-folder (foo=first, bar=b)
-        const subFolderFileSet = new FileSet({
+        // The sub-folder file set (foo=first, bar=b) should now have all its files selected
+        const expectedSubFolderFileSet = new FileSet({
             fileService,
             filters: [
                 new FileFilter(fooAnnotation.name, topLevelHierarchyValues[0], FilterType.DEFAULT),
@@ -601,14 +581,26 @@ describe("<DirectoryTree />", () => {
                 ),
             ],
         });
-        // Pre-select a file in the sub-folder so it becomes the last-touched file set
-        const subFolderFileSelection = new FileSelection().select({
-            fileSet: subFolderFileSet,
-            index: 0,
-            sortOrder: 1,
+        await waitFor(() => {
+            const fileSelection = selection.selectors.getFileSelection(store.getState());
+            expect(fileSelection.count()).to.equal(totalFilesCount);
+            // All selected files must belong to the sub-folder file set, not the root
+            expect(
+                fileSelection.isSelected(
+                    expectedSubFolderFileSet,
+                    new NumericRange(0, totalFilesCount - 1)
+                )
+            ).to.be.true;
         });
+    });
 
-        // openFileFolders is empty: the folder has been collapsed since the selection was made
+    it("does nothing when Ctrl+A is pressed and the last-touched folder is closed", async () => {
+        // lastTouchedFolder is set but NOT in openFileFolders (folder was closed)
+        const lastTouchedFolder = new FileFolder([
+            topLevelHierarchyValues[0],
+            secondLevelHierarchyValues[1],
+        ]);
+
         const stateWithClosedFolder = mergeState(initialState, {
             metadata: {
                 annotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
@@ -619,7 +611,7 @@ describe("<DirectoryTree />", () => {
                     name: a.name,
                     width: 0.1,
                 })),
-                fileSelection: subFolderFileSelection,
+                lastTouchedFolder,
                 openFileFolders: [], // folder is closed
             },
         });
@@ -640,15 +632,48 @@ describe("<DirectoryTree />", () => {
         // Simulate Ctrl+A keydown
         fireEvent.keyDown(window, { key: "a", ctrlKey: true });
 
-        // Should fall back to root: 15 files selected, but focused on the root file set
+        // Selection should remain empty since the last-touched folder is closed
         await waitFor(() => {
             const fileSelection = selection.selectors.getFileSelection(store.getState());
-            expect(fileSelection.count()).to.equal(totalFilesCount);
-            // The selection must NOT belong to the sub-folder file set — it should be in the root
-            expect(
-                fileSelection.isSelected(subFolderFileSet, new NumericRange(0, totalFilesCount - 1))
-            ).to.be.false;
-            expect(fileSelection.isFocused(subFolderFileSet)).to.be.false;
+            expect(fileSelection.count()).to.equal(0);
+        });
+    });
+
+    it("does nothing when Ctrl+A is pressed and no folder has been touched", async () => {
+        // Has a hierarchy but no lastTouchedFolder (user hasn't selected a file yet)
+        const stateWithNoLastTouched = mergeState(initialState, {
+            metadata: {
+                annotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
+            },
+            selection: {
+                annotationHierarchy: [fooAnnotation.name, barAnnotation.name],
+                columns: [...baseDisplayAnnotations, fooAnnotation, barAnnotation].map((a) => ({
+                    name: a.name,
+                    width: 0.1,
+                })),
+            },
+        });
+
+        const { store } = configureMockStore({
+            state: stateWithNoLastTouched,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // Simulate Ctrl+A keydown
+        fireEvent.keyDown(window, { key: "a", ctrlKey: true });
+
+        // Selection should remain empty since no folder has been touched
+        await waitFor(() => {
+            const fileSelection = selection.selectors.getFileSelection(store.getState());
+            expect(fileSelection.count()).to.equal(0);
         });
     });
 

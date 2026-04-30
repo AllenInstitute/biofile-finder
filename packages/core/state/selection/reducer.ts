@@ -43,7 +43,7 @@ import {
 } from "./actions";
 import interaction from "../interaction";
 import { FileView, Source } from "../../entity/SearchParams";
-import FileFilter from "../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../entity/FileSort";
@@ -60,6 +60,7 @@ export interface SelectionStateBranch {
     fileView: FileView;
     filters: FileFilter[];
     isLoadingDataSource: boolean;
+    lastTouchedFolder?: FileFolder;
     openFileFolders: FileFolder[];
     recentAnnotations: string[];
     requiresDataSourceReload?: boolean;
@@ -113,8 +114,9 @@ export default makeReducer<SelectionStateBranch>(
                 ...state.recentAnnotations,
             ]).slice(0, 5),
 
-            // Reset file selections when file filters change
+            // Reset file selections and last touched folder when file filters change
             fileSelection: new FileSelection(),
+            lastTouchedFolder: undefined,
         }),
         [SET_FILE_VIEW]: (state, action: SetFileView) => ({
             ...state,
@@ -152,6 +154,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             dataSources: uniqBy(action.payload, "name"),
             fileSelection: new FileSelection(),
+            lastTouchedFolder: undefined,
             openFileFolders: [],
         }),
         [CHANGE_PROVENANCE_SOURCE]: (state, action: ChangeProvenanceSource) => ({
@@ -180,6 +183,7 @@ export default makeReducer<SelectionStateBranch>(
             columns: initialState.columns,
             filters: initialState.filters,
             fileView: initialState.fileView,
+            lastTouchedFolder: undefined,
             openFileFolders: initialState.openFileFolders,
             shouldShowNullGroups: initialState.shouldShowNullGroups,
             sortColumn: undefined,
@@ -207,6 +211,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             availableAnnotationsForHierarchyLoading: true,
             fileSelection: new FileSelection(),
+            lastTouchedFolder: undefined,
         }),
         [RESIZE_COLUMN]: (state, action: ResizeColumnAction) => ({
             ...state,
@@ -218,14 +223,36 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             columns: action.payload,
         }),
-        [SET_FILE_SELECTION]: (state, action) => ({
-            ...state,
-            fileSelection: action.payload,
-        }),
+        [SET_FILE_SELECTION]: (state, action) => {
+            const newFileSelection: FileSelection = action.payload;
+            let lastTouchedFolder: FileFolder | undefined = state.lastTouchedFolder;
+
+            // When a file is selected, track which folder it belongs to so Ctrl+A
+            // can target that folder rather than the full directory tree.
+            const focusedItem = newFileSelection.focusedItem;
+            if (focusedItem && state.annotationHierarchy.length > 0) {
+                const folderPath = state.annotationHierarchy.map((name) => {
+                    const hierarchyFilter = focusedItem.fileSet.filters.find(
+                        (f) => f.name === name && f.type === FilterType.DEFAULT
+                    );
+                    return hierarchyFilter?.value;
+                });
+                if (folderPath.every((v) => v !== undefined)) {
+                    lastTouchedFolder = new FileFolder(folderPath);
+                }
+            }
+
+            return {
+                ...state,
+                fileSelection: newFileSelection,
+                lastTouchedFolder,
+            };
+        },
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,
             annotationHierarchy: action.payload,
             availableAnnotationsForHierarchyLoading: true,
+            lastTouchedFolder: undefined,
             recentAnnotations: uniq([...action.payload, ...state.recentAnnotations]).slice(0, 5),
 
             // Reset file selections when annotation hierarchy changes
@@ -238,6 +265,7 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [COLLAPSE_ALL_FILE_FOLDERS]: (state) => ({
             ...state,
+            lastTouchedFolder: undefined,
             openFileFolders: [],
         }),
         [SET_OPEN_FILE_FOLDERS]: (state, action) => ({
@@ -251,6 +279,7 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [interaction.actions.INITIALIZE_APP]: (state) => ({
             ...state,
+            lastTouchedFolder: undefined,
 
             // Reset file selections when pointed at a new backend
             fileSelection: new FileSelection(),

@@ -6,8 +6,7 @@ import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
 import AggregateInfoBox from "../AggregateInfoBox";
 import EmptyFileListMessage from "../EmptyFileListMessage";
-import FileFolder from "../../entity/FileFolder";
-import { FilterType } from "../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import Tutorial from "../../entity/Tutorial";
@@ -45,9 +44,9 @@ export default function DirectoryTree(props: FileListProps) {
     const globalFilters = useSelector(selection.selectors.getFileFilters);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const visibleModal = useSelector(interaction.selectors.getVisibleModal);
-    const fileSelection = useSelector(selection.selectors.getFileSelection);
-    const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
     const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
+    const lastTouchedFolder = useSelector(selection.selectors.getLastTouchedFolder);
+    const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
     // If user is loading a new data source, show root loading state in file list
     // since it may take time for the view to update with new query results
     const isLoadingNewQueryOrSource = useSelector(selection.selectors.getLoadingQueryOrSource);
@@ -82,8 +81,10 @@ export default function DirectoryTree(props: FileListProps) {
     }, [dispatch, visibleModal]);
 
     // On Ctrl+A (or Cmd+A on Mac) select all files in the current file set.
-    // Uses the file set the user last touched if its folder is still open;
-    // otherwise falls back to the root file set.
+    // If there is an annotation hierarchy, uses the last folder the user touched
+    // (tracked in Redux state as `lastTouchedFolder`) provided it is still open;
+    // if the folder is closed or the user has not touched any folder, does nothing.
+    // For flat lists (no hierarchy), always selects all in the root file set.
     // Should not register key presses when an overlay modal is active.
     React.useEffect(() => {
         const onSelectAllKeyDown = async (event: KeyboardEvent) => {
@@ -91,35 +92,41 @@ export default function DirectoryTree(props: FileListProps) {
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === KeyboardCode.A) {
                 event.preventDefault();
 
-                // Determine which file set to target: prefer the last-touched file set
-                // if its corresponding folder is still open in the directory tree.
-                let targetFileSet = fileSet;
-                let targetSortOrder = 0;
+                let targetFileSet: FileSet;
 
-                const focusedFileSet = fileSelection.focusedItem?.fileSet;
-                if (focusedFileSet) {
-                    if (annotationHierarchy.length === 0) {
-                        // Flat list: no folders, always use the focused file set
-                        targetFileSet = focusedFileSet;
-                        targetSortOrder = fileSelection.focusedItem!.sortOrder;
-                    } else {
-                        // Hierarchy: the focused folder is considered "open" if its
-                        // FileFolder path (the ordered annotation values from the focused
-                        // file set's DEFAULT filters) exists in openFileFolders.
-                        const folderPath = annotationHierarchy.map((name) => {
-                            const hierarchyFilter = focusedFileSet.filters.find(
-                                (f) => f.name === name && f.type === FilterType.DEFAULT
-                            );
-                            return hierarchyFilter?.value;
-                        });
-                        if (folderPath.every((v) => v !== undefined)) {
-                            const lastTouchedFolder = new FileFolder(folderPath);
-                            if (openFileFolders.some((f) => f.equals(lastTouchedFolder))) {
-                                targetFileSet = focusedFileSet;
-                                targetSortOrder = fileSelection.focusedItem!.sortOrder;
-                            }
-                        }
-                    }
+                if (annotationHierarchy.length === 0) {
+                    // Flat list — no folder concept, always select all in root
+                    targetFileSet = fileSet;
+                } else if (
+                    lastTouchedFolder &&
+                    openFileFolders.some((f) => f.equals(lastTouchedFolder))
+                ) {
+                    // Rebuild the FileSet for the last-touched folder by combining
+                    // the hierarchy filters (one per level from the folder path) with
+                    // any non-hierarchy global filters the user may have applied.
+                    const hierarchyFilters = annotationHierarchy.map(
+                        (annotationName, idx) =>
+                            new FileFilter(
+                                annotationName,
+                                lastTouchedFolder.fileFolder[idx],
+                                FilterType.DEFAULT
+                            )
+                    );
+                    const nonHierarchyFilters = globalFilters.filter(
+                        (f) =>
+                            !(
+                                annotationHierarchy.includes(f.name) &&
+                                f.type === FilterType.DEFAULT
+                            )
+                    );
+                    targetFileSet = new FileSet({
+                        fileService,
+                        filters: [...hierarchyFilters, ...nonHierarchyFilters],
+                        sort: sortColumn,
+                    });
+                } else {
+                    // No last-touched folder or the folder has since been closed — do nothing
+                    return;
                 }
 
                 const totalCount = await targetFileSet.fetchTotalCount();
@@ -128,7 +135,7 @@ export default function DirectoryTree(props: FileListProps) {
                         selection.actions.selectFile({
                             fileSet: targetFileSet,
                             selection: new NumericRange(0, totalCount - 1),
-                            sortOrder: targetSortOrder,
+                            sortOrder: 0,
                             updateExistingSelection: false,
                         })
                     );
@@ -141,9 +148,12 @@ export default function DirectoryTree(props: FileListProps) {
     }, [
         annotationHierarchy,
         dispatch,
-        fileSelection,
+        fileService,
         fileSet,
+        globalFilters,
+        lastTouchedFolder,
         openFileFolders,
+        sortColumn,
         visibleModal,
     ]);
 
