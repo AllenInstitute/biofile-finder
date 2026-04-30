@@ -615,6 +615,8 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     // Grab every other known app
     const unsupportedApps = Object.values(apps)
         .filter((app) => supportedApps.every((item) => item.key !== app.key))
+        // OMERO Viewer is only relevant for IDR images (handled above); never show it elsewhere
+        .filter((app) => app.key !== AppKeys.OMERO_VIEWER)
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
     if (plateLink && isAicsEmployee) {
