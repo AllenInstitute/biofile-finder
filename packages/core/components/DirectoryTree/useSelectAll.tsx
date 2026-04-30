@@ -45,57 +45,56 @@ export default function useSelectAll(): void {
 
     React.useEffect(() => {
         const onSelectAllKeyDown = async (event: KeyboardEvent) => {
-            if (!!visibleModal) return;
-            if (!((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === KeyboardCode.A)) {
-                return;
-            }
-            event.preventDefault();
+            if (visibleModal) return;
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === KeyboardCode.A) {
+                event.preventDefault();
 
-            let targetFileSet: FileSet;
+                let targetFileSet: FileSet;
 
-            if (annotationHierarchy.length === 0) {
-                // Flat list — no folder concept, always select all in root
-                targetFileSet = rootFileSet;
-            } else if (
-                lastTouchedFolder &&
-                lastTouchedFolder.fileFolder.length === annotationHierarchy.length &&
-                openFileFolders.some((f) => f.equals(lastTouchedFolder))
-            ) {
-                // Rebuild the FileSet for the last-touched folder by combining
-                // the hierarchy filters (one per level from the folder path) with
-                // any non-hierarchy global filters the user may have applied.
-                const hierarchyFilters = annotationHierarchy.map(
-                    (annotationName, idx) =>
-                        new FileFilter(
-                            annotationName,
-                            lastTouchedFolder.fileFolder[idx],
-                            FilterType.DEFAULT
-                        )
-                );
-                const nonHierarchyFilters = globalFilters.filter(
-                    (f) =>
-                        !(annotationHierarchy.includes(f.name) && f.type === FilterType.DEFAULT)
-                );
-                targetFileSet = new FileSet({
-                    fileService,
-                    filters: [...hierarchyFilters, ...nonHierarchyFilters],
-                    sort: sortColumn,
-                });
-            } else {
-                // No last-touched folder or the folder has since been closed — do nothing
-                return;
-            }
+                if (annotationHierarchy.length === 0) {
+                    // Flat list — no folder concept, always select all in root
+                    targetFileSet = rootFileSet;
+                } else if (
+                    lastTouchedFolder &&
+                    lastTouchedFolder.fileFolder.length === annotationHierarchy.length &&
+                    openFileFolders.some((f) => f.equals(lastTouchedFolder))
+                ) {
+                    // Rebuild the FileSet for the last-touched folder by combining
+                    // the hierarchy filters (one per level from the folder path) with
+                    // any non-hierarchy global filters the user may have applied.
+                    const hierarchyFilters = annotationHierarchy.map(
+                        (annotationName, idx) =>
+                            new FileFilter(
+                                annotationName,
+                                lastTouchedFolder.fileFolder[idx],
+                                FilterType.DEFAULT
+                            )
+                    );
+                    const nonHierarchyFilters = globalFilters.filter(
+                        (f) =>
+                            !(annotationHierarchy.includes(f.name) && f.type === FilterType.DEFAULT)
+                    );
+                    targetFileSet = new FileSet({
+                        fileService,
+                        filters: [...hierarchyFilters, ...nonHierarchyFilters],
+                        sort: sortColumn,
+                    });
+                } else {
+                    // No last-touched folder or the folder has since been closed — do nothing
+                    return;
+                }
 
-            const totalCount = await targetFileSet.fetchTotalCount();
-            if (totalCount > 0) {
-                dispatch(
-                    selection.actions.selectFile({
-                        fileSet: targetFileSet,
-                        selection: new NumericRange(0, totalCount - 1),
-                        sortOrder: 0,
-                        updateExistingSelection: false,
-                    })
-                );
+                const totalCount = await targetFileSet.fetchTotalCount();
+                if (totalCount > 0) {
+                    dispatch(
+                        selection.actions.selectFile({
+                            fileSet: targetFileSet,
+                            selection: new NumericRange(0, totalCount - 1),
+                            sortOrder: 0,
+                            updateExistingSelection: false,
+                        })
+                    );
+                }
             }
         };
 
