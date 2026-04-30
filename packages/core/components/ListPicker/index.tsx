@@ -165,15 +165,23 @@ export default function ListPicker(props: ListPickerProps) {
                     {/* If shouldShowNullGroups is undefined, it's a component that doesn't require the checkbox
                         If set to true or false, we want the checkbox to render */}
                     {shouldShowNullGroups !== undefined && ( // avoid colliding with falsy value
-                        <Checkbox
-                            className={styles.checkbox}
-                            onChange={() => {
-                                dispatch(selection.actions.toggleNullValueGroups());
-                                dispatch(interaction.actions.refresh());
-                            }}
-                            label="Show files with no value in results"
-                            initialValue={shouldShowNullGroups}
-                        />
+                        <Tooltip
+                            content={
+                                shouldShowNullGroups
+                                    ? "Hide (do not include) files without values in results"
+                                    : "Show (include) files without values in results"
+                            }
+                        >
+                            <Checkbox
+                                className={styles.checkbox}
+                                onChange={() => {
+                                    dispatch(selection.actions.toggleNullValueGroups());
+                                    dispatch(interaction.actions.refresh());
+                                }}
+                                label="Include files without values"
+                                initialValue={shouldShowNullGroups}
+                            />
+                        </Tooltip>
                     )}
                 </div>
             </div>
