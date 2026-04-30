@@ -81,6 +81,36 @@ export function getParquetFileNameSelectPart(
     return `${getFileNameFromPathExpression(`"${pathColumn}"`)} AS "${PreDefinedColumn.FILE_NAME}"`;
 }
 
+// OSF file URL pattern: https://osf.io/<guid> with an optional trailing /download path segment
+const OSF_URL_PATTERN = /^https?:\/\/(?:www\.)?osf\.io\/([a-z0-9]{5,})(?:\/(?:download\/?)?)?(?:\?.*)?$/i;
+
+/**
+ * If the given URL points to a file hosted on the Open Science Framework (osf.io),
+ * use the OSF API to resolve it to the direct download URL.  This avoids the CORS
+ * error that occurs when DuckDB-WASM tries to fetch an osf.io page URL directly.
+ *
+ * For any URL that is not an OSF URL the original value is returned unchanged.
+ */
+export async function resolveOsfUrl(url: string): Promise<string> {
+    const match = url.match(OSF_URL_PATTERN);
+    if (!match) {
+        return url;
+    }
+
+    const guid = match[1];
+    try {
+        const response = await axios.get(`https://api.osf.io/v2/files/${guid}/`);
+        const downloadUrl = response.data?.data?.links?.download;
+        if (downloadUrl) {
+            return downloadUrl;
+        }
+    } catch (err) {
+        console.warn("Failed to resolve OSF URL via OSF API for GUID:", guid, err);
+    }
+
+    return url;
+}
+
 export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckdb.AsyncDuckDB> {
     const allBundles = duckdb.getJsDelivrBundles();
 
@@ -219,11 +249,14 @@ export default abstract class DatabaseService {
                 true
             );
         } else {
-            const protocol = uri.startsWith("s3")
+            // Resolve OSF (Open Science Framework) URLs to their direct download URL
+            // via the OSF API to avoid CORS issues when fetching the file directly.
+            const resolvedUri = await resolveOsfUrl(uri);
+            const protocol = resolvedUri.startsWith("s3")
                 ? duckdb.DuckDBDataProtocol.S3
                 : duckdb.DuckDBDataProtocol.HTTP;
 
-            await this.database.registerFileURL(name, uri, protocol, false);
+            await this.database.registerFileURL(name, resolvedUri, protocol, false);
         }
 
         if (type === "parquet") {

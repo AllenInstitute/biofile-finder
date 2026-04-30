@@ -11,7 +11,7 @@ import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 
-import DatabaseService, { getParquetFileNameSelectPart } from "..";
+import DatabaseService, { resolveOsfUrl, getParquetFileNameSelectPart } from "..";
 
 describe("DatabaseService", () => {
     describe("fetchAnnotations", () => {
@@ -263,6 +263,123 @@ describe("DatabaseService", () => {
 
             // Assert
             expect(result).to.be.null;
+        });
+    });
+
+    describe("resolveOsfUrl", () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("returns original URL unchanged when URL is not an OSF URL", async () => {
+            const url = "https://example.com/data.csv";
+            const result = await resolveOsfUrl(url);
+            expect(result).to.equal(url);
+        });
+
+        it("returns original URL unchanged when URL is an S3 URL", async () => {
+            const url = "s3://my-bucket/data.csv";
+            const result = await resolveOsfUrl(url);
+            expect(result).to.equal(url);
+        });
+
+        it("returns original URL unchanged for ftp:// protocol", async () => {
+            const result = await resolveOsfUrl("ftp://example.com/data.csv");
+            expect(result).to.equal("ftp://example.com/data.csv");
+        });
+
+        it("returns original URL unchanged for file:// protocol", async () => {
+            const result = await resolveOsfUrl("file:///local/data.csv");
+            expect(result).to.equal("file:///local/data.csv");
+        });
+
+        it("returns original URL unchanged when URL is already on files.osf.io (Waterbutler)", async () => {
+            const url =
+                "https://files.osf.io/v1/resources/abc12/providers/osfstorage/def34?direct";
+            const result = await resolveOsfUrl(url);
+            expect(result).to.equal(url);
+        });
+
+        it("resolves an osf.io GUID URL to the direct download URL via the OSF API", async () => {
+            const osfGuid = "abc12";
+            const inputUrl = `https://osf.io/${osfGuid}/`;
+            const expectedDownloadUrl =
+                "https://files.osf.io/v1/resources/proj1/providers/osfstorage/abc12?direct";
+
+            sinon.stub(axios, "get").resolves({
+                data: { data: { links: { download: expectedDownloadUrl } } },
+            });
+
+            const result = await resolveOsfUrl(inputUrl);
+            expect(result).to.equal(expectedDownloadUrl);
+        });
+
+        it("resolves an osf.io download URL to the direct download URL via the OSF API", async () => {
+            const osfGuid = "abc12";
+            const inputUrl = `https://osf.io/${osfGuid}/download`;
+            const expectedDownloadUrl =
+                "https://files.osf.io/v1/resources/proj1/providers/osfstorage/abc12?direct";
+
+            sinon.stub(axios, "get").resolves({
+                data: { data: { links: { download: expectedDownloadUrl } } },
+            });
+
+            const result = await resolveOsfUrl(inputUrl);
+            expect(result).to.equal(expectedDownloadUrl);
+        });
+
+        it("resolves an osf.io URL without trailing slash to the direct download URL", async () => {
+            const osfGuid = "abc12";
+            const inputUrl = `https://osf.io/${osfGuid}`;
+            const expectedDownloadUrl =
+                "https://files.osf.io/v1/resources/proj1/providers/osfstorage/abc12?direct";
+
+            sinon.stub(axios, "get").resolves({
+                data: { data: { links: { download: expectedDownloadUrl } } },
+            });
+
+            const result = await resolveOsfUrl(inputUrl);
+            expect(result).to.equal(expectedDownloadUrl);
+        });
+
+        it("returns original URL when the OSF API call fails", async () => {
+            const osfGuid = "abc12";
+            const inputUrl = `https://osf.io/${osfGuid}/`;
+
+            sinon.stub(axios, "get").rejects(new Error("Network Error"));
+
+            const result = await resolveOsfUrl(inputUrl);
+            expect(result).to.equal(inputUrl);
+        });
+
+        it("returns original URL when the OSF API response has no download link", async () => {
+            const osfGuid = "abc12";
+            const inputUrl = `https://osf.io/${osfGuid}/`;
+
+            sinon.stub(axios, "get").resolves({ data: { data: { links: {} } } });
+
+            const result = await resolveOsfUrl(inputUrl);
+            expect(result).to.equal(inputUrl);
+        });
+
+        it("returns original URL when the OSF API response has no data.links field", async () => {
+            const osfGuid = "abc12";
+            const inputUrl = `https://osf.io/${osfGuid}/`;
+
+            sinon.stub(axios, "get").resolves({ data: { data: {} } });
+
+            const result = await resolveOsfUrl(inputUrl);
+            expect(result).to.equal(inputUrl);
+        });
+
+        it("returns original URL when the OSF API response has null data", async () => {
+            const osfGuid = "abc12";
+            const inputUrl = `https://osf.io/${osfGuid}/`;
+
+            sinon.stub(axios, "get").resolves({ data: null });
+
+            const result = await resolveOsfUrl(inputUrl);
+            expect(result).to.equal(inputUrl);
         });
     });
 });
