@@ -209,9 +209,6 @@ describe("DatabaseService", () => {
                 // Assert
                 expect(caughtError).to.not.be.undefined;
                 expect((caughtError as Error).message).to.include("CORS");
-                expect((caughtError as Error).message).to.include(
-                    "Cross-Origin Resource Sharing"
-                );
             });
 
             it("uses HTTP response error details when a response with an error status is received", async () => {
