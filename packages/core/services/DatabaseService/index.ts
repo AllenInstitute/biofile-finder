@@ -91,7 +91,7 @@ const OSF_URL_PATTERN = /^https?:\/\/(?:www\.)?osf\.io\/([a-z0-9]{5,})(?:\/(?:do
  *
  * For any URL that is not an OSF URL the original value is returned unchanged.
  */
-export async function convertOsfUrlToDownloadUrl(url: string): Promise<string> {
+export async function resolveOsfUrl(url: string): Promise<string> {
     const match = url.match(OSF_URL_PATTERN);
     if (!match) {
         return url;
@@ -251,7 +251,7 @@ export default abstract class DatabaseService {
         } else {
             // Resolve OSF (Open Science Framework) URLs to their direct download URL
             // via the OSF API to avoid CORS issues when fetching the file directly.
-            const resolvedUri = await convertOsfUrlToDownloadUrl(uri);
+            const resolvedUri = await resolveOsfUrl(uri);
             const protocol = resolvedUri.startsWith("s3")
                 ? duckdb.DuckDBDataProtocol.S3
                 : duckdb.DuckDBDataProtocol.HTTP;

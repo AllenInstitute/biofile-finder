@@ -11,7 +11,7 @@ import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 
-import DatabaseService, { convertOsfUrlToDownloadUrl, getParquetFileNameSelectPart } from "..";
+import DatabaseService, { resolveOsfUrl, getParquetFileNameSelectPart } from "..";
 
 describe("DatabaseService", () => {
     describe("fetchAnnotations", () => {
@@ -266,37 +266,37 @@ describe("DatabaseService", () => {
         });
     });
 
-    describe("convertOsfUrlToDownloadUrl", () => {
+    describe("resolveOsfUrl", () => {
         afterEach(() => {
             sinon.restore();
         });
 
         it("returns original URL unchanged when URL is not an OSF URL", async () => {
             const url = "https://example.com/data.csv";
-            const result = await convertOsfUrlToDownloadUrl(url);
+            const result = await resolveOsfUrl(url);
             expect(result).to.equal(url);
         });
 
         it("returns original URL unchanged when URL is an S3 URL", async () => {
             const url = "s3://my-bucket/data.csv";
-            const result = await convertOsfUrlToDownloadUrl(url);
+            const result = await resolveOsfUrl(url);
             expect(result).to.equal(url);
         });
 
         it("returns original URL unchanged for ftp:// protocol", async () => {
-            const result = await convertOsfUrlToDownloadUrl("ftp://example.com/data.csv");
+            const result = await resolveOsfUrl("ftp://example.com/data.csv");
             expect(result).to.equal("ftp://example.com/data.csv");
         });
 
         it("returns original URL unchanged for file:// protocol", async () => {
-            const result = await convertOsfUrlToDownloadUrl("file:///local/data.csv");
+            const result = await resolveOsfUrl("file:///local/data.csv");
             expect(result).to.equal("file:///local/data.csv");
         });
 
         it("returns original URL unchanged when URL is already on files.osf.io (Waterbutler)", async () => {
             const url =
                 "https://files.osf.io/v1/resources/abc12/providers/osfstorage/def34?direct";
-            const result = await convertOsfUrlToDownloadUrl(url);
+            const result = await resolveOsfUrl(url);
             expect(result).to.equal(url);
         });
 
@@ -310,7 +310,7 @@ describe("DatabaseService", () => {
                 data: { data: { links: { download: expectedDownloadUrl } } },
             });
 
-            const result = await convertOsfUrlToDownloadUrl(inputUrl);
+            const result = await resolveOsfUrl(inputUrl);
             expect(result).to.equal(expectedDownloadUrl);
         });
 
@@ -324,7 +324,7 @@ describe("DatabaseService", () => {
                 data: { data: { links: { download: expectedDownloadUrl } } },
             });
 
-            const result = await convertOsfUrlToDownloadUrl(inputUrl);
+            const result = await resolveOsfUrl(inputUrl);
             expect(result).to.equal(expectedDownloadUrl);
         });
 
@@ -338,7 +338,7 @@ describe("DatabaseService", () => {
                 data: { data: { links: { download: expectedDownloadUrl } } },
             });
 
-            const result = await convertOsfUrlToDownloadUrl(inputUrl);
+            const result = await resolveOsfUrl(inputUrl);
             expect(result).to.equal(expectedDownloadUrl);
         });
 
@@ -348,7 +348,7 @@ describe("DatabaseService", () => {
 
             sinon.stub(axios, "get").rejects(new Error("Network Error"));
 
-            const result = await convertOsfUrlToDownloadUrl(inputUrl);
+            const result = await resolveOsfUrl(inputUrl);
             expect(result).to.equal(inputUrl);
         });
 
@@ -358,7 +358,7 @@ describe("DatabaseService", () => {
 
             sinon.stub(axios, "get").resolves({ data: { data: { links: {} } } });
 
-            const result = await convertOsfUrlToDownloadUrl(inputUrl);
+            const result = await resolveOsfUrl(inputUrl);
             expect(result).to.equal(inputUrl);
         });
 
@@ -368,7 +368,7 @@ describe("DatabaseService", () => {
 
             sinon.stub(axios, "get").resolves({ data: { data: {} } });
 
-            const result = await convertOsfUrlToDownloadUrl(inputUrl);
+            const result = await resolveOsfUrl(inputUrl);
             expect(result).to.equal(inputUrl);
         });
 
@@ -378,7 +378,7 @@ describe("DatabaseService", () => {
 
             sinon.stub(axios, "get").resolves({ data: null });
 
-            const result = await convertOsfUrlToDownloadUrl(inputUrl);
+            const result = await resolveOsfUrl(inputUrl);
             expect(result).to.equal(inputUrl);
         });
     });
