@@ -862,7 +862,7 @@ const setDataSourceReloadErrorLogic = createLogic({
             } = deps.action as AddDataSourceReloadError;
             // Trim error message to only the first few lines
             const truncatedError = truncate(error, { length: 200 });
-            const isTruncated = error.length > 200;
+            const isTruncated = truncatedError.length !== error.length;
             const makeMessage = (errorContent: string) => `
                 The following error occurred while loading the data source
                 &quot;${dataSourceName}&quot;:

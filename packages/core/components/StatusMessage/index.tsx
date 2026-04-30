@@ -104,12 +104,14 @@ export default function StatusMessage() {
                                 ></div>
                             </div>
                             {fullMsg && (
-                                <button
-                                    className={styles.viewMoreButton}
-                                    onClick={() => toggleExpanded(statusUpdate.processId)}
-                                >
-                                    {isExpanded ? "View less" : "View more"}
-                                </button>
+                                <div className={styles.viewMoreContainer}>
+                                    <button
+                                        className={styles.viewMoreButton}
+                                        onClick={() => toggleExpanded(statusUpdate.processId)}
+                                    >
+                                        {isExpanded ? "View less" : "View more"}
+                                    </button>
+                                </div>
                             )}
                             {progress !== undefined && (
                                 <ProgressIndicator
