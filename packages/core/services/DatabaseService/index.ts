@@ -81,13 +81,18 @@ export function getParquetFileNameSelectPart(
     return `${getFileNameFromPathExpression(`"${pathColumn}"`)} AS "${PreDefinedColumn.FILE_NAME}"`;
 }
 
-// OSF file URL pattern: https://osf.io/<guid> with an optional trailing /download path segment
-const OSF_URL_PATTERN = /^https?:\/\/(?:www\.)?osf\.io\/([a-z0-9]{5,})(?:\/(?:download\/?)?)?(?:\?.*)?$/i;
+// OSF file URL pattern: matches osf.io URLs and captures the last path segment (GUID) before
+// an optional /download suffix. Examples:
+//   https://osf.io/6vhym
+//   https://osf.io/4d5q2/files/6vhym
+//   https://osf.io/6vhym/download
+const OSF_URL_PATTERN = /^https?:\/\/(?:www\.)?osf\.io\/(?:.*\/)?([a-z0-9]{5,})(?:\/(?:download\/?)?)?(?:\?.*)?$/i;
 
 /**
  * If the given URL points to a file hosted on the Open Science Framework (osf.io),
- * use the OSF API to resolve it to the direct download URL.  This avoids the CORS
- * error that occurs when DuckDB-WASM tries to fetch an osf.io page URL directly.
+ * resolve it to the direct Waterbutler download URL (files.osf.io) by following the
+ * redirect from `https://osf.io/<guid>/download`. This avoids CORS issues since
+ * the Waterbutler storage service supports cross-origin requests.
  *
  * For any URL that is not an OSF URL the original value is returned unchanged.
  */
@@ -98,16 +103,18 @@ export async function resolveOsfUrl(url: string): Promise<string> {
     }
 
     const guid = match[1];
+    const fileDetailApiUrl = `https://api.osf.io/v2/files/${guid}/`;
     try {
-        const response = await axios.get(`https://api.osf.io/v2/files/${guid}/`);
-        const downloadUrl = response.data?.data?.links?.download;
-        if (downloadUrl) {
-            return downloadUrl;
-        }
+        // Use a fetch with redirect: "manual" to capture the redirect location
+        // without actually following it (avoids downloading the file)
+        const response = await fetch(fileDetailApiUrl);
+        const body = await response.json();
+        return body.data.links.download;
     } catch (err) {
-        console.warn("Failed to resolve OSF URL via OSF API for GUID:", guid, err);
+        console.warn("Failed to resolve OSF download redirect for GUID:", guid, err);
     }
 
+    // Fallback: return the download URL and hope the HTTP client follows the redirect
     return url;
 }
 
@@ -250,7 +257,7 @@ export default abstract class DatabaseService {
             );
         } else {
             // Resolve OSF (Open Science Framework) URLs to their direct download URL
-            // via the OSF API to avoid CORS issues when fetching the file directly.
+            // to avoid CORS issues when fetching the file directly.
             const resolvedUri = await resolveOsfUrl(uri);
             const protocol = resolvedUri.startsWith("s3")
                 ? duckdb.DuckDBDataProtocol.S3
