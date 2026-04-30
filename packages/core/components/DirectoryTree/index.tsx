@@ -7,12 +7,14 @@ import useDirectoryHierarchy from "./useDirectoryHierarchy";
 import AggregateInfoBox from "../AggregateInfoBox";
 import EmptyFileListMessage from "../EmptyFileListMessage";
 import FileSet from "../../entity/FileSet";
+import NumericRange from "../../entity/NumericRange";
 import Tutorial from "../../entity/Tutorial";
 import { interaction, selection } from "../../state";
 
 import styles from "./DirectoryTree.module.css";
 
 enum KeyboardCode {
+    A = "a",
     ArrowDown = "ArrowDown",
     ArrowUp = "ArrowUp",
 }
@@ -73,6 +75,31 @@ export default function DirectoryTree(props: FileListProps) {
         window.addEventListener("keydown", onArrowKeyDown, true);
         return () => window.removeEventListener("keydown", onArrowKeyDown, true);
     }, [dispatch, visibleModal]);
+
+    // On Ctrl+A (or Cmd+A on Mac) select all files in the current file set.
+    // Should not register key presses when an overlay modal is active.
+    React.useEffect(() => {
+        const onSelectAllKeyDown = async (event: KeyboardEvent) => {
+            if (!!visibleModal) return;
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === KeyboardCode.A) {
+                event.preventDefault();
+                const totalCount = await fileSet.fetchTotalCount();
+                if (totalCount > 0) {
+                    dispatch(
+                        selection.actions.selectFile({
+                            fileSet,
+                            selection: new NumericRange(0, totalCount - 1),
+                            sortOrder: 0,
+                            updateExistingSelection: false,
+                        })
+                    );
+                }
+            }
+        };
+
+        window.addEventListener("keydown", onSelectAllKeyDown, true);
+        return () => window.removeEventListener("keydown", onSelectAllKeyDown, true);
+    }, [dispatch, fileSet, visibleModal]);
 
     const {
         state: { content, error, isLoading },
