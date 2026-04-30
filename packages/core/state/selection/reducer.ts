@@ -41,6 +41,8 @@ import {
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
     SET_IS_LOADING_DATA_SOURCE,
+    SetOpenFileFoldersAction,
+    SetFileSelection,
 } from "./actions";
 import interaction from "../interaction";
 import { FileView, Source } from "../../entity/SearchParams";
@@ -117,7 +119,6 @@ export default makeReducer<SelectionStateBranch>(
 
             // Reset file selections and last touched folder when file filters change
             fileSelection: new FileSelection(),
-            lastTouchedFolder: undefined,
         }),
         [SET_FILE_VIEW]: (state, action: SetFileView) => ({
             ...state,
@@ -212,7 +213,6 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             availableAnnotationsForHierarchyLoading: true,
             fileSelection: new FileSelection(),
-            lastTouchedFolder: undefined,
         }),
         [RESIZE_COLUMN]: (state, action: ResizeColumnAction) => ({
             ...state,
@@ -224,10 +224,12 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             columns: action.payload,
         }),
-        [SET_FILE_SELECTION]: (state, action) => ({
-            ...state,
-            fileSelection: action.payload,
-        }),
+        [SET_FILE_SELECTION]: (state, action: SetFileSelection) => {
+            return {
+                ...state,
+                fileSelection: action.payload,
+            }
+        },
         [SET_LAST_TOUCHED_FOLDER]: (state, action) => ({
             ...state,
             lastTouchedFolder: action.payload,
@@ -236,7 +238,6 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             annotationHierarchy: action.payload,
             availableAnnotationsForHierarchyLoading: true,
-            lastTouchedFolder: undefined,
             recentAnnotations: uniq([...action.payload, ...state.recentAnnotations]).slice(0, 5),
 
             // Reset file selections when annotation hierarchy changes
@@ -252,10 +253,27 @@ export default makeReducer<SelectionStateBranch>(
             lastTouchedFolder: undefined,
             openFileFolders: [],
         }),
-        [SET_OPEN_FILE_FOLDERS]: (state, action) => ({
-            ...state,
-            openFileFolders: action.payload,
-        }),
+        [SET_OPEN_FILE_FOLDERS]: (state, action: SetOpenFileFoldersAction) => {
+            const openFileFolders = action.payload;
+            // If folders are being opened (as opposed to closed), update the open folders and last touched folder accordingly
+            if (openFileFolders.length > state.openFileFolders.length) {
+                const newlyOpenedFolder = openFileFolders.find(
+                    (f) => !state.openFileFolders.some((of) => of.equals(f))
+                );
+                return {
+                    ...state,
+                    lastTouchedFolder: newlyOpenedFolder,
+                    openFileFolders: action.payload,
+                };
+            }
+            // If the last-touched folder is still open, keep it as the last-touched folder.
+            const lastTouchedFolder = openFileFolders.find((f) => f.equals(state.lastTouchedFolder));
+            return {
+                ...state,
+                lastTouchedFolder: lastTouchedFolder,
+                openFileFolders: action.payload,
+            }
+        },
         [TOGGLE_NULL_VALUE_GROUPS]: (state, action) => ({
             ...state,
             shouldShowNullGroups:

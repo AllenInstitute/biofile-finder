@@ -348,17 +348,6 @@ const toggleFileFolderCollapse = createLogic({
             next(setOpenFileFolders([...openFileFolders, fileFolder]));
         }
     },
-    // After the transform has run and the reducer has updated openFileFolders,
-    // record the opened folder as the last-touched folder for the Select All shortcut.
-    // If the folder is now in openFileFolders, it was just opened (not collapsed).
-    process(deps: ReduxLogicDeps, dispatch, done) {
-        const fileFolder: FileFolder = deps.action.payload;
-        const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
-        if (openFileFolders.find((f) => f.equals(fileFolder))) {
-            dispatch(setLastTouchedFolder(fileFolder));
-        }
-        done();
-    },
     type: [TOGGLE_FILE_FOLDER_COLLAPSE],
 });
 
