@@ -29,6 +29,7 @@ import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileD
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import { initialState, interaction, reducer, reduxLogics, selection } from "../../../state";
+import { ModalType } from "../../Modal";
 
 import DirectoryTree from "../";
 
@@ -489,6 +490,70 @@ describe("<DirectoryTree />", () => {
         fireEvent.contextMenu(header);
         header = await findByTestId(directoryTreeNodes[0], "treeitemheader"); // refresh node
         expect(header.classList.contains(styles.focused)).to.be.true;
+    });
+
+    it("selects all files in current file set when Ctrl+A is pressed", async () => {
+        const { store } = configureMockStore({
+            state,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // Simulate Ctrl+A keydown
+        fireEvent.keyDown(window, { key: "a", ctrlKey: true });
+
+        // After the async fetchTotalCount resolves, the file selection should include all files
+        await waitFor(() => {
+            const fileSelection = selection.selectors.getFileSelection(store.getState());
+            expect(fileSelection.count()).to.equal(totalFilesCount);
+        });
+    });
+
+    it("does not select all files when a modal is visible and Ctrl+A is pressed", async () => {
+        const stateWithModal = mergeState(initialState, {
+            interaction: {
+                visibleModal: ModalType.MetadataManifest,
+            },
+            metadata: {
+                annotations: [...baseDisplayAnnotations, fooAnnotation, barAnnotation],
+            },
+            selection: {
+                annotationHierarchy: [fooAnnotation.name, barAnnotation.name],
+                columns: [...baseDisplayAnnotations, fooAnnotation, barAnnotation].map((a) => ({
+                    name: a.name,
+                    width: 0.1,
+                })),
+            },
+        });
+
+        const { store } = configureMockStore({
+            state: stateWithModal,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // Simulate Ctrl+A keydown while modal is open
+        fireEvent.keyDown(window, { key: "a", ctrlKey: true });
+
+        // File selection should remain empty since a modal is visible
+        await waitFor(() => {
+            const fileSelection = selection.selectors.getFileSelection(store.getState());
+            expect(fileSelection.count()).to.equal(0);
+        });
     });
 
     it("displays root loading indicator when new query is in loading state", async () => {
