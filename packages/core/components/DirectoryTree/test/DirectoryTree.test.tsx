@@ -28,6 +28,7 @@ import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import FileFolder from "../../../entity/FileFolder";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
+import NumericRange from "../../../entity/NumericRange";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
@@ -579,7 +580,10 @@ describe("<DirectoryTree />", () => {
         await waitFor(() => {
             const fileSelection = selection.selectors.getFileSelection(store.getState());
             expect(fileSelection.count()).to.equal(totalFilesCount);
-            // The focused item should be in the sub-folder file set, not the root
+            // All selected files must belong to the sub-folder file set, not the root
+            expect(
+                fileSelection.isSelected(subFolderFileSet, new NumericRange(0, totalFilesCount - 1))
+            ).to.be.true;
             expect(fileSelection.isFocused(subFolderFileSet)).to.be.true;
         });
     });
@@ -640,7 +644,10 @@ describe("<DirectoryTree />", () => {
         await waitFor(() => {
             const fileSelection = selection.selectors.getFileSelection(store.getState());
             expect(fileSelection.count()).to.equal(totalFilesCount);
-            // The focused item should NOT be in the sub-folder (should be in the root file set)
+            // The selection must NOT belong to the sub-folder file set — it should be in the root
+            expect(
+                fileSelection.isSelected(subFolderFileSet, new NumericRange(0, totalFilesCount - 1))
+            ).to.be.false;
             expect(fileSelection.isFocused(subFolderFileSet)).to.be.false;
         });
     });

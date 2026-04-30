@@ -106,11 +106,12 @@ export default function DirectoryTree(props: FileListProps) {
                         // Hierarchy: the focused folder is considered "open" if its
                         // FileFolder path (the ordered annotation values from the focused
                         // file set's DEFAULT filters) exists in openFileFolders.
-                        const folderPath = annotationHierarchy.map((name) =>
-                            focusedFileSet.filters.find(
+                        const folderPath = annotationHierarchy.map((name) => {
+                            const hierarchyFilter = focusedFileSet.filters.find(
                                 (f) => f.name === name && f.type === FilterType.DEFAULT
-                            )?.value
-                        );
+                            );
+                            return hierarchyFilter?.value;
+                        });
                         if (folderPath.every((v) => v !== undefined)) {
                             const lastTouchedFolder = new FileFolder(folderPath);
                             if (openFileFolders.some((f) => f.equals(lastTouchedFolder))) {
