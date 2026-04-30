@@ -158,6 +158,8 @@
 
 .fullscreen-image {
     cursor: zoom-out;
+    width: 95vw;
+    height: 95vh;
     max-width: 95vw;
     max-height: 95vh;
     object-fit: contain;
