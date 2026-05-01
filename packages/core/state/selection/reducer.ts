@@ -116,7 +116,7 @@ export default makeReducer<SelectionStateBranch>(
                 ...state.recentAnnotations,
             ]).slice(0, 5),
 
-            // Reset file selections and last touched folder when file filters change
+            // Reset file selections when file filters change
             fileSelection: new FileSelection(),
         }),
         [SET_FILE_VIEW]: (state, action: SetFileView) => ({
