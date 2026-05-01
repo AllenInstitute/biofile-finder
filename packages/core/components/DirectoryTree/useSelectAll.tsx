@@ -18,7 +18,7 @@ enum KeyboardCode {
  * - If there is no annotation hierarchy (flat list), selects all files in the
  *   root file set.
  * - If there is an annotation hierarchy, selects all files in the folder the
- *   user most recently opened (`lastTouchedFolder`) — but only if that folder
+ *   user most recently selected a file within — but only if that folder
  *   is still present in `openFileFolders`. Does nothing otherwise.
  * - No-ops while a modal overlay is visible (consistent with arrow-key behavior).
  */
@@ -30,7 +30,6 @@ export default function useSelectAll(): void {
     const visibleModal = useSelector(interaction.selectors.getVisibleModal);
     const annotationHierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const lastTouchedFolder = useSelector(selection.selectors.getLastTouchedFolder);
-    const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
 
     // Root file set (used for flat-list case)
     const rootFileSet = React.useMemo(
@@ -54,11 +53,7 @@ export default function useSelectAll(): void {
                 if (annotationHierarchy.length === 0) {
                     // Flat list — no folder concept, always select all in root
                     targetFileSet = rootFileSet;
-                } else if (
-                    lastTouchedFolder &&
-                    lastTouchedFolder.fileFolder.length === annotationHierarchy.length &&
-                    openFileFolders.some((f) => f.equals(lastTouchedFolder))
-                ) {
+                } else if (lastTouchedFolder) {
                     // Rebuild the FileSet for the last-touched folder by combining
                     // the hierarchy filters (one per level from the folder path) with
                     // any non-hierarchy global filters the user may have applied.
@@ -106,7 +101,6 @@ export default function useSelectAll(): void {
         fileService,
         globalFilters,
         lastTouchedFolder,
-        openFileFolders,
         rootFileSet,
         sortColumn,
         visibleModal,

@@ -7,7 +7,6 @@ import {
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
-    SET_LAST_TOUCHED_FOLDER,
     RESIZE_COLUMN,
     SORT_COLUMN,
     SET_SORT_COLUMN,
@@ -244,10 +243,6 @@ export default makeReducer<SelectionStateBranch>(
                         : state.lastTouchedFolder,
             };
         },
-        [SET_LAST_TOUCHED_FOLDER]: (state, action) => ({
-            ...state,
-            lastTouchedFolder: action.payload,
-        }),
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,
             annotationHierarchy: action.payload,
@@ -271,23 +266,21 @@ export default makeReducer<SelectionStateBranch>(
             const openFileFolders = action.payload;
             // If folders are being opened (as opposed to closed), update the open folders and last touched folder accordingly
             if (openFileFolders.length > state.openFileFolders.length) {
-                const newlyOpenedFolder = openFileFolders.find(
-                    (f) => !state.openFileFolders.some((of) => of.equals(f))
-                );
                 return {
                     ...state,
-                    lastTouchedFolder: newlyOpenedFolder,
-                    openFileFolders: action.payload,
+                    openFileFolders,
                 };
             }
-            // If the last-touched folder is still open, keep it as the last-touched folder.
+            // If the last-touched folder is still open, keep it as the last-touched folder
+            // otherwise it will become undefined which will cause the directory tree to
+            // lose track of which folder the user is in and reset
             const lastTouchedFolder = openFileFolders.find((f) =>
                 f.equals(state.lastTouchedFolder)
             );
             return {
                 ...state,
                 lastTouchedFolder: lastTouchedFolder,
-                openFileFolders: action.payload,
+                openFileFolders,
             };
         },
         [TOGGLE_NULL_VALUE_GROUPS]: (state, action) => ({

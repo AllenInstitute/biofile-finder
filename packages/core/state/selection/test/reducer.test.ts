@@ -528,7 +528,7 @@ describe("Selection reducer", () => {
     });
 
     describe("SET_OPEN_FILE_FOLDERS", () => {
-        it("sets lastTouchedFolder to the newly opened folder", () => {
+        it("preserves lastTouchedFolder when a new folder is opened", () => {
             // Arrange
             const existingFolder = new FileFolder(["AICS-11"]);
             const newFolder = new FileFolder(["AICS-11", "Pipeline 4"]);
@@ -546,10 +546,7 @@ describe("Selection reducer", () => {
 
             // Assert
             expect(nextState.lastTouchedFolder).to.not.be.undefined;
-            expect(nextState.lastTouchedFolder!.fileFolder).to.deep.equal([
-                "AICS-11",
-                "Pipeline 4",
-            ]);
+            expect(nextState.lastTouchedFolder!.fileFolder).to.deep.equal(["AICS-11"]);
         });
 
         it("keeps lastTouchedFolder when it is still open after a folder is closed", () => {
