@@ -16,7 +16,6 @@ import {
     setFileSelection,
     TOGGLE_FILE_FOLDER_COLLAPSE,
     setOpenFileFolders,
-    setLastTouchedFolder,
     DECODE_FILE_EXPLORER_URL,
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
