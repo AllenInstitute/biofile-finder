@@ -11,6 +11,7 @@ import styles from "./QueryPartRow.module.css";
 export interface QueryPartRowItem extends DnDItem {
     description?: string;
     titleIconName?: string;
+    uri?: string; // Full URI of the data source, used for tooltip and link
     onClick?: (itemId: string) => void;
     onDelete?: (itemId: string) => void;
     onRenderEditMenuList?: (item: QueryPartRowItem) => React.ReactElement<QueryPartRowItem>;
@@ -34,6 +35,10 @@ export default function QueryGroupRow(props: Props) {
     const isInteractive = !!props.item.onClick || !props.item.disabled;
     const baseMargin = isInteractive ? 8 : 0;
     const marginLeft = props.item.disabled ? baseMargin : props.index * 16 + baseMargin;
+    const isWebUrl =
+        typeof props.item.uri === "string" &&
+        (props.item.uri.startsWith("http://") || props.item.uri.startsWith("https://"));
+    const hasExtraButton = isWebUrl || !!props.item.onRenderEditMenuList;
 
     return (
         <div
@@ -45,7 +50,7 @@ export default function QueryGroupRow(props: Props) {
         >
             <div
                 className={classNames(styles.rowTitle, {
-                    [styles.shortenedRowTitle]: !!props.item.onRenderEditMenuList,
+                    [styles.shortenedRowTitle]: hasExtraButton && !!props.item.onDelete,
                     [styles.dynamicRowTitle]: !isInteractive,
                 })}
                 onClick={() => props.item.onClick?.(props.item.id)}
@@ -53,7 +58,7 @@ export default function QueryGroupRow(props: Props) {
                 {props.item.titleIconName && (
                     <Icon className={styles.icon} iconName={props.item.titleIconName} />
                 )}
-                <Tooltip content={props.item.description}>
+                <Tooltip content={props.item.description || props.item.uri}>
                     <p>{props.item.title}</p>
                 </Tooltip>
             </div>
@@ -64,6 +69,20 @@ export default function QueryGroupRow(props: Props) {
                     menuProps={editMenu}
                     title="Edit"
                 />
+            )}
+            {isWebUrl && (
+                <Tooltip content="Open data source URL">
+                    <a
+                        className={styles.linkIconButton}
+                        href={props.item.uri}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="Open data source URL in new tab"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Icon iconName="OpenInNewWindow" />
+                    </a>
+                </Tooltip>
             )}
             {props.item.onDelete && (
                 <TransparentIconButton

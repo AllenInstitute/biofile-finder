@@ -88,12 +88,17 @@ export default function QueryDataSource(props: Props) {
                 ...props.dataSources.map((dataSource) => ({
                     id: dataSource.name,
                     title: dataSource.name,
+                    uri: typeof dataSource.uri === "string" ? dataSource.uri : undefined,
                 })),
                 ...(props.sourceMetadata
                     ? [
                           {
                               id: "sourceMetadata",
                               title: `described by: ${props.sourceMetadata.name}`,
+                              uri:
+                                  typeof props.sourceMetadata.uri === "string"
+                                      ? props.sourceMetadata.uri
+                                      : undefined,
                           },
                       ]
                     : []),
@@ -102,6 +107,10 @@ export default function QueryDataSource(props: Props) {
                           {
                               id: "sourceProvenance",
                               title: `provenance from: ${props.sourceProvenance.name}`,
+                              uri:
+                                  typeof props.sourceProvenance.uri === "string"
+                                      ? props.sourceProvenance.uri
+                                      : undefined,
                           },
                       ]
                     : []),

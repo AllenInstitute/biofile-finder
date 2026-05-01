@@ -84,3 +84,20 @@
 .dynamic-row-title.shortened-row-title {
     max-width: calc(100% - 44px);
 }
+
+.link-icon-button {
+    align-items: center;
+    color: var(--primary-text-color);
+    display: flex;
+    font-size: 14px;
+    font-weight: 600;
+    height: 37px;
+    justify-content: center;
+    max-width: 22px;
+    text-decoration: none;
+    width: 100%;
+}
+
+.link-icon-button:hover {
+    color: var(--highlight-text-color);
+}
