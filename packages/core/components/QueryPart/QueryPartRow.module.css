@@ -85,6 +85,11 @@
     max-width: calc(100% - 44px);
 }
 
+.link-icon-button-container {
+    display: flex;
+    margin-left: auto;
+}
+
 .link-icon-button {
     align-items: center;
     color: var(--primary-text-color);

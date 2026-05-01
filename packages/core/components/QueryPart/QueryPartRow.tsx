@@ -71,7 +71,10 @@ export default function QueryGroupRow(props: Props) {
                 />
             )}
             {isWebUrl && (
-                <Tooltip content="Open data source URL">
+                <Tooltip
+                    hostClassName={styles.linkIconButtonContainer}
+                    content="Open data source URL"
+                >
                     <a
                         className={styles.linkIconButton}
                         href={props.item.uri}
