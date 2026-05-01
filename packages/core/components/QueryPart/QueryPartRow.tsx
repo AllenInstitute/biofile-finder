@@ -50,7 +50,7 @@ export default function QueryGroupRow(props: Props) {
         >
             <div
                 className={classNames(styles.rowTitle, {
-                    [styles.shortenedRowTitle]: hasExtraButton && !!props.item.onDelete,
+                    [styles.shortenedRowTitle]: hasExtraButton,
                     [styles.dynamicRowTitle]: !isInteractive,
                 })}
                 onClick={() => props.item.onClick?.(props.item.id)}
