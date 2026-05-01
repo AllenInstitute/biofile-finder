@@ -615,9 +615,16 @@ const changeDataSourceLogic = createLogic({
         } catch (err) {
             const errMsg = (err as Error).message || "Unknown error while changing data source";
             if (err instanceof DataSourcePreparationError) {
-                // Avoid re-appending the same error message to the state,
-                // the original may have been more specific
-                if (!dataSourceErrorStatus?.data.msg.includes(err.sourceName)) {
+                if (err.isLocalDataSourceLost) {
+                    dispatch(
+                        interaction.actions.promptForDataSource({
+                            source: { name: err.sourceName },
+                        }) as AnyAction
+                    );
+                    dispatch(setRequiresDataSourceReload(true) as AnyAction);
+                } else if (!dataSourceErrorStatus?.data.msg.includes(err.sourceName)) {
+                    // Avoid re-appending the same error message to the state,
+                    // the original may have been more specific
                     dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
                 }
             } else {
@@ -716,7 +723,16 @@ const addQueryLogic = createLogic({
             const errMsg = (err as Error).message || "Unknown error while adding query";
             console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
-                dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
+                if (err.isLocalDataSourceLost) {
+                    dispatch(
+                        interaction.actions.promptForDataSource({
+                            source: { name: err.sourceName },
+                        }) as AnyAction
+                    );
+                    dispatch(setRequiresDataSourceReload(true) as AnyAction);
+                } else {
+                    dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
+                }
             } else {
                 dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
@@ -820,7 +836,16 @@ const replaceDataSourceLogic = createLogic({
             const errMsg = (err as Error).message || "Unknown error while replacing data source";
             console.error(errMsg);
             if (err instanceof DataSourcePreparationError) {
-                dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
+                if (err.isLocalDataSourceLost) {
+                    dispatch(
+                        interaction.actions.promptForDataSource({
+                            source: { name: err.sourceName },
+                        }) as AnyAction
+                    );
+                    dispatch(setRequiresDataSourceReload(true) as AnyAction);
+                } else {
+                    dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
+                }
             } else {
                 dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }

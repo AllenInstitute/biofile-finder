@@ -860,6 +860,44 @@ describe("Selection logics", () => {
             ).to.be.true;
         });
 
+        it("prompts user when local data source is lost (missing type and uri)", async () => {
+            const dataSourceName = "Mock Data Source";
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: selectionLogics,
+            });
+
+            // Act
+            // Dispatch a query where the source has no type or uri (simulating a lost local file)
+            store.dispatch(
+                addQuery({
+                    name: dataSourceName,
+                    parts: {
+                        hierarchy: [],
+                        filters: [],
+                        openFolders: [],
+                        sources: [{ name: dataSourceName }],
+                    },
+                })
+            );
+            await logicMiddleware.whenComplete();
+
+            // Assert: should prompt instead of error
+            expect(
+                actions.includesMatch({
+                    type: interaction.actions.PROMPT_FOR_DATA_SOURCE,
+                    payload: {
+                        source: { name: dataSourceName },
+                    },
+                })
+            ).to.be.true;
+            expect(
+                actions.includesMatch({
+                    type: ADD_DATASOURCE_RELOAD_ERROR,
+                })
+            ).to.be.false;
+        });
+
         it("adds count to new query name if name already exists", async () => {
             const dataSourceName = "Mock Data Source";
             const matchingQuery: Query = mockQuery(dataSourceName, "fake-uri.test");

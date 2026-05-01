@@ -348,7 +348,8 @@ export default abstract class DatabaseService {
                 on your computer. \
                 To avoid this, consider using cloud storage for the \
                 file and sharing the URL.`,
-                name
+                name,
+                true
             );
         }
 
@@ -394,7 +395,8 @@ export default abstract class DatabaseService {
                 on your computer. \
                 To avoid this, consider using cloud storage for the \
                 file and sharing the URL.`,
-                name
+                name,
+                true
             );
         }
         // Add the data source as a table on the database
