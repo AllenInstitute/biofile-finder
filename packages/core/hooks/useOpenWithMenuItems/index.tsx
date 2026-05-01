@@ -430,9 +430,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
 
         const openUrl = new URL(volEBaseUrl);
 
-        // Start on the focused scene
-        const sceneIndex = details.findIndex((detail) => detail.path === fileDetails?.path);
-
         // Prefer putting the image URLs directly in the query string for easy sharing, if the
         // length of the URL would be reasonable
         const includeUrls =
@@ -443,18 +440,12 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             // We can fit all the URLs we want!
             const encodedURLs = details.map(({ path }) => encodeVolEImageUrl(path));
             openUrl.searchParams.append("url", encodedURLs.join("+"));
-            if (sceneIndex > 0) {
-                openUrl.searchParams.append("scene", sceneIndex.toString());
-            }
         } else {
             // There are more scene URLs than we want to put in the full URL. We need to send them over as a message.
             // Include only the URL of the focused scene, so the link is usable even if the message fails.
-            const initialImageUrl = details[Math.max(sceneIndex, 0)].path;
+            const initialImageUrl = details[0].path;
             openUrl.searchParams.append("url", encodeVolEImageUrl(initialImageUrl));
             message.scenes = scenes;
-            if (sceneIndex > 0) {
-                message.sceneIndex = sceneIndex;
-            }
         }
 
         if (includeUrls && Object.keys(message.meta).length === 0) {
@@ -462,7 +453,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         } else {
             openWindowWithMessage(openUrl, message);
         }
-    }, [fileDetails, fileSelection, volEBaseUrl]);
+    }, [fileSelection, volEBaseUrl]);
 
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
