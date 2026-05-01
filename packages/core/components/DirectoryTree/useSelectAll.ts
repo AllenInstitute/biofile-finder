@@ -6,10 +6,6 @@ import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import { interaction, selection } from "../../state";
 
-enum KeyboardCode {
-    A = "a",
-}
-
 /**
  * React hook that registers a Ctrl+A / Cmd+A keyboard shortcut to select all
  * files within the last-opened folder.
@@ -22,7 +18,7 @@ enum KeyboardCode {
  *   is still present in `openFileFolders`. Does nothing otherwise.
  * - No-ops while a modal overlay is visible (consistent with arrow-key behavior).
  */
-export default function useSelectAll(): void {
+export default function useSelectAll() {
     const dispatch = useDispatch();
     const fileService = useSelector(interaction.selectors.getFileService);
     const globalFilters = useSelector(selection.selectors.getFileFilters);
@@ -45,7 +41,7 @@ export default function useSelectAll(): void {
     React.useEffect(() => {
         const onSelectAllKeyDown = async (event: KeyboardEvent) => {
             if (visibleModal) return;
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === KeyboardCode.A) {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a") {
                 event.preventDefault();
 
                 let targetFileSet: FileSet;
