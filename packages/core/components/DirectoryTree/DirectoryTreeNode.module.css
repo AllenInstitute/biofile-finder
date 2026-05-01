@@ -16,6 +16,24 @@
     align-items: top;
 }
 
+.bar-container {
+    flex-shrink: 0;
+    width: 60px;
+    height: 12px;
+    margin-top: 3px;
+    margin-right: 4px;
+    background-color: var(--secondary-background-color);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background-color: var(--highlight-background-color);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
 .directory-header:hover :is(h4, svg) {
     color: var(--highlight-text-color);
     fill: var(--highlight-text-color);

@@ -16,10 +16,12 @@ import styles from "./DirectoryTreeNode.module.css";
 interface DirectoryTreeNodeHeaderProps {
     collapsed: boolean;
     error: Error | null;
+    fileCount?: number;
     fileSet: FileSet;
     isLeaf: boolean;
     isFocused?: boolean;
     loading: boolean;
+    maxSiblingCount?: number;
     onClick: () => void;
     title: string;
 }
@@ -45,7 +47,7 @@ const ICON_SIZE = 15; // in px; both width and height
  * not cheap to initialize.
  */
 export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeNodeHeaderProps) {
-    const { collapsed, error, fileSet, isLeaf, isFocused, loading, onClick, title } = props;
+    const { collapsed, error, fileCount, fileSet, isLeaf, isFocused, loading, maxSiblingCount, onClick, title } = props;
 
     const [isContextMenuActive, setContextMenuActive] = React.useState(false);
 
@@ -117,6 +119,16 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                 viewBox="0 0 20 20"
                 width={ICON_SIZE}
             />
+            {fileCount !== undefined && maxSiblingCount !== undefined && maxSiblingCount > 0 && (
+                <Tooltip content={`${fileCount.toLocaleString()} files`}>
+                    <div className={styles.barContainer} data-testid="bar-container">
+                        <div
+                            className={styles.barFill}
+                            style={{ width: `${(fileCount / maxSiblingCount) * 100}%` }}
+                        />
+                    </div>
+                </Tooltip>
+            )}
             <SvgIcon
                 className={styles.folderIcon}
                 height={ICON_SIZE}

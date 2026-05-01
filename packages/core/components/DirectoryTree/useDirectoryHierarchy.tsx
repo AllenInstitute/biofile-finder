@@ -164,7 +164,10 @@ const useDirectoryHierarchy = (
                         fileService,
                         shouldShowNullGroups,
                     });
-                    const nodes = allChildNodes.map((value, idx) => {
+
+                    // Build per-child data (FileSets, sort orders, display values) once.
+                    // These are reused for both immediate rendering and background count fetching.
+                    const childData = allChildNodes.map((value, idx) => {
                         let childNodeSortOrder: number;
                         if (isRoot) {
                             // First level of folders; use order produced by sort operation.
@@ -185,12 +188,13 @@ const useDirectoryHierarchy = (
                             take(hierarchy, depth + 1),
                             take(pathToChildNode, depth + 1)
                         ).map((pair) => {
-                            const [name, value] = pair as [string, string];
-                            const annotationType = annotations.find((ann) => ann.name === name)
-                                ?.type;
+                            const [name, val] = pair as [string, string];
+                            const annotationType = annotations.find(
+                                (ann) => ann.name === name
+                            )?.type;
                             return new FileFilter(
                                 name,
-                                value,
+                                val,
                                 FilterType.DEFAULT,
                                 annotationType as AnnotationType
                             );
@@ -221,20 +225,49 @@ const useDirectoryHierarchy = (
                                 ? `No value ("${hierarchy[depth]}")`
                                 : annotationAtDepth?.getDisplayValue(value) || value;
 
-                        return (
-                            <DirectoryTreeNode
-                                key={`${pathToChildNode.join(":")}|${hierarchy.join(":")}`}
-                                ancestorNodes={pathToNode}
-                                currentNode={value}
-                                displayValue={displayValue}
-                                fileSet={childNodeFileSet}
-                                sortOrder={childNodeSortOrder}
-                            />
-                        );
+                        return {
+                            value,
+                            pathToChildNode,
+                            childNodeFileSet,
+                            childNodeSortOrder,
+                            displayValue,
+                        };
                     });
 
+                    // Helper to build child node JSX, optionally with bar plot count data.
+                    const buildNodes = (fileCounts?: number[]) => {
+                        const maxSiblingCount =
+                            fileCounts && fileCounts.length > 0
+                                ? Math.max(...fileCounts)
+                                : undefined;
+                        return childData.map((child, idx) => (
+                            <DirectoryTreeNode
+                                key={`${child.pathToChildNode.join(":")}|${hierarchy.join(":")}`}
+                                ancestorNodes={pathToNode}
+                                currentNode={child.value}
+                                displayValue={child.displayValue}
+                                fileCount={fileCounts?.[idx]}
+                                fileSet={child.childNodeFileSet}
+                                maxSiblingCount={maxSiblingCount}
+                                sortOrder={child.childNodeSortOrder}
+                            />
+                        ));
+                    };
+
+                    // Dispatch child nodes immediately (without count data) so folders
+                    // are visible and interactive without waiting for count queries.
                     if (!cancel) {
-                        dispatch(receiveContent(nodes));
+                        dispatch(receiveContent(buildNodes()));
+                    }
+
+                    // Fetch file counts for all child nodes concurrently in the background.
+                    // Once resolved, re-dispatch with count data so bar plots can be rendered.
+                    const fileCounts = await Promise.all(
+                        childData.map((child) => child.childNodeFileSet.fetchTotalCount())
+                    );
+
+                    if (!cancel) {
+                        dispatch(receiveContent(buildNodes(fileCounts)));
                     }
                 } catch (e) {
                     console.error(

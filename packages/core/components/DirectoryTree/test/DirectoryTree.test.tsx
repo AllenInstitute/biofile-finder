@@ -491,6 +491,45 @@ describe("<DirectoryTree />", () => {
         expect(header.classList.contains(styles.focused)).to.be.true;
     });
 
+    it("displays bar plots showing relative file counts after expanding a folder", async () => {
+        const { store } = configureMockStore({
+            state,
+            responseStubs,
+            reducer,
+            logics: reduxLogics,
+        });
+
+        const { findByText, findAllByTestId } = render(
+            <Provider store={store}>
+                <DirectoryTree />
+            </Provider>
+        );
+
+        // wait for the root-level bar plots to load (one per top-level folder)
+        const rootBarContainers = await findAllByTestId("bar-container");
+        expect(rootBarContainers.length).to.equal(topLevelHierarchyValues.length);
+
+        // expand a top-level folder
+        const topLevelFolder = await findByText(topLevelHierarchyValues[0]);
+        fireEvent.click(topLevelFolder);
+
+        // wait for the second-level child folders to appear, then for their bar plots to load
+        await findByText(secondLevelHierarchyValues[0]);
+        const allBarContainers = await findAllByTestId("bar-container");
+
+        // root-level bars + second-level bars
+        expect(allBarContainers.length).to.equal(
+            topLevelHierarchyValues.length + secondLevelHierarchyValues.length
+        );
+
+        // each bar fill should be at 100% (since all sibling counts are equal in the stubs)
+        allBarContainers.forEach((container) => {
+            const barFill = container.querySelector('[style*="width"]') as HTMLElement;
+            expect(barFill).to.exist;
+            expect(barFill.style.width).to.equal("100%");
+        });
+    });
+
     it("displays root loading indicator when new query is in loading state", async () => {
         // Arrange
         const state = mergeState(initialState, {

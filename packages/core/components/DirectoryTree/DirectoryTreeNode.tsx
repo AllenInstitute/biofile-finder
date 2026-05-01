@@ -14,7 +14,9 @@ interface DirectoryTreeNodeProps {
     ancestorNodes: string[];
     currentNode: string; // the "directory name" to present
     displayValue: string;
+    fileCount?: number;
     fileSet: FileSet;
+    maxSiblingCount?: number;
     sortOrder: number;
 }
 
@@ -26,7 +28,7 @@ const ICON_SIZE = 15; // in px; both width and height
  * will render a FileList showing the set of files that match the filters at this path in the hierarchy.
  */
 export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
-    const { ancestorNodes, currentNode, displayValue, fileSet, sortOrder } = props;
+    const { ancestorNodes, currentNode, displayValue, fileCount, fileSet, maxSiblingCount, sortOrder } = props;
     const dispatch = useDispatch();
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const openFileFolders = useSelector(selection.selectors.getOpenFileFolders);
@@ -80,10 +82,12 @@ export default function DirectoryTreeNode(props: DirectoryTreeNodeProps) {
             <DirectoryTreeNodeHeader
                 collapsed={collapsed}
                 error={error}
+                fileCount={fileCount}
                 fileSet={fileSet}
                 isLeaf={isLeaf}
                 isFocused={collapsed && hasFocus}
                 loading={isLoading}
+                maxSiblingCount={maxSiblingCount}
                 onClick={() => dispatch(selection.actions.toggleFileFolderCollapse(fileFolder))}
                 title={displayValue}
             />
