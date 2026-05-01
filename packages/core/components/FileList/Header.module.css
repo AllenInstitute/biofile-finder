@@ -64,6 +64,11 @@
   cursor: grab;
 }
 
+.keyboard-selected {
+  outline: 2px solid var(--highlight-text-color);
+  outline-offset: -2px;
+}
+
 /* The first cell should have rounded corners on the left side */
 .header-cell:first-of-type {
   border-top-left-radius: var(--small-border-radius);

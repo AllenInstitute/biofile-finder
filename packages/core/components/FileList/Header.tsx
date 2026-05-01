@@ -33,6 +33,7 @@ function Header(
     const sortColumn = useSelector(selection.selectors.getSortColumn);
     const [draggedColumn, setDraggedColumn] = React.useState<string | null>(null);
     const [dragOverColumn, setDragOverColumn] = React.useState<string | null>(null);
+    const [keyboardSelectedColumn, setKeyboardSelectedColumn] = React.useState<string | null>(null);
 
     const onResize = (name: string, width?: number) => {
         // Default to 0.25 if width is undefined
@@ -72,6 +73,37 @@ function Header(
         setDragOverColumn(null);
     };
 
+    const onKeyDown = (e: React.KeyboardEvent, columnName: string) => {
+        if (e.key === " " || e.key === "Enter") {
+            e.preventDefault();
+            if (keyboardSelectedColumn === columnName) {
+                // Drop: deselect column
+                setKeyboardSelectedColumn(null);
+            } else {
+                // Pick up the column
+                setKeyboardSelectedColumn(columnName);
+            }
+        } else if (e.key === "Escape") {
+            setKeyboardSelectedColumn(null);
+        } else if (
+            (e.key === "ArrowLeft" || e.key === "ArrowRight") &&
+            keyboardSelectedColumn
+        ) {
+            e.preventDefault();
+            const currentIndex = columns.findIndex((c) => c.name === keyboardSelectedColumn);
+            const newIndex =
+                e.key === "ArrowLeft"
+                    ? Math.max(0, currentIndex - 1)
+                    : Math.min(columns.length - 1, currentIndex + 1);
+            if (newIndex !== currentIndex) {
+                const newColumns = [...columns];
+                const [removed] = newColumns.splice(currentIndex, 1);
+                newColumns.splice(newIndex, 0, removed);
+                dispatch(selection.actions.setColumns(newColumns));
+            }
+        }
+    };
+
     const headerCells: CellConfig[] = map(columns, (column) => ({
         className: classNames(styles.headerCell, {
             [styles.dragOver]: dragOverColumn === column.name && draggedColumn !== column.name,
@@ -81,12 +113,19 @@ function Header(
         columnKey: column.name,
         displayValue: (
             <div
-                className={styles.headerDragArea}
+                aria-grabbed={draggedColumn === column.name || keyboardSelectedColumn === column.name}
+                aria-label={`${annotationNameToAnnotationMap[column.name]?.displayName} column, draggable. Press Space or Enter to select for keyboard reorder, then use Arrow keys to move.`}
+                className={classNames(styles.headerDragArea, {
+                    [styles.keyboardSelected]: keyboardSelectedColumn === column.name,
+                })}
                 draggable
+                role="button"
+                tabIndex={0}
                 onDragStart={() => onColumnDragStart(column.name)}
                 onDragOver={(e) => onColumnDragOver(e, column.name)}
                 onDrop={() => onColumnDrop(column.name)}
                 onDragEnd={onColumnDragEnd}
+                onKeyDown={(e) => onKeyDown(e, column.name)}
             >
                 <span onClick={() => dispatch(selection.actions.sortColumn(column.name))}>
                     <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
