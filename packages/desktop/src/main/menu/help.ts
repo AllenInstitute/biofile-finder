@@ -11,7 +11,7 @@ export function getHelpMenu(): MenuItemConstructorOptions {
                         type: "info",
                         title: "About BioFile Finder",
                         message: "BioFile Finder",
-                        detail: `Version: ${app.getVersion()}\n\nAn application designed to simplify access and exploration of data produced by the Allen Institute for Cell Science.`,
+                        detail: `Version: ${app.getVersion()}\n\nAn application designed to simplify access and exploration of data.`,
                         buttons: ["OK"],
                     });
                 },
