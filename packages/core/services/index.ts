@@ -21,6 +21,7 @@ export { default as FileDownloadService } from "./FileDownloadService";
 export type { default as FileViewerService } from "./FileViewerService";
 export { FileViewerCancellationToken } from "./FileViewerService";
 export { default as HttpServiceBase } from "./HttpServiceBase";
+export { default as TinyUrlService } from "./TinyUrlService";
 export type { default as NotificationService } from "./NotificationService";
 export type {
     default as PersistentConfigService,

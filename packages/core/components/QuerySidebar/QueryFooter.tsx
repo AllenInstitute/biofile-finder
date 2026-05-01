@@ -11,8 +11,15 @@ import { SearchParamsComponents } from "../../entity/SearchParams";
 import useSaveMetadataOptions from "../../hooks/useSaveMetadataOptions";
 import { interaction, selection } from "../../state";
 import { Query } from "../../state/selection/actions";
+import TinyUrlService from "../../services/TinyUrlService";
 
 import styles from "./QueryFooter.module.css";
+
+// process.env.TINYURL_API_TOKEN is replaced at build time by webpack, so it's safe
+// to instantiate TinyUrlService once at module level. Will be null when not configured.
+const tinyUrlService = process.env.TINYURL_API_TOKEN
+    ? new TinyUrlService(process.env.TINYURL_API_TOKEN)
+    : null;
 
 interface Props {
     isDeletable?: boolean;
@@ -38,8 +45,20 @@ export default function QueryFooter(props: Props) {
     const isEmptyQuery = !props.query.parts.sources.length;
 
     const onCopy = async () => {
+        const fullUrl = `https://biofile-finder.allencell.org/app?${url}`;
         try {
-            await navigator.clipboard.writeText(`https://biofile-finder.allencell.org/app?${url}`);
+            let urlToCopy = fullUrl;
+            if (tinyUrlService) {
+                try {
+                    urlToCopy = await tinyUrlService.shorten(fullUrl);
+                } catch (err) {
+                    console.warn(
+                        `Failed to shorten URL with TinyURL (url: ${fullUrl}), using full URL`,
+                        err
+                    );
+                }
+            }
+            await navigator.clipboard.writeText(urlToCopy);
             dispatch(
                 interaction.actions.processSuccess("linkCopySuccess", "Link copied to clipboard!")
             );
