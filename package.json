@@ -104,5 +104,10 @@
     "semver": "7.7.x",
     "streamsaver": "2.0.x",
     "string-natural-compare": "3.0.x"
+  },
+  "overrides": {
+    "express": {
+      "path-to-regexp": "0.1.13"
+    }
   }
 }
