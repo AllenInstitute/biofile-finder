@@ -225,10 +225,24 @@ export default makeReducer<SelectionStateBranch>(
             columns: action.payload,
         }),
         [SET_FILE_SELECTION]: (state, action: SetFileSelection) => {
+            const focusedItem = action.payload.focusedItem;
+            const filters = focusedItem?.fileSet.filters ?? [];
+            // Build a FileFolder from only the hierarchy-level filters (in hierarchy
+            // order) so it matches the openFileFolders shape. Global filters that are
+            // not part of the hierarchy must be excluded; otherwise the folder path
+            // will be too long and the Ctrl+A select-all shortcut won't match it.
+            const hierarchyValues = state.annotationHierarchy
+                .map((name) => filters.find((f) => f.name === name))
+                .filter((f): f is FileFilter => f !== undefined)
+                .map((f) => f.value);
             return {
                 ...state,
                 fileSelection: action.payload,
-            }
+                lastTouchedFolder:
+                    hierarchyValues.length > 0
+                        ? new FileFolder(hierarchyValues)
+                        : state.lastTouchedFolder,
+            };
         },
         [SET_LAST_TOUCHED_FOLDER]: (state, action) => ({
             ...state,
@@ -267,12 +281,14 @@ export default makeReducer<SelectionStateBranch>(
                 };
             }
             // If the last-touched folder is still open, keep it as the last-touched folder.
-            const lastTouchedFolder = openFileFolders.find((f) => f.equals(state.lastTouchedFolder));
+            const lastTouchedFolder = openFileFolders.find((f) =>
+                f.equals(state.lastTouchedFolder)
+            );
             return {
                 ...state,
                 lastTouchedFolder: lastTouchedFolder,
                 openFileFolders: action.payload,
-            }
+            };
         },
         [TOGGLE_NULL_VALUE_GROUPS]: (state, action) => ({
             ...state,
