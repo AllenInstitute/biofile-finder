@@ -235,10 +235,13 @@ const useDirectoryHierarchy = (
                     });
 
                     // Helper to build child node JSX, optionally with bar plot count data.
-                    const buildNodes = (fileCounts?: number[]) => {
+                    const buildNodes = (fileCounts?: (number | undefined)[]) => {
+                        const definedCounts = fileCounts?.filter(
+                            (c): c is number => c !== undefined
+                        );
                         const maxSiblingCount =
-                            fileCounts && fileCounts.length > 0
-                                ? Math.max(...fileCounts)
+                            definedCounts && definedCounts.length > 0
+                                ? Math.max(...definedCounts)
                                 : undefined;
                         return childData.map((child, idx) => (
                             <DirectoryTreeNode
@@ -262,8 +265,13 @@ const useDirectoryHierarchy = (
 
                     // Fetch file counts for all child nodes concurrently in the background.
                     // Once resolved, re-dispatch with count data so bar plots can be rendered.
-                    const fileCounts = await Promise.all(
+                    // Use allSettled so a single failed count request does not prevent bars
+                    // from rendering for the remaining siblings.
+                    const countResults = await Promise.allSettled(
                         childData.map((child) => child.childNodeFileSet.fetchTotalCount())
+                    );
+                    const fileCounts = countResults.map((result) =>
+                        result.status === "fulfilled" ? result.value : undefined
                     );
 
                     if (!cancel) {

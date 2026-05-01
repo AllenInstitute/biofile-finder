@@ -18,7 +18,7 @@
 
 .bar-container {
     flex-shrink: 0;
-    width: 60px;
+    width: var(--bar-plot-width, 60px);
     height: 12px;
     margin-top: 3px;
     margin-right: 4px;

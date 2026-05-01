@@ -120,7 +120,7 @@ export default React.memo(function DirectoryTreeNodeHeader(props: DirectoryTreeN
                 width={ICON_SIZE}
             />
             {fileCount !== undefined && maxSiblingCount !== undefined && maxSiblingCount > 0 && (
-                <Tooltip content={`${fileCount.toLocaleString()} files`}>
+                <Tooltip content={`${fileCount.toLocaleString()} ${fileCount === 1 ? "file" : "files"}`}>
                     <div className={styles.barContainer} data-testid="bar-container">
                         <div
                             className={styles.barFill}
