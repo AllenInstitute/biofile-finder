@@ -4,11 +4,11 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
+import useFileSelector, { OnSelect } from "../useFileSelector";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import { initialState, selection } from "../../../state";
-import useFileSelector, { OnSelect } from "../useFileSelector";
 
 // Minimal test component that exposes the onSelect callback via a ref.
 function TestComponent(props: {
