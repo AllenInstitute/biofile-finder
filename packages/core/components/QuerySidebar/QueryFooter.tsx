@@ -1,7 +1,7 @@
 import { IContextualMenuItem } from "@fluentui/react";
 import { throttle } from "lodash";
 import * as React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { TertiaryButton } from "../Buttons";
 import { ModalType } from "../Modal";
@@ -11,15 +11,8 @@ import { SearchParamsComponents } from "../../entity/SearchParams";
 import useSaveMetadataOptions from "../../hooks/useSaveMetadataOptions";
 import { interaction, selection } from "../../state";
 import { Query } from "../../state/selection/actions";
-import TinyUrlService from "../../services/TinyUrlService";
 
 import styles from "./QueryFooter.module.css";
-
-// process.env.TINYURL_API_TOKEN is replaced at build time by webpack, so it's safe
-// to instantiate TinyUrlService once at module level. Will be null when not configured.
-const tinyUrlService = process.env.TINYURL_API_TOKEN
-    ? new TinyUrlService(process.env.TINYURL_API_TOKEN)
-    : null;
 
 interface Props {
     isDeletable?: boolean;
@@ -34,7 +27,6 @@ interface Props {
 export default function QueryFooter(props: Props) {
     const dispatch = useDispatch();
 
-    const url = useSelector(selection.selectors.getEncodedSearchParams);
     const combinedFilters = React.useMemo(() => {
         const groupByFilters = props.queryComponents.hierarchy.map(
             (annotationName) => new IncludeFilter(annotationName)
@@ -44,33 +36,9 @@ export default function QueryFooter(props: Props) {
 
     const isEmptyQuery = !props.query.parts.sources.length;
 
-    const onCopy = async () => {
-        const fullUrl = `https://biofile-finder.allencell.org/app?${url}`;
-        try {
-            let urlToCopy = fullUrl;
-            if (tinyUrlService) {
-                try {
-                    urlToCopy = await tinyUrlService.shorten(fullUrl);
-                } catch (err) {
-                    console.warn(
-                        `Failed to shorten URL with TinyURL (url: ${fullUrl}), using full URL`,
-                        err
-                    );
-                }
-            }
-            await navigator.clipboard.writeText(urlToCopy);
-            dispatch(
-                interaction.actions.processSuccess("linkCopySuccess", "Link copied to clipboard!")
-            );
-        } catch (error) {
-            dispatch(
-                interaction.actions.processError(
-                    "linkCopyFailure",
-                    "Failed to copy shareable link to clipboard"
-                )
-            );
-        }
-    };
+    // Whether TinyURL shortening is available (token set at build time)
+    const hasTinyUrl = !!process.env.TINYURL_API_TOKEN;
+
     const shareQueryOptions: IContextualMenuItem[] = [
         {
             key: "Code snippet",
@@ -84,10 +52,11 @@ export default function QueryFooter(props: Props) {
             key: "Shareable link",
             text: "Shareable link",
             iconProps: { iconName: "Link" },
-            title:
-                "If you share this link, the recipient will be able to view the current query by importing it as a new query.",
+            title: hasTinyUrl
+                ? "Copy a shortened link to the current query. The link will expire in 1 week."
+                : "If you share this link, the recipient will be able to view the current query by importing it as a new query.",
             onClick: () => {
-                onCopy();
+                dispatch(interaction.actions.setVisibleModal(ModalType.ShareableLink));
             },
         },
     ];
@@ -158,7 +127,7 @@ export default function QueryFooter(props: Props) {
                 id={Tutorial.SHARE_BUTTON_ID}
                 menuItems={shareQueryOptions}
                 onClick={onRefresh}
-                title="Share query"
+                title={hasTinyUrl ? "Share query (shortened link)" : "Share query"}
             />
         </div>
     );

@@ -9,6 +9,7 @@ import DataSource from "./DataSource";
 import EditMetadata from "./EditMetadata";
 import ExtractMetadataCodeSnippet from "./ExtractMetadataCodeSnippet";
 import MetadataManifest from "./MetadataManifest";
+import ShareableLink from "./ShareableLink";
 import SmallScreenWarning from "./SmallScreenWarning";
 import ConvertFiles from "./ZarrConversionModal";
 
@@ -26,6 +27,7 @@ export enum ModalType {
     SmallScreenWarning = 7,
     ExtractMetadataCodeSnippet = 8,
     ConvertFiles = 9,
+    ShareableLink = 10,
 }
 
 /**
@@ -58,6 +60,8 @@ export default function Modal() {
             return <ExtractMetadataCodeSnippet onDismiss={onDismiss} />;
         case ModalType.ConvertFiles:
             return <ConvertFiles onDismiss={onDismiss} />;
+        case ModalType.ShareableLink:
+            return <ShareableLink onDismiss={onDismiss} />;
         default:
             return null;
     }

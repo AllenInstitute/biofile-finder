@@ -1,0 +1,36 @@
+.container {
+    min-width: 400px;
+}
+
+.url-preview {
+    background-color: var(--secondary-background-color);
+    border-radius: var(--small-border-radius);
+    font-family: monospace;
+    font-size: 0.85em;
+    margin: 0 0 12px 0;
+    overflow-wrap: break-word;
+    padding: 8px 10px;
+}
+
+.description {
+    color: var(--secondary-text-color);
+    font-size: 0.9em;
+    margin: 0 0 12px 0;
+}
+
+.alias-input {
+    margin-bottom: 8px;
+}
+
+.error {
+    color: var(--error-color, #d93025);
+    font-size: 0.9em;
+    margin: 4px 0 0 0;
+}
+
+.footer {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    width: 100%;
+}
