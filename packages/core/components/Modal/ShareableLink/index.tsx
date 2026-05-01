@@ -57,12 +57,19 @@ export default function ShareableLink({ onDismiss }: ModalProps) {
 
     const body = (
         <div className={styles.container}>
+            {tinyUrlService && (
+                <div className={styles.expiryNotice}>
+                    <strong>⚠ Shortened links expire in 1 week</strong>
+                    For a permanent link, copy the URL directly from your browser&apos;s address
+                    bar.
+                </div>
+            )}
             <p className={styles.urlPreview}>{fullUrl}</p>
             {tinyUrlService && (
                 <>
                     <p className={styles.description}>
-                        The link will be shortened via TinyURL and will expire in 1 week. You may
-                        optionally specify a custom alias for the short URL.
+                        Clicking &quot;Copy Link&quot; will copy a shortened tinyurl.com link. You
+                        may optionally specify a custom alias for the short URL.
                     </p>
                     <TextField
                         className={styles.aliasInput}

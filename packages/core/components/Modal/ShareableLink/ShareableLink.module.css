@@ -12,6 +12,20 @@
     padding: 8px 10px;
 }
 
+.expiry-notice {
+    background-color: var(--warning-status-background-color);
+    border-radius: var(--small-border-radius);
+    color: var(--warning-status-text-color);
+    font-size: 0.9em;
+    margin: 0 0 12px 0;
+    padding: 8px 12px;
+}
+
+.expiry-notice strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
 .description {
     color: var(--secondary-text-color);
     font-size: 0.9em;
