@@ -446,7 +446,7 @@ describe("Selection reducer", () => {
 
             // Assert
             expect(nextState.lastTouchedFolder).to.not.be.undefined;
-            expect(nextState.lastTouchedFolder!.fileFolder).to.deep.equal([
+            expect(nextState.lastTouchedFolder?.fileFolder).to.deep.equal([
                 "AICS-11",
                 "Pipeline 4",
             ]);
@@ -503,7 +503,7 @@ describe("Selection reducer", () => {
 
             // Assert
             expect(nextState.lastTouchedFolder).to.not.be.undefined;
-            expect(nextState.lastTouchedFolder!.fileFolder).to.deep.equal(["AICS-24"]);
+            expect(nextState.lastTouchedFolder?.fileFolder).to.deep.equal(["AICS-24"]);
         });
 
         it("preserves existing lastTouchedFolder when selection has no focused item", () => {
@@ -546,7 +546,7 @@ describe("Selection reducer", () => {
 
             // Assert
             expect(nextState.lastTouchedFolder).to.not.be.undefined;
-            expect(nextState.lastTouchedFolder!.fileFolder).to.deep.equal(["AICS-11"]);
+            expect(nextState.lastTouchedFolder?.fileFolder).to.deep.equal(["AICS-11"]);
         });
 
         it("keeps lastTouchedFolder when it is still open after a folder is closed", () => {
@@ -568,7 +568,7 @@ describe("Selection reducer", () => {
 
             // Assert
             expect(nextState.lastTouchedFolder).to.not.be.undefined;
-            expect(nextState.lastTouchedFolder!.fileFolder).to.deep.equal([
+            expect(nextState.lastTouchedFolder?.fileFolder).to.deep.equal([
                 "AICS-11",
                 "Pipeline 4",
             ]);
