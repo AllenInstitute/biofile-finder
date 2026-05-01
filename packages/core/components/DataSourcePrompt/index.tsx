@@ -1,10 +1,9 @@
-import { DefaultButton, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import FilePrompt from "./FilePrompt";
-import { LinkLikeButton, PrimaryButton, TransparentIconButton } from "../Buttons";
+import { LinkLikeButton, PrimaryButton, SecondaryButton, TransparentIconButton } from "../Buttons";
 import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
@@ -208,19 +207,18 @@ export default function DataSourcePrompt(props: Props) {
             {sourceType === DataSourceType.default && (
                 <div className={styles.generateFromFolder}>
                     <hr className={styles.divider} />
-                    <p className={styles.text}>
-                        Don&apos;t have a data source yet?
-                    </p>
-                    <DefaultButton
+                    <p className={styles.text}>Don&apos;t have a data source yet?</p>
+                    <SecondaryButton
                         className={styles.generateButton}
-                        iconProps={{ iconName: "FolderSearch" }}
+                        iconName="FolderSearch"
                         onClick={() =>
-                            dispatch(interaction.actions.setVisibleModal(ModalType.GenerateDataSource))
+                            dispatch(
+                                interaction.actions.setVisibleModal(ModalType.GenerateDataSource)
+                            )
                         }
-                        title="Generate a Python script that inventories a folder and creates a CSV data source"
-                    >
-                        Generate data source from folder
-                    </DefaultButton>
+                        text="Generate data source"
+                        title="Generate a data source by inventorying a folder"
+                    />
                 </div>
             )}
             {sourceType === DataSourceType.default && (
@@ -305,13 +303,13 @@ export default function DataSourcePrompt(props: Props) {
                                     [styles.leftAlign]: props.isModal,
                                 })}
                             >
-                                <DefaultButton
+                                <LinkLikeButton
                                     className={styles.linkLikeButton}
+                                    iconName="ChevronUp"
                                     onClick={() => setIsDataSourceDetailExpanded(false)}
-                                >
-                                    Show less&nbsp;&nbsp;
-                                    <Icon iconName="ChevronUp" />
-                                </DefaultButton>
+                                    text="Show less"
+                                    title="Show less details"
+                                />
                             </div>
                         </>
                     ) : (
@@ -320,13 +318,13 @@ export default function DataSourcePrompt(props: Props) {
                                 [styles.leftAlign]: props.isModal,
                             })}
                         >
-                            <DefaultButton
+                            <LinkLikeButton
                                 className={styles.linkLikeButton}
+                                iconName="ChevronDown"
                                 onClick={() => setIsDataSourceDetailExpanded(true)}
-                            >
-                                Show more&nbsp;&nbsp;
-                                <Icon iconName="ChevronDown" />
-                            </DefaultButton>
+                                text="Show more"
+                                title="Show more details"
+                            />
                         </div>
                     )}
                 </div>

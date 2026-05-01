@@ -218,12 +218,5 @@ h4.details {
 }
 
 .generate-button {
-    border: 1px solid var(--highlight-background-color);
-    color: var(--highlight-background-color);
-}
-
-.generate-button:hover,
-.generate-button:focus {
-    border-color: var(--highlight-hover-background-color);
-    color: var(--highlight-hover-background-color);
+    /* Inherits SecondaryButton styling */
 }
