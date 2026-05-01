@@ -19,6 +19,7 @@ import {
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
+import { ModalType } from "../../Modal";
 import { FESBaseUrl, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
@@ -32,7 +33,6 @@ import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileD
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import { initialState, interaction, reducer, reduxLogics, selection } from "../../../state";
-import { ModalType } from "../../Modal";
 
 import DirectoryTree from "../";
 
