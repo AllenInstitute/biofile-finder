@@ -69,6 +69,8 @@ import { fetchWithTimeout } from "../../hooks/useRemoteFileUpload";
 
 export const DEFAULT_QUERY_NAME = "New Query";
 
+const MAX_FILES_IN_MSG = 3;
+
 /**
  * Function for creating a message to display representing the total bytes to download
  */
@@ -326,6 +328,22 @@ const downloadFilesLogic = createLogic({
         const allFileNames = filesToDownload.map((f) => f.name);
         const fileWord = filesToDownload.length === 1 ? "file" : "files";
 
+        /**
+         * Build a file list HTML snippet, showing up to `limit` names.
+         * Returns undefined when there is only one file (name is already in the header).
+         */
+        const buildFileListHtml = (names: string[]) => {
+            if (names.length <= 1) return undefined;
+            return names.map((n) => `• ${n}`).join("<br/>");
+        };
+
+        const truncatedFileListHtml =
+            allFileNames.length > 1
+                ? buildFileListHtml(allFileNames.slice(0, MAX_FILES_IN_MSG))
+                : undefined;
+        const fullFileListHtml =
+            allFileNames.length > MAX_FILES_IN_MSG ? buildFileListHtml(allFileNames) : undefined;
+
         // Use a single process ID for the entire batch of downloads
         const groupProcessId = uniqueId();
         // Map each file to its own download request ID (used by the download service)
@@ -352,16 +370,20 @@ const downloadFilesLogic = createLogic({
                     totalBytesToDownload ? groupTotalBytesDownloaded / totalBytesToDownload : 0,
                     progressMsg,
                     onGroupCancel,
-                    allFileIds,
-                    allFileNames
+                    allFileIds
                 )
             );
         }, 1000);
 
         // TODO: Download these into a zip using new streamsaver zipped code
         if (!someFilesHaveUnknownSize) {
-            const msg = `Downloading ${filesToDownload.length} ${fileWord}.<br/>${totalBytesDisplay} set to download`;
-            dispatch(processStart(groupProcessId, msg, onGroupCancel, allFileIds, allFileNames));
+            const header =
+                filesToDownload.length === 1
+                    ? `Downloading ${allFileNames[0]}.<br/>${totalBytesDisplay} set to download`
+                    : `Downloading ${filesToDownload.length} ${fileWord}.<br/>${totalBytesDisplay} set to download`;
+            const msg = truncatedFileListHtml ? `${header}<br/>${truncatedFileListHtml}` : header;
+            const fullMsg = fullFileListHtml ? `${header}<br/>${fullFileListHtml}` : undefined;
+            dispatch(processStart(groupProcessId, msg, onGroupCancel, allFileIds, fullMsg));
         }
 
         const settledResults = await Promise.allSettled(
@@ -413,8 +435,12 @@ const downloadFilesLogic = createLogic({
                                           : failed[0].reason
                                       : "Unknown error"
                               }`
-                            : `Download failed for ${failed.length} of ${filesToDownload.length} ${fileWord}:<br/>${failedNames.join(", ")}`;
-                    dispatch(processError(groupProcessId, errorMsg));
+                            : `Download failed for ${failed.length} of ${filesToDownload.length} ${fileWord}:<br/>${failedNames.slice(0, MAX_FILES_IN_MSG).join(", ")}`;
+                    const errorFullMsg =
+                        failedNames.length > MAX_FILES_IN_MSG
+                            ? `Download failed for ${failed.length} of ${filesToDownload.length} ${fileWord}:<br/>${failedNames.join(", ")}`
+                            : undefined;
+                    dispatch(processError(groupProcessId, errorMsg, errorFullMsg));
                 } else if (cancelled.length === filesToDownload.length) {
                     // All cancelled
                     dispatch(removeStatus(groupProcessId));

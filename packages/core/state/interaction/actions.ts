@@ -373,8 +373,8 @@ export enum ProcessStatus {
 export interface StatusUpdate {
     data: {
         fileId?: string[]; // if relevant/applicable, fileid(s) related to this status update
-        fileNames?: string[]; // if relevant/applicable, file names for grouped download notifications
         msg: string;
+        fullMsg?: string; // untruncated message for "View more" expansion
         status?: ProcessStatus;
         progress?: number; // num in range [0, 1] indicating progress
     };
@@ -468,14 +468,14 @@ export function processStart(
     msg: string,
     onCancel?: () => void,
     fileId?: string[],
-    fileNames?: string[]
+    fullMsg?: string
 ): ProcessStartAction {
     return {
         type: SET_STATUS,
         payload: {
             data: {
                 fileId,
-                fileNames,
+                fullMsg,
                 msg,
                 status: ProcessStatus.STARTED,
             },
@@ -501,14 +501,14 @@ export function processProgress(
     msg: string,
     onCancel: () => void,
     fileId?: string[],
-    fileNames?: string[]
+    fullMsg?: string
 ): ProcessProgressAction {
     return {
         type: SET_STATUS,
         payload: {
             data: {
                 fileId,
-                fileNames,
+                fullMsg,
                 msg,
                 status: ProcessStatus.PROGRESS,
                 progress,
@@ -553,12 +553,13 @@ export interface ProcessErrorAction {
     payload: StatusUpdate;
 }
 
-export function processError(processId: string, msg: string): ProcessErrorAction {
+export function processError(processId: string, msg: string, fullMsg?: string): ProcessErrorAction {
     return {
         type: SET_STATUS,
         payload: {
             data: {
                 msg,
+                fullMsg,
                 status: ProcessStatus.ERROR,
             },
             processId,

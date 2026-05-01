@@ -32,54 +32,25 @@ const verticalStackProps = {
     },
 };
 
-const MAX_FILES_SHOWN = 3;
-
-interface FileListProps {
-    fileNames: string[];
-}
-
-/**
- * Renders a truncated list of file names with a "Show more / Show less" toggle.
- */
-function FileList({ fileNames }: FileListProps) {
-    const [expanded, setExpanded] = React.useState(false);
-
-    if (fileNames.length <= MAX_FILES_SHOWN) {
-        return (
-            <ul className={styles.fileList}>
-                {fileNames.map((name, index) => (
-                    <li key={index}>{name}</li>
-                ))}
-            </ul>
-        );
-    }
-
-    const visibleNames = expanded ? fileNames : fileNames.slice(0, MAX_FILES_SHOWN);
-    const hiddenCount = fileNames.length - MAX_FILES_SHOWN;
-
-    return (
-        <>
-            <ul className={styles.fileList}>
-                {visibleNames.map((name, index) => (
-                    <li key={index}>{name}</li>
-                ))}
-            </ul>
-            <button
-                className={styles.viewMoreButton}
-                onClick={() => setExpanded((prev) => !prev)}
-            >
-                {expanded ? "Show less" : `Show ${hiddenCount} more`}
-            </button>
-        </>
-    );
-}
-
 /**
  * Pop-up banners that display status messages of processes, such as the download of a CSV manifest. They
  * stack vertically at the top of the window.
  */
 export default function StatusMessage() {
     const dispatch = useDispatch();
+    const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
+
+    const toggleExpanded = (processId: string) => {
+        setExpandedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(processId)) {
+                next.delete(processId);
+            } else {
+                next.add(processId);
+            }
+            return next;
+        });
+    };
 
     return (
         <Stack {...verticalStackProps} verticalAlign="end" className={styles.container}>
@@ -87,9 +58,11 @@ export default function StatusMessage() {
                 useSelector(interaction.selectors.getProcessStatuses),
                 (statusUpdate: StatusUpdate) => {
                     const {
-                        data: { msg, status = ProcessStatus.NOT_SET, progress, fileNames },
+                        data: { msg, fullMsg, status = ProcessStatus.NOT_SET, progress },
                         onCancel,
                     } = statusUpdate;
+                    const isExpanded = expandedIds.has(statusUpdate.processId);
+                    const displayMsg = isExpanded && fullMsg ? fullMsg : msg;
                     let onDismiss; // If has cancel option, don't show dismiss button
                     let cancelButton;
                     if (onCancel) {
@@ -126,12 +99,19 @@ export default function StatusMessage() {
                                     <LoadingIcon className={styles.spinner} />
                                 )}
                                 <div
-                                    dangerouslySetInnerHTML={{ __html: msg }}
+                                    dangerouslySetInnerHTML={{ __html: displayMsg }}
                                     style={{ userSelect: "text" }}
                                 ></div>
                             </div>
-                            {fileNames && fileNames.length > 0 && (
-                                <FileList fileNames={fileNames} />
+                            {fullMsg && (
+                                <div className={styles.viewMoreContainer}>
+                                    <button
+                                        className={styles.viewMoreButton}
+                                        onClick={() => toggleExpanded(statusUpdate.processId)}
+                                    >
+                                        {isExpanded ? "View less" : "View more"}
+                                    </button>
+                                </div>
                             )}
                             {progress !== undefined && (
                                 <ProgressIndicator

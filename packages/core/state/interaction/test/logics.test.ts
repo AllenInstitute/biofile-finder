@@ -376,7 +376,6 @@ describe("Interaction logics", () => {
                         data: {
                             status: ProcessStatus.STARTED,
                             fileId: [file1.id, file2.id],
-                            fileNames: [file1.name, file2.name],
                         },
                     },
                 })

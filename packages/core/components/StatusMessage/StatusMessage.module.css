@@ -102,26 +102,23 @@
     background-color: var(--info-status-text-color);
 }
 
-.file-list {
-    margin: 4px 0 2px 0;
-    padding-left: 18px;
-    font-size: var(--s-paragraph-size);
-    list-style-type: disc;
-}
-
-.file-list li {
-    line-height: 1.4;
-    word-break: break-word;
-    overflow-wrap: break-word;
+.view-more-container {
+    display: flex;
+    justify-content: right;
+    margin-top: 8px;
 }
 
 .view-more-button {
     background: none;
     border: none;
-    padding: 0;
+    color: inherit;
     cursor: pointer;
     font-size: var(--s-paragraph-size);
-    color: inherit;
+    padding: 4px 0;
     text-decoration: underline;
     text-decoration-thickness: 1px;
+}
+
+.view-more-button:hover {
+    opacity: 0.8;
 }
