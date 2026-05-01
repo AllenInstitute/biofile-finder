@@ -373,6 +373,7 @@ export enum ProcessStatus {
 export interface StatusUpdate {
     data: {
         fileId?: string[]; // if relevant/applicable, fileid(s) related to this status update
+        fileNames?: string[]; // if relevant/applicable, file names for grouped download notifications
         msg: string;
         status?: ProcessStatus;
         progress?: number; // num in range [0, 1] indicating progress
@@ -466,13 +467,15 @@ export function processStart(
     processId: string,
     msg: string,
     onCancel?: () => void,
-    fileId?: string[]
+    fileId?: string[],
+    fileNames?: string[]
 ): ProcessStartAction {
     return {
         type: SET_STATUS,
         payload: {
             data: {
                 fileId,
+                fileNames,
                 msg,
                 status: ProcessStatus.STARTED,
             },
@@ -497,13 +500,15 @@ export function processProgress(
     progress: number,
     msg: string,
     onCancel: () => void,
-    fileId?: string[]
+    fileId?: string[],
+    fileNames?: string[]
 ): ProcessProgressAction {
     return {
         type: SET_STATUS,
         payload: {
             data: {
                 fileId,
+                fileNames,
                 msg,
                 status: ProcessStatus.PROGRESS,
                 progress,

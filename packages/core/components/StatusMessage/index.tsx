@@ -32,6 +32,48 @@ const verticalStackProps = {
     },
 };
 
+const MAX_FILES_SHOWN = 3;
+
+interface FileListProps {
+    fileNames: string[];
+}
+
+/**
+ * Renders a truncated list of file names with a "Show more / Show less" toggle.
+ */
+function FileList({ fileNames }: FileListProps) {
+    const [expanded, setExpanded] = React.useState(false);
+
+    if (fileNames.length <= MAX_FILES_SHOWN) {
+        return (
+            <ul className={styles.fileList}>
+                {fileNames.map((name, index) => (
+                    <li key={index}>{name}</li>
+                ))}
+            </ul>
+        );
+    }
+
+    const visibleNames = expanded ? fileNames : fileNames.slice(0, MAX_FILES_SHOWN);
+    const hiddenCount = fileNames.length - MAX_FILES_SHOWN;
+
+    return (
+        <>
+            <ul className={styles.fileList}>
+                {visibleNames.map((name, index) => (
+                    <li key={index}>{name}</li>
+                ))}
+            </ul>
+            <button
+                className={styles.viewMoreButton}
+                onClick={() => setExpanded((prev) => !prev)}
+            >
+                {expanded ? "Show less" : `Show ${hiddenCount} more`}
+            </button>
+        </>
+    );
+}
+
 /**
  * Pop-up banners that display status messages of processes, such as the download of a CSV manifest. They
  * stack vertically at the top of the window.
@@ -45,7 +87,7 @@ export default function StatusMessage() {
                 useSelector(interaction.selectors.getProcessStatuses),
                 (statusUpdate: StatusUpdate) => {
                     const {
-                        data: { msg, status = ProcessStatus.NOT_SET, progress },
+                        data: { msg, status = ProcessStatus.NOT_SET, progress, fileNames },
                         onCancel,
                     } = statusUpdate;
                     let onDismiss; // If has cancel option, don't show dismiss button
@@ -88,6 +130,9 @@ export default function StatusMessage() {
                                     style={{ userSelect: "text" }}
                                 ></div>
                             </div>
+                            {fileNames && fileNames.length > 0 && (
+                                <FileList fileNames={fileNames} />
+                            )}
                             {progress !== undefined && (
                                 <ProgressIndicator
                                     className={styles.progressIndicator}
