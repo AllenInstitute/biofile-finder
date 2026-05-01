@@ -1,11 +1,51 @@
 .shell {
   display: flex;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
   width: 100%;
   box-sizing: border-box;
+  gap: 16px;
 }
 
+/* ===== Mode switcher (tabs) ===== */
+.mode-switcher {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.mode-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: var(--l-paragraph-size);
+  color: var(--secondary-text-color);
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.mode-tab:hover {
+  color: var(--primary-text-color);
+}
+
+.mode-tab-active {
+  color: var(--highlight-background-color);
+  border-bottom-color: var(--highlight-background-color);
+  font-weight: 600;
+}
+
+.mode-tab-icon {
+  font-size: 14px;
+}
+
+/* ===== Two-column layout ===== */
 .columns {
   display: grid;
   grid-template-columns: 280px 1px minmax(0, 1fr);
@@ -14,6 +54,7 @@
   width: 100%;
   min-height: 0;
   box-sizing: border-box;
+  flex: 1;
 }
 
 .left-col  { grid-area: left;   min-width: 0; }
@@ -62,13 +103,63 @@
   margin: 4px 0 0 0;
 }
 
-/* ===== Right column (snippet) ===== */
+/* ===== Right column (snippet or browser panel) ===== */
 .right-col {
   display: flex;
   flex-direction: column;
   row-gap: 12px;
   min-height: 0;
   position: relative;
+}
+
+/* ===== Browser panel ===== */
+.browser-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.browser-hint {
+  font-size: 13px;
+  color: var(--secondary-text-color);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.folder-picker-button {
+  width: fit-content;
+}
+
+.browser-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--primary-text-color);
+}
+
+.stats-icon {
+  color: var(--highlight-background-color);
+}
+
+.no-match-warning {
+  font-size: 13px;
+  color: var(--error-text-color);
+  margin: 0;
+}
+
+.download-button {
+  width: fit-content;
+}
+
+.download-done {
+  font-size: 13px;
+  color: var(--success-text-color, #107c10);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
 }
 
 /* ===== Footer ===== */
