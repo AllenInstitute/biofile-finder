@@ -8,6 +8,7 @@ import { LinkLikeButton, PrimaryButton, TransparentIconButton } from "../Buttons
 import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
+import { ModalType } from "../Modal";
 
 import styles from "./DataSourcePrompt.module.css";
 
@@ -204,6 +205,24 @@ export default function DataSourcePrompt(props: Props) {
                     />
                 </div>
             </div>
+            {sourceType === DataSourceType.default && (
+                <div className={styles.generateFromFolder}>
+                    <hr className={styles.divider} />
+                    <p className={styles.text}>
+                        Don&apos;t have a data source yet?
+                    </p>
+                    <DefaultButton
+                        className={styles.generateButton}
+                        iconProps={{ iconName: "FolderSearch" }}
+                        onClick={() =>
+                            dispatch(interaction.actions.setVisibleModal(ModalType.GenerateDataSource))
+                        }
+                        title="Generate a Python script that inventories a folder and creates a CSV data source"
+                    >
+                        Generate data source from folder
+                    </DefaultButton>
+                </div>
+            )}
             {sourceType === DataSourceType.default && (
                 <div className={styles.guidance}>
                     <hr className={styles.divider} />

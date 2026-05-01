@@ -1,0 +1,101 @@
+.shell {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 280px 1px minmax(0, 1fr);
+  grid-template-areas: "left divider right";
+  column-gap: 24px;
+  width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.left-col  { grid-area: left;   min-width: 0; }
+.v-divider { grid-area: divider; }
+.right-col { grid-area: right;  min-width: 0; }
+
+.v-divider {
+  width: 1px;
+  background: var(--primary-text-color);
+}
+
+/* ===== Left/form column ===== */
+.left-col {
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
+  overflow-y: auto;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: var(--l-paragraph-size);
+  font-weight: 600;
+}
+
+.optional {
+  font-weight: normal;
+  font-size: 12px;
+  color: var(--secondary-text-color);
+}
+
+.input :global(.ms-TextField-field),
+.input :global(textarea.ms-TextField-field) {
+  background-color: var(--secondary-background-color) !important;
+  color: var(--secondary-text-color) !important;
+}
+
+.plugin-hint {
+  font-size: 12px;
+  color: var(--secondary-text-color);
+  margin: 4px 0 0 0;
+}
+
+/* ===== Right column (snippet) ===== */
+.right-col {
+  display: flex;
+  flex-direction: column;
+  row-gap: 12px;
+  min-height: 0;
+  position: relative;
+}
+
+/* ===== Footer ===== */
+.footer-buttons {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.close-button { width: min-content; }
+
+/* ===== Responsive ===== */
+@container modal (min-width: 1221px) {
+  .left-col { width: 280px; }
+  .v-divider { display: block; }
+}
+
+@media (max-width: 1220px) {
+  .columns {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "left"
+      "right";
+    grid-auto-rows: auto;
+  }
+  .v-divider { display: none; }
+  .left-col { width: auto; min-width: 0; max-width: none; }
+  .right-col { min-width: 0; }
+}
