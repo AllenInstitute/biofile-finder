@@ -12,6 +12,9 @@ import styles from "./GenerateDataSource.module.css";
 
 type Mode = "python" | "browser";
 
+/** File as provided by a webkitdirectory input — includes the relative path within the folder. */
+type BrowserFile = File & { webkitRelativePath?: string };
+
 /**
  * Generates a data source in two ways:
  *
@@ -187,7 +190,7 @@ export default function GenerateDataSource({ onDismiss }: ModalProps) {
                 ref={folderInputRef}
                 type="file"
                 // webkitdirectory and directory are non-standard attrs — cast to any
-                {...({ webkitdirectory: "", multiple: true } as React.InputHTMLAttributes<HTMLInputElement>)}
+                {...({ webkitdirectory: true, multiple: true } as React.InputHTMLAttributes<HTMLInputElement>)}
                 style={{ display: "none" }}
                 onChange={handleFolderSelect}
                 data-testid="folder-input"
@@ -306,8 +309,8 @@ export default function GenerateDataSource({ onDismiss }: ModalProps) {
 // ---------------------------------------------------------------------------
 
 /**
- * Filter a FileList down to files whose name matches the glob-like pattern.
- * Only handles simple extension filters like `**\/*.tiff` — other patterns pass all files through.
+ * Filter files by the glob-like pattern.
+ * Only handles simple extension filters like `"**&#47;*.tiff"` — other patterns pass all files through.
  */
 export function filterFilesByPattern(files: File[], pattern: string): File[] {
     const match = pattern.trim().match(/\*(\.[a-zA-Z0-9.]+)$/);
@@ -317,8 +320,8 @@ export function filterFilesByPattern(files: File[], pattern: string): File[] {
 }
 
 /**
- * Build a CSV string from the browser's FileList using the supplied pattern and regex.
- * Accepts both Python `(?P<name>...)` and JS `(?<name>...)` named-group syntax.
+ * Build a CSV string from browser-selected files using the supplied pattern and regex.
+ * Accepts both Python `(?P{name}...)` and JS `(?{name}...)` named-group syntax.
  */
 export function buildCsvFromBrowserFiles(
     files: FileList | File[],
@@ -340,7 +343,7 @@ export function buildCsvFromBrowserFiles(
 
     // Parse each file into a record
     const records = filtered.map((file) => {
-        const path = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
+        const path = (file as BrowserFile).webkitRelativePath || file.name;
         const rec: Record<string, string> = {
             "File Path": path,
             "File Name": file.name,
