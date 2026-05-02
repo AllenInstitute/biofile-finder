@@ -19,6 +19,7 @@ enum AppKeys {
     BROWSER = "browser",
     FIJI = "fiji",
     NEUROGLANCER = "neuroglancer",
+    IDR_VIEWER = "idrviewer",
     SIMULARIUM = "simularium",
     VALIDATOR = "validator",
     VOLE = "vole",
@@ -29,13 +30,14 @@ enum AppKeys {
 interface Apps {
     [AppKeys.AGAVE]: IContextualMenuItem;
     [AppKeys.BROWSER]: IContextualMenuItem;
+    [AppKeys.CFE]: IContextualMenuItem;
     [AppKeys.FIJI]: IContextualMenuItem;
+    [AppKeys.IDR_VIEWER]: IContextualMenuItem;
     [AppKeys.NEUROGLANCER]: IContextualMenuItem;
     [AppKeys.SIMULARIUM]: IContextualMenuItem;
     [AppKeys.VALIDATOR]: IContextualMenuItem;
     [AppKeys.VOLE]: IContextualMenuItem;
     [AppKeys.VOLVIEW]: IContextualMenuItem;
-    [AppKeys.CFE]: IContextualMenuItem;
 }
 
 type AppOptions = {
@@ -109,6 +111,21 @@ const APPS = (
             );
         },
     } as IContextualMenuItem,
+    [AppKeys.CFE]: {
+        key: AppKeys.CFE,
+        text: "Cell Feature Explorer",
+        title: `Open files with CFE`,
+        onClick: options?.openInCfe,
+        hidden: options?.openInCfe === undefined || !fileDetails?.path,
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
     [AppKeys.FIJI]: {
         key: AppKeys.FIJI,
         className: styles.desktopMenuItem,
@@ -137,6 +154,22 @@ const APPS = (
                         </DefaultButton>
                     </a>
                     <span className={styles.secondaryText}>| Desktop</span>
+                </>
+            );
+        },
+    } as IContextualMenuItem,
+    [AppKeys.IDR_VIEWER]: {
+        key: AppKeys.IDR_VIEWER,
+        text: "IDR Viewer",
+        title: "Open image in IDR Viewer",
+        href: fileDetails?.path,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+        onRenderContent(props, defaultRenders) {
+            return (
+                <>
+                    {defaultRenders.renderItemName(props)}
+                    <span className={styles.secondaryText}>Web</span>
                 </>
             );
         },
@@ -207,21 +240,6 @@ const APPS = (
             );
         },
     } as IContextualMenuItem,
-    [AppKeys.CFE]: {
-        key: AppKeys.CFE,
-        text: "Cell Feature Explorer",
-        title: `Open files with CFE`,
-        onClick: options?.openInCfe,
-        hidden: options?.openInCfe === undefined || !fileDetails?.path,
-        onRenderContent(props, defaultRenders) {
-            return (
-                <>
-                    {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Web</span>
-                </>
-            );
-        },
-    } as IContextualMenuItem,
     [AppKeys.VOLVIEW]: {
         key: AppKeys.VOLVIEW,
         text: "VolView",
@@ -260,7 +278,6 @@ function getSupportedApps(
     const fileExt = getFileExtension(fileDetails);
 
     // Check for common file extensions first
-
     switch (fileExt) {
         case "bmp":
         case "html":
@@ -286,6 +303,18 @@ function getSupportedApps(
                 : [apps.fiji, apps.agave, apps.vole];
         case "zarr":
         case "": // No extension
+            // For IDR images, the only supported viewer is the IDR Viewer.
+            // The file path itself is the IDR Viewer URL, so return early with just that item.
+            // Use URL parsing to precisely match the IDR hostname and avoid substring false-positives.
+            // Ex. https://idr.openmicroscopy.org/webclient/img_detail/14239685/
+            try {
+                if (new URL(fileDetails.path).hostname === "idr.openmicroscopy.org") {
+                    return [apps.idrviewer];
+                }
+            } catch (_e) {
+                // Not a valid URL; skip IDR check
+            }
+
             return isLikelyLocalFile
                 ? [apps.agave, apps.neuroglancer, apps.vole, apps.cfe]
                 : [apps.vole, apps.neuroglancer, apps.agave, apps.cfe, apps.validator];
@@ -584,6 +613,8 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     // Grab every other known app
     const unsupportedApps = Object.values(apps)
         .filter((app) => supportedApps.every((item) => item.key !== app.key))
+        // IDR Viewer is only relevant for IDR images (handled above); never show it elsewhere
+        .filter((app) => app.key !== AppKeys.IDR_VIEWER)
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
     if (plateLink && isAicsEmployee) {
