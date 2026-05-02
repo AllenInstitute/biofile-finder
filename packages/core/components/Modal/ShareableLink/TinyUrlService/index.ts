@@ -35,7 +35,8 @@ export default class TinyUrlService {
      * @throws Error if the API call fails, the alias is already taken, or the response is unexpected.
      */
     public async shorten(url: string, options: ShortenOptions): Promise<string> {
-        const expiresAt = new Date(Date.now() + options.expiresInMs).toISOString();
+        const expiresAtDate = new Date(Date.now() + options.expiresInMs);
+        const expiresAt = expiresAtDate.toISOString();
         const body: Record<string, string> = { url, domain: this.domain, expires_at: expiresAt };
         if (options.alias) {
             body.alias = options.alias;
@@ -60,6 +61,24 @@ export default class TinyUrlService {
 
         if (!response.data?.data?.tiny_url) {
             throw new Error("Unexpected response: Shortened URL missing");
+        }
+
+        // Verify the API honored the requested expiration
+        const returnedExpiry = response.data.data.expires_at;
+        const returnedMs = new Date(returnedExpiry).getTime();
+        const expectedMs = new Date(expiresAt).getTime();
+
+        // Allow up to 24 hours of drift between what we sent and what the API returned
+        const msInDay = 24 * 60 * 60 * 1000; // 86400000
+        if (Math.abs(returnedMs - expectedMs) > msInDay) {
+            console.warn(
+                `TinyURL expiration mismatch: requested ${expiresAt}, got ${returnedExpiry}`
+            );
+            throw new Error(
+                `This URL has already been shortened with an expiration time of ${new Date(
+                    returnedExpiry
+                ).toDateString()}. Shortened URLs cannot have multiple expiration times. To use ${expiresAtDate.toDateString()}, please create a new alias.`
+            );
         }
 
         return response.data.data.tiny_url;

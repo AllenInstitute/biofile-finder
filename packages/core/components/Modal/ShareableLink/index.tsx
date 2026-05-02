@@ -132,7 +132,7 @@ export default function ShareableLink({ onDismiss }: ModalProps) {
                 prefix={`${TINY_URL_DOMAIN}/`}
                 disabled={isCopying}
             />
-            {aliasErrMsg && <p className={styles.error}>{aliasErrMsg}</p>}
+            {aliasErrMsg && <p className={styles.aliasError}>{aliasErrMsg}</p>}
         </>
     ) : (
         <p className={styles.urlPreview}>{fullUrl}</p>

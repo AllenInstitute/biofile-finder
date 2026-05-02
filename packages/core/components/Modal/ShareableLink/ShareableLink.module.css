@@ -96,7 +96,17 @@
 }
 
 .error {
-    color: var(--error-color, #d93025);
+    background-color: var(--error-status-background-color);
+    border-radius: var(--small-border-radius);
+    border: solid 1px;
+    color: var(--error-status-text-color);
+    font-size: 0.9em;
+    margin: 0 0 12px 0;
+    padding: 8px 12px;
+}
+
+.alias-error {
+    color: var(--error-status-text-color);
     font-size: 0.9em;
     margin: 4px 0;
 }
