@@ -25,8 +25,12 @@ const EXPIRATION_OPTIONS = [
 
 // TODO: Validate manually that an expired URL's alias can be re-used
 
+// TODO: Move TinyURL API token server-side before switching to a custom domain
+// or wider public audience — a client-side token on a branded domain (e.g. link.allencell.org)
+// would allow anyone to create links that appear to be from our organization.
+
 // Instantiated once at module level since the token is a build-time constant.
-const TINY_URL_DOMAIN = "tinyurl.com"; // "link.allencell.org"; TODO: Change once we get subdomain CNAME registered
+const TINY_URL_DOMAIN = "tinyurl.com";
 const tinyUrlService = process.env.TINYURL_API_TOKEN
     ? new TinyUrlService(process.env.TINYURL_API_TOKEN, TINY_URL_DOMAIN, axios.create())
     : null;
