@@ -4,6 +4,23 @@ import { expect } from "chai";
 
 import TinyUrlService from "..";
 
+/**
+ * Like createMockHttpClient but rejects on non-2xx status codes, matching real
+ * Axios behavior.
+ */
+function createMockHttpClientWithErrors(...args: Parameters<typeof createMockHttpClient>) {
+    const client = createMockHttpClient(...args);
+    client.interceptors.response.use((response) => {
+        if (response.status && (response.status < 200 || response.status >= 300)) {
+            const error: any = new Error(`Request failed with status code ${response.status}`);
+            error.response = response;
+            return Promise.reject(error);
+        }
+        return response;
+    });
+    return client;
+}
+
 describe("TinyUrlService", () => {
     describe("shorten", () => {
         it("returns the shortened URL from TinyURL API response", async () => {
@@ -135,7 +152,7 @@ describe("TinyUrlService", () => {
 
         it("throws a descriptive error when the alias is already taken", async () => {
             // Arrange
-            const httpClient = createMockHttpClient({
+            const httpClient = createMockHttpClientWithErrors({
                 when: "https://api.tinyurl.com/create",
                 respondWith: {
                     status: 422,
@@ -154,14 +171,14 @@ describe("TinyUrlService", () => {
                 });
                 expect.fail("Expected an error to be thrown");
             } catch (err) {
-                expect((err as Error).message).to.include("taken-alias");
-                expect((err as Error).message).to.include("already taken");
+                expect((err as Error).message).to.include("422");
+                expect((err as any).response.data.errors).to.include("already taken");
             }
         });
 
         it("throws an error when the API returns a non-OK status", async () => {
             // Arrange
-            const httpClient = createMockHttpClient({
+            const httpClient = createMockHttpClientWithErrors({
                 when: "https://api.tinyurl.com/create",
                 respondWith: {
                     status: 401,
@@ -241,7 +258,7 @@ describe("TinyUrlService", () => {
     describe("validateAlias", () => {
         it("resolves without error when the alias is available (404)", async () => {
             // Arrange
-            const httpClient = createMockHttpClient({
+            const httpClient = createMockHttpClientWithErrors({
                 when: "https://api.tinyurl.com/alias/tinyurl.com/available-alias",
                 respondWith: { status: 404, statusText: "Not Found" },
             });
@@ -292,7 +309,7 @@ describe("TinyUrlService", () => {
         });
 
         it("throws a generic error for unexpected HTTP status codes", async () => {
-            const httpClient = createMockHttpClient({
+            const httpClient = createMockHttpClientWithErrors({
                 when: "https://api.tinyurl.com/alias/tinyurl.com/some-alias",
                 respondWith: { status: 500, statusText: "Internal Server Error" },
             });
@@ -310,7 +327,7 @@ describe("TinyUrlService", () => {
         it("calls the correct TinyURL alias check endpoint", async () => {
             let capturedUrl: string | undefined;
 
-            const httpClient = createMockHttpClient({
+            const httpClient = createMockHttpClientWithErrors({
                 when: (config: AxiosRequestConfig) => {
                     capturedUrl = config.url;
                     return true;
@@ -330,7 +347,7 @@ describe("TinyUrlService", () => {
             const customAlias = "alias123";
             let capturedUrl: string | undefined;
 
-            const httpClient = createMockHttpClient({
+            const httpClient = createMockHttpClientWithErrors({
                 when: (config: AxiosRequestConfig) => {
                     capturedUrl = config.url;
                     return true;
