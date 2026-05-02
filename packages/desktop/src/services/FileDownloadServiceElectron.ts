@@ -83,7 +83,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                 downloadUrl = data;
             }
         } else {
-            return this.downloadHttpFile(fileInfo, downloadRequestId, onProgress, destination);
+            return this.downloadCloudFile(fileInfo, downloadRequestId, onProgress, destination);
         }
 
         try {
@@ -163,8 +163,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         }
     }
 
-    // TODO :This vs ... downloadCloudFile
-    private async downloadHttpFile(
+    private async downloadCloudFile(
         fileInfo: FileInfo,
         downloadRequestId: string,
         onProgress?: (transferredBytes: number) => void,
@@ -440,7 +439,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                 fs.mkdirSync(path.dirname(destinationPath), { recursive: true });
 
                 // Download the file and update the downloaded size
-                await this.downloadCloudFile(
+                await this.downloadHttpFile(
                     objectInDir.url,
                     destinationPath,
                     (fileDownloadedBytes) => {
@@ -477,7 +476,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         }
     }
 
-    private async downloadCloudFile(
+    private async downloadHttpFile(
         url: string,
         destinationPath: string,
         onProgress?: (bytes: number) => void

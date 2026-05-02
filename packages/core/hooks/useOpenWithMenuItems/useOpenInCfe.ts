@@ -85,7 +85,6 @@ const useOpenInCfe = (
             // a delay that is too long. The confirmation popup needs to include
             // a clickable link if this happens.
             window.open(cfeUrl, "_blank", "noopener,noreferrer");
-            // TODO: Include clickable link here in the popup in case the new tab didn't open
             dispatch(
                 interaction.actions.processSuccess(
                     processId,

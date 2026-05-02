@@ -122,7 +122,6 @@ export default function ShareableLink({ onDismiss }: ModalProps) {
                 </strong>
                 For a permanent link, copy the URL directly from your browser&apos;s address bar.
             </div>
-            {/* TODO: Update this and the call to tinyurl once we get the subdomain CNAME registered */}
             <TextField
                 className={styles.aliasInput}
                 label="Custom alias (optional)"
