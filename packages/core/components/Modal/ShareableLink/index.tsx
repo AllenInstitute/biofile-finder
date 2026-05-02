@@ -1,4 +1,5 @@
 import { TextField } from "@fluentui/react";
+import axios from "axios";
 import { debounce } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -27,7 +28,7 @@ const EXPIRATION_OPTIONS = [
 // Instantiated once at module level since the token is a build-time constant.
 const TINY_URL_DOMAIN = "tinyurl.com"; // "link.allencell.org"; TODO: Change once we get subdomain CNAME registered
 const tinyUrlService = process.env.TINYURL_API_TOKEN
-    ? new TinyUrlService(process.env.TINYURL_API_TOKEN, TINY_URL_DOMAIN)
+    ? new TinyUrlService(process.env.TINYURL_API_TOKEN, TINY_URL_DOMAIN, axios.create())
     : null;
 
 /**

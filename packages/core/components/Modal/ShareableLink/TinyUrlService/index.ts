@@ -1,3 +1,5 @@
+import { AxiosInstance } from "axios";
+
 const TINYURL_API_URL = "https://api.tinyurl.com";
 
 /** Regex matching what TinyURL considers a valid alias: alphanumeric and hyphens */
@@ -17,10 +19,12 @@ export interface ShortenOptions {
 export default class TinyUrlService {
     private readonly token: string;
     private readonly domain: string;
+    private readonly httpClient: AxiosInstance;
 
-    constructor(token: string, domain = "tinyurl.com") {
+    constructor(token: string, domain = "tinyurl.com", httpClient: AxiosInstance) {
         this.token = token;
         this.domain = domain;
+        this.httpClient = httpClient;
     }
 
     /**
@@ -37,18 +41,15 @@ export default class TinyUrlService {
             body.alias = options.alias;
         }
 
-        const response = await fetch(`${TINYURL_API_URL}/create`, {
-            method: "POST",
+        const response = await this.httpClient.post(`${TINYURL_API_URL}/create`, body, {
             headers: {
                 Authorization: `Bearer ${this.token}`,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(body),
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => null);
-            const apiErrors: string[] = errorData?.errors ?? [];
+        if (response.status >= 400) {
+            const apiErrors: string[] = response.data?.errors ?? [];
             if (apiErrors.some((e: string) => e.toLowerCase().includes("already taken"))) {
                 throw new Error(
                     `The alias "${options.alias}" is already taken. Please choose a different alias.`
@@ -57,12 +58,11 @@ export default class TinyUrlService {
             throw new Error(`TinyURL API returned ${response.status}: ${response.statusText}`);
         }
 
-        const data = await response.json();
-        if (!data?.data?.tiny_url) {
+        if (!response.data?.data?.tiny_url) {
             throw new Error("Unexpected response: Shortened URL missing");
         }
 
-        return data.data.tiny_url;
+        return response.data.data.tiny_url;
     }
 
     /**
@@ -80,10 +80,9 @@ export default class TinyUrlService {
             throw new Error("Alias can only contain letters, numbers, and hyphens.");
         }
 
-        const response = await fetch(
+        const response = await this.httpClient.get(
             `${TINYURL_API_URL}/alias/${this.domain}/${encodeURIComponent(trimmed)}`,
             {
-                method: "GET",
                 headers: {
                     Authorization: `Bearer ${this.token}`,
                 },
@@ -94,7 +93,7 @@ export default class TinyUrlService {
         // 422 can mean a lot of different things, but in practice I've only seen
         // it happen when the alias is taken yet & we don't have the permissions to
         // view details about it
-        if (response.ok || response.status === 422) {
+        if (response.status === 200 || response.status === 422) {
             throw new Error(
                 `The alias "${trimmed}" is already taken. Please choose a different one.`
             );
@@ -105,12 +104,7 @@ export default class TinyUrlService {
             return;
         }
 
-        let errorMsg: string | undefined;
-        try {
-            const body = await response.json();
-            errorMsg = body?.errors?.join(", ");
-        } finally {
-            throw new Error(`Failed to validate alias: ${errorMsg || response.statusText}`);
-        }
+        const errorMsg = response.data?.errors?.join(", ");
+        throw new Error(`Failed to validate alias: ${errorMsg || response.statusText}`);
     }
 }

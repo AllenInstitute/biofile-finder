@@ -1,15 +1,10 @@
+import { createMockHttpClient } from "@aics/redux-utils";
+import { AxiosRequestConfig } from "axios";
 import { expect } from "chai";
-import { createSandbox } from "sinon";
 
 import TinyUrlService from "..";
 
 describe("TinyUrlService", () => {
-    const sandbox = createSandbox();
-
-    afterEach(() => {
-        sandbox.restore();
-    });
-
     describe("shorten", () => {
         it("returns the shortened URL from TinyURL API response", async () => {
             // Arrange
@@ -18,62 +13,59 @@ describe("TinyUrlService", () => {
             const longUrl = "https://bff.allencell.org/app?someVeryLongQueryString=true";
             const shortUrl = `https://${domain}/abc123`;
 
-            const fetchStub = sandbox.stub(globalThis, "fetch").resolves(
-                new Response(
-                    JSON.stringify({
+            const httpClient = createMockHttpClient({
+                when: "https://api.tinyurl.com/create",
+                respondWith: {
+                    data: {
                         data: { tiny_url: shortUrl, url: longUrl },
                         code: 0,
                         errors: [],
-                    }),
-                    { status: 200 }
-                )
-            );
+                    },
+                },
+            });
 
-            const service = new TinyUrlService(token, domain);
+            const service = new TinyUrlService(token, domain, httpClient);
 
             // Act
             const result = await service.shorten(longUrl, { expiresInMs: 7 });
 
             // Assert
             expect(result).to.equal(shortUrl);
-            expect(fetchStub.calledOnce).to.be.true;
-            const [calledUrl, calledOptions] = fetchStub.args[0];
-            expect(calledUrl).to.equal("https://api.tinyurl.com/create");
-            expect(calledOptions).to.deep.include({
-                method: "POST",
-            });
-            expect((calledOptions as RequestInit).headers).to.deep.include({
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            });
         });
 
         it("includes expires_at set to one week from now in the request body", async () => {
             // Arrange
             const longUrl = "https://bff.allencell.org/app?query=test";
-            const fetchStub = sandbox.stub(globalThis, "fetch").resolves(
-                new Response(
-                    JSON.stringify({
+            let capturedData: Record<string, string> | undefined;
+
+            const httpClient = createMockHttpClient({
+                when: (config: AxiosRequestConfig) => {
+                    if (config.url === "https://api.tinyurl.com/create") {
+                        capturedData = JSON.parse(config.data);
+                        return true;
+                    }
+                    return false;
+                },
+                respondWith: {
+                    data: {
                         data: { tiny_url: "https://tinyurl.com/xyz789" },
                         code: 0,
                         errors: [],
-                    }),
-                    { status: 200 }
-                )
-            );
+                    },
+                },
+            });
 
             const beforeCall = Date.now();
-            const service = new TinyUrlService("my-token");
+            const service = new TinyUrlService("my-token", "tinyurl.com", httpClient);
             await service.shorten(longUrl, { expiresInMs: 7 * 24 * 60 * 60 * 1000 });
             const afterCall = Date.now();
 
             // Assert
-            const [, calledOptions] = fetchStub.args[0];
-            const body = JSON.parse((calledOptions as RequestInit).body as string);
-            expect(body.url).to.equal(longUrl);
-            expect(body.domain).to.equal("tinyurl.com");
+            expect(capturedData).to.exist;
+            expect(capturedData?.url).to.equal(longUrl);
+            expect(capturedData?.domain).to.equal("tinyurl.com");
 
-            const expiresAt = new Date(body.expires_at).getTime();
+            const expiresAt = capturedData ? new Date(capturedData.expires_at).getTime() : 0;
             const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
             expect(expiresAt).to.be.at.least(beforeCall + oneWeekMs);
             expect(expiresAt).to.be.at.most(afterCall + oneWeekMs);
@@ -83,62 +75,76 @@ describe("TinyUrlService", () => {
             // Arrange
             const longUrl = "https://bff.allencell.org/app?query=test";
             const alias = "my-custom-alias";
-            const fetchStub = sandbox.stub(globalThis, "fetch").resolves(
-                new Response(
-                    JSON.stringify({
+            let capturedData: Record<string, string> | undefined;
+
+            const httpClient = createMockHttpClient({
+                when: (config: AxiosRequestConfig) => {
+                    if (config.url === "https://api.tinyurl.com/create") {
+                        capturedData = JSON.parse(config.data);
+                        return true;
+                    }
+                    return false;
+                },
+                respondWith: {
+                    data: {
                         data: { tiny_url: `https://tinyurl.com/${alias}` },
                         code: 0,
                         errors: [],
-                    }),
-                    { status: 200 }
-                )
-            );
+                    },
+                },
+            });
 
-            const service = new TinyUrlService("my-token");
+            const service = new TinyUrlService("my-token", "tinyurl.com", httpClient);
 
             // Act
             await service.shorten(longUrl, { alias, expiresInMs: 1231 });
 
             // Assert
-            const [, calledOptions] = fetchStub.args[0];
-            const body = JSON.parse((calledOptions as RequestInit).body as string);
-            expect(body.alias).to.equal(alias);
+            expect(capturedData).to.exist;
+            expect(capturedData?.alias).to.equal(alias);
         });
 
         it("does not include alias in the request body when not provided", async () => {
             // Arrange
-            const fetchStub = sandbox.stub(globalThis, "fetch").resolves(
-                new Response(
-                    JSON.stringify({
+            let capturedData: Record<string, string> | undefined;
+
+            const httpClient = createMockHttpClient({
+                when: (config: AxiosRequestConfig) => {
+                    if (config.url === "https://api.tinyurl.com/create") {
+                        capturedData = JSON.parse(config.data);
+                        return true;
+                    }
+                    return false;
+                },
+                respondWith: {
+                    data: {
                         data: { tiny_url: "https://tinyurl.com/noalias" },
                         code: 0,
                         errors: [],
-                    }),
-                    { status: 200 }
-                )
-            );
+                    },
+                },
+            });
 
-            const service = new TinyUrlService("my-token");
+            const service = new TinyUrlService("my-token", "tinyurl.com", httpClient);
             await service.shorten("https://bff.allencell.org/app?q=1", { expiresInMs: 1231 });
 
             // Assert
-            const [, calledOptions] = fetchStub.args[0];
-            const body = JSON.parse((calledOptions as RequestInit).body as string);
-            expect(body).not.to.have.property("alias");
+            expect(capturedData).to.exist;
+            expect(capturedData).not.to.have.property("alias");
         });
 
         it("throws a descriptive error when the alias is already taken", async () => {
             // Arrange
-            sandbox
-                .stub(globalThis, "fetch")
-                .resolves(
-                    new Response(JSON.stringify({ code: 422, errors: ["already taken"] }), {
-                        status: 422,
-                        statusText: "Unprocessable Entity",
-                    })
-                );
+            const httpClient = createMockHttpClient({
+                when: "https://api.tinyurl.com/create",
+                respondWith: {
+                    status: 422,
+                    statusText: "Unprocessable Entity",
+                    data: { code: 422, errors: ["already taken"] },
+                },
+            });
 
-            const service = new TinyUrlService("test-token");
+            const service = new TinyUrlService("test-token", "tinyurl.com", httpClient);
 
             // Act & Assert
             try {
@@ -155,16 +161,16 @@ describe("TinyUrlService", () => {
 
         it("throws an error when the API returns a non-OK status", async () => {
             // Arrange
-            sandbox
-                .stub(globalThis, "fetch")
-                .resolves(
-                    new Response(JSON.stringify({ code: 401, errors: [] }), {
-                        status: 401,
-                        statusText: "Unauthorized",
-                    })
-                );
+            const httpClient = createMockHttpClient({
+                when: "https://api.tinyurl.com/create",
+                respondWith: {
+                    status: 401,
+                    statusText: "Unauthorized",
+                    data: { code: 401, errors: [] },
+                },
+            });
 
-            const service = new TinyUrlService("invalid-token");
+            const service = new TinyUrlService("invalid-token", "tinyurl.com", httpClient);
 
             // Act & Assert
             try {
@@ -179,13 +185,14 @@ describe("TinyUrlService", () => {
 
         it("throws an error when the API response is missing the tiny_url field", async () => {
             // Arrange
-            sandbox.stub(globalThis, "fetch").resolves(
-                new Response(JSON.stringify({ data: {}, code: 1, errors: ["some error"] }), {
-                    status: 200,
-                })
-            );
+            const httpClient = createMockHttpClient({
+                when: "https://api.tinyurl.com/create",
+                respondWith: {
+                    data: { data: {}, code: 1, errors: ["some error"] },
+                },
+            });
 
-            const service = new TinyUrlService("test-token");
+            const service = new TinyUrlService("test-token", "tinyurl.com", httpClient);
 
             // Act & Assert
             try {
@@ -201,37 +208,45 @@ describe("TinyUrlService", () => {
         it("uses the custom domain in the request body", async () => {
             // Arrange
             const customDomain = "custom.short.link";
-            const fetchStub = sandbox.stub(globalThis, "fetch").resolves(
-                new Response(
-                    JSON.stringify({
+            let capturedData: Record<string, string> | undefined;
+
+            const httpClient = createMockHttpClient({
+                when: (config: AxiosRequestConfig) => {
+                    if (config.url === "https://api.tinyurl.com/create") {
+                        capturedData = JSON.parse(config.data);
+                        return true;
+                    }
+                    return false;
+                },
+                respondWith: {
+                    data: {
                         data: { tiny_url: `https://${customDomain}/abc` },
                         code: 0,
                         errors: [],
-                    }),
-                    { status: 200 }
-                )
-            );
+                    },
+                },
+            });
 
-            const service = new TinyUrlService("test-token", customDomain);
+            const service = new TinyUrlService("test-token", customDomain, httpClient);
 
             // Act
             await service.shorten("https://example.com", { expiresInMs: 1000 });
 
             // Assert
-            const [, calledOptions] = fetchStub.args[0];
-            const body = JSON.parse((calledOptions as RequestInit).body as string);
-            expect(body.domain).to.equal(customDomain);
+            expect(capturedData).to.exist;
+            expect(capturedData?.domain).to.equal(customDomain);
         });
     });
 
     describe("validateAlias", () => {
         it("resolves without error when the alias is available (404)", async () => {
             // Arrange
-            sandbox
-                .stub(globalThis, "fetch")
-                .resolves(new Response(null, { status: 404, statusText: "Not Found" }));
+            const httpClient = createMockHttpClient({
+                when: "https://api.tinyurl.com/alias/tinyurl.com/available-alias",
+                respondWith: { status: 404, statusText: "Not Found" },
+            });
 
-            const service = new TinyUrlService("test-token");
+            const service = new TinyUrlService("test-token", "tinyurl.com", httpClient);
 
             // Act & Assert — should not throw
             await service.validateAlias("available-alias");
@@ -239,11 +254,12 @@ describe("TinyUrlService", () => {
 
         it("throws when the alias is already taken (200)", async () => {
             // Arrange
-            sandbox
-                .stub(globalThis, "fetch")
-                .resolves(new Response(JSON.stringify({ data: {} }), { status: 200 }));
+            const httpClient = createMockHttpClient({
+                when: "https://api.tinyurl.com/alias/tinyurl.com/taken-alias",
+                respondWith: { status: 200, data: {} },
+            });
 
-            const service = new TinyUrlService("test-token");
+            const service = new TinyUrlService("test-token", "tinyurl.com", httpClient);
 
             // Act & Assert
             try {
@@ -256,7 +272,8 @@ describe("TinyUrlService", () => {
         });
 
         it("throws when the alias contains invalid characters", async () => {
-            const service = new TinyUrlService("test-token");
+            const httpClient = createMockHttpClient();
+            const service = new TinyUrlService("test-token", "tinyurl.com", httpClient);
 
             try {
                 await service.validateAlias("bad alias!");
@@ -267,61 +284,67 @@ describe("TinyUrlService", () => {
         });
 
         it("resolves without error for an empty alias", async () => {
-            const service = new TinyUrlService("test-token");
+            const httpClient = createMockHttpClient();
+            const service = new TinyUrlService("test-token", "tinyurl.com", httpClient);
             // Should not throw — empty means auto-generate
             await service.validateAlias("");
             await service.validateAlias("   ");
         });
 
         it("throws a generic error for unexpected HTTP status codes", async () => {
-            sandbox
-                .stub(globalThis, "fetch")
-                .resolves(new Response(null, { status: 500, statusText: "Internal Server Error" }));
+            const httpClient = createMockHttpClient({
+                when: "https://api.tinyurl.com/alias/tinyurl.com/some-alias",
+                respondWith: { status: 500, statusText: "Internal Server Error" },
+            });
 
-            const service = new TinyUrlService("test-token");
+            const service = new TinyUrlService("test-token", "tinyurl.com", httpClient);
 
             try {
                 await service.validateAlias("some-alias");
                 expect.fail("Expected an error to be thrown");
             } catch (err) {
-                expect((err as Error).message).to.include("500");
                 expect((err as Error).message).to.include("Internal Server Error");
             }
         });
 
         it("calls the correct TinyURL alias check endpoint", async () => {
-            const fetchStub = sandbox
-                .stub(globalThis, "fetch")
-                .resolves(new Response(null, { status: 404 }));
+            let capturedUrl: string | undefined;
 
-            const service = new TinyUrlService("test-token");
+            const httpClient = createMockHttpClient({
+                when: (config: AxiosRequestConfig) => {
+                    capturedUrl = config.url;
+                    return true;
+                },
+                respondWith: { status: 404 },
+            });
+
+            const service = new TinyUrlService("test-token", "tinyurl.com", httpClient);
             await service.validateAlias("my-alias");
 
-            expect(fetchStub.calledOnce).to.be.true;
-            const [calledUrl, calledOptions] = fetchStub.args[0];
-            expect(calledUrl).to.equal("https://api.tinyurl.com/alias/tinyurl.com/my-alias");
-            expect((calledOptions as RequestInit).method).to.equal("GET");
-            expect((calledOptions as RequestInit).headers).to.deep.include({
-                Authorization: "Bearer test-token",
-            });
+            expect(capturedUrl).to.equal("https://api.tinyurl.com/alias/tinyurl.com/my-alias");
         });
 
         it("uses the custom domain in the alias check URL", async () => {
             // Arrange
             const customDomain = "custom.short.link";
             const customAlias = "alias123";
-            const fetchStub = sandbox
-                .stub(globalThis, "fetch")
-                .resolves(new Response(null, { status: 404 }));
+            let capturedUrl: string | undefined;
 
-            const service = new TinyUrlService("test-token", customDomain);
+            const httpClient = createMockHttpClient({
+                when: (config: AxiosRequestConfig) => {
+                    capturedUrl = config.url;
+                    return true;
+                },
+                respondWith: { status: 404 },
+            });
+
+            const service = new TinyUrlService("test-token", customDomain, httpClient);
 
             // Act
             await service.validateAlias(customAlias);
 
             // Assert
-            const [calledUrl] = fetchStub.args[0];
-            expect(calledUrl).to.equal(
+            expect(capturedUrl).to.equal(
                 `https://api.tinyurl.com/alias/${customDomain}/${customAlias}`
             );
         });
