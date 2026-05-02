@@ -1,4 +1,4 @@
-import { AxiosInstance } from "axios";
+import { AxiosError, AxiosInstance } from "axios";
 
 const TINYURL_API_URL = "https://api.tinyurl.com";
 
@@ -49,16 +49,6 @@ export default class TinyUrlService {
             },
         });
 
-        if (response.status >= 400) {
-            const apiErrors: string[] = response.data?.errors ?? [];
-            if (apiErrors.some((e: string) => e.toLowerCase().includes("already taken"))) {
-                throw new Error(
-                    `The alias "${options.alias}" is already taken. Please choose a different alias.`
-                );
-            }
-            throw new Error(`TinyURL API returned ${response.status}: ${response.statusText}`);
-        }
-
         if (!response.data?.data?.tiny_url) {
             throw new Error("Unexpected response: Shortened URL missing");
         }
@@ -99,31 +89,42 @@ export default class TinyUrlService {
             throw new Error("Alias can only contain letters, numbers, and hyphens.");
         }
 
-        const response = await this.httpClient.get(
-            `${TINYURL_API_URL}/alias/${this.domain}/${encodeURIComponent(trimmed)}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${this.token}`,
-                },
-            }
-        );
-
-        // A 200 response means the alias already exists
-        // 422 can mean a lot of different things, but in practice I've only seen
-        // it happen when the alias is taken yet & we don't have the permissions to
-        // view details about it
-        if (response.status === 200 || response.status === 422) {
-            throw new Error(
-                `The alias "${trimmed}" is already taken. Please choose a different one.`
+        try {
+            await this.httpClient.get(
+                `${TINYURL_API_URL}/alias/${this.domain}/${encodeURIComponent(trimmed)}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`,
+                    },
+                }
             );
+        } catch (err) {
+            const axErr = err as AxiosError;
+            const responseStatus = axErr?.response?.status;
+            const responseErrors: string[] = axErr?.response?.data?.errors ?? [];
+
+            // 404 means the alias is available — that's the success case
+            // 422 can mean a lot of different things, but in practice I've only seen
+            // it happen when the alias is taken yet & we don't have the permissions to
+            // view details about it or when not found — in the latter case, treat it as available
+            if (responseStatus === 404) {
+                return;
+            } else if (responseStatus === 422) {
+                // In some cases, the API with a message indicating the alias is not found — treat that as available
+                // Otherwise consider this alias taken
+                if (responseErrors.some((e) => e.toLowerCase().includes("not found"))) {
+                    return;
+                }
+            } else {
+                // For any other response throw an error
+                throw new Error(
+                    `Failed to validate alias: ${axErr?.response?.statusText || axErr?.message}`
+                );
+            }
         }
 
-        // 404 means the alias is available — that's the success case
-        if (response.status === 404) {
-            return;
-        }
-
-        const errorMsg = response.data?.errors?.join(", ");
-        throw new Error(`Failed to validate alias: ${errorMsg || response.statusText}`);
+        // An OK response means the alias already exists
+        // also if we got here from a 422 that didn't indicate "not found", that also means the alias is taken
+        throw new Error(`The alias "${trimmed}" is already taken. Please choose a different one.`);
     }
 }
