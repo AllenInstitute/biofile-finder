@@ -53,7 +53,7 @@ export default function QueryFooter(props: Props) {
             text: "Shareable link",
             iconProps: { iconName: "Link" },
             title: hasTinyUrl
-                ? "Copies a shortened link that expires in 1 week. For a permanent link, copy the URL from your browser's address bar."
+                ? "Copies a shortened link that expires after configured duration. For a permanent link, copy the URL from your browser's address bar."
                 : "If you share this link, the recipient will be able to view the current query by importing it as a new query.",
             onClick: () => {
                 dispatch(interaction.actions.setVisibleModal(ModalType.ShareableLink));
@@ -127,7 +127,7 @@ export default function QueryFooter(props: Props) {
                 id={Tutorial.SHARE_BUTTON_ID}
                 menuItems={shareQueryOptions}
                 onClick={onRefresh}
-                title={hasTinyUrl ? "Share query (shortened link — expires in 1 week)" : "Share query"}
+                title="Share query"
             />
         </div>
     );

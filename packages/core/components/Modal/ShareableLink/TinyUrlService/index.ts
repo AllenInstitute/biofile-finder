@@ -25,9 +25,8 @@ export default class TinyUrlService {
 
     /**
      * Shorten a URL using the TinyURL API.
-     * Uses the TinyURL POST /create endpoint.
      * @param url The long URL to shorten.
-     * @param options Parameters, including a custom alias and expiration duration.
+     * @param options Parameters including a custom alias and expiration time.
      * @returns The shortened URL.
      * @throws Error if the API call fails, the alias is already taken, or the response is unexpected.
      */
@@ -60,7 +59,7 @@ export default class TinyUrlService {
 
         const data = await response.json();
         if (!data?.data?.tiny_url) {
-            throw new Error("TinyURL API response missing tiny_url field");
+            throw new Error("Unexpected response: Shortened URL missing");
         }
 
         return data.data.tiny_url;
@@ -92,8 +91,9 @@ export default class TinyUrlService {
         );
 
         // A 200 response means the alias already exists
-        // A 422 response also means the alias is taken but
-        // by a different tinyurl account
+        // 422 can mean a lot of different things, but in practice I've only seen
+        // it happen when the alias is taken yet & we don't have the permissions to
+        // view details about it
         if (response.ok || response.status === 422) {
             throw new Error(
                 `The alias "${trimmed}" is already taken. Please choose a different one.`
@@ -105,9 +105,12 @@ export default class TinyUrlService {
             return;
         }
 
-        // Any other status is unexpected
-        throw new Error(
-            `Unable to check alias availability (HTTP ${response.status}). Please try again.`
-        );
+        let errorMsg: string | undefined;
+        try {
+            const body = await response.json();
+            errorMsg = body?.errors?.join(", ");
+        } finally {
+            throw new Error(`Failed to validate alias: ${errorMsg || response.statusText}`);
+        }
     }
 }

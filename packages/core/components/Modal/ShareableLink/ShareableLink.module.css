@@ -36,10 +36,69 @@
     margin-bottom: 8px;
 }
 
+.alias-input > div > label,
+.alias-input > div > label::after {
+    color: var(--secondary-text-color) !important;
+    font-size: var(--l-paragraph-size);
+}
+
+.alias-input > div:focus,
+.alias-input div:focus-visible,
+.alias-input:focus-visible,
+.alias-input > div:active {
+    outline: none;
+}
+
+.alias-input > div > div {
+    border-radius: var(--small-border-radius);
+    border: 1px solid var(--border-color);
+    background-color: var(--secondary-background-color) !important;
+    color: var(--secondary-text-color) !important;
+}
+
+.alias-input > div > div::after {
+    border: 1px solid var(--aqua);
+    border-radius: var(--small-border-radius);
+    outline: none;
+}
+
+.alias-input > div > div > *::placeholder {
+    color: var(--secondary-text-color);
+    font-style: italic;
+}
+
+.alias-input > div > div:hover {
+    border: 1px solid var(--border-color);
+}
+
+.alias-input :is(input) {
+    background-color: var(--primary-background-color) !important;
+    color: var(--primary-text-color) !important;
+    border-radius: var(--small-border-radius);
+}
+
+/* TODO: do not use this global */
+.alias-input :global(.ms-TextField-prefix) {
+    background-color: var(--secondary-background-color) !important;
+    border-radius: var(--small-border-radius);
+    color: var(--secondary-text-color) !important;
+}
+
+.field-label {
+    color: var(--secondary-text-color);
+    display: block;
+    font-size: var(--l-paragraph-size);
+    margin-bottom: 4px;
+}
+
+.expiration-options {
+    margin-bottom: 12px;
+}
+
 .error {
     color: var(--error-color, #d93025);
     font-size: 0.9em;
-    margin: 4px 0 0 0;
+    margin: 4px 0;
 }
 
 .footer {
