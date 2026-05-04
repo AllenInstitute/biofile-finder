@@ -31,13 +31,12 @@ function Header(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
     const columns = useSelector(selection.selectors.getColumns);
+    const columnNames = useSelector(selection.selectors.getColumnNames);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
 
     const onReorder = React.useCallback(
         (newOrder: string[]) => {
-            const reorderedColumns = newOrder.map(
-                (name) => columns.find((c) => c.name === name)!
-            );
+            const reorderedColumns = newOrder.map((name) => columns.find((c) => c.name === name)!);
             dispatch(selection.actions.setColumns(reorderedColumns));
         },
         [columns, dispatch]
@@ -46,16 +45,11 @@ function Header(
     const {
         draggedItem,
         dragOverItem,
-        keyboardSelectedItem,
         onDragStart,
         onDragOver,
         onDrop,
         onDragEnd,
-        onKeyDown,
-    } = useDragAndDropOrder(
-        columns.map((c) => c.name),
-        onReorder
-    );
+    } = useDragAndDropOrder(columnNames, onReorder);
 
     const onResize = (name: string, width?: number) => {
         // Default to 0.25 if width is undefined
@@ -72,19 +66,17 @@ function Header(
         columnKey: column.name,
         displayValue: (
             <div
-                aria-grabbed={draggedItem === column.name || keyboardSelectedItem === column.name}
-                aria-label={`${annotationNameToAnnotationMap[column.name]?.displayName} column, draggable. Press Space or Enter to select for keyboard reorder, then use Arrow keys to move.`}
-                className={classNames(styles.headerDragArea, {
-                    [styles.keyboardSelected]: keyboardSelectedItem === column.name,
-                })}
                 draggable
+                aria-label={`${
+                    annotationNameToAnnotationMap[column.name]?.displayName
+                } column, draggable`}
+                className={styles.headerDragArea}
                 role="button"
                 tabIndex={0}
                 onDragStart={() => onDragStart(column.name)}
                 onDragOver={(e) => onDragOver(e, column.name)}
                 onDrop={() => onDrop(column.name)}
                 onDragEnd={onDragEnd}
-                onKeyDown={(e) => onKeyDown(e, column.name)}
             >
                 <span onClick={() => dispatch(selection.actions.sortColumn(column.name))}>
                     <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
