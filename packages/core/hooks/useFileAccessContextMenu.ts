@@ -37,6 +37,10 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
         (evt: React.MouseEvent) => {
             evt.preventDefault();
 
+            if (!folderFilters && fileSelection.count() === 0) {
+                return;
+            }
+
             const contextMenuItems: IContextualMenuItem[] = [
                 ...(!folderFilters
                     ? []
