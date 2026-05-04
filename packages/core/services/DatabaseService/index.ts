@@ -83,6 +83,16 @@ export function getParquetFileNameSelectPart(
     return `${getFileNameFromPathExpression(`"${pathColumn}"`)} AS "${PreDefinedColumn.FILE_NAME}"`;
 }
 
+/** SQL used by fetchAnnotations — exported so the benchmark can run the same query. */
+export function buildFetchAnnotationsSQL(tableName: string): string {
+    return new SQLBuilder()
+        .select("column_name, data_type")
+        .from('information_schema"."columns')
+        .where(`table_name = '${tableName}'`)
+        .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
+        .toSQL();
+}
+
 export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckdb.AsyncDuckDB> {
     const allBundles = duckdb.getJsDelivrBundles();
 
@@ -371,6 +381,17 @@ export default abstract class DatabaseService {
                             error.response?.statusText ||
                             error.response.data
                         }`;
+                    } else if (axios.isAxiosError(error) && error.request && !error.response) {
+                        // A request was made but no response was received — this is the
+                        // hallmark of a CORS (Cross-Origin Resource Sharing) error in browsers,
+                        // where the server does not allow cross-origin requests.
+                        // TODO: Update this once user guide is complete:
+                        // https://github.com/AllenInstitute/biofile-finder/issues/723
+                        formattedError =
+                            `This is likely caused by CORS restrictions. ` +
+                            `The server hosting the data source may not be configured to allow ` +
+                            `requests from this application. For help resolving this, please visit our ` +
+                            `support forum.`;
                     } else if (error?.message) {
                         formattedError = error.message;
                     } // else use default error message
@@ -689,7 +710,7 @@ export default abstract class DatabaseService {
         this.dataSourceToAnnotationsMap.delete(dataSourceName);
     }
 
-    private async createParquetDirectView(name: string): Promise<void> {
+    protected async createParquetDirectView(name: string): Promise<void> {
         return this.createAggregateParquetDirectView(name, [name]);
     }
 
@@ -1074,12 +1095,7 @@ export default abstract class DatabaseService {
             metadataSource && this.existingDataSources.has(metadataSource?.name);
         if (!hasAnnotations || (!hasDescriptions && shouldHaveDescriptions)) {
             this.sourceMetadataName = metadataSource?.name;
-            const sql = new SQLBuilder()
-                .select("column_name, data_type")
-                .from('information_schema"."columns')
-                .where(`table_name = '${aggregateDataSourceName}'`)
-                .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
-                .toSQL();
+            const sql = buildFetchAnnotationsSQL(aggregateDataSourceName);
             const rows = await this.query(sql).promise;
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);

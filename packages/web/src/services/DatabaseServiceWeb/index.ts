@@ -42,8 +42,14 @@ export default class DatabaseServiceWeb extends DatabaseService {
     }
 
     public async initialize() {
-        this.worker.postMessage({ type: WorkerMsgType.INIT });
+        this.worker.postMessage({
+            type: WorkerMsgType.INIT,
+            payload: { queryTiming: localStorage.getItem("bff_query_timing") === "1" },
+        });
         await this.dbInitialized;
+        if (localStorage.getItem("bff_query_timing") === "1") {
+            console.log("[bff] Query timing enabled. Query times will appear in the console.");
+        }
     }
 
     public async saveQuery(
