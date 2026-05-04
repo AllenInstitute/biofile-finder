@@ -1282,6 +1282,7 @@ describe("Selection logics", () => {
             const state = mergeState(initialState, {
                 selection: {
                     annotationHierarchy,
+                    shouldShowNullGroups: false,
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
