@@ -1,4 +1,4 @@
-import { Checkbox } from "@fluentui/react";
+import { Checkbox as FluentCheckbox } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
@@ -15,7 +15,7 @@ interface Props {
 /**
  * Custom styled wrapper for default fluentui component
  */
-export default function BaseCheckbox(props: Props) {
+export default function Checkbox(props: Props) {
     const [isChecked, setChecked] = React.useState(!!props.initialValue); // defaults to false
     function onCheckboxChange(
         ev?: React.FormEvent<HTMLElement | HTMLInputElement>,
@@ -25,7 +25,7 @@ export default function BaseCheckbox(props: Props) {
         props?.onChange(ev, !!isCheckedEv);
     }
     return (
-        <Checkbox
+        <FluentCheckbox
             checked={isChecked}
             className={classNames(props.className, {
                 [styles.disabled]: props.disabled,
