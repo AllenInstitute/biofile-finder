@@ -12,6 +12,7 @@ import FileRow, { CellConfig } from "../../components/FileRow";
 import { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
 import { interaction, metadata, selection } from "../../state";
+import { Column } from "../../state/selection/actions";
 
 import styles from "./Header.module.css";
 
@@ -57,6 +58,13 @@ function Header(
         dispatch(selection.actions.resizeColumn({ name, width: width || 0.25 }));
     };
 
+    const onHeaderColumnClick = (evt: React.MouseEvent, column: Column) => {
+        // Prevent this click from bubbling up to the header's onClick
+        // which opens the column picker context menu
+        evt.stopPropagation();
+        dispatch(selection.actions.sortColumn(column.name));
+    };
+
     const headerCells: CellConfig[] = map(columns, (column) => ({
         className: classNames(styles.headerCell, {
             [styles.dragOver]: dragOverItem === column.name && draggedItem !== column.name,
@@ -78,7 +86,7 @@ function Header(
                 onDrop={() => onDrop(column.name)}
                 onDragEnd={onDragEnd}
             >
-                <span onClick={() => dispatch(selection.actions.sortColumn(column.name))}>
+                <span onClick={(evt) => onHeaderColumnClick(evt, column)}>
                     <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
                         <span className={styles.headerTitle}>
                             {annotationNameToAnnotationMap[column.name]?.displayName}
@@ -96,7 +104,7 @@ function Header(
         width: column.width,
     }));
 
-    const onHeaderColumnContextMenu = (evt: React.MouseEvent) => {
+    const onHeaderClick = (evt: React.MouseEvent) => {
         evt.preventDefault();
         const items: ContextMenuItem[] = [
             {
@@ -126,7 +134,7 @@ function Header(
                 <FileRow
                     cells={headerCells}
                     className={styles.header}
-                    onContextMenu={onHeaderColumnContextMenu}
+                    onClick={onHeaderClick}
                     onResize={onResize}
                 />
             </div>
