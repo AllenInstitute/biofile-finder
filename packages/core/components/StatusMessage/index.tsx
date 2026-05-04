@@ -38,6 +38,19 @@ const verticalStackProps = {
  */
 export default function StatusMessage() {
     const dispatch = useDispatch();
+    const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set());
+
+    const toggleExpanded = (processId: string) => {
+        setExpandedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(processId)) {
+                next.delete(processId);
+            } else {
+                next.add(processId);
+            }
+            return next;
+        });
+    };
 
     return (
         <Stack {...verticalStackProps} verticalAlign="end" className={styles.container}>
@@ -45,9 +58,11 @@ export default function StatusMessage() {
                 useSelector(interaction.selectors.getProcessStatuses),
                 (statusUpdate: StatusUpdate) => {
                     const {
-                        data: { msg, status = ProcessStatus.NOT_SET, progress },
+                        data: { msg, fullMsg, status = ProcessStatus.NOT_SET, progress },
                         onCancel,
                     } = statusUpdate;
+                    const isExpanded = expandedIds.has(statusUpdate.processId);
+                    const displayMsg = isExpanded && fullMsg ? fullMsg : msg;
                     let onDismiss; // If has cancel option, don't show dismiss button
                     let cancelButton;
                     if (onCancel) {
@@ -84,10 +99,20 @@ export default function StatusMessage() {
                                     <LoadingIcon className={styles.spinner} />
                                 )}
                                 <div
-                                    dangerouslySetInnerHTML={{ __html: msg }}
+                                    dangerouslySetInnerHTML={{ __html: displayMsg }}
                                     style={{ userSelect: "text" }}
                                 ></div>
                             </div>
+                            {fullMsg && (
+                                <div className={styles.viewMoreContainer}>
+                                    <button
+                                        className={styles.viewMoreButton}
+                                        onClick={() => toggleExpanded(statusUpdate.processId)}
+                                    >
+                                        {isExpanded ? "View less" : "View more"}
+                                    </button>
+                                </div>
+                            )}
                             {progress !== undefined && (
                                 <ProgressIndicator
                                     className={styles.progressIndicator}

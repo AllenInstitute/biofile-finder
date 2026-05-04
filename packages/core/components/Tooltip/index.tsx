@@ -7,6 +7,7 @@ interface Props {
     children: React.ReactElement;
     content?: string;
     disabled?: boolean;
+    hostClassName?: string;
 }
 
 /**
@@ -21,6 +22,7 @@ export default function Tooltip(props: Props) {
     return (
         <TooltipHost
             content={props.content}
+            hostClassName={props.hostClassName}
             tooltipProps={{
                 className: styles.container,
             }}
