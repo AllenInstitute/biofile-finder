@@ -363,19 +363,21 @@ const downloadFilesLogic = createLogic({
                 groupTotalBytesDownloaded,
                 "bytes"
             );
-            const progressMsg = `Downloading ${filesToDownload.length} ${fileWord}.<br/>${updatedBytesDisplay} out of ${totalBytesDisplay} set to download`;
+            const header = `Downloading ${filesToDownload.length} ${fileWord}.<br/>${updatedBytesDisplay} out of ${totalBytesDisplay} set to download`;
+            const msg = truncatedFileListHtml ? `${header}<br/>${truncatedFileListHtml}` : header;
+            const fullMsg = fullFileListHtml ? `${header}<br/>${fullFileListHtml}` : undefined;
             dispatch(
                 processProgress(
                     groupProcessId,
                     totalBytesToDownload ? groupTotalBytesDownloaded / totalBytesToDownload : 0,
-                    progressMsg,
+                    msg,
                     onGroupCancel,
-                    allFileIds
+                    allFileIds,
+                    fullMsg
                 )
             );
         }, 1000);
 
-        // TODO: Download these into a zip using new streamsaver zipped code
         if (!someFilesHaveUnknownSize) {
             const header =
                 filesToDownload.length === 1
@@ -435,10 +437,16 @@ const downloadFilesLogic = createLogic({
                                           : failed[0].reason
                                       : "Unknown error"
                               }`
-                            : `Download failed for ${failed.length} of ${filesToDownload.length} ${fileWord}:<br/>${failedNames.slice(0, MAX_FILES_IN_MSG).join(", ")}`;
+                            : `Download failed for ${failed.length} of ${
+                                  filesToDownload.length
+                              } ${fileWord}:<br/>${failedNames
+                                  .slice(0, MAX_FILES_IN_MSG)
+                                  .join(", ")}`;
                     const errorFullMsg =
                         failedNames.length > MAX_FILES_IN_MSG
-                            ? `Download failed for ${failed.length} of ${filesToDownload.length} ${fileWord}:<br/>${failedNames.join(", ")}`
+                            ? `Download failed for ${failed.length} of ${
+                                  filesToDownload.length
+                              } ${fileWord}:<br/>${failedNames.join(", ")}`
                             : undefined;
                     dispatch(processError(groupProcessId, errorMsg, errorFullMsg));
                 } else if (cancelled.length === filesToDownload.length) {
