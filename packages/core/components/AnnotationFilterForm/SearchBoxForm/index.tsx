@@ -38,7 +38,7 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
         <div className={classNames(props.className, styles.container)}>
             <h3 className={styles.title}>{props.title}</h3>
             <Toggle
-                label="Fuzzy search"
+                label="Is exactly or contains"
                 className={classNames(styles.toggle, {
                     [styles.toggleHidden]: !!props?.hideFuzzyToggle,
                 })}
