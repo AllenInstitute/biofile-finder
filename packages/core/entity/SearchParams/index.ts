@@ -187,9 +187,9 @@ export default class SearchParams {
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
         }
-        if (urlComponents.showNoValueGroups) {
-            // Include if explicitly set to true, ignore if undefined or false
-            params.append("showNulls", "true");
+        if (urlComponents.showNoValueGroups === false) {
+            // Only encode when explicitly set to false (non-default); default is true
+            params.append("showNulls", "false");
         }
 
         return params.toString();
@@ -256,7 +256,7 @@ export default class SearchParams {
             prov: unparsedSourceProvenance ? JSON.parse(unparsedSourceProvenance) : undefined,
             showNoValueGroups: showNoValueGroupsString
                 ? JSON.parse(showNoValueGroupsString)
-                : false,
+                : true,
             sortColumn: parsedSort
                 ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
                 : undefined,
