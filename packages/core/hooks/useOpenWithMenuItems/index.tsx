@@ -46,19 +46,30 @@ type AppOptions = {
     openInFiji: () => void;
 };
 
-const SUPPORTED_APPS_HEADER = {
-    key: "supported-apps-headers",
-    text: "SUPPORT FILE TYPE",
-    title: "Apps that are expected to support this file type",
+const RECOMMENDED_APPS_HEADER = {
+    key: "recommended-apps-header",
+    text: "RECOMMENDED",
+    title: "Apps that are recommended for this file type",
     itemType: ContextualMenuItemType.Header,
+    className: styles.sectionHeader,
 };
 
-const UNSUPPORTED_APPS_HEADER = {
-    key: "unsupported-apps-headers",
-    text: "DO NOT SUPPORT FILE TYPE",
+const COMPATIBLE_APPS_HEADER = {
+    key: "compatible-apps-header",
+    text: "COMPATIBLE WITH FILE TYPE",
+    title: "Apps that are expected to support this file type",
+    itemType: ContextualMenuItemType.Header,
+    className: styles.sectionHeader,
+};
+
+const INCOMPATIBLE_APPS_HEADER = {
+    key: "incompatible-apps-header",
+    text: "NOT COMPATIBLE WITH FILE TYPE",
     title: "Apps that are not expected to support this file type",
     itemType: ContextualMenuItemType.Header,
+    className: styles.sectionHeader,
 };
+// TODO: Remove secondary text style
 
 const APPS = (
     fileDetails: FileDetail | undefined,
@@ -67,7 +78,7 @@ const APPS = (
     [AppKeys.AGAVE]: {
         key: AppKeys.AGAVE,
         className: styles.desktopMenuItem,
-        text: "AGAVE",
+        text: "AGAVE (desktop)",
         title: "Open files with AGAVE v1.7.2+",
         href: `agave://?url=${fileDetails?.path}`,
         disabled: !fileDetails?.path,
@@ -90,7 +101,6 @@ const APPS = (
                             <Icon iconName="OpenInNewWindow" />
                         </DefaultButton>
                     </a>
-                    <span className={styles.secondaryText}>| Desktop</span>
                 </>
             );
         },
@@ -102,14 +112,6 @@ const APPS = (
         href: fileDetails?.path,
         disabled: !fileDetails?.path,
         target: "_blank",
-        onRenderContent(props, defaultRenders) {
-            return (
-                <>
-                    {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Web</span>
-                </>
-            );
-        },
     } as IContextualMenuItem,
     [AppKeys.CFE]: {
         key: AppKeys.CFE,
@@ -117,19 +119,11 @@ const APPS = (
         title: `Open files with CFE`,
         onClick: options?.openInCfe,
         hidden: options?.openInCfe === undefined || !fileDetails?.path,
-        onRenderContent(props, defaultRenders) {
-            return (
-                <>
-                    {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Web</span>
-                </>
-            );
-        },
     } as IContextualMenuItem,
     [AppKeys.FIJI]: {
         key: AppKeys.FIJI,
         className: styles.desktopMenuItem,
-        text: "FIJI",
+        text: "FIJI (desktop)",
         title: "Open files with FIJI (may require updating FIJI)",
         onClick: options?.openInFiji,
         disabled: !fileDetails?.path,
@@ -153,7 +147,6 @@ const APPS = (
                             <Icon iconName="OpenInNewWindow" />
                         </DefaultButton>
                     </a>
-                    <span className={styles.secondaryText}>| Desktop</span>
                 </>
             );
         },
@@ -165,14 +158,6 @@ const APPS = (
         href: fileDetails?.path,
         disabled: !fileDetails?.path,
         target: "_blank",
-        onRenderContent(props, defaultRenders) {
-            return (
-                <>
-                    {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Web</span>
-                </>
-            );
-        },
     } as IContextualMenuItem,
     [AppKeys.NEUROGLANCER]: {
         key: AppKeys.NEUROGLANCER,
@@ -183,14 +168,6 @@ const APPS = (
         }://${fileDetails?.path}%22,%22name%22:%22${fileDetails?.name}%22}]}`,
         disabled: !fileDetails?.path,
         target: "_blank",
-        onRenderContent(props, defaultRenders) {
-            return (
-                <>
-                    {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Web</span>
-                </>
-            );
-        },
     } as IContextualMenuItem,
     [AppKeys.SIMULARIUM]: {
         key: AppKeys.SIMULARIUM,
@@ -199,14 +176,6 @@ const APPS = (
         href: `https://simularium.allencell.org/viewer?trajUrl=${fileDetails?.path}`,
         disabled: !fileDetails?.path,
         target: "_blank",
-        onRenderContent(props, defaultRenders) {
-            return (
-                <>
-                    {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Web</span>
-                </>
-            );
-        },
     } as IContextualMenuItem,
     [AppKeys.VALIDATOR]: {
         key: AppKeys.VALIDATOR,
@@ -215,14 +184,6 @@ const APPS = (
         href: `https://ome.github.io/ome-ngff-validator/?source=${fileDetails?.path}`,
         disabled: !fileDetails?.path,
         target: "_blank",
-        onRenderContent(props, defaultRenders) {
-            return (
-                <>
-                    {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Web</span>
-                </>
-            );
-        },
     } as IContextualMenuItem,
     [AppKeys.VOLE]: {
         key: AppKeys.VOLE,
@@ -231,14 +192,6 @@ const APPS = (
         onClick: options?.openInVolE,
         disabled: !fileDetails?.path,
         target: "_blank",
-        onRenderContent(props, defaultRenders) {
-            return (
-                <>
-                    {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Web</span>
-                </>
-            );
-        },
     } as IContextualMenuItem,
     [AppKeys.VOLVIEW]: {
         key: AppKeys.VOLVIEW,
@@ -247,14 +200,6 @@ const APPS = (
         href: `https://volview.kitware.app/?urls=[${fileDetails?.path}]`,
         disabled: !fileDetails?.path,
         target: "_blank",
-        onRenderContent(props, defaultRenders) {
-            return (
-                <>
-                    {defaultRenders.renderItemName(props)}
-                    <span className={styles.secondaryText}>Web</span>
-                </>
-            );
-        },
     } as IContextualMenuItem,
 });
 
@@ -518,14 +463,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 title: `Open link - ${name}`,
                 href: link,
                 target: "_blank",
-                onRenderContent(props, defaultRenders) {
-                    return (
-                        <>
-                            {defaultRenders.renderItemName(props)}
-                            <span className={styles.secondaryText}>Web</span>
-                        </>
-                    );
-                },
             } as IContextualMenuItem)
     );
 
@@ -624,14 +561,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             title: "Open this plate in the Plate UI",
             href: plateLink,
             target: "_blank",
-            onRenderContent(props, defaultRenders) {
-                return (
-                    <>
-                        {defaultRenders.renderItemName(props)}
-                        <span className={styles.secondaryText}>Web</span>
-                    </>
-                );
-            },
         } as IContextualMenuItem);
     }
 
@@ -639,7 +568,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     if (!supportedApps.length) {
         supportedApps.push({
             key: "no-supported-apps-found",
-            text: "None",
+            text: "None available",
             title: "No applications found that are expected to support this file type",
             disabled: true,
         });
@@ -648,7 +577,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     if (!unsupportedApps.length) {
         unsupportedApps.push({
             key: "no-unsupported-apps-found",
-            text: "None",
+            text: "None available",
             title: "No applications found that are not expected to support this file type",
             disabled: true,
         });
@@ -659,13 +588,13 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const menuItems: IContextualMenuItem[] = [];
     const subMenuItems: IContextualMenuItem[] = [];
     if (authorDefinedApps.length) {
-        menuItems.push(...authorDefinedApps);
-        subMenuItems.push(SUPPORTED_APPS_HEADER, ...supportedApps);
+        menuItems.push(RECOMMENDED_APPS_HEADER, ...authorDefinedApps);
+        subMenuItems.push(COMPATIBLE_APPS_HEADER, ...supportedApps);
     } else {
-        menuItems.push(SUPPORTED_APPS_HEADER, ...supportedApps);
+        menuItems.push(COMPATIBLE_APPS_HEADER, ...supportedApps);
     }
 
-    subMenuItems.push(UNSUPPORTED_APPS_HEADER, ...unsupportedApps);
+    subMenuItems.push(INCOMPATIBLE_APPS_HEADER, ...unsupportedApps);
 
     // Unable to open arbirary applications on the web
     // this adds to the bottom of the "Other apps" sub menu
