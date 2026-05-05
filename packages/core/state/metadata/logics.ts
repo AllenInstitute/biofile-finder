@@ -58,17 +58,40 @@ const requestAnnotations = createLogic({
 });
 
 /**
+ * Measures the width in pixels of the given text rendered with the specified
+ * CSS font shorthand (e.g. "14px Arial", "bold 12px sans-serif").
+ */
+function measureTextWidth(text: string, font: string): number {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (!context) {
+        return 0;
+    }
+    context.font = font;
+    return context.measureText(text).width;
+}
+
+/**
  * Interceptor responsible for turning REQUEST_DATA_SOURCES action into selecting default
  * display annotations
  */
+const PADDING_CHARS = 4;
+const DEFAULT_COLUMN_WIDTH = 0.25;
 const receiveAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const actions = deps.action as ReceiveAnnotationAction;
         const annotations = actions.payload;
+        const annotationService = interaction.selectors.getAnnotationService(deps.getState());
         const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
         const currentColumns = selection.selectors.getColumns(deps.getState());
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
         const currentFilters = selection.selectors.getFileFilters(deps.getState());
+
+        // Get sample character width for computing column widths based on content length.
+        // This is a bit hacky but it's nontrivial to get character width without rendering text
+        // into the DOM, and we need it to compute column widths before rendering.
+        // TODO: Grab font styling from the DOM instead of hardcoding it, to ensure more accurate width calculations
+        const sampleCharWidthInPx = measureTextWidth("S", "14px Arial");
 
         const annotationNamesInDataSource = annotations.reduce(
             (set, annotation) => set.add(annotation.name),
@@ -81,18 +104,32 @@ const receiveAnnotationsLogic = createLogic({
         );
         const columnNamesThatStillExist = columnsThatStillExist.map((column) => column.name);
 
-        // Show all columns in the data source, with existing columns keeping their widths
-        // and new columns receiving the default width. This allows users to side-scroll
-        // to view all available columns.
-        const defaultColumnWidth = 0.2;
+        const newAnnotations = annotations.filter(
+            (annotation) => !columnNamesThatStillExist.includes(annotation.name)
+        );
+
+        // Try to fetch values for new annotations to compute optimal column widths
+        const widthByAnnotation = new Map<string, number>();
+        try {
+            // Compute column widths based on the length of the longest value,
+            // with some padding, and capped at a max width
+            const lengthiestValues = await annotationService.fetchLengthiestValues(
+                newAnnotations.map((annotation) => annotation.name)
+            );
+            for (const { annotation, length } of lengthiestValues) {
+                const width = (length + PADDING_CHARS) * sampleCharWidthInPx;
+                widthByAnnotation.set(annotation, width);
+            }
+        } catch {
+            // If fetching values fails entirely, fall through to default widths
+        }
+
         const columns = [
             ...columnsThatStillExist,
-            ...annotations
-                .filter((annotation) => !columnNamesThatStillExist.includes(annotation.name))
-                .map((annotation) => ({
-                    name: annotation.name,
-                    width: defaultColumnWidth,
-                })),
+            ...newAnnotations.map((annotation) => ({
+                name: annotation.name,
+                width: widthByAnnotation.get(annotation.name) ?? DEFAULT_COLUMN_WIDTH,
+            })),
         ];
         dispatch(selection.actions.setColumns(columns));
 

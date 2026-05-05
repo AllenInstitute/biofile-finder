@@ -155,6 +155,15 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     }
 
     /**
+     * Fetch the lengthiest values for the specified annotations.
+     */
+    public async fetchLengthiestValues(
+        _annotationNames: string[]
+    ): Promise<{ annotation: string; length: number }[]> {
+        throw new Error("Unsupported feature");
+    }
+
+    /**
      * Validate annotation values according the type the annotation they belong to.
      */
     public async validateAnnotationValues(

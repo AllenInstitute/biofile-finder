@@ -171,6 +171,36 @@ export default class DatabaseAnnotationService implements AnnotationService {
     }
 
     /**
+     * Fetch the length of the longest value for each annotation, which can be used to compute optimal column widths in the UI.
+     * This is a bit of a hack, but it allows us to avoid fetching all values for an annotation just to compute column widths.
+     */
+    public fetchLengthiestValues(
+        annotationNames: string[]
+    ): Promise<{ annotation: string; length: number }[]> {
+        if (!this.dataSourceNames.length) {
+            return Promise.resolve([]);
+        }
+
+        const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
+        const sql = new SQLBuilder()
+            .select(
+                annotationNames
+                    .map((annotation) => `MAX(LENGTH("${annotation}")) AS "${annotation}"`)
+                    .join(", ")
+            )
+            .from(aggregateDataSourceName)
+            .toSQL();
+
+        return this.databaseService.query(sql).promise.then((rows) => {
+            const row = rows[0];
+            return annotationNames.map((annotation) => ({
+                annotation,
+                length: row[annotation] ?? 0,
+            }));
+        });
+    }
+
+    /**
      * Validate annotation values according the type the annotation they belong to.
      */
     public validateAnnotationValues(_name: string, _values: AnnotationValue[]): Promise<boolean> {

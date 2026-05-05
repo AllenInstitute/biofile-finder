@@ -82,19 +82,9 @@ function Header(
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
     };
 
-    const totalColumnWidth = columns.reduce((acc, column) => acc + column.width, 0);
-    // When columns overflow the container width, explicitly set the headerWrapper min-width
-    // so the header participates correctly in horizontal scrolling alongside the data rows.
-    const headerWrapperStyle =
-        totalColumnWidth > 1 ? { minWidth: `${totalColumnWidth * 100}%` } : undefined;
-
     return (
         <div ref={ref} {...rest}>
-            <div
-                className={styles.headerWrapper}
-                id={Tutorial.COLUMN_HEADERS_ID}
-                style={headerWrapperStyle}
-            >
+            <div className={styles.headerWrapper} id={Tutorial.COLUMN_HEADERS_ID}>
                 <FileRow
                     cells={headerCells}
                     className={styles.header}
