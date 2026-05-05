@@ -42,7 +42,6 @@
 .header-cell {
   cursor: pointer;
   background-color: inherit;
-  box-shadow: var(--box-shadow);
   color: var(--primary-text-color);
   padding: var(--inner-header-padding) 0;
 }
@@ -67,7 +66,7 @@
 .list-parent {
   /* bizarrely necessary in order to not have the first list item initially render underneath the header */
   transform: translateY(0px);
-  margin-top: 5px; /* small space between header and first item of list */
+  margin-top: 2px; /* small space between header and first item of list */
 }
 
 .list-parent > div > div:nth-child(even) > div {

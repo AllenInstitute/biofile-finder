@@ -62,7 +62,7 @@
     }
 
     .horizontal-gradient-cropped {
-        right: calc(var(--scrollbar-size)) !important;
+        right: calc(var(--scrollbar-size) - 1px) !important;
     }
 }
 

@@ -90,7 +90,7 @@ const receiveAnnotationsLogic = createLogic({
         // This is a bit hacky but it's nontrivial to get character width without rendering text
         // into the DOM, and we need it to compute column widths before rendering.
         // TODO: Grab font styling from the DOM instead of hardcoding it, to ensure more accurate width calculations
-        const sampleCharWidthInPx = measureTextWidth("S", "14px Arial");
+        const sampleCharWidthInPx = measureTextWidth("S", "16px Open Sans");
 
         const annotationNamesInDataSource = annotations.reduce(
             (set, annotation) => set.add(annotation.name),

@@ -124,7 +124,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
             <div
                 className={classNames(styles.cell, this.props.className)}
                 onContextMenu={this.props.onContextMenu}
-                style={{ width: `${this.props.width}px` }}
+                style={{ width: `${this.props.width}px`, minWidth: Cell.MINIMUM_WIDTH }}
                 data-testid={NON_RESIZEABLE_CELL_TEST_ID}
             >
                 <Tooltip content={this.props.title}>
@@ -180,7 +180,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
     private onResize(e: InteractEvent): void {
         const { provisionalWidth } = this.state;
 
-        const nextWidth = e.rect.width / this.measureRowWidth();
+        const nextWidth = e.rect.width; // / this.measureRowWidth();
         const allowedResizeDirection = this.getAllowedResizeDirection(e.rect.width, e.target);
 
         let nextState: CellState = {
@@ -191,7 +191,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
         if (this.resizeIsAllowed(dx, allowedResizeDirection)) {
             nextState = {
                 ...nextState,
-                provisionalWidth: nextWidth,
+                provisionalWidth: Math.max(nextWidth, Cell.MINIMUM_WIDTH),
             };
         }
 

@@ -35,7 +35,7 @@
     font-size: 18px;
     font-weight: bolder;
     position: absolute;
-    right: calc(1em / 2);
+    right: calc((1em / 2) - 4px);
     text-align: center;
     top: 3px;
     touch-action: none;
