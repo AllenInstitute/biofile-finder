@@ -84,14 +84,14 @@ const receiveAnnotationsLogic = createLogic({
         // Show all columns in the data source, with existing columns keeping their widths
         // and new columns receiving the default width. This allows users to side-scroll
         // to view all available columns.
-        const DEFAULT_COLUMN_WIDTH = 0.2;
+        const defaultColumnWidth = 0.2;
         const columns = [
             ...columnsThatStillExist,
             ...annotations
                 .filter((annotation) => !columnNamesThatStillExist.includes(annotation.name))
                 .map((annotation) => ({
                     name: annotation.name,
-                    width: DEFAULT_COLUMN_WIDTH,
+                    width: defaultColumnWidth,
                 })),
         ];
         dispatch(selection.actions.setColumns(columns));
