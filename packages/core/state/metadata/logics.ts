@@ -79,8 +79,7 @@ const PADDING_CHARS = 4;
 const DEFAULT_COLUMN_WIDTH = 0.25;
 const receiveAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const actions = deps.action as ReceiveAnnotationAction;
-        const annotations = actions.payload;
+        const { payload: annotations } = deps.action as ReceiveAnnotationAction;
         const annotationService = interaction.selectors.getAnnotationService(deps.getState());
         const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
         const currentColumns = selection.selectors.getColumns(deps.getState());
@@ -117,7 +116,7 @@ const receiveAnnotationsLogic = createLogic({
                 newAnnotations.map((annotation) => annotation.name)
             );
             for (const { annotation, length } of lengthiestValues) {
-                const width = (length + PADDING_CHARS) * sampleCharWidthInPx;
+                const width = Math.ceil((length + PADDING_CHARS) * sampleCharWidthInPx);
                 widthByAnnotation.set(annotation, width);
             }
         } catch {

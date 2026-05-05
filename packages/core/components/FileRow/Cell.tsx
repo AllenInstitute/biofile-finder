@@ -102,7 +102,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 onContextMenu={this.props.onContextMenu}
                 onDoubleClick={this.onDoubleClick}
                 style={{
-                    width: `${(provisionalWidth || width) * 100}%`,
+                    width: width ? `${width}px` : `${provisionalWidth}%`,
                     minWidth: Cell.MINIMUM_WIDTH,
                 }}
             >
@@ -124,7 +124,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
             <div
                 className={classNames(styles.cell, this.props.className)}
                 onContextMenu={this.props.onContextMenu}
-                style={{ width: `${this.props.width * 100}%` }}
+                style={{ width: `${this.props.width}px` }}
                 data-testid={NON_RESIZEABLE_CELL_TEST_ID}
             >
                 <Tooltip content={this.props.title}>

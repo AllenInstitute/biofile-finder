@@ -177,7 +177,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
     public fetchLengthiestValues(
         annotationNames: string[]
     ): Promise<{ annotation: string; length: number }[]> {
-        if (!this.dataSourceNames.length) {
+        if (!this.dataSourceNames.length || annotationNames.length === 0) {
             return Promise.resolve([]);
         }
 
@@ -185,19 +185,21 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const sql = new SQLBuilder()
             .select(
                 annotationNames
-                    .map((annotation) => `MAX(LENGTH("${annotation}")) AS "${annotation}"`)
+                    .map(
+                        (annotation) =>
+                            `MAX(LENGTH(CAST("${annotation}" AS VARCHAR))) AS "${annotation}"`
+                    )
                     .join(", ")
             )
             .from(aggregateDataSourceName)
             .toSQL();
 
-        return this.databaseService.query(sql).promise.then((rows) => {
-            const row = rows[0];
-            return annotationNames.map((annotation) => ({
+        return this.databaseService.query(sql).promise.then((rows) =>
+            annotationNames.map((annotation) => ({
                 annotation,
-                length: row[annotation] ?? 0,
-            }));
-        });
+                length: parseInt(rows[0][annotation] ?? "0", 10),
+            }))
+        );
     }
 
     /**
