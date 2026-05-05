@@ -60,10 +60,10 @@ export const PAST_YEAR_FILTER = new FileFilter(
 );
 export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
     columns: [
-        { name: AnnotationName.FILE_NAME, width: 0.4 },
-        { name: AnnotationName.KIND, width: 0.2 },
-        { name: AnnotationName.TYPE, width: 0.25 },
-        { name: AnnotationName.FILE_SIZE, width: 0.15 },
+        { name: AnnotationName.FILE_NAME, width: 300 },
+        { name: AnnotationName.KIND, width: 150 },
+        { name: AnnotationName.TYPE, width: 200 },
+        { name: AnnotationName.FILE_SIZE, width: 100 },
     ],
     fileView: FileView.LIST,
     hierarchy: [],
@@ -130,9 +130,10 @@ export default class SearchParams {
      * */
     public static encode(urlComponents: Partial<SearchParamsComponents>): string {
         const params = new URLSearchParams();
-        if (urlComponents.columns?.length) {
-            params.append(URLQueryArgShorthands.COLUMNS, ColumnCoder.encode(urlComponents.columns));
-        }
+        // TODO: Refactor column decode and encoding
+        // if (urlComponents.columns?.length) {
+        //     params.append(URLQueryArgShorthands.COLUMNS, ColumnCoder.encode(urlComponents.columns));
+        // }
         // Avoid including default in the URL
         if (urlComponents.fileView && urlComponents.fileView !== FileView.LIST) {
             params.append(URLQueryArgShorthands.FILE_VIEW, urlComponents.fileView);
@@ -254,9 +255,7 @@ export default class SearchParams {
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
             prov: unparsedSourceProvenance ? JSON.parse(unparsedSourceProvenance) : undefined,
-            showNoValueGroups: showNoValueGroupsString
-                ? JSON.parse(showNoValueGroupsString)
-                : true,
+            showNoValueGroups: showNoValueGroupsString ? JSON.parse(showNoValueGroupsString) : true,
             sortColumn: parsedSort
                 ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
                 : undefined,

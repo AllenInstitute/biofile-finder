@@ -7,6 +7,7 @@ import { FixedSizeGrid, FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
 import Header from "./Header";
+import HorizontalScrollContext from "./HorizontalScrollContext";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
 import useFileSelector from "./useFileSelector";
@@ -56,7 +57,7 @@ export default function FileList(props: FileListProps) {
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const fileGridColumnCount = useSelector(selection.selectors.getFileGridColCount);
     const isDisplayingSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
-    const isColumnWidthOverflowing = useSelector(selection.selectors.isColumnWidthOverflowing);
+    const totalColumnWidth = useSelector(selection.selectors.getTotalColumnWidth);
     const areAnnotationsLoaded = useSelector(metadata.selectors.areAnnotationsLoaded);
     const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
         HTMLDivElement
@@ -83,6 +84,8 @@ export default function FileList(props: FileListProps) {
     const totalRows = Math.ceil(
         (totalCount || DEFAULT_TOTAL_COUNT) / (fileView === FileView.LIST ? 1 : fileGridColumnCount)
     );
+    // Whether the total column width exceeds the visible container width
+    const isColumnWidthOverflowing = fileView === FileView.LIST && totalColumnWidth > measuredWidth;
     // complement to isColumnWidthOverflowing
     const isRowHeightOverflowing = totalRows * rowHeight > height;
     // hide overlay when we reach the bottom of the list
@@ -91,6 +94,23 @@ export default function FileList(props: FileListProps) {
     const listRef = React.useRef<FixedSizeList | null>(null);
     const gridRef = React.useRef<FixedSizeGrid | null>(null);
     const outerRef = React.useRef<HTMLDivElement | null>(null);
+
+    // Track horizontal scroll position for cell virtualization
+    const [horizontalScroll, setHorizontalScroll] = React.useState({
+        scrollLeft: 0,
+        containerWidth: 0,
+    });
+    React.useEffect(() => {
+        const el = outerRef.current;
+        if (!el) return;
+        const onScroll = () => {
+            setHorizontalScroll({ scrollLeft: el.scrollLeft, containerWidth: el.clientWidth });
+        };
+        // Initialize
+        onScroll();
+        el.addEventListener("scroll", onScroll, { passive: true });
+        return () => el.removeEventListener("scroll", onScroll);
+    }, [totalCount]); // re-attach when totalCount changes (outerRef may remount)
 
     // This hook is responsible for ensuring that if the details pane is currently showing a file row
     // within this FileList the file row shown in the details pane is scrolled into view.
@@ -310,31 +330,35 @@ export default function FileList(props: FileListProps) {
     }
 
     return (
-        <div className={classNames(styles.container, className)}>
-            <div
-                className={classNames(styles.list)}
-                style={{
-                    height: isRoot ? undefined : `${calculatedHeight}px`,
-                }}
-                ref={measuredNodeRef}
-            >
+        <HorizontalScrollContext.Provider value={horizontalScroll}>
+            <div className={classNames(styles.container, className)}>
                 <div
-                    className={classNames({
-                        [styles.horizontalGradient]: isColumnWidthOverflowing,
-                        [styles.horizontalGradientCropped]: isRowHeightOverflowing,
-                    })}
-                ></div>
-                <div
-                    className={classNames({
-                        [styles.verticalGradient]: isRowHeightOverflowing && !atEndOfList,
-                        [styles.verticalGradientCropped]: isColumnWidthOverflowing,
-                    })}
-                ></div>
-                {content}
+                    className={classNames(styles.list)}
+                    style={{
+                        height: isRoot ? undefined : `${calculatedHeight}px`,
+                    }}
+                    ref={measuredNodeRef}
+                >
+                    <div
+                        className={classNames({
+                            [styles.horizontalGradient]: isColumnWidthOverflowing,
+                            [styles.horizontalGradientCropped]: isRowHeightOverflowing,
+                        })}
+                    ></div>
+                    <div
+                        className={classNames({
+                            [styles.verticalGradient]: isRowHeightOverflowing && !atEndOfList,
+                            [styles.verticalGradientCropped]: isColumnWidthOverflowing,
+                        })}
+                    ></div>
+                    {content}
+                </div>
+                <p className={styles.rowCountDisplay}>
+                    {totalCount !== null
+                        ? `${totalCount.toLocaleString()} files`
+                        : "Counting files..."}
+                </p>
             </div>
-            <p className={styles.rowCountDisplay}>
-                {totalCount !== null ? `${totalCount.toLocaleString()} files` : "Counting files..."}
-            </p>
-        </div>
+        </HorizontalScrollContext.Provider>
     );
 }

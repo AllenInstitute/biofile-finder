@@ -76,7 +76,7 @@ function measureTextWidth(text: string, font: string): number {
  * display annotations
  */
 const PADDING_CHARS = 4;
-const DEFAULT_COLUMN_WIDTH = 0.25;
+const DEFAULT_COLUMN_WIDTH = 150; // px
 const receiveAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: annotations } = deps.action as ReceiveAnnotationAction;
@@ -117,7 +117,7 @@ const receiveAnnotationsLogic = createLogic({
             );
             for (const { annotation, length } of lengthiestValues) {
                 const width = Math.ceil((length + PADDING_CHARS) * sampleCharWidthInPx);
-                widthByAnnotation.set(annotation, width);
+                widthByAnnotation.set(annotation, Math.max(width, DEFAULT_COLUMN_WIDTH));
             }
         } catch {
             // If fetching values fails entirely, fall through to default widths

@@ -14,14 +14,14 @@ export interface CellProps {
     className?: string;
     columnKey: string;
     onContextMenu?: (evt: React.MouseEvent) => void;
-    onResize?: (columnKey: string, nextWidth?: number) => void; // nextWith is a percentage of parent element's width, a number between 0 and 1.
+    onResize?: (columnKey: string, nextWidth?: number) => void; // nextWidth is in pixels
     title?: string;
-    width: number; // percentage of parent element's width, a number between 0 and 1.
+    width: number; // width in pixels
 }
 
 interface CellState {
     containerClassName?: string;
-    provisionalWidth?: number; // a percentage of parent element's width, a number between 0 and 1
+    provisionalWidth?: number; // width in pixels
     resizeTargetClassName: string;
 }
 
@@ -35,9 +35,7 @@ enum ResizeDirection {
  * not resizable--this is determined by whether `props.onResize` is provided. If the cell is resizable, a user can reset
  * the width to its default by double clicking the cell.
  *
- * This component deals in percentage widths to avoid requiring components that make use of this to measure themselves; e.g.
- * it enables a configuration of, "each cell should take up 25% of the total width," without having to resolve that
- * within pixel space.
+ * This component uses pixel-based widths for columns.
  */
 export default class Cell extends React.Component<React.PropsWithChildren<CellProps>, CellState> {
     public static MINIMUM_WIDTH = 50; // px; somewhat arbitrary
@@ -102,7 +100,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 onContextMenu={this.props.onContextMenu}
                 onDoubleClick={this.onDoubleClick}
                 style={{
-                    width: width ? `${width}px` : `${provisionalWidth}%`,
+                    width: `${provisionalWidth || width}px`,
                     minWidth: Cell.MINIMUM_WIDTH,
                 }}
             >

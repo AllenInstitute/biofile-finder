@@ -143,9 +143,9 @@ describe("Metadata logics", () => {
         it("only dispatches columns that still exist in the data source", async () => {
             // arrange
             const mockColumns = mockAnnotations.map((ann) => {
-                return { name: ann.name, width: 0.2 };
+                return { name: ann.name, width: 200 };
             });
-            const columnNoLongerExists = { name: "old column", width: 0.2 };
+            const columnNoLongerExists = { name: "old column", width: 200 };
             const state = mergeState(initialState, {
                 selection: {
                     columns: [...mockColumns, columnNoLongerExists],
@@ -193,7 +193,7 @@ describe("Metadata logics", () => {
 
         it("adds all new annotations as columns to existing ones", async () => {
             // arrange: some existing columns
-            const existingColumns = [{ name: mockAnnotations[0].name, width: 0.4 }];
+            const existingColumns = [{ name: mockAnnotations[0].name, width: 300 }];
             const state = mergeState(initialState, {
                 selection: {
                     columns: existingColumns,

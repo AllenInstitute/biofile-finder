@@ -3,13 +3,11 @@ import { map } from "lodash";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-import ColumnPicker from "./ColumnPicker";
-import { ContextMenuItem } from "../ContextMenu";
 import Tooltip from "../Tooltip";
 import FileRow, { CellConfig } from "../../components/FileRow";
 import { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
-import { interaction, metadata, selection } from "../../state";
+import { metadata, selection } from "../../state";
 
 import styles from "./Header.module.css";
 
@@ -32,9 +30,9 @@ function Header(
     const sortColumn = useSelector(selection.selectors.getSortColumn);
 
     const onResize = (name: string, width?: number) => {
-        // Default to 0.25 if width is undefined
+        // Default to 200px if width is undefined
         // which resets the column width to the default
-        dispatch(selection.actions.resizeColumn({ name, width: width || 0.25 }));
+        dispatch(selection.actions.resizeColumn({ name, width: width || 200 }));
     };
     const headerCells: CellConfig[] = map(columns, (column) => ({
         className: styles.headerCell, // pass style elements to cell component
@@ -58,39 +56,10 @@ function Header(
         width: column.width,
     }));
 
-    const onHeaderColumnContextMenu = (evt: React.MouseEvent) => {
-        evt.preventDefault();
-        const items: ContextMenuItem[] = [
-            {
-                key: "modify-columns",
-                text: "Modify columns",
-                title: "Modify columns displayed in the file list",
-                iconProps: {
-                    iconName: "TripleColumnEdit",
-                },
-                items: [
-                    {
-                        key: "available-annotations",
-                        text: "Available annotations",
-                        onRender() {
-                            return <ColumnPicker />;
-                        },
-                    },
-                ],
-            },
-        ];
-        dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
-    };
-
     return (
         <div ref={ref} {...rest}>
             <div className={styles.headerWrapper} id={Tutorial.COLUMN_HEADERS_ID}>
-                <FileRow
-                    cells={headerCells}
-                    className={styles.header}
-                    onContextMenu={onHeaderColumnContextMenu}
-                    onResize={onResize}
-                />
+                <FileRow cells={headerCells} className={styles.header} onResize={onResize} />
             </div>
             <div className={styles.listParent}>{children}</div>
         </div>

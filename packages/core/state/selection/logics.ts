@@ -51,7 +51,6 @@ import {
     CHANGE_FILE_FILTER_TYPE,
     AddDataSourceReloadError,
     setFileView,
-    setColumns,
     EXPAND_ALL_FILE_FOLDERS,
     toggleNullValueGroups,
     setIsLoadingSource,
@@ -423,7 +422,6 @@ const decodeSearchParamsLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
         const {
-            columns,
             hierarchy,
             fileView,
             filters,
@@ -438,7 +436,8 @@ const decodeSearchParamsLogics = createLogic({
         batch(() => {
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
-            columns && dispatch(setColumns(columns));
+            // TODO
+            // columns && dispatch(setColumns(columns));
             dispatch(setFileFilters(filters));
             fileView && dispatch(setFileView(fileView) as AnyAction);
             dispatch(setOpenFileFolders(openFolders));

@@ -140,7 +140,7 @@ export function setSortColumn(fileSort?: FileSort): SetSortColumnAction {
 
 export interface Column {
     name: string;
-    width: number; // percent between 0 and 1
+    width: number; // width in pixels
 }
 
 /**
