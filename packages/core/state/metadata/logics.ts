@@ -117,7 +117,12 @@ const receiveAnnotationsLogic = createLogic({
             );
             for (const { annotation, length } of lengthiestValues) {
                 const width = Math.ceil((length + PADDING_CHARS) * sampleCharWidthInPx);
-                widthByAnnotation.set(annotation, Math.max(width, DEFAULT_COLUMN_WIDTH));
+                // Avoid letting width get too narrow for short values, or too wide for long values
+                const adjustedWidth = Math.min(
+                    Math.max(width, DEFAULT_COLUMN_WIDTH),
+                    DEFAULT_COLUMN_WIDTH * 3
+                );
+                widthByAnnotation.set(annotation, adjustedWidth);
             }
         } catch {
             // If fetching values fails entirely, fall through to default widths

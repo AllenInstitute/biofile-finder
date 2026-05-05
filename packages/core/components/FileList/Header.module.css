@@ -43,7 +43,8 @@
   cursor: pointer;
   background-color: inherit;
   color: var(--primary-text-color);
-  padding: var(--inner-header-padding) 0;
+  padding-top: var(--inner-header-padding);
+  padding-bottom: var(--inner-header-padding);
 }
 
 /* The first cell should have rounded corners on the left side */

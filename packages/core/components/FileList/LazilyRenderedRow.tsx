@@ -27,8 +27,6 @@ interface LazilyRenderedRowProps {
     style: React.CSSProperties; // injected by react-window
 }
 
-const MARGIN = 1.5; // px; defined in LazilyRenderedRow.module.css
-
 /**
  * A single file in the listing of available files FMS.
  */
@@ -40,6 +38,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     } = props;
 
     const columns = useSelector(selection.selectors.getColumns);
+    const totalColumnWidth = useSelector(selection.selectors.getTotalColumnWidth);
     const isSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
@@ -95,7 +94,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
             })}
             style={{
                 ...style,
-                width: `calc(100% - ${2 * MARGIN}px)`,
+                width: `${totalColumnWidth}px`,
             }}
             onContextMenu={onContextMenu}
         >

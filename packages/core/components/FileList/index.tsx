@@ -100,16 +100,29 @@ export default function FileList(props: FileListProps) {
         scrollLeft: 0,
         containerWidth: 0,
     });
+    const lastScrollLeftRef = React.useRef(0);
+    const rafIdRef = React.useRef(0);
     React.useEffect(() => {
         const el = outerRef.current;
         if (!el) return;
+        // Initialize container width
+        setHorizontalScroll({ scrollLeft: el.scrollLeft, containerWidth: el.clientWidth });
+        lastScrollLeftRef.current = el.scrollLeft;
+
         const onScroll = () => {
-            setHorizontalScroll({ scrollLeft: el.scrollLeft, containerWidth: el.clientWidth });
+            // Only update state when horizontal scroll position changes
+            if (el.scrollLeft === lastScrollLeftRef.current) return;
+            lastScrollLeftRef.current = el.scrollLeft;
+            cancelAnimationFrame(rafIdRef.current);
+            rafIdRef.current = requestAnimationFrame(() => {
+                setHorizontalScroll({ scrollLeft: el.scrollLeft, containerWidth: el.clientWidth });
+            });
         };
-        // Initialize
-        onScroll();
         el.addEventListener("scroll", onScroll, { passive: true });
-        return () => el.removeEventListener("scroll", onScroll);
+        return () => {
+            el.removeEventListener("scroll", onScroll);
+            cancelAnimationFrame(rafIdRef.current);
+        };
     }, [totalCount]); // re-attach when totalCount changes (outerRef may remount)
 
     // This hook is responsible for ensuring that if the details pane is currently showing a file row
@@ -200,6 +213,16 @@ export default function FileList(props: FileListProps) {
         [fileFetchWrapper]
     );
 
+    // Memoize itemData to prevent FixedSizeList from re-rendering all rows on unrelated state changes
+    const listItemData = React.useMemo(
+        () => ({
+            fileSet: fileSet,
+            onSelect,
+            onContextMenu: onFileRowContextMenu,
+        }),
+        [fileSet, onSelect, onFileRowContextMenu]
+    );
+
     let content: React.ReactNode;
     if (!!localError) {
         return (
@@ -275,11 +298,7 @@ export default function FileList(props: FileListProps) {
                         if (fileView === FileView.LIST) {
                             return (
                                 <FixedSizeList
-                                    itemData={{
-                                        fileSet: fileSet,
-                                        onSelect,
-                                        onContextMenu: onFileRowContextMenu,
-                                    }}
+                                    itemData={listItemData}
                                     itemSize={rowHeight} // row height
                                     height={height} // height of the list itself; affects number of rows rendered at any given time
                                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}

@@ -101,8 +101,11 @@ export default function FileRow(props: FileRowProps) {
     const { startIndex, endIndex, leftPad, rightPad } = visibleCells;
 
     return (
-        <div className={classNames(styles.row, className)} onClick={onClick}>
-            {leftPad > 0 && <div style={{ display: "inline-block", width: `${leftPad}px` }} />}
+        <div
+            className={classNames(styles.row, className)}
+            onClick={onClick}
+            style={{ paddingLeft: leftPad, paddingRight: rightPad }}
+        >
             {cells.slice(startIndex, endIndex).map((cell) => (
                 <Cell
                     className={classNames(cell.className, {
@@ -118,7 +121,6 @@ export default function FileRow(props: FileRowProps) {
                     {cell.displayValue}
                 </Cell>
             ))}
-            {rightPad > 0 && <div style={{ display: "inline-block", width: `${rightPad}px` }} />}
         </div>
     );
 }
