@@ -44,20 +44,28 @@
 
 .button-menu li:empty {
     display: none;
+    margin-bottom: 8px;
 }
 
 .button-menu-header {
     align-items: center;
     border-bottom: 1px solid var(--border-color);
     display: flex;
-    height: 40px;
-    padding: 0 10px;
+    margin: 0 16px;
+    padding: 4px 0 5px 0;
+}
+
+.button-menu-header > div {
+    height: unset;
+    padding: 0;
 }
 
 .button-menu-header span {
-    color: var(--highlight-text-color);
+    align-items: center;
+    display: flex;
     font-size: 14px;
-    font-weight: 400;
+    font-weight: 700;
+    height: 1em;
     margin: 0;
 }
 
