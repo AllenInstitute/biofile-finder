@@ -40,6 +40,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     } = props;
 
     const columns = useSelector(selection.selectors.getColumns);
+    const totalColumnWidth = columns.reduce((acc, column) => acc + column.width, 0);
     const isSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
@@ -95,7 +96,10 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
             })}
             style={{
                 ...style,
-                width: `calc(100% - ${2 * MARGIN}px)`,
+                // When columns overflow the visible area, expand the row width to match
+                // the total column width so that all cells are properly laid out for
+                // horizontal scrolling. When columns fit within the view, use full width.
+                width: `calc(${Math.max(1, totalColumnWidth) * 100}% - ${2 * MARGIN}px)`,
             }}
             onContextMenu={onContextMenu}
         >

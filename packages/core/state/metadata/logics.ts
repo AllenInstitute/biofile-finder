@@ -81,23 +81,17 @@ const receiveAnnotationsLogic = createLogic({
         );
         const columnNamesThatStillExist = columnsThatStillExist.map((column) => column.name);
 
-        // Grab the first countOfColumnsToShow annotations as columns based on the following priority:
-        // 1) Was already a column
-        // 2) Is just in the data source
-        const countOfColumnsToShow = Math.max(4, columnsThatStillExist.length);
-        const remainingMaxWidth = columnsThatStillExist.reduce(
-            (remainingWidth, column) => remainingWidth - column.width,
-            1
-        );
+        // Show all columns in the data source, with existing columns keeping their widths
+        // and new columns receiving the default width. This allows users to side-scroll
+        // to view all available columns.
+        const DEFAULT_COLUMN_WIDTH = 0.2;
         const columns = [
             ...columnsThatStillExist,
             ...annotations
                 .filter((annotation) => !columnNamesThatStillExist.includes(annotation.name))
-                .slice(0, countOfColumnsToShow - columnsThatStillExist.length)
                 .map((annotation) => ({
                     name: annotation.name,
-                    width:
-                        remainingMaxWidth / (countOfColumnsToShow - columnsThatStillExist.length),
+                    width: DEFAULT_COLUMN_WIDTH,
                 })),
         ];
         dispatch(selection.actions.setColumns(columns));
