@@ -56,7 +56,6 @@ export default function BaseComboBox(props: Props) {
             onChange={(_ev, option, _ind, value) => props.onChange?.(option, value)}
             onRenderItem={(props, defaultRender) => onRenderItem(props, defaultRender)}
             scrollSelectedToTop
-            useComboBoxAsMenuWidth
             styles={{
                 root: styles.comboBox,
                 label: styles.comboBoxLabel,
@@ -66,6 +65,7 @@ export default function BaseComboBox(props: Props) {
             comboBoxOptionStyles={{
                 rootChecked: styles.comboBoxItemChecked,
             }}
+            useComboBoxAsMenuWidth
         />
     );
 }
