@@ -80,8 +80,6 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-    max-height: 60vh;
-    overflow-y: auto;
 }
 
 .section {
@@ -233,6 +231,8 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    max-height: 300px;
+    overflow-y: auto;
 }
 
 .advanced-hint {
