@@ -146,22 +146,6 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
     }
 
     /**
-     * Determine total width of encompassing row this cell sits within. Used to translate full pixel width
-     * into a percentage.
-     */
-    private measureRowWidth(): number {
-        // If for some reason we don't have a reference to the cell's HTMLElement, well, return a number that
-        // won't fail when used as a divisor.
-        if (!this.cell.current) {
-            return 1;
-        }
-
-        // The FileRow is an inline element, which for whatever reason doesn't report width
-        // it's parent does, though. Huge shrug.
-        return this.cell.current.parentElement?.parentElement?.clientWidth || 1;
-    }
-
-    /**
      * On start of resize, set expectations for what the user can do.
      */
     private onResizeStart(e: InteractEvent): void {
