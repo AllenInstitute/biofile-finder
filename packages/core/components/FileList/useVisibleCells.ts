@@ -21,13 +21,11 @@ export default function useVisibleColumns() {
     // Determine visible range of columns based on horizontal scroll position.
     // Use a spacer before and after for off-screen columns to preserve correct layout.
     return React.useMemo(() => {
-        // If no container width yet (not measured), render all columns
+        // If no container width yet (not measured), render some columns
         if (!containerWidth) {
             return {
-                startIndex: 0,
-                endIndex: Math.min(6, columns.length),
-                leftPad: 0,
-                rightPad: 0,
+                columns: columns.slice(0, 6), // Arbitrary limit to prevent rendering too many columns before measurement
+                padding: { left: 0, right: 0 },
             };
         }
 
