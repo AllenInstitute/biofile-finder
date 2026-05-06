@@ -632,7 +632,6 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                                                             )
                                                         }
                                                         placeholder={`Select optional parameter (${remainingOptionalParams.length} remaining)`}
-                                                        useComboBoxAsMenuWidth={false}
                                                     />
                                                 </div>
                                                 <SecondaryButton

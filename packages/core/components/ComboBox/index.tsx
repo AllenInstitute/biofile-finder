@@ -12,7 +12,6 @@ interface Props {
     multiSelect?: boolean;
     options: IComboBoxOption[];
     placeholder: string;
-    useComboBoxAsMenuWidth?: boolean;
     onChange?: (option: IComboBoxOption | undefined, value?: string | undefined) => void;
 }
 
@@ -20,7 +19,7 @@ interface Props {
  * Custom styled wrapper for default fluentui component
  */
 export default function BaseComboBox(props: Props) {
-    const { options, label, placeholder, useComboBoxAsMenuWidth = true } = props;
+    const { options, label, placeholder } = props;
 
     const onRenderItem = (
         itemProps: ISelectableOption | undefined,
@@ -57,7 +56,7 @@ export default function BaseComboBox(props: Props) {
             onChange={(_ev, option, _ind, value) => props.onChange?.(option, value)}
             onRenderItem={(props, defaultRender) => onRenderItem(props, defaultRender)}
             scrollSelectedToTop
-            useComboBoxAsMenuWidth={useComboBoxAsMenuWidth}
+            useComboBoxAsMenuWidth
             styles={{
                 root: styles.comboBox,
                 label: styles.comboBoxLabel,
