@@ -140,15 +140,15 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
 /** Create service instances wrapping the given worker for one data source. */
 export function createServices(
     db: DatabaseServiceWebWorker,
-    sourceName: string
+    sourceNames: string[]
 ): { annotationSvc: DatabaseAnnotationService; fileSvc: DatabaseFileService } {
     const annotationSvc = new DatabaseAnnotationService({
         databaseService: db,
-        dataSourceNames: [sourceName],
+        dataSourceNames: sourceNames,
     });
     const fileSvc = new DatabaseFileService({
         databaseService: db,
-        dataSourceNames: [sourceName],
+        dataSourceNames: sourceNames,
         downloadService: new FileDownloadServiceNoop(),
     });
     return { annotationSvc, fileSvc };

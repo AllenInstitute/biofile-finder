@@ -25,6 +25,7 @@ mkdir -p packages/web/fixtures
 curl -fL "$BASE/synthetic-100k.parquet" -o packages/web/fixtures/synthetic-100k.parquet
 curl -fL "$BASE/synthetic-1m.parquet"   -o packages/web/fixtures/synthetic-1m.parquet
 curl -fL "$BASE/synthetic-10m.parquet"  -o packages/web/fixtures/synthetic-10m.parquet
+curl -fL "$BASE/synthetic-10m-copy.parquet"  -o packages/web/fixtures/synthetic-10m-copy.parquet
 ```
 
 **Run against local fixtures**
@@ -62,7 +63,7 @@ This prints a Markdown table with p50 deltas and regression/improvement badges (
 | Flag | Description |
 |---|---|
 | `--local` | Use fixtures from `packages/web/fixtures/` instead of S3 URLs |
-| `--scale 100k\|1m\|10m` | Run a single fixture size |
+| `--scale 100k\|1m\|10m\|10m+10m` | Run a single fixture size |
 | `--full` | Run all scales with both cloud and local sources side-by-side |
 | `--iterations N` | Timed iterations per task (default 5) |
 | `--warmup N` | Warmup rounds before timing (default 1) |

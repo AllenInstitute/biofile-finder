@@ -8,22 +8,21 @@ const fs = require("fs");
 const { execSync } = require("child_process");
 const { runBenchmarkPage } = require("./lib/run-benchmark-page");
 
-const LOCAL_FIXTURE_MAP = {
-    "100k": "http://localhost:18765/fixtures/synthetic-100k.parquet",
-    "1m": "http://localhost:18765/fixtures/synthetic-1m.parquet",
-    "10m": "http://localhost:18765/fixtures/synthetic-10m.parquet",
+const LOCAL_BASE = "http://localhost:18765/fixtures/synthetic";
+const REMOTE_BASE =
+    "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1/synthetic";
+const FILE_TO_ENV = {
+    "100k": "BENCHMARK_REAL_100K_URL",
+    "1m": "BENCHMARK_REAL_1M_URL",
+    "10m": "BENCHMARK_REAL_10M_URL",
+    "10m-copy": "BENCHMARK_REAL_10M_2_URL",
 };
 
-const REMOTE_URL_MAP = {
-    "100k":
-        process.env.BENCHMARK_REAL_100K_URL ??
-        "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1/synthetic-100k.parquet",
-    "1m":
-        process.env.BENCHMARK_REAL_1M_URL ??
-        "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1/synthetic-1m.parquet",
-    "10m":
-        process.env.BENCHMARK_REAL_10M_URL ??
-        "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1/synthetic-10m.parquet",
+const TEST_CASES_MAP = {
+    "100k": ["100k"],
+    "1m": ["1m"],
+    "10m": ["10m"],
+    "10m+10m": ["10m", "10m-copy"],
 };
 
 const useLocal = process.argv.includes("--local");
@@ -34,50 +33,44 @@ const scaleArg = (() => {
     return idx !== -1 ? process.argv[idx + 1] : null;
 })();
 
-const URL_MAP = useLocal ? LOCAL_FIXTURE_MAP : REMOTE_URL_MAP;
-
-if (scaleArg && !URL_MAP[scaleArg] && !useFull) {
-    console.error(
-        `Error: --scale "${scaleArg}" is not a valid scale. Choose from: ${Object.keys(
-            URL_MAP
-        ).join(", ")}`
-    );
-    process.exit(1);
-}
-
-let sources;
-if (useFull) {
-    const missingUrls = Object.entries(REMOTE_URL_MAP)
-        .filter(([, url]) => !url)
-        .map(([label]) => `  BENCHMARK_REAL_${label.toUpperCase()}_URL`);
-    if (missingUrls.length > 0) {
-        console.error(
-            `Error: --full requires all three cloud URLs to be set:\n${missingUrls.join("\n")}`
+function getURL(partialFileName, useLocal) {
+    if (!partialFileName in FILE_TO_ENV) {
+        throw new Error(
+            `${partialFileName} not recognized. Choose from ${Object.keys(FILE_TO_ENV)}`
         );
-        process.exit(1);
     }
-    // Interleave cloud and local sources per scale for easy side-by-side reading
-    sources = Object.keys(REMOTE_URL_MAP).flatMap((label) => [
-        { label: `${label}-cloud`, url: REMOTE_URL_MAP[label] },
-        { label: `${label}-local`, url: LOCAL_FIXTURE_MAP[label] },
-    ]);
-} else {
-    sources = Object.entries(URL_MAP)
-        .filter(([label, url]) => Boolean(url) && (!scaleArg || label === scaleArg))
-        .map(([label, url]) => ({ label, url }));
+    if (useLocal) {
+        return `${LOCAL_BASE}-${partialFileName}.parquet`;
+    } else {
+        return (
+            process.env[FILE_TO_ENV[partialFileName]] ?? `${REMOTE_BASE}-${partialFileName}.parquet`
+        );
+    }
 }
 
-if (sources.length === 0) {
-    console.error(
-        "No real parquet URLs provided.\n" +
-            "Set one or more of:\n" +
-            "  BENCHMARK_REAL_100K_URL\n" +
-            "  BENCHMARK_REAL_1M_URL\n" +
-            "  BENCHMARK_REAL_10M_URL\n" +
-            "Or use --local to serve fixtures from packages/web/fixtures/.\n" +
-            "Or use --full to run cloud + local for all scales."
-    );
-    process.exit(1);
+function getSources(partialFileNames, useLocal, addSuffix) {
+    const suffix = useLocal ? "local" : "cloud";
+    return partialFileNames.map((file) => {
+        return {
+            label: addSuffix ? `${file}-${suffix}` : file,
+            url: getURL(file, useLocal),
+        };
+    });
+}
+
+let testCases;
+if (useFull) {
+    testCases = [];
+    Object.values(TEST_CASES_MAP).forEach((files) => {
+        testCases.push(getSources(files, false));
+        testCases.push(getSources(files, true));
+    });
+} else if (scaleArg) {
+    testCases = [getSources(TEST_CASES_MAP[scaleArg], useLocal)];
+} else {
+    testCases = Object.values(TEST_CASES_MAP).map((files) => {
+        return getSources(files, useLocal);
+    });
 }
 
 function getArgValue(flag) {
@@ -92,9 +85,9 @@ async function main() {
     const iterations = getArgValue("--iterations");
     const warmup = getArgValue("--warmup");
 
-    console.log(`[local] Running against ${sources.length} real parquet source(s):`);
-    for (const { label, url } of sources) {
-        console.log(`  ${label}: ${url}`);
+    console.log(`[local] Running against ${testCases.length} test case(s):`);
+    for (const testCase of testCases) {
+        console.log(testCase);
     }
     if (iterations) console.log(`[local] Iterations: ${iterations}`);
     if (warmup !== undefined) console.log(`[local] Warmup rounds: ${warmup}`);
@@ -105,7 +98,7 @@ async function main() {
     );
 
     const rawResults = await runBenchmarkPage({
-        sources,
+        testCases,
         skipBuild,
         iterations,
         warmupRounds: warmup,

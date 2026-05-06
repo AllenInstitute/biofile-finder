@@ -117,7 +117,7 @@ function buildBenchmark() {
  * Run the benchmark page with the given config and return the BenchmarkResults.
  *
  * @param {object} options
- * @param {{ url: string, label: string }[]} options.sources  Parquet sources to benchmark.
+ * @param {{ url: string, label: string }[][]} options.testCases Parquet sources to benchmark.
  * @param {boolean} [options.skipBuild=false]                  Skip webpack build.
  * @param {number}  [options.iterations]                        Override timed iteration count.
  * @param {number}  [options.warmupRounds]                      Override warmup round count.
@@ -128,7 +128,13 @@ function buildBenchmark() {
  *                                                              Chromium (default; required for CI).
  * @returns {Promise<object>}  Raw BenchmarkResults from the page.
  */
-async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmupRounds, channel }) {
+async function runBenchmarkPage({
+    testCases,
+    skipBuild = false,
+    iterations,
+    warmupRounds,
+    channel,
+}) {
     if (!skipBuild) buildBenchmark();
 
     if (!fs.existsSync(path.join(DIST_DIR, "index.html"))) {
@@ -156,13 +162,13 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
         // synchronously on startup — no callback handshake needed.
         await page.addInitScript({
             content: `window.__benchmarkConfig = ${JSON.stringify({
-                sources,
+                testCases,
                 iterations,
                 warmupRounds,
             })};`,
         });
 
-        console.log(`[playwright] Starting benchmark (${sources.length} source(s))...`);
+        console.log(`[playwright] Starting benchmark (${testCases.length} test cases(s))...`);
         await page.goto(`http://localhost:${PORT}/`, { waitUntil: "domcontentloaded" });
 
         // Wait for the benchmark to signal it's ready for file injection
@@ -174,7 +180,10 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
         // The browser reads the file lazily via FileReader (BROWSER_FILEREADER protocol),
         // which is identical to how the real app loads files via the file picker —
         // no HTTP range-request overhead, so DuckDB sort performance matches real-user timing.
+        const sources = testCases.flat();
+        const loaded = new Set();
         for (const source of sources) {
+            if (source.label in loaded) continue; // Don't add duplicate sources
             const localMatch = source.url.match(
                 new RegExp(`^http://localhost:${PORT}/fixtures/(.+)$`)
             );
@@ -197,6 +206,7 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
                 window.__pendingLocalFiles[label] = inp.files[0];
                 inp.remove();
             }, source.label);
+            loaded.add(source.label);
         }
 
         // Signal the benchmark to proceed with injected File objects

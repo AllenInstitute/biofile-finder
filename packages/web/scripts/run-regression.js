@@ -9,26 +9,50 @@ const { execSync } = require("child_process");
 const { runBenchmarkPage } = require("./lib/run-benchmark-page");
 
 const FIXTURES_DIR = path.join(__dirname, "..", "fixtures");
-const SCALES = ["100k", "1m", "10m"];
 
-const LOCAL_FIXTURE_MAP = {
-    "100k": "http://localhost:18765/fixtures/synthetic-100k.parquet",
-    "1m": "http://localhost:18765/fixtures/synthetic-1m.parquet",
-    "10m": "http://localhost:18765/fixtures/synthetic-10m.parquet",
-};
+const TEST_CASES = [
+    [
+        {
+            label: "100k",
+            url: "http://localhost:18765/fixtures/synthetic-100k.parquet",
+        },
+    ],
+    [
+        {
+            label: "1m",
+            url: "http://localhost:18765/fixtures/synthetic-1m.parquet",
+        },
+    ],
+    [
+        {
+            label: "10m",
+            url: "http://localhost:18765/fixtures/synthetic-10m.parquet",
+        },
+    ],
+    [
+        {
+            label: "10m",
+            url: "http://localhost:18765/fixtures/synthetic-10m.parquet",
+        },
+        {
+            label: "10m_2",
+            url: "http://localhost:18765/fixtures/synthetic-10m-copy.parquet",
+        },
+    ],
+];
 
-const missing = SCALES.filter(
-    (scale) => !fs.existsSync(path.join(FIXTURES_DIR, `synthetic-${scale}.parquet`))
+const inputFiles = new Set(
+    TEST_CASES.flatMap(({ url }) => url.replace("http://localhost:18765/fixtures/", ""))
 );
+
+const missing = inputFiles.filter((fileName) => !fs.existsSync(path.join(FIXTURES_DIR, fileName)));
 if (missing.length > 0) {
     console.error(
-        `Missing fixture files: ${missing.map((s) => `synthetic-${s}.parquet`).join(", ")}\n` +
+        `Missing fixture files: ${missing.join(", ")}\n` +
             `Download them to ${FIXTURES_DIR} before running this script.`
     );
     process.exit(1);
 }
-
-const sources = SCALES.map((scale) => ({ label: scale, url: LOCAL_FIXTURE_MAP[scale] }));
 
 function getCurrentBranch() {
     if (process.env.BENCHMARK_BRANCH) return process.env.BENCHMARK_BRANCH;
@@ -58,7 +82,7 @@ async function main() {
     if (warmup !== undefined) console.log(`[regression] Warmup rounds: ${warmup}`);
 
     const rawResults = await runBenchmarkPage({
-        sources,
+        TEST_CASES,
         skipBuild,
         iterations,
         warmupRounds: warmup,
