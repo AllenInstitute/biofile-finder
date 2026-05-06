@@ -45,7 +45,9 @@ const inputFiles = new Set(
     TEST_CASES.flat().flatMap(({ url }) => url.replace("http://localhost:18765/fixtures/", ""))
 );
 
-const missing = inputFiles.filter((fileName) => !fs.existsSync(path.join(FIXTURES_DIR, fileName)));
+const missing = Array(inputFiles).filter(
+    (fileName) => !fs.existsSync(path.join(FIXTURES_DIR, fileName))
+);
 if (missing.length > 0) {
     console.error(
         `Missing fixture files: ${missing.join(", ")}\n` +
