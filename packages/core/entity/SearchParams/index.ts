@@ -3,6 +3,7 @@ import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import { DEFAULT_COLUMN_WIDTH } from "../../components/FileRow/Cell";
 import { Column } from "../../state/selection/actions";
 
 // These values CANNOT change otherwise it would break compatibility
@@ -99,9 +100,14 @@ class ColumnCoder {
     private static readonly VALUE_DELIMETER = ":";
 
     public static encode(columns: Column[]): string {
-        return columns
-            .map((column) => `${column.name}${ColumnCoder.VALUE_DELIMETER}${column.width}`)
-            .join(ColumnCoder.COLUMN_DELIMETER);
+        return (
+            columns
+                .map((column) => `${column.name}${ColumnCoder.VALUE_DELIMETER}${column.width}`)
+                // Arbitrary limit to prevent URLs from getting too long;
+                // if users have more than 6 columns they can resize and reorder them in-app after loading the URL
+                .slice(0, 6)
+                .join(ColumnCoder.COLUMN_DELIMETER)
+        );
     }
 
     public static decode(encoded: string): Column[] {
@@ -110,7 +116,14 @@ class ColumnCoder {
             .filter((unparsedColumn) => !!unparsedColumn)
             .map((unparsedColumn) => {
                 const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMETER);
-                return { name, width: parseFloat(widthAsStr) };
+                const parsedWidth = parseFloat(widthAsStr);
+                // The column width was previously encoded as a number between 0 and 1 representing the percentage of available
+                // space the column should take up, but this was difficult to work with and unintuitive for users.
+                // Now we encode the actual pixel width, which is more straightforward to understand and work with when manually editing URLs.
+                // To maintain backwards compatibility with existing URLs, we continue to support previously encoded widths as percentages,
+                // but we convert them to pixel widths in the encoding process.
+                const width = parsedWidth <= 1 ? DEFAULT_COLUMN_WIDTH : parsedWidth;
+                return { name, width };
             });
     }
 }
@@ -130,10 +143,9 @@ export default class SearchParams {
      * */
     public static encode(urlComponents: Partial<SearchParamsComponents>): string {
         const params = new URLSearchParams();
-        // TODO: Refactor column decode and encoding
-        // if (urlComponents.columns?.length) {
-        //     params.append(URLQueryArgShorthands.COLUMNS, ColumnCoder.encode(urlComponents.columns));
-        // }
+        if (urlComponents.columns?.length) {
+            params.append(URLQueryArgShorthands.COLUMNS, ColumnCoder.encode(urlComponents.columns));
+        }
         // Avoid including default in the URL
         if (urlComponents.fileView && urlComponents.fileView !== FileView.LIST) {
             params.append(URLQueryArgShorthands.FILE_VIEW, urlComponents.fileView);

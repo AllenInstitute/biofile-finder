@@ -40,6 +40,8 @@ import {
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
     SET_IS_LOADING_DATA_SOURCE,
+    REORDER_COLUMNS,
+    ReorderColumnsAction,
 } from "./actions";
 import interaction from "../interaction";
 import { FileView, Source } from "../../entity/SearchParams";
@@ -218,6 +220,19 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             columns: action.payload,
         }),
+        [REORDER_COLUMNS]: (state, action: ReorderColumnsAction) => {
+            let columns = [...state.columns];
+            for (const reorder of action.payload) {
+                const remaining = columns.filter((col) => reorder.name !== col.name);
+                const moving = columns
+                    .filter((col) => reorder.name === col.name)
+                    // Optionally update widths of moved columns if provided in the action
+                    .map((col) => ({ ...col, width: reorder.width ?? col.width }));
+                const moveTo = Math.min(reorder.moveTo, remaining.length);
+                columns = [...remaining.slice(0, moveTo), ...moving, ...remaining.slice(moveTo)];
+            }
+            return { ...state, columns };
+        },
         [SET_FILE_SELECTION]: (state, action) => ({
             ...state,
             fileSelection: action.payload,

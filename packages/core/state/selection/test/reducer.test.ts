@@ -215,6 +215,115 @@ describe("Selection reducer", () => {
         });
     });
 
+    describe("REORDER_COLUMNS", () => {
+        it("moves a single column to a new index", () => {
+            // arrange
+            const state = {
+                ...selection.initialState,
+                columns: [
+                    { name: "A", width: 100 },
+                    { name: "B", width: 100 },
+                    { name: "C", width: 100 },
+                    { name: "D", width: 100 },
+                ],
+            };
+            const action = selection.actions.reorderColumns([{ name: "C", moveTo: 0 }]);
+
+            // act
+            const nextState = selection.reducer(state, action);
+
+            // assert
+            expect(
+                selection.selectors.getColumns({ ...initialState, selection: nextState })
+            ).to.deep.equal([
+                { name: "C", width: 100 },
+                { name: "A", width: 100 },
+                { name: "B", width: 100 },
+                { name: "D", width: 100 },
+            ]);
+        });
+
+        it("applies multiple reorder operations sequentially", () => {
+            // arrange
+            const state = {
+                ...selection.initialState,
+                columns: [
+                    { name: "A", width: 100 },
+                    { name: "B", width: 100 },
+                    { name: "C", width: 100 },
+                    { name: "D", width: 100 },
+                ],
+            };
+            const action = selection.actions.reorderColumns([
+                { name: "D", moveTo: 0 },
+                { name: "B", moveTo: 3 },
+            ]);
+
+            // act
+            const nextState = selection.reducer(state, action);
+
+            // assert
+            expect(
+                selection.selectors.getColumns({ ...initialState, selection: nextState })
+            ).to.deep.equal([
+                { name: "D", width: 100 },
+                { name: "A", width: 100 },
+                { name: "C", width: 100 },
+                { name: "B", width: 100 },
+            ]);
+        });
+
+        it("clamps moveTo to the end of the list when out of bounds", () => {
+            // arrange
+            const state = {
+                ...selection.initialState,
+                columns: [
+                    { name: "A", width: 100 },
+                    { name: "B", width: 100 },
+                    { name: "C", width: 100 },
+                ],
+            };
+            const action = selection.actions.reorderColumns([{ name: "A", moveTo: 99 }]);
+
+            // act
+            const nextState = selection.reducer(state, action);
+
+            // assert
+            expect(
+                selection.selectors.getColumns({ ...initialState, selection: nextState })
+            ).to.deep.equal([
+                { name: "B", width: 100 },
+                { name: "C", width: 100 },
+                { name: "A", width: 100 },
+            ]);
+        });
+
+        it("optionally updates width of moved column", () => {
+            // arrange
+            const state = {
+                ...selection.initialState,
+                columns: [
+                    { name: "A", width: 100 },
+                    { name: "B", width: 100 },
+                    { name: "C", width: 100 },
+                ],
+            };
+            const action = selection.actions.reorderColumns([{ name: "A", moveTo: 2, width: 200 }]);
+
+            // act
+            const nextState = selection.reducer(state, action);
+
+            // assert
+            expect(
+                selection.selectors.getColumns({ ...initialState, selection: nextState })
+            ).to.deep.equal([
+                { name: "B", width: 100 },
+                { name: "C", width: 100 },
+                { name: "A", width: 200 },
+            ]);
+        });
+    });
+
     describe("SET_FILE_FILTERS", () => {
         it("sets file filters", () => {
             // Arrange

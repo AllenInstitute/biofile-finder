@@ -21,6 +21,7 @@ import {
     StoreNewAnnotationAction,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
+import { DEFAULT_COLUMN_WIDTH } from "../../components/FileRow/Cell";
 import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationFormatter";
@@ -75,8 +76,6 @@ function measureTextWidth(text: string, font: string): number {
  * Interceptor responsible for turning REQUEST_DATA_SOURCES action into selecting default
  * display annotations
  */
-const PADDING_CHARS = 4;
-const DEFAULT_COLUMN_WIDTH = 150; // px
 const receiveAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: annotations } = deps.action as ReceiveAnnotationAction;
@@ -116,7 +115,8 @@ const receiveAnnotationsLogic = createLogic({
                 newAnnotations.map((annotation) => annotation.name)
             );
             for (const { annotation, length } of lengthiestValues) {
-                const width = Math.ceil((length + PADDING_CHARS) * sampleCharWidthInPx);
+                // Add 4 extra characters of padding to account for column padding and potential truncation ellipsis, etc.
+                const width = Math.ceil((length + 4) * sampleCharWidthInPx);
                 // Avoid letting width get too narrow for short values, or too wide for long values
                 const adjustedWidth = Math.min(
                     Math.max(width, DEFAULT_COLUMN_WIDTH),
@@ -128,13 +128,27 @@ const receiveAnnotationsLogic = createLogic({
             // If fetching values fails entirely, fall through to default widths
         }
 
-        const columns = [
+        let columns = [
             ...columnsThatStillExist,
             ...newAnnotations.map((annotation) => ({
                 name: annotation.name,
                 width: widthByAnnotation.get(annotation.name) ?? DEFAULT_COLUMN_WIDTH,
             })),
         ];
+
+        // If there were no columns selected, default to displaying
+        // "File Name" first for any data source
+        if (!columnsThatStillExist.length) {
+            // Remove filename annotations from columns before re-adding it at the front,
+            columns = columns.filter((column) => column.name !== AnnotationName.FILE_NAME);
+
+            // Add "File Name" back to the front of the columns array
+            columns.unshift({
+                name: AnnotationName.FILE_NAME,
+                width: widthByAnnotation.get(AnnotationName.FILE_NAME) ?? DEFAULT_COLUMN_WIDTH,
+            });
+        }
+
         dispatch(selection.actions.setColumns(columns));
 
         const isCurrentSortColumnValid =

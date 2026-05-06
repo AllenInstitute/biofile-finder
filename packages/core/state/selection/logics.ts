@@ -54,6 +54,7 @@ import {
     EXPAND_ALL_FILE_FOLDERS,
     toggleNullValueGroups,
     setIsLoadingSource,
+    reorderColumns,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -422,6 +423,7 @@ const decodeSearchParamsLogics = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const encodedURL = deps.action.payload;
         const {
+            columns,
             hierarchy,
             fileView,
             filters,
@@ -436,8 +438,7 @@ const decodeSearchParamsLogics = createLogic({
         batch(() => {
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
-            // TODO
-            // columns && dispatch(setColumns(columns));
+            columns && dispatch(reorderColumns(columns.map((c, moveTo) => ({ ...c, moveTo }))));
             dispatch(setFileFilters(filters));
             fileView && dispatch(setFileView(fileView) as AnyAction);
             dispatch(setOpenFileFolders(openFolders));

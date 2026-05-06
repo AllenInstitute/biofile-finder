@@ -34,9 +34,11 @@
 }
 
 .header-title {
-  text-overflow: ellipsis;
   white-space: nowrap;
-  overflow: hidden;
+}
+
+.header-tooltip-host {
+  display: inline;
 }
 
 .header-cell {

@@ -182,6 +182,32 @@ export function setColumns(columns: Column[]) {
 }
 
 /**
+ * REORDER_COLUMN
+ *
+ * Intention to move one or more columns to a specific index within the column list
+ * without needing to supply the full list of columns.
+ */
+export const REORDER_COLUMNS = makeConstant(STATE_BRANCH_NAME, "reorder-columns");
+
+interface ColumnReordersPayload {
+    name: string; // name of the column to move
+    moveTo: number; // index to move column to
+    width?: number; // width in pixels, defaults to existing width if not provided
+}
+
+export interface ReorderColumnsAction {
+    payload: ColumnReordersPayload[];
+    type: string;
+}
+
+export function reorderColumns(columnReorder: ColumnReordersPayload[]): ReorderColumnsAction {
+    return {
+        payload: columnReorder,
+        type: REORDER_COLUMNS,
+    };
+}
+
+/**
  * SELECT_FILE
  *
  * Intention to mark one or many files as "selected." If `payload.updateExistingSelection`, add `payload.file` to

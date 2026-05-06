@@ -40,7 +40,10 @@ function Header(
         columnKey: column.name,
         displayValue: (
             <span onClick={() => dispatch(selection.actions.sortColumn(column.name))}>
-                <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
+                <Tooltip
+                    content={annotationNameToAnnotationMap[column.name]?.description}
+                    hostClassName={styles.headerTooltipHost}
+                >
                     <span className={styles.headerTitle}>
                         {annotationNameToAnnotationMap[column.name]?.displayName}
                     </span>
