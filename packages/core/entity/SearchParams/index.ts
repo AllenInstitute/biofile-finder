@@ -3,8 +3,12 @@ import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
-import { DEFAULT_COLUMN_WIDTH } from "../../components/FileRow/Cell";
 import { Column } from "../../state/selection/actions";
+
+// Somewhat arbitrary default column width in pixels;
+// used as a fallback when calculating column widths based on content,
+// and as the default width when resetting column widths
+export const DEFAULT_COLUMN_WIDTH = 150;
 
 // These values CANNOT change otherwise it would break compatibility
 // with any existing URLs that use these in the encoding
@@ -98,11 +102,19 @@ enum URLQueryArgShorthands {
 class ColumnCoder {
     private static readonly COLUMN_DELIMETER = ",";
     private static readonly VALUE_DELIMETER = ":";
+    private static readonly COLUMN_VALUE_PRECISION = 10; // The divisor used when encoding column widths to shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths
 
     public static encode(columns: Column[]): string {
         return (
             columns
-                .map((column) => `${column.name}${ColumnCoder.VALUE_DELIMETER}${column.width}`)
+                // Encode width as divided by COLUMN_VALUE_PRECISION to shorten the resulting URL;
+                // this is an arbitrary choice to balance URL length with precision of column widths
+                .map(
+                    (column) =>
+                        `${column.name}${ColumnCoder.VALUE_DELIMETER}${Math.ceil(
+                            column.width / ColumnCoder.COLUMN_VALUE_PRECISION
+                        )}`
+                )
                 // Arbitrary limit to prevent URLs from getting too long;
                 // if users have more than 6 columns they can resize and reorder them in-app after loading the URL
                 .slice(0, 6)
@@ -122,7 +134,12 @@ class ColumnCoder {
                 // Now we encode the actual pixel width, which is more straightforward to understand and work with when manually editing URLs.
                 // To maintain backwards compatibility with existing URLs, we continue to support previously encoded widths as percentages,
                 // but we convert them to pixel widths in the encoding process.
-                const width = parsedWidth <= 1 ? DEFAULT_COLUMN_WIDTH : parsedWidth;
+                // Also, multiply the parsedWidth by COLUMN_VALUE_PRECISION because it is encoded as the actual width divided by COLUMN_VALUE_PRECISION to
+                // shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths.
+                const width =
+                    parsedWidth <= 1
+                        ? DEFAULT_COLUMN_WIDTH
+                        : parsedWidth * ColumnCoder.COLUMN_VALUE_PRECISION;
                 return { name, width };
             });
     }
