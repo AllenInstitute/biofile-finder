@@ -84,7 +84,7 @@ async function main() {
     if (warmup !== undefined) console.log(`[regression] Warmup rounds: ${warmup}`);
 
     const rawResults = await runBenchmarkPage({
-        TEST_CASES,
+        testCases: TEST_CASES,
         skipBuild,
         iterations,
         warmupRounds: warmup,
