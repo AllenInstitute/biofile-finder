@@ -279,7 +279,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                 const body = sql
                     .replace(/^--[^\n]*\n/, "") // remove `-- label\n` prefix
                     .replace(/\s+/g, " ") // collapse newlines/indentation
-                    .slice(0, 100);
+                    .slice(0, 200);
                 console.log(`[duckdb] ${elapsed.toFixed(1)}ms — [${label}] ${body}`);
             }
 
