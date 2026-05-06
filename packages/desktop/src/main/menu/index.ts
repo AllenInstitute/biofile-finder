@@ -1,6 +1,7 @@
 import { MenuItemConstructorOptions } from "electron";
 
 import { getDataSourceMenu } from "./data-source";
+import { getHelpMenu } from "./help";
 
 function getMenuTemplate(): MenuItemConstructorOptions[] {
     const template: MenuItemConstructorOptions[] = [];
@@ -20,7 +21,7 @@ function getMenuTemplate(): MenuItemConstructorOptions[] {
     if (process.platform === "darwin") {
         template.unshift({ role: "appMenu", label: "BioFile Finder" });
     }
-    return [...template, ...defaultMenuItems, getDataSourceMenu()];
+    return [...template, ...defaultMenuItems, getDataSourceMenu(), getHelpMenu()];
 }
 
 export default getMenuTemplate;
