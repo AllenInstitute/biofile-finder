@@ -26,7 +26,6 @@
     width: 100%;
     margin: 0;
     padding: 0;
-    padding-bottom: 30px; /* add scroll buffer to outermost list*/
 }
 
 .scroll-container li {
