@@ -1,7 +1,6 @@
 /* ===================== MODAL SIZING ===================== */
 
 .wide-modal {
-    max-width: 75%;
     width: 75%;
 }
 
@@ -328,7 +327,6 @@
 .infoRowValue {
     color: var(--primary-text-color);
     word-break: break-word;
-    overflow-wrap: break-word;
     min-width: 0;
 }
 
