@@ -33,7 +33,7 @@ export default function ConvertToZarr({ onDismiss }: ModalProps) {
     // Store fetched file details
     const [details, setDetails] = React.useState<Array<{ path: string }>>([]);
 
-    // Rebuilds the code snippet whenever user's UI options change.
+    // Rebuilds the code snippet whenever user’s UI options change.
     const regenerate = React.useCallback(
         (details: Array<{ path: string }>, ui: UIOpts) => {
             const safe = (s: string) =>
