@@ -137,7 +137,4 @@ function getCommit() {
     }
 }
 
-main().catch((err) => {
-    console.error("[fatal]", err.message);
-    process.exit(1);
-});
+main();

@@ -103,7 +103,4 @@ async function main() {
     console.log(`[regression] Results written to ${path.relative(process.cwd(), outFile)}`);
 }
 
-main().catch((err) => {
-    console.error("[fatal]", err.message);
-    process.exit(1);
-});
+main();
