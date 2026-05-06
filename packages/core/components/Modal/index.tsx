@@ -3,7 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 import About from "./About";
-import AllCellsMaskSegmentation from "./AllCellsMaskSegmentation";
+import ComputePipelineModal from "./ComputePipelineModal";
+import ConvertFiles from "./ZarrConversionModal";
 import QueryCodeSnippet from "./QueryCodeSnippet";
 import CopyFileManifest from "./CopyFileManifest";
 import DataSource from "./DataSource";
@@ -11,7 +12,6 @@ import EditMetadata from "./EditMetadata";
 import ExtractMetadataCodeSnippet from "./ExtractMetadataCodeSnippet";
 import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
-import ConvertFiles from "./ZarrConversionModal";
 
 export interface ModalProps {
     onDismiss: () => void;
@@ -26,8 +26,8 @@ export enum ModalType {
     MetadataManifest = 6,
     SmallScreenWarning = 7,
     ExtractMetadataCodeSnippet = 8,
-    ConvertFiles = 9,
-    AllCellsMaskSegmentation = 10,
+    ComputePipeline = 9,
+    ConvertFiles = 10,
 }
 
 /**
@@ -58,10 +58,10 @@ export default function Modal() {
             return <SmallScreenWarning onDismiss={onDismiss} />;
         case ModalType.ExtractMetadataCodeSnippet:
             return <ExtractMetadataCodeSnippet onDismiss={onDismiss} />;
+        case ModalType.ComputePipeline:
+            return <ComputePipelineModal onDismiss={onDismiss} />;
         case ModalType.ConvertFiles:
             return <ConvertFiles onDismiss={onDismiss} />;
-        case ModalType.AllCellsMaskSegmentation:
-            return <AllCellsMaskSegmentation onDismiss={onDismiss} />;
         default:
             return null;
     }

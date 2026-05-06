@@ -25,6 +25,7 @@ import { createReduxStore } from "../../core/state";
 import "../../core/styles/global.css";
 import styles from "./src.module.css";
 import S3StorageService from "../../core/services/S3StorageService";
+import { HttpPipelineService } from "../../core/services";
 
 const APP_ID = "biofile-finder";
 
@@ -73,6 +74,7 @@ async function asyncRender() {
         fileViewerService: new FileViewerServiceWeb(),
         fileDownloadService: new FileDownloadServiceWeb(new S3StorageService()),
         persistentConfigService,
+        pipelineService: new HttpPipelineService(),
     }));
     const store = createReduxStore({
         isOnWeb: true,

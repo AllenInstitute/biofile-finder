@@ -707,16 +707,18 @@ export interface SetVisibleModalAction {
     payload: {
         fileFiltersForVisibleModal: FileFilter[];
         visibleModal: ModalType;
+        selectedPipelineId?: string;
     };
 }
 
 export function setVisibleModal(
     visibleModal: ModalType,
-    fileFiltersForVisibleModal: FileFilter[] = []
+    fileFiltersForVisibleModal: FileFilter[] = [],
+    selectedPipelineId?: string
 ): SetVisibleModalAction {
     return {
         type: SET_VISIBLE_MODAL,
-        payload: { visibleModal, fileFiltersForVisibleModal },
+        payload: { visibleModal, fileFiltersForVisibleModal, selectedPipelineId },
     };
 }
 
@@ -981,40 +983,5 @@ export function setIsGraphLoading(isGraphLoading: boolean): SetIsGraphLoading {
     return {
         payload: { isGraphLoading },
         type: SET_IS_GRAPH_LOADING,
-    };
-}
-
-/**
- * SUBMIT_ALL_CELLS_MASK_SEGMENTATION
- *
- * Intention to submit an All Cells Mask Segmentation job for a set of files.
- * The backend will generate a CSV asynchronously.
- */
-export const SUBMIT_ALL_CELLS_MASK_SEGMENTATION = makeConstant(
-    STATE_BRANCH_NAME,
-    "submit-all-cells-mask-segmentation"
-);
-
-export interface SubmitAllCellsMaskSegmentationAction {
-    type: string;
-    payload: {
-        fileIds: string[];
-        sceneIndex: number;
-        channelIndex: number;
-    };
-}
-
-export function submitAllCellsMaskSegmentation(
-    fileIds: string[],
-    sceneIndex: number,
-    channelIndex: number
-): SubmitAllCellsMaskSegmentationAction {
-    return {
-        type: SUBMIT_ALL_CELLS_MASK_SEGMENTATION,
-        payload: {
-            fileIds,
-            sceneIndex,
-            channelIndex,
-        },
     };
 }

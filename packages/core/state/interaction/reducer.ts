@@ -55,6 +55,7 @@ import { UserSelectedApplication } from "../../services/PersistentConfigService"
 import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
+import HttpPipelineService from "../../services/PipelineService/HttpPipelineService";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
 import FileDetail from "../../entity/FileDetail";
 
@@ -81,16 +82,13 @@ export interface InteractionStateBranch {
     graphRefreshKey?: string;
     platformDependentServices: PlatformDependentServices;
     extractMetadataPythonSnippet?: { setup: string; code: string };
-    convertFilesSnippet: {
-        setup: string;
-        code: string;
-        options?: Record<string, string>;
-    };
+    convertFilesSnippet?: { setup: string; code: string; options?: Record<string, string> };
     originForProvenance?: FileDetail;
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
     userSelectedApplications?: UserSelectedApplication[];
+    selectedPipelineId?: string;
     visibleModal?: ModalType;
 }
 
@@ -126,6 +124,7 @@ export const initialState: InteractionStateBranch = {
         executionEnvService: new ExecutionEnvServiceNoop(),
         notificationService: new NotificationServiceNoop(),
         persistentConfigService: new PersistentConfigServiceNoop(),
+        pipelineService: new HttpPipelineService(),
     },
     extractMetadataPythonSnippet: { setup: "", code: "" },
     convertFilesSnippet: { setup: "", code: "", options: {} },
@@ -217,6 +216,7 @@ export default makeReducer<InteractionStateBranch>(
         [SET_VISIBLE_MODAL]: (state, action: SetVisibleModalAction) => ({
             ...state,
             fileFiltersForVisibleModal: action.payload.fileFiltersForVisibleModal,
+            selectedPipelineId: action.payload.selectedPipelineId,
             visibleModal: action.payload.visibleModal,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action: ShowManifestDownloadDialogAction) => ({

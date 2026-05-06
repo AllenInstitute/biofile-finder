@@ -16,17 +16,17 @@
   box-sizing: border-box;
 }
 
-.left-col  { grid-area: left;   min-width: 0; }
-.v-divider { grid-area: divider; }
-.right-col { grid-area: right;  min-width: 0; }
+.leftCol  { grid-area: left;   min-width: 0; }
+.vDivider { grid-area: divider; }
+.rightCol { grid-area: right;  min-width: 0; }
 
-.v-divider {
+.vDivider {
   width: 1px;
   background: var(--primary-text-color);
 }
 
 /* ===== Left/form column ===== */
-.left-col {
+.leftCol {
   display: flex;
   flex-direction: column;
   row-gap: 24px;
@@ -39,22 +39,22 @@
   margin-bottom: 8px;
 }
 
-.choice-group :global(.ms-ChoiceFieldGroup-flexContainer) {
+.choiceGroup :global(.ms-ChoiceFieldGroup-flexContainer) {
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-start;
   row-gap: 6px;
 }
-.choice-group :global(.ms-ChoiceField) { margin: 0 !important; }
+.choiceGroup :global(.ms-ChoiceField) { margin: 0 !important; }
 
-.search-box { flex-grow: 1; }
-.search-box :global(input.ms-TextField-field) {
+.searchBox { flex-grow: 1; }
+.searchBox :global(input.ms-TextField-field) {
   background-color: var(--secondary-background-color) !important;
   color: var(--secondary-text-color) !important;
 }
 
 /* ===== Right column (snippet container only) ===== */
-.right-col {
+.rightCol {
   display: flex;
   flex-direction: column;
   row-gap: 12px;
@@ -63,18 +63,18 @@
 }
 
 /* ===== Footer ===== */
-.footer-buttons {
+.footerButtons {
   width: 100%;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
-.close-button { width: min-content; }
+.closeButton { width: min-content; }
 
 /* ===== Responsive ===== */
 @container modal (min-width: 1221px) {
-  .left-col { width: 180px; }
-  .v-divider { display: block; }
+  .leftCol { width: 180px; }
+  .vDivider { display: block; }
 }
 
 @media (max-width: 1220px) {
@@ -85,7 +85,7 @@
       "right";
     grid-auto-rows: auto;
   }
-  .v-divider { display: none; }
-  .left-col { width: auto; min-width: 0; max-width: none; }
-  .right-col { min-width: 0; }
+  .vDivider { display: none; }
+  .leftCol { width: auto; min-width: 0; max-width: none; }
+  .rightCol { min-width: 0; }
 }

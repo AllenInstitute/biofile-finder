@@ -1,0 +1,390 @@
+/* ===================== MODAL SIZING ===================== */
+
+.wide-modal {
+    max-width: 75%;
+    width: 75%;
+}
+
+/* ===================== PIPELINE SELECTION ===================== */
+
+.selectionShell {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 200px;
+}
+
+.pipelineCard {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+    background: var(--secondary-background-color);
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.pipelineCard:hover {
+    border-color: var(--primary-color, #00b0d0);
+}
+
+.pipelineCardTitle {
+    font-size: var(--l-paragraph-size);
+    font-weight: 600;
+    color: var(--primary-text-color);
+}
+
+.pipelineCardDesc {
+    font-size: var(--s-paragraph-size);
+    color: var(--secondary-text-color);
+}
+
+.pipelineCardMeta {
+    display: flex;
+    gap: 16px;
+    font-size: var(--s-paragraph-size);
+    color: var(--secondary-text-color);
+    margin-top: 2px;
+}
+
+/* ===================== FORM LAYOUT ===================== */
+
+.formShell {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.columns {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 28px;
+    align-items: stretch;
+}
+
+@media (max-width: 900px) {
+    .columns {
+        grid-template-columns: 1fr;
+    }
+
+    .rightCol {
+        order: -1;
+    }
+}
+
+/* ===================== LEFT COLUMN ===================== */
+
+.leftCol {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sectionLabel {
+    font-size: var(--l-paragraph-size);
+    font-weight: 600;
+    color: var(--primary-text-color);
+}
+
+/* ===================== FILE EXPANDER ===================== */
+
+.expander {
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.expanderHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    cursor: pointer;
+    background: var(--secondary-background-color);
+    user-select: none;
+}
+
+.expanderHeaderLeft {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--l-paragraph-size);
+    color: var(--primary-text-color);
+}
+
+.expanderBody {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    max-height: 160px;
+    overflow-y: auto;
+    background: var(--primary-background-color, #1a1a1a);
+}
+
+.filePathList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filePathItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--s-paragraph-size);
+    color: var(--secondary-text-color);
+    word-break: break-all;
+}
+
+.expanderNote {
+    font-size: var(--s-paragraph-size);
+    color: var(--secondary-text-color);
+    margin-bottom: 8px;
+}
+
+/* ===================== PARAMETER INPUT ===================== */
+
+.paramField {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.paramLabel {
+    font-size: var(--l-paragraph-size);
+    font-weight: 600;
+    color: var(--primary-text-color);
+}
+
+.paramDesc {
+    font-size: var(--s-paragraph-size);
+    color: var(--secondary-text-color);
+}
+
+.paramError {
+    font-size: var(--s-paragraph-size);
+    color: var(--error-color, #d13438);
+}
+
+.checkbox :global(.ms-Checkbox-checkbox) {
+    background-color: var(--secondary-background-color);
+    border-color: var(--border-color, rgba(255, 255, 255, 0.3));
+}
+
+.checkbox:hover :global(.ms-Checkbox-checkbox) {
+    border-color: var(--aqua);
+}
+
+.checkbox :global(.ms-Checkbox-checkmark) {
+    color: var(--aqua);
+}
+
+.checkbox :global(.ms-Checkbox-text) {
+    color: var(--secondary-text-color);
+    font-size: var(--s-paragraph-size);
+}
+
+.inputBox :global(input.ms-TextField-field) {
+    background-color: var(--secondary-background-color) !important;
+    color: var(--secondary-text-color) !important;
+}
+
+/* ===================== ADVANCED OPTIONS ===================== */
+
+.advancedSection {
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.advancedHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    cursor: pointer;
+    background: var(--secondary-background-color);
+    user-select: none;
+    font-size: var(--l-paragraph-size);
+    color: var(--primary-text-color);
+}
+
+.advancedHeaderLeft {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.advancedBody {
+    padding: 14px;
+    border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.advancedHint {
+    font-size: var(--s-paragraph-size);
+    color: var(--secondary-text-color);
+}
+
+.optionalRow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 12px;
+}
+
+.removeButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--secondary-text-color);
+    padding: 4px;
+    margin-top: 22px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.removeButton:hover {
+    color: var(--error-color, #d13438);
+    background: rgba(255, 0, 0, 0.08);
+}
+
+.addParamRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.addParamDropdown {
+    flex: 1;
+    min-width: 220px;
+}
+
+/* ===================== RIGHT COLUMN ===================== */
+
+.rightCol {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.infoCard {
+    background: var(--secondary-background-color);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+    border-radius: 8px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+}
+
+.infoCardDesc {
+    font-size: var(--s-paragraph-size);
+    color: var(--secondary-text-color);
+    line-height: 1.5;
+}
+
+.infoCardDivider {
+    border: none;
+    border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    margin: 0;
+}
+
+.infoTable {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.infoRow {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 12px;
+    font-size: var(--s-paragraph-size);
+}
+
+.infoRowLabel {
+    color: var(--secondary-text-color);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.infoRowValue {
+    color: var(--primary-text-color);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    min-width: 0;
+}
+
+/* ===================== STATUS BANNERS ===================== */
+
+.successBanner {
+    margin-top: 16px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    background: rgba(0, 200, 0, 0.08);
+    border: 1px solid rgba(0, 200, 0, 0.3);
+}
+
+.successTitle {
+    font-size: var(--l-paragraph-size);
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--primary-text-color);
+}
+
+.successJobId {
+    font-size: var(--s-paragraph-size);
+    color: var(--secondary-text-color);
+    margin-bottom: 6px;
+}
+
+.successHint {
+    font-size: var(--s-paragraph-size);
+    color: var(--secondary-text-color);
+}
+
+.errorBanner {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: rgba(255, 0, 0, 0.08);
+    border: 1px solid rgba(255, 0, 0, 0.25);
+}
+
+/* ===================== LOADING ===================== */
+
+.loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--secondary-text-color);
+    font-size: var(--l-paragraph-size);
+    padding: 32px 0;
+}
+
+/* ===================== FOOTER ===================== */
+
+.footerButtons {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+

@@ -28,6 +28,8 @@ export type {
     UserSelectedApplication,
 } from "./PersistentConfigService";
 export { PersistedConfigKeys } from "./PersistentConfigService";
+export type { default as PipelineService } from "./PipelineService";
+export { default as HttpPipelineService } from "./PipelineService/HttpPipelineService";
 
 export interface PlatformDependentServices {
     applicationInfoService: ApplicationInfoService;
@@ -38,4 +40,5 @@ export interface PlatformDependentServices {
     executionEnvService: ExecutionEnvService;
     notificationService: NotificationService;
     persistentConfigService: PersistentConfigService;
+    pipelineService: import("./PipelineService").default;
 }
