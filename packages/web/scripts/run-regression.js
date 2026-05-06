@@ -42,7 +42,7 @@ const TEST_CASES = [
 ];
 
 const inputFiles = new Set(
-    TEST_CASES.flatMap(({ url }) => url.replace("http://localhost:18765/fixtures/", ""))
+    TEST_CASES.flat().flatMap(({ url }) => url.replace("http://localhost:18765/fixtures/", ""))
 );
 
 const missing = inputFiles.filter((fileName) => !fs.existsSync(path.join(FIXTURES_DIR, fileName)));
