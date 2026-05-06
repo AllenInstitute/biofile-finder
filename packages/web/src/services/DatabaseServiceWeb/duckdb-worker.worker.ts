@@ -281,7 +281,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                     .replace(/\s+/g, " ") // collapse newlines/indentation
                     .trim()
                     .slice(0, 200);
-                console.log(`[duckdb] ${elapsed.toFixed(1)}ms — [${label}] ${body}`);
+                console.log(`[duckdb] ${elapsed}ms — [${label}] ${body}`);
             }
 
             // Apache Arrow JS (used by duckdb-wasm) only reads the first 8 bytes, losing the nanoseconds.
