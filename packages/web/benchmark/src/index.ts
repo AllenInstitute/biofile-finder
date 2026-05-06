@@ -184,7 +184,7 @@ async function main() {
         commit: "unknown",
         branch: "unknown",
         initTimeMs,
-        testCases: config.testCases,
+        results: sourceResults,
     };
 
     (window as any).__benchmarkResults = results;

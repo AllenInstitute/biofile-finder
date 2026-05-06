@@ -36,5 +36,5 @@ export interface BenchmarkResults {
     commit: string;
     branch: string;
     initTimeMs: number;
-    testCases: TestCase[];
+    results: SourceResult[];
 }
