@@ -44,6 +44,8 @@ import {
     ReorderColumnsAction,
 } from "./actions";
 import interaction from "../interaction";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
+import { DEFAULT_COLUMN_WIDTH } from "../../components/FileRow/Cell";
 import { FileView, Source } from "../../entity/SearchParams";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -224,12 +226,29 @@ export default makeReducer<SelectionStateBranch>(
             let columns = [...state.columns];
             for (const reorder of action.payload) {
                 const remaining = columns.filter((col) => reorder.name !== col.name);
-                const moving = columns
-                    .filter((col) => reorder.name === col.name)
-                    // Optionally update widths of moved columns if provided in the action
-                    .map((col) => ({ ...col, width: reorder.width ?? col.width }));
+                let moving = columns.find((col) => reorder.name === col.name);
+                if (!moving) {
+                    // Check for matching column in special top level annotations like File Name
+                    // and if still no match just skip
+                    const matchingSpecialAnnotation = TOP_LEVEL_FILE_ANNOTATIONS.find(
+                        (a) => reorder.name === a.name || reorder.name === a.displayName
+                    );
+                    if (!matchingSpecialAnnotation) {
+                        continue;
+                    }
+                    moving = {
+                        name: matchingSpecialAnnotation.displayName,
+                        width: DEFAULT_COLUMN_WIDTH,
+                    };
+                }
+
                 const moveTo = Math.min(reorder.moveTo, remaining.length);
-                columns = [...remaining.slice(0, moveTo), ...moving, ...remaining.slice(moveTo)];
+                columns = [
+                    ...remaining.slice(0, moveTo),
+                    // Optionally update widths of moved columns if provided in the action
+                    { ...moving, width: reorder.width ?? moving.width },
+                    ...remaining.slice(moveTo),
+                ];
             }
             return { ...state, columns };
         },
