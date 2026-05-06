@@ -33,13 +33,17 @@ function Header(
     const columnNames = useSelector(selection.selectors.getColumnNames);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
 
-    // TODO: use reorder action
     const onReorder = React.useCallback(
         (newOrder: string[]) => {
-            const reorderedColumns = newOrder.map((name) => columns.find((c) => c.name === name)!);
-            dispatch(selection.actions.setColumns(reorderedColumns));
+            // Find which column moved and where it went
+            const moved = newOrder.find(
+                (name, i) => columnNames[i] !== name && !columnNames.slice(0, i).includes(name)
+            );
+            if (!moved) return;
+            const moveTo = newOrder.indexOf(moved);
+            dispatch(selection.actions.reorderColumns([{ name: moved, moveTo }]));
         },
-        [columns, dispatch]
+        [columnNames, dispatch]
     );
 
     const {

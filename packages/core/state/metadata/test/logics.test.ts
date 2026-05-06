@@ -183,12 +183,14 @@ describe("Metadata logics", () => {
             store.dispatch(receiveAnnotations(mockAnnotations));
             await logicMiddleware.whenComplete();
 
-            // assert: all annotations should be shown as columns
+            // assert: all annotations should be shown as columns, plus a "File Name" column prepended
             expect(actions.includesMatch({ type: SET_COLUMNS })).to.be.true;
             const matchingAction = actions.list
                 .filter((action) => action.type === SET_COLUMNS)
                 .at(0);
-            expect(matchingAction?.payload.length).to.equal(mockAnnotations.length);
+            // 3 mock annotations + 1 prepended "file_name" column
+            expect(matchingAction?.payload.length).to.equal(mockAnnotations.length + 1);
+            expect(matchingAction?.payload[0].name).to.equal("file_name");
         });
 
         it("adds all new annotations as columns to existing ones", async () => {
@@ -218,7 +220,7 @@ describe("Metadata logics", () => {
             const existingColumn = matchingAction?.payload.find(
                 (col: { name: string; width: number }) => col.name === mockAnnotations[0].name
             );
-            expect(existingColumn?.width).to.equal(0.4);
+            expect(existingColumn?.width).to.equal(300);
         });
     });
 
