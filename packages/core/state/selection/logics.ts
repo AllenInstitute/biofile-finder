@@ -55,6 +55,10 @@ import {
     toggleNullValueGroups,
     setIsLoadingSource,
     reorderColumns,
+    RESIZE_COLUMN,
+    ResizeColumnAction,
+    setColumns,
+    Column,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -413,6 +417,38 @@ const expandAllFileFolders = createLogic({
         done();
     },
     type: [EXPAND_ALL_FILE_FOLDERS],
+});
+
+/**
+ * Interceptor responsible for processing RESIZE_COLUMN action into
+ * automatic width adjustment based on whether the user selected a specific width
+ * or if they just want the default auto-size behavior
+ */
+const resizeColumnLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: column } = deps.action as ResizeColumnAction;
+        const columns = selectionSelectors.getColumns(deps.getState());
+        const annotationService = interaction.selectors.getAnnotationService(deps.getState());
+
+        let width = column.width;
+        if (!width) {
+            const autoSizedWidth = await annotationService.fetchOptimalWidthForAnnotations(
+                [column.name],
+                true
+            );
+            width = autoSizedWidth[column.name] as number;
+        }
+
+        dispatch(
+            setColumns(
+                columns.map(
+                    (c) => ({ ...c, width: c.name === column.name ? width : c.width } as Column)
+                )
+            )
+        );
+        done();
+    },
+    type: RESIZE_COLUMN,
 });
 
 /**
@@ -904,4 +940,5 @@ export default [
     setDataSourceReloadErrorLogic,
     changeQueryLogic,
     removeQueryLogic,
+    resizeColumnLogic,
 ];

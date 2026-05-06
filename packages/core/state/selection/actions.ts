@@ -151,11 +151,14 @@ export interface Column {
 export const RESIZE_COLUMN = makeConstant(STATE_BRANCH_NAME, "resize-column");
 
 export interface ResizeColumnAction {
-    payload: Column;
+    payload: {
+        name: string;
+        width?: number; // width in pixels, if not provided, defaults to auto-sizing bsaed on content
+    };
     type: string;
 }
 
-export function resizeColumn(column: Column) {
+export function resizeColumn(column: { name: string; width?: number }): ResizeColumnAction {
     return {
         payload: column,
         type: RESIZE_COLUMN,

@@ -5,6 +5,7 @@ import * as React from "react";
 import { useSelector } from "react-redux";
 
 import { OnSelect } from "./useFileSelector";
+import useVisibleColumns from "./useVisibleCells";
 import FileRow from "../../components/FileRow";
 import FileSet from "../../entity/FileSet";
 import { metadata, selection } from "../../state";
@@ -37,7 +38,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         style,
     } = props;
 
-    const columns = useSelector(selection.selectors.getColumns);
+    const { columns: visibleColumns, padding } = useVisibleColumns();
     const totalColumnWidth = useSelector(selection.selectors.getTotalColumnWidth);
     const isSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const annotationNameToAnnotationMap = useSelector(
@@ -63,13 +64,14 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     if (file) {
         content = (
             <FileRow
-                cells={map(columns, (column) => ({
+                cells={map(visibleColumns, (column) => ({
                     columnKey: column.name,
                     displayValue: annotationNameToAnnotationMap[column.name]?.extractFromFile(file),
                     width: column.width,
                 }))}
                 rowIdentifier={{ index, id: file.uid }}
                 onSelect={onSelect}
+                padding={padding}
             />
         );
     } else {

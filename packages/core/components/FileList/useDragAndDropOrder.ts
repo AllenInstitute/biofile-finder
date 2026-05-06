@@ -11,7 +11,7 @@ import * as React from "react";
  */
 export default function useDragAndDropOrder(
     items: string[],
-    onReorder: (newOrder: string[]) => void
+    onReorder: (item: string, moveTo: number) => void
 ) {
     const [draggedItem, setDraggedItem] = React.useState<string | null>(null);
     const [dragOverItem, setDragOverItem] = React.useState<string | null>(null);
@@ -37,12 +37,8 @@ export default function useDragAndDropOrder(
                 setDragOverItem(null);
                 return;
             }
-            const reordered = [...items];
-            const fromIndex = reordered.indexOf(draggedItem);
-            const toIndex = reordered.indexOf(targetKey);
-            const [removed] = reordered.splice(fromIndex, 1);
-            reordered.splice(toIndex, 0, removed);
-            onReorder(reordered);
+            const toIndex = items.indexOf(targetKey);
+            onReorder(draggedItem, toIndex);
             setDraggedItem(null);
             setDragOverItem(null);
         },

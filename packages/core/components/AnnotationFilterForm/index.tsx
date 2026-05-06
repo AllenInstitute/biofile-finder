@@ -84,7 +84,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         dispatch(selection.actions.addFileFilter(createFileFilter(item)));
     };
 
-    // TODO: Should this select ALL or just the visible items in list?
     const onSelectAll = () => {
         dispatch(selection.actions.changeFileFilterType(props.annotation.name, FilterType.DEFAULT));
         dispatch(selection.actions.addFileFilter(items.map((item) => createFileFilter(item))));

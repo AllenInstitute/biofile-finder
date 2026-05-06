@@ -21,7 +21,6 @@ import {
     StoreNewAnnotationAction,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
-import { DEFAULT_COLUMN_WIDTH } from "../../components/FileRow/Cell";
 import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationFormatter";
@@ -59,20 +58,6 @@ const requestAnnotations = createLogic({
 });
 
 /**
- * Measures the width in pixels of the given text rendered with the specified
- * CSS font shorthand (e.g. "14px Arial", "bold 12px sans-serif").
- */
-function measureTextWidth(text: string, font: string): number {
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    if (!context) {
-        return 0;
-    }
-    context.font = font;
-    return context.measureText(text).width;
-}
-
-/**
  * Interceptor responsible for turning REQUEST_DATA_SOURCES action into selecting default
  * display annotations
  */
@@ -84,12 +69,6 @@ const receiveAnnotationsLogic = createLogic({
         const currentColumns = selection.selectors.getColumns(deps.getState());
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
         const currentFilters = selection.selectors.getFileFilters(deps.getState());
-
-        // Get sample character width for computing column widths based on content length.
-        // This is a bit hacky but it's nontrivial to get character width without rendering text
-        // into the DOM, and we need it to compute column widths before rendering.
-        // TODO: Grab font styling from the DOM instead of hardcoding it, to ensure more accurate width calculations
-        const sampleCharWidthInPx = measureTextWidth("S", "16px Open Sans");
 
         const annotationNamesInDataSource = annotations.reduce(
             (set, annotation) => set.add(annotation.name),
@@ -107,32 +86,15 @@ const receiveAnnotationsLogic = createLogic({
         );
 
         // Try to fetch values for new annotations to compute optimal column widths
-        const widthByAnnotation = new Map<string, number>();
-        try {
-            // Compute column widths based on the length of the longest value,
-            // with some padding, and capped at a max width
-            const lengthiestValues = await annotationService.fetchLengthiestValues(
-                newAnnotations.map((annotation) => annotation.name)
-            );
-            for (const { annotation, length } of lengthiestValues) {
-                // Add 4 extra characters of padding to account for column padding and potential truncation ellipsis, etc.
-                const width = Math.ceil((length + 4) * sampleCharWidthInPx);
-                // Avoid letting width get too narrow for short values, or too wide for long values
-                const adjustedWidth = Math.min(
-                    Math.max(width, DEFAULT_COLUMN_WIDTH),
-                    DEFAULT_COLUMN_WIDTH * 3
-                );
-                widthByAnnotation.set(annotation, adjustedWidth);
-            }
-        } catch {
-            // If fetching values fails entirely, fall through to default widths
-        }
+        const widthByAnnotation = await annotationService.fetchOptimalWidthForAnnotations(
+            newAnnotations.map((annotation) => annotation.name)
+        );
 
         let columns = [
             ...columnsThatStillExist,
             ...newAnnotations.map((annotation) => ({
                 name: annotation.name,
-                width: widthByAnnotation.get(annotation.name) ?? DEFAULT_COLUMN_WIDTH,
+                width: widthByAnnotation[annotation.name],
             })),
         ];
 
@@ -145,7 +107,7 @@ const receiveAnnotationsLogic = createLogic({
             // Add "File Name" back to the front of the columns array
             columns.unshift({
                 name: AnnotationName.FILE_NAME,
-                width: widthByAnnotation.get(AnnotationName.FILE_NAME) ?? DEFAULT_COLUMN_WIDTH,
+                width: widthByAnnotation[AnnotationName.FILE_NAME],
             });
         }
 

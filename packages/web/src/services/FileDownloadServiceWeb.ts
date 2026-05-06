@@ -14,7 +14,6 @@ import Zarr from "../entity/Zarr";
 export default class FileDownloadServiceWeb extends FileDownloadService {
     isFileSystemAccessible = false;
 
-    // TODO: Test this in unit tests
     public static isLocalPath(filePath: string): boolean {
         const uriPattern = /^(https?|ftp):\/\/|^[a-zA-Z]:\\/;
         return filePath.startsWith("file://") || !uriPattern.test(filePath);

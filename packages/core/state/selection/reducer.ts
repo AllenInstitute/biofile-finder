@@ -7,7 +7,6 @@ import {
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
-    RESIZE_COLUMN,
     SORT_COLUMN,
     SET_SORT_COLUMN,
     CHANGE_DATA_SOURCES,
@@ -31,7 +30,6 @@ import {
     SetRequiresDataSourceReload,
     SET_FILE_VIEW,
     SetFileView,
-    ResizeColumnAction,
     Column,
     SetColumns,
     SET_COLUMNS,
@@ -45,8 +43,7 @@ import {
 } from "./actions";
 import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
-import { DEFAULT_COLUMN_WIDTH } from "../../components/FileRow/Cell";
-import { FileView, Source } from "../../entity/SearchParams";
+import { DEFAULT_COLUMN_WIDTH, FileView, Source } from "../../entity/SearchParams";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -211,12 +208,6 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             availableAnnotationsForHierarchyLoading: true,
             fileSelection: new FileSelection(),
-        }),
-        [RESIZE_COLUMN]: (state, action: ResizeColumnAction) => ({
-            ...state,
-            columns: state.columns.map((column) =>
-                column.name !== action.payload.name ? column : action.payload
-            ),
         }),
         [SET_COLUMNS]: (state, action: SetColumns) => ({
             ...state,

@@ -10,8 +10,6 @@ import styles from "./Cell.module.css";
 
 export const NON_RESIZEABLE_CELL_TEST_ID = "non-resizeable-cell-test-id";
 
-export const DEFAULT_COLUMN_WIDTH = 150; // px, somewhat arbitrary; used as a fallback when calculating column widths based on content, and as the default width when resetting column widths
-
 export interface CellProps {
     className?: string;
     columnKey: string;
@@ -164,7 +162,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
     private onResize(e: InteractEvent): void {
         const { provisionalWidth } = this.state;
 
-        const nextWidth = e.rect.width; // / this.measureRowWidth();
+        const nextWidth = e.rect.width;
         const allowedResizeDirection = this.getAllowedResizeDirection(e.rect.width, e.target);
 
         let nextState: CellState = {
