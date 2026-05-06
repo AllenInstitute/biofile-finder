@@ -37,6 +37,12 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
         (evt: React.MouseEvent) => {
             evt.preventDefault();
 
+            // If there are no folder filters, and no files are selected,
+            // then don't show the context menu since there are no actionable items
+            if (!folderFilters && fileSelection.count() === 0) {
+                return;
+            }
+
             const contextMenuItems: IContextualMenuItem[] = [
                 ...(!folderFilters
                     ? []
@@ -44,9 +50,6 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                           {
                               key: "expand",
                               text: "Expand all",
-                              iconProps: {
-                                  iconName: "ExploreContent",
-                              },
                               onClick() {
                                   dispatch(selection.actions.expandAllFileFolders());
                               },
@@ -54,9 +57,6 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                           {
                               key: "collapse",
                               text: "Collapse all",
-                              iconProps: {
-                                  iconName: "CollapseContent",
-                              },
                               onClick() {
                                   dispatch(selection.actions.collapseAllFileFolders());
                               },
@@ -69,10 +69,6 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                           {
                               key: "open",
                               text: "Open",
-                              iconProps: {
-                                  iconName: "OpenInNewWindow",
-                              },
-                              disabled: !folderFilters && fileSelection.count() === 0,
                               onClick() {
                                   if (folderFilters) {
                                       dispatch(interaction.actions.openWithDefault(folderFilters));
@@ -89,10 +85,6 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                 {
                     key: "open-with",
                     text: "Open with",
-                    disabled: !folderFilters && fileSelection.count() === 0,
-                    iconProps: {
-                        iconName: "OpenInNewWindow",
-                    },
                     subMenuProps: {
                         items: openWithSubMenuItems,
                     },
@@ -100,30 +92,19 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                 {
                     key: "save-as",
                     text: "Save metadata as",
-                    disabled: !folderFilters && fileSelection.count() === 0,
-                    iconProps: {
-                        iconName: "Save",
-                    },
                     subMenuProps: { items: saveAsSubMenuItems },
                 },
                 {
                     key: "process-files",
                     text: "Process files",
                     title: "Process selected files (generate scripts/manifests)",
-                    disabled:
-                        processFilesSubMenuItems.length === 0 ||
-                        (!folderFilters && fileSelection.count() === 0),
-                    iconProps: { iconName: "CodeEdit" },
+                    disabled: processFilesSubMenuItems.length === 0,
                     subMenuProps: { items: processFilesSubMenuItems },
                 },
                 {
                     key: "edit",
                     text: "Edit metadata",
                     title: "Edit metadata for selected files",
-                    disabled: !folderFilters && fileSelection.count() === 0,
-                    iconProps: {
-                        iconName: "Edit",
-                    },
                     onClick() {
                         dispatch(
                             interaction.actions.setVisibleModal(
@@ -139,8 +120,6 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                               key: "copy-to-cache",
                               text: "Copy to vast",
                               title: "Copy selected files to NAS Cache (VAST)",
-                              disabled: !folderFilters && fileSelection.count() === 0,
-                              iconProps: { iconName: "MoveToFolder" },
                               onClick() {
                                   dispatch(interaction.actions.showCopyFileManifest());
                               },
@@ -151,10 +130,6 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                     key: "download",
                     text: "Download",
                     title: "Download selected files to a specific directory",
-                    disabled: !folderFilters && fileSelection.count() === 0,
-                    iconProps: {
-                        iconName: "Download",
-                    },
                     onClick() {
                         dispatch(interaction.actions.downloadFiles());
                     },
