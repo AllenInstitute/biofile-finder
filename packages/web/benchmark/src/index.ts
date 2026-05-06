@@ -51,18 +51,18 @@ function shuffle<T>(arr: T[]): T[] {
  */
 async function benchmarkSource(
     service: DatabaseServiceWebWorker,
-    sourceName: string,
+    sourceNames: string[],
     iterations: number,
     warmupRounds: number
 ): Promise<QueryResult[]> {
-    const { annotationSvc, fileSvc } = createServices(service, sourceName);
+    const { annotationSvc, fileSvc } = createServices(service, sourceNames);
 
     service.enableQueryTiming();
 
     // Warmup ensures DuckDB's buffer pool, query planner, and V8 JIT are in a
     // stable state before timing begins. Without it, the first few iterations
     // of every task reflect cold-start overhead rather than steady-state cost.
-    setStatus(`Warming up ${sourceName} (${warmupRounds} rounds)...`);
+    setStatus(`Warming up ${sourceNames.join(", ")} (${warmupRounds} rounds)...`);
     for (let w = 0; w < warmupRounds; w++) {
         for (const task of BENCHMARK_TASKS) {
             service.clearTimings();
@@ -73,10 +73,12 @@ async function benchmarkSource(
     const timingsMap = new Map<string, number[]>(BENCHMARK_TASKS.map(({ name }) => [name, []]));
 
     for (let i = 0; i < iterations; i++) {
-        setStatus(`Timing ${sourceName} — iteration ${i + 1}/${iterations}...`);
+        setStatus(`Timing ${sourceNames.join(", ")} — iteration ${i + 1}/${iterations}...`);
         for (const task of shuffle(BENCHMARK_TASKS)) {
             if (task.resetAnnotationCache) {
-                service.clearAnnotationCache(sourceName);
+                for (const sourceName of sourceNames) {
+                    service.clearAnnotationCache(sourceName);
+                }
             }
             const timings = timingsMap.get(task.name) ?? [];
             timingsMap.set(task.name, timings);
@@ -106,7 +108,7 @@ async function benchmarkSource(
 
 async function main() {
     const config: BenchmarkConfig = (window as any).__benchmarkConfig;
-    if (!config?.sources?.length) {
+    if (!config?.testCases?.length) {
         throw new Error("No benchmark config found. Runner must inject window.__benchmarkConfig.");
     }
     const iterations = config.iterations ?? DEFAULT_ITERATIONS;
@@ -137,8 +139,8 @@ async function main() {
     // Absorb DuckDB's one-time parquet cold-start cost (scanner JIT, VFS setup,
     // buffer pool init) before timing any real source registrations. Without this,
     // the first source always shows inflated registration time regardless of file size.
-    if (config.sources.length > 0) {
-        const warmup = config.sources[0];
+    if (config.testCases.length > 0) {
+        const warmup = config.testCases[0][0];
         const warmupFile = localFiles[warmup.label];
         await service.prepareDataSources(
             [{ name: "__bff_warmup__", type: "parquet", uri: warmupFile ?? warmup.url }],
@@ -147,28 +149,34 @@ async function main() {
         await service.execute('DROP VIEW IF EXISTS "__bff_warmup__"');
     }
 
-    const sources: SourceResult[] = [];
+    const sourceResults: SourceResult[] = [];
 
-    for (const source of config.sources) {
-        setStatus(`Registering ${source.label} (${source.url})...`);
-
+    for (const sources of config.testCases) {
         const regStart = performance.now();
-        const localFile = localFiles[source.label];
-        if (!localFile) {
-            console.warn(
-                `[benchmark] No local file for ${source.label} — falling back to HTTP reads; timings will differ from local-file runs`
-            );
-        }
+
         await service.prepareDataSources(
-            [{ name: source.label, type: "parquet", uri: localFile ?? source.url }],
+            sources.map((source) => {
+                setStatus(`Registering ${source.label} (${source.url})...`);
+                const localFile = localFiles[source.label];
+                if (!localFile) {
+                    console.warn(
+                        `[benchmark] No local file for ${source.label} — falling back to HTTP reads; timings will differ from local-file runs`
+                    );
+                }
+                return { name: source.label, type: "parquet", uri: localFile ?? source.url };
+            }),
             /* skipNormalization */ true
         );
+
         const registrationMs = performance.now() - regStart;
 
-        const queries = await benchmarkSource(service, source.label, iterations, warmupRounds);
-        sources.push({ label: source.label, registrationMs, queries });
+        const labels = sources.map((source) => source.label);
+        const queries = await benchmarkSource(service, labels, iterations, warmupRounds);
+        sourceResults.push({ labels, registrationMs, queries });
 
-        await service.execute(`DROP VIEW IF EXISTS "${source.label}"`);
+        for (const source of sources) {
+            await service.deleteDataSourceWrapper(source.label);
+        }
     }
 
     setStatus("Done.");
@@ -178,7 +186,7 @@ async function main() {
         commit: "unknown",
         branch: "unknown",
         initTimeMs,
-        sources,
+        results: sourceResults,
     };
 
     (window as any).__benchmarkResults = results;

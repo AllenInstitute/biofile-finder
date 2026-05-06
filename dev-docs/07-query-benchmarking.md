@@ -25,6 +25,8 @@ mkdir -p packages/web/fixtures
 curl -fL "$BASE/synthetic-100k.parquet" -o packages/web/fixtures/synthetic-100k.parquet
 curl -fL "$BASE/synthetic-1m.parquet"   -o packages/web/fixtures/synthetic-1m.parquet
 curl -fL "$BASE/synthetic-10m.parquet"  -o packages/web/fixtures/synthetic-10m.parquet
+curl -fL "$BASE/synthetic-10m-copy.parquet"  -o packages/web/fixtures/synthetic-10m-copy.parquet
+curl -fL "$BASE/synthetic-20m.parquet"  -o packages/web/fixtures/synthetic-20m.parquet
 ```
 
 **Run against local fixtures**
@@ -62,7 +64,7 @@ This prints a Markdown table with p50 deltas and regression/improvement badges (
 | Flag | Description |
 |---|---|
 | `--local` | Use fixtures from `packages/web/fixtures/` instead of S3 URLs |
-| `--scale 100k\|1m\|10m` | Run a single fixture size |
+| `--scale 100k\|1m\|10m\|10m+10m\|20m` | Run a single fixture size |
 | `--full` | Run all scales with both cloud and local sources side-by-side |
 | `--iterations N` | Timed iterations per task (default 5) |
 | `--warmup N` | Warmup rounds before timing (default 1) |
@@ -82,10 +84,10 @@ Both branches run on the same machine to eliminate hardware variance — a ~15% 
 
 The workflow:
 1. Checks out the compare branch and downloads fixtures from S3 (cached by version)
-2. Runs `run-regression.js` → writes `benchmark-results-<compare>.json`
+2. Runs `run-regression.ts` → writes `benchmark-results-<compare>.json`
 3. Checks out the base branch (without wiping fixtures)
-4. Runs `run-regression.js` → writes `benchmark-results-<base>.json`
-5. Runs `compare-results.js` → posts the Markdown table to the step summary
+4. Runs `run-regression.ts` → writes `benchmark-results-<base>.json`
+5. Runs `compare-results.ts` → posts the Markdown table to the step summary
 
 ---
 

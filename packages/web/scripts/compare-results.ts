@@ -3,7 +3,9 @@
 
 "use strict";
 
-const fs = require("fs");
+import { BenchmarkResults } from "../benchmark/src/types";
+
+import fs from "fs";
 
 const REGRESSION_WARN_PCT = 25; // ≥25% slower → ⚠️
 const REGRESSION_SEVERE_PCT = 50; // ≥50% slower → ❌
@@ -12,17 +14,17 @@ const IMPROVEMENT_PCT = 25; // ≥25% faster → ✅
 // deltas on fast queries are dominated by noise rather than real regressions.
 const BADGE_MIN_MS = 500;
 
-function fmt(ms) {
+function fmt(ms: number | null | undefined) {
     if (ms === undefined || ms === null) return "—";
     return ms < 10 ? `${ms.toFixed(2)}ms` : `${ms.toFixed(1)}ms`;
 }
 
-function pctDelta(base, pr) {
+function pctDelta(base: number, pr: number) {
     if (!base) return null;
     return ((pr - base) / base) * 100;
 }
 
-function deltaBadge(base, pr) {
+function deltaBadge(base: number, pr: number) {
     const delta = pctDelta(base, pr);
     if (delta === null) return "N/A";
     const sign = delta >= 0 ? "+" : "";
@@ -41,21 +43,24 @@ if (!baseFile || !prFile) {
     process.exit(1);
 }
 
-const base = JSON.parse(fs.readFileSync(baseFile, "utf8"));
-const pr = JSON.parse(fs.readFileSync(prFile, "utf8"));
+const base: BenchmarkResults = JSON.parse(fs.readFileSync(baseFile, "utf8"));
+const pr: BenchmarkResults = JSON.parse(fs.readFileSync(prFile, "utf8"));
 
-const baseSources = new Map(base.sources.map((s) => [s.label, s]));
-const prSources = new Map(pr.sources.map((s) => [s.label, s]));
+const baseSources = new Map(base.results.map((s) => [s.labels.join(", "), s]));
+const prSources = new Map(pr.results.map((s) => [s.labels.join(", "), s]));
 
 // PR result order is authoritative; base may have fewer sources.
 const allLabels = [
-    ...new Set([...pr.sources.map((s) => s.label), ...base.sources.map((s) => s.label)]),
+    ...new Set([
+        ...pr.results.map((s) => s.labels.join(", ")),
+        ...base.results.map((s) => s.labels.join(", ")),
+    ]),
 ];
 
 const allQueryNames = [
     ...new Set([
-        ...pr.sources.flatMap((s) => s.queries.map((q) => q.name)),
-        ...base.sources.flatMap((s) => s.queries.map((q) => q.name)),
+        ...pr.results.flatMap((s) => s.queries.map((q) => q.name)),
+        ...base.results.flatMap((s) => s.queries.map((q) => q.name)),
     ]),
 ];
 
@@ -66,12 +71,15 @@ for (const qName of allQueryNames) {
         const baseQ = baseSources.get(label)?.queries.find((q) => q.name === qName);
         const prQ = prSources.get(label)?.queries.find((q) => q.name === qName);
         if (baseQ && prQ) {
-            allDeltas.push({
-                label: `\`${qName}\` @ ${label}`,
-                delta: pctDelta(baseQ.p50, prQ.p50),
-                baseP50: baseQ.p50,
-                prP50: prQ.p50,
-            });
+            const delta = pctDelta(baseQ.p50, prQ.p50);
+            if (delta !== null) {
+                allDeltas.push({
+                    label: `\`${qName}\` @ ${label}`,
+                    delta,
+                    baseP50: baseQ.p50,
+                    prP50: prQ.p50,
+                });
+            }
         }
     }
 }
@@ -190,7 +198,7 @@ if (regressions.length === 0 && improvements.length === 0) {
     }
 }
 
-const iters = pr.sources[0]?.queries[0]?.timings?.length ?? "?";
+const iters = pr.results[0]?.queries[0]?.timings?.length ?? "?";
 lines.push(
     `_Benchmarks run in headless Chromium with DuckDB-WASM. ` +
         `${iters} iterations per query. ` +

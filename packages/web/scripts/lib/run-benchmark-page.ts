@@ -6,13 +6,24 @@
  * BenchmarkConfig into the page, and returns the BenchmarkResults.
  */
 
-"use strict";
+declare global {
+    interface Window {
+        __localFilesRequested: boolean;
+        __pendingLocalFiles: any;
+        __resolveLocalFiles: (
+            value: Record<string, File> | PromiseLike<Record<string, File>>
+        ) => void;
+        __benchmarkResults: BenchmarkResults;
+        __benchmarkError: string;
+    }
+}
 
-const { chromium } = require("playwright");
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const { execSync } = require("child_process");
+import { chromium } from "playwright";
+import http from "http";
+import fs from "fs";
+import path from "path";
+import { execSync } from "child_process";
+import { BenchmarkResults, TestCase } from "../../benchmark/src/types";
 
 const DIST_DIR = path.join(__dirname, "..", "..", "benchmark", "dist");
 const FIXTURES_DIR = path.join(__dirname, "..", "..", "fixtures");
@@ -30,17 +41,20 @@ const MIME = {
     ".parquet": "application/octet-stream",
 };
 
-function mimeFor(filePath) {
+function mimeFor(filePath: string) {
     for (const [ext, type] of Object.entries(MIME)) {
         if (filePath.endsWith(ext)) return type;
     }
     return "application/octet-stream";
 }
 
-function startServer() {
+function startServer(): Promise<
+    http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
+> {
     return new Promise((resolve, reject) => {
         const server = http.createServer((req, res) => {
-            const relPath = req.url === "/" ? "/index.html" : req.url.split("?")[0];
+            const relPath =
+                req.url === "/" || req.url === undefined ? "/index.html" : req.url.split("?")[0];
 
             // Serve fixture files from /fixtures/ — fallback path if file injection fails.
             const fixtureMatch = relPath.match(/^\/fixtures\/(.+)$/);
@@ -117,7 +131,7 @@ function buildBenchmark() {
  * Run the benchmark page with the given config and return the BenchmarkResults.
  *
  * @param {object} options
- * @param {{ url: string, label: string }[]} options.sources  Parquet sources to benchmark.
+ * @param {{ url: string, label: string }[][]} options.testCases Parquet sources to benchmark.
  * @param {boolean} [options.skipBuild=false]                  Skip webpack build.
  * @param {number}  [options.iterations]                        Override timed iteration count.
  * @param {number}  [options.warmupRounds]                      Override warmup round count.
@@ -128,7 +142,19 @@ function buildBenchmark() {
  *                                                              Chromium (default; required for CI).
  * @returns {Promise<object>}  Raw BenchmarkResults from the page.
  */
-async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmupRounds, channel }) {
+export async function runBenchmarkPage({
+    testCases,
+    skipBuild = false,
+    iterations,
+    warmupRounds,
+    channel,
+}: {
+    testCases: TestCase[];
+    skipBuild?: boolean;
+    iterations?: number;
+    warmupRounds?: number;
+    channel?: string;
+}): Promise<BenchmarkResults> {
     if (!skipBuild) buildBenchmark();
 
     if (!fs.existsSync(path.join(DIST_DIR, "index.html"))) {
@@ -137,11 +163,11 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
         );
     }
 
-    const launchOptions = { headless: true };
-    if (channel) launchOptions.channel = channel;
-
     const server = await startServer();
-    const browser = await chromium.launch(launchOptions);
+    const browser = await chromium.launch({
+        channel,
+        headless: true,
+    });
 
     try {
         const context = await browser.newContext();
@@ -156,13 +182,13 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
         // synchronously on startup — no callback handshake needed.
         await page.addInitScript({
             content: `window.__benchmarkConfig = ${JSON.stringify({
-                sources,
+                testCases,
                 iterations,
                 warmupRounds,
             })};`,
         });
 
-        console.log(`[playwright] Starting benchmark (${sources.length} source(s))...`);
+        console.log(`[playwright] Starting benchmark (${testCases.length} test case(s))...`);
         await page.goto(`http://localhost:${PORT}/`, { waitUntil: "domcontentloaded" });
 
         // Wait for the benchmark to signal it's ready for file injection
@@ -174,7 +200,9 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
         // The browser reads the file lazily via FileReader (BROWSER_FILEREADER protocol),
         // which is identical to how the real app loads files via the file picker —
         // no HTTP range-request overhead, so DuckDB sort performance matches real-user timing.
-        for (const source of sources) {
+        const loaded = new Set();
+        for (const source of testCases.flat()) {
+            if (source.label in loaded) continue; // Don't add duplicate sources
             const localMatch = source.url.match(
                 new RegExp(`^http://localhost:${PORT}/fixtures/(.+)$`)
             );
@@ -184,19 +212,25 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
 
             console.log(`[playwright] Injecting ${source.label} via setInputFiles...`);
             const inputHandle = await page.evaluateHandle(() => {
-                const inp = document.createElement("input");
+                const inp: HTMLInputElement = document.createElement("input");
                 inp.type = "file";
                 document.body.appendChild(inp);
                 return inp;
             });
             await inputHandle.setInputFiles(fixturePath);
             await page.evaluate((label) => {
-                const inputs = document.querySelectorAll("input[type=file]");
+                const inputs: NodeListOf<HTMLInputElement> = document.querySelectorAll(
+                    "input[type=file]"
+                );
                 const inp = inputs[inputs.length - 1];
                 window.__pendingLocalFiles = window.__pendingLocalFiles || {};
+                if (!inp.files) {
+                    throw new Error(`Injected file not found for ${label}.`);
+                }
                 window.__pendingLocalFiles[label] = inp.files[0];
                 inp.remove();
             }, source.label);
+            loaded.add(source.label);
         }
 
         // Signal the benchmark to proceed with injected File objects
