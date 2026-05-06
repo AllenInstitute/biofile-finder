@@ -635,7 +635,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                                                     />
                                                 </div>
                                                 <SecondaryButton
-                                                    text="+ Add parameter"
+                                                    text="+"
                                                     onClick={addOptionalParam}
                                                     disabled={!optionalSelectorKey}
                                                 />

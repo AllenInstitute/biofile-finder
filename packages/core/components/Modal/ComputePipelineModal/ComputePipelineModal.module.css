@@ -64,7 +64,7 @@
     align-items: stretch;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1400px) {
     .columns {
         grid-template-columns: 1fr;
     }
@@ -80,6 +80,8 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .section {
@@ -264,14 +266,14 @@
 }
 
 .add-param-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto;
     align-items: center;
     gap: 8px;
 }
 
 .add-param-dropdown {
-    flex: 1;
-    min-width: 220px;
+    min-width: 0;
 }
 
 /* ===================== RIGHT COLUMN ===================== */
