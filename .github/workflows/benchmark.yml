@@ -61,6 +61,7 @@ jobs:
           curl -fL "$BASE/synthetic-100k.parquet" -o packages/web/fixtures/synthetic-100k.parquet
           curl -fL "$BASE/synthetic-1m.parquet"   -o packages/web/fixtures/synthetic-1m.parquet
           curl -fL "$BASE/synthetic-10m.parquet"  -o packages/web/fixtures/synthetic-10m.parquet
+          curl -fL "$BASE/synthetic-10m-copy.parquet"  -o packages/web/fixtures/synthetic-10m-copy.parquet
 
       - uses: actions/setup-node@v4
         with:
