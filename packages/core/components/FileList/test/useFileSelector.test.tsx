@@ -99,7 +99,7 @@ describe("useFileSelector", () => {
         expectRangeSelected(actions, 3, 3);
     });
 
-    it("consecutive shift+clicks keep the original anchor", async () => {
+    it("consecutive shift+clicks keep the original fileset folder", async () => {
         const { actions, click, shiftClick, flush } = renderWithState(selectFileAt(2));
         await flush();
 
