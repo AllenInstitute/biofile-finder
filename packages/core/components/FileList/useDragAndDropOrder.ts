@@ -23,9 +23,7 @@ export default function useDragAndDropOrder(
     const onDragOver = React.useCallback(
         (e: React.DragEvent, itemKey: string) => {
             e.preventDefault();
-            if (itemKey !== draggedItem) {
-                setDragOverItem(itemKey);
-            }
+            setDragOverItem(itemKey !== draggedItem ? itemKey : null);
         },
         [draggedItem]
     );
