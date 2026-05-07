@@ -1,7 +1,7 @@
 import { isNil, uniq } from "lodash";
 
 import AnnotationService, { AnnotationDetails, AnnotationValue } from "..";
-import DatabaseService from "../../DatabaseService";
+import DatabaseService, { DatabaseQuery } from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import Annotation from "../../../entity/Annotation";
@@ -205,8 +205,18 @@ export default class DatabaseAnnotationService implements AnnotationService {
         // Try to fetch values for new annotations to compute optimal column widths
         const widthByAnnotation: Record<string, number> = {};
         try {
-            const lengthiestValues = await this.fetchLengthiestValues(annotationNames);
-            for (const { annotation, length } of lengthiestValues) {
+            const fetchQuery = this.fetchLengthiestValues(annotationNames);
+            // Set a timeout on this query in case it takes too long to return,
+            // since it could potentially be slow for annotations with very long values
+            // which is fine and we will just cancel it and fall back to default column widths in that case
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(() => {
+                    fetchQuery.cancel?.();
+                    reject(new Error("Timeout fetching annotation values"));
+                }, 1000)
+            );
+            const annotationToLength = await Promise.race([fetchQuery.promise, timeoutPromise]);
+            for (const [annotation, length] of Object.entries(annotationToLength)) {
                 // Grab whichever is longer, the longest value or the header
                 // to compute the column width needed to fit this column without truncation
                 const maxLengthOfColumn = Math.max(length, annotation.length);
@@ -243,9 +253,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
      */
     private fetchLengthiestValues(
         annotationNames: string[]
-    ): Promise<{ annotation: string; length: number }[]> {
+    ): DatabaseQuery<{ [annotation: string]: number }> {
         if (!this.dataSourceNames.length || annotationNames.length === 0) {
-            return Promise.resolve([]);
+            return { promise: Promise.resolve({}) };
         }
 
         const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
@@ -261,12 +271,19 @@ export default class DatabaseAnnotationService implements AnnotationService {
             .from(aggregateDataSourceName)
             .toSQL();
 
-        return this.databaseService.query(sql).promise.then((rows) =>
-            annotationNames.map((annotation) => ({
-                annotation,
-                length: parseInt(rows[0][annotation] ?? "0", 10),
-            }))
-        );
+        const query = this.databaseService.query<{ [annotation: string]: number }[]>(sql);
+        return {
+            promise: query.promise.then((results): { [annotation: string]: number } => {
+                const annotationToLength: { [annotation: string]: number } = {};
+                for (const row of results) {
+                    for (const [annotation, length] of Object.entries(row)) {
+                        annotationToLength[annotation] = length;
+                    }
+                }
+                return annotationToLength;
+            }),
+            cancel: query.cancel,
+        };
     }
 
     /**
