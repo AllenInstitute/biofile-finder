@@ -44,7 +44,6 @@
   background-color: inherit;
   color: var(--primary-text-color);
   padding: var(--inner-header-padding) 0;
-  transition: border-left 0.1s ease;
 }
 
 .drag-over {
