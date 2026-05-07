@@ -3,7 +3,9 @@
 
 "use strict";
 
-const fs = require("fs");
+import { BenchmarkResults } from "../benchmark/src/types";
+
+import fs from "fs";
 
 const REGRESSION_WARN_PCT = 25; // ≥25% slower → ⚠️
 const REGRESSION_SEVERE_PCT = 50; // ≥50% slower → ❌
@@ -12,17 +14,17 @@ const IMPROVEMENT_PCT = 25; // ≥25% faster → ✅
 // deltas on fast queries are dominated by noise rather than real regressions.
 const BADGE_MIN_MS = 500;
 
-function fmt(ms) {
+function fmt(ms: number | null | undefined) {
     if (ms === undefined || ms === null) return "—";
     return ms < 10 ? `${ms.toFixed(2)}ms` : `${ms.toFixed(1)}ms`;
 }
 
-function pctDelta(base, pr) {
+function pctDelta(base: number, pr: number) {
     if (!base) return null;
     return ((pr - base) / base) * 100;
 }
 
-function deltaBadge(base, pr) {
+function deltaBadge(base: number, pr: number) {
     const delta = pctDelta(base, pr);
     if (delta === null) return "N/A";
     const sign = delta >= 0 ? "+" : "";
@@ -41,8 +43,8 @@ if (!baseFile || !prFile) {
     process.exit(1);
 }
 
-const base = JSON.parse(fs.readFileSync(baseFile, "utf8"));
-const pr = JSON.parse(fs.readFileSync(prFile, "utf8"));
+const base: BenchmarkResults = JSON.parse(fs.readFileSync(baseFile, "utf8"));
+const pr: BenchmarkResults = JSON.parse(fs.readFileSync(prFile, "utf8"));
 
 const baseSources = new Map(base.results.map((s) => [s.labels.join(", "), s]));
 const prSources = new Map(pr.results.map((s) => [s.labels.join(", "), s]));
@@ -66,15 +68,18 @@ const allDeltas = [];
 
 for (const qName of allQueryNames) {
     for (const label of allLabels) {
-        const baseQ = baseSources.get(label)?.results.find((q) => q.name === qName);
-        const prQ = prSources.get(label)?.results.find((q) => q.name === qName);
+        const baseQ = baseSources.get(label)?.queries.find((q) => q.name === qName);
+        const prQ = prSources.get(label)?.queries.find((q) => q.name === qName);
         if (baseQ && prQ) {
-            allDeltas.push({
-                label: `\`${qName}\` @ ${label}`,
-                delta: pctDelta(baseQ.p50, prQ.p50),
-                baseP50: baseQ.p50,
-                prP50: prQ.p50,
-            });
+            const delta = pctDelta(baseQ.p50, prQ.p50);
+            if (delta !== null) {
+                allDeltas.push({
+                    label: `\`${qName}\` @ ${label}`,
+                    delta,
+                    baseP50: baseQ.p50,
+                    prP50: prQ.p50,
+                });
+            }
         }
     }
 }
@@ -121,8 +126,8 @@ lines.push("| **Query timings — p50** | | | |");
 for (const label of allLabels) {
     lines.push(`| _${label}_ | | | |`);
     for (const qName of allQueryNames) {
-        const baseQ = baseSources.get(label)?.results.find((q) => q.name === qName);
-        const prQ = prSources.get(label)?.results.find((q) => q.name === qName);
+        const baseQ = baseSources.get(label)?.queries.find((q) => q.name === qName);
+        const prQ = prSources.get(label)?.queries.find((q) => q.name === qName);
         lines.push(
             `| \`${qName}\`` +
                 ` | ${fmt(baseQ?.p50)}` +
@@ -140,8 +145,8 @@ lines.push("|-|-|-|-|");
 for (const label of allLabels) {
     lines.push(`| _${label}_ | | | |`);
     for (const qName of allQueryNames) {
-        const baseQ = baseSources.get(label)?.results.find((q) => q.name === qName);
-        const prQ = prSources.get(label)?.results.find((q) => q.name === qName);
+        const baseQ = baseSources.get(label)?.queries.find((q) => q.name === qName);
+        const prQ = prSources.get(label)?.queries.find((q) => q.name === qName);
         lines.push(
             `| \`${qName}\`` +
                 ` | ${fmt(baseQ?.p95)}` +
