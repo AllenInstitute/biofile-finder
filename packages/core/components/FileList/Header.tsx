@@ -37,7 +37,9 @@ function Header(
 
     const onReorder = React.useCallback(
         (newOrder: string[]) => {
-            const reorderedColumns = newOrder.map((name) => columns.find((c) => c.name === name)!);
+            const reorderedColumns = newOrder.flatMap(
+                (name) => columns.find((c) => c.name === name) || []
+            );
             dispatch(selection.actions.setColumns(reorderedColumns));
         },
         [columns, dispatch]
