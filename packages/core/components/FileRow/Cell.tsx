@@ -112,6 +112,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 <span
                     className={classNames(styles.resizeTarget, resizeTargetClassName)}
                     ref={this.resizeTarget}
+                    onClick={(evt) => evt.stopPropagation()} // prevent onClick events from bubbling up to the FileRow
                 >
                     |
                 </span>
