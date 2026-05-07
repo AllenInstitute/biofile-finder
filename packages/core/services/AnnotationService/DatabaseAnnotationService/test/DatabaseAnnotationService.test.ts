@@ -14,7 +14,7 @@ describe("DatabaseAnnotationService", () => {
             select_key: name.toLowerCase() + index,
         }));
         class MockDatabaseService extends DatabaseServiceNoop {
-            public query(): { promise: Promise<{ [key: string]: string }[]> } {
+            public query(): { promise: Promise<any> } {
                 return { promise: Promise.resolve(annotations) };
             }
         }
@@ -38,7 +38,7 @@ describe("DatabaseAnnotationService", () => {
             column_type: "VARCHAR",
         }));
         class MockDatabaseService extends DatabaseServiceNoop {
-            public query(): { promise: Promise<{ [key: string]: string }[]> } {
+            public query(): { promise: Promise<any> } {
                 return { promise: Promise.resolve(annotations) };
             }
         }
@@ -95,7 +95,7 @@ describe("DatabaseAnnotationService", () => {
             bar: name + index,
         }));
         class MockDatabaseService extends DatabaseServiceNoop {
-            public query(): { promise: Promise<{ [key: string]: string }[]> } {
+            public query(): { promise: Promise<any> } {
                 return { promise: Promise.resolve(annotations) };
             }
         }
@@ -154,7 +154,7 @@ describe("DatabaseAnnotationService", () => {
         });
 
         class MockDatabaseService extends DatabaseService {
-            public query(sql: string): { promise: Promise<{ [key: string]: string }[]> } {
+            public query(sql: string): { promise: Promise<any> } {
                 querySpy(sql); // pass SQL to the spy func
                 return { promise: Promise.resolve([]) };
             }
@@ -246,7 +246,7 @@ describe("DatabaseAnnotationService", () => {
         const annotationNames = ["Cell Line", "Is Split Scene", "Whatever"];
         const sampleRow = Object.fromEntries(annotationNames.map((name) => [name, "dummy value"]));
         class MockDatabaseService extends DatabaseService {
-            public query(sql: string): { promise: Promise<{ [key: string]: string }[]> } {
+            public query(sql: string): { promise: Promise<any> } {
                 if (sql.includes("SELECT *") && sql.includes("LIMIT 1")) {
                     // First query for fetchAvailableAnnotationsForHierarchy gets the available
                     // column names with a SELECT * FROM ... LIMIT 1
