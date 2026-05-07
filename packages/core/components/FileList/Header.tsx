@@ -88,7 +88,10 @@ function Header(
                 onDrop={() => onDrop(column.name)}
                 onDragEnd={onDragEnd}
             >
-                <span onClick={(evt) => onHeaderColumnClick(evt, column)}>
+                <span
+                    onClick={(evt) => onHeaderColumnClick(evt, column)}
+                    className={styles.headerClickTarget}
+                >
                     <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
                         <span className={styles.headerTitle}>
                             {annotationNameToAnnotationMap[column.name]?.displayName}

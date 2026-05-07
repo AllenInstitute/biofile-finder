@@ -33,10 +33,18 @@
   height: unset;
 }
 
+.header-click-target {
+  overflow: hidden;
+  min-width: 0;
+}
+
 .header-title {
+  display: inline-block;
+  max-width: 100%;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  vertical-align: middle;
 }
 
 .header-cell {
@@ -60,6 +68,8 @@
   display: flex;
   align-items: center;
   cursor: grab;
+  overflow: hidden;
+  min-width: 0;
 }
 
 /* The first cell should have rounded corners on the left side */

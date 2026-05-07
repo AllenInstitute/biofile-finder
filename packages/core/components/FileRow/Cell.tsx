@@ -106,9 +106,11 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                     minWidth: Cell.MINIMUM_WIDTH,
                 }}
             >
-                <Tooltip content={this.props.title}>
-                    <>{this.props.children}</>
-                </Tooltip>
+                <div className={styles.cellContent}>
+                    <Tooltip content={this.props.title}>
+                        <>{this.props.children}</>
+                    </Tooltip>
+                </div>
                 <span
                     className={classNames(styles.resizeTarget, resizeTargetClassName)}
                     ref={this.resizeTarget}
