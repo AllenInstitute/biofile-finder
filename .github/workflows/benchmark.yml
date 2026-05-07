@@ -100,8 +100,9 @@ jobs:
 
       - name: Generate comparison
         run: |
-          BASE_FILE=$(ls packages/web/benchmark-results-*.json | head -1)
-          npm --prefix packages/web run benchmark:compare "$BASE_FILE" /tmp/benchmark-compare.json >> "$GITHUB_STEP_SUMMARY"
+          BASE_FILE=$(ls benchmark-results-*.json | head -1)
+          npm run benchmark:compare "$BASE_FILE" /tmp/benchmark-compare.json >> "$GITHUB_STEP_SUMMARY"
+        working-directory: packages/web
 
       - name: Upload results
         if: always()
