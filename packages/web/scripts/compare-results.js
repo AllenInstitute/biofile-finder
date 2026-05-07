@@ -44,18 +44,21 @@ if (!baseFile || !prFile) {
 const base = JSON.parse(fs.readFileSync(baseFile, "utf8"));
 const pr = JSON.parse(fs.readFileSync(prFile, "utf8"));
 
-const baseSources = new Map(base.sources.map((s) => [s.label, s]));
-const prSources = new Map(pr.sources.map((s) => [s.label, s]));
+const baseSources = new Map(base.results.map((s) => [s.labels.join(", "), s]));
+const prSources = new Map(pr.results.map((s) => [s.labels.join(", "), s]));
 
 // PR result order is authoritative; base may have fewer sources.
 const allLabels = [
-    ...new Set([...pr.sources.map((s) => s.label), ...base.sources.map((s) => s.label)]),
+    ...new Set([
+        ...pr.results.map((s) => s.labels.join(", ")),
+        ...base.results.map((s) => s.labels.join(", ")),
+    ]),
 ];
 
 const allQueryNames = [
     ...new Set([
-        ...pr.sources.flatMap((s) => s.queries.map((q) => q.name)),
-        ...base.sources.flatMap((s) => s.queries.map((q) => q.name)),
+        ...pr.results.flatMap((s) => s.queries.map((q) => q.name)),
+        ...base.results.flatMap((s) => s.queries.map((q) => q.name)),
     ]),
 ];
 
@@ -63,8 +66,8 @@ const allDeltas = [];
 
 for (const qName of allQueryNames) {
     for (const label of allLabels) {
-        const baseQ = baseSources.get(label)?.queries.find((q) => q.name === qName);
-        const prQ = prSources.get(label)?.queries.find((q) => q.name === qName);
+        const baseQ = baseSources.get(label)?.results.find((q) => q.name === qName);
+        const prQ = prSources.get(label)?.results.find((q) => q.name === qName);
         if (baseQ && prQ) {
             allDeltas.push({
                 label: `\`${qName}\` @ ${label}`,
@@ -118,8 +121,8 @@ lines.push("| **Query timings — p50** | | | |");
 for (const label of allLabels) {
     lines.push(`| _${label}_ | | | |`);
     for (const qName of allQueryNames) {
-        const baseQ = baseSources.get(label)?.queries.find((q) => q.name === qName);
-        const prQ = prSources.get(label)?.queries.find((q) => q.name === qName);
+        const baseQ = baseSources.get(label)?.results.find((q) => q.name === qName);
+        const prQ = prSources.get(label)?.results.find((q) => q.name === qName);
         lines.push(
             `| \`${qName}\`` +
                 ` | ${fmt(baseQ?.p50)}` +
@@ -137,8 +140,8 @@ lines.push("|-|-|-|-|");
 for (const label of allLabels) {
     lines.push(`| _${label}_ | | | |`);
     for (const qName of allQueryNames) {
-        const baseQ = baseSources.get(label)?.queries.find((q) => q.name === qName);
-        const prQ = prSources.get(label)?.queries.find((q) => q.name === qName);
+        const baseQ = baseSources.get(label)?.results.find((q) => q.name === qName);
+        const prQ = prSources.get(label)?.results.find((q) => q.name === qName);
         lines.push(
             `| \`${qName}\`` +
                 ` | ${fmt(baseQ?.p95)}` +
@@ -190,7 +193,7 @@ if (regressions.length === 0 && improvements.length === 0) {
     }
 }
 
-const iters = pr.sources[0]?.queries[0]?.timings?.length ?? "?";
+const iters = pr.results[0]?.queries[0]?.timings?.length ?? "?";
 lines.push(
     `_Benchmarks run in headless Chromium with DuckDB-WASM. ` +
         `${iters} iterations per query. ` +
