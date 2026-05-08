@@ -1,5 +1,5 @@
 import { SpinnerSize } from "@fluentui/react";
-import { Edge, ReactFlow, EdgeTypes, useNodesState, useEdgesState } from "@xyflow/react";
+import { Edge, ReactFlow, EdgeTypes, useNodesState, useEdgesState, Controls } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import classNames from "classnames";
 import React from "react";
@@ -72,9 +72,10 @@ export default function NetworkGraph(props: NetworkGraphProps) {
                 onlyRenderVisibleElements
                 className={styles.graph}
                 edgesFocusable={false}
+                nodesDraggable={false}
                 nodesConnectable={false}
                 nodesFocusable={false}
-                elementsSelectable={false}
+                elementsSelectable={true}
                 edgesReconnectable={false}
                 colorMode="dark"
                 nodes={nodes}
@@ -84,7 +85,9 @@ export default function NetworkGraph(props: NetworkGraphProps) {
                 proOptions={{ hideAttribution: true }}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
-            />
+            >
+                <Controls showInteractive={false} />
+            </ReactFlow>
         </div>
     );
 }
