@@ -78,14 +78,16 @@ async function benchmarkSource(
             if (task.resetAnnotationCache) {
                 service.clearAnnotationCache(sourceName);
             }
+            const timings = timingsMap.get(task.name) ?? [];
+            timingsMap.set(task.name, timings);
             if (task.timing === "wall-clock") {
                 const start = performance.now();
                 await task.run(annotationSvc, fileSvc);
-                timingsMap.get(task.name)!.push(performance.now() - start);
+                timings.push(performance.now() - start);
             } else {
                 service.clearTimings();
                 await task.run(annotationSvc, fileSvc);
-                timingsMap.get(task.name)!.push(service.sumTimings());
+                timings.push(service.sumTimings());
             }
         }
     }
