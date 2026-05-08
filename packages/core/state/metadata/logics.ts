@@ -63,8 +63,7 @@ const requestAnnotations = createLogic({
  */
 const receiveAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const actions = deps.action as ReceiveAnnotationAction;
-        const annotations = actions.payload;
+        const { payload: annotations } = deps.action as ReceiveAnnotationAction;
         const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
         const currentColumns = selection.selectors.getColumns(deps.getState());
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
@@ -81,25 +80,39 @@ const receiveAnnotationsLogic = createLogic({
         );
         const columnNamesThatStillExist = columnsThatStillExist.map((column) => column.name);
 
-        // Grab the first countOfColumnsToShow annotations as columns based on the following priority:
-        // 1) Was already a column
-        // 2) Is just in the data source
-        const countOfColumnsToShow = Math.max(4, columnsThatStillExist.length);
-        const remainingMaxWidth = columnsThatStillExist.reduce(
-            (remainingWidth, column) => remainingWidth - column.width,
-            1
+        const newAnnotations = annotations.filter(
+            (annotation) => !columnNamesThatStillExist.includes(annotation.name)
         );
-        const columns = [
+
+        // TODO: To come in follow-up PR: calculate optimal column widths for new annotations based on content
+        // (currently defaulting to an arbitrary width for all new columns)
+        const widthByAnnotation: Record<string, number> = {};
+        // Try to fetch values for new annotations to compute optimal column widths
+        // const widthByAnnotation = await annotationService.fetchOptimalWidthForAnnotations(
+        //     newAnnotations.map((annotation) => annotation.name)
+        // );
+
+        let columns = [
             ...columnsThatStillExist,
-            ...annotations
-                .filter((annotation) => !columnNamesThatStillExist.includes(annotation.name))
-                .slice(0, countOfColumnsToShow - columnsThatStillExist.length)
-                .map((annotation) => ({
-                    name: annotation.name,
-                    width:
-                        remainingMaxWidth / (countOfColumnsToShow - columnsThatStillExist.length),
-                })),
+            ...newAnnotations.map((annotation) => ({
+                name: annotation.name,
+                width: widthByAnnotation[annotation.name],
+            })),
         ];
+
+        // If there were no columns selected, default to displaying
+        // "File Name" first for any data source
+        if (!columnsThatStillExist.length) {
+            // Remove filename annotations from columns before re-adding it at the front,
+            columns = columns.filter((column) => column.name !== AnnotationName.FILE_NAME);
+
+            // Add "File Name" back to the front of the columns array
+            columns.unshift({
+                name: AnnotationName.FILE_NAME,
+                width: widthByAnnotation[AnnotationName.FILE_NAME],
+            });
+        }
+
         dispatch(selection.actions.setColumns(columns));
 
         const isCurrentSortColumnValid =

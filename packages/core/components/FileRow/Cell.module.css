@@ -1,25 +1,27 @@
 .cell {
-    --padding: 16px;
-
     position: relative;
     display: inline-block;
+    box-sizing: border-box;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    padding-right: var(--padding);
     vertical-align: middle;
     font-size: initial;
     height: 100%;
     line-height: normal;
     background-color: inherit;
-}
 
-.cell:first-of-type {
-    padding-left: calc(var(--padding) / 2);
+    padding: 0 8px;
 }
 
 .resizable-cell {
     composes: cell;
+}
+
+.cell-content {
+    overflow: hidden;
+    /* Leave room for the resize handle */
+    width: calc(100% - 8px);
 }
 
 .cursor-resize-either-direction {
@@ -35,7 +37,8 @@
     font-size: 18px;
     font-weight: bolder;
     position: absolute;
-    right: calc(1em / 2);
+    /* TODO: Simplify??? */
+    right: calc((1em / 2) - 4px);
     text-align: center;
     top: 3px;
     touch-action: none;
