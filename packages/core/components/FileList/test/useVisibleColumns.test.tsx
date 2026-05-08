@@ -40,7 +40,7 @@ function renderWithContext(columns: Column[], scrollLeft: number, containerWidth
 
     const el = getByTestId("result");
     return {
-        columns: JSON.parse(el.getAttribute("data-columns")!) as string[],
+        columns: JSON.parse(el.getAttribute("data-columns") || "[]") as string[],
         left: Number(el.getAttribute("data-left")),
         right: Number(el.getAttribute("data-right")),
     };
