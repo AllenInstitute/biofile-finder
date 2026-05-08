@@ -33,6 +33,11 @@
   height: unset;
 }
 
+.header-click-target {
+  overflow: hidden;
+  min-width: 0;
+}
+
 .header-title {
   display: inline-block;
   max-width: 100%;
