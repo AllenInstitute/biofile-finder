@@ -99,7 +99,7 @@ describe("useFileSelector", () => {
         expectRangeSelected(actions, 3, 3);
     });
 
-    it("consecutive shift+clicks keep the original fileset folder", async () => {
+    it("clicking then shift+clicking keeps the original clicked row selected", async () => {
         const { actions, click, shiftClick, flush } = renderWithState(selectFileAt(2));
         await flush();
 
