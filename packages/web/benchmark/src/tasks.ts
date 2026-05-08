@@ -1,3 +1,26 @@
+/**
+ * Benchmark task definitions for BFF's DuckDB-WASM queries.
+ *
+ * Design rationale
+ * ----------------
+ * Tasks are defined at the **service layer** rather than as raw SQL strings. Calling through
+ * DatabaseAnnotationService / DatabaseFileService exercises the full production code path:
+ * SQL construction, DuckDB query execution, and result mapping.
+ *
+ * Tasks are deliberately **granular** (one service call each) so regressions can be pinpointed
+ * to a specific query type. A high-level user action (e.g. "add a data source and see the
+ * first files") is a composition of several tasks here; the individual timings make it easier
+ * to identify which step regressed.
+ *
+ * Maintenance
+ * -----------
+ * Keep BENCHMARK_TASKS in sync with user-facing operations. When a new query type is added
+ * to a service, add a corresponding task. When a query is removed or restructured, update
+ * or drop the task so the list stays an accurate reflection of what users wait on.
+ *
+ * Fixture columns referenced by name (e.g. "cell_line", "focus_score") must exist in the
+ * generated fixture — see packages/web/benchmark/src/fixture-generator.ts.
+ */
 import DatabaseAnnotationService from "../../../core/services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../../core/services/FileService/DatabaseFileService";
 import FileDownloadServiceNoop from "../../../core/services/FileDownloadService/FileDownloadServiceNoop";
