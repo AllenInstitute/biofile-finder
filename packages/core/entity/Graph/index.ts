@@ -138,7 +138,6 @@ function createFileNode(file: FileDetail, isSelected = false): FileNode {
             file,
             isSelected,
         },
-        draggable: false,
         // Placeholder values: Overwritten in this.nodes()
         position: { x: 0, y: 0 },
         width: FILE_NODE_WIDTH,
@@ -329,6 +328,13 @@ export default class Graph {
         this.graph = new dagre.graphlib.Graph<FileNode | MetadataNode>()
             .setGraph({ rankdir: "TB" })
             .setDefaultEdgeLabel(() => ({}));
+    }
+
+    /**
+     * Reset the layout of the graph to its default (tree view)
+     */
+    public resetLayout() {
+        dagre.layout(this.graph);
     }
 
     /**
@@ -604,7 +610,6 @@ export default class Graph {
                 file: undefined,
                 isSelected: false,
             },
-            draggable: false,
             width: METADATA_NODE_WIDTH,
             height: METADATA_NODE_HEIGHT,
             // Placeholder values: Overwritten in this.nodes()
