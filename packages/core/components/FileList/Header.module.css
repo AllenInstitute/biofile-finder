@@ -103,6 +103,4 @@
   margin-top: 5px; /* small space between header and first item of list */
 }
 
-.list-parent > div > div:nth-child(even) > div {
-  background-color: var(--primary-background-color);
-}
+

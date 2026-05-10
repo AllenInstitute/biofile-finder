@@ -93,6 +93,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
                 [styles.selected]: isSelected,
                 [styles.focused]: isFocused,
                 [styles.smallFont]: isSmallFont,
+                [styles.evenRow]: index % 2 === 0,
             })}
             style={{
                 ...style,
