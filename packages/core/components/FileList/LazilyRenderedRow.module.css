@@ -35,3 +35,8 @@
 .shimmer > div {
     border-radius: var(--small-border-radius);
 }
+
+/* Hides strange little white pixel rendered by shimmer due to border radius */
+.shimmer svg:last-of-type {
+    display: none;
+}
