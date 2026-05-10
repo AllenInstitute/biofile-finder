@@ -25,5 +25,9 @@ export default interface AnnotationService {
         filters: FileFilter[]
     ): Promise<string[]>;
     fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]>;
+    fetchOptimalWidthForAnnotations(
+        annotationNames: string[],
+        ignoreWidthLimit?: boolean
+    ): Promise<Record<string, number>>;
     validateAnnotationValues(name: string, values: AnnotationValue[]): Promise<boolean>;
 }

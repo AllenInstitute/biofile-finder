@@ -7,6 +7,7 @@ import Annotation, { AnnotationResponse, AnnotationResponseMms } from "../../../
 import { AnnotationType, AnnotationTypeIdMap } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
+import { DEFAULT_COLUMN_WIDTH } from "../../../entity/SearchParams";
 
 enum QueryParam {
     EXCLUDE = "exclude",
@@ -152,6 +153,25 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         }
 
         return [...TOP_LEVEL_FILE_ANNOTATION_NAMES, ...response.data, ...annotations];
+    }
+
+    /**
+     * Fetch the lengthiest values for the specified annotations.
+     *
+     * **Not actually implemented** for this feature due to backend
+     * not having a way to fetch lengthiest values for annotations.
+     * Instead, we'll just return default widths for all annotations.
+     */
+    public async fetchOptimalWidthForAnnotations(
+        annotationNames: string[]
+    ): Promise<Record<string, number>> {
+        const widthByAnnotation: Record<string, number> = {};
+        for (const annotationName of annotationNames) {
+            if (!widthByAnnotation.hasOwnProperty(annotationName)) {
+                widthByAnnotation[annotationName] = DEFAULT_COLUMN_WIDTH;
+            }
+        }
+        return widthByAnnotation;
     }
 
     /**

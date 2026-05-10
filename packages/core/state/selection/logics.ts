@@ -64,7 +64,7 @@ import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import Annotation from "../../entity/Annotation";
-import SearchParams, { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
+import SearchParams from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -426,17 +426,16 @@ const expandAllFileFolders = createLogic({
 const resizeColumnLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: column } = deps.action as ResizeColumnAction;
+        const annotationService = interaction.selectors.getAnnotationService(deps.getState());
         const columns = selectionSelectors.getColumns(deps.getState());
 
         let width = column.width;
         if (!width) {
-            // TODO: To come in follow-up
-            // const autoSizedWidth = await annotationService.fetchOptimalWidthForAnnotations(
-            //     [column.name],
-            //     true
-            // );
-            // width = autoSizedWidth[column.name] as number;
-            width = DEFAULT_COLUMN_WIDTH;
+            const autoSizedWidth = await annotationService.fetchOptimalWidthForAnnotations(
+                [column.name],
+                true
+            );
+            width = autoSizedWidth[column.name] as number;
         }
 
         dispatch(

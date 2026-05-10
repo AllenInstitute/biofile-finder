@@ -26,7 +26,6 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import FileSort, { SortOrder } from "../../entity/FileSort";
-import { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
 /**
@@ -65,6 +64,7 @@ const requestAnnotations = createLogic({
 const receiveAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: annotations } = deps.action as ReceiveAnnotationAction;
+        const annotationService = interaction.selectors.getAnnotationService(deps.getState());
         const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
         const currentColumns = selection.selectors.getColumns(deps.getState());
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
@@ -85,20 +85,16 @@ const receiveAnnotationsLogic = createLogic({
             (annotation) => !columnNamesThatStillExist.includes(annotation.name)
         );
 
-        // TODO: To come in follow-up PR: calculate optimal column widths for new annotations based on content
-        // (currently defaulting to an arbitrary width for all new columns)
-        const widthByAnnotation: Record<string, number> = {};
         // Try to fetch values for new annotations to compute optimal column widths
-        // const widthByAnnotation = await annotationService.fetchOptimalWidthForAnnotations(
-        //     newAnnotations.map((annotation) => annotation.name)
-        // );
+        const widthByAnnotation = await annotationService.fetchOptimalWidthForAnnotations(
+            newAnnotations.map((annotation) => annotation.name)
+        );
 
         let columns = [
             ...columnsThatStillExist,
             ...newAnnotations.map((annotation) => ({
                 name: annotation.name,
-                // TODO: Remove default when above optimal width fetching is implemented
-                width: widthByAnnotation[annotation.name] ?? DEFAULT_COLUMN_WIDTH,
+                width: widthByAnnotation[annotation.name],
             })),
         ];
 
@@ -111,8 +107,7 @@ const receiveAnnotationsLogic = createLogic({
             // Add "File Name" back to the front of the columns array
             columns.unshift({
                 name: AnnotationName.FILE_NAME,
-                // TODO: Remove default when above optimal width fetching is implemented
-                width: widthByAnnotation[AnnotationName.FILE_NAME] ?? DEFAULT_COLUMN_WIDTH,
+                width: widthByAnnotation[AnnotationName.FILE_NAME],
             });
         }
 
