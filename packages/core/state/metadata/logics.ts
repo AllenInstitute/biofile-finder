@@ -26,6 +26,7 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import FileSort, { SortOrder } from "../../entity/FileSort";
+import { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
 /**
@@ -96,7 +97,8 @@ const receiveAnnotationsLogic = createLogic({
             ...columnsThatStillExist,
             ...newAnnotations.map((annotation) => ({
                 name: annotation.name,
-                width: widthByAnnotation[annotation.name],
+                // TODO: Remove default when above optimal width fetching is implemented
+                width: widthByAnnotation[annotation.name] ?? DEFAULT_COLUMN_WIDTH,
             })),
         ];
 
@@ -109,7 +111,8 @@ const receiveAnnotationsLogic = createLogic({
             // Add "File Name" back to the front of the columns array
             columns.unshift({
                 name: AnnotationName.FILE_NAME,
-                width: widthByAnnotation[AnnotationName.FILE_NAME],
+                // TODO: Remove default when above optimal width fetching is implemented
+                width: widthByAnnotation[AnnotationName.FILE_NAME] ?? DEFAULT_COLUMN_WIDTH,
             });
         }
 
