@@ -110,19 +110,24 @@ function Header(
                 onDragEnd={onDragEnd}
                 onClick={(evt) => onHeaderColumnClick(evt, column.name)}
             >
-                <span onClick={(evt) => onHeaderNameClick(evt, column.name)}>
-                    <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
-                        <span className={styles.headerTitle}>
-                            {annotationNameToAnnotationMap[column.name]?.displayName}
-                        </span>
-                    </Tooltip>
+                <div
+                    onClick={(evt) => onHeaderNameClick(evt, column.name)}
+                    className={styles.headerClickTarget}
+                >
+                    <span className={styles.headerTooltipWrapper}>
+                        <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
+                            <span className={styles.headerTitle}>
+                                {annotationNameToAnnotationMap[column.name]?.displayName}
+                            </span>
+                        </Tooltip>
+                    </span>
                     {sortColumn?.annotationName === column.name &&
                         (sortColumn?.order === SortOrder.DESC ? (
                             <Icon className={styles.sortIcon} iconName="ChevronDown" />
                         ) : (
                             <Icon className={styles.sortIcon} iconName="ChevronUp" />
                         ))}
-                </span>
+                </div>
             </div>
         ),
         width: column.width,
