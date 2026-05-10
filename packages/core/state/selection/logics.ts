@@ -54,7 +54,6 @@ import {
     EXPAND_ALL_FILE_FOLDERS,
     toggleNullValueGroups,
     setIsLoadingSource,
-    reorderColumns,
     RESIZE_COLUMN,
     ResizeColumnAction,
     setColumns,
@@ -475,7 +474,7 @@ const decodeSearchParamsLogics = createLogic({
         batch(() => {
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
-            columns && dispatch(reorderColumns(columns.map((c, moveTo) => ({ ...c, moveTo }))));
+            columns && dispatch(setColumns(columns));
             dispatch(setFileFilters(filters));
             fileView && dispatch(setFileView(fileView) as AnyAction);
             dispatch(setOpenFileFolders(openFolders));
