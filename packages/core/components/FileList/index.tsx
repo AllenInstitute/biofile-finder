@@ -101,9 +101,16 @@ export default function FileList(props: FileListProps) {
     const gridRef = React.useRef<FixedSizeGrid | null>(null);
     const outerRef = React.useRef<HTMLDivElement | null>(null);
 
-    // TODO: Add a description for this!
+    // These refs support the scroll-tracking effect below without causing extra renders.
+    // lastScrollLeftRef lets us ignore scroll events that are purely vertical (react-window
+    // fires one scroll event for both axes, but we only care about horizontal changes).
+    // rafIdRef lets us coalesce rapid scroll events into a single state update per animation frame.
     const lastScrollLeftRef = React.useRef(0);
     const rafIdRef = React.useRef(0);
+    // Tracks horizontal scroll position and container width for HorizontalScrollContext, which
+    // drives column-level virtualisation in useVisibleCells. Initialises containerWidth on mount
+    // (it starts at 0, which causes the hook to fall back to rendering the first 6 columns).
+    // Re-attaches the listener when totalCount changes because react-window may remount outerRef.
     React.useEffect(() => {
         const el = outerRef.current;
         if (!el) return;
