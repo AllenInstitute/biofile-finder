@@ -134,6 +134,18 @@ export default function FileList(props: FileListProps) {
         };
     }, [totalCount]); // re-attach when totalCount changes (outerRef may remount)
 
+    // Restore horizontal scroll position after InfiniteLoader remounts (e.g., sort changes).
+    // The key change unmounts the scrollable container, creating a new one with scrollLeft=0.
+    // lastScrollLeftRef still holds the previous position since FileList itself isn't remounted.
+    React.useLayoutEffect(() => {
+        const el = outerRef.current;
+        if (!el) return;
+        const target = lastScrollLeftRef.current;
+        if (target > 0 && Math.abs(el.scrollLeft - target) > 1) {
+            el.scrollLeft = target;
+        }
+    });
+
     // This hook is responsible for ensuring that if the details pane is currently showing a file row
     // within this FileList the file row shown in the details pane is scrolled into view.
     React.useEffect(() => {
