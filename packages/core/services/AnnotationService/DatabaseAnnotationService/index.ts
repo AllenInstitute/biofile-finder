@@ -8,7 +8,7 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
-import { DEFAULT_COLUMN_WIDTH, Source } from "../../../entity/SearchParams";
+import { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH, Source } from "../../../entity/SearchParams";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
 interface Config {
@@ -225,9 +225,12 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 const maxLengthOfColumnInPx =
                     Math.ceil(maxLengthOfColumn * this.sampleCharWidthInPx) + 8;
                 // Avoid letting width get too large for extremely long values by capping it
-                const width = ignoreWidthLimit
+                const minOptimalWidth = ignoreWidthLimit
                     ? maxLengthOfColumnInPx
                     : Math.min(maxLengthOfColumnInPx, DEFAULT_COLUMN_WIDTH * 3);
+                // Avoid letting width get too small by setting a minimum width
+                // like in the case of canvas measurement failing
+                const width = Math.max(minOptimalWidth, MINIMUM_COLUMN_WIDTH);
                 widthByAnnotation[annotation] = width;
             }
         } catch {
