@@ -52,7 +52,12 @@
     border-bottom: 1px solid var(--border-color);
     display: flex;
     margin: 0 16px;
-    padding: 4px 0 5px 0;
+    padding: 26px 0 5px 0;
+}
+
+/* The first header should have different top padding */
+.button-menu-header:first-of-type {
+    padding-top: 4px
 }
 
 .button-menu-header > div {
