@@ -10,7 +10,7 @@ import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
-export interface DatabaseQuery<T> {
+export interface CancellablePromise<T> {
     promise: Promise<T>;
     cancel?: (reason?: string) => void;
 }
@@ -156,11 +156,11 @@ export default abstract class DatabaseService {
         }
     }
 
-    public query<T = { [key: string]: any }[]>(sql: string): DatabaseQuery<T> {
+    public query<T = { [key: string]: any }>(sql: string): CancellablePromise<T[]> {
         return { promise: this.runQuery<T>(sql) };
     }
 
-    private async runQuery<T>(sql: string): Promise<T> {
+    private async runQuery<T>(sql: string): Promise<T[]> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }

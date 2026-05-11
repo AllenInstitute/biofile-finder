@@ -1,7 +1,7 @@
 import { isNil, uniq } from "lodash";
 
 import AnnotationService, { AnnotationDetails, AnnotationValue } from "..";
-import DatabaseService, { DatabaseQuery } from "../../DatabaseService";
+import DatabaseService, { CancellablePromise } from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
@@ -255,7 +255,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
      */
     private fetchLengthiestValues(
         annotationNames: string[]
-    ): DatabaseQuery<{ [annotation: string]: number }> {
+    ): CancellablePromise<{ [annotation: string]: number }> {
         if (!this.dataSourceNames.length || annotationNames.length === 0) {
             return { promise: Promise.resolve({}) };
         }
@@ -273,7 +273,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
             .from(aggregateDataSourceName)
             .toSQL();
 
-        const query = this.databaseService.query<{ [annotation: string]: number }[]>(sql);
+        const query = this.databaseService.query<{ [annotation: string]: number }>(sql);
         return {
             promise: query.promise.then((results): { [annotation: string]: number } => {
                 const annotationToLength: { [annotation: string]: number } = {};

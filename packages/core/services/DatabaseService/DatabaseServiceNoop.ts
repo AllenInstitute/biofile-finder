@@ -1,5 +1,5 @@
 import { noop } from "lodash";
-import DatabaseService, { DatabaseQuery } from ".";
+import DatabaseService, { CancellablePromise } from ".";
 
 export default class DatabaseServiceNoop extends DatabaseService {
     public deleteSourceMetadata(): Promise<void> {
@@ -22,7 +22,7 @@ export default class DatabaseServiceNoop extends DatabaseService {
         return Promise.reject("DatabaseServiceNoop:saveQuery");
     }
 
-    public query<T>(): DatabaseQuery<T> {
+    public query<T>(): CancellablePromise<T> {
         return { promise: Promise.reject("DatabaseServiceNoop:query"), cancel: noop };
     }
 
