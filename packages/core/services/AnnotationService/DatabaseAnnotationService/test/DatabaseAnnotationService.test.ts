@@ -1,9 +1,11 @@
 import { expect } from "chai";
 import sinon from "sinon";
 
-import FileFilter, { FilterType } from "../../../../entity/FileFilter";
 import DatabaseService from "../../../DatabaseService";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
+import FileFilter, { FilterType } from "../../../../entity/FileFilter";
+import { DEFAULT_COLUMN_WIDTH } from "../../../../entity/SearchParams";
 import SQLBuilder from "../../../../entity/SQLBuilder";
 
 import DatabaseAnnotationService from "..";
@@ -276,6 +278,145 @@ describe("DatabaseAnnotationService", () => {
                 "cas9",
             ]);
             expect(values).to.deep.equal(annotationNames);
+        });
+    });
+
+    describe("fetchOptimalWidthForAnnotations", () => {
+        it("caps width at DEFAULT_COLUMN_WIDTH * 3 when ignoreWidthLimit is false", async () => {
+            // Return a very long value length that would exceed the cap
+            class MockDatabaseService extends DatabaseServiceNoop {
+                public query(): { promise: Promise<any> } {
+                    return {
+                        promise: Promise.resolve([{ LongAnnotation: 500 }]),
+                    };
+                }
+            }
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: ["source1"],
+                databaseService: new MockDatabaseService(),
+            });
+
+            const result = await annotationService.fetchOptimalWidthForAnnotations([
+                "LongAnnotation",
+            ]);
+
+            expect(result["LongAnnotation"]).to.be.at.most(DEFAULT_COLUMN_WIDTH * 3);
+        });
+
+        it("does not cap width when ignoreWidthLimit is true", async () => {
+            // Return a very long value length that would exceed the cap
+            class MockDatabaseService extends DatabaseServiceNoop {
+                public query(): { promise: Promise<any> } {
+                    return {
+                        promise: Promise.resolve([{ LongAnnotation: 500 }]),
+                    };
+                }
+            }
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: ["source1"],
+                databaseService: new MockDatabaseService(),
+            });
+
+            const result = await annotationService.fetchOptimalWidthForAnnotations(
+                ["LongAnnotation"],
+                true
+            );
+
+            // With ignoreWidthLimit=true, width should not be capped
+            expect(result["LongAnnotation"]).to.be.greaterThan(DEFAULT_COLUMN_WIDTH * 3);
+        });
+
+        it("falls back to DEFAULT_COLUMN_WIDTH when query fails", async () => {
+            class MockDatabaseService extends DatabaseServiceNoop {
+                public query(): { promise: Promise<any> } {
+                    return {
+                        promise: Promise.reject(new Error("query error")),
+                    };
+                }
+            }
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: ["source1"],
+                databaseService: new MockDatabaseService(),
+            });
+
+            const result = await annotationService.fetchOptimalWidthForAnnotations(["SomeColumn"]);
+
+            expect(result["SomeColumn"]).to.equal(DEFAULT_COLUMN_WIDTH);
+        });
+
+        it("includes TOP_LEVEL_FILE_ANNOTATIONS with default widths when not in query results", async () => {
+            class MockDatabaseService extends DatabaseServiceNoop {
+                public query(): { promise: Promise<any> } {
+                    return {
+                        promise: Promise.resolve([{ CustomAnnotation: 15 }]),
+                    };
+                }
+            }
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: ["source1"],
+                databaseService: new MockDatabaseService(),
+            });
+
+            const result = await annotationService.fetchOptimalWidthForAnnotations([
+                "CustomAnnotation",
+            ]);
+
+            // All top-level file annotations should be present with default widths
+            for (const annotation of TOP_LEVEL_FILE_ANNOTATIONS) {
+                expect(result).to.have.property(annotation.name);
+                expect(result[annotation.name]).to.equal(DEFAULT_COLUMN_WIDTH);
+            }
+        });
+
+        it("returns default widths when dataSourceNames is empty", async () => {
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: [],
+                databaseService: new DatabaseServiceNoop(),
+            });
+
+            const result = await annotationService.fetchOptimalWidthForAnnotations(["SomeColumn"]);
+
+            // fetchLengthiestValues returns {} for empty data sources, so all should be default
+            expect(result["SomeColumn"]).to.equal(DEFAULT_COLUMN_WIDTH);
+        });
+
+        it("uses annotation name length when it is longer than the longest value", async () => {
+            // Annotation name "VeryLongAnnotationName" (22 chars) > longest value length (5)
+            class MockDatabaseService extends DatabaseServiceNoop {
+                public query(): { promise: Promise<any> } {
+                    return {
+                        promise: Promise.resolve([{ VeryLongAnnotationName: 5 }]),
+                    };
+                }
+            }
+            const annotationService = new DatabaseAnnotationService({
+                dataSourceNames: ["source1"],
+                databaseService: new MockDatabaseService(),
+            });
+
+            const resultShortValue = await annotationService.fetchOptimalWidthForAnnotations([
+                "VeryLongAnnotationName",
+            ]);
+
+            // Now test with a short annotation name but long value
+            class MockDatabaseService2 extends DatabaseServiceNoop {
+                public query(): { promise: Promise<any> } {
+                    return {
+                        promise: Promise.resolve([{ X: 5 }]),
+                    };
+                }
+            }
+            const annotationService2 = new DatabaseAnnotationService({
+                dataSourceNames: ["source1"],
+                databaseService: new MockDatabaseService2(),
+            });
+            const resultShortName = await annotationService2.fetchOptimalWidthForAnnotations(["X"]);
+
+            // The width for "VeryLongAnnotationName" should be wider because
+            // the annotation name is longer than the value
+            expect(resultShortValue["VeryLongAnnotationName"]).to.be.greaterThan(
+                resultShortName["X"]
+            );
         });
     });
 });
