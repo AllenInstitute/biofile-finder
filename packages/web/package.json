@@ -3,7 +3,7 @@
   "description": "A web application for organizing that data, and provide simple hooks for incorporating that data into both programmatic and non-programmatic workflows",
   "main": "src/index.tsx",
   "scripts": {
-    "benchmark": "node scripts/run-local.js",
+    "benchmark": "tsx scripts/run-local.ts",
     "benchmark:regression": "node scripts/run-regression.js",
     "benchmark:compare": "tsx scripts/compare-results.ts",
     "benchmark:summary": "node scripts/summarize-results.js",

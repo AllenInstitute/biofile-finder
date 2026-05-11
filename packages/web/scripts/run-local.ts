@@ -1,16 +1,18 @@
 // Local benchmark runner for developer machines. Supports cloud (S3/https) and local
 // fixtures, single scale or all scales, and side-by-side cloud vs local comparison (--full).
 
-"use strict";
+import { ParquetSource } from "../benchmark/src/types";
 
-const path = require("path");
-const fs = require("fs");
-const { execSync } = require("child_process");
-const { runBenchmarkPage } = require("./lib/run-benchmark-page");
+import path from "path";
+import fs from "fs";
+import { execSync } from "child_process";
+import { runBenchmarkPage } from "./lib/run-benchmark-page";
 
 const LOCAL_BASE = "http://localhost:18765/fixtures/synthetic";
 const REMOTE_BASE =
     "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1/synthetic";
+
+type FileIdentifier = "100k" | "1m" | "10m" | "10m-copy";
 const FILE_TO_ENV = {
     "100k": "BENCHMARK_REAL_100K_URL",
     "1m": "BENCHMARK_REAL_1M_URL",
@@ -18,23 +20,22 @@ const FILE_TO_ENV = {
     "10m-copy": "BENCHMARK_REAL_10M_2_URL",
 };
 
+type ScaleIdentifier = "100k" | "1m" | "10m" | "10m+10m";
 const TEST_CASES_MAP = {
-    "100k": ["100k"],
-    "1m": ["1m"],
-    "10m": ["10m"],
-    "10m+10m": ["10m", "10m-copy"],
+    "100k": ["100k"] as FileIdentifier[],
+    "1m": ["1m"] as FileIdentifier[],
+    "10m": ["10m"] as FileIdentifier[],
+    "10m+10m": ["10m", "10m-copy"] as FileIdentifier[],
 };
 
-const useLocal = process.argv.includes("--local");
-const useFull = process.argv.includes("--full");
+function validateScaleArg(scale: string): asserts scale is ScaleIdentifier {
+    if (!(Object.keys(TEST_CASES_MAP).indexOf(scale) !== -1)) {
+        throw new Error();
+    }
+}
 
-const scaleArg = (() => {
-    const idx = process.argv.indexOf("--scale");
-    return idx !== -1 ? process.argv[idx + 1] : null;
-})();
-
-function getURL(partialFileName, useLocal) {
-    if (!partialFileName in FILE_TO_ENV) {
+function getURL(partialFileName: FileIdentifier, useLocal: boolean) {
+    if (!(partialFileName in FILE_TO_ENV)) {
         throw new Error(
             `${partialFileName} not recognized. Choose from ${Object.keys(FILE_TO_ENV)}`
         );
@@ -48,7 +49,11 @@ function getURL(partialFileName, useLocal) {
     }
 }
 
-function getSources(partialFileNames, useLocal, addSuffix) {
+function getSources(
+    partialFileNames: FileIdentifier[],
+    useLocal: boolean,
+    addSuffix?: boolean
+): ParquetSource[] {
     const suffix = useLocal ? "local" : "cloud";
     return partialFileNames.map((file) => {
         return {
@@ -58,32 +63,46 @@ function getSources(partialFileNames, useLocal, addSuffix) {
     });
 }
 
-let testCases;
-if (useFull) {
-    testCases = [];
-    Object.values(TEST_CASES_MAP).forEach((files) => {
-        testCases.push(getSources(files, false));
-        testCases.push(getSources(files, true));
-    });
-} else if (scaleArg) {
-    testCases = [getSources(TEST_CASES_MAP[scaleArg], useLocal)];
-} else {
-    testCases = Object.values(TEST_CASES_MAP).map((files) => {
-        return getSources(files, useLocal);
-    });
-}
-
-function getArgValue(flag) {
+function getArgValue(flag: string) {
     const idx = process.argv.indexOf(flag);
     return idx !== -1 ? parseInt(process.argv[idx + 1], 10) : undefined;
 }
 
+function parseArgs() {
+    const scaleIdx = process.argv.indexOf("--scale");
+    const scaleArg = scaleIdx !== -1 ? process.argv[scaleIdx + 1] : null;
+
+    return {
+        useLocal: process.argv.includes("--local"),
+        useFull: process.argv.includes("--full"),
+        scaleArg,
+        skipBuild: process.argv.includes("--skip-build"),
+        useChromium: process.argv.includes("--chromium"),
+        iterations: getArgValue("--iterations"),
+        warmup: getArgValue("--warmup"),
+    };
+}
+
 async function main() {
-    const skipBuild = process.argv.includes("--skip-build");
-    const useChromium = process.argv.includes("--chromium");
+    const { useLocal, useFull, scaleArg, skipBuild, useChromium, iterations, warmup } = parseArgs();
+
+    let testCases: ParquetSource[][];
+    if (useFull) {
+        testCases = [];
+        Object.values(TEST_CASES_MAP).forEach((files) => {
+            testCases.push(getSources(files, false));
+            testCases.push(getSources(files, true));
+        });
+    } else if (scaleArg) {
+        validateScaleArg(scaleArg);
+        testCases = [getSources(TEST_CASES_MAP[scaleArg], useLocal)];
+    } else {
+        testCases = Object.values(TEST_CASES_MAP).map((files) => {
+            return getSources(files, useLocal);
+        });
+    }
+
     const channel = useChromium ? undefined : "chrome";
-    const iterations = getArgValue("--iterations");
-    const warmup = getArgValue("--warmup");
 
     console.log(`[local] Running against ${testCases.length} test case(s):`);
     for (const testCase of testCases) {
