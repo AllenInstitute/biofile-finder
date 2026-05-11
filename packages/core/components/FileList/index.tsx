@@ -144,7 +144,7 @@ export default function FileList(props: FileListProps) {
         if (target > 0 && Math.abs(el.scrollLeft - target) > 1) {
             el.scrollLeft = target;
         }
-    });
+    }, [fileSet.instanceId, fileView]);
 
     // This hook is responsible for ensuring that if the details pane is currently showing a file row
     // within this FileList the file row shown in the details pane is scrolled into view.
