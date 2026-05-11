@@ -55,12 +55,3 @@
 .view-link > button {
     transform: translateY(-8px);
 }
-
-.section-header {
-    padding-top: 12px;
-    padding-bottom: 5px;
-}
-
-.section-header + li {
-    padding-top: 5px;
-}
