@@ -51,7 +51,6 @@ const RECOMMENDED_APPS_HEADER = {
     text: "RECOMMENDED",
     title: "Apps that are recommended for this file type",
     itemType: ContextualMenuItemType.Header,
-    className: styles.sectionHeader,
 };
 
 const COMPATIBLE_APPS_HEADER = {
@@ -59,7 +58,6 @@ const COMPATIBLE_APPS_HEADER = {
     text: "COMPATIBLE WITH FILE TYPE",
     title: "Apps that are expected to support this file type",
     itemType: ContextualMenuItemType.Header,
-    className: styles.sectionHeader,
 };
 
 const INCOMPATIBLE_APPS_HEADER = {
@@ -67,7 +65,6 @@ const INCOMPATIBLE_APPS_HEADER = {
     text: "NOT COMPATIBLE WITH FILE TYPE",
     title: "Apps that are not expected to support this file type",
     itemType: ContextualMenuItemType.Header,
-    className: styles.sectionHeader,
 };
 
 const APPS = (
@@ -582,8 +579,9 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         });
     }
 
-    // Priority apps are those that are known to work well with the file type
-    // or those defined by the author of the dataset
+    // Priority is given to apps recommended by the author then those that are
+    // compatible by file type.
+    // Files not compatible by file type are still shown but only ever in the sub-menu
     const menuItems: IContextualMenuItem[] = [];
     const subMenuItems: IContextualMenuItem[] = [];
     if (authorDefinedApps.length) {
