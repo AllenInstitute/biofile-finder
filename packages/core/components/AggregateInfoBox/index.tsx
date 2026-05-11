@@ -93,10 +93,10 @@ export default function AggregateInfoBox() {
                         Total Files <br /> Selected
                     </h6>
                 </div>
-                {aggregateData?.count && (
+                {(isLoading || aggregateData?.count) && (
                     <div className={styles.column}>
                         <div className={styles.columnData}>
-                            {!isLoading ? (
+                            {!isLoading && aggregateData ? (
                                 aggregateData.count
                             ) : (
                                 <LoadingIcon data-testid="aggregate-info-box-spinner" />
@@ -107,10 +107,10 @@ export default function AggregateInfoBox() {
                         </h6>
                     </div>
                 )}
-                {aggregateData?.size && (
+                {(isLoading || aggregateData?.size) && (
                     <div className={styles.column}>
                         <div className={styles.columnData}>
-                            {!isLoading ? (
+                            {!isLoading && aggregateData ? (
                                 aggregateData.size
                             ) : (
                                 <LoadingIcon data-testid="aggregate-info-box-spinner" />
