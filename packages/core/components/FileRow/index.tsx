@@ -21,6 +21,7 @@ interface FileRowProps {
     cells: CellConfig[];
     className?: string;
     rowIdentifier?: { index: number; id: string };
+    onClick?: (evt: React.MouseEvent) => void;
     onContextMenu?: (evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, nextWidth?: number) => void;
     onSelect?: OnSelect;
@@ -46,6 +47,7 @@ export default function FileRow(props: FileRowProps) {
                 shiftKeyIsPressed: evt.shiftKey,
             });
         }
+        props.onClick?.(evt);
     };
 
     return (

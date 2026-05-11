@@ -22,6 +22,12 @@
     composes: cell;
 }
 
+.cell-content {
+    overflow: hidden;
+    /* Leave room for the resize handle */
+    width: calc(100% - 8px);
+}
+
 .cursor-resize-either-direction {
     cursor: ew-resize;
 }
