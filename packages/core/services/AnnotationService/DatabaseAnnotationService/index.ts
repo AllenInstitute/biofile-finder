@@ -46,7 +46,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
         if (!context) {
-            return 0;
+            return 1; // Fallback width if canvas context can't be created
         }
         context.font = font;
         return context.measureText(text).width;
