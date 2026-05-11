@@ -69,7 +69,6 @@ const INCOMPATIBLE_APPS_HEADER = {
     itemType: ContextualMenuItemType.Header,
     className: styles.sectionHeader,
 };
-// TODO: Remove secondary text style
 
 const APPS = (
     fileDetails: FileDetail | undefined,
