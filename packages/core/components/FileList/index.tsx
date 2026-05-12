@@ -132,7 +132,10 @@ export default function FileList(props: FileListProps) {
             el.removeEventListener("scroll", onScroll);
             cancelAnimationFrame(rafIdRef.current);
         };
-    }, [totalCount]); // re-attach when totalCount changes (outerRef may remount)
+        // Re-attach listener when totalCount changes, as react-window may remount the outerRef div in that case
+        // but also when the fileView changes so that the scroll position can be reset
+        // and when measuredWidth changes to ensure containerWidth is accurate for useVisibleCells (like if window size changes)
+    }, [fileSet.instanceId, fileView, measuredWidth, totalCount]);
 
     // Restore horizontal scroll position after InfiniteLoader remounts (e.g., sort changes).
     // The key change unmounts the scrollable container, creating a new one with scrollLeft=0.
@@ -144,7 +147,7 @@ export default function FileList(props: FileListProps) {
         if (target > 0 && Math.abs(el.scrollLeft - target) > 1) {
             el.scrollLeft = target;
         }
-    });
+    }, [fileSet.instanceId, fileView]);
 
     // This hook is responsible for ensuring that if the details pane is currently showing a file row
     // within this FileList the file row shown in the details pane is scrolled into view.

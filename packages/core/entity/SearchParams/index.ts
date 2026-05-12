@@ -134,7 +134,7 @@ class ColumnCoder {
                 // space the column should take up, but this was difficult to work with and unintuitive for users.
                 // Now we encode the actual pixel width, which is more straightforward to understand and work with when manually editing URLs.
                 // To maintain backwards compatibility with existing URLs, we continue to support previously encoded widths as percentages,
-                // but we convert them to pixel widths in the encoding process.
+                // but we default them to a default column width in pixels in the decoding process.
                 // Also, multiply the parsedWidth by COLUMN_VALUE_PRECISION because it is encoded as the actual width divided by COLUMN_VALUE_PRECISION to
                 // shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths.
                 const width =
