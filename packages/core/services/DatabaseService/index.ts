@@ -654,7 +654,7 @@ export default abstract class DatabaseService {
             WHERE (table_name = '${dataSourceName}') AND (regexp_matches(column_name, '[^ -~]+'))
         `;
         const columnsWithNonAscii = (await this.query(findNonAsciiCharsSql).promise).flatMap(
-            (val) => `${val.column_name}`
+            (val) => val.column_name
         );
         // Determine whether Javascript removes those characters by checking
         // if the JS version of each column name still exists in the DuckDB table
