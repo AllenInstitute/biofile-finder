@@ -76,7 +76,7 @@ jobs:
         working-directory: packages/web
 
       - name: Run benchmark (${{ github.event.inputs.compare_branch }})
-        run: node scripts/run-regression.js --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
+        run: npm run benchmark:regression --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
         working-directory: packages/web
         env:
           BENCHMARK_BRANCH: ${{ github.event.inputs.compare_branch }}
@@ -93,7 +93,7 @@ jobs:
         run: npm ci
 
       - name: Run benchmark (${{ github.event.inputs.base_branch }})
-        run: node scripts/run-regression.js --skip-build --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
+        run: npm run benchmark:regression --skip-build --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
         working-directory: packages/web
         env:
           BENCHMARK_BRANCH: ${{ github.event.inputs.base_branch }}
