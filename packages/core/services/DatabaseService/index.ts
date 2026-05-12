@@ -657,11 +657,11 @@ export default abstract class DatabaseService {
             (val) => `${val.column_name}`
         );
         // Determine whether Javascript removes those characters by checking
-        // if the JS version of each column name still exists in the table
+        // if the JS version of each column name still exists in the DuckDB table
         const columnsExist = await this.checkColumnsExist(dataSourceName, columnsWithNonAscii);
         const columnsWithMismatch = columnsExist
             ?.filter((value) => value.column_exists === false)
-            .flatMap((val) => `${val.column_name}`);
+            .flatMap((val) => val.column_name);
         // If list is empty, there may be column names with non-ASCII characters,
         // but they don't get trimmed by JS, so we can return safely
         if (!columnsWithMismatch || columnsWithMismatch.length === 0) return;
@@ -709,7 +709,7 @@ export default abstract class DatabaseService {
     // Check if each column name in an array actually exists in table `dataSourceName`
     private async checkColumnsExist(dataSourceName: string, columnNames: string[]) {
         if (columnNames.length === 0) return;
-        const query = `
+        const sql = `
             WITH columns_to_check AS (
                 SELECT * FROM (
                 VALUES ${columnNames.map((col) => `('${col}')`).join(",")}) 
@@ -722,7 +722,7 @@ export default abstract class DatabaseService {
                 ON LOWER(cc.column_name) = LOWER(ic.column_name)
                 AND ic.table_name = '${dataSourceName}'
         `;
-        return await this.query(query).promise;
+        return await this.query(sql).promise;
     }
 
     /*
