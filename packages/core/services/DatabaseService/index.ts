@@ -649,7 +649,7 @@ export default abstract class DatabaseService {
     private async renameNonprintableCharColumns(dataSourceName: string): Promise<void> {
         // Query for columns that contain ASCII characters that are outside of the printable range
         const findNonAsciiCharsSql = `
-            SELECT column_name, regexp_replace(column_name, '[^ -~]+', '', 'g') as clean_name
+            SELECT column_name
             FROM "information_schema"."columns"
             WHERE (table_name = '${dataSourceName}') AND (regexp_matches(column_name, '[^ -~]+'))
         `;
@@ -671,7 +671,9 @@ export default abstract class DatabaseService {
         const findMismatchedColumnsSql = `
             WITH nonascii_columns AS (
                 SELECT * FROM (
-                VALUES ${columnsWithMismatch?.map((col) => `('${col}')`).join(",")}) 
+                VALUES ${columnsWithMismatch
+                    ?.map((col) => `('${col.replace(/'/g, "''")}')`)
+                    .join(",")}) 
                 AS t(column_name)
             ),
             table_columns AS (
@@ -712,7 +714,7 @@ export default abstract class DatabaseService {
         const sql = `
             WITH columns_to_check AS (
                 SELECT * FROM (
-                VALUES ${columnNames.map((col) => `('${col}')`).join(",")}) 
+                VALUES ${columnNames.map((col) => `('${col.replace(/'/g, "''")}')`).join(",")}) 
                 AS t(column_name)
             )
             SELECT cc.column_name,
