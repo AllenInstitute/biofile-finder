@@ -76,7 +76,7 @@ jobs:
         working-directory: packages/web
 
       - name: Run benchmark (${{ github.event.inputs.compare_branch }})
-        run: npm run benchmark:regression --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
+        run: npm run benchmark:regression -- --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
         working-directory: packages/web
         env:
           BENCHMARK_BRANCH: ${{ github.event.inputs.compare_branch }}
@@ -93,7 +93,7 @@ jobs:
         run: npm ci
 
       - name: Run benchmark (${{ github.event.inputs.base_branch }})
-        run: npm run benchmark:regression --skip-build --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
+        run: npm run benchmark:regression -- --skip-build --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
         working-directory: packages/web
         env:
           BENCHMARK_BRANCH: ${{ github.event.inputs.base_branch }}
@@ -101,7 +101,7 @@ jobs:
       - name: Generate comparison
         run: |
           BASE_FILE=$(ls benchmark-results-*.json | head -1)
-          npm run benchmark:compare "$BASE_FILE" /tmp/benchmark-compare.json >> "$GITHUB_STEP_SUMMARY"
+          npm run benchmark:compare -- "$BASE_FILE" /tmp/benchmark-compare.json >> "$GITHUB_STEP_SUMMARY"
         working-directory: packages/web
 
       - name: Upload results
