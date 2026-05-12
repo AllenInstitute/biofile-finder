@@ -23,7 +23,8 @@ import http from "http";
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
-import { BenchmarkResults, TestCase } from "../../benchmark/src/types";
+import { BenchmarkResults, QueryResult, SourceResult, TestCase } from "../../benchmark/src/types";
+import { BENCHMARK_TASKS } from "../../benchmark/src/tasks";
 
 const DIST_DIR = path.join(__dirname, "..", "..", "benchmark", "dist");
 const FIXTURES_DIR = path.join(__dirname, "..", "..", "fixtures");
@@ -164,6 +165,77 @@ export async function runBenchmarkPage({
     }
 
     const server = await startServer();
+
+    try {
+        // When warmups=0, each task gets its own browser for cold-start isolation.
+        // Otherwise all tasks share a single browser instance.
+        const allTaskNames = BENCHMARK_TASKS.map((t) => t.name);
+        const taskBatches: string[][] =
+            warmupRounds === 0 ? allTaskNames.map((name) => [name]) : [allTaskNames];
+
+        if (warmupRounds === 0) {
+            console.log(
+                `[playwright] warmupRounds=0: running ${allTaskNames.length} task(s) in separate browser instances`
+            );
+        }
+
+        let initTimeMs = 0;
+        const sourceResults: SourceResult[] = [];
+
+        for (const testCase of testCases) {
+            const queries: QueryResult[] = [];
+            let registrationMs = 0;
+
+            for (const batch of taskBatches) {
+                console.log(
+                    `[playwright] Launching browser for task(s): ${batch.join(", ")} ` +
+                        `(${testCase.map((s) => s.label).join(", ")})`
+                );
+                const run = await runSingleBenchmark({
+                    testCase,
+                    iterations,
+                    warmupRounds,
+                    channel,
+                    taskFilter: batch,
+                });
+
+                if (initTimeMs === 0) initTimeMs = run.initTimeMs;
+                if (registrationMs === 0) registrationMs = run.registrationMs;
+                queries.push(...run.queries);
+            }
+
+            sourceResults.push({
+                labels: testCase.map((testCase) => testCase.label),
+                registrationMs,
+                queries,
+            });
+        }
+
+        return {
+            timestamp: new Date().toISOString(),
+            commit: "unknown",
+            branch: "unknown",
+            initTimeMs,
+            results: sourceResults,
+        } as BenchmarkResults;
+    } finally {
+        await new Promise((res) => server.close(res));
+    }
+}
+
+async function runSingleBenchmark({
+    testCase,
+    iterations,
+    warmupRounds,
+    channel,
+    taskFilter,
+}: {
+    testCase: TestCase;
+    iterations?: number;
+    warmupRounds?: number;
+    channel?: string;
+    taskFilter: string[];
+}): Promise<{ initTimeMs: number; registrationMs: number; queries: QueryResult[] }> {
     const browser = await chromium.launch({
         channel,
         headless: true,
@@ -182,13 +254,14 @@ export async function runBenchmarkPage({
         // synchronously on startup — no callback handshake needed.
         await page.addInitScript({
             content: `window.__benchmarkConfig = ${JSON.stringify({
-                testCases,
+                testCases: [testCase],
                 iterations,
                 warmupRounds,
+                taskFilter,
             })};`,
         });
 
-        console.log(`[playwright] Starting benchmark (${testCases.length} test cases(s))...`);
+        console.log(`[playwright] Starting benchmark...`);
         await page.goto(`http://localhost:${PORT}/`, { waitUntil: "domcontentloaded" });
 
         // Wait for the benchmark to signal it's ready for file injection
@@ -200,9 +273,8 @@ export async function runBenchmarkPage({
         // The browser reads the file lazily via FileReader (BROWSER_FILEREADER protocol),
         // which is identical to how the real app loads files via the file picker —
         // no HTTP range-request overhead, so DuckDB sort performance matches real-user timing.
-        const sources = testCases.flat();
         const loaded = new Set();
-        for (const source of sources) {
+        for (const source of testCase) {
             if (source.label in loaded) continue; // Don't add duplicate sources
             const localMatch = source.url.match(
                 new RegExp(`^http://localhost:${PORT}/fixtures/(.+)$`)
@@ -252,10 +324,17 @@ export async function runBenchmarkPage({
         const error = await page.evaluate(() => window.__benchmarkError ?? null);
         if (error) throw new Error(`Benchmark failed in browser: ${error}`);
 
-        return await page.evaluate(() => window.__benchmarkResults);
+        const benchmarkResults: BenchmarkResults = await page.evaluate(
+            () => window.__benchmarkResults
+        );
+        const result = benchmarkResults.results[0];
+        return {
+            initTimeMs: benchmarkResults.initTimeMs,
+            registrationMs: result.registrationMs,
+            queries: result.queries,
+        };
     } finally {
         await browser.close();
-        await new Promise((res) => server.close(res));
     }
 }
 

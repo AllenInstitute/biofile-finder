@@ -83,10 +83,10 @@ Both branches run on the same machine to eliminate hardware variance — a ~15% 
 
 The workflow:
 1. Checks out the compare branch and downloads fixtures from S3 (cached by version)
-2. Runs `run-regression.js` → writes `benchmark-results-<compare>.json`
+2. Runs `run-regression.ts` → writes `benchmark-results-<compare>.json`
 3. Checks out the base branch (without wiping fixtures)
-4. Runs `run-regression.js` → writes `benchmark-results-<base>.json`
-5. Runs `compare-results.js` → posts the Markdown table to the step summary
+4. Runs `run-regression.ts` → writes `benchmark-results-<base>.json`
+5. Runs `compare-results.ts` → posts the Markdown table to the step summary
 
 ---
 

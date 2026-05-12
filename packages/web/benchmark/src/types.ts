@@ -15,6 +15,8 @@ export interface BenchmarkConfig {
     testCases: TestCase[];
     iterations?: number;
     warmupRounds?: number;
+    /** When set, only tasks whose name appears in this list will run. */
+    taskFilter?: string[];
 }
 
 export interface QueryResult {
