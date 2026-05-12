@@ -4,7 +4,7 @@
   "main": "src/index.tsx",
   "scripts": {
     "benchmark": "tsx scripts/run-local.ts",
-    "benchmark:regression": "node scripts/run-regression.js",
+    "benchmark:regression": "tsx scripts/run-regression.ts",
     "benchmark:compare": "tsx scripts/compare-results.ts",
     "benchmark:summary": "node scripts/summarize-results.js",
     "build": "webpack --config ./webpack/webpack.config.js --env production",

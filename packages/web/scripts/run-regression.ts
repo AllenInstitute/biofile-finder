@@ -1,16 +1,16 @@
 // CI regression runner — benchmarks one branch against local fixtures and writes
 // benchmark-results-<branch>.json. Called once per branch by benchmark.yml.
 
-"use strict";
+import { ParquetSource } from "../benchmark/src/types";
 
-const path = require("path");
-const fs = require("fs");
-const { execSync } = require("child_process");
-const { runBenchmarkPage } = require("./lib/run-benchmark-page");
+import path from "path";
+import fs from "fs";
+import { execSync } from "child_process";
+import { runBenchmarkPage } from "./lib/run-benchmark-page";
 
 const FIXTURES_DIR = path.join(__dirname, "..", "fixtures");
 
-const TEST_CASES = [
+const TEST_CASES: ParquetSource[][] = [
     [
         {
             label: "100k",
@@ -56,7 +56,7 @@ if (missing.length > 0) {
     process.exit(1);
 }
 
-function getCurrentBranch() {
+function getCurrentBranch(): string {
     if (process.env.BENCHMARK_BRANCH) return process.env.BENCHMARK_BRANCH;
     try {
         return execSync("git rev-parse --abbrev-ref HEAD", { stdio: "pipe" }).toString().trim();
@@ -65,11 +65,11 @@ function getCurrentBranch() {
     }
 }
 
-function slugify(branch) {
+function slugify(branch: string): string {
     return branch.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
 }
 
-function getArgValue(flag) {
+function getArgValue(flag: string): number | undefined {
     const idx = process.argv.indexOf(flag);
     return idx !== -1 ? parseInt(process.argv[idx + 1], 10) : undefined;
 }
