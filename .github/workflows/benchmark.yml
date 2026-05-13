@@ -36,8 +36,8 @@ jobs:
     # hardware variance between VMs would mask the small regressions we actually care about.
     # Running back-to-back on the same VM ensures both measurements share the same hardware
     # baseline, so deltas reflect code differences only.
-    # 180 minutes: fixture download + full task suite (including change_grouping on 10m) × 2 branches
-    timeout-minutes: 180
+    # 360 minutes is the maximum timeout
+    timeout-minutes: 360
 
     steps:
       - uses: actions/checkout@v4
@@ -62,6 +62,7 @@ jobs:
           curl -fL "$BASE/synthetic-1m.parquet"   -o packages/web/fixtures/synthetic-1m.parquet
           curl -fL "$BASE/synthetic-10m.parquet"  -o packages/web/fixtures/synthetic-10m.parquet
           curl -fL "$BASE/synthetic-10m-copy.parquet"  -o packages/web/fixtures/synthetic-10m-copy.parquet
+          curl -fL "$BASE/synthetic-20m.parquet"  -o packages/web/fixtures/synthetic-20m.parquet
 
       - uses: actions/setup-node@v4
         with:

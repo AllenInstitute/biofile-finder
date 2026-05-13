@@ -39,6 +39,12 @@ const TEST_CASES: ParquetSource[][] = [
             url: "http://localhost:18765/fixtures/synthetic-10m-copy.parquet",
         },
     ],
+    [
+        {
+            label: "20m",
+            url: "http://localhost:18765/fixtures/synthetic-20m.parquet",
+        },
+    ],
 ];
 
 const inputFiles = new Set(
