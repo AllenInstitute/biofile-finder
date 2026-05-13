@@ -62,16 +62,6 @@ export default class HttpPipelineService implements PipelineService {
             throw new Error(`Submission failed: ${response.statusText}`);
         }
         const data = await response.json();
-        // Old staging endpoints return manifestCsvPath rather than dashboardUrl.
-        // Transform the VAST path to an accessible URL until the new endpoint returns dashboardUrl directly.
-        const dashboardUrl =
-            data.dashboardUrl ||
-            (data.manifestCsvPath
-                ? data.manifestCsvPath.replace(
-                      "/allen/aics/",
-                      "https://vast-files.int.allencell.org/"
-                  )
-                : "");
-        return { computeTaskId: data.computeTaskId, dashboardUrl };
+        return { computeTaskId: data.computeTaskId, dashboardUrl: data.dashboardUrl ?? "" };
     }
 }
