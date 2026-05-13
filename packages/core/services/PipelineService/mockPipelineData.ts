@@ -6,7 +6,7 @@ import { Pipeline, PipelineParameter } from "../../entity/ComputePipeline";
 
 export const MOCK_PIPELINES: Pipeline[] = [
     {
-        id: "all-cells-mask-segmentation",
+        id: "all-cells-mask",
         name: "All Cells Mask Segmentation",
         description:
             "The All Cells Mask workflow generates segmentation masks for the selected files. After submission, you can monitor progress in the job dashboard.",
@@ -27,7 +27,7 @@ export const MOCK_PIPELINES: Pipeline[] = [
 ];
 
 export const MOCK_PARAMETERS: Record<string, PipelineParameter[]> = {
-    "all-cells-mask-segmentation": [
+    "all-cells-mask": [
         {
             name: "file_paths",
             label: "File Paths",

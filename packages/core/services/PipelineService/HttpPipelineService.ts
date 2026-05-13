@@ -6,26 +6,22 @@ import {
 } from "../../entity/ComputePipeline";
 import PipelineService from ".";
 import { MOCK_PIPELINES, MOCK_PARAMETERS } from "./mockPipelineData";
-
-// Temporary staging endpoints until the unified FSS pipeline endpoint
-// (POST /compute-tasks) is available. Swap these out once the new endpoint lands.
-const STAGING_URLS: Record<string, string> = {
-    "all-cells-mask-segmentation":
-        "http://stg-aics.corp.alleninstitute.org/fss2/v4.0/compute/all-cells-mask",
-    "zarr-conversion": "http://stg-aics.corp.alleninstitute.org/fss2/v4.0/compute/zarr-conversion",
-};
-
-// TODO: replace with the real FSS base URL once endpoints are available
-// const _BASE_URL = "";
+import { LoadBalancerBaseUrl } from "../../constants";
 
 export default class HttpPipelineService implements PipelineService {
+    private readonly baseUrl: string;
+
+    constructor(baseUrl: string = LoadBalancerBaseUrl.PRODUCTION) {
+        this.baseUrl = baseUrl;
+    }
+
     getPipelines(): Promise<Pipeline[]> {
-        // TODO: return fetch(`${_BASE_URL}/pipelines`).then((r) => r.json());
+        // TODO: return fetch(`${this.baseUrl}/fss2/v4.0/pipelines`).then((r) => r.json());
         return Promise.resolve(MOCK_PIPELINES);
     }
 
     getParameters(pipelineId: string, _cluster: string): Promise<PipelineParameter[]> {
-        // TODO: return fetch(`${_BASE_URL}/pipelines/${pipelineId}/parameters?cluster=${_cluster}`).then((r) => r.json());
+        // TODO: return fetch(`${this.baseUrl}/fss2/v4.0/pipelines/${pipelineId}/parameters?cluster=${_cluster}`).then((r) => r.json());
         const params = MOCK_PARAMETERS[pipelineId];
         if (!params) {
             return Promise.reject(new Error(`No parameters found for pipeline: ${pipelineId}`));
@@ -34,9 +30,8 @@ export default class HttpPipelineService implements PipelineService {
     }
 
     async submitComputeTask(request: ComputeTaskRequest): Promise<ComputeTaskResponse> {
-        // TODO: once FSS POST /compute-tasks is live, replace the pipeline-specific
-        // branches below with a single call:
-        // return fetch(`${_BASE_URL}/compute-tasks`, {
+        // TODO: once FSS POST /compute-tasks is live, replace with:
+        // return fetch(`${this.baseUrl}/fss2/v4.0/compute-tasks`, {
         //     method: "POST",
         //     body: JSON.stringify(request),
         //     headers: {
@@ -45,10 +40,7 @@ export default class HttpPipelineService implements PipelineService {
         //     },
         // }).then((r) => r.json());
 
-        const stagingUrl = STAGING_URLS[request.pipeline];
-        if (!stagingUrl) {
-            throw new Error(`No submission endpoint configured for pipeline: ${request.pipeline}`);
-        }
+        const url = `${this.baseUrl}/fss2/v4.0/compute/${request.pipeline}`;
 
         const { file_paths, ...rest } = request.parameters;
         const body: Record<string, unknown> = { files: file_paths };
@@ -58,7 +50,7 @@ export default class HttpPipelineService implements PipelineService {
             }
         }
 
-        const response = await fetch(stagingUrl, {
+        const response = await fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
