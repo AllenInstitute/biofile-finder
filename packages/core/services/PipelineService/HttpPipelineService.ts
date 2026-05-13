@@ -156,7 +156,10 @@ export default class HttpPipelineService implements PipelineService {
         // return fetch(`\${_BASE_URL}/compute-tasks`, {
         //     method: "POST",
         //     body: JSON.stringify(request),
-        //     headers: { "Content-Type": "application/json" },
+        //     headers: {
+        //         "Content-Type": "application/json",
+        //         ...(request.user ? { "X-User-Id": request.user } : {}),
+        //     },
         // }).then((r) => r.json());
         return Promise.resolve({
             computeTaskId: `task-${Date.now()}`,

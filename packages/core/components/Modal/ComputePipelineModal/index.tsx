@@ -240,6 +240,10 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
     const [optionalSelectorKey, setOptionalSelectorKey] = React.useState<string | null>(null);
     const [advancedExpanded, setAdvancedExpanded] = React.useState(false);
 
+    // User field
+    const [userId, setUserId] = React.useState<string>("");
+    const [userIdError, setUserIdError] = React.useState<string>("");
+
     // Submission state
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
     const [computeTaskId, setComputeTaskId] = React.useState<string | null>(null);
@@ -395,7 +399,9 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
             const err = validateParam(p, optionalValues[name]);
             if (err) errors[name] = err;
         }
-        if (Object.values(errors).some(Boolean)) {
+        const userErr = userId.trim() === "" ? "This field is required." : "";
+        if (userErr) setUserIdError(userErr);
+        if (Object.values(errors).some(Boolean) || userErr) {
             setFieldErrors(errors);
             return;
         }
@@ -417,7 +423,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
             const result = await pipelineService.submitComputeTask({
                 pipeline: selectedPipeline.id,
                 cluster: selectedCluster,
-                user: null,
+                user: userId || null,
                 parameters: {
                     file_paths: filePaths,
                     ...requiredValues,
@@ -551,6 +557,23 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                                 onChange={onClusterChange}
                                 placeholder="Select a cluster"
                             />
+                        </div>
+
+                        {/* User */}
+                        <div className={styles.paramField}>
+                            <div className={styles.paramLabel}>User *</div>
+                            <TextField
+                                className={styles.inputBox}
+                                type="text"
+                                value={userId}
+                                onChange={(_, v) => {
+                                    setUserId(v ?? "");
+                                    if (userIdError) setUserIdError("");
+                                }}
+                                placeholder="Enter your user ID (ex. first.last)"
+                                borderless
+                            />
+                            {userIdError && <div className={styles.paramError}>{userIdError}</div>}
                         </div>
 
                         {/* Required params */}
