@@ -1,16 +1,10 @@
-import {
-    ComputeTaskRequest,
-    ComputeTaskResponse,
-    Pipeline,
-    PipelineParameter,
-} from "../../entity/ComputePipeline";
-import PipelineService from ".";
+// Hardcoded pipeline and parameter data standing in for FSS GET /pipelines and
+// GET /pipelines/:id/parameters. Replace the contents of this file once the real
+// endpoints are available.
 
-// Mock pipeline and parameter data standing in for FSS GET /pipelines and GET /parameters.
-// When FSS exposes real endpoints, replace this file with HttpPipelineService.ts and
-// swap the implementation in PlatformDependentServices.
+import { Pipeline, PipelineParameter } from "../../entity/ComputePipeline";
 
-const MOCK_PIPELINES: Pipeline[] = [
+export const MOCK_PIPELINES: Pipeline[] = [
     {
         id: "all-cells-mask-segmentation",
         name: "All Cells Mask Segmentation",
@@ -32,7 +26,7 @@ const MOCK_PIPELINES: Pipeline[] = [
     },
 ];
 
-const MOCK_PARAMETERS: Record<string, PipelineParameter[]> = {
+export const MOCK_PARAMETERS: Record<string, PipelineParameter[]> = {
     "all-cells-mask-segmentation": [
         {
             name: "file_paths",
@@ -134,33 +128,3 @@ const MOCK_PARAMETERS: Record<string, PipelineParameter[]> = {
         },
     ],
 };
-
-export default class MockPipelineService implements PipelineService {
-    getPipelines(): Promise<Pipeline[]> {
-        return Promise.resolve(MOCK_PIPELINES);
-    }
-
-    getParameters(pipelineId: string, _cluster: string): Promise<PipelineParameter[]> {
-        const params = MOCK_PARAMETERS[pipelineId];
-        if (!params) {
-            return Promise.reject(new Error(`No parameters found for pipeline: ${pipelineId}`));
-        }
-        return Promise.resolve(params);
-    }
-
-    submitComputeTask(request: ComputeTaskRequest): Promise<ComputeTaskResponse> {
-        // Simulate a short network delay so the submitting state is visible.
-        return new Promise((resolve) =>
-            setTimeout(
-                () =>
-                    resolve({
-                        computeTaskId: `mock-task-${Date.now()}`,
-                        dashboardUrl: `https://aics-api/jss-dashboard?job_id=mock-task-${Date.now()}&pipeline=${
-                            request.pipeline
-                        }`,
-                    }),
-                800
-            )
-        );
-    }
-}
