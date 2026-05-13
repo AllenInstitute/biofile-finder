@@ -582,12 +582,21 @@ export default abstract class DatabaseService {
     private async checkDataSourceForErrors(name: string): Promise<string | null> {
         const columnsOnTable = await this.getColumnsOnDataSource(name);
 
+        // Double quotes in column names should not be allowed because of injection concerns
+        const columns = Array.from(columnsOnTable);
+        const columnsWithDoubleQuotes = columns.filter((col) => /"/.test(col));
+        if (columnsWithDoubleQuotes.length > 0) {
+            return `Found column names with disallowed double quote characters ("): ${columnsWithDoubleQuotes.join(
+                ", "
+            )}. 
+                Please rename these columns and try again.`;
+        }
+
         if (!columnsOnTable.has(PreDefinedColumn.FILE_PATH)) {
             let error = `"${PreDefinedColumn.FILE_PATH}" column is missing in the data source.
                 Check the data source header row for a "${PreDefinedColumn.FILE_PATH}" column name and try again.`;
 
             // Attempt to find a column with a similar name to "File Path"
-            const columns = Array.from(columnsOnTable);
             const filePathLikeColumn =
                 columns.find((column) => column.toLowerCase().includes("path")) ||
                 columns.find((column) => column.toLowerCase().includes("file"));
