@@ -47,7 +47,7 @@ export const MOCK_PARAMETERS: Record<string, PipelineParameter[]> = {
             validation: { min: 0 },
         },
         {
-            name: "brightfield_channel",
+            name: "channel",
             label: "Brightfield Channel",
             description: "Channel index for brightfield.",
             type: "number",
