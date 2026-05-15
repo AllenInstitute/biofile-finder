@@ -170,6 +170,40 @@ describe("DatabaseService", () => {
             expect(service.hasDataSource(tempFileName)).to.be.true;
         });
 
+        it("throws error when a column name contains double quotes", async () => {
+            // Arrange
+            const badColumnName = '"Bad" column name';
+            const doubleQuoteAnnotation = new Annotation({
+                annotationDisplayName: badColumnName,
+                annotationName: badColumnName,
+                description: "",
+                type: AnnotationType.STRING,
+                annotationId: 3,
+            });
+            sinon
+                .stub(service, "fetchAnnotations")
+                .returns(Promise.resolve([...mockAnnotations, doubleQuoteAnnotation]));
+            const tempFileName = "testFailure.csv";
+            const tempFile = path.resolve(tempDir, tempFileName);
+            await fs.promises.writeFile(tempFile, "a,b,c,d\n1,2,3,4\n5,6,7,8\n");
+            let caughtError;
+
+            // Act
+            try {
+                await service.prepareDataSources([
+                    { name: tempFileName, type: "csv", uri: tempFile },
+                ]);
+            } catch (error) {
+                caughtError = error;
+            }
+
+            // Assert
+            expect(caughtError).to.not.be.undefined;
+            expect(caughtError).to.contain(/DataSourcePreparationError/);
+            expect((caughtError as Error)?.message).to.contain(badColumnName);
+            expect(service.hasDataSource(tempFileName)).to.be.false;
+        });
+
         describe("CORS error handling for URL data sources", () => {
             // A service where addDataSource always fails (simulates DuckDB failing to load a URL)
             class MockDatabaseServiceWithURLFailure extends MockDatabaseService {
