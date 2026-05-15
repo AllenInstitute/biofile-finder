@@ -32,6 +32,7 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
+import HttpPipelineService from "../../services/PipelineService/HttpPipelineService";
 import S3StorageService from "../../services/S3StorageService";
 import Graph from "../../entity/Graph";
 
@@ -66,8 +67,6 @@ export const isRemoteFileUploadServerAvailable = (state: State) =>
     state.interaction.isRemoteFileUploadServerAvailable;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
-export const getPipelineService = (state: State) =>
-    state.interaction.platformDependentServices.pipelineService;
 export const getProcessStatuses = (state: State) => state.interaction.status;
 export const getRefreshKey = (state: State) => state.interaction.refreshKey;
 export const getUserSelectedApplications = (state: State) =>
@@ -90,6 +89,11 @@ export const getDatasetBucketUrl = createSelector(
 export const getLoadBalancerBaseUrl = createSelector(
     [getEnvironment],
     (environment) => LoadBalancerBaseUrl[environment]
+);
+
+export const getPipelineService = createSelector(
+    [getLoadBalancerBaseUrl],
+    (loadBalancerBaseUrl) => new HttpPipelineService(loadBalancerBaseUrl)
 );
 
 export const getMetadataManagementServiceBaseUrl = createSelector(

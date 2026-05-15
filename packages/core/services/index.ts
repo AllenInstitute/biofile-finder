@@ -6,7 +6,6 @@ import FileDownloadService from "./FileDownloadService";
 import FileViewerService from "./FileViewerService";
 import NotificationService from "./NotificationService";
 import PersistentConfigService from "./PersistentConfigService";
-import PipelineService from "./PipelineService";
 
 export { default as AnnotationService } from "./AnnotationService";
 export type { default as ApplicationInfoService } from "./ApplicationInfoService";
@@ -41,5 +40,4 @@ export interface PlatformDependentServices {
     executionEnvService: ExecutionEnvService;
     notificationService: NotificationService;
     persistentConfigService: PersistentConfigService;
-    pipelineService: PipelineService;
 }

@@ -55,7 +55,6 @@ import { UserSelectedApplication } from "../../services/PersistentConfigService"
 import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
-import HttpPipelineService from "../../services/PipelineService/HttpPipelineService";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
 import FileDetail from "../../entity/FileDetail";
 
@@ -128,7 +127,6 @@ export const initialState: InteractionStateBranch = {
         executionEnvService: new ExecutionEnvServiceNoop(),
         notificationService: new NotificationServiceNoop(),
         persistentConfigService: new PersistentConfigServiceNoop(),
-        pipelineService: new HttpPipelineService(),
     },
     extractMetadataPythonSnippet: { setup: "", code: "" },
     convertFilesSnippet: { setup: "", code: "", options: {} },

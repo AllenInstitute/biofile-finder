@@ -17,8 +17,6 @@ import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
 import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
 import S3StorageService from "../../../core/services/S3StorageService";
-import { HttpPipelineService } from "../../../core/services";
-import { LoadBalancerBaseUrl } from "../../../core/constants";
 import useKeyDown from "../../../core/hooks/useKeyDown";
 import "../../../core/styles/global.css";
 
@@ -77,13 +75,6 @@ const collectPlatformDependentServices = memoize(() => ({
     fileDownloadService: new FileDownloadServiceElectron(s3StorageService),
     fileViewerService: new FileViewerServiceElectron(notificationService),
     frontendInsights,
-    pipelineService: new HttpPipelineService(
-        LoadBalancerBaseUrl[
-            (persistentConfigService.get(
-                PersistedConfigKeys.Environment
-            ) as keyof typeof LoadBalancerBaseUrl) || "PRODUCTION"
-        ]
-    ),
 }));
 
 const frontendInsightsMiddleware = reduxMiddleware(frontendInsights, {
