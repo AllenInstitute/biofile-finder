@@ -82,7 +82,11 @@ export interface InteractionStateBranch {
     graphRefreshKey?: string;
     platformDependentServices: PlatformDependentServices;
     extractMetadataPythonSnippet?: { setup: string; code: string };
-    convertFilesSnippet?: { setup: string; code: string; options?: Record<string, string> };
+    convertFilesSnippet: {
+        setup: string;
+        code: string;
+        options?: Record<string, string>;
+    };
     originForProvenance?: FileDetail;
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
