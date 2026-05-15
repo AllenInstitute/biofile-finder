@@ -5,11 +5,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileSelection from "../../../entity/FileSelection";
 import { interaction, selection } from "../../../state";
 
 import styles from "./AllCellsMaskSegmentation.module.css";
-import AnnotationName from "../../../entity/Annotation/AnnotationName";
 
 type Status = "idle" | "submitting" | "submitted" | "error";
 
@@ -17,6 +17,12 @@ type UIOpts = {
     channelIndex: string;
 };
 
+const PROCESS_ID = "acmJob";
+
+/**
+ * Modal for submitting an All Cells Mask segmentation job via the compute pipeline.
+ * Requires all selected files to have a valid local (VAST) path before submission.
+ */
 export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
 
@@ -35,7 +41,7 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
     const [dashboardUrl, setDashboardUrl] = React.useState<string | null>(null);
     const [computeTaskId, setComputeTaskId] = React.useState<string | null>(null);
     const [statusMessage, setStatusMessage] = React.useState<string | null>(null);
-    const [hasNonLocalFiles, setHasNonLocalFiles] = React.useState(false);
+    const [localFilePaths, setLocalFilePaths] = React.useState<string[] | null>(null);
 
     React.useEffect(() => {
         let cancelled = false;
@@ -44,17 +50,19 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
             const details = await fileSelection.fetchAllDetails();
             if (cancelled) return;
 
-            const hasAnyNonLocal = details.some((d) => {
+            const paths: string[] = [];
+            for (const d of details) {
                 const shouldBeInLocal = d.getFirstAnnotationValue(
                     AnnotationName.SHOULD_BE_IN_LOCAL
                 );
-
                 const localPath = d.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH);
-
-                return !shouldBeInLocal || typeof localPath !== "string";
-            });
-
-            setHasNonLocalFiles(hasAnyNonLocal);
+                if (!shouldBeInLocal || !localPath) {
+                    setLocalFilePaths(null);
+                    return;
+                }
+                paths.push(localPath as string);
+            }
+            setLocalFilePaths(paths);
         })();
 
         return () => {
@@ -68,38 +76,25 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
     };
 
     const onSubmit = async () => {
-        if (status !== "idle" || hasNonLocalFiles) return;
+        if (status !== "idle" || !localFilePaths?.length) return;
 
         setStatus("submitting");
         setStatusMessage(null);
 
         try {
-            const details = await fileSelection.fetchAllDetails();
-            if (!details.length) {
-                throw new Error("No files selected.");
+            dispatch(
+                interaction.actions.processStart(PROCESS_ID, "Submitting All Cells Mask job...")
+            );
+
+            const trimmed = opts.channelIndex.trim();
+            if (trimmed && !/^\d+$/.test(trimmed)) {
+                throw new Error("Channel index must be a non-negative integer.");
             }
-
-            const files: string[] = details.map((d) => {
-                const localPath = d.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH);
-
-                if (typeof localPath !== "string" || localPath.length === 0) {
-                    throw new Error(
-                        "One or more selected files do not have a valid local file path."
-                    );
-                }
-
-                return localPath;
-            });
-
+            const channel = trimmed ? parseInt(trimmed, 10) : 0;
             const scene = 0;
 
-            const channel =
-                opts.channelIndex.trim() && /^\d+$/.test(opts.channelIndex)
-                    ? parseInt(opts.channelIndex, 10)
-                    : 0;
-
             const { computeTaskId, dashboardUrl } = await httpFileService.submitAllCellsMaskJob({
-                files,
+                files: localFilePaths,
                 scene,
                 channel,
             });
@@ -110,27 +105,28 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
 
             dispatch(
                 interaction.actions.processSuccess(
-                    "acmJobSubmitted",
+                    PROCESS_ID,
                     "All Cells Mask job submitted successfully."
                 )
             );
         } catch (err) {
             console.error(err);
             setStatus("error");
-            setStatusMessage("An error occurred while submitting the All Cells Mask job.");
+            setStatusMessage(
+                err instanceof Error
+                    ? err.message
+                    : "An error occurred while submitting the All Cells Mask job."
+            );
 
             dispatch(
-                interaction.actions.processError(
-                    "acmSubmitError",
-                    "Failed to submit All Cells Mask job."
-                )
+                interaction.actions.processError(PROCESS_ID, "Failed to submit All Cells Mask job.")
             );
         }
     };
 
-    const submitDisabled = status !== "idle" || hasNonLocalFiles;
+    const submitDisabled = status !== "idle" || !localFilePaths;
 
-    const submitTooltip = hasNonLocalFiles
+    const submitTooltip = !localFilePaths
         ? "All selected files must be available locally before submitting this job."
         : "This job has already been submitted.";
 
