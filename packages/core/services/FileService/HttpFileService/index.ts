@@ -229,8 +229,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         scene: number;
         channel: number;
     }): Promise<{ computeTaskId: string; dashboardUrl: string }> {
-        // This will become the service base when deployed
-        const requestUrl = `http://stg-aics.corp.alleninstitute.org/${HttpFileService.ALL_CELLS_MASK_URL}${this.pathSuffix}`;
+        const requestUrl = `${this.loadBalancerBaseUrl}/${HttpFileService.ALL_CELLS_MASK_URL}${this.pathSuffix}`;
 
         try {
             const result = await this.rawPost<{
