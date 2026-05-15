@@ -127,7 +127,7 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
     const submitDisabled = status !== "idle" || !localFilePaths;
 
     const submitTooltip = !localFilePaths
-        ? "All selected files must be available locally before submitting this job."
+        ? "All selected files must be copied to the VAST cache before submitting this job"
         : "This job has already been submitted.";
 
     const body = (
