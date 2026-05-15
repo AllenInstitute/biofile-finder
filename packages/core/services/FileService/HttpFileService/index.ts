@@ -26,8 +26,6 @@ interface Config extends ConnectionConfig {
  * Service responsible for fetching file related metadata.
  */
 export default class HttpFileService extends HttpServiceBase implements FileService {
-    private static readonly COMPUTE_ENDPOINT_VERSION = "4.0";
-    public static readonly ALL_CELLS_MASK_URL = `fss2/v${HttpFileService.COMPUTE_ENDPOINT_VERSION}/compute/all-cells-mask`;
     private static readonly CACHE_ENDPOINT_VERSION = "v3.0";
     private static readonly ENDPOINT_VERSION = "3.0";
     public static readonly BASE_FILES_URL = `file-explorer-service/${HttpFileService.ENDPOINT_VERSION}/files`;
@@ -222,33 +220,5 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             console.error("Failed to cache files:", error);
             throw new Error("Unable to complete the caching request.");
         }
-    }
-
-    public async submitAllCellsMaskJob(params: {
-        files: string[];
-        scene: number;
-        channel: number;
-        user: string;
-    }): Promise<{ computeTaskId: string; dashboardUrl: string }> {
-        const requestUrl = `${this.loadBalancerBaseUrl}/${HttpFileService.ALL_CELLS_MASK_URL}${this.pathSuffix}`;
-
-        this.setUserName(params.user);
-
-        const result = await this.rawPost<{
-            computeTaskId: string;
-            dashboardUrl: string;
-        }>(
-            requestUrl,
-            JSON.stringify({
-                files: params.files,
-                scene: params.scene,
-                channel: params.channel,
-            })
-        );
-
-        return {
-            computeTaskId: result.computeTaskId,
-            dashboardUrl: result.dashboardUrl,
-        };
     }
 }
