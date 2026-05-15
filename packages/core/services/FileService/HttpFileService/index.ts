@@ -228,29 +228,27 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         files: string[];
         scene: number;
         channel: number;
+        user: string;
     }): Promise<{ computeTaskId: string; dashboardUrl: string }> {
         const requestUrl = `${this.loadBalancerBaseUrl}/${HttpFileService.ALL_CELLS_MASK_URL}${this.pathSuffix}`;
 
-        try {
-            const result = await this.rawPost<{
-                computeTaskId: string;
-                dashboardUrl: string;
-            }>(
-                requestUrl,
-                JSON.stringify({
-                    files: params.files,
-                    scene: params.scene,
-                    channel: params.channel,
-                })
-            );
+        this.setUserName(params.user);
 
-            return {
-                computeTaskId: result.computeTaskId,
-                dashboardUrl: result.dashboardUrl,
-            };
-        } catch (error) {
-            console.error("Failed to submit All Cells Mask job:", error);
-            throw error;
-        }
+        const result = await this.rawPost<{
+            computeTaskId: string;
+            dashboardUrl: string;
+        }>(
+            requestUrl,
+            JSON.stringify({
+                files: params.files,
+                scene: params.scene,
+                channel: params.channel,
+            })
+        );
+
+        return {
+            computeTaskId: result.computeTaskId,
+            dashboardUrl: result.dashboardUrl,
+        };
     }
 }
