@@ -52,12 +52,6 @@ export default function useProcessMenuItems(
             title: "Submit selected files to a compute pipeline",
             subMenuProps: { items: computePipelineSubMenuItems },
         });
-        items.push({
-            key: "compute-pipeline",
-            text: "Run compute pipeline",
-            title: "Submit selected files to a compute pipeline",
-            subMenuProps: { items: computePipelineSubMenuItems },
-        });
     }
 
     return items;
