@@ -1,6 +1,7 @@
 import { IContextualMenuItem } from "@fluentui/react";
 import { useDispatch, useSelector } from "react-redux";
 
+import useComputePipelineMenuItems from "./useComputePipelineMenuItems";
 import { ModalType } from "../components/Modal";
 import FileDetail from "../entity/FileDetail";
 import FileFilter from "../entity/FileFilter";
@@ -15,6 +16,7 @@ export default function useProcessMenuItems(
 ): IContextualMenuItem[] {
     const dispatch = useDispatch();
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
+    const computePipelineSubMenuItems = useComputePipelineMenuItems(folderFilters);
 
     const items: IContextualMenuItem[] = [
         {
@@ -56,6 +58,12 @@ export default function useProcessMenuItems(
                     )
                 );
             },
+        });
+        items.push({
+            key: "compute-pipeline",
+            text: "Run compute pipeline",
+            title: "Submit selected files to a compute pipeline",
+            subMenuProps: { items: computePipelineSubMenuItems },
         });
     }
 
