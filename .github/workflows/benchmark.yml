@@ -51,7 +51,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: packages/web/fixtures
-          key: benchmark-fixtures-v1.1
+          key: benchmark-fixtures-v1.2
 
       - name: Download benchmark fixtures
         if: steps.fixture-cache.outputs.cache-hit != 'true'
