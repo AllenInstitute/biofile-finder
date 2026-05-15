@@ -66,10 +66,13 @@ export const isRemoteFileUploadServerAvailable = (state: State) =>
     state.interaction.isRemoteFileUploadServerAvailable;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
+export const getPipelineService = (state: State) =>
+    state.interaction.platformDependentServices.pipelineService;
 export const getProcessStatuses = (state: State) => state.interaction.status;
 export const getRefreshKey = (state: State) => state.interaction.refreshKey;
 export const getUserSelectedApplications = (state: State) =>
     state.interaction.userSelectedApplications;
+export const getSelectedPipelineId = (state: State) => state.interaction.selectedPipelineId;
 export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee;
 
