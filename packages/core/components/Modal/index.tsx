@@ -27,7 +27,7 @@ export enum ModalType {
     SmallScreenWarning = 7,
     ExtractMetadataCodeSnippet = 8,
     ConvertFiles = 9,
-    ComputePipeline = 11,
+    ComputePipeline = 10,
 }
 
 /**

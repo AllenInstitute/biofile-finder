@@ -149,8 +149,8 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
             isQueryingAicsFms,
             onDismiss,
             openWithSubMenuItems,
-            processFilesSubMenuItems,
             saveAsSubMenuItems,
+            processFilesSubMenuItems,
         ]
     );
 };
