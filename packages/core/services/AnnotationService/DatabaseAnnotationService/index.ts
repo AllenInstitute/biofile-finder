@@ -155,7 +155,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         const queries = columnNames.map((columnName) => {
             const sql = new SQLBuilder()
-                .select(`'${columnName}' AS column_name`)
+                .select(`'${columnName.replace(/'/g, "''")}' AS column_name`)
                 .from(aggregateDataSourceName)
                 .where(`"${columnName}" IS NOT NULL`)
                 .where(annotations.map((annotation) => `"${annotation}" IS NOT NULL`))
