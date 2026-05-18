@@ -4,7 +4,6 @@ import {
     Pipeline,
     PipelineParameter,
 } from "../../entity/ComputePipeline";
-import PipelineService from ".";
 import { MOCK_PIPELINES, MOCK_PARAMETERS } from "./mockPipelineData";
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
@@ -12,7 +11,7 @@ import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
  * Service responsible for fetching available compute pipelines and submitting
  * compute tasks via the FSS HTTP API.
  */
-export default class HttpPipelineService extends HttpServiceBase implements PipelineService {
+export default class HttpPipelineService extends HttpServiceBase {
     constructor(config: ConnectionConfig = {}) {
         super(config);
     }
