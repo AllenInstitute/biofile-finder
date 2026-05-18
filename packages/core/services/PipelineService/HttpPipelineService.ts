@@ -6,22 +6,24 @@ import {
 } from "../../entity/ComputePipeline";
 import PipelineService from ".";
 import { MOCK_PIPELINES, MOCK_PARAMETERS } from "./mockPipelineData";
-import { LoadBalancerBaseUrl } from "../../constants";
+import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
-export default class HttpPipelineService implements PipelineService {
-    private readonly baseUrl: string;
-
-    constructor(baseUrl: string = LoadBalancerBaseUrl.PRODUCTION) {
-        this.baseUrl = baseUrl;
+/**
+ * Service responsible for fetching available compute pipelines and submitting
+ * compute tasks via the FSS HTTP API.
+ */
+export default class HttpPipelineService extends HttpServiceBase implements PipelineService {
+    constructor(config: ConnectionConfig = {}) {
+        super(config);
     }
 
     getPipelines(): Promise<Pipeline[]> {
-        // TODO: return fetch(`${this.baseUrl}/fss2/v4.0/pipelines`).then((r) => r.json());
+        // TODO: return this.get(`${this.loadBalancerBaseUrl}/fss2/v4.0/pipelines`).then((r) => r.data);
         return Promise.resolve(MOCK_PIPELINES);
     }
 
     getParameters(pipelineId: string, _cluster: string): Promise<PipelineParameter[]> {
-        // TODO: return fetch(`${this.baseUrl}/fss2/v4.0/pipelines/${pipelineId}/parameters?cluster=${_cluster}`).then((r) => r.json());
+        // TODO: return this.get(`${this.loadBalancerBaseUrl}/fss2/v4.0/pipelines/${pipelineId}/parameters?cluster=${_cluster}`).then((r) => r.data);
         const params = MOCK_PARAMETERS[pipelineId];
         if (!params) {
             return Promise.reject(new Error(`No parameters found for pipeline: ${pipelineId}`));
@@ -30,17 +32,7 @@ export default class HttpPipelineService implements PipelineService {
     }
 
     async submitComputeTask(request: ComputeTaskRequest): Promise<ComputeTaskResponse> {
-        // TODO: once FSS POST /compute-tasks is live, replace with:
-        // return fetch(`${this.baseUrl}/fss2/v4.0/compute-tasks`, {
-        //     method: "POST",
-        //     body: JSON.stringify(request),
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //         ...(request.user ? { "X-User-Id": request.user } : {}),
-        //     },
-        // }).then((r) => r.json());
-
-        const url = `${this.baseUrl}/fss2/v4.0/compute/${request.pipeline}`;
+        const url = `${this.loadBalancerBaseUrl}/fss2/v4.0/compute/${request.pipeline}`;
 
         const { file_paths, ...rest } = request.parameters;
         const body: Record<string, unknown> = { files: file_paths };
@@ -50,18 +42,16 @@ export default class HttpPipelineService implements PipelineService {
             }
         }
 
-        const response = await fetch(url, {
-            method: "POST",
+        const response = await this.httpClient.post(url, body, {
             headers: {
                 "Content-Type": "application/json",
                 ...(request.user ? { "X-User-Id": request.user } : {}),
             },
-            body: JSON.stringify(body),
         });
-        if (!response.ok) {
-            throw new Error(`Submission failed: ${response.statusText}`);
-        }
-        const data = await response.json();
-        return { computeTaskId: data.computeTaskId, dashboardUrl: data.dashboardUrl ?? "" };
+
+        return {
+            computeTaskId: response.data.computeTaskId,
+            dashboardUrl: response.data.dashboardUrl ?? "",
+        };
     }
 }

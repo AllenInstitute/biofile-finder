@@ -93,7 +93,8 @@ export const getLoadBalancerBaseUrl = createSelector(
 
 export const getPipelineService = createSelector(
     [getEnvironment],
-    (environment) => new HttpPipelineService(LoadBalancerBaseUrl[environment])
+    (environment) =>
+        new HttpPipelineService({ loadBalancerBaseUrl: LoadBalancerBaseUrl[environment] })
 );
 
 export const getMetadataManagementServiceBaseUrl = createSelector(
