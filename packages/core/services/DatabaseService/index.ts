@@ -803,7 +803,7 @@ export default abstract class DatabaseService {
             AS SELECT ${selectParts.join(", ")}
             FROM parquet_scan(ARRAY[${quotedNames}], union_by_name = true);`;
         await this.execute(createViewSql);
-        this.parquetDirectViewNames.add(aggregateName); // TODO change this for aggregates?
+        this.parquetDirectViewNames.add(aggregateName);
     }
 
     // Given a possibly-renamed column name, get the original column name used
