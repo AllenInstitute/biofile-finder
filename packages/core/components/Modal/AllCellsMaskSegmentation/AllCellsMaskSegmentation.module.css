@@ -41,6 +41,12 @@
   color: var(--secondary-text-color) !important;
 }
 
+.fieldError {
+  font-size: var(--s-paragraph-size);
+  color: var(--error-color, #d13438);
+  margin-top: 4px;
+}
+
 /* ===== Footer ===== */
 
 .footerButtons {
