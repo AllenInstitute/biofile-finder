@@ -47,10 +47,7 @@ const NODE_TYPES = {
  * Component for rendering a graph at the given origin
  */
 export default function NetworkGraph(props: NetworkGraphProps) {
-    const dispatch = useDispatch();
-    const graph = useSelector(interaction.selectors.getGraph);
     const isLoading = useSelector(interaction.selectors.isGraphLoading);
-    const refreshKey = useSelector(interaction.selectors.getGraphRefreshKey);
     const provenanceSource = useSelector(selection.selectors.getSelectedSourceProvenance);
     // The option to open this graph shouldn't even appear when a
     // source isn't available so this shouldn't ever happen
@@ -66,14 +63,25 @@ export default function NetworkGraph(props: NetworkGraphProps) {
         );
     }
 
-    function Flow() {
+    // The ReactFlow component can only access state (useReactFlow) if it's the child of a ReactFlowProvider
+    // See https://reactflow.dev/learn/troubleshooting/common-errors#001
+    function ReactFlowComponent() {
+        const dispatch = useDispatch();
         const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<AnnotationEdge>>([]);
         const [nodes, setNodes, onNodesChange] = useNodesState<FileNodeType | MetadataNodeType>([]);
+        const graph = useSelector(interaction.selectors.getGraph);
+        const refreshKey = useSelector(interaction.selectors.getGraphRefreshKey);
         // Unfortunately we have to have some notion of state at a high level for control from the components
         // and at the dagre level for when the user does a drag action causing this duplication of efforts
         React.useEffect(() => {
-            setEdges(graph.edges);
-            setNodes(graph.nodes);
+            let cancel = false;
+            if (!cancel) {
+                setEdges(graph.edges);
+                setNodes(graph.nodes);
+            }
+            return function cleanup() {
+                cancel = true;
+            };
         }, [graph, setEdges, setNodes, refreshKey]);
         const { fitView } = useReactFlow();
         const onClickReset = () => {
@@ -116,10 +124,11 @@ export default function NetworkGraph(props: NetworkGraphProps) {
         );
     }
 
+    // The wrapped ReactFlow component
     return (
         <div className={classNames(props.className, styles.reactFlow)}>
             <ReactFlowProvider>
-                <Flow />
+                <ReactFlowComponent />
             </ReactFlowProvider>
         </div>
     );
