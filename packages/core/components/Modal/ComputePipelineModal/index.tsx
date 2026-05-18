@@ -6,13 +6,14 @@ import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
 import BaseComboBox from "../../ComboBox";
-import FileSelection from "../../../entity/FileSelection";
-import { Pipeline, PipelineParameter } from "../../../entity/ComputePipeline";
-
-import { interaction, selection } from "../../../state";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
+import { Pipeline, PipelineParameter } from "../../../entity/ComputePipeline";
+import FileSelection from "../../../entity/FileSelection";
+import { interaction, selection } from "../../../state";
 
 import styles from "./ComputePipelineModal.module.css";
+
+const FILE_PATHS_PARAM = "file_paths";
 
 type ModalPhase = "loading" | "selecting" | "configuring" | "submitting" | "submitted" | "error";
 
@@ -233,7 +234,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                 setParameters(params);
                 const defaults: Record<string, unknown> = {};
                 for (const p of params) {
-                    if (p.required && p.type !== "file_paths" && p.default !== null) {
+                    if (p.required && p.type !== FILE_PATHS_PARAM && p.default !== null) {
                         defaults[p.name] = p.default;
                     }
                 }
@@ -276,8 +277,8 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
         [pipelineService, selectedPipeline]
     );
 
-    const requiredParams = parameters.filter((p) => p.required && p.type !== "file_paths");
-    const optionalParams = parameters.filter((p) => !p.required && p.type !== "file_paths");
+    const requiredParams = parameters.filter((p) => p.required && p.type !== FILE_PATHS_PARAM);
+    const optionalParams = parameters.filter((p) => !p.required && p.type !== FILE_PATHS_PARAM);
     const remainingOptionalParams = optionalParams.filter(
         (p) => !addedOptionalNames.includes(p.name)
     );
@@ -362,7 +363,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                 cluster: selectedCluster,
                 user: userId || null,
                 parameters: {
-                    file_paths: filePaths,
+                    [FILE_PATHS_PARAM]: filePaths,
                     ...requiredValues,
                     ...addedOptVals,
                 },
@@ -439,7 +440,9 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
             );
         }
 
-        if (phase === "submitted" && selectedPipeline) {
+        if (!selectedPipeline) return null;
+
+        if (phase === "submitted") {
             return (
                 <div className={styles.successBanner}>
                     <div className={styles.successTitle}>Pipeline submitted</div>
@@ -452,8 +455,6 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                 </div>
             );
         }
-
-        if (!selectedPipeline) return null;
 
         return (
             <div className={styles.formShell}>
