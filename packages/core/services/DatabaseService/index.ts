@@ -582,12 +582,21 @@ export default abstract class DatabaseService {
     private async checkDataSourceForErrors(name: string): Promise<string | null> {
         const columnsOnTable = await this.getColumnsOnDataSource(name);
 
+        // Double quotes in column names should not be allowed because of injection concerns
+        const columns = Array.from(columnsOnTable);
+        const columnsWithDoubleQuotes = columns.filter((col) => /"/.test(col));
+        if (columnsWithDoubleQuotes.length > 0) {
+            return `Found column names with disallowed double quote characters ("): ${columnsWithDoubleQuotes.join(
+                ", "
+            )}. 
+                Please rename these columns and try again.`;
+        }
+
         if (!columnsOnTable.has(PreDefinedColumn.FILE_PATH)) {
             let error = `"${PreDefinedColumn.FILE_PATH}" column is missing in the data source.
                 Check the data source header row for a "${PreDefinedColumn.FILE_PATH}" column name and try again.`;
 
             // Attempt to find a column with a similar name to "File Path"
-            const columns = Array.from(columnsOnTable);
             const filePathLikeColumn =
                 columns.find((column) => column.toLowerCase().includes("path")) ||
                 columns.find((column) => column.toLowerCase().includes("file"));
@@ -648,10 +657,45 @@ export default abstract class DatabaseService {
      */
     private async renameNonprintableCharColumns(dataSourceName: string): Promise<void> {
         // Query for columns that contain ASCII characters that are outside of the printable range
-        const findNonPrintableCharsSql = `
-            SELECT column_name, regexp_replace(column_name, '[^ -~]+', '', 'g') as clean_name
+        const findNonAsciiCharsSql = `
+            SELECT column_name
             FROM "information_schema"."columns"
             WHERE (table_name = '${dataSourceName}') AND (regexp_matches(column_name, '[^ -~]+'))
+        `;
+        const columnsWithNonAscii = (await this.query(findNonAsciiCharsSql).promise).flatMap(
+            (val) => val.column_name
+        );
+        // Determine whether Javascript removes those characters by checking
+        // if the JS version of each column name still exists in the DuckDB table
+        const columnsExist = await this.checkColumnsExist(dataSourceName, columnsWithNonAscii);
+        const columnsWithMismatch = columnsExist
+            ?.filter((value) => value.column_exists === false)
+            .flatMap((val) => val.column_name);
+        // If list is empty, there may be column names with non-ASCII characters,
+        // but they don't get trimmed by JS, so we can return safely
+        if (!columnsWithMismatch || columnsWithMismatch.length === 0) return;
+
+        // Only rename the columns that have a mismatch after being converted to JS
+        // since these are the ones that won't render correctly & will cause errors
+        const findMismatchedColumnsSql = `
+            WITH nonascii_columns AS (
+                SELECT * FROM (
+                VALUES ${columnsWithMismatch
+                    ?.map((col) => `('${col.replace(/'/g, "''")}')`)
+                    .join(",")}) 
+                AS t(column_name)
+            ),
+            table_columns AS (
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = '${dataSourceName}'
+            )
+            SELECT 
+                (SELECT column_name FROM table_columns tc
+                WHERE regexp_replace(column_name, '[^ -~]+', '', 'g') = nc.column_name
+                LIMIT 1) as column_name,
+                nc.column_name as clean_name
+            FROM nonascii_columns nc
         `;
         // Run the above query inside of a DuckDB command that generates `ALTER` statements
         // rather than running two separate queries,
@@ -659,7 +703,7 @@ export default abstract class DatabaseService {
         const alterCommandsSql = `
             SELECT string_agg('ALTER TABLE "${dataSourceName}" RENAME "' || column_name || '" TO "' || clean_name || '";', ' ') as sql_statement,
                 string_agg(column_name, ', ') as cols_to_rename
-            FROM (${findNonPrintableCharsSql}
+            FROM (${findMismatchedColumnsSql}
             ) problem_columns;
         `;
         // Retrieve the ALTER commands and names of columns that will be renamed
@@ -671,6 +715,25 @@ export default abstract class DatabaseService {
                 `Renamed columns with special characters: ${executeResult[0].cols_to_rename}`
             );
         }
+    }
+
+    // Check if each column name in an array actually exists in table `dataSourceName`
+    private async checkColumnsExist(dataSourceName: string, columnNames: string[]) {
+        if (columnNames.length === 0) return;
+        const sql = `
+            WITH columns_to_check AS (
+                SELECT * FROM (
+                VALUES ${columnNames.map((col) => `('${col.replace(/'/g, "''")}')`).join(",")}) 
+                AS t(column_name)
+            )
+            SELECT cc.column_name,
+                ic.column_name IS NOT NULL as column_exists
+            FROM columns_to_check cc
+            LEFT JOIN information_schema.columns ic 
+                ON LOWER(cc.column_name) = LOWER(ic.column_name)
+                AND ic.table_name = '${dataSourceName}'
+        `;
+        return await this.query(sql).promise;
     }
 
     /*
