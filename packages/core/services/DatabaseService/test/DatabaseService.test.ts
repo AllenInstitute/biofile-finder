@@ -170,6 +170,114 @@ describe("DatabaseService", () => {
             expect(caughtError).to.be.undefined;
             expect(service.hasDataSource(tempFileName)).to.be.true;
         });
+
+        it("throws error when a column name contains double quotes", async () => {
+            // Arrange
+            const badColumnName = '"Bad" column name';
+            const doubleQuoteAnnotation = new Annotation({
+                annotationDisplayName: badColumnName,
+                annotationName: badColumnName,
+                description: "",
+                type: AnnotationType.STRING,
+                annotationId: 3,
+            });
+            sinon
+                .stub(service, "fetchAnnotations")
+                .returns(Promise.resolve([...mockAnnotations, doubleQuoteAnnotation]));
+            const tempFileName = "testFailure.csv";
+            const tempFile = path.resolve(tempDir, tempFileName);
+            await fs.promises.writeFile(tempFile, "a,b,c,d\n1,2,3,4\n5,6,7,8\n");
+            let caughtError;
+
+            // Act
+            try {
+                await service.prepareDataSources([
+                    { name: tempFileName, type: "csv", uri: tempFile },
+                ]);
+            } catch (error) {
+                caughtError = error;
+            }
+
+            // Assert
+            expect(caughtError).to.not.be.undefined;
+            expect(caughtError).to.contain(/DataSourcePreparationError/);
+            expect((caughtError as Error)?.message).to.contain(badColumnName);
+            expect(service.hasDataSource(tempFileName)).to.be.false;
+        });
+
+        describe("CORS error handling for URL data sources", () => {
+            // A service where addDataSource always fails (simulates DuckDB failing to load a URL)
+            class MockDatabaseServiceWithURLFailure extends MockDatabaseService {
+                addDataSource(): Promise<void> {
+                    return Promise.reject(new Error("DuckDB: HTTP 0"));
+                }
+            }
+            const failingService = new MockDatabaseServiceWithURLFailure();
+
+            before(async () => {
+                await failingService.initialize();
+            });
+
+            after(() => {
+                failingService.close();
+            });
+
+            it("provides a CORS-specific error message when no HTTP response is received", async () => {
+                // Arrange: reset the beforeEach stub and use a CORS/network error instead
+                sinon.restore();
+                const corsError = Object.assign(new Error("Network Error"), {
+                    isAxiosError: true,
+                    request: {}, // a request was made but no response was received
+                    // response is intentionally absent to simulate CORS
+                });
+                sinon.stub(axios, "get").rejects(corsError);
+
+                let caughtError;
+                try {
+                    await failingService.prepareDataSources([
+                        { name: "cors-test", type: "csv", uri: "https://example.com/data.csv" },
+                    ]);
+                } catch (error) {
+                    caughtError = error;
+                }
+
+                // Assert
+                expect(caughtError).to.not.be.undefined;
+                expect((caughtError as Error).message).to.include("CORS");
+            });
+
+            it("uses HTTP response error details when a response with an error status is received", async () => {
+                // Arrange: reset the beforeEach stub and simulate a proper HTTP error response
+                sinon.restore();
+                const httpError = Object.assign(new Error("Request Failed with status 403"), {
+                    isAxiosError: true,
+                    response: {
+                        status: 403,
+                        statusText: "Forbidden",
+                        data: { error: "Access denied" },
+                    },
+                });
+                sinon.stub(axios, "get").rejects(httpError);
+
+                let caughtError;
+                try {
+                    await failingService.prepareDataSources([
+                        {
+                            name: "http-error-test",
+                            type: "csv",
+                            uri: "https://example.com/data.csv",
+                        },
+                    ]);
+                } catch (error) {
+                    caughtError = error;
+                }
+
+                // Assert: should show the HTTP error details, not a CORS message
+                expect(caughtError).to.not.be.undefined;
+                expect((caughtError as Error).message).to.include("403");
+                expect((caughtError as Error).message).to.not.include("CORS");
+            });
+        });
     });
 
     describe("prepareDataSources parquet aggregation", () => {
