@@ -947,14 +947,18 @@ export default abstract class DatabaseService {
             await this.deleteDataSource(this.currentAggregateSource);
         }
 
+        const isParquet = dataSources.some((source) => source.type === "parquet");
+        if (isParquet) {
+            if (!dataSources.every((source) => source.type === "parquet")) {
+                throw new DataSourcePreparationError(
+                    "Parquet tables cannot be aggregated with non-parquet tables.",
+                    viewName
+                );
+            }
+        }
+
         try {
-            if (dataSources.some((source) => source.type === "parquet")) {
-                if (!dataSources.every((source) => source.type === "parquet")) {
-                    throw new DataSourcePreparationError(
-                        "Parquet tables cannot be aggregated with non-parquet tables.",
-                        viewName
-                    );
-                }
+            if (isParquet) {
                 await this.createAggregateParquetDirectView(
                     viewName,
                     dataSources.map((source) => source.name)
