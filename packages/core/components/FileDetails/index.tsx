@@ -190,7 +190,8 @@ export default function FileDetails(props: Props) {
                             </Modal>
                             <div className={styles.titleRow}>
                                 <h4>Metadata</h4>
-                                {hasProvenanceSource && (
+                                {/* To do: un-hide the provenance source button while in graph mode, should redraw graph */}
+                                {hasProvenanceSource && !props.onClose && (
                                     <DefaultButton
                                         onClick={() =>
                                             dispatch(
