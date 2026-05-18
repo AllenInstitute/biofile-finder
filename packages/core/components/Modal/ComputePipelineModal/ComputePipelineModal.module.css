@@ -19,14 +19,14 @@
     gap: 6px;
     padding: 14px 16px;
     border-radius: 8px;
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+    border: 1px solid var(--border-color);
     background: var(--secondary-background-color);
     cursor: pointer;
     transition: border-color 0.15s;
 }
 
 .pipeline-card:hover {
-    border-color: var(--primary-color, #00b0d0);
+    border-color: var(--bright-aqua);
 }
 
 .pipeline-card-title {
@@ -97,7 +97,7 @@
 /* ===================== FILE EXPANDER ===================== */
 
 .expander {
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     overflow: hidden;
 }
@@ -122,10 +122,10 @@
 
 .expander-body {
     padding: 10px 14px;
-    border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border-top: 1px solid var(--border-color);
     max-height: 160px;
     overflow-y: auto;
-    background: var(--primary-background-color, #1a1a1a);
+    background: var(--primary-background-color);
 }
 
 .file-path-list {
@@ -173,18 +173,14 @@
 
 .param-error {
     font-size: var(--s-paragraph-size);
-    color: var(--error-color, #d13438);
+    color: var(--red);
 }
 
-.input-box :global(input.ms-TextField-field) {
-    background-color: var(--secondary-background-color) !important;
-    color: var(--secondary-text-color) !important;
-}
 
 /* ===================== ADVANCED OPTIONS ===================== */
 
 .advanced-section {
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     overflow: hidden;
 }
@@ -209,7 +205,7 @@
 
 .advanced-body {
     padding: 14px;
-    border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border-top: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -243,7 +239,7 @@
 }
 
 .remove-button:hover {
-    color: var(--error-color, #d13438);
+    color: var(--red);
     background: rgba(255, 0, 0, 0.08);
 }
 
@@ -268,7 +264,7 @@
 
 .info-card {
     background: var(--secondary-background-color);
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 18px;
     display: flex;
@@ -285,7 +281,7 @@
 
 .info-card-divider {
     border: none;
-    border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border-top: 1px solid var(--border-color);
     margin: 0;
 }
 

@@ -52,13 +52,18 @@ function PipelineParameterInput({ param, value, error, onChange, onBlur }: Param
             </div>
             <div className={styles.paramDesc}>{param.description}</div>
             <TextField
-                className={styles.inputBox}
                 type="number"
                 value={value !== null && value !== undefined ? String(value) : ""}
                 onChange={(_, v) => onChange(v ?? "")}
                 onBlur={onBlur}
                 placeholder={param.default !== null ? String(param.default) : ""}
                 borderless
+                styles={{
+                    field: {
+                        backgroundColor: "var(--secondary-background-color)",
+                        color: "var(--secondary-text-color)",
+                    },
+                }}
             />
             {error && <div className={styles.paramError}>{error}</div>}
         </div>
@@ -488,7 +493,6 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                         <div className={styles.paramField}>
                             <div className={styles.paramLabel}>User *</div>
                             <TextField
-                                className={styles.inputBox}
                                 type="text"
                                 value={userId}
                                 onChange={(_, v) => {
@@ -497,6 +501,12 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                                 }}
                                 placeholder="Enter your user ID (ex. first.last)"
                                 borderless
+                                styles={{
+                                    field: {
+                                        backgroundColor: "var(--secondary-background-color)",
+                                        color: "var(--secondary-text-color)",
+                                    },
+                                }}
                             />
                             {userIdError && <div className={styles.paramError}>{userIdError}</div>}
                         </div>
