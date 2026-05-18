@@ -467,7 +467,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
             const name = executionEnvService.getFilename(app.filePath);
             return {
                 key: `open-with-${name}`,
-                text: name,
+                text: `${name} (desktop)`,
                 title: `Open files with ${name}`,
                 disabled:
                     (!filters && !fileDetails) ||
@@ -479,14 +479,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                     } else if (fileDetails) {
                         dispatch(interaction.actions.openWith(app, undefined, [fileDetails]));
                     }
-                },
-                onRenderContent(props, defaultRenders) {
-                    return (
-                        <>
-                            {defaultRenders.renderItemName(props)}
-                            <span className={styles.secondaryText}>Desktop</span>
-                        </>
-                    );
                 },
             } as IContextualMenuItem;
         })
