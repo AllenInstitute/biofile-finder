@@ -42,6 +42,8 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
     const [computeTaskId, setComputeTaskId] = React.useState<string | null>(null);
     const [statusMessage, setStatusMessage] = React.useState<string | null>(null);
     const [localFilePaths, setLocalFilePaths] = React.useState<string[] | null>(null);
+    const [userId, setUserId] = React.useState<string>("");
+    const [userIdError, setUserIdError] = React.useState<string>("");
 
     React.useEffect(() => {
         let cancelled = false;
@@ -78,6 +80,12 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
     const onSubmit = async () => {
         if (status !== "idle" || !localFilePaths?.length) return;
 
+        const userErr = userId.trim() === "" ? "This field is required." : "";
+        if (userErr) {
+            setUserIdError(userErr);
+            return;
+        }
+
         setStatus("submitting");
         setStatusMessage(null);
 
@@ -97,6 +105,7 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
                 files: localFilePaths,
                 scene,
                 channel,
+                user: userId,
             });
 
             setComputeTaskId(computeTaskId ?? null);
@@ -134,6 +143,23 @@ export default function AllCellsMaskSegmentation({ onDismiss }: ModalProps) {
         <div className={styles.shell}>
             <div className={styles.columns}>
                 <div className={styles.leftCol}>
+                    <div className={styles.section}>
+                        <div className={styles.label}>User *</div>
+                        <div className={styles.searchBox}>
+                            <TextField
+                                value={userId}
+                                type="text"
+                                onChange={(_, v) => {
+                                    setUserId(v ?? "");
+                                    if (userIdError) setUserIdError("");
+                                }}
+                                placeholder="Enter your user ID (ex. first.last)"
+                                borderless
+                            />
+                        </div>
+                        {userIdError && <div className={styles.fieldError}>{userIdError}</div>}
+                    </div>
+
                     <div className={styles.section}>
                         <div className={styles.label}>Channel</div>
                         <div className={styles.searchBox}>
