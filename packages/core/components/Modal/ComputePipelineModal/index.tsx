@@ -14,6 +14,7 @@ import { interaction, selection } from "../../../state";
 import styles from "./ComputePipelineModal.module.css";
 
 const FILE_PATHS_PARAM = "file_paths";
+const MAX_VISIBLE_FILE_PATHS = 10;
 
 type ModalPhase = "loading" | "selecting" | "configuring" | "submitting" | "submitted" | "error";
 
@@ -106,13 +107,18 @@ function SelectedFilesExpander({ count, onExpand }: SelectedFilesExpanderProps) 
                         Files are added automatically from your current selection.
                     </div>
                     <ul className={styles.filePathList}>
-                        {paths.map((p) => (
+                        {paths.slice(0, MAX_VISIBLE_FILE_PATHS).map((p) => (
                             <li key={p} className={styles.filePathItem}>
                                 <Icon iconName="TextDocument" />
                                 {p}
                             </li>
                         ))}
                     </ul>
+                    {paths.length > MAX_VISIBLE_FILE_PATHS && (
+                        <div className={styles.expanderNote}>
+                            …and {paths.length - MAX_VISIBLE_FILE_PATHS} more
+                        </div>
+                    )}
                 </div>
             )}
         </div>
