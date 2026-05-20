@@ -2,14 +2,14 @@ import { IComboBoxOption, Icon, Spinner, TextField } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { ModalProps } from "..";
-import BaseModal from "../BaseModal";
-import { PrimaryButton, SecondaryButton } from "../../Buttons";
-import BaseComboBox from "../../ComboBox";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { Pipeline, PipelineParameter } from "../../../entity/ComputePipeline";
 import FileSelection from "../../../entity/FileSelection";
 import { interaction, selection } from "../../../state";
+import { PrimaryButton, SecondaryButton } from "../../Buttons";
+import BaseComboBox from "../../ComboBox";
+import { ModalProps } from "..";
+import BaseModal from "../BaseModal";
 import PipelineInfoCard from "./PipelineInfoCard";
 import PipelineParameterInput from "./PipelineParameterInput";
 import SelectedFilesExpander from "./SelectedFilesExpander";
@@ -168,6 +168,10 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
         [pipelineService, selectedPipeline]
     );
 
+    // requiredParams are always shown; optionalParams are user-added one at a time via a dropdown.
+    // optionalParams are usually preset under the hood by pipeline defaults, adding one from the
+    // dropdown indicates a default overwrite. This is considered advanced options.
+    // remainingOptionalParams feeds the dropdown; addedOptionalParams renders the active inputs.
     const requiredParams = parameters.filter((p) => p.required && p.type !== FILE_PATHS_PARAM);
     const optionalParams = parameters.filter((p) => !p.required && p.type !== FILE_PATHS_PARAM);
     const remainingOptionalParams = optionalParams.filter(
