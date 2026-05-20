@@ -200,7 +200,7 @@ export default function FileDetails(props: Props) {
                                             )
                                         }
                                     >
-                                        View provenance
+                                        View relationship diagram
                                     </DefaultButton>
                                 )}
                             </div>
