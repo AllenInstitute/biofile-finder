@@ -12,13 +12,18 @@ import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
  * compute tasks via the FSS HTTP API.
  */
 export default class PipelineService extends HttpServiceBase {
+    private pipelinesCache: Promise<Pipeline[]> | null = null;
+
     constructor(config: ConnectionConfig = {}) {
         super(config);
     }
 
     getPipelines(): Promise<Pipeline[]> {
-        // TODO: return this.get(`${this.loadBalancerBaseUrl}/fss2/v4.0/pipelines`).then((r) => r.data);
-        return Promise.resolve(MOCK_PIPELINES);
+        if (!this.pipelinesCache) {
+            // TODO: this.pipelinesCache = this.get(`${this.loadBalancerBaseUrl}/fss2/v4.0/pipelines`).then((r) => r.data);
+            this.pipelinesCache = Promise.resolve(MOCK_PIPELINES);
+        }
+        return this.pipelinesCache;
     }
 
     getParameters(pipelineId: string, _cluster: string): Promise<PipelineParameter[]> {

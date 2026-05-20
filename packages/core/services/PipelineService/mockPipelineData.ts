@@ -9,10 +9,10 @@ export const MOCK_PIPELINES: Pipeline[] = [
         id: "all-cells-mask",
         name: "All Cells Mask Segmentation",
         description:
-            "The All Cells Mask workflow generates segmentation masks for the selected files. After submission, you can monitor progress in the job dashboard.",
-        restrictions: "Works only with multi-scene Tiff and CZI files.",
+            "The All Cells Mask workflow generates segmentation masks for the selected files.",
+        restrictions: "Works only for Tiff and CZI files under 100gb",
         clusters: ["slurm-prod"],
-        acceptedExtensions: ["czi"],
+        acceptedExtensions: ["czi", "tiff", "tif"],
         maxFileSizeBytes: 107374182400,
     },
 ];

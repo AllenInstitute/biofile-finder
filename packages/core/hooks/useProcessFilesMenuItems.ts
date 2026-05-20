@@ -1,6 +1,7 @@
 import { IContextualMenuItem } from "@fluentui/react";
 import { useDispatch, useSelector } from "react-redux";
 
+import useComputePipelineMenuItems from "./useComputePipelineMenuItems";
 import { ModalType } from "../components/Modal";
 import FileDetail from "../entity/FileDetail";
 import FileFilter from "../entity/FileFilter";
@@ -15,6 +16,7 @@ export default function useProcessMenuItems(
 ): IContextualMenuItem[] {
     const dispatch = useDispatch();
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
+    const computePipelineSubMenuItems = useComputePipelineMenuItems(folderFilters);
 
     const items: IContextualMenuItem[] = [
         {
@@ -45,17 +47,10 @@ export default function useProcessMenuItems(
 
     if (isAicsEmployee) {
         items.push({
-            key: "all-cells-mask-segmentation",
-            text: "Run all cells mask segmentation",
-            title: "Generate an all-cells segmentation mask using a predefined pipeline",
-            onClick() {
-                dispatch(
-                    interaction.actions.setVisibleModal(
-                        ModalType.AllCellsMaskSegmentation,
-                        folderFilters
-                    )
-                );
-            },
+            key: "compute-pipeline",
+            text: "Run compute pipeline",
+            title: "Submit selected files to a compute pipeline",
+            subMenuProps: { items: computePipelineSubMenuItems },
         });
     }
 
