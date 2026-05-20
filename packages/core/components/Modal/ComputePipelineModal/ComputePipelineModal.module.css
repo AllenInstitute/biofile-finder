@@ -176,6 +176,10 @@
     color: var(--red);
 }
 
+.text-field input {
+    background-color: var(--secondary-background-color) !important;
+    color: var(--secondary-text-color) !important;
+}
 
 /* ===================== ADVANCED OPTIONS ===================== */
 
