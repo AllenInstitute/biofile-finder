@@ -41,6 +41,14 @@ export default function Menu() {
                 >
                     Learn
                 </Link>
+                <Link
+                    to="user-guide"
+                    className={styles.routeLink}
+                    target={isApp ? "_blank" : "_self"}
+                    rel="noreferrer"
+                >
+                    User guide
+                </Link>
                 <PrimaryFluent
                     ariaLabel="Help"
                     className={styles.helpMenuButton}
@@ -84,6 +92,13 @@ export default function Menu() {
                             target: isApp ? "_blank" : "_self",
                             rel: "noreferrer",
                             href: "/learn",
+                        },
+                        {
+                            key: "user-guide",
+                            text: "User guide",
+                            target: isApp ? "_blank" : "_self",
+                            rel: "noreferrer",
+                            href: "/user-guide",
                         },
                         {
                             key: "help",

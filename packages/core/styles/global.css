@@ -98,6 +98,10 @@ body {
     --font-family: 'Open Sans', sans-serif;
     --scrollbar-size: 12px;
 }
+/**
+Open Sans font weight guide:
+300 light, 400 regular, 500 semi-bold, 600 bold
+**/
 
 h1 {
     font-size: 38px;
@@ -107,7 +111,7 @@ h1 {
 }
 
 h2 {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 300;
     margin: 0;
     padding: 0;
@@ -115,20 +119,20 @@ h2 {
 
 h3 {
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 500;
     margin: 0;
     padding: 0;
 }
 
 h4 {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
     margin: 0;
     padding: 0;
 }
 
 p {
-    font-weight: 400;
+    font-weight: 300;
 }
 
 a {

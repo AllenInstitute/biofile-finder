@@ -4,7 +4,7 @@ import { memoize } from "lodash";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 
 import NotificationServiceWeb from "./services/NotificationServiceWeb";
 import ApplicationInfoServiceWeb from "./services/ApplicationInfoServiceWeb";
@@ -18,6 +18,7 @@ import Learn from "./components/Learn";
 import Home from "./components/Home";
 import Layout from "./components/Layout";
 import OpenSourceDatasets from "./components/OpenSourceDatasets";
+import UserGuide from "./components/UserGuide";
 import SiteLogo from "../assets/site-logo.png";
 import FmsFileExplorer from "../../core/App";
 import { createReduxStore } from "../../core/state";
@@ -49,6 +50,14 @@ const router = createBrowserRouter(
                 {
                     path: "datasets",
                     element: <OpenSourceDatasets />,
+                },
+                {
+                    path: "user-guide",
+                    element: <Navigate to="/user-guide/about/overview" replace />,
+                },
+                {
+                    path: "user-guide/:sectionSlug/:pageSlug",
+                    element: <UserGuide />,
                 },
             ],
         },

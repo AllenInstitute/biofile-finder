@@ -1,0 +1,83 @@
+.root {
+    padding: 16px 0;
+    background-color: var(--primary-dark);
+    height: 100%;
+}
+
+.label {
+    color: var(--light-grey);
+    padding: 0 16px 12px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 8px;
+}
+
+.section {
+    margin-bottom: 2px;
+}
+
+.sectionTitle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--primary-text-color);
+    text-align: left;
+    font-family: var(--font-family);
+    transition: background-color 0.15s ease;
+}
+
+.sectionTitle:hover {
+    background-color: var(--accent-dark);
+}
+
+.chevron {
+    font-size: 10px;
+    transition: transform 0.2s ease;
+    transform: rotate(-90deg);
+    color: var(--light-grey);
+    flex-shrink: 0;
+}
+
+.chevronOpen {
+    transform: rotate(0deg);
+}
+
+.pageList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 4px;
+}
+
+.pageLink {
+    display: block;
+    padding: 6px 16px 6px 24px;
+    font-size: 13px;
+    color: var(--primary-text-color);
+    text-decoration: none;
+    line-height: 1.4;
+    transition: background-color 0.15s ease;
+    border-left: 3px solid transparent;
+}
+
+.pageLink:hover {
+    background-color: var(--accent-dark);
+    color: var(--white);
+}
+
+.activePage {
+    background-color: var(--aqua-secondary-hover);
+    border-left-color: var(--aqua);
+    color: var(--bright-aqua);
+    padding-left: 21px;
+}
+
+.activePage:hover {
+    background-color: var(--aqua-secondary-hover);
+    color: var(--bright-aqua);
+}
