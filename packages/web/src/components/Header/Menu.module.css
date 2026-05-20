@@ -14,6 +14,7 @@
 .help-menu-label {
     font-weight: 400;
     font-size: 16px;
+    -webkit-font-smoothing: auto;
 }
 
 .help-menu-button {

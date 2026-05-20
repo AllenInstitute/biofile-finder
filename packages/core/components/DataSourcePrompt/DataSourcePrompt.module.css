@@ -25,6 +25,14 @@
 }
 
 .advanced-options-button {
+    padding: 0 8px;
+}
+
+.advanced-options-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: center;
     align-self: flex-start;
 }
 

@@ -1,3 +1,4 @@
+import { noop } from "lodash";
 import DatabaseService from ".";
 
 export default class DatabaseServiceNoop extends DatabaseService {
@@ -21,8 +22,11 @@ export default class DatabaseServiceNoop extends DatabaseService {
         return Promise.reject("DatabaseServiceNoop:saveQuery");
     }
 
-    public query(): Promise<{ [key: string]: string }[]> {
-        return Promise.reject("DatabaseServiceNoop:query");
+    public query(): {
+        promise: Promise<{ [key: string]: any }[]>;
+        cancel?: (reason?: string) => void;
+    } {
+        return { promise: Promise.reject("DatabaseServiceNoop:query"), cancel: noop };
     }
 
     protected addDataSource(): Promise<void> {

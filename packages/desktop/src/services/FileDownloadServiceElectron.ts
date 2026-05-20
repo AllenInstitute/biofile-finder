@@ -60,13 +60,15 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                 : this.downloadCloudDirectory(fileInfo, downloadRequestId, onProgress, destination);
         }
 
-        const path = fileInfo.data || fileInfo.path;
-        if (path instanceof Uint8Array) {
-            downloadUrl = URL.createObjectURL(new Blob([path]));
-        } else if (path instanceof Blob) {
-            downloadUrl = URL.createObjectURL(path);
-        } else if (typeof path === "string" && !destination) {
-            const dataAsBlob = new Blob([path], { type: "application/json" });
+        const data = fileInfo.data || fileInfo.path;
+        if (data instanceof Uint8Array) {
+            const dataBlob = new Uint8Array(data.byteLength);
+            dataBlob.set(data);
+            downloadUrl = URL.createObjectURL(new Blob([dataBlob]));
+        } else if (data instanceof Blob) {
+            downloadUrl = URL.createObjectURL(data);
+        } else if (typeof data === "string" && !destination) {
+            const dataAsBlob = new Blob([data], { type: "application/json" });
             downloadUrl = URL.createObjectURL(dataAsBlob);
             // if the string is a url, download directly from that url
             const isValidURL = (path: string) => {
@@ -77,8 +79,8 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                     return false;
                 }
             };
-            if (isValidURL(path)) {
-                downloadUrl = path;
+            if (isValidURL(data)) {
+                downloadUrl = data;
             }
         } else {
             return this.downloadHttpFile(fileInfo, downloadRequestId, onProgress, destination);
@@ -411,11 +413,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             // Backfill missing directories from path.
             fs.mkdirSync(fullDestination, { recursive: true });
 
-            const objectsInDir = await this.s3StorageService.getObjectsInDirectory(parsedUrl);
-
-            if (objectsInDir.length === 0) {
-                throw new Error("No files found in the specified S3 directory.");
-            }
+            const objectsInDir = this.s3StorageService.getObjectsInDirectory(parsedUrl);
 
             let cancelRequested = false;
 
@@ -428,7 +426,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             };
 
             // Download each file, track its size, and report progress
-            for (const objectInDir of objectsInDir) {
+            for await (const objectInDir of objectsInDir) {
                 // If cancel was requested, cleanup.
                 if (cancelRequested) {
                     await fs.promises.rm(fullDestination, { recursive: true, force: true });

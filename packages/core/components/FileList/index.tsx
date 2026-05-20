@@ -16,7 +16,7 @@ import { FileView } from "../../entity/SearchParams";
 import FileSet from "../../entity/FileSet";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileAccessContextMenu from "../../hooks/useFileAccessContextMenu";
-import { selection } from "../../state";
+import { metadata, selection } from "../../state";
 
 import styles from "./FileList.module.css";
 
@@ -57,6 +57,7 @@ export default function FileList(props: FileListProps) {
     const fileGridColumnCount = useSelector(selection.selectors.getFileGridColCount);
     const isDisplayingSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const isColumnWidthOverflowing = useSelector(selection.selectors.isColumnWidthOverflowing);
+    const areAnnotationsLoaded = useSelector(metadata.selectors.areAnnotationsLoaded);
     const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
         HTMLDivElement
     >();
@@ -130,8 +131,10 @@ export default function FileList(props: FileListProps) {
         }
     }, [fileSelection, fileSet, height, fileGridColumnCount, rowHeight]);
 
-    // Get a count of all files in the FileList, but don't wait on it
+    // Get a count of all files in the FileList, but don't wait on it.
+    // Wait for annotations to load first so filters have correct annotationType before querying.
     React.useEffect(() => {
+        if (!areAnnotationsLoaded) return;
         // Set the file count to null so that the UI will display the loading message until a
         // new count is retrieved. Otherwise, may display stale count from previous fileSet
         setTotalCount(null);
@@ -147,14 +150,14 @@ export default function FileList(props: FileListProps) {
                 // Data source may not be prepared if the data source is taking longer to load
                 // than the component does to render. In this case, we can ignore the error.
                 // The component will re-render when the data source is prepared.
-                if (!err?.message.includes("Data source is not prepared")) {
+                if (!(err as Error)?.message?.includes("Data source is not prepared")) {
                     throw err;
                 }
             });
         return () => {
             cancel = true;
         };
-    }, [fileSet]);
+    }, [areAnnotationsLoaded, fileSet]);
 
     const fileFetchWrapper = React.useCallback(
         async (startIndex: number, endIndex: number) => {
@@ -165,6 +168,7 @@ export default function FileList(props: FileListProps) {
                 dispatch(setError(err as Error, isRoot));
                 // Root has its own error handling
                 if (!isRoot) setLocalError(err as Error);
+                // TODO: Remove throw?
                 throw err;
             }
         },

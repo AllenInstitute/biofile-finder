@@ -2,7 +2,7 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
 import { isEmpty, mapKeys } from "lodash";
 
-import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { EdgeDefinition } from "../../entity/Graph";
@@ -396,73 +396,73 @@ function collectJsonArraySchemaPaths(
 
 // Maps from Parquet Thrift enum ordinals to the string names that
 // parseParquetSchemaRows (and parquetPhysicalTypeToDuckDB) expect.
-const PARQUET_PHYSICAL_TYPES: Record<number, string> = {
-    0: "BOOLEAN",
-    1: "INT32",
-    2: "INT64",
-    3: "INT96",
-    4: "FLOAT",
-    5: "DOUBLE",
-    6: "BYTE_ARRAY",
-    7: "FIXED_LEN_BYTE_ARRAY",
-};
-const PARQUET_CONVERTED_TYPES: Record<number, string> = {
-    0: "UTF8",
-    1: "MAP",
-    2: "MAP_KEY_VALUE",
-    3: "LIST",
-    4: "ENUM",
-    5: "DECIMAL",
-    6: "DATE",
-    7: "TIME_MILLIS",
-    8: "TIME_MICROS",
-    9: "TIMESTAMP_MILLIS",
-    10: "TIMESTAMP_MICROS",
-    11: "UINT_8",
-    12: "UINT_16",
-    13: "UINT_32",
-    14: "UINT_64",
-    15: "INT_8",
-    16: "INT_16",
-    17: "INT_32",
-    18: "INT_64",
-    19: "JSON",
-    20: "BSON",
-    21: "INTERVAL",
-};
-const PARQUET_LOGICAL_TYPES: Record<number, string> = {
-    1: "STRING",
-    2: "MAP",
-    3: "LIST",
-    4: "ENUM",
-    5: "DECIMAL",
-    6: "DATE",
-    7: "TIME",
-    8: "TIMESTAMP",
-    10: "INTEGER",
-    11: "UNKNOWN",
-    12: "JSON",
-    13: "BSON",
-    14: "UUID",
-};
+// const PARQUET_PHYSICAL_TYPES: Record<number, string> = {
+//     0: "BOOLEAN",
+//     1: "INT32",
+//     2: "INT64",
+//     3: "INT96",
+//     4: "FLOAT",
+//     5: "DOUBLE",
+//     6: "BYTE_ARRAY",
+//     7: "FIXED_LEN_BYTE_ARRAY",
+// };
+// const PARQUET_CONVERTED_TYPES: Record<number, string> = {
+//     0: "UTF8",
+//     1: "MAP",
+//     2: "MAP_KEY_VALUE",
+//     3: "LIST",
+//     4: "ENUM",
+//     5: "DECIMAL",
+//     6: "DATE",
+//     7: "TIME_MILLIS",
+//     8: "TIME_MICROS",
+//     9: "TIMESTAMP_MILLIS",
+//     10: "TIMESTAMP_MICROS",
+//     11: "UINT_8",
+//     12: "UINT_16",
+//     13: "UINT_32",
+//     14: "UINT_64",
+//     15: "INT_8",
+//     16: "INT_16",
+//     17: "INT_32",
+//     18: "INT_64",
+//     19: "JSON",
+//     20: "BSON",
+//     21: "INTERVAL",
+// };
+// const PARQUET_LOGICAL_TYPES: Record<number, string> = {
+//     1: "STRING",
+//     2: "MAP",
+//     3: "LIST",
+//     4: "ENUM",
+//     5: "DECIMAL",
+//     6: "DATE",
+//     7: "TIME",
+//     8: "TIMESTAMP",
+//     10: "INTEGER",
+//     11: "UNKNOWN",
+//     12: "JSON",
+//     13: "BSON",
+//     14: "UUID",
+// };
 
 // Thrift Compact Protocol type nibble values (low nibble of field header byte / list element type)
 // Parquet uses Thrift Compact Protocol — NOT Binary Protocol.
 // Compact Protocol differs from Binary in: variable-length zigzag integers, delta-encoded
 // field IDs packed with the type nibble in one byte, and combined count/type list headers.
-const THRIFT_COMPACT_STOP = 0;
-const THRIFT_COMPACT_BOOL_TRUE = 1;
-const THRIFT_COMPACT_BOOL_FALSE = 2;
-const THRIFT_COMPACT_BYTE = 3;
-const THRIFT_COMPACT_I16 = 4;
-const THRIFT_COMPACT_I32 = 5;
-const THRIFT_COMPACT_I64 = 6;
-const THRIFT_COMPACT_DOUBLE = 7;
-const THRIFT_COMPACT_BINARY = 8;
-const THRIFT_COMPACT_LIST = 9;
-const THRIFT_COMPACT_SET = 10;
-const THRIFT_COMPACT_MAP = 11;
-const THRIFT_COMPACT_STRUCT = 12;
+// const THRIFT_COMPACT_STOP = 0;
+// const THRIFT_COMPACT_BOOL_TRUE = 1;
+// const THRIFT_COMPACT_BOOL_FALSE = 2;
+// const THRIFT_COMPACT_BYTE = 3;
+// const THRIFT_COMPACT_I16 = 4;
+// const THRIFT_COMPACT_I32 = 5;
+// const THRIFT_COMPACT_I64 = 6;
+// const THRIFT_COMPACT_DOUBLE = 7;
+// const THRIFT_COMPACT_BINARY = 8;
+// const THRIFT_COMPACT_LIST = 9;
+// const THRIFT_COMPACT_SET = 10;
+// const THRIFT_COMPACT_MAP = 11;
+// const THRIFT_COMPACT_STRUCT = 12;
 
 /**
  * Minimal Thrift Compact Protocol reader — supports only what we need to
@@ -477,201 +477,201 @@ const THRIFT_COMPACT_STRUCT = 12;
  *  - Struct field-ID tracking is relative (delta from previous field), so entering a
  *    nested struct requires saving and resetting the running field-ID counter.
  */
-class ThriftCompactReader {
-    private readonly bytes: Uint8Array;
-    private pos: number;
-    // Running field ID within the current struct level (delta-encoded per Compact spec)
-    private lastFieldId = 0;
-    // Stack for nested struct contexts
-    private readonly fieldIdStack: number[] = [];
+// class ThriftCompactReader {
+//     private readonly bytes: Uint8Array;
+//     private pos: number;
+//     // Running field ID within the current struct level (delta-encoded per Compact spec)
+//     private lastFieldId = 0;
+//     // Stack for nested struct contexts
+//     private readonly fieldIdStack: number[] = [];
 
-    constructor(buffer: ArrayBuffer, offset = 0) {
-        this.bytes = new Uint8Array(buffer);
-        this.pos = offset;
-    }
+//     constructor(buffer: ArrayBuffer, offset = 0) {
+//         this.bytes = new Uint8Array(buffer);
+//         this.pos = offset;
+//     }
 
-    readByte(): number {
-        return this.bytes[this.pos++];
-    }
+//     readByte(): number {
+//         return this.bytes[this.pos++];
+//     }
 
-    /** Read an unsigned base-128 varint. */
-    readVarint(): number {
-        let result = 0;
-        let shift = 0;
-        let b: number;
-        do {
-            b = this.readByte();
-            result |= (b & 0x7f) << shift;
-            shift += 7;
-        } while (b & 0x80);
-        return result;
-    }
+//     /** Read an unsigned base-128 varint. */
+//     readVarint(): number {
+//         let result = 0;
+//         let shift = 0;
+//         let b: number;
+//         do {
+//             b = this.readByte();
+//             result |= (b & 0x7f) << shift;
+//             shift += 7;
+//         } while (b & 0x80);
+//         return result;
+//     }
 
-    /** Read a zigzag-encoded signed integer (used for all integer fields in Compact). */
-    private readZigzag(): number {
-        const v = this.readVarint();
-        return (v >>> 1) ^ -(v & 1);
-    }
+//     /** Read a zigzag-encoded signed integer (used for all integer fields in Compact). */
+//     private readZigzag(): number {
+//         const v = this.readVarint();
+//         return (v >>> 1) ^ -(v & 1);
+//     }
 
-    readI32(): number {
-        return this.readZigzag();
-    }
+//     readI32(): number {
+//         return this.readZigzag();
+//     }
 
-    readString(): string {
-        const len = this.readVarint();
-        const s = new TextDecoder().decode(this.bytes.subarray(this.pos, this.pos + len));
-        this.pos += len;
-        return s;
-    }
+//     readString(): string {
+//         const len = this.readVarint();
+//         const s = new TextDecoder().decode(this.bytes.subarray(this.pos, this.pos + len));
+//         this.pos += len;
+//         return s;
+//     }
 
-    /**
-     * Read a Compact Protocol field header.
-     * Returns null on STOP (0x00).
-     * Updates the running lastFieldId used for delta decoding.
-     */
-    readFieldHeader(): { type: number; id: number } | null {
-        const byte = this.readByte();
-        if (byte === THRIFT_COMPACT_STOP) return null;
-        const type = byte & 0x0f;
-        const delta = (byte >> 4) & 0x0f;
-        if (delta === 0) {
-            // Long form: full field ID follows as zigzag int
-            this.lastFieldId = this.readZigzag();
-        } else {
-            this.lastFieldId += delta;
-        }
-        return { type, id: this.lastFieldId };
-    }
+//     /**
+//      * Read a Compact Protocol field header.
+//      * Returns null on STOP (0x00).
+//      * Updates the running lastFieldId used for delta decoding.
+//      */
+//     readFieldHeader(): { type: number; id: number } | null {
+//         const byte = this.readByte();
+//         if (byte === THRIFT_COMPACT_STOP) return null;
+//         const type = byte & 0x0f;
+//         const delta = (byte >> 4) & 0x0f;
+//         if (delta === 0) {
+//             // Long form: full field ID follows as zigzag int
+//             this.lastFieldId = this.readZigzag();
+//         } else {
+//             this.lastFieldId += delta;
+//         }
+//         return { type, id: this.lastFieldId };
+//     }
 
-    /** Save current struct field-ID context and reset for a nested struct. */
-    enterStruct(): void {
-        this.fieldIdStack.push(this.lastFieldId);
-        this.lastFieldId = 0;
-    }
+//     /** Save current struct field-ID context and reset for a nested struct. */
+//     enterStruct(): void {
+//         this.fieldIdStack.push(this.lastFieldId);
+//         this.lastFieldId = 0;
+//     }
 
-    /** Restore struct field-ID context after reading a nested struct's STOP byte. */
-    exitStruct(): void {
-        this.lastFieldId = this.fieldIdStack.pop() ?? 0;
-    }
+//     /** Restore struct field-ID context after reading a nested struct's STOP byte. */
+//     exitStruct(): void {
+//         this.lastFieldId = this.fieldIdStack.pop() ?? 0;
+//     }
 
-    skipValue(type: number): void {
-        switch (type) {
-            case THRIFT_COMPACT_BOOL_TRUE:
-            case THRIFT_COMPACT_BOOL_FALSE:
-                break; // value is encoded in the type nibble itself — no extra bytes
-            case THRIFT_COMPACT_BYTE:
-                this.pos++;
-                break;
-            case THRIFT_COMPACT_I16:
-            case THRIFT_COMPACT_I32:
-            case THRIFT_COMPACT_I64:
-                // Skip variable-length varint
-                while (this.bytes[this.pos++] & 0x80);
-                break;
-            case THRIFT_COMPACT_DOUBLE:
-                this.pos += 8;
-                break;
-            case THRIFT_COMPACT_BINARY: {
-                const len = this.readVarint();
-                this.pos += len;
-                break;
-            }
-            case THRIFT_COMPACT_STRUCT:
-                this.skipStruct();
-                break;
-            case THRIFT_COMPACT_LIST:
-            case THRIFT_COMPACT_SET: {
-                // List header byte: high nibble = count (0-14) or 0xF (count follows as varint)
-                const h = this.readByte();
-                const count = (h >> 4) === 0xf ? this.readVarint() : (h >> 4);
-                const et = h & 0x0f;
-                for (let i = 0; i < count; i++) this.skipValue(et);
-                break;
-            }
-            case THRIFT_COMPACT_MAP: {
-                const count = this.readVarint();
-                if (count > 0) {
-                    const tb = this.readByte();
-                    const kt = (tb >> 4) & 0x0f;
-                    const vt = tb & 0x0f;
-                    for (let i = 0; i < count; i++) {
-                        this.skipValue(kt);
-                        this.skipValue(vt);
-                    }
-                }
-                break;
-            }
-        }
-    }
+//     skipValue(type: number): void {
+//         switch (type) {
+//             case THRIFT_COMPACT_BOOL_TRUE:
+//             case THRIFT_COMPACT_BOOL_FALSE:
+//                 break; // value is encoded in the type nibble itself — no extra bytes
+//             case THRIFT_COMPACT_BYTE:
+//                 this.pos++;
+//                 break;
+//             case THRIFT_COMPACT_I16:
+//             case THRIFT_COMPACT_I32:
+//             case THRIFT_COMPACT_I64:
+//                 // Skip variable-length varint
+//                 while (this.bytes[this.pos++] & 0x80);
+//                 break;
+//             case THRIFT_COMPACT_DOUBLE:
+//                 this.pos += 8;
+//                 break;
+//             case THRIFT_COMPACT_BINARY: {
+//                 const len = this.readVarint();
+//                 this.pos += len;
+//                 break;
+//             }
+//             case THRIFT_COMPACT_STRUCT:
+//                 this.skipStruct();
+//                 break;
+//             case THRIFT_COMPACT_LIST:
+//             case THRIFT_COMPACT_SET: {
+//                 // List header byte: high nibble = count (0-14) or 0xF (count follows as varint)
+//                 const h = this.readByte();
+//                 const count = (h >> 4) === 0xf ? this.readVarint() : (h >> 4);
+//                 const et = h & 0x0f;
+//                 for (let i = 0; i < count; i++) this.skipValue(et);
+//                 break;
+//             }
+//             case THRIFT_COMPACT_MAP: {
+//                 const count = this.readVarint();
+//                 if (count > 0) {
+//                     const tb = this.readByte();
+//                     const kt = (tb >> 4) & 0x0f;
+//                     const vt = tb & 0x0f;
+//                     for (let i = 0; i < count; i++) {
+//                         this.skipValue(kt);
+//                         this.skipValue(vt);
+//                     }
+//                 }
+//                 break;
+//             }
+//         }
+//     }
 
-    private skipStruct(): void {
-        this.enterStruct();
-        for (let f = this.readFieldHeader(); f !== null; f = this.readFieldHeader()) {
-            this.skipValue(f.type);
-        }
-        this.exitStruct();
-    }
-}
+//     private skipStruct(): void {
+//         this.enterStruct();
+//         for (let f = this.readFieldHeader(); f !== null; f = this.readFieldHeader()) {
+//             this.skipValue(f.type);
+//         }
+//         this.exitStruct();
+//     }
+// }
 
-interface ParquetSchemaRow {
-    name: string;
-    type: string | null;
-    num_children: number;
-    converted_type: string | null;
-    logical_type: string | null;
-}
+// interface ParquetSchemaRow {
+//     name: string;
+//     type: string | null;
+//     num_children: number;
+//     converted_type: string | null;
+//     logical_type: string | null;
+// }
 
 /** Parse a Thrift-encoded Parquet LogicalType union, returning just the variant name. */
-function readLogicalType(reader: ThriftCompactReader): string | null {
-    let result: string | null = null;
-    // LogicalType is a nested struct — enter its field-ID context
-    reader.enterStruct();
-    for (let f = reader.readFieldHeader(); f !== null; f = reader.readFieldHeader()) {
-        result = PARQUET_LOGICAL_TYPES[f.id] ?? null;
-        reader.skipValue(f.type); // skip the inner variant struct (e.g. StringType = empty struct)
-    }
-    reader.exitStruct();
-    return result;
-}
+// function readLogicalType(reader: ThriftCompactReader): string | null {
+//     let result: string | null = null;
+//     // LogicalType is a nested struct — enter its field-ID context
+//     reader.enterStruct();
+//     for (let f = reader.readFieldHeader(); f !== null; f = reader.readFieldHeader()) {
+//         result = PARQUET_LOGICAL_TYPES[f.id] ?? null;
+//         reader.skipValue(f.type); // skip the inner variant struct (e.g. StringType = empty struct)
+//     }
+//     reader.exitStruct();
+//     return result;
+// }
 
 /** Parse a single Thrift-encoded SchemaElement struct. */
-function readSchemaElement(reader: ThriftCompactReader): ParquetSchemaRow {
-    let type: string | null = null;
-    let name = "";
-    let numChildren = 0;
-    let convertedType: string | null = null;
-    let logicalType: string | null = null;
+// function readSchemaElement(reader: ThriftCompactReader): ParquetSchemaRow {
+//     let type: string | null = null;
+//     let name = "";
+//     let numChildren = 0;
+//     let convertedType: string | null = null;
+//     let logicalType: string | null = null;
 
-    for (let f = reader.readFieldHeader(); f !== null; f = reader.readFieldHeader()) {
-        switch (f.id) {
-            case 1: // type — Parquet physical type enum (i32)
-                type = PARQUET_PHYSICAL_TYPES[reader.readI32()] ?? null;
-                break;
-            case 4: // name — column / field name
-                name = reader.readString();
-                break;
-            case 5: // num_children
-                numChildren = reader.readI32();
-                break;
-            case 6: // converted_type enum (i32)
-                convertedType = PARQUET_CONVERTED_TYPES[reader.readI32()] ?? null;
-                break;
-            case 10: // logicalType (LogicalType union — encoded as a struct)
-                logicalType = readLogicalType(reader);
-                break;
-            default:
-                reader.skipValue(f.type);
-                break;
-        }
-    }
-    return {
-        name,
-        type,
-        num_children: numChildren,
-        converted_type: convertedType,
-        logical_type: logicalType,
-    };
-}
+//     for (let f = reader.readFieldHeader(); f !== null; f = reader.readFieldHeader()) {
+//         switch (f.id) {
+//             case 1: // type — Parquet physical type enum (i32)
+//                 type = PARQUET_PHYSICAL_TYPES[reader.readI32()] ?? null;
+//                 break;
+//             case 4: // name — column / field name
+//                 name = reader.readString();
+//                 break;
+//             case 5: // num_children
+//                 numChildren = reader.readI32();
+//                 break;
+//             case 6: // converted_type enum (i32)
+//                 convertedType = PARQUET_CONVERTED_TYPES[reader.readI32()] ?? null;
+//                 break;
+//             case 10: // logicalType (LogicalType union — encoded as a struct)
+//                 logicalType = readLogicalType(reader);
+//                 break;
+//             default:
+//                 reader.skipValue(f.type);
+//                 break;
+//         }
+//     }
+//     return {
+//         name,
+//         type,
+//         num_children: numChildren,
+//         converted_type: convertedType,
+//         logical_type: logicalType,
+//     };
+// }
 
 /**
  * Read the Parquet schema directly from a File's raw bytes.
@@ -680,142 +680,142 @@ function readSchemaElement(reader: ThriftCompactReader): ParquetSchemaRow {
  * cover the schema list.  Stops parsing before the row_groups field, which
  * is typically orders of magnitude larger than the schema.
  */
-async function readParquetSchemaFromFile(file: File): Promise<ParquetSchemaRow[]> {
-    const fileSize = file.size;
-    if (fileSize < 12) throw new Error("File too small to be a valid Parquet file");
+// async function readParquetSchemaFromFile(file: File): Promise<ParquetSchemaRow[]> {
+//     const fileSize = file.size;
+//     if (fileSize < 12) throw new Error("File too small to be a valid Parquet file");
 
-    // 1. Read footer length + magic from last 8 bytes
-    const tailBuf = await file.slice(fileSize - 8, fileSize).arrayBuffer();
-    const tailView = new DataView(tailBuf);
-    const footerLength = tailView.getInt32(0, true); // little-endian
+//     // 1. Read footer length + magic from last 8 bytes
+//     const tailBuf = await file.slice(fileSize - 8, fileSize).arrayBuffer();
+//     const tailView = new DataView(tailBuf);
+//     const footerLength = tailView.getInt32(0, true); // little-endian
 
-    // Validate PAR1 magic
-    const magic = new Uint8Array(tailBuf, 4, 4);
-    if (magic[0] !== 0x50 || magic[1] !== 0x41 || magic[2] !== 0x52 || magic[3] !== 0x31) {
-        throw new Error("Not a valid Parquet file (missing PAR1 magic)");
-    }
+//     // Validate PAR1 magic
+//     const magic = new Uint8Array(tailBuf, 4, 4);
+//     if (magic[0] !== 0x50 || magic[1] !== 0x41 || magic[2] !== 0x52 || magic[3] !== 0x31) {
+//         throw new Error("Not a valid Parquet file (missing PAR1 magic)");
+//     }
 
-    // 2. Read enough of the footer for the schema.
-    //    The schema is field 2 of FileMetaData, right after field 1 (version, 7 bytes).
-    //    Even for thousands of columns the schema is rarely > 1 MB.
-    //    Reading 4 MB covers any realistic schema.
-    const footerStart = fileSize - 8 - footerLength;
-    const readSize = Math.min(footerLength, 4 * 1024 * 1024);
-    const footerBuf = await file.slice(footerStart, footerStart + readSize).arrayBuffer();
+//     // 2. Read enough of the footer for the schema.
+//     //    The schema is field 2 of FileMetaData, right after field 1 (version, 7 bytes).
+//     //    Even for thousands of columns the schema is rarely > 1 MB.
+//     //    Reading 4 MB covers any realistic schema.
+//     const footerStart = fileSize - 8 - footerLength;
+//     const readSize = Math.min(footerLength, 4 * 1024 * 1024);
+//     const footerBuf = await file.slice(footerStart, footerStart + readSize).arrayBuffer();
 
-    // 3. Parse Thrift FileMetaData — extract only the schema field (id=2)
-    const reader = new ThriftCompactReader(footerBuf);
-    const schemaElements: ParquetSchemaRow[] = [];
+//     // 3. Parse Thrift FileMetaData — extract only the schema field (id=2)
+//     const reader = new ThriftCompactReader(footerBuf);
+//     const schemaElements: ParquetSchemaRow[] = [];
 
-    for (let fld = reader.readFieldHeader(); fld !== null; fld = reader.readFieldHeader()) {
-        if (fld.id === 2 && fld.type === THRIFT_COMPACT_LIST) {
-            // Field 2: list<SchemaElement>
-            // Compact list header: 1 byte where high nibble = count (or 0xF = count follows)
-            // and low nibble = element type (12 = STRUCT for SchemaElement)
-            const h = reader.readByte();
-            const count = (h >> 4) === 0xf ? reader.readVarint() : (h >> 4);
-            for (let i = 0; i < count; i++) {
-                reader.enterStruct();
-                schemaElements.push(readSchemaElement(reader));
-                reader.exitStruct();
-            }
-            break; // Schema extracted — skip row_groups and everything after
-        }
-        reader.skipValue(fld.type);
-    }
+//     for (let fld = reader.readFieldHeader(); fld !== null; fld = reader.readFieldHeader()) {
+//         if (fld.id === 2 && fld.type === THRIFT_COMPACT_LIST) {
+//             // Field 2: list<SchemaElement>
+//             // Compact list header: 1 byte where high nibble = count (or 0xF = count follows)
+//             // and low nibble = element type (12 = STRUCT for SchemaElement)
+//             const h = reader.readByte();
+//             const count = (h >> 4) === 0xf ? reader.readVarint() : (h >> 4);
+//             for (let i = 0; i < count; i++) {
+//                 reader.enterStruct();
+//                 schemaElements.push(readSchemaElement(reader));
+//                 reader.exitStruct();
+//             }
+//             break; // Schema extracted — skip row_groups and everything after
+//         }
+//         reader.skipValue(fld.type);
+//     }
 
-    return schemaElements;
-}
+//     return schemaElements;
+// }
 
-/**
- * Fetch just the Parquet footer from an HTTP/HTTPS URL using Range requests and extract
- * the schema — fast alternative to letting DuckDB read the entire file.
- * Throws if the server does not support Range requests or the URL is not HTTP(S).
- */
-async function readParquetSchemaFromUrl(url: string): Promise<ParquetSchemaRow[]> {
-    // 1. Determine file size via HEAD request (Content-Length).
-    //    More reliable than parsing the total from a suffix-range Content-Range
-    //    header, which some servers return as "bytes 0-7/*" (unknown total).
-    let totalSize: number;
-    const headResp = await fetch(url, { method: "HEAD" });
-    if (headResp.ok) {
-        const cl = headResp.headers.get("Content-Length");
-        totalSize = cl ? parseInt(cl, 10) : NaN;
-    } else {
-        totalSize = NaN;
-    }
+// /**
+//  * Fetch just the Parquet footer from an HTTP/HTTPS URL using Range requests and extract
+//  * the schema — fast alternative to letting DuckDB read the entire file.
+//  * Throws if the server does not support Range requests or the URL is not HTTP(S).
+//  */
+// async function readParquetSchemaFromUrl(url: string): Promise<ParquetSchemaRow[]> {
+//     // 1. Determine file size via HEAD request (Content-Length).
+//     //    More reliable than parsing the total from a suffix-range Content-Range
+//     //    header, which some servers return as "bytes 0-7/*" (unknown total).
+//     let totalSize: number;
+//     const headResp = await fetch(url, { method: "HEAD" });
+//     if (headResp.ok) {
+//         const cl = headResp.headers.get("Content-Length");
+//         totalSize = cl ? parseInt(cl, 10) : NaN;
+//     } else {
+//         totalSize = NaN;
+//     }
 
-    // 2. Fetch last 8 bytes: footer length (int32 LE) + PAR1 magic.
-    let tailBuf: ArrayBuffer;
-    if (!isNaN(totalSize) && totalSize >= 12) {
-        // Explicit range — works even when Content-Range omits the total size.
-        const tailResp = await fetch(url, {
-            headers: { Range: `bytes=${totalSize - 8}-${totalSize - 1}` },
-        });
-        if (tailResp.status !== 206 && tailResp.status !== 200) {
-            throw new Error(
-                `Server returned ${tailResp.status}; Range requests not supported`
-            );
-        }
-        tailBuf = await tailResp.arrayBuffer();
-    } else {
-        // Fallback: suffix-range and recover total size from Content-Range.
-        const tailResp = await fetch(url, { headers: { Range: "bytes=-8" } });
-        if (tailResp.status !== 206) {
-            throw new Error(
-                `Server returned ${tailResp.status} (expected 206); Range requests not supported`
-            );
-        }
-        const contentRange = tailResp.headers.get("Content-Range"); // "bytes X-Y/Z"
-        const parsed = contentRange ? parseInt(contentRange.split("/")[1], 10) : NaN;
-        if (isNaN(parsed) || parsed < 12) {
-            throw new Error(
-                "Could not determine Parquet file size (HEAD gave no Content-Length " +
-                    "and Range response gave no Content-Range total)"
-            );
-        }
-        totalSize = parsed;
-        tailBuf = await tailResp.arrayBuffer();
-    }
-    if (tailBuf.byteLength < 8) throw new Error("Incomplete response for Parquet footer tail");
+//     // 2. Fetch last 8 bytes: footer length (int32 LE) + PAR1 magic.
+//     let tailBuf: ArrayBuffer;
+//     if (!isNaN(totalSize) && totalSize >= 12) {
+//         // Explicit range — works even when Content-Range omits the total size.
+//         const tailResp = await fetch(url, {
+//             headers: { Range: `bytes=${totalSize - 8}-${totalSize - 1}` },
+//         });
+//         if (tailResp.status !== 206 && tailResp.status !== 200) {
+//             throw new Error(
+//                 `Server returned ${tailResp.status}; Range requests not supported`
+//             );
+//         }
+//         tailBuf = await tailResp.arrayBuffer();
+//     } else {
+//         // Fallback: suffix-range and recover total size from Content-Range.
+//         const tailResp = await fetch(url, { headers: { Range: "bytes=-8" } });
+//         if (tailResp.status !== 206) {
+//             throw new Error(
+//                 `Server returned ${tailResp.status} (expected 206); Range requests not supported`
+//             );
+//         }
+//         const contentRange = tailResp.headers.get("Content-Range"); // "bytes X-Y/Z"
+//         const parsed = contentRange ? parseInt(contentRange.split("/")[1], 10) : NaN;
+//         if (isNaN(parsed) || parsed < 12) {
+//             throw new Error(
+//                 "Could not determine Parquet file size (HEAD gave no Content-Length " +
+//                     "and Range response gave no Content-Range total)"
+//             );
+//         }
+//         totalSize = parsed;
+//         tailBuf = await tailResp.arrayBuffer();
+//     }
+//     if (tailBuf.byteLength < 8) throw new Error("Incomplete response for Parquet footer tail");
 
-    const tailView = new DataView(tailBuf);
-    const footerLength = tailView.getInt32(0, true); // little-endian
-    const magic = new Uint8Array(tailBuf, 4, 4);
-    if (magic[0] !== 0x50 || magic[1] !== 0x41 || magic[2] !== 0x52 || magic[3] !== 0x31) {
-        throw new Error("Not a valid Parquet file (missing PAR1 magic)");
-    }
+//     const tailView = new DataView(tailBuf);
+//     const footerLength = tailView.getInt32(0, true); // little-endian
+//     const magic = new Uint8Array(tailBuf, 4, 4);
+//     if (magic[0] !== 0x50 || magic[1] !== 0x41 || magic[2] !== 0x52 || magic[3] !== 0x31) {
+//         throw new Error("Not a valid Parquet file (missing PAR1 magic)");
+//     }
 
-    // 3. Fetch enough of the footer to cover the schema (field 2 of FileMetaData).
-    const footerStart = totalSize - 8 - footerLength;
-    const readSize = Math.min(footerLength, 4 * 1024 * 1024);
-    const footerEnd = footerStart + readSize - 1;
-    const footerResp = await fetch(url, { headers: { Range: `bytes=${footerStart}-${footerEnd}` } });
-    if (footerResp.status !== 206) {
-        throw new Error("Failed to fetch Parquet footer bytes from URL");
-    }
-    const footerBuf = await footerResp.arrayBuffer();
+//     // 3. Fetch enough of the footer to cover the schema (field 2 of FileMetaData).
+//     const footerStart = totalSize - 8 - footerLength;
+//     const readSize = Math.min(footerLength, 4 * 1024 * 1024);
+//     const footerEnd = footerStart + readSize - 1;
+//     const footerResp = await fetch(url, { headers: { Range: `bytes=${footerStart}-${footerEnd}` } });
+//     if (footerResp.status !== 206) {
+//         throw new Error("Failed to fetch Parquet footer bytes from URL");
+//     }
+//     const footerBuf = await footerResp.arrayBuffer();
 
-    // 3. Parse Thrift FileMetaData — same logic as readParquetSchemaFromFile.
-    const reader = new ThriftCompactReader(footerBuf);
-    const schemaElements: ParquetSchemaRow[] = [];
+//     // 3. Parse Thrift FileMetaData — same logic as readParquetSchemaFromFile.
+//     const reader = new ThriftCompactReader(footerBuf);
+//     const schemaElements: ParquetSchemaRow[] = [];
 
-    for (let fld = reader.readFieldHeader(); fld !== null; fld = reader.readFieldHeader()) {
-        if (fld.id === 2 && fld.type === THRIFT_COMPACT_LIST) {
-            const h = reader.readByte();
-            const count = (h >> 4) === 0xf ? reader.readVarint() : (h >> 4);
-            for (let i = 0; i < count; i++) {
-                reader.enterStruct();
-                schemaElements.push(readSchemaElement(reader));
-                reader.exitStruct();
-            }
-            break;
-        }
-        reader.skipValue(fld.type);
-    }
+//     for (let fld = reader.readFieldHeader(); fld !== null; fld = reader.readFieldHeader()) {
+//         if (fld.id === 2 && fld.type === THRIFT_COMPACT_LIST) {
+//             const h = reader.readByte();
+//             const count = (h >> 4) === 0xf ? reader.readVarint() : (h >> 4);
+//             for (let i = 0; i < count; i++) {
+//                 reader.enterStruct();
+//                 schemaElements.push(readSchemaElement(reader));
+//                 reader.exitStruct();
+//             }
+//             break;
+//         }
+//         reader.skipValue(fld.type);
+//     }
 
-    return schemaElements;
-}
+//     return schemaElements;
+// }
 
 /**
  * Map a Parquet leaf-node physical type to a DuckDB type string.
@@ -976,22 +976,18 @@ export function getParquetNestedMetadataSelectParts(
 /**
  * Service reponsible for querying against a database
  */
-export default class DatabaseService {
+export default abstract class DatabaseService {
     // TODO: use
     public static readonly GROUP_DELIMITER = ".";
     public static readonly LIST_DELIMITER = ",";
-    // Name of the hidden column BFF uses to uniquely identify rows
-    public static readonly HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
-    private static readonly RAW_SUFFIX = "__bff_raw";
-    protected readonly SOURCE_METADATA_TABLE = "source_metadata";
     protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
     private static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));
-    private sourceMetadataName?: string;
+    protected sourceMetadataName?: string;
     public sourceProvenanceName?: string;
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
-    private readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
+    protected readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
     private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
     // Data source names that are views (parquet), so we DROP VIEW on delete
     private readonly parquetDirectViewNames = new Set<string>();
@@ -1002,22 +998,6 @@ export default class DatabaseService {
         this.addDataSource = this.addDataSource.bind(this);
         this.execute = this.execute.bind(this);
         this.query = this.query.bind(this);
-    }
-
-    public async initialize(logLevel: duckdb.LogLevel = duckdb.LogLevel.WARNING) {
-        const allBundles = duckdb.getJsDelivrBundles();
-
-        // Selects the best bundle based on browser checks
-        const bundle = await duckdb.selectBundle(allBundles);
-        const worker_url = URL.createObjectURL(
-            new Blob([`importScripts("${bundle.mainWorker}");`], { type: "text/javascript" })
-        );
-        // Instantiate the asynchronous version of DuckDB-wasm
-        const worker = new Worker(worker_url);
-        const logger = new duckdb.ConsoleLogger(logLevel);
-        this.database = new duckdb.AsyncDuckDB(logger, worker);
-        await this.database.instantiate(bundle.mainModule, bundle.pthreadWorker);
-        URL.revokeObjectURL(worker_url);
     }
 
     public async saveQuery(
@@ -1041,17 +1021,40 @@ export default class DatabaseService {
         }
     }
 
-    public async query(sql: string): Promise<{ [key: string]: any }[]> {
-        // Time this
-        const start = Date.now();
-        console.log(`Executing query at ${start}`, sql);
+    public query(
+        sql: string
+    ): { promise: Promise<{ [key: string]: any }[]>; cancel?: (reason?: string) => void } {
+        return { promise: this.runQuery(sql) };
+    }
+
+    private async runQuery(sql: string): Promise<{ [key: string]: any }[]> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
+        const start = Date.now();
         const connection = await this.database?.connect();
         try {
             const result = await connection.query(sql);
-            const resultAsArray = result.toArray();
+
+            // Apache Arrow JS (used by duckdb-wasm) only reads the first 8 bytes, losing the nanoseconds.
+            // Re-run with INTERVAL columns cast to ms integers so the data survives Arrow.
+            const intervalColumns = result.schema.fields
+                .filter((f) => f.typeId === 11) // Arrow Type.Interval
+                .map((f) => f.name);
+            const queryResult =
+                intervalColumns.length > 0
+                    ? await connection.query(
+                          `SELECT ${result.schema.fields
+                              .map((f) =>
+                                  intervalColumns.includes(f.name)
+                                      ? `CAST(EXTRACT(epoch FROM "${f.name}") * 1000 AS BIGINT) AS "${f.name}"`
+                                      : `"${f.name}"`
+                              )
+                              .join(", ")} FROM (${sql})`
+                      )
+                    : result;
+
+            const resultAsArray = queryResult.toArray();
             const resultAsJSONString = JSON.stringify(
                 resultAsArray,
                 (_, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
@@ -1079,7 +1082,7 @@ export default class DatabaseService {
         }
     }
 
-    public async close(): Promise<void> {
+    public close(): void {
         this.database?.detach();
     }
 
@@ -1092,13 +1095,9 @@ export default class DatabaseService {
             throw new Error("Database failed to initialize");
         }
 
-        // Register the user's input under an internal name so we can create a
-        // table or view named `name`
-        const registerName = `${name}${DatabaseService.RAW_SUFFIX}.${type}`;
-
         if (uri instanceof File) {
             await this.database.registerFileHandle(
-                registerName,
+                name,
                 uri,
                 duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
                 true
@@ -1108,22 +1107,31 @@ export default class DatabaseService {
                 ? duckdb.DuckDBDataProtocol.S3
                 : duckdb.DuckDBDataProtocol.HTTP;
 
-            await this.database.registerFileURL(registerName, uri, protocol, false);
+            await this.database.registerFileURL(name, uri, protocol, false);
         }
 
         if (type === "parquet") {
-            await this.createParquetDirectView(
-                name,
-                registerName,
-                uri
-            );
+            await this.createParquetDirectView(name);
         } else if (type === "json") {
-            await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${registerName}');`);
+            await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
         } else {
-            // Default to CSV
-            await this.execute(
-                `CREATE TABLE "${name}" AS FROM read_csv_auto('${registerName}', header=true, all_varchar=true);`
-            );
+            // Default to CSV. Use sample_size=-1 to scan the full file before deciding column
+            // types, eliminating "first N rows look numeric, later rows have strings" failures.
+            // Fall back to all_varchar=true if type inference fails (e.g. truly mixed-type column)
+            // so the file always loads successfully.
+            try {
+                await this.execute(
+                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, sample_size=-1);`
+                );
+            } catch {
+                console.warn(
+                    `Failed to infer column types for CSV "${name}"; falling back to all_varchar=true. All columns will be loaded as strings.`
+                );
+                await this.execute(`DROP TABLE IF EXISTS "${name}"`);
+                await this.execute(
+                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
+                );
+            }
         }
     }
 
@@ -1140,9 +1148,7 @@ export default class DatabaseService {
             await connection.close();
             const end = Date.now();
             if (end - start >= 30_000) {
-                console.error(
-                    `Very slow query: SQL executed in ${(end - start) / 1000}s: ${sql}`
-                );
+                console.error(`Very slow query: SQL executed in ${(end - start) / 1000}s: ${sql}`);
             } else if (end - start >= 15_000) {
                 console.error(`Slow query: SQL executed in ${(end - start) / 1000}s: ${sql}`);
             } else if (end - start >= 2_500) {
@@ -1153,13 +1159,35 @@ export default class DatabaseService {
         }
     }
 
-    private static columnTypeToAnnotationType(columnType: string): AnnotationType {
+    protected static columnTypeToAnnotationType(columnType: string): AnnotationType {
+        // DECIMAL types include precision/scale info, e.g. "DECIMAL(18,3)"
+        if (columnType?.startsWith("DECIMAL")) {
+            return AnnotationType.NUMBER;
+        }
         switch (columnType) {
             case "INTEGER":
             case "BIGINT":
-            // TODO: Add support for column types
-            // https://github.com/AllenInstitute/biofile-finder/issues/60
-            // return AnnotationType.NUMBER;
+            case "HUGEINT":
+            case "UBIGINT":
+            case "UINTEGER":
+            case "SMALLINT":
+            case "USMALLINT":
+            case "TINYINT":
+            case "UTINYINT":
+            case "FLOAT":
+            case "DOUBLE":
+            case "REAL":
+                return AnnotationType.NUMBER;
+            case "BOOLEAN":
+                return AnnotationType.BOOLEAN;
+            case "INTERVAL":
+                return AnnotationType.DURATION;
+            case "DATE":
+                return AnnotationType.DATE;
+            case "TIMESTAMP":
+            case "TIMESTAMPTZ":
+            case "TIMESTAMP WITH TIME ZONE":
+                return AnnotationType.DATETIME;
             case "VARCHAR":
             case "TEXT":
             default:
@@ -1177,6 +1205,11 @@ export default class DatabaseService {
         return this.existingDataSources.has(dataSourceName);
     }
 
+    public hasAggregateSource(dataSourceNames: string[]): boolean {
+        const combinedName = DatabaseService.combineSourceNames(dataSourceNames);
+        return this.currentAggregateSource === combinedName;
+    }
+
     public async prepareDataSources(
         dataSources: Source[],
         skipNormalization = false
@@ -1184,7 +1217,7 @@ export default class DatabaseService {
         await Promise.all(
             dataSources
                 .filter((dataSource) => !this.hasDataSource(dataSource.name))
-                .map((dataSource) => this.prepareDataSource(dataSource, skipNormalization))
+                .map((dataSource) => this.prepareDataSourceWrapper(dataSource, skipNormalization))
         );
 
         // Because when querying multiple data sources column differences can complicate the queries
@@ -1195,12 +1228,15 @@ export default class DatabaseService {
         }
     }
 
-    private async prepareDataSource(dataSource: Source, skipNormalization: boolean): Promise<void> {
+    private async prepareDataSourceWrapper(
+        dataSource: Source,
+        skipNormalization: boolean
+    ): Promise<void> {
         const { name, type, uri } = dataSource;
 
         if (!type || !uri) {
             throw new DataSourcePreparationError(
-                `Lost access to the data source.\
+                `Lost access to data source "${name}".\
                 </br> \
                 Local data sources must be re-uploaded with each \
                 page refresh to gain access to the data source file \
@@ -1212,32 +1248,7 @@ export default class DatabaseService {
         }
 
         try {
-            // Add the data source as a table on the database
-            await this.addDataSource(name, type, uri);
-
-            // Add data source name to in-memory set
-            // for quick data source checks
-            this.existingDataSources.add(name);
-
-            // Unless skipped, this will ensure the table is prepared
-            // for querying with the expected columns & uniqueness constraints
-            if (!skipNormalization) {
-                if (type !== "parquet") {
-                    await this.normalizeDataSourceColumnNames(name);
-                }
-
-                const errors = await this.checkDataSourceForErrors(
-                    name,
-                    type === "parquet"
-                );
-                if (errors.length) {
-                    throw new Error(errors.join("</br></br>"));
-                }
-
-                if (type !== "parquet") {
-                    await this.addRequiredColumns(name);
-                }
-            }
+            await this.prepareDataSource(dataSource, skipNormalization);
         } catch (err) {
             let formattedError = (err as Error).message;
             // DuckDB does not provide informative server errors, so send a
@@ -1253,6 +1264,17 @@ export default class DatabaseService {
                             error.response?.statusText ||
                             error.response.data
                         }`;
+                    } else if (axios.isAxiosError(error) && error.request && !error.response) {
+                        // A request was made but no response was received — this is the
+                        // hallmark of a CORS (Cross-Origin Resource Sharing) error in browsers,
+                        // where the server does not allow cross-origin requests.
+                        // TODO: Update this once user guide is complete:
+                        // https://github.com/AllenInstitute/biofile-finder/issues/723
+                        formattedError =
+                            `This is likely caused by CORS restrictions. ` +
+                            `The server hosting the data source may not be configured to allow ` +
+                            `requests from this application. For help resolving this, please visit our ` +
+                            `support forum.`;
                     } else if (error?.message) {
                         formattedError = error.message;
                     } // else use default error message
@@ -1263,20 +1285,70 @@ export default class DatabaseService {
         }
     }
 
+    protected async prepareDataSource(
+        dataSource: Source,
+        skipNormalization: boolean
+    ): Promise<void> {
+        const { name, type, uri } = dataSource;
+
+        if (!type || !uri) {
+            throw new DataSourcePreparationError(
+                `Lost access to data source "${name}".\
+                </br> \
+                Local data sources must be re-uploaded with each \
+                page refresh to gain access to the data source file \
+                on your computer. \
+                To avoid this, consider using cloud storage for the \
+                file and sharing the URL.`,
+                name
+            );
+        }
+        // Add the data source as a table on the database
+        await this.addDataSource(name, type, uri);
+
+        // Add data source name to in-memory set
+        // for quick data source checks
+        this.existingDataSources.add(name);
+
+        // Unless skipped, this will ensure the table is prepared
+        // for querying with the expected columns & uniqueness constraints
+        if (!skipNormalization) {
+            if (type !== "parquet") {
+                await this.normalizeDataSourceColumnNames(name);
+                await this.renameNonprintableCharColumns(name);
+            }
+
+            const error = await this.checkDataSourceForErrors(name);
+            if (error !== null) {
+                throw new DataSourcePreparationError(error, name);
+            }
+
+            if (type !== "parquet") {
+                await this.addRequiredColumns(name);
+            }
+        }
+    }
+
     public async prepareSourceMetadata(sourceMetadata: Source): Promise<void> {
         const isPreviousSource = sourceMetadata.name === this.sourceMetadataName;
-        if (isPreviousSource) {
+        if (isPreviousSource && this.hasDataSource(sourceMetadata.name)) {
             return;
         }
-
-        await this.deleteSourceMetadata();
-        await this.prepareDataSource(
-            {
-                ...sourceMetadata,
-                name: this.SOURCE_METADATA_TABLE,
-            },
-            true
-        );
+        // If the metadata source is being replaced, delete the old instance before preparing the new one
+        if (sourceMetadata.uri) {
+            await this.deleteSourceMetadata();
+            // Make sure we don't still have a cached version of the metadata source
+            if (!this.hasDataSource(sourceMetadata.name)) {
+                await this.prepareDataSourceWrapper(
+                    {
+                        ...sourceMetadata,
+                        name: sourceMetadata.name,
+                    },
+                    true
+                );
+            }
+        }
+        // If the source doesn't have a uri, we should instead try to use the cached table
         this.sourceMetadataName = sourceMetadata.name;
     }
 
@@ -1286,7 +1358,7 @@ export default class DatabaseService {
             return;
         }
         await this.deleteSourceProvenance();
-        await this.prepareDataSource(
+        await this.prepareDataSourceWrapper(
             {
                 ...sourceProvenance,
                 name: this.SOURCE_PROVENANCE_TABLE,
@@ -1305,11 +1377,12 @@ export default class DatabaseService {
     }
 
     public async deleteSourceMetadata(): Promise<void> {
-        await this.deleteDataSource(this.SOURCE_METADATA_TABLE);
+        // Avoid trying to delete a file that doesn't exist
+        if (this.sourceMetadataName) await this.deleteDataSource(this.sourceMetadataName);
         this.dataSourceToAnnotationsMap.clear();
     }
 
-    private async deleteDataSource(dataSource: string): Promise<void> {
+    protected async deleteDataSource(dataSource: string): Promise<void> {
         this.existingDataSources.delete(dataSource);
         this.dataSourceToAnnotationsMap.delete(dataSource);
         if (this.parquetDirectViewNames.has(dataSource)) {
@@ -1330,9 +1403,12 @@ export default class DatabaseService {
             // Add hidden UID column to uniquely identify rows
             `
                 ALTER TABLE "${name}"
-                ADD COLUMN ${DatabaseService.HIDDEN_UID_ANNOTATION} INT
+                ADD COLUMN ${HIDDEN_UID_ANNOTATION} INT
             `,
             this.getUpdateHiddenUIDSQL(name),
+            // CSV type inference may produce non-VARCHAR "File Path" (e.g. all-numeric values
+            // inferred as BIGINT). Coerce to VARCHAR so regex-based operations succeed.
+            `ALTER TABLE "${name}" ALTER COLUMN "${PreDefinedColumn.FILE_PATH}" TYPE VARCHAR`,
         ];
 
         const dataSourceColumns = await this.getColumnsOnDataSource(name);
@@ -1355,6 +1431,12 @@ export default class DatabaseService {
             `);
             commandsToExecute.push(fileNameGenerationSQL);
         } else {
+            // CSV type inference may have produced a non-VARCHAR "File Name" column (e.g. if
+            // all values happen to look numeric). Coerce to VARCHAR so the COALESCE update and
+            // TRIM-based blank checks don't hit a type mismatch.
+            commandsToExecute.push(
+                `ALTER TABLE "${name}" ALTER COLUMN "${PreDefinedColumn.FILE_NAME}" TYPE VARCHAR`
+            );
             // Check for any blank "File Name" rows
             const { totalCount: blankFileNameCount } = await this.getRowsWhereColumnIsBlank(
                 name,
@@ -1378,7 +1460,7 @@ export default class DatabaseService {
         // column addition manually
         return `
             UPDATE "${tableName}"
-            SET "${DatabaseService.HIDDEN_UID_ANNOTATION}" = SQ.row
+            SET "${HIDDEN_UID_ANNOTATION}" = SQ.row
             FROM (
                 SELECT "${PreDefinedColumn.FILE_PATH}", ROW_NUMBER() OVER (ORDER BY "${PreDefinedColumn.FILE_PATH}") AS row
                 FROM "${tableName}"
@@ -1392,19 +1474,24 @@ export default class DatabaseService {
         the expectations around uniqueness/blankness for pre-defined columns
         like "File Path", "File ID", etc.
     */
-    private async checkDataSourceForErrors(
-        name: string,
-        isParquet = false
-    ): Promise<string[]> {
-        const errors: string[] = [];
+    private async checkDataSourceForErrors(name: string): Promise<string | null> {
         const columnsOnTable = await this.getColumnsOnDataSource(name);
+
+        // Double quotes in column names should not be allowed because of injection concerns
+        const columns = Array.from(columnsOnTable);
+        const columnsWithDoubleQuotes = columns.filter((col) => /"/.test(col));
+        if (columnsWithDoubleQuotes.length > 0) {
+            return `Found column names with disallowed double quote characters ("): ${columnsWithDoubleQuotes.join(
+                ", "
+            )}. 
+                Please rename these columns and try again.`;
+        }
 
         if (!columnsOnTable.has(PreDefinedColumn.FILE_PATH)) {
             let error = `"${PreDefinedColumn.FILE_PATH}" column is missing in the data source.
                 Check the data source header row for a "${PreDefinedColumn.FILE_PATH}" column name and try again.`;
 
             // Attempt to find a column with a similar name to "File Path"
-            const columns = Array.from(columnsOnTable);
             const filePathLikeColumn =
                 columns.find((column) => column.toLowerCase().includes("path")) ||
                 columns.find((column) => column.toLowerCase().includes("file"));
@@ -1415,32 +1502,140 @@ export default class DatabaseService {
             // Unable to determine if the file path is empty or not
             // when it is not present so return here before checking
             // for other errors
-            errors.push(error);
-        } else if (!isParquet) {
-            // For non-parquet sources, check for empty or whitespace File Path values.
-            // Skipped for parquet because any DuckDB query against the Parquet view
-            // triggers full footer deserialization (~60-80 s for large files).
-            // The structural check (column exists) is already done above.
-            const { totalCount, sampleRowNumbers } = await this.getRowsWhereColumnIsBlank(
+            return error;
+        } else {
+            // For large parquet tables, attempt to bypass the expensive
+            // getRowsWhereColumnIsBlank query.
+            if (
+                this.parquetDirectViewNames.has(name) &&
+                (await this.totalRowCount(name)) > 500000
+            ) {
+                const originalColumn = await this.getOriginalParquetColumnName(
+                    name,
+                    PreDefinedColumn.FILE_PATH
+                );
+                if (originalColumn !== null) {
+                    const hasBlankValues = await this.parquetHasBlankValues(name, originalColumn);
+                    if (hasBlankValues !== null) {
+                        if (hasBlankValues) {
+                            return `"${PreDefinedColumn.FILE_PATH}" column contains some empty or purely whitespace paths.`;
+                        } else {
+                            return null;
+                        }
+                    }
+                    // If blankFilePathRowGroups is null, we don't have enough
+                    // information. Fall back to the full scan.
+                }
+            }
+
+            // Check for empty or just whitespace File Path column values
+            const blankFilePathRows = await this.getRowsWhereColumnIsBlank(
                 name,
                 PreDefinedColumn.FILE_PATH
             );
-            if (totalCount > 0) {
-                const rowNumbers = DatabaseService.truncateString(sampleRowNumbers.join(", "), 100);
-                errors.push(
-                    `"${PreDefinedColumn.FILE_PATH}" column contains ${totalCount} empty or purely whitespace paths at rows ${rowNumbers}.`
+            if (blankFilePathRows.totalCount > 0) {
+                const rowNumbers = DatabaseService.truncateString(
+                    blankFilePathRows.sampleRowNumbers.join(", "),
+                    100
                 );
+                return `"${PreDefinedColumn.FILE_PATH}" column contains ${blankFilePathRows.totalCount} empty or purely whitespace paths at rows ${rowNumbers}.`;
             }
+            return null;
         }
+    }
 
-        return errors;
+    /**
+     * When converting DuckDB query results to strings, Javascript sometimes removes
+     * non-printable characters (e.g., Ôªø etc.), likely because of encoding mismatches.
+     * This can cause errors in the database service if we then try to select or interact
+     * with those columns, since they no longer match what's actually in the database.
+     */
+    private async renameNonprintableCharColumns(dataSourceName: string): Promise<void> {
+        // Query for columns that contain ASCII characters that are outside of the printable range
+        const findNonAsciiCharsSql = `
+            SELECT column_name
+            FROM "information_schema"."columns"
+            WHERE (table_name = '${dataSourceName}') AND (regexp_matches(column_name, '[^ -~]+'))
+        `;
+        const columnsWithNonAscii = (await this.query(findNonAsciiCharsSql).promise).flatMap(
+            (val) => val.column_name
+        );
+        // Determine whether Javascript removes those characters by checking
+        // if the JS version of each column name still exists in the DuckDB table
+        const columnsExist = await this.checkColumnsExist(dataSourceName, columnsWithNonAscii);
+        const columnsWithMismatch = columnsExist
+            ?.filter((value) => value.column_exists === false)
+            .flatMap((val) => val.column_name);
+        // If list is empty, there may be column names with non-ASCII characters,
+        // but they don't get trimmed by JS, so we can return safely
+        if (!columnsWithMismatch || columnsWithMismatch.length === 0) return;
+
+        // Only rename the columns that have a mismatch after being converted to JS
+        // since these are the ones that won't render correctly & will cause errors
+        const findMismatchedColumnsSql = `
+            WITH nonascii_columns AS (
+                SELECT * FROM (
+                VALUES ${columnsWithMismatch
+                    ?.map((col) => `('${col.replace(/'/g, "''")}')`)
+                    .join(",")}) 
+                AS t(column_name)
+            ),
+            table_columns AS (
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = '${dataSourceName}'
+            )
+            SELECT 
+                (SELECT column_name FROM table_columns tc
+                WHERE regexp_replace(column_name, '[^ -~]+', '', 'g') = nc.column_name
+                LIMIT 1) as column_name,
+                nc.column_name as clean_name
+            FROM nonascii_columns nc
+        `;
+        // Run the above query inside of a DuckDB command that generates `ALTER` statements
+        // rather than running two separate queries,
+        // to avoid risk of Javascript trimming column names in the results
+        const alterCommandsSql = `
+            SELECT string_agg('ALTER TABLE "${dataSourceName}" RENAME "' || column_name || '" TO "' || clean_name || '";', ' ') as sql_statement,
+                string_agg(column_name, ', ') as cols_to_rename
+            FROM (${findMismatchedColumnsSql}
+            ) problem_columns;
+        `;
+        // Retrieve the ALTER commands and names of columns that will be renamed
+        const executeResult = await this.query(alterCommandsSql).promise;
+        if (executeResult[0]?.sql_statement && executeResult[0]?.cols_to_rename) {
+            // Run the ALTER commands
+            this.execute(executeResult[0].sql_statement);
+            console.warn(
+                `Renamed columns with special characters: ${executeResult[0].cols_to_rename}`
+            );
+        }
+    }
+
+    // Check if each column name in an array actually exists in table `dataSourceName`
+    private async checkColumnsExist(dataSourceName: string, columnNames: string[]) {
+        if (columnNames.length === 0) return;
+        const sql = `
+            WITH columns_to_check AS (
+                SELECT * FROM (
+                VALUES ${columnNames.map((col) => `('${col.replace(/'/g, "''")}')`).join(",")}) 
+                AS t(column_name)
+            )
+            SELECT cc.column_name,
+                ic.column_name IS NOT NULL as column_exists
+            FROM columns_to_check cc
+            LEFT JOIN information_schema.columns ic 
+                ON LOWER(cc.column_name) = LOWER(ic.column_name)
+                AND ic.table_name = '${dataSourceName}'
+        `;
+        return await this.query(sql).promise;
     }
 
     /*
         Some columns like "File Path", "File ID", "Thumbnail", etc.
         have expectations around how they should be cased/formatted
         so this will attempt to find the nearest match to the pre-defined
-        columns and format them appropriatedly
+        columns and format them appropriately
     */
     private async normalizeDataSourceColumnNames(dataSourceName: string): Promise<void> {
         const columnsOnDataSource = await this.getColumnsOnDataSource(dataSourceName);
@@ -1463,55 +1658,12 @@ export default class DatabaseService {
 
     // Create a view over the parquet file that exposes columns under predefined names (e.g. "File Path")
     // and adds hidden_bff_uid.
-    private async createParquetDirectView(
-        viewName: string,
-        parquetInternalName: string,
-        originalFile?: File | string
-    ): Promise<void> {
-        // 1. Get original column names and types from the Parquet schema.
-        //
-        // Fast path: parse only the schema section of the Parquet footer in
-        // JavaScript.  DuckDB's parquet_schema() / DESCRIBE deserializes the
-        // ENTIRE Thrift footer — including the row_groups list which scales with
-        // (num_row_groups × num_columns) and can be hundreds of MB for large
-        // files, taking 70+ seconds in WASM.  By reading just the footer bytes
-        // and stopping after the schema field, we get the same information in
-        // milliseconds.
-        //
-        // • Local File  → File.slice().arrayBuffer()  (always works)
-        // • HTTP/HTTPS  → fetch() with Range headers   (requires server support)
-        // • S3 / other  → falls back to DuckDB
-        let rows: Array<{ column_name: string; column_type: string }>;
-        if (originalFile) {
-            try {
-                console.log("Attempting to read Parquet schema using fast JavaScript parser");
-                let rawSchemaRows: ParquetSchemaRow[];
-                if (originalFile instanceof File) {
-                    rawSchemaRows = await readParquetSchemaFromFile(originalFile);
-                } else if (
-                    originalFile.startsWith("http://") ||
-                    originalFile.startsWith("https://")
-                ) {
-                    rawSchemaRows = await readParquetSchemaFromUrl(originalFile);
-                } else {
-                    // S3 and other non-HTTP protocols — skip the fast path.
-                    throw new Error(`Unsupported URI scheme for fast schema read: ${originalFile}`);
-                }
-                rows = parseParquetSchemaRows(rawSchemaRows);
-                console.log("Successfully read Parquet schema using fast JavaScript parser");
-            } catch (err) {
-                // Fall back to DuckDB if JS parsing fails
-                console.error("Fast Parquet schema reader failed, falling back to DuckDB:", err);
-                rows = await this.getParquetSchemaViaDuckDB(parquetInternalName);
-            }
-        } else {
-            rows = await this.getParquetSchemaViaDuckDB(parquetInternalName);
-        }
-        const rawColumns = rows.map((row) => row["column_name"] as string);
-        // Build a map from column name to DuckDB type for later type-specific handling.
-        const colTypeMap = new Map(
-            rows.map((row) => [row["column_name"] as string, row["column_type"] as string])
-        );
+    private async createParquetDirectView(name: string): Promise<void> {
+        // 1. Get original column names from the user's table.
+        // Note: we don't use this.getColumnsOnDataSource, since that expects a
+        // fully built data source, and this function is used for creating a
+        // data source.
+        const rawColumns = await this.getRawParquetColumns(name);
         // 2. Determine which columns need to be renamed, if any
         const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
         // 3. Prepare the SQL for renaming columns in the CREATE VIEW.
@@ -1530,107 +1682,124 @@ export default class DatabaseService {
         if (fileNameSelectPart !== null) {
             selectParts.push(fileNameSelectPart);
         }
-        // 3b. For plain parquet STRUCT columns (not STRUCT arrays), expose each leaf field as a
-        //     separate VARCHAR column with a dotted alias (e.g. "Well.Gene").
-        //     STRUCT(...)[] columns are already cast to JSON above and handled by runtime
-        //     discovery in fetchAnnotations — no dot-notation expansion here.
-        for (const row of rows) {
-            const originalName = row["column_name"] as string;
-            const colType = colTypeMap.get(originalName) ?? "";
-            const isStructArray = colType.startsWith("STRUCT(") && colType.trimEnd().endsWith("[]");
-            if (colType.startsWith("STRUCT") && !isStructArray) {
-                const nestedPaths = collectNestedStructPaths(colType);
-                for (const fieldPath of nestedPaths) {
-                    // Use the renamed (predefined) column name as the alias prefix when applicable.
-                    const aliasPrefix = actualToPreDefined.get(originalName) ?? originalName;
-                    const alias = `"${aliasPrefix}.${fieldPath.join(".")}"`;
-                    const expr = buildStructExtractExpression(originalName, fieldPath);
-                    selectParts.push(`CAST(${expr} AS VARCHAR) AS ${alias}`);
-                }
-            }
-        }
-        selectParts.push(`"file_row_number" AS "${DatabaseService.HIDDEN_UID_ANNOTATION}"`);
-
-        // 3c. Pre-populate the annotation cache from the parsed schema so that
-        //     fetchAnnotations() returns immediately without querying
-        //     information_schema.columns — which would force DuckDB to resolve
-        //     the view and deserialize the entire Parquet footer (~60-80 s for
-        //     large files).  The cache will be refreshed with descriptions/types
-        //     if/when a source metadata table is loaded later.
-        const annotations: Annotation[] = [];
-        for (const col of rawColumns) {
-            const alias = actualToPreDefined.get(col) ?? col;
-            const colType = colTypeMap.get(col) ?? "";
-            const isStructOrMap =
-                colType.startsWith("STRUCT(") || colType.startsWith("MAP(");
-            const isStructArray =
-                colType.startsWith("STRUCT(") && colType.trimEnd().endsWith("[]");
-
-            annotations.push(
-                new Annotation({
-                    annotationName: alias,
-                    annotationDisplayName: alias,
-                    description: "",
-                    type: DatabaseService.columnTypeToAnnotationType(colType),
-                    isNested: isStructOrMap || isStructArray,
-                })
-            );
-
-            // STRUCT(...)[] → add virtual sub-field annotations
-            if (isStructArray) {
-                const structPaths = collectStructArraySchemaPaths(alias, colType);
-                for (const { displayPath, jsonPath, listExpression } of structPaths) {
-                    const virtualName = `${alias}.${displayPath}`;
-                    annotations.push(
-                        new Annotation({
-                            annotationName: virtualName,
-                            annotationDisplayName: virtualName,
-                            description: `Sub-field "${displayPath}" of "${alias}"`,
-                            type: AnnotationType.STRING,
-                            isNestedSubField: true,
-                            nestedParent: alias,
-                            nestedJsonPath: jsonPath,
-                            nestedListExpression: listExpression,
-                        })
-                    );
-                }
-            }
-
-            // Plain STRUCT → expanded fields are real view columns
-            if (colType.startsWith("STRUCT") && !isStructArray) {
-                const nestedPaths = collectNestedStructPaths(colType);
-                for (const fieldPath of nestedPaths) {
-                    const aliasPrefix = actualToPreDefined.get(col) ?? col;
-                    const fieldAlias = `${aliasPrefix}.${fieldPath.join(".")}`;
-                    annotations.push(
-                        new Annotation({
-                            annotationName: fieldAlias,
-                            annotationDisplayName: fieldAlias,
-                            description: "",
-                            type: AnnotationType.STRING,
-                        })
-                    );
-                }
-            }
-        }
-        // Include auto-generated File Name if applicable
-        if (fileNameSelectPart !== null) {
-            annotations.push(
-                new Annotation({
-                    annotationName: PreDefinedColumn.FILE_NAME,
-                    annotationDisplayName: PreDefinedColumn.FILE_NAME,
-                    description: "",
-                    type: AnnotationType.STRING,
-                })
-            );
-        }
-        this.dataSourceToAnnotationsMap.set(viewName, annotations);
+        selectParts.push(`"file_row_number" AS "${HIDDEN_UID_ANNOTATION}"`);
         // 4. Create the view for this data source
-        const createViewSql = `CREATE VIEW "${viewName}"
+        const createViewSql = `CREATE VIEW "${name}"
             AS SELECT ${selectParts.join(", ")}
-            FROM parquet_scan('${parquetInternalName}');`;
+            FROM parquet_scan('${name}');`;
         await this.execute(createViewSql);
-        this.parquetDirectViewNames.add(viewName);
+        this.parquetDirectViewNames.add(name);
+    }
+
+    // Given a possibly-renamed column name, get the original column name used
+    // in the input parquet.
+    private async getOriginalParquetColumnName(
+        name: string,
+        logicalColumn: string
+    ): Promise<string | null> {
+        const rawColumns = await this.getRawParquetColumns(name);
+        const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
+        for (const [actual, predefined] of actualToPreDefined) {
+            if (predefined === logicalColumn) {
+                return actual;
+            }
+        }
+        return null;
+    }
+
+    private async totalRowCount(name: string): Promise<number> {
+        const sql = new SQLBuilder().select("COUNT(*) AS count").from(name).toSQL();
+        return (await this.query(sql).promise)[0].count;
+    }
+
+    /**
+     * Quickly check if a column of a parquet has blank values. Return null
+     * if result is uncertain.
+     *
+     * Definition: For the purposes of this function, a "blank" value is one
+     * made up of spaces, tabs, new lines, carriage returns, or other
+     * non-printable ASCII control characters. This differs from
+     * getRowsWhereColumnIsBlank, which treats other whitespace characters as
+     * blank and control characters as non-blank. This distinction is not
+     * expected to be of much importance to our users.
+     *
+     * Special cases to consider:
+     *   Condition: Any row group has a non-zero null count.
+     *   Result: The column certainly has blank values. Return true.
+     *
+     *   Condition: In the row group statistics, the min_value is a blank value.
+     *   Example: min_value = ' ', actual minimum = ' /my/file/path.tiff'.
+     *   Result: The column likely has blank values, but we cannot be sure.
+     *     min_value is a lower bound on the values in the column, but is not
+     *     necessarily one of the values in the column. Return null.
+     *
+     *   Condition: The minimum value starts with newline, tab, carriage
+     *     return, or vertical tab, and includes some printable characters.
+     *   Example: min_value = '\n/my/file/path.tiff', another value = ' '
+     *   Result: The column may have blank values. Return null.
+     *
+     *   Condition: The null counts are all zero and the min_values all start
+     *     with non-whitespace printable characters.
+     *   Result: The column has no blank values. Return false.
+     */
+    private async parquetHasBlankValues(filename: string, column: string): Promise<boolean | null> {
+        /**
+         * This function uses null_count and min_value to determine if any rows
+         * of a parquet file have null or blank values for the given column.
+         *
+         * If a row has a null value, that will show up in the null_count
+         * statistic for the row group.
+         *
+         * The min_value statistic for a string-type column gives a string
+         * that is "smaller" than all the values in the column, according to
+         * a lexicographic ordering by the UTF-8 byte values of each character.
+         * Space, tab, carriage return, and line feed all have lower UTF-8
+         * values than the non-whitespace characters. Therefore, if the
+         * min_value starts with a non-whitespace character, there are no blank
+         * values in the column.
+         */
+        const nullGroupCountSql = `
+            SELECT COUNT(*) AS null_group_count,
+            FROM parquet_metadata('${filename}')
+            WHERE path_in_schema = '${column}'
+            AND stats_null_count > 0`;
+        const nullGroupCount = (await this.query(nullGroupCountSql).promise)[0].null_group_count;
+        if (nullGroupCount > 0) {
+            return true;
+        }
+
+        const validationSql = `
+            SELECT COUNT(*) AS no_data_count,
+            FROM parquet_metadata('${filename}')
+            WHERE path_in_schema = '${column}'
+            AND (
+                stats_null_count IS NULL
+                OR stats_min_value IS NULL
+            )`;
+        const insufficientMetadataCount = (await this.query(validationSql).promise)[0]
+            .no_data_count;
+        if (insufficientMetadataCount > 0) {
+            // null_count or min_value are not defined. Cannot guarantee there
+            // are no blank values.
+            return null;
+        }
+        // ! is the first printable non-whitespace character (0x21), and it is
+        // immediately after space (0x20).
+        // If stats_min_value < '!', the min_value is entirely composed of
+        // whitespace and/or non-printable control characters.
+        const lowMinCountSql = `
+            SELECT COUNT(*) as low_min_count,
+            FROM parquet_metadata('${filename}')
+            WHERE path_in_schema = '${column}'
+            AND stats_min_value < '!'`;
+        const lowMinCount = (await this.query(lowMinCountSql).promise)[0].low_min_count;
+        if (lowMinCount > 0) {
+            return null;
+        } else {
+            // All null counts are zero, and all min values start with a
+            // non-blank character.
+            return false;
+        }
     }
 
     /** Slow fallback: use DuckDB's parquet_schema() for URL-based sources. */
@@ -1641,7 +1810,7 @@ export default class DatabaseService {
         const rawSchemaRows = (await this.query(
             `SELECT name, type, num_children, converted_type, logical_type
              FROM parquet_schema('${escapedName}')`
-        )) as Array<{
+        ).promise) as Array<{
             name: string;
             type: string | null;
             num_children: number;
@@ -1661,7 +1830,7 @@ export default class DatabaseService {
             SELECT COUNT(*) AS cnt
             FROM "${dataSource}"
             WHERE "${column}" IS NULL OR TRIM("${column}") = ''
-        `);
+        `).promise;
         const totalCount = Number(countResult[0]?.cnt ?? 0);
         if (totalCount === 0) {
             return { totalCount: 0, sampleRowNumbers: [] };
@@ -1676,20 +1845,26 @@ export default class DatabaseService {
                 SELECT ROW_NUMBER() OVER () AS row, "${column}"
                 FROM "${dataSource}"
             ) AS A
-            WHERE A."${column}" IS NULL OR TRIM(A."${column}") = ''
-            LIMIT 20
-        `);
-        return { totalCount, sampleRowNumbers: sampleResult.map((r) => r.row) };
+            WHERE TRIM(CAST(A."${column}" AS VARCHAR)) IS NULL
+        `).promise;
+        return {
+            sampleRowNumbers: sampleResult.map((row) => row.row),
+            totalCount,
+        };
+    }
+
+    private static combineSourceNames(dataSources: Source[] | string[]) {
+        return dataSources
+            .map((source) => (typeof source === "string" ? source : source.name))
+            .sort()
+            .join(", ");
     }
 
     private async aggregateDataSources(dataSources: Source[]): Promise<void> {
         if (dataSources.some((source) => source.type === "parquet")) {
             throw new Error("Parquet tables cannot be combined to query multiple data sources.");
         }
-        const viewName = dataSources
-            .map((source) => source.name)
-            .sort()
-            .join(", ");
+        const viewName = DatabaseService.combineSourceNames(dataSources);
 
         if (this.currentAggregateSource === viewName) {
             // Prevent adding the same data source multiple times by shortcutting out here
@@ -1700,51 +1875,104 @@ export default class DatabaseService {
         }
 
         const columnsSoFar = new Set<string>();
-        for (const dataSource of dataSources) {
-            // Fetch information about this data source
-            const annotationsInDataSource = await this.fetchAnnotations([dataSource.name]);
-            const columnsInDataSource = annotationsInDataSource.map(
-                (annotation) => annotation.name
-            );
-            const newColumns = columnsInDataSource.filter((column) => !columnsSoFar.has(column));
-
-            // If there are no columns / data added yet we need to create the table from
-            // scratch so we can provide an easy shortcut around the default way of adding
-            // data to a table
-            if (columnsSoFar.size === 0) {
-                await this.execute(
-                    `CREATE TABLE "${viewName}" AS SELECT *, '${dataSource.name}' AS "Data source" FROM "${dataSource.name}"`
+        const renamedColumnWarnings: string[] = [];
+        try {
+            for (const dataSource of dataSources) {
+                // Fetch information about this data source
+                const annotationsInDataSource = await this.fetchAnnotations([dataSource.name]);
+                const columnsInDataSource = annotationsInDataSource.map(
+                    (annotation) => annotation.name
                 );
-                this.currentAggregateSource = viewName;
-            } else {
-                // If adding data to an existing table we will need to add any new columns
-                // unsure why but seemingly unable to add multiple columns in one alter table
-                // statement so we will need to loop through and add them one by one
-                if (newColumns.length) {
-                    const alterTableSQL = newColumns
-                        .map((column) => `ALTER TABLE "${viewName}" ADD COLUMN "${column}" VARCHAR`)
-                        .join("; ");
-                    await this.execute(alterTableSQL);
+
+                // Set.has() is case sensitive, but columns in DuckDB are case INsensitive.
+                // If source A has column "Color" and source B has column "color",
+                // "color" will appear to be new, but will cause an error when attempting to
+                // create the new column with DuckDB
+                const newColumns: string[] = [];
+                const similarColumnMap = new Map<string, string>();
+                columnsInDataSource.forEach((column) => {
+                    if (!columnsSoFar.has(column)) {
+                        let hasMatch = false;
+                        for (const existingCol of columnsSoFar) {
+                            if (existingCol.toLowerCase() === column.toLowerCase()) {
+                                // The original table has a column that functionally matches the new column
+                                hasMatch = true;
+                                similarColumnMap.set(existingCol, column);
+                                break;
+                            }
+                        }
+                        if (!hasMatch) {
+                            // Completely new even with case-insensitivity
+                            newColumns.push(column);
+                        }
+                    }
+                });
+
+                // If there are no columns / data added yet, we need to create the table from
+                // scratch so we can provide an easy shortcut around the default way of adding
+                // data to a table
+                if (columnsSoFar.size === 0) {
+                    await this.execute(
+                        `CREATE TABLE "${viewName}" AS SELECT *, '${dataSource.name}' AS "Data source" FROM "${dataSource.name}"`
+                    );
+                    this.currentAggregateSource = viewName;
+                } else {
+                    // If adding data to an existing table, we will need to add any new columns.
+                    // DuckDB does not support adding multiple columns in one ALTER TABLE
+                    // statement, so we will need to loop through and add them one by one.
+                    if (newColumns.length) {
+                        const alterTableSQL = newColumns
+                            .map(
+                                (column) =>
+                                    `ALTER TABLE "${viewName}" ADD COLUMN "${column}" VARCHAR`
+                            )
+                            .join("; ");
+                        await this.execute(alterTableSQL);
+                    }
+
+                    // After we have added any new columns to the table schema,
+                    // insert the data from the new table into the existing one,
+                    // replacing any non-existent columns with an empty value (null)
+                    const columnsSoFarArr = [...columnsSoFar, ...newColumns];
+                    const columnToSql = (column: string) => {
+                        if (columnsInDataSource.includes(column)) {
+                            return `"${column}"`;
+                        } else if (similarColumnMap.has(column)) {
+                            // Match columns to their case-insensitive equivalent in the existing table
+                            return `"${similarColumnMap.get(column)}" as "${column}"`;
+                        } else return "NULL";
+                    };
+                    await this.execute(`
+                        INSERT INTO "${viewName}" ("${columnsSoFarArr.join('", "')}", "Data source")
+                        SELECT ${columnsSoFarArr
+                            .map((column) => columnToSql(column))
+                            .join(", ")}, '${dataSource.name}' AS "Data source"
+                        FROM "${dataSource.name}"
+                    `);
                 }
 
-                // After we have added any new columns to the table schema we just need
-                // to insert the data from the new table to this table replacing any non-existent
-                // columns with an empty value (null)
-                const columnsSoFarArr = [...columnsSoFar, ...newColumns];
-                await this.execute(`
-                    INSERT INTO "${viewName}" ("${columnsSoFarArr.join('", "')}", "Data source")
-                    SELECT ${columnsSoFarArr
-                        .map((column) =>
-                            columnsInDataSource.includes(column) ? `"${column}"` : "NULL"
-                        )
-                        .join(", ")}, '${dataSource.name}' AS "Data source"
-                    FROM "${dataSource.name}"
-                `);
-            }
+                // Add the new columns from this data source to the existing columns
+                // to avoid adding duplicate columns
+                newColumns.forEach((column) => columnsSoFar.add(column));
 
-            // Add the new columns from this data source to the existing columns
-            // to avoid adding duplicate columns
-            newColumns.forEach((column) => columnsSoFar.add(column));
+                Array.from(similarColumnMap.entries()).forEach((entry) => {
+                    renamedColumnWarnings.push(
+                        `Column "${entry[0]}" from data source ${dataSource.name} translated to "${entry[1]}".`
+                    );
+                });
+            }
+        } catch (err) {
+            const formattedError =
+                (err as Error)?.message || `Error while combining data sources. ${err}`;
+            throw new DataSourcePreparationError(formattedError, viewName);
+        }
+
+        // Unable to dispatch from a class definition; use warn for now
+        if (renamedColumnWarnings.length > 0) {
+            console.warn(
+                "Combining columns with similar names: \n ",
+                renamedColumnWarnings.join("\n")
+            );
         }
 
         // Reset hidden UID to avoid conflicts in previous auto-generation
@@ -1756,7 +1984,7 @@ export default class DatabaseService {
 
         const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
         try {
-            const rows = await this.query(sql);
+            const rows = await this.query(sql).promise;
             const parentsAndChildren = new Set<string>();
             return rows
                 .map((row) =>
@@ -1817,21 +2045,26 @@ export default class DatabaseService {
         }
     }
 
-    public async fetchAnnotations(dataSourceNames: string[]): Promise<Annotation[]> {
+    public async fetchAnnotations(
+        dataSourceNames: string[],
+        metadataSource?: Source
+    ): Promise<Annotation[]> {
         const aggregateDataSourceName = dataSourceNames.sort().join(", ");
         const hasAnnotations = this.dataSourceToAnnotationsMap.has(aggregateDataSourceName);
         const hasDescriptions = this.dataSourceToAnnotationsMap
             .get(aggregateDataSourceName)
             ?.some((annotation) => !!annotation.description);
-        const shouldHaveDescriptions = dataSourceNames.includes(this.SOURCE_METADATA_TABLE);
+        const shouldHaveDescriptions =
+            metadataSource && this.existingDataSources.has(metadataSource?.name);
         if (!hasAnnotations || (!hasDescriptions && shouldHaveDescriptions)) {
+            this.sourceMetadataName = metadataSource?.name;
             const sql = new SQLBuilder()
                 .select("column_name, data_type")
                 .from('information_schema"."columns')
                 .where(`table_name = '${aggregateDataSourceName}'`)
-                .where(`column_name != '${DatabaseService.HIDDEN_UID_ANNOTATION}'`)
+                .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
                 .toSQL();
-            const rows = await this.query(sql);
+            const rows = await this.query(sql).promise;
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
             }
@@ -1910,14 +2143,15 @@ export default class DatabaseService {
                     const sampleSql = new SQLBuilder()
                         .select(selectParts)
                         .from(aggregateDataSourceName)
-                        .limit(DatabaseService.JSON_SCHEMA_SAMPLE_SIZE)
+                        // TODO: Arbitrary
+                        .limit(20)
                         .toSQL();
                     const sampleRows = await this.query(sampleSql);
 
                     for (const { colName, annotationIndex } of jsonLikeCols) {
                         const schemaPaths = new Map<string, JsonSchemaPath>();
 
-                        for (const sampleRow of sampleRows) {
+                        for (const sampleRow of await sampleRows.promise) {
                             const raw = sampleRow[colName];
                             if (typeof raw !== "string") continue;
                             let parsed: unknown;
@@ -1975,26 +2209,31 @@ export default class DatabaseService {
         return this.dataSourceToAnnotationsMap.get(aggregateDataSourceName) || [];
     }
 
-    /** Number of rows sampled when detecting JSON object columns for virtual sub-field discovery. */
-    private static readonly JSON_SCHEMA_SAMPLE_SIZE = 20;
+    // Similar to getColumnsOnDataSource below, but suitable for use during the
+    // data source preparation step.
+    private async getRawParquetColumns(name: string): Promise<string[]> {
+        const sql = `DESCRIBE SELECT * FROM parquet_scan("${name}")`;
+        const rows = await this.query(sql).promise;
+        return rows.map((row) => row["column_name"] as string);
+    }
 
-    private async getColumnsOnDataSource(name: string): Promise<Set<string>> {
+    protected async getColumnsOnDataSource(name: string): Promise<Set<string>> {
         const annotations = await this.fetchAnnotations([name]);
         return new Set(annotations.map((annotation) => annotation.name));
     }
 
-    private async fetchAnnotationDescriptions(): Promise<Record<string, string>> {
+    protected async fetchAnnotationDescriptions(): Promise<Record<string, string>> {
         // Unless we have actually added the source metadata table we can't fetch the descriptions
-        if (!this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
+        if (!this.sourceMetadataName || !this.existingDataSources.has(this.sourceMetadataName)) {
             return {};
         }
 
         const sql = new SQLBuilder()
             .select('"Column Name", "Description"')
-            .from(this.SOURCE_METADATA_TABLE)
+            .from(this.sourceMetadataName)
             .toSQL();
         try {
-            const rows = await this.query(sql);
+            const rows = await this.query(sql).promise;
             return rows.reduce(
                 (map, row) => ({ ...map, [row["Column Name"]]: row["Description"] }),
                 {}
@@ -2012,17 +2251,17 @@ export default class DatabaseService {
 
     public async fetchAnnotationTypes(): Promise<Record<string, string>> {
         // Unless we have actually added the source metadata table we can't fetch the types
-        if (!this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
+        if (!this.sourceMetadataName || !this.existingDataSources.has(this.sourceMetadataName)) {
             return {};
         }
 
         const sql = new SQLBuilder()
             .select('"Column Name", "Type"')
-            .from(this.SOURCE_METADATA_TABLE)
+            .from(this.sourceMetadataName)
             .toSQL();
 
         try {
-            const rows = await this.query(sql);
+            const rows = await this.query(sql).promise;
             return rows.reduce(
                 (map, row) =>
                     DatabaseService.ANNOTATION_TYPE_SET.has(row["Type"])
@@ -2042,6 +2281,7 @@ export default class DatabaseService {
         }
     }
 
+    // To do: unclear if this is still working
     public async addNewColumn(
         datasourceName: string,
         columnName: string,
@@ -2052,9 +2292,13 @@ export default class DatabaseService {
         // Cache is now invalid since we added a column
         this.dataSourceToAnnotationsMap.delete(datasourceName);
 
-        if (description?.trim() && this.existingDataSources.has(this.SOURCE_METADATA_TABLE)) {
+        if (
+            description?.trim() &&
+            this.sourceMetadataName &&
+            this.existingDataSources.has(this.sourceMetadataName)
+        ) {
             await this
-                .execute(`INSERT INTO "${this.SOURCE_METADATA_TABLE}" ("Column Name", "Description")
+                .execute(`INSERT INTO "${this.sourceMetadataName}" ("Column Name", "Description")
                     VALUES ('${columnName}', '${description}');`);
         }
     }

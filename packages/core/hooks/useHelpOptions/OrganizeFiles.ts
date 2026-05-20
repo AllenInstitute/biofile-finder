@@ -1,10 +1,13 @@
 import Tutorial from "../../entity/Tutorial";
 
-export const ORGANIZE_FILES_TUTORIAL = new Tutorial("Organizing")
+export const ORGANIZE_FILES_TUTORIAL = new Tutorial(
+    "Grouping",
+    "How to organize the files in the file list into hierarchical folders using the annotations"
+)
     .addStep({
         targetId: Tutorial.GROUPING_HEADER_ID,
         message:
-            "All annotations that have files tagged with them are present in the list shown by this button. Click an annotation to group the files seen on the right into groups determined by the metadata tag chosen.",
+            'Click the "Group by" button to display a list of all annotations available in this data source. Select an annotation to group files by value for that annotation.',
     })
     .addStep({
         targetId: Tutorial.FILE_LIST_ID,

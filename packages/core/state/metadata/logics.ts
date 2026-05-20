@@ -24,6 +24,7 @@ import * as metadataSelectors from "./selectors";
 import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationFormatter";
+import FileFilter from "../../entity/FileFilter";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
@@ -67,6 +68,7 @@ const receiveAnnotationsLogic = createLogic({
         const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
         const currentColumns = selection.selectors.getColumns(deps.getState());
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
+        const currentFilters = selection.selectors.getFileFilters(deps.getState());
 
         const annotationNamesInDataSource = annotations.reduce(
             (set, annotation) => set.add(annotation.name),
@@ -110,6 +112,29 @@ const receiveAnnotationsLogic = createLogic({
             } else {
                 dispatch(selection.actions.setSortColumn());
             }
+        }
+
+        // Enrich active filters with annotationType from the loaded annotations.
+        // This handles filters deserialized from URLs or persisted state that lack annotationType,
+        // ensuring toSQLWhereString() generates correct SQL instead of falling back to regex match.
+        const annotationTypeByName = new Map(
+            annotations.map((annotation) => [annotation.name, annotation.type as AnnotationType])
+        );
+        const enrichedFilters = currentFilters.map((filter) =>
+            filter.annotationType
+                ? filter
+                : new FileFilter(
+                      filter.name,
+                      filter.value,
+                      filter.type,
+                      annotationTypeByName.get(filter.name)
+                  )
+        );
+        const hasEnrichedFilters = enrichedFilters.some(
+            (filter, i) => filter !== currentFilters[i]
+        );
+        if (hasEnrichedFilters) {
+            dispatch(selection.actions.setFileFilters(enrichedFilters));
         }
 
         done();

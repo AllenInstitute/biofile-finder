@@ -6,12 +6,12 @@ import * as os from "os";
 import * as path from "path";
 import sinon from "sinon";
 
-import DatabaseService, {
-    getParquetFileNameSelectPart,
-} from "..";
+import DatabaseServiceNoop from "../DatabaseServiceNoop";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
+
+import DatabaseService, { getParquetFileNameSelectPart } from "..";
 
 describe("DatabaseService", () => {
     describe("fetchAnnotations", () => {
@@ -21,7 +21,7 @@ describe("DatabaseService", () => {
 
         // DatabaseService is abstract so we need a dummy impl to test
         // implemented methods
-        class DatabaseServiceDummyImpl extends DatabaseService {
+        class DatabaseServiceDummyImpl extends DatabaseServiceNoop {
             saveQuery(): Promise<Uint8Array> {
                 throw new Error("Not implemented in dummy impl");
             }
@@ -31,8 +31,8 @@ describe("DatabaseService", () => {
             addDataSource(): Promise<void> {
                 throw new Error("Not implemented in dummy impl");
             }
-            query(): Promise<any> {
-                return Promise.resolve(annotations);
+            query(): { promise: Promise<any> } {
+                return { promise: Promise.resolve(annotations) };
             }
         }
 
@@ -44,7 +44,6 @@ describe("DatabaseService", () => {
     });
 
     describe("addDataSource", () => {
-        sinon.stub(axios, "get").returns(Promise.resolve());
         const mockAnnotations = [
             new Annotation({
                 annotationDisplayName: AnnotationName.KIND,
@@ -74,8 +73,8 @@ describe("DatabaseService", () => {
             execute(): Promise<void> {
                 return Promise.resolve();
             }
-            query(): Promise<any> {
-                return Promise.resolve([]);
+            query(): { promise: Promise<any> } {
+                return { promise: Promise.resolve([]) };
             }
         }
         const service = new MockDatabaseService();
@@ -84,6 +83,10 @@ describe("DatabaseService", () => {
         before(async () => {
             await fs.promises.mkdir(tempDir);
             await service.initialize();
+        });
+
+        beforeEach(() => {
+            sinon.stub(axios, "get").returns(Promise.resolve());
         });
 
         afterEach(() => {
@@ -166,6 +169,168 @@ describe("DatabaseService", () => {
             expect(caughtError).to.be.undefined;
             expect(service.hasDataSource(tempFileName)).to.be.true;
         });
+
+        it("throws error when a column name contains double quotes", async () => {
+            // Arrange
+            const badColumnName = '"Bad" column name';
+            const doubleQuoteAnnotation = new Annotation({
+                annotationDisplayName: badColumnName,
+                annotationName: badColumnName,
+                description: "",
+                type: AnnotationType.STRING,
+                annotationId: 3,
+            });
+            sinon
+                .stub(service, "fetchAnnotations")
+                .returns(Promise.resolve([...mockAnnotations, doubleQuoteAnnotation]));
+            const tempFileName = "testFailure.csv";
+            const tempFile = path.resolve(tempDir, tempFileName);
+            await fs.promises.writeFile(tempFile, "a,b,c,d\n1,2,3,4\n5,6,7,8\n");
+            let caughtError;
+
+            // Act
+            try {
+                await service.prepareDataSources([
+                    { name: tempFileName, type: "csv", uri: tempFile },
+                ]);
+            } catch (error) {
+                caughtError = error;
+            }
+
+            // Assert
+            expect(caughtError).to.not.be.undefined;
+            expect(caughtError).to.contain(/DataSourcePreparationError/);
+            expect((caughtError as Error)?.message).to.contain(badColumnName);
+            expect(service.hasDataSource(tempFileName)).to.be.false;
+        });
+
+        describe("CORS error handling for URL data sources", () => {
+            // A service where addDataSource always fails (simulates DuckDB failing to load a URL)
+            class MockDatabaseServiceWithURLFailure extends MockDatabaseService {
+                addDataSource(): Promise<void> {
+                    return Promise.reject(new Error("DuckDB: HTTP 0"));
+                }
+            }
+            const failingService = new MockDatabaseServiceWithURLFailure();
+
+            before(async () => {
+                await failingService.initialize();
+            });
+
+            after(() => {
+                failingService.close();
+            });
+
+            it("provides a CORS-specific error message when no HTTP response is received", async () => {
+                // Arrange: reset the beforeEach stub and use a CORS/network error instead
+                sinon.restore();
+                const corsError = Object.assign(new Error("Network Error"), {
+                    isAxiosError: true,
+                    request: {}, // a request was made but no response was received
+                    // response is intentionally absent to simulate CORS
+                });
+                sinon.stub(axios, "get").rejects(corsError);
+
+                let caughtError;
+                try {
+                    await failingService.prepareDataSources([
+                        { name: "cors-test", type: "csv", uri: "https://example.com/data.csv" },
+                    ]);
+                } catch (error) {
+                    caughtError = error;
+                }
+
+                // Assert
+                expect(caughtError).to.not.be.undefined;
+                expect((caughtError as Error).message).to.include("CORS");
+            });
+
+            it("uses HTTP response error details when a response with an error status is received", async () => {
+                // Arrange: reset the beforeEach stub and simulate a proper HTTP error response
+                sinon.restore();
+                const httpError = Object.assign(new Error("Request Failed with status 403"), {
+                    isAxiosError: true,
+                    response: {
+                        status: 403,
+                        statusText: "Forbidden",
+                        data: { error: "Access denied" },
+                    },
+                });
+                sinon.stub(axios, "get").rejects(httpError);
+
+                let caughtError;
+                try {
+                    await failingService.prepareDataSources([
+                        {
+                            name: "http-error-test",
+                            type: "csv",
+                            uri: "https://example.com/data.csv",
+                        },
+                    ]);
+                } catch (error) {
+                    caughtError = error;
+                }
+
+                // Assert: should show the HTTP error details, not a CORS message
+                expect(caughtError).to.not.be.undefined;
+                expect((caughtError as Error).message).to.include("403");
+                expect((caughtError as Error).message).to.not.include("CORS");
+            });
+        });
+    });
+
+    describe("columnTypeToAnnotationType", () => {
+        class ExposedDatabaseService extends DatabaseServiceNoop {
+            static exposeColumnType(t: string) {
+                return DatabaseService.columnTypeToAnnotationType(t);
+            }
+        }
+        const map = ExposedDatabaseService.exposeColumnType.bind(ExposedDatabaseService);
+
+        // NUMBER types — integers
+        it("maps INTEGER to NUMBER", () => expect(map("INTEGER")).to.equal(AnnotationType.NUMBER));
+        it("maps BIGINT to NUMBER", () => expect(map("BIGINT")).to.equal(AnnotationType.NUMBER));
+        it("maps HUGEINT to NUMBER", () => expect(map("HUGEINT")).to.equal(AnnotationType.NUMBER));
+        it("maps SMALLINT to NUMBER", () =>
+            expect(map("SMALLINT")).to.equal(AnnotationType.NUMBER));
+        it("maps TINYINT to NUMBER", () => expect(map("TINYINT")).to.equal(AnnotationType.NUMBER));
+        it("maps UBIGINT to NUMBER", () => expect(map("UBIGINT")).to.equal(AnnotationType.NUMBER));
+        it("maps UINTEGER to NUMBER", () =>
+            expect(map("UINTEGER")).to.equal(AnnotationType.NUMBER));
+        it("maps USMALLINT to NUMBER", () =>
+            expect(map("USMALLINT")).to.equal(AnnotationType.NUMBER));
+        it("maps UTINYINT to NUMBER", () =>
+            expect(map("UTINYINT")).to.equal(AnnotationType.NUMBER));
+
+        // NUMBER types — floats
+        it("maps FLOAT to NUMBER", () => expect(map("FLOAT")).to.equal(AnnotationType.NUMBER));
+        it("maps DOUBLE to NUMBER", () => expect(map("DOUBLE")).to.equal(AnnotationType.NUMBER));
+        it("maps REAL to NUMBER", () => expect(map("REAL")).to.equal(AnnotationType.NUMBER));
+        it("maps DECIMAL(18,3) to NUMBER", () =>
+            expect(map("DECIMAL(18,3)")).to.equal(AnnotationType.NUMBER));
+
+        // BOOLEAN
+        it("maps BOOLEAN to BOOLEAN", () =>
+            expect(map("BOOLEAN")).to.equal(AnnotationType.BOOLEAN));
+
+        // DURATION
+        it("maps INTERVAL to DURATION", () =>
+            expect(map("INTERVAL")).to.equal(AnnotationType.DURATION));
+
+        // DATE / DATETIME
+        it("maps DATE to DATE", () => expect(map("DATE")).to.equal(AnnotationType.DATE));
+        it("maps TIMESTAMP to DATETIME", () =>
+            expect(map("TIMESTAMP")).to.equal(AnnotationType.DATETIME));
+        it("maps TIMESTAMPTZ to DATETIME", () =>
+            expect(map("TIMESTAMPTZ")).to.equal(AnnotationType.DATETIME));
+        it("maps TIMESTAMP WITH TIME ZONE to DATETIME", () =>
+            expect(map("TIMESTAMP WITH TIME ZONE")).to.equal(AnnotationType.DATETIME));
+
+        // STRING fallback
+        it("maps VARCHAR to STRING", () => expect(map("VARCHAR")).to.equal(AnnotationType.STRING));
+        it("maps TEXT to STRING", () => expect(map("TEXT")).to.equal(AnnotationType.STRING));
+        it("maps unknown types to STRING", () =>
+            expect(map("SOMEUNKNOWNTYPE")).to.equal(AnnotationType.STRING));
     });
 
     describe("getParquetFileNameSelectPart", () => {
@@ -208,5 +373,4 @@ describe("DatabaseService", () => {
             expect(result).to.be.null;
         });
     });
-
 });

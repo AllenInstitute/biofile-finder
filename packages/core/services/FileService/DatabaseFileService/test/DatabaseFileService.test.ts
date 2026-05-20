@@ -8,6 +8,7 @@ import NumericRange from "../../../../entity/NumericRange";
 import SQLBuilder from "../../../../entity/SQLBuilder";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
+import { HIDDEN_UID_ANNOTATION } from "../../../../constants";
 
 import DatabaseFileService from "..";
 
@@ -15,7 +16,7 @@ describe("DatabaseFileService", () => {
     const totalFileSize = 864452;
     const fileIds = ["abc123", "def456"];
     const files = fileIds.map((file_id) => ({
-        [DatabaseService.HIDDEN_UID_ANNOTATION]: file_id,
+        [HIDDEN_UID_ANNOTATION]: file_id,
         "File Size": `${totalFileSize / 2}`,
         "File Path": "path/to/file",
         "File Name": "file",
@@ -24,8 +25,8 @@ describe("DatabaseFileService", () => {
 
     class MockDatabaseService extends DatabaseServiceNoop {
         protected readonly existingDataSources = new Set(["MockDataSource"]);
-        public query(): Promise<{ [key: string]: string }[]> {
-            return Promise.resolve(files);
+        public query(): { promise: Promise<{ [key: string]: string }[]> } {
+            return { promise: Promise.resolve(files) };
         }
     }
     const databaseService = new MockDatabaseService();
@@ -76,14 +77,14 @@ describe("DatabaseFileService", () => {
             // Arrange
             const parquetFiles = [
                 {
-                    [DatabaseService.HIDDEN_UID_ANNOTATION]: "1",
+                    [HIDDEN_UID_ANNOTATION]: "1",
                     "File ID": "123",
                 },
             ];
             class MockParquetDatabaseService extends DatabaseServiceNoop {
                 protected readonly existingDataSources = new Set(["parquet_source"]);
-                public query(_sql?: string): Promise<{ [key: string]: string }[]> {
-                    return Promise.resolve(parquetFiles);
+                public query(_sql?: string): { promise: Promise<{ [key: string]: string }[]> } {
+                    return { promise: Promise.resolve(parquetFiles) };
                 }
             }
             const mockDbService = new MockParquetDatabaseService();
@@ -238,7 +239,7 @@ describe("DatabaseFileService", () => {
     });
 
     describe("editFiles", () => {
-        const uidField = DatabaseService.HIDDEN_UID_ANNOTATION;
+        const uidField = HIDDEN_UID_ANNOTATION;
         const fileUid = "a1b2c3d4";
         const sandbox = createSandbox();
         afterEach(() => {
@@ -254,8 +255,8 @@ describe("DatabaseFileService", () => {
                 return Promise.reject("MockDatabaseEditService:saveQuery");
             }
 
-            public query(): Promise<{ [key: string]: string }[]> {
-                return Promise.reject("MockDatabaseEditService:query");
+            public query(): { promise: Promise<{ [key: string]: string }[]> } {
+                return { promise: Promise.reject("MockDatabaseEditService:query") };
             }
 
             protected addDataSource(): Promise<void> {

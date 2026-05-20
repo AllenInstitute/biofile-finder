@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 
 import FileSet from "../../../../core/entity/FileSet";
 import { interaction } from "../../../../core/state";
+import { getDatasetManifestSource } from "../../../../core/state/metadata/selectors";
 import FileSort from "../../../../core/entity/FileSort";
 import PublicDataset, { PublicDatasetProps } from "../../entity/PublicDataset";
 
@@ -21,6 +22,7 @@ export default function useDatasetDetails(
     const publicDatasetListService = useSelector(
         interaction.selectors.getPublicDatasetManifestService
     );
+    const datasetManifestSource = useSelector(getDatasetManifestSource);
 
     const fileSet = React.useMemo(() => {
         if (!publicDatasetListService) return;
@@ -31,7 +33,7 @@ export default function useDatasetDetails(
     }, [publicDatasetListService, fileSort]);
     React.useEffect(() => {
         setIsLoading(true);
-        if (!!publicDatasetListService && !!fileSet) {
+        if (!!publicDatasetListService && !!fileSet && !!datasetManifestSource) {
             publicDatasetListService
                 .getFiles({
                     from: 0,
@@ -61,6 +63,6 @@ export default function useDatasetDetails(
         return () => {
             setIsLoading(false);
         };
-    }, [featured, fileSet, publicDatasetListService]);
+    }, [featured, fileSet, publicDatasetListService, datasetManifestSource]);
     return [items, isLoading, error];
 }

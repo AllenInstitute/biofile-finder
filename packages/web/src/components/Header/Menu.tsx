@@ -1,14 +1,10 @@
-import { DirectionalHint, PrimaryButton } from "@fluentui/react";
+import { DirectionalHint, PrimaryButton as PrimaryFluent } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 
-import {
-    SecondaryButton,
-    TertiaryButton,
-    useButtonMenu,
-} from "../../../../core/components/Buttons";
+import { PrimaryButton, TertiaryButton, useButtonMenu } from "../../../../core/components/Buttons";
 import useHelpOptions from "../../../../core/hooks/useHelpOptions";
 
 import styles from "./Menu.module.css";
@@ -45,7 +41,7 @@ export default function Menu() {
                 >
                     Learn
                 </Link>
-                <PrimaryButton
+                <PrimaryFluent
                     ariaLabel="Help"
                     className={styles.helpMenuButton}
                     styles={{ label: styles.helpMenuLabel }}
@@ -55,10 +51,10 @@ export default function Menu() {
                 />
                 {currentPath !== "/app" && (
                     <Link to="app">
-                        <SecondaryButton
+                        <PrimaryButton
                             className={styles.startButton}
                             title="Get started in the app"
-                            text="GET STARTED"
+                            text="LAUNCH APP"
                         />
                     </Link>
                 )}

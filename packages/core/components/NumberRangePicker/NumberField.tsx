@@ -26,7 +26,9 @@ export default function NumberField(props: NumberFieldProps) {
             ((props?.max && Number(event.target.value) > props?.max) ||
                 (props?.min && Number(event.target.value) < props?.min))
         ) {
-            return event.target.setCustomValidity("Value out of bounds");
+            event?.target?.setCustomValidity("Value out of bounds");
+        } else {
+            event?.target?.setCustomValidity("");
         }
         props.onChange(event);
     }

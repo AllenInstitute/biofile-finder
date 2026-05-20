@@ -5,8 +5,8 @@ export default class S3StorageServiceNoop extends S3StorageService {
         return Promise.resolve(undefined);
     }
 
-    public getObjectsInDirectory() {
-        return Promise.resolve([]);
+    public async *getObjectsInDirectory() {
+        return;
     }
 
     public getCloudDirectoryInfo() {

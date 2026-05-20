@@ -54,6 +54,7 @@ import {
     setColumns,
     EXPAND_ALL_FILE_FOLDERS,
     toggleNullValueGroups,
+    setIsLoadingSource,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
@@ -595,6 +596,7 @@ const selectNearbyFile = createLogic({
 const changeDataSourceLogic = createLogic({
     type: CHANGE_DATA_SOURCES,
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        dispatch(setIsLoadingSource(true) as AnyAction);
         const { payload: selectedDataSources } = deps.action as ChangeDataSourcesAction;
         const dataSources = interaction.selectors.getAllDataSources(deps.getState());
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
@@ -639,9 +641,10 @@ const changeDataSourceLogic = createLogic({
             } else {
                 dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
+        } finally {
+            dispatch(setIsLoadingSource(false) as AnyAction);
+            dispatch(interaction.actions.refresh() as AnyAction);
         }
-
-        dispatch(interaction.actions.refresh() as AnyAction);
         done();
     },
 });
@@ -657,10 +660,19 @@ const changeSourceMetadataLogic = createLogic({
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
-        if (selectedSourceMetadata) {
-            await databaseService.prepareSourceMetadata(selectedSourceMetadata);
-        } else {
-            await databaseService.deleteSourceMetadata();
+        try {
+            if (selectedSourceMetadata) {
+                await databaseService.prepareSourceMetadata(selectedSourceMetadata);
+            } else {
+                await databaseService.deleteSourceMetadata();
+            }
+        } catch (err) {
+            const errMsg = (err as Error).message || "Unknown error while adding metadata source";
+            if (err instanceof DataSourcePreparationError) {
+                dispatch(addDataSourceReloadError(err.sourceName, errMsg) as AnyAction);
+            } else {
+                dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
+            }
         }
 
         dispatch(metadata.actions.requestAnnotations());
@@ -868,12 +880,13 @@ const setDataSourceReloadErrorLogic = createLogic({
             } = deps.action as AddDataSourceReloadError;
             // Trim error message to only the first few lines
             const truncatedError = truncate(error, { length: 200 });
-            const datasourceErrorDefaultMessage = `
+            const isTruncated = truncatedError.length !== error.length;
+            const makeMessage = (errorContent: string) => `
                 The following error occurred while loading the data source
                 &quot;${dataSourceName}&quot;:
                 </br>
                 </br>
-                ${truncatedError}
+                ${errorContent}
                 </br>
                 </br>
                 Please re-select the data source or a replacement.
@@ -881,7 +894,8 @@ const setDataSourceReloadErrorLogic = createLogic({
             dispatch(
                 interaction.actions.processError(
                     "dataSourceReloadError",
-                    datasourceErrorDefaultMessage
+                    makeMessage(truncatedError),
+                    isTruncated ? makeMessage(error) : undefined
                 )
             );
         } else dispatch(interaction.actions.removeStatus("dataSourceReloadError"));

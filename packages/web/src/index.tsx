@@ -8,9 +8,11 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import NotificationServiceWeb from "./services/NotificationServiceWeb";
 import ApplicationInfoServiceWeb from "./services/ApplicationInfoServiceWeb";
+import DatabaseServiceWeb from "./services/DatabaseServiceWeb";
 import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
 import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
+import PersistentConfigServiceWeb from "./services/PersistentConfigServiceWeb";
 import ErrorPage from "./components/ErrorPage";
 import Learn from "./components/Learn";
 import Home from "./components/Home";
@@ -18,7 +20,6 @@ import Layout from "./components/Layout";
 import OpenSourceDatasets from "./components/OpenSourceDatasets";
 import SiteLogo from "../assets/site-logo.png";
 import FmsFileExplorer from "../../core/App";
-import { DatabaseService } from "../../core/services";
 import { createReduxStore } from "../../core/state";
 
 import "../../core/styles/global.css";
@@ -58,7 +59,8 @@ const router = createBrowserRouter(
 );
 
 async function asyncRender() {
-    const databaseService = new DatabaseService();
+    const persistentConfigService = new PersistentConfigServiceWeb();
+    const databaseService = new DatabaseServiceWeb();
     await databaseService.initialize();
 
     // Memoized to make sure the object that collects these services doesn't
@@ -70,9 +72,11 @@ async function asyncRender() {
         applicationInfoService: new ApplicationInfoServiceWeb(),
         fileViewerService: new FileViewerServiceWeb(),
         fileDownloadService: new FileDownloadServiceWeb(new S3StorageService()),
+        persistentConfigService,
     }));
     const store = createReduxStore({
         isOnWeb: true,
+        persistedConfig: persistentConfigService.getAll(),
         platformDependentServices: collectPlatformDependentServices(),
     });
     render(

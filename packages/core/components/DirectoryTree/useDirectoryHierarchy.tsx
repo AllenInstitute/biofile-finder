@@ -15,6 +15,7 @@ import {
 } from "./directory-hierarchy-state";
 import { findChildNodes } from "./findChildNodes";
 import FileList from "../FileList";
+import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import { ValueError } from "../../errors";
@@ -206,6 +207,7 @@ const useDirectoryHierarchy = (
                                     name,
                                     filterValue,
                                     FilterType.DEFAULT,
+                                    annotationMeta?.type as AnnotationType,
                                     annotationMeta.nestedJsonPath,
                                     annotationMeta.nestedParent,
                                     annotationMeta.nestedListExpression

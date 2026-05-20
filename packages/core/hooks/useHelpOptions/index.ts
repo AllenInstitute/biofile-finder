@@ -1,13 +1,7 @@
 import { IContextualMenuItem } from "@fluentui/react";
 import { Dispatch } from "redux";
 
-import { FILTER_FILES_TUTORIAL } from "./FilterFiles";
-import { GENERATE_MANIFEST_TUTORIAL } from "./GenerateManifest";
-import { MODIFY_COLUMNS_TUTORIAL } from "./ModifyColumns";
-import { OPEN_FILES_TUTORIAL } from "./OpenFiles";
-import { ORGANIZE_FILES_TUTORIAL } from "./OrganizeFiles";
-import { SHARE_VIEW_TUTORIAL } from "./ShareView";
-import { SORT_FILES_TUTORIAL } from "./SortFiles";
+import Tutorials from "./Tutorials";
 import { interaction, selection } from "../../state";
 import { ModalType } from "../../components/Modal";
 
@@ -16,6 +10,16 @@ export default function useHelpOptions(
     isOnWeb = false,
     isAppRoute = true
 ): IContextualMenuItem[] {
+    const tutorialMenuItems: IContextualMenuItem[] = Object.values(Tutorials).map((tutorial) => {
+        return {
+            key: tutorial.title,
+            text: tutorial.title,
+            title: tutorial.description,
+            onClick: () => {
+                dispatch(selection.actions.selectTutorial(tutorial));
+            },
+        };
+    });
     return [
         ...(isOnWeb
             ? []
@@ -39,81 +43,14 @@ export default function useHelpOptions(
                       subMenuProps: {
                           items: [
                               {
-                                  key: "Grouping",
-                                  text: "Grouping",
-                                  title:
-                                      "How to organize the files in the file list into hierarchical folders using the annotations",
+                                  key: "All topics",
+                                  text: "All topics",
+                                  title: "Walk through all of the tutorial topics in sequence",
                                   onClick: () => {
-                                      dispatch(
-                                          selection.actions.selectTutorial(ORGANIZE_FILES_TUTORIAL)
-                                      );
+                                      dispatch(selection.actions.runAllTutorials());
                                   },
                               },
-                              {
-                                  key: "Filtering",
-                                  text: "Filtering",
-                                  title: "How to filter files in the file list",
-                                  onClick: () => {
-                                      dispatch(
-                                          selection.actions.selectTutorial(FILTER_FILES_TUTORIAL)
-                                      );
-                                  },
-                              },
-                              {
-                                  key: "Sorting",
-                                  text: "Sorting",
-                                  title: "How to sort the files shown in the file list",
-                                  onClick: () => {
-                                      dispatch(
-                                          selection.actions.selectTutorial(SORT_FILES_TUTORIAL)
-                                      );
-                                  },
-                              },
-                              {
-                                  key: "Modifying columns in file list",
-                                  text: "Modifying columns in file list",
-                                  title: "How to modify the columns present in the file list",
-                                  onClick: () => {
-                                      dispatch(
-                                          selection.actions.selectTutorial(MODIFY_COLUMNS_TUTORIAL)
-                                      );
-                                  },
-                              },
-                              {
-                                  key: "Opening files in another application",
-                                  text: "Opening files in another application",
-                                  title:
-                                      "How to open a file in another application without downloading or copying and pasting the file path",
-                                  onClick: () => {
-                                      dispatch(
-                                          selection.actions.selectTutorial(OPEN_FILES_TUTORIAL)
-                                      );
-                                  },
-                              },
-                              {
-                                  key: "Creating datasets (ex. CSVs)",
-                                  text: "Creating datasets (ex. CSVs)",
-                                  title:
-                                      'How to create a "Dataset" of file metadata for preservation, ML, or sharing purposes',
-                                  onClick: () => {
-                                      dispatch(
-                                          selection.actions.selectTutorial(
-                                              GENERATE_MANIFEST_TUTORIAL
-                                          )
-                                      );
-                                  },
-                              },
-                              {
-                                  key: "Sharing current query",
-                                  text: "Sharing current query",
-                                  title:
-                                      "How to share your current query (i.e. your filters/sorts/open folders etc.)",
-                                  onClick: () => {
-                                      dispatch(
-                                          selection.actions.selectTutorial(SHARE_VIEW_TUTORIAL)
-                                      );
-                                  },
-                              },
+                              ...tutorialMenuItems,
                           ],
                       },
                   },

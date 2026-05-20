@@ -12,6 +12,7 @@ import {
     SET_SORT_COLUMN,
     CHANGE_DATA_SOURCES,
     SELECT_TUTORIAL,
+    RUN_ALL_TUTORIALS,
     ADJUST_GLOBAL_FONT_SIZE,
     Query,
     ADD_QUERY,
@@ -38,6 +39,7 @@ import {
     TOGGLE_NULL_VALUE_GROUPS,
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
+    SET_IS_LOADING_DATA_SOURCE,
 } from "./actions";
 import interaction from "../interaction";
 import { FileView, Source } from "../../entity/SearchParams";
@@ -46,6 +48,7 @@ import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
+import Tutorials from "../../hooks/useHelpOptions/Tutorials";
 
 export interface SelectionStateBranch {
     annotationHierarchy: string[];
@@ -56,6 +59,7 @@ export interface SelectionStateBranch {
     fileSelection: FileSelection;
     fileView: FileView;
     filters: FileFilter[];
+    isLoadingDataSource: boolean;
     openFileFolders: FileFolder[];
     recentAnnotations: string[];
     requiresDataSourceReload?: boolean;
@@ -66,7 +70,7 @@ export interface SelectionStateBranch {
     sourceMetadata?: Source;
     sourceProvenance?: Source;
     queries: Query[];
-    tutorial?: Tutorial;
+    tutorials?: Tutorial[];
 }
 
 export const initialState = {
@@ -78,19 +82,24 @@ export const initialState = {
     fileSelection: new FileSelection(),
     fileView: FileView.LIST,
     filters: [],
+    isLoadingDataSource: false,
     openFileFolders: [],
     queries: [],
     recentAnnotations: [],
     requiresDataSourceReload: false,
     shouldDisplaySmallFont: false,
-    shouldShowNullGroups: false,
+    shouldShowNullGroups: true,
 };
 
 export default makeReducer<SelectionStateBranch>(
     {
         [SELECT_TUTORIAL]: (state, action) => ({
             ...state,
-            tutorial: action.payload,
+            tutorials: [action.payload],
+        }),
+        [RUN_ALL_TUTORIALS]: (state) => ({
+            ...state,
+            tutorials: Object.values(Tutorials),
         }),
         [ADJUST_GLOBAL_FONT_SIZE]: (state, action) => ({
             ...state,
@@ -110,6 +119,10 @@ export default makeReducer<SelectionStateBranch>(
         [SET_FILE_VIEW]: (state, action: SetFileView) => ({
             ...state,
             fileView: action.payload,
+        }),
+        [SET_IS_LOADING_DATA_SOURCE]: (state, action) => ({
+            ...state,
+            isLoadingDataSource: action.payload,
         }),
         [SORT_COLUMN]: (state, action) => {
             if (state.sortColumn?.annotationName === action.payload) {
@@ -172,6 +185,11 @@ export default makeReducer<SelectionStateBranch>(
             sortColumn: undefined,
             dataSources: initialState.dataSources,
             sourceMetadata: undefined,
+            sourceProvenance: undefined,
+
+            // If a file is selected, deselect it
+            fileForDetailPanel: undefined,
+            fileSelection: new FileSelection(),
         }),
         [SET_QUERIES]: (state, action: SetQueries) => ({
             ...state,

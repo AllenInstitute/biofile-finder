@@ -17,14 +17,18 @@ export default class Tutorial {
     public static readonly FILE_LIST_ID = "file-list";
     public static readonly FILTER_HEADER_ID = "filter-header-id";
     public static readonly GROUPING_HEADER_ID = "grouping-header";
+    public static readonly OPEN_WITH_ID = "open-with-button";
+    public static readonly SAVE_BUTTON_ID = "save-button";
     public static readonly SHARE_BUTTON_ID = "share-button";
     public static readonly SORT_HEADER_ID = "sort-header";
 
     public readonly title: string;
+    public readonly description: string;
     private steps: TutorialStep[];
 
-    public constructor(title: string, steps: TutorialStep[] = []) {
+    public constructor(title: string, description = "", steps: TutorialStep[] = []) {
         this.title = title;
+        this.description = description;
         this.steps = steps;
     }
 

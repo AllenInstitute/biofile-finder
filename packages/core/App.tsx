@@ -13,6 +13,7 @@ import TutorialTooltip from "./components/TutorialTooltip";
 import { Environment } from "./constants";
 import useCheckForScreenSizeChange from "./hooks/useCheckForScreenSizeChange";
 import useCheckForUpdates from "./hooks/useCheckForUpdates";
+import useUpdateHasUsedApp from "./hooks/useUpdateHasUsedApp";
 import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
 import useUnsavedDataWarning from "./hooks/useUnsavedDataWarning";
 import { interaction, selection } from "./state";
@@ -50,6 +51,7 @@ export default function App(props: AppProps) {
     >();
 
     useCheckForUpdates();
+    useUpdateHasUsedApp();
     useUnsavedDataWarning();
     useCheckForScreenSizeChange(measuredWidth);
 

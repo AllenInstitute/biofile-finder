@@ -27,7 +27,10 @@ export default {
             return `${formatDate(startDate)}, ${formatDate(endDate)}`;
         } else {
             try {
-                const date = new Date(value);
+                // duckdb-wasm returns date values as BigInt ms-since-epoch, which the
+                // runQuery JSON replacer converts to a numeric string (e.g. "1645833600000").
+                const coerced = /^\d+$/.test(String(value)) ? Number(value) : value;
+                const date = new Date(coerced);
                 return formatDate(date);
             } catch {
                 // If can't convert the value to a date,

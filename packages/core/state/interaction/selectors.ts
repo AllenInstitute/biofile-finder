@@ -18,7 +18,11 @@ import {
     getDataSources,
     getEdgeDefinitions,
 } from "../metadata/selectors";
-import { getSelectedDataSources, getPythonConversion } from "../selection/selectors";
+import {
+    getSelectedDataSources,
+    getPythonConversion,
+    getSelectedSourceMetadata,
+} from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
 import DatasetService, {
     DataSource,
@@ -231,6 +235,7 @@ export const getAnnotationService = createSelector(
         getFileExplorerServiceBaseUrl,
         getMetadataManagementServiceBaseUrl,
         getSelectedDataSources,
+        getSelectedSourceMetadata,
         getPlatformDependentServices,
         getRefreshKey,
     ],
@@ -240,12 +245,14 @@ export const getAnnotationService = createSelector(
         fileExplorerServiceBaseUrl,
         metadataManagementServiceBaseUrl,
         dataSources,
+        metadataSource,
         platformDependentServices
     ): AnnotationService => {
         if (dataSources.length && dataSources[0]?.name !== AICS_FMS_DATA_SOURCE_NAME) {
             return new DatabaseAnnotationService({
                 databaseService: platformDependentServices.databaseService,
                 dataSourceNames: dataSources.map((source) => source.name),
+                metadataSource,
             });
         }
         return new HttpAnnotationService({

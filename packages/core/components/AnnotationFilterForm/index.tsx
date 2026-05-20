@@ -109,10 +109,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     // Propagate regular file filter values from state into UI
     const items = React.useMemo<ListItem[]>(() => {
-        const appliedFilters = new Set(filtersForAnnotation.map((filter) => filter.value));
+        const appliedFilters = new Set(filtersForAnnotation.map((filter) => String(filter.value)));
 
         return (annotationValues || []).map((value) => ({
-            selected: appliedFilters.has(value),
+            selected: appliedFilters.has(String(value)),
             displayValue: props.annotation.getDisplayValue(value) || value,
             value,
         }));
@@ -154,6 +154,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                 props.annotation.name,
                 value,
                 filterType,
+                props.annotation.type as AnnotationType,
                 props.annotation.nestedJsonPath,
                 props.annotation.nestedParent,
                 props.annotation.nestedListExpression
@@ -201,11 +202,17 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                               props.annotation.name,
                               filterValue,
                               type,
+                              props.annotation.type as AnnotationType,
                               props.annotation.nestedJsonPath,
                               props.annotation.nestedParent,
                               props.annotation.nestedListExpression
                           )
-                        : new FileFilter(props.annotation.name, filterValue, type),
+                        : new FileFilter(
+                              props.annotation.name,
+                              filterValue,
+                              type,
+                              props.annotation.type as AnnotationType
+                          ),
                 ])
             );
         }
@@ -305,9 +312,21 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         />
     );
 
+    // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
+    const typeHasDedicatedPicker =
+        props.annotation.name !== AnnotationName.FILE_SIZE &&
+        [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
+            props.annotation.type as AnnotationType
+        );
+
     const searchFormType = () => {
-        // Use the checkboxes if values exist and are few enough to reasonably scroll through
-        if (items.length > 0 && items.length <= 100) {
+        // Types with dedicated pickers (number, date, datetime) use their own UI.
+        // Non-string types without dedicated pickers fall back to the list picker when values are available.
+        if (
+            !typeHasDedicatedPicker &&
+            props.annotation.type !== AnnotationType.STRING &&
+            items.length > 0
+        ) {
             return listPickerComponent;
         }
 
@@ -324,38 +343,35 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     />
                 );
             case AnnotationType.NUMBER:
-                // File size is a special case where we don't have
-                // the ability to filter by range in the backend yet
-                // so we'll just let that case fall through to the string below
-                if (props.annotation.name !== AnnotationName.FILE_SIZE) {
-                    return (
-                        <NumberRangePicker
-                            className={styles.picker}
-                            items={items}
-                            loading={isLoading}
-                            errorMessage={errorMessage}
-                            onSearch={onSearch}
-                            currentRange={filtersForAnnotation?.[0]}
-                            units={props.annotation.units}
-                        />
-                    );
-                }
+                return (
+                    <NumberRangePicker
+                        className={styles.picker}
+                        title={props.annotation.displayName}
+                        items={items}
+                        loading={isLoading}
+                        errorMessage={errorMessage}
+                        onSearch={onSearch}
+                        currentRange={filtersForAnnotation?.[0]}
+                        units={props.annotation.units}
+                    />
+                );
             case AnnotationType.STRING:
-                // Annotations without a scrollable list of values, e.g., File Path
-                if (items.length == 0) {
-                    return (
-                        <SearchBoxForm
-                            className={styles.picker}
-                            onSelectAll={onSelectAll}
-                            onDeselectAll={onDeselectAll}
-                            onSearch={onSearch}
-                            fuzzySearchEnabled={fuzzySearchEnabled}
-                            fieldName={props.annotation.displayName}
-                            defaultValue={filtersForAnnotation?.[0]}
-                            hideFuzzyToggle={!canFuzzySearch}
-                        />
-                    );
+                // Use list picker when there are a manageable number of values; fall back to search otherwise
+                if (items.length > 0 && items.length <= 100) {
+                    return listPickerComponent;
                 }
+                return (
+                    <SearchBoxForm
+                        className={styles.picker}
+                        onSelectAll={onSelectAll}
+                        onDeselectAll={onDeselectAll}
+                        onSearch={onSearch}
+                        fuzzySearchEnabled={fuzzySearchEnabled}
+                        fieldName={props.annotation.displayName}
+                        defaultValue={filtersForAnnotation?.[0]}
+                        hideFuzzyToggle={!canFuzzySearch}
+                    />
+                );
             case AnnotationType.DURATION:
             // prettier-ignore
             default: // FALL-THROUGH

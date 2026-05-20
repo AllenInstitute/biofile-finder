@@ -11,7 +11,6 @@ import { useDispatch, useSelector } from "react-redux";
 
 import Query from "./Query";
 import { PrimaryButton, useButtonMenu } from "../Buttons";
-import { ModalType } from "../Modal";
 import Tooltip from "../Tooltip";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { DEFAULT_AICS_FMS_QUERY } from "../../entity/SearchParams";
@@ -89,7 +88,7 @@ export default function QuerySidebar(props: QuerySidebarProps) {
                 text: "New data source",
                 iconProps: { iconName: "NewFolder" },
                 onClick: () => {
-                    dispatch(interaction.actions.setVisibleModal(ModalType.DataSource));
+                    dispatch(interaction.actions.promptForDataSource({}));
                 },
             },
         ],
