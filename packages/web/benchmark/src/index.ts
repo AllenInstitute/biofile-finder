@@ -1,9 +1,7 @@
 import { BENCHMARK_TASKS, createServices } from "./tasks";
 import { BenchmarkConfig, BenchmarkResults, QueryResult, SourceResult } from "./types";
+import { DEFAULT_ITERATIONS, DEFAULT_WARMUP_ROUNDS, buildQueryResult } from "./stats";
 import DatabaseServiceWebWorker from "../../src/services/DatabaseServiceWeb/duckdb-worker.worker";
-
-const DEFAULT_ITERATIONS = 5;
-const DEFAULT_WARMUP_ROUNDS = 1;
 
 // Updates the #status element in the benchmark HTML page and mirrors to console.
 // The page can run headlessly in CI (Playwright), so the console log is the
@@ -12,14 +10,6 @@ function setStatus(msg: string) {
     const el = document.getElementById("status");
     if (el) el.textContent = msg;
     console.log("[benchmark]", msg);
-}
-
-// Nearest-rank percentile over a pre-sorted array. Used to report p50 and p95
-// across timed iterations — p95 surfaces occasional slow outliers (GC pauses,
-// DuckDB cache misses) that the median would hide.
-function percentile(sorted: number[], p: number): number {
-    const idx = Math.ceil((p / 100) * sorted.length) - 1;
-    return sorted[Math.max(0, idx)];
 }
 
 // Fisher-Yates shuffle — randomizes task order each timed iteration so that a
@@ -95,16 +85,7 @@ async function benchmarkSource(
         }
     }
 
-    return tasks.map(({ name }) => {
-        const timings = [...(timingsMap.get(name) ?? [])].sort((a, b) => a - b);
-        return {
-            name,
-            timings,
-            p50: percentile(timings, 50),
-            p95: percentile(timings, 95),
-            p99: percentile(timings, 99),
-        };
-    });
+    return tasks.map(({ name }) => buildQueryResult(name, timingsMap.get(name) ?? []));
 }
 
 async function main() {

@@ -25,7 +25,7 @@ import path from "path";
 import { execSync } from "child_process";
 import { BenchmarkResults, QueryResult, SourceResult, TestCase } from "../../benchmark/src/types";
 import { BENCHMARK_TASKS } from "../../benchmark/src/tasks";
-
+import { DEFAULT_ITERATIONS, buildQueryResult } from "../../benchmark/src/stats";
 const DIST_DIR = path.join(__dirname, "..", "..", "benchmark", "dist");
 const FIXTURES_DIR = path.join(__dirname, "..", "..", "fixtures");
 const PORT = 18765;
@@ -167,45 +167,77 @@ export async function runBenchmarkPage({
     const server = await startServer();
 
     try {
-        // When warmups=0, each task gets its own browser for cold-start isolation.
-        // Otherwise all tasks share a single browser instance.
-        const allTaskNames = BENCHMARK_TASKS.map((t) => t.name);
-        const taskBatches: string[][] =
-            warmupRounds === 0 ? allTaskNames.map((name) => [name]) : [allTaskNames];
-
-        if (warmupRounds === 0) {
-            console.log(
-                `[playwright] warmupRounds=0: running ${allTaskNames.length} task(s) in separate browser instances`
-            );
-        }
+        const allTaskNames = BENCHMARK_TASKS.map((task) => task.name);
+        const iterationCount = iterations ?? DEFAULT_ITERATIONS;
 
         let initTimeMs = 0;
         const sourceResults: SourceResult[] = [];
 
         for (const testCase of testCases) {
-            const queries: QueryResult[] = [];
             let registrationMs = 0;
+            let queries: QueryResult[];
 
-            for (const batch of taskBatches) {
+            if (warmupRounds === 0) {
+                // Each (task, iteration) pair gets a fresh browser so every
+                // measurement is a cold start.
                 console.log(
-                    `[playwright] Launching browser for task(s): ${batch.join(", ")} ` +
-                        `(${testCase.map((s) => s.label).join(", ")})`
+                    `[playwright] warmupRounds=0: running ${allTaskNames.length} task(s) × ` +
+                        `${iterationCount} iteration(s) in separate browser instances`
+                );
+
+                const timingsMap = new Map<string, number[]>(
+                    allTaskNames.map((name) => [name, []])
+                );
+
+                for (const taskName of allTaskNames) {
+                    for (let i = 0; i < iterationCount; i++) {
+                        console.log(
+                            `[playwright] Launching browser for "${taskName}" ` +
+                                `iteration ${i + 1}/${iterationCount} ` +
+                                `(${testCase.map((source) => source.label).join(", ")})`
+                        );
+                        const run = await runSingleBenchmark({
+                            testCase,
+                            iterations: 1,
+                            warmupRounds: 0,
+                            channel,
+                            taskFilter: [taskName],
+                        });
+
+                        if (initTimeMs === 0) initTimeMs = run.initTimeMs;
+                        if (registrationMs === 0) registrationMs = run.registrationMs;
+
+                        const timing = run.queries[0]?.timings[0];
+                        if (timing !== undefined) {
+                            timingsMap.get(taskName)!.push(timing);
+                        }
+                    }
+                }
+
+                queries = allTaskNames.map((name) =>
+                    buildQueryResult(name, timingsMap.get(name) ?? [])
+                );
+            } else {
+                // Warmups > 0: all tasks share a single browser instance.
+                console.log(
+                    `[playwright] Launching browser for task(s): ${allTaskNames.join(", ")} ` +
+                        `(${testCase.map((source) => source.label).join(", ")})`
                 );
                 const run = await runSingleBenchmark({
                     testCase,
-                    iterations,
+                    iterations: iterationCount,
                     warmupRounds,
                     channel,
-                    taskFilter: batch,
+                    taskFilter: allTaskNames,
                 });
 
-                if (initTimeMs === 0) initTimeMs = run.initTimeMs;
-                if (registrationMs === 0) registrationMs = run.registrationMs;
-                queries.push(...run.queries);
+                initTimeMs = initTimeMs || run.initTimeMs;
+                registrationMs = run.registrationMs;
+                queries = run.queries;
             }
 
             sourceResults.push({
-                labels: testCase.map((testCase) => testCase.label),
+                labels: testCase.map((source) => source.label),
                 registrationMs,
                 queries,
             });
@@ -231,7 +263,7 @@ async function runSingleBenchmark({
     taskFilter,
 }: {
     testCase: TestCase;
-    iterations?: number;
+    iterations: number;
     warmupRounds?: number;
     channel?: string;
     taskFilter: string[];
