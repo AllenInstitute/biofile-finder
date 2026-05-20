@@ -2,17 +2,17 @@ import { IComboBoxOption, Icon, Spinner, TextField } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import PipelineInfoCard from "./PipelineInfoCard";
+import PipelineParameterInput from "./PipelineParameterInput";
+import SelectedFilesExpander from "./SelectedFilesExpander";
+import { ModalProps } from "..";
+import BaseModal from "../BaseModal";
+import { PrimaryButton, SecondaryButton } from "../../Buttons";
+import BaseComboBox from "../../ComboBox";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { Pipeline, PipelineParameter } from "../../../entity/ComputePipeline";
 import FileSelection from "../../../entity/FileSelection";
 import { interaction, selection } from "../../../state";
-import { PrimaryButton, SecondaryButton } from "../../Buttons";
-import BaseComboBox from "../../ComboBox";
-import { ModalProps } from "..";
-import BaseModal from "../BaseModal";
-import PipelineInfoCard from "./PipelineInfoCard";
-import PipelineParameterInput from "./PipelineParameterInput";
-import SelectedFilesExpander from "./SelectedFilesExpander";
 
 import styles from "./ComputePipelineModal.module.css";
 
