@@ -287,7 +287,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
     };
 
     const isSubmitting = phase === "submitting";
-    const submitDisabled = isSubmitting || fileCount === 0;
+    const submitDisabled = isSubmitting || fileCount === 0 || !selectedCluster;
 
     const renderBody = () => {
         if (phase === "loading") {
