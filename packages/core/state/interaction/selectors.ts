@@ -32,7 +32,7 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
-import HttpPipelineService from "../../services/PipelineService/HttpPipelineService";
+import PipelineService from "../../services/PipelineService";
 import S3StorageService from "../../services/S3StorageService";
 import Graph from "../../entity/Graph";
 
@@ -93,8 +93,7 @@ export const getLoadBalancerBaseUrl = createSelector(
 
 export const getPipelineService = createSelector(
     [getEnvironment],
-    (environment) =>
-        new HttpPipelineService({ loadBalancerBaseUrl: LoadBalancerBaseUrl[environment] })
+    (environment) => new PipelineService({ loadBalancerBaseUrl: LoadBalancerBaseUrl[environment] })
 );
 
 export const getMetadataManagementServiceBaseUrl = createSelector(

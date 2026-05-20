@@ -28,7 +28,7 @@ export type {
     UserSelectedApplication,
 } from "./PersistentConfigService";
 export { PersistedConfigKeys } from "./PersistentConfigService";
-export { default as HttpPipelineService } from "./PipelineService/HttpPipelineService";
+export { default as PipelineService } from "./PipelineService";
 
 export interface PlatformDependentServices {
     applicationInfoService: ApplicationInfoService;

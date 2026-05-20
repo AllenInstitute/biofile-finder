@@ -11,7 +11,7 @@ import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
  * Service responsible for fetching available compute pipelines and submitting
  * compute tasks via the FSS HTTP API.
  */
-export default class HttpPipelineService extends HttpServiceBase {
+export default class PipelineService extends HttpServiceBase {
     constructor(config: ConnectionConfig = {}) {
         super(config);
     }
