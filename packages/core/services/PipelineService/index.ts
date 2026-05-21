@@ -6,6 +6,7 @@ import {
 } from "../../entity/ComputePipeline";
 import { MOCK_PIPELINES, MOCK_PARAMETERS } from "./mockPipelineData";
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
+import { LoadBalancerBaseUrl } from "../../constants";
 
 /**
  * Service responsible for fetching available compute pipelines and submitting
@@ -36,7 +37,7 @@ export default class PipelineService extends HttpServiceBase {
     }
 
     async submitComputeTask(request: ComputeTaskRequest): Promise<ComputeTaskResponse> {
-        const url = `${this.loadBalancerBaseUrl}/fss2/v4.0/compute/${request.pipeline}`;
+        const url = `${LoadBalancerBaseUrl.STAGING}/fss2/v4.0/compute/${request.pipeline}`;
 
         const { file_paths, ...rest } = request.parameters;
         const body: Record<string, unknown> = { files: file_paths };
