@@ -88,7 +88,7 @@ export const initialState = {
     recentAnnotations: [],
     requiresDataSourceReload: false,
     shouldDisplaySmallFont: false,
-    shouldShowNullGroups: false,
+    shouldShowNullGroups: true,
 };
 
 export default makeReducer<SelectionStateBranch>(

@@ -67,6 +67,7 @@ describe("<DirectoryTree />", () => {
                 name: a.name,
                 width: 0.1,
             })),
+            shouldShowNullGroups: false,
         },
     });
 

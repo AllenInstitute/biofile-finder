@@ -1,54 +1,13 @@
-.toggle {
+.checkbox {
     margin-bottom: 6px;
 }
 
-.toggle-hidden {
+.checkbox > label > span {
+    font-size: 14px;
+}
+
+.checkbox-hidden {
     display: none;
-}
-
-.toggle input:disabled + label {
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-.toggle :is(input, label, span), .toggle-label {
-    color: var(--primary-text-color);
-    font-size: var(--l-paragraph-size);
-    font-weight: 500;
-}
-
-.toggle label:hover > span {
-    color: var(--highlight-text-color) !important;
-}
-
-.toggle-pill-off {
-    border-color: var(--border-color) !important;
-    background-color: unset !important;
-}
-
-.toggle-pill-off {
-    border-color: var(--border-color) !important;
-}
-
-.toggle-pill-off > span {
-    background-color: var(--border-color) !important;
-}
-
-.toggle-pill-off:hover > span {
-    background-color: var(--primary-text-color) !important;
-}
-
-.toggle-pill-on {
-    border: none !important;
-    background-color: var(--aqua) !important;
-}
-
-.toggle-pill-on > span {
-    background-color: var(--highlight-hover-text-color) !important;
-}
-
-.toggle-pill-on:hover {
-    background-color: var(--dark-aqua) !important;
 }
 
 .container {

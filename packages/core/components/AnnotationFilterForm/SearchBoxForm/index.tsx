@@ -1,7 +1,7 @@
-import { Toggle } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
+import Checkbox from "../../Checkbox";
 import { ListItem } from "../../ListPicker/ListRow";
 import SearchBox from "../../SearchBox";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
@@ -37,21 +37,17 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
     return (
         <div className={classNames(props.className, styles.container)}>
             <h3 className={styles.title}>{props.title}</h3>
-            <Toggle
-                label="Fuzzy search"
-                className={classNames(styles.toggle, {
-                    [styles.toggleHidden]: !!props?.hideFuzzyToggle,
+            <Checkbox
+                className={classNames(styles.checkbox, {
+                    // [styles.checkboxHidden]: !!props?.hideFuzzyToggle,
                 })}
-                defaultChecked={isFuzzySearching}
-                onText="On"
-                inlineLabel
-                offText="Off"
-                onChange={(_, checked?) => setIsFuzzySearching(!!checked)}
-                title={`Turn ${isFuzzySearching ? "off" : "on"} fuzzy search (non-exact searching)`}
-                styles={{
-                    label: styles.toggleLabel,
-                    pill: isFuzzySearching ? styles.togglePillOn : styles.togglePillOff,
-                }}
+                initialValue={isFuzzySearching}
+                onChange={(ev, isChecked) => setIsFuzzySearching(!!isChecked)}
+                label={
+                    isFuzzySearching
+                        ? "Disable fuzzy (non-exact) matching"
+                        : "Enable fuzzy (non-exact) matching"
+                }
             />
             <SearchBox
                 defaultValue={props.defaultValue}

@@ -374,6 +374,7 @@ export interface StatusUpdate {
     data: {
         fileId?: string[]; // if relevant/applicable, fileid(s) related to this status update
         msg: string;
+        fullMsg?: string; // untruncated message for "View more" expansion
         status?: ProcessStatus;
         progress?: number; // num in range [0, 1] indicating progress
     };
@@ -548,12 +549,13 @@ export interface ProcessErrorAction {
     payload: StatusUpdate;
 }
 
-export function processError(processId: string, msg: string): ProcessErrorAction {
+export function processError(processId: string, msg: string, fullMsg?: string): ProcessErrorAction {
     return {
         type: SET_STATUS,
         payload: {
             data: {
                 msg,
+                fullMsg,
                 status: ProcessStatus.ERROR,
             },
             processId,
@@ -707,16 +709,18 @@ export interface SetVisibleModalAction {
     payload: {
         fileFiltersForVisibleModal: FileFilter[];
         visibleModal: ModalType;
+        selectedPipelineId?: string;
     };
 }
 
 export function setVisibleModal(
     visibleModal: ModalType,
-    fileFiltersForVisibleModal: FileFilter[] = []
+    fileFiltersForVisibleModal: FileFilter[] = [],
+    selectedPipelineId?: string
 ): SetVisibleModalAction {
     return {
         type: SET_VISIBLE_MODAL,
-        payload: { visibleModal, fileFiltersForVisibleModal },
+        payload: { visibleModal, fileFiltersForVisibleModal, selectedPipelineId },
     };
 }
 

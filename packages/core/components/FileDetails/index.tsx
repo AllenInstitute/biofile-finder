@@ -1,4 +1,4 @@
-import { DefaultButton } from "@fluentui/react";
+import { DefaultButton, Modal } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -86,6 +86,8 @@ export default function FileDetails(props: Props) {
     const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(
         props.fileDetails
     );
+    const [isFullscreenThumbnail, setIsFullscreenThumbnail] = React.useState(false);
+    const isThumbnailClickable = !!thumbnailPath && !isThumbnailLoading;
 
     return (
         <div
@@ -148,7 +150,28 @@ export default function FileDetails(props: Props) {
                             >
                                 {props.fileDetails?.name}
                             </p>
-                            <div className={styles.thumbnailContainer}>
+                            <div
+                                className={classNames(styles.thumbnailContainer, {
+                                    [styles.thumbnailContainerClickable]: isThumbnailClickable,
+                                })}
+                                onClick={() =>
+                                    isThumbnailClickable && setIsFullscreenThumbnail(true)
+                                }
+                                onKeyDown={(e) => {
+                                    if (
+                                        (e.key === "Enter" || e.key === " ") &&
+                                        isThumbnailClickable
+                                    ) {
+                                        e.preventDefault();
+                                        setIsFullscreenThumbnail(true);
+                                    }
+                                }}
+                                role={isThumbnailClickable ? "button" : undefined}
+                                tabIndex={isThumbnailClickable ? 0 : undefined}
+                                title={
+                                    isThumbnailClickable ? "Click to enlarge" : undefined
+                                }
+                            >
                                 <FileThumbnail
                                     className={styles.thumbnail}
                                     width="100%"
@@ -156,6 +179,27 @@ export default function FileDetails(props: Props) {
                                     loading={isThumbnailLoading}
                                 />
                             </div>
+                            <Modal
+                                isOpen={isFullscreenThumbnail}
+                                onDismiss={() => setIsFullscreenThumbnail(false)}
+                                containerClassName={styles.fullscreenModalContainer}
+                                overlay={{ className: styles.fullscreenOverlay }}
+                                isBlocking={false}
+                            >
+                                <img
+                                    alt={props.fileDetails?.name}
+                                    className={styles.fullscreenImage}
+                                    src={thumbnailPath}
+                                    tabIndex={0}
+                                    onClick={() => setIsFullscreenThumbnail(false)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault();
+                                            setIsFullscreenThumbnail(false);
+                                        }
+                                    }}
+                                />
+                            </Modal>
                             {!props.onClose && (
                                 <div className={styles.titleRow}>
                                     <h4>Metadata</h4>
