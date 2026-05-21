@@ -19,7 +19,7 @@ export interface ConnectionConfig {
 export const DEFAULT_CONNECTION_CONFIG = {
     fileExplorerServiceBaseUrl: FESBaseUrl.PRODUCTION,
     includeCustomHeaders: true, // Whether to include FMS-specific headers in http calls
-    loadBalancerBaseUrl: LoadBalancerBaseUrl.PRODUCTION,
+    loadBalancerBaseUrl: LoadBalancerBaseUrl.STAGING,
     metadataManagementServiceBaseURl: MMSBaseUrl.PRODUCTION,
 };
 
