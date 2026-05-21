@@ -6,13 +6,28 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import { JSONReadyRange } from "../../entity/NumericRange";
 
+
+type FmsFileAnnotationValue = string | number | boolean;
+/**
+ * A value within a nested annotation entry. Can be a primitive, a nested object,
+ * or an array of nested entries — supporting arrays-of-objects at any depth.
+ */
+export type NestedAnnotationValue = FmsFileAnnotationValue | null | NestedAnnotation | NestedAnnotation[];
+export interface NestedAnnotation {
+    [key: string]: NestedAnnotationValue;
+}
 /**
  * Represents a sub-document that can be found within an FmsFile's `annotations` list.
  */
 export interface FmsFileAnnotation {
     [key: string]: any;
     name: string;
-    values: (string | number | boolean)[];
+    values: FmsFileAnnotationValue[];
+    /**
+     * Populated for columns whose value is (or parses as) a JSON array of objects.
+     * Each element is one entry in the array (e.g. one Well record).
+     */
+    nestedValues?: NestedAnnotation[];
 }
 
 export interface GetFilesRequest {

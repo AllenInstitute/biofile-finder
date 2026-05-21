@@ -20,6 +20,11 @@ export interface AnnotationResponse {
     isImmutable?: boolean;
     type: AnnotationType;
     units?: string;
+    /**
+     * Full path to parent annotations for this annotation, only applicable when this
+     * annotation represents a nested annotation
+     */
+    parents?: string[];
 }
 
 /**
@@ -101,6 +106,29 @@ export default class Annotation {
 
     public get id(): number | undefined {
         return this.annotation.annotationId;
+    }
+
+    /**
+     * Whether this is a virtual sub-field annotation (e.g. "Well.Gene") derived from sampling
+     * the JSON values of a parent annotation.
+     */
+    public get isNested(): boolean {
+        return this.parents.length > 0;
+    }
+
+    /**
+     * Full path to the parents for this virtual sub-field annotation.
+     * E.g. "Well", "Gene" or "Well", "Dose", "Value" or "House", "Room", "Number".
+     */
+    public get parents(): string[] {
+        return this.annotation.parents ?? [];
+    }
+
+    /**
+     * Get name of immediate parent for this annotation if any
+     */
+    public get parent(): string | undefined {
+        return this.isNested ? this.parents[this.parents.length - 1] : undefined;
     }
 
     /**

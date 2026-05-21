@@ -164,14 +164,14 @@ export const getGroupedByFilterName = createSelector(
     (globalFilters: FileFilter[], annotations: Annotation[]) => {
         const annotationNameToInstanceMap = keyBy(annotations, "name");
         const filters = map(globalFilters, (filter: FileFilter) => {
-            const annotation = annotationNameToInstanceMap[filter.name];
+            const annotation = annotationNameToInstanceMap[filter.column];
             const displayValue =
                 filter.type === FilterType.ANY || filter.type === FilterType.EXCLUDE
                     ? ""
                     : annotation?.getDisplayValue(filter.value);
             return {
                 displayName: annotation?.displayName,
-                name: filter.name,
+                path: filter.path,
                 value: filter.value,
                 displayValue,
                 type: filter?.type || FilterType.DEFAULT,

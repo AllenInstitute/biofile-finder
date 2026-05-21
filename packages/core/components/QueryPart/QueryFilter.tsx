@@ -34,7 +34,7 @@ export default function QueryFilter(props: Props) {
             onDelete={(annotation) => {
                 dispatch(
                     selection.actions.removeFileFilter(
-                        props.filters.filter((filter) => filter.name === annotation)
+                        props.filters.filter((filter) => filter.path === annotation)
                     )
                 );
             }}

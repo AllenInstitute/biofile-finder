@@ -51,7 +51,7 @@ import Tutorial from "../../entity/Tutorial";
 import Tutorials from "../../hooks/useHelpOptions/Tutorials";
 
 export interface SelectionStateBranch {
-    annotationHierarchy: string[];
+    annotationHierarchy: string[][];
     availableAnnotationsForHierarchy: string[];
     availableAnnotationsForHierarchyLoading: boolean;
     columns: Column[];

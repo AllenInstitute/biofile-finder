@@ -9,8 +9,9 @@ const RANGE_OPERATOR_REGEX = /^RANGE\([\d\-.]+,\s?[\d\-.]+\)$/;
 // Matches the RANGE(isoDate,isoDate) filter encoding used by DateRangePicker (ISO 8601 date strings)
 const DATE_RANGE_OPERATOR_REGEX = /^RANGE\([\d\-+:TZ.]+,[\d\-+:TZ.]+\)$/;
 
+// TODO: Does this effect decode/encode process?
 export interface FileFilterJson {
-    name: string;
+    column: string;
     value: any;
     type?: FilterType;
 }
@@ -35,7 +36,7 @@ export enum FilterType {
  * serializable to a URL query string-friendly format.
  */
 export default class FileFilter {
-    private readonly annotationName: string;
+    private readonly annotationPath: string[];
     private readonly annotationValue: any;
     private filterType: FilterType;
     public readonly annotationType?: AnnotationType;
@@ -45,19 +46,32 @@ export default class FileFilter {
     }
 
     constructor(
-        annotationName: string,
+        annotationPath: string[],
         annotationValue: any,
         filterType: FilterType = FilterType.DEFAULT,
-        annotationType?: AnnotationType
+        annotationType?: AnnotationType,
     ) {
-        this.annotationName = annotationName;
+        this.annotationPath = annotationPath;
         this.annotationValue = annotationValue;
         this.filterType = annotationValue === NO_VALUE_NODE ? FilterType.EXCLUDE : filterType;
         this.annotationType = annotationType;
     }
 
-    public get name() {
-        return this.annotationName;
+    public get path() {
+        return this.annotationPath;
+    }
+
+    /**
+     * The column name is the annotation path joined by dots.
+     * For example, an annotationPath of ["foo", "bar"] would
+     * result in a column name of "foo.bar".
+     */
+    public get column() {
+        return this.annotationPath.join(".");
+    }
+
+    public get isNested() {
+        return this.annotationPath.length > 1;
     }
 
     public get value() {
@@ -73,16 +87,17 @@ export default class FileFilter {
     }
 
     public toQueryString(): string {
+        // TODO: Unsure about this SQL
         switch (this.type) {
             case FilterType.ANY:
-                return `include=${this.annotationName}`;
+                return `include=${this.column}`;
             case FilterType.EXCLUDE:
-                return `exclude=${this.annotationName}`;
+                return `exclude=${this.column}`;
             case FilterType.FUZZY:
-                if (this.value === "") return `fuzzy=${this.annotationName}`;
-                return `${this.annotationName}=${this.annotationValue}&fuzzy=${this.annotationName}`;
+                if (this.value === "") return `fuzzy=${this.column}`;
+                return `${this.column}=${this.annotationValue}&fuzzy=${this.column}`;
         }
-        return `${this.annotationName}=${this.annotationValue}`;
+        return `${this.column}=${this.annotationValue}`;
     }
 
     /** Unlike with FileSort, we shouldn't construct a new SQLBuilder since these will
@@ -90,26 +105,27 @@ export default class FileFilter {
      * Instead, generate the string that can be passed into the .where() clause.
      */
     public toSQLWhereString(): string {
+        // TODO: Idk about this SQL
         switch (this.type) {
             case FilterType.ANY:
-                return `"${this.annotationName}" IS NOT NULL`;
+                return `"${this.column}" IS NOT NULL`;
             case FilterType.EXCLUDE:
-                return `"${this.annotationName}" IS NULL`;
+                return `"${this.column}" IS NULL`;
             case FilterType.FUZZY:
-                return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
+                return SQLBuilder.regexMatchValueInList(this.column, this.annotationValue);
             default:
                 switch (this.annotationType) {
                     case AnnotationType.BOOLEAN:
-                        return `"${this.annotationName}" = ${this.annotationValue}`;
+                        return `"${this.column}" = ${this.annotationValue}`;
                     case AnnotationType.NUMBER:
                         if (RANGE_OPERATOR_REGEX.test(this.annotationValue)) {
                             const {
                                 minValue,
                                 maxValue,
                             } = extractValuesFromRangeOperatorFilterString(this.annotationValue);
-                            return `CAST("${this.annotationName}" AS DOUBLE) >= ${minValue} AND CAST("${this.annotationName}" AS DOUBLE) < ${maxValue}`;
+                            return `CAST("${this.column}" AS DOUBLE) >= ${minValue} AND CAST("${this.column}" AS DOUBLE) < ${maxValue}`;
                         }
-                        return `CAST("${this.annotationName}" AS DOUBLE) = ${this.annotationValue}`;
+                        return `CAST("${this.column}" AS DOUBLE) = ${this.annotationValue}`;
                     case AnnotationType.DATE:
                     case AnnotationType.DATETIME:
                         if (DATE_RANGE_OPERATOR_REGEX.test(this.annotationValue)) {
@@ -118,31 +134,31 @@ export default class FileFilter {
                                 endDate,
                             } = extractDatesFromRangeOperatorFilterString(this.annotationValue);
                             return `CAST("${
-                                this.annotationName
+                                this.column
                             }" AS TIMESTAMPTZ) >= CAST('${startDate?.toISOString()}' AS TIMESTAMPTZ) AND CAST("${
-                                this.annotationName
+                                this.column
                             }" AS TIMESTAMPTZ) < CAST('${endDate?.toISOString()}' AS TIMESTAMPTZ)`;
                         } else {
                             const dateFormatter = annotationFormatterFactory(this.annotationType);
                             const dateString = dateFormatter.displayValue(this.annotationValue);
                             return `CAST("${
-                                this.annotationName
+                                this.column
                             }" AS TIMESTAMPTZ) =  CAST('${new Date(
                                 dateString
                             ).toISOString()}' as TIMESTAMPTZ)`;
                         }
                     case AnnotationType.DURATION:
                         return `EXTRACT(epoch FROM "${
-                            this.annotationName
+                            this.column
                         }")::BIGINT * 1000 = ${Number(this.annotationValue)}`;
                 }
-                return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
+                return SQLBuilder.regexMatchValueInList(this.column, this.annotationValue);
         }
     }
 
     public toJSON(): FileFilterJson {
         return {
-            name: this.annotationName,
+            column: this.column,
             value: this.annotationValue,
             type: this.filterType,
         };
@@ -150,7 +166,7 @@ export default class FileFilter {
 
     public equals(target: FileFilter): boolean {
         return (
-            this.annotationName === target.annotationName &&
+            this.column === target.column &&
             this.annotationValue === target.annotationValue &&
             this.filterType === target.filterType
         );

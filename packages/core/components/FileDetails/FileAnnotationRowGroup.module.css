@@ -1,4 +1,10 @@
+.group-wrapper {
+    width: 100%;
+}
+
 .row {
+    width: 100%;
+
     /* flex parent */
     display: flex;
     flex-direction: row;
@@ -10,6 +16,7 @@
 
 .indent {
     border-left: 2px solid var(--border-color);
+
 }
 
 .cell {
@@ -53,13 +60,15 @@
 
     /* Allow whitespace to be rendered (including carriage returns & new lines) */
     white-space: pre-wrap; 
+
+    display: flex;
 }
 
-.fms-state-indicator {
+/* .fms-state-indicator {
     font-style: italic;
-}
+} */
 
-.value-truncated {
+/* .value-truncated {
     min-height: 30px;
     max-height: 90px;
     white-space: normal;
@@ -67,10 +76,10 @@
     text-overflow: ellipsis;
     display: -webkit-box !important;
     -webkit-line-clamp: 4 !important; /* number of lines to show */
-            line-clamp: 4; 
-    -webkit-box-orient: vertical !important;
-    word-wrap: break-word !important;
-}
+            /* line-clamp: 4;  */
+    /* -webkit-box-orient: vertical !important; */
+    /* word-wrap: break-word !important; */
+/* } */
 
 .expand-button {
     font-size: 12px;
@@ -87,4 +96,23 @@
 .expand-button-wrapper {
     display: flex;
     justify-content: flex-end;
+    margin-left: auto;
+}
+
+.row-group {
+    width: 100%;
+    border-left: 1px solid var(--primary-text-color);
+}
+
+.row-group-title {
+    /* TODO */
+    height: 27.5px;
+    display: flex;
+    align-items: center;
+}
+
+.entry-separator {
+    border-top: 1px dashed var(--border-color, rgba(0,0,0,0.15));
+    margin: 2px 0;
+    width: 100%;
 }
