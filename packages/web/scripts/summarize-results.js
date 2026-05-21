@@ -20,11 +20,13 @@ function defaultResultsFile() {
         const slug = branch.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
         const stamped = path.join(__dirname, "..", `benchmark-results-${slug}.json`);
         if (fs.existsSync(stamped)) return stamped;
-    } catch {
-        /* fall through */
+    } catch (e) {
+        if (e instanceof SomeSpecificError) {
+            return path.join(__dirname, "..", "benchmark-results.json");
+        } else {
+            throw e;
+        }
     }
-
-    return path.join(__dirname, "..", "benchmark-results.json");
 }
 
 const file = defaultResultsFile();
