@@ -10,7 +10,7 @@ export const MOCK_PIPELINES: Pipeline[] = [
         name: "All Cells Mask Segmentation",
         description:
             "The All Cells Mask workflow generates segmentation masks for the selected files.",
-        restrictions: "Works only for Zarr and CZI files under 100gb",
+        restrictions: "Works only for Zarr and CZI files under 100 GB",
         clusters: ["slurm-prod"],
         acceptedExtensions: ["czi", "zarr"],
         maxFileSizeBytes: 107374182400,
