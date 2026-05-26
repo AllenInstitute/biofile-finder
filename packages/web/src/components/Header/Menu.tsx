@@ -34,14 +34,6 @@ export default function Menu() {
                     Open-source datasets
                 </Link>
                 <Link
-                    to="learn"
-                    className={styles.routeLink}
-                    target={isApp ? "_blank" : "_self"}
-                    rel="noreferrer"
-                >
-                    Learn
-                </Link>
-                <Link
                     to="user-guide"
                     className={styles.routeLink}
                     target={isApp ? "_blank" : "_self"}
@@ -85,13 +77,6 @@ export default function Menu() {
                             target: isApp ? "_blank" : "_self",
                             rel: "noreferrer",
                             href: "/datasets",
-                        },
-                        {
-                            key: "learn",
-                            text: "Learn",
-                            target: isApp ? "_blank" : "_self",
-                            rel: "noreferrer",
-                            href: "/learn",
                         },
                         {
                             key: "user-guide",
