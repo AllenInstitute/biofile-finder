@@ -79,8 +79,8 @@ export enum MMSBaseUrl {
 
 export enum LoadBalancerBaseUrl {
     LOCALHOST = "http://localhost:8080",
-    STAGING = "http://stg-aics.corp.alleninstitute.org",
-    PRODUCTION = "http://aics.corp.alleninstitute.org",
+    STAGING = "https://stg-aics.corp.alleninstitute.org",
+    PRODUCTION = "https://aics.corp.alleninstitute.org",
     TEST = "http://test-aics.corp.alleninstitute.org",
 }
 
