@@ -7,6 +7,7 @@ import {
     useEdgesState,
     Controls,
     useReactFlow,
+    ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import classNames from "classnames";
@@ -45,7 +46,7 @@ const NODE_TYPES = {
 /**
  * Component for rendering a graph at the given origin
  */
-export default function NetworkGraph(props: NetworkGraphProps) {
+function NetworkGraph(props: NetworkGraphProps) {
     const dispatch = useDispatch();
     const graph = useSelector(interaction.selectors.getGraph);
     const isLoading = useSelector(interaction.selectors.isGraphLoading);
@@ -119,5 +120,15 @@ export default function NetworkGraph(props: NetworkGraphProps) {
                 <Controls showInteractive={false} />
             </ReactFlow>
         </div>
+    );
+}
+
+// The ReactFlow component can only access state (useReactFlow) if it's the child of a ReactFlowProvider
+// See https://reactflow.dev/learn/troubleshooting/common-errors#001
+export default function WrappedNetworkGraph(props: NetworkGraphProps) {
+    return (
+        <ReactFlowProvider>
+            <NetworkGraph {...props} />
+        </ReactFlowProvider>
     );
 }
