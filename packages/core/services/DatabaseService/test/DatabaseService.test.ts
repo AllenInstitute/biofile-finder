@@ -351,6 +351,25 @@ describe("DatabaseService", () => {
             );
         });
 
+        it("uses suffixed file handle names in parquet_scan to avoid prefix collisions", async () => {
+            // Regression: if "foo" and "foo2" are registered as-is, DuckDB
+            // prefix-matches "foo" against "foo2" (duckdb-wasm#2227).
+            const service = new MockAggregateParquetDatabaseService({
+                foo: ["file_path"],
+                foo2: ["file_path"],
+            });
+
+            await service.prepareDataSources([
+                { name: "foo", type: "parquet", uri: "https://example.com/foo.parquet" },
+                { name: "foo2", type: "parquet", uri: "https://example.com/foo2.parquet" },
+            ]);
+
+            const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
+            expect(createViewSql).to.not.be.undefined;
+            expect(createViewSql).to.include("'foo-bff-filehandle'");
+            expect(createViewSql).to.include("'foo2-bff-filehandle'");
+        });
+
         it("creates aggregate parquet view using union_by_name and data source projection", async () => {
             const service = new MockAggregateParquetDatabaseService({
                 "a.parquet": ["file_path"],
