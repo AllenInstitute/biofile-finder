@@ -1,4 +1,4 @@
-import { DefaultButton, Icon, SpinnerSize } from "@fluentui/react";
+import { SpinnerSize } from "@fluentui/react";
 import {
     Edge,
     ReactFlow,
@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import DefaultEdge from "./Edges/DefaultEdge";
 import FileNode from "./Nodes/FileNode";
 import MetadataNode from "./Nodes/MetadataNode";
+import { TertiaryButton } from "../Buttons";
 import LoadingIcon from "../Icons/LoadingIcon";
 import {
     AnnotationEdge,
@@ -27,7 +28,6 @@ import {
 import { interaction, selection } from "../../state";
 
 import styles from "./NetworkGraph.module.css";
-import buttonStyles from "../Buttons/TertiaryButton.module.css";
 
 interface NetworkGraphProps {
     className?: string;
@@ -89,15 +89,14 @@ export default function NetworkGraph(props: NetworkGraphProps) {
     };
 
     return (
-        <div className={classNames(props.className, styles.reactFlow)}>
-            <DefaultButton
-                className={classNames(buttonStyles.button, styles.refreshButton)}
+        <div className={props.className}>
+            <TertiaryButton
+                className={styles.resetButton}
+                iconName="Refresh"
+                text="Reset view"
                 title="Reset graph to initial state"
                 onClick={onClickReset}
-            >
-                <Icon iconName="Refresh" />
-                Reset view
-            </DefaultButton>
+            />
             <ReactFlow
                 fitView
                 onlyRenderVisibleElements
