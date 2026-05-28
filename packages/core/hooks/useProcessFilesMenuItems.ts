@@ -1,6 +1,7 @@
 import { IContextualMenuItem } from "@fluentui/react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
+import useComputePipelineMenuItems from "./useComputePipelineMenuItems";
 import { ModalType } from "../components/Modal";
 import FileDetail from "../entity/FileDetail";
 import FileFilter from "../entity/FileFilter";
@@ -14,8 +15,10 @@ export default function useProcessMenuItems(
     folderFilters?: FileFilter[]
 ): IContextualMenuItem[] {
     const dispatch = useDispatch();
+    const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
+    const computePipelineSubMenuItems = useComputePipelineMenuItems(folderFilters);
 
-    return [
+    const items: IContextualMenuItem[] = [
         {
             key: "extract-metadata-python",
             text: "Extract standard metadata (BioIO)",
@@ -41,4 +44,15 @@ export default function useProcessMenuItems(
             },
         },
     ];
+
+    if (isAicsEmployee) {
+        items.push({
+            key: "compute-pipeline",
+            text: "Run compute pipeline",
+            title: "Submit selected files to a compute pipeline",
+            subMenuProps: { items: computePipelineSubMenuItems },
+        });
+    }
+
+    return items;
 }
