@@ -10,7 +10,7 @@
   stroke: var(--primary-text-color);
 }
 
-.refresh-button {
+.reset-button {
   width: unset;
   color: var(--primary-text-color);
   border: none;
@@ -20,12 +20,19 @@
   margin: 10px;
 }
 
-.refresh-button:hover {
-  color: var(--highlight-text-color);
+.reset-button i {
+  font-weight: 400;
+  padding-right: 8px;
 }
 
-.refresh-button i {
-  padding-right: 8px;
+/* Use sentence case */
+.reset-button span {
+  font-weight: 400;
+  text-transform: lowercase;
+}
+
+.reset-button span:first-letter {
+  text-transform: uppercase;
 }
 
 .simple-container {
