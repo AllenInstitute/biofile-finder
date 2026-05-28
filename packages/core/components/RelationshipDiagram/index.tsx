@@ -1,3 +1,4 @@
+import { ReactFlowProvider } from "@xyflow/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch } from "react-redux";
@@ -32,7 +33,11 @@ export default function RelationshipDiagram({ className, origin }: Props) {
                 />
                 <h2>Relationship diagram for {origin?.name}</h2>
             </div>
-            <NetworkGraph className={styles.networkGraph} />
+            {/* The ReactFlow component can only access state (useReactFlow) if it's the child of a ReactFlowProvider
+            See https://reactflow.dev/learn/troubleshooting/common-errors#001 */}
+            <ReactFlowProvider>
+                <NetworkGraph className={styles.networkGraph} />
+            </ReactFlowProvider>
         </div>
     );
 }
