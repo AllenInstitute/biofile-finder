@@ -154,12 +154,14 @@ export async function runBenchmarkPage({
     iterations,
     warmupRounds,
     channel,
+    taskFilter,
 }: {
     testCases: TestCase[];
     skipBuild?: boolean;
     iterations?: number;
     warmupRounds?: number;
     channel?: string;
+    taskFilter?: string[];
 }): Promise<BenchmarkResults> {
     if (!skipBuild) buildBenchmark();
 
@@ -173,10 +175,10 @@ export async function runBenchmarkPage({
 
     try {
         if (warmupRounds === 0) {
-            return await runColdStartBenchmarks({ testCases, iterations, channel });
+            return await runColdStartBenchmarks({ testCases, iterations, channel, taskFilter });
         } else {
             // Warmups > 0: all test cases share a single browser instance.
-            return await runInBrowser({ testCases, iterations, warmupRounds, channel });
+            return await runInBrowser({ testCases, iterations, warmupRounds, channel, taskFilter });
         }
     } finally {
         await new Promise((res) => server.close(res));
@@ -191,12 +193,14 @@ async function runColdStartBenchmarks({
     testCases,
     iterations,
     channel,
+    taskFilter,
 }: {
     testCases: TestCase[];
     iterations?: number;
     channel?: string;
+    taskFilter?: string[];
 }): Promise<BenchmarkResults> {
-    const allTaskNames = BENCHMARK_TASKS.map((task) => task.name);
+    const allTaskNames = taskFilter ?? BENCHMARK_TASKS.map((task) => task.name);
     const iterationCount = iterations ?? DEFAULT_ITERATIONS;
 
     let initTimeMs = 0;
