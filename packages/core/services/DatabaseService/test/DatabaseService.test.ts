@@ -354,6 +354,8 @@ describe("DatabaseService", () => {
         it("uses suffixed file handle names in parquet_scan to avoid prefix collisions", async () => {
             // Regression: if "foo" and "foo2" are registered as-is, DuckDB
             // prefix-matches "foo" against "foo2" (duckdb-wasm#2227).
+            // This test only verifies the suffix is applied in the generated SQL;
+            // actual collision prevention is a DuckDB-wasm integration concern.
             const service = new MockAggregateParquetDatabaseService({
                 foo: ["file_path"],
                 foo2: ["file_path"],
@@ -366,8 +368,8 @@ describe("DatabaseService", () => {
 
             const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
             expect(createViewSql).to.not.be.undefined;
-            expect(createViewSql).to.include("'foo-bff-filehandle'");
-            expect(createViewSql).to.include("'foo2-bff-filehandle'");
+            expect(createViewSql).to.match(/parquet_scan\(ARRAY\[.*'foo-bff-filehandle'.*]/);
+            expect(createViewSql).to.match(/parquet_scan\(ARRAY\[.*'foo2-bff-filehandle'.*]/);
         });
 
         it("creates aggregate parquet view using union_by_name and data source projection", async () => {
