@@ -25,7 +25,7 @@ mkdir -p packages/web/fixtures
 curl -fL "$BASE/synthetic-100k.parquet" -o packages/web/fixtures/synthetic-100k.parquet
 curl -fL "$BASE/synthetic-1m.parquet"   -o packages/web/fixtures/synthetic-1m.parquet
 curl -fL "$BASE/synthetic-10m.parquet"  -o packages/web/fixtures/synthetic-10m.parquet
-curl -fL "$BASE/synthetic-10m-copy.parquet"  -o packages/web/fixtures/synthetic-10m-copy.parquet
+cp packages/web/fixtures/synthetic-10m.parquet packages/web/fixtures/synthetic-10m-copy.parquet
 curl -fL "$BASE/synthetic-20m.parquet"  -o packages/web/fixtures/synthetic-20m.parquet
 ```
 

@@ -30,7 +30,7 @@ export default function RelationshipDiagram({ className, origin }: Props) {
                     onClick={() => dispatch(interaction.actions.setOriginForProvenance(undefined))}
                     title="Close provenance relationship diagram"
                 />
-                <h2>Provenance for {origin?.name}</h2>
+                <h2>Relationship diagram for {origin?.name}</h2>
             </div>
             <NetworkGraph className={styles.networkGraph} />
         </div>

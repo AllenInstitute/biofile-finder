@@ -6,6 +6,9 @@
  * BenchmarkConfig into the page, and returns the BenchmarkResults.
  */
 
+// This script uses the global window object to communicate with the playwright
+// controller. The type declaration here adds the necessary variables to the
+// window object's type, Window.
 declare global {
     interface Window {
         __localFilesRequested: boolean;

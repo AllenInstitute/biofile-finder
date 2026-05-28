@@ -13,18 +13,12 @@ function defaultResultsFile() {
     const local = path.join(__dirname, "..", "benchmark-results-local.json");
     if (fs.existsSync(local)) return local;
 
-    try {
-        const branch =
-            process.env.BENCHMARK_BRANCH ||
-            execSync("git rev-parse --abbrev-ref HEAD", { stdio: "pipe" }).toString().trim();
-        const slug = branch.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
-        const stamped = path.join(__dirname, "..", `benchmark-results-${slug}.json`);
-        if (fs.existsSync(stamped)) return stamped;
-    } catch {
-        /* fall through */
-    }
-
-    return path.join(__dirname, "..", "benchmark-results.json");
+    const branch =
+        process.env.BENCHMARK_BRANCH ||
+        execSync("git rev-parse --abbrev-ref HEAD", { stdio: "pipe" }).toString().trim();
+    const slug = branch.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
+    const stamped = path.join(__dirname, "..", `benchmark-results-${slug}.json`);
+    if (fs.existsSync(stamped)) return stamped;
 }
 
 const file = defaultResultsFile();

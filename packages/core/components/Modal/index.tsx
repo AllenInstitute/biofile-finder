@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../../state";
 import About from "./About";
+import ComputePipelineModal from "./ComputePipelineModal";
 import QueryCodeSnippet from "./QueryCodeSnippet";
 import CopyFileManifest from "./CopyFileManifest";
 import DataSource from "./DataSource";
@@ -26,6 +27,7 @@ export enum ModalType {
     SmallScreenWarning = 7,
     ExtractMetadataCodeSnippet = 8,
     ConvertFiles = 9,
+    ComputePipeline = 10,
 }
 
 /**
@@ -56,6 +58,8 @@ export default function Modal() {
             return <SmallScreenWarning onDismiss={onDismiss} />;
         case ModalType.ExtractMetadataCodeSnippet:
             return <ExtractMetadataCodeSnippet onDismiss={onDismiss} />;
+        case ModalType.ComputePipeline:
+            return <ComputePipelineModal onDismiss={onDismiss} />;
         case ModalType.ConvertFiles:
             return <ConvertFiles onDismiss={onDismiss} />;
         default:

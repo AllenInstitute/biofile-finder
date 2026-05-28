@@ -105,51 +105,41 @@ export default function FileDetails(props: Props) {
                 <div className={styles.overflowContainer}>
                     {props.fileDetails && (
                         <>
-                            {!props.onClose ? (
-                                <div className={styles.header}>
-                                    <div className={styles.leftAlign}>
-                                        <Pagination className={styles.pagination} />
-                                    </div>
-                                    {/* spacing component */}
-                                    <div className={styles.gutter}></div>
-                                    <div className={styles.rightAlign}>
-                                        <Tooltip content={disabledDownloadReason}>
-                                            <TertiaryButton
-                                                className={styles.tertiaryButton}
-                                                disabled={isDownloadDisabled}
-                                                iconName="Download"
-                                                id="download-file-button"
-                                                title={`Download file ${truncatedFileName} to local system`}
-                                                onClick={onDownload}
-                                            />
-                                        </Tooltip>
-                                        <PrimaryButton
-                                            id={Tutorial.OPEN_WITH_ID}
-                                            className={styles.openWithButton}
-                                            iconName="ChevronDownMed"
-                                            text="Open with"
-                                            title="Open file by selected method"
-                                            menuItems={openWithMenuItems}
+                            <div className={styles.header}>
+                                <div className={styles.leftAlign}>
+                                    <Pagination className={styles.pagination} />
+                                </div>
+                                {/* spacing component */}
+                                <div className={styles.gutter}></div>
+                                <div className={styles.rightAlign}>
+                                    <Tooltip content={disabledDownloadReason}>
+                                        <TertiaryButton
+                                            className={styles.tertiaryButton}
+                                            disabled={isDownloadDisabled}
+                                            iconName="Download"
+                                            id="download-file-button"
+                                            title={`Download file ${truncatedFileName} to local system`}
+                                            onClick={onDownload}
                                         />
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className={styles.titleRow}>
-                                    <h4>Metadata</h4>
-                                    <TransparentIconButton
-                                        className={styles.clearButton}
-                                        iconName="Clear"
-                                        onClick={props.onClose}
+                                    </Tooltip>
+                                    <PrimaryButton
+                                        id={Tutorial.OPEN_WITH_ID}
+                                        className={styles.openWithButton}
+                                        iconName="ChevronDownMed"
+                                        text="Open with"
+                                        title="Open file by selected method"
+                                        menuItems={openWithMenuItems}
                                     />
+                                    {props.onClose && (
+                                        <TransparentIconButton
+                                            className={styles.clearButton}
+                                            iconName="Clear"
+                                            onClick={props.onClose}
+                                        />
+                                    )}
                                 </div>
-                            )}
-                            <p
-                                className={classNames(styles.fileName, {
-                                    [styles.leftAlign]: !!props.onClose,
-                                })}
-                            >
-                                {props.fileDetails?.name}
-                            </p>
+                            </div>
+                            <p className={styles.fileName}>{props.fileDetails?.name}</p>
                             <div
                                 className={classNames(styles.thumbnailContainer, {
                                     [styles.thumbnailContainerClickable]: isThumbnailClickable,
@@ -168,9 +158,7 @@ export default function FileDetails(props: Props) {
                                 }}
                                 role={isThumbnailClickable ? "button" : undefined}
                                 tabIndex={isThumbnailClickable ? 0 : undefined}
-                                title={
-                                    isThumbnailClickable ? "Click to enlarge" : undefined
-                                }
+                                title={isThumbnailClickable ? "Click to enlarge" : undefined}
                             >
                                 <FileThumbnail
                                     className={styles.thumbnail}
@@ -200,24 +188,23 @@ export default function FileDetails(props: Props) {
                                     }}
                                 />
                             </Modal>
-                            {!props.onClose && (
-                                <div className={styles.titleRow}>
-                                    <h4>Metadata</h4>
-                                    {hasProvenanceSource && (
-                                        <DefaultButton
-                                            onClick={() =>
-                                                dispatch(
-                                                    interaction.actions.setOriginForProvenance(
-                                                        props.fileDetails
-                                                    )
+                            <div className={styles.titleRow}>
+                                <h4>Metadata</h4>
+                                {/* To do: un-hide the provenance source button while in graph mode, should redraw graph */}
+                                {hasProvenanceSource && !props.onClose && (
+                                    <DefaultButton
+                                        onClick={() =>
+                                            dispatch(
+                                                interaction.actions.setOriginForProvenance(
+                                                    props.fileDetails
                                                 )
-                                            }
-                                        >
-                                            View provenance
-                                        </DefaultButton>
-                                    )}
-                                </div>
-                            )}
+                                            )
+                                        }
+                                    >
+                                        View provenance
+                                    </DefaultButton>
+                                )}
+                            </div>
                             <FileAnnotationList
                                 className={styles.annotationList}
                                 fileDetails={props.fileDetails}
