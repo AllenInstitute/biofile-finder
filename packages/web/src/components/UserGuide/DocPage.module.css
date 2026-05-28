@@ -74,7 +74,8 @@
     font-weight: 300;
 }
 
-.sectionBody li span {
+.sectionBody li span,
+.sectionBody :global(.ug-feature-card) span {
     font-weight: 500;
 }
 
@@ -147,6 +148,25 @@
 
 .sectionBody tr:nth-child(even) td {
     background-color: var(--secondary-dark);
+}
+
+/* 2x2 feature grid */
+.sectionBody :global(.ug-feature-grid) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap:24px;
+    margin: 20px 0 40px 0;
+}
+
+.sectionBody :global(.ug-feature-card) {
+    font-weight: 300;
+    line-height: 1.6;
+}
+
+@media (max-width: 769px) {
+    .sectionBody :global(.ug-feature-grid) {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Placeholder box (for diagrams/future content) */

@@ -32,9 +32,9 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             thumbnails, open files in common industry tools, or visualize them in
                             the companion web-based 3D volume viewer, Vole-E.
                         </p>
-                        <p>
+                        {/* <p>
                             <a href="#">Read publication in Nature Methods</a>
-                        </p>
+                        </p> */}
                     </>
                 ),
             },
@@ -96,40 +96,34 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             A number of thoughful features set BFF apart from other similar tools.
                             Key differentiators include:
                         </p>
-                        <ul>
-                            <li>
-                                <span>No infrastructure</span> — BFF works entirely without a
-                                server, enabling users to explore and share datasets instantly
-                                without setup, deployment, or IT support. BFF and Zarrcade are the
-                                only tools in this space that require no server — tools like OMERO,
-                                Cytomine, and BisQue all require significant infrastructure.
-                            </li>
-                            <li>
-                                <span>Querying power</span> — BFF&apos;s in-browser query system
-                                gives full SQL control over arbitrary user metadata. No other tool
-                                in this space does that client-side, without a backend.
-                            </li>
-                            <li>
-                                <span>Format agnostic</span> — BFF treats metadata as data
-                                (Parquet/CSV), not tied to any specific image format. By contrast,
-                                OMERO is deeply tied to Bio-Formats, and tools like SSBD and
-                                Zarrcade are tied to specific formats like OME-Zarr.
-                            </li>
-                            <li>
-                                <span>Sharing</span> — BFF&apos;s URL-encoded query state is unique.
-                                Most tools either require server access or only share static links
-                                to datasets — BFF shares the exact filtered and sorted view as a URL
-                                anyone can open instantly.
-                            </li>
-                        </ul>
-                    </>
-                ),
-            },
-            {
-                id: "bff-comparison-table",
-                heading: "BFF comparison table",
-                body: (
-                    <>
+                        <div className="ug-feature-grid">
+                            <div className="ug-feature-card">
+                                <span>No infrastructure</span>
+                                <br /> BFF works entirely without a server, enabling users to
+                                explore and share datasets instantly without setup, deployment, or
+                                IT support.
+                            </div>
+                            <div className="ug-feature-card">
+                                <span>Querying power</span>
+                                <br /> BFF&apos;s in-browser query system gives full SQL control
+                                over arbitrary user metadata. No other tool in this space does that
+                                client-side, without a backend.
+                            </div>
+                            <div className="ug-feature-card">
+                                <span>Format agnostic</span>
+                                <br /> BFF treats metadata as data (Parquet/CSV), not tied to any
+                                specific image format. By contrast, OMERO is deeply tied to
+                                Bio-Formats, and tools like SSBD and Zarrcade are tied to specific
+                                formats like OME-Zarr.
+                            </div>
+                            <div className="ug-feature-card">
+                                <span>Sharing</span>
+                                <br /> BFF&apos;s URL-encoded query state is unique. Most tools
+                                either require server access or only share static links to datasets
+                                — BFF shares the exact filtered and sorted view as a URL anyone can
+                                open instantly.
+                            </div>
+                        </div>
                         <p>
                             The following table highlights how BFF compares to similar tools in the
                             bioimaging data management ecosystem.
@@ -426,9 +420,224 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
         ],
     },
 
+    "about/features": {
+        title: "Feature highlights",
+        intro:
+            "BioFile Finder (BFF) packs a lot of capability into a serverless, browser-based tool. Here is an overview of its key features.",
+        sections: [
+            {
+                id: "in-browser-querying",
+                heading: "Powerful in-browser querying",
+                body: (
+                    <>
+                        <p>
+                            BFF uses <strong>DuckDB</strong> — a high-performance analytical SQL
+                            engine — to run queries entirely in your browser. No server, no backend,
+                            no credentials required. Filter, sort, and search across millions of
+                            rows of metadata instantly.
+                        </p>
+                        <ul>
+                            <li>Filter by one or more metadata columns simultaneously</li>
+                            <li>Sort by any column, ascending or descending</li>
+                            <li>Full-text search across all metadata</li>
+                            <li>Scales to 10M+ rows, limited only by browser memory</li>
+                        </ul>
+                    </>
+                ),
+            },
+            {
+                id: "dynamic-grouping",
+                heading: "Dynamic grouping & hierarchy",
+                body: (
+                    <>
+                        <p>
+                            Group files by any combination of metadata columns to create a navigable
+                            folder-like hierarchy — without moving or reorganizing your actual
+                            files. Switch grouping strategies instantly to explore different
+                            dimensions of your dataset.
+                        </p>
+                        <ul>
+                            <li>
+                                Nest grouping across multiple levels (e.g., Experiment &rarr; Plate
+                                &rarr; Well)
+                            </li>
+                            <li>Each group shows a count of the files it contains</li>
+                            <li>Combine grouping with filters for focused exploration</li>
+                            <li>Switch views without affecting the underlying data</li>
+                        </ul>
+                    </>
+                ),
+            },
+            {
+                id: "sharing",
+                heading: "Sharing",
+                body: (
+                    <>
+                        <p>
+                            Sharing is one of BFF&apos;s most powerful and distinctive features.
+                            Every filter, sort, grouping, and column layout you configure is encoded
+                            directly into the URL. Copy the link and share it — anyone who opens it
+                            sees exactly the same view of the data, without re-running any queries,
+                            sending files, or setting anything up.
+                        </p>
+                        <p>
+                            This makes BFF uniquely suited for collaborative research and open
+                            science:
+                        </p>
+                        <ul>
+                            <li>
+                                <strong>Collaborate instantly</strong> — share your exact filtered
+                                view with a colleague in one click; they see the same subset without
+                                any setup
+                            </li>
+                            <li>
+                                <strong>Link publications to live data</strong> — tie a figure
+                                directly to the specific filtered dataset view that produced it, so
+                                readers can explore the full underlying data themselves
+                            </li>
+                            <li>
+                                <strong>No accounts or infrastructure</strong> — shared links work
+                                for anyone with a browser, no login required
+                            </li>
+                            <li>
+                                <strong>Persistent and archivable</strong> — links are stable and
+                                can be preserved alongside publications or in data repositories
+                            </li>
+                        </ul>
+                        <p>
+                            Most tools in this space either require server access to share data or
+                            only link to a static dataset. BFF shares the exact filtered, sorted,
+                            grouped view — making it a powerful tool for transparent and
+                            reproducible science.
+                        </p>
+                    </>
+                ),
+            },
+            {
+                id: "thumbnails",
+                heading: "Thumbnail previews",
+                body: (
+                    <>
+                        <p>
+                            BFF renders thumbnail previews for files in your dataset so you can
+                            visually scan your data without opening each file individually.
+                            Thumbnails appear inline in the file list and update dynamically as you
+                            filter and group.
+                        </p>
+                        <ul>
+                            <li>
+                                Automatically generated for supported file types and accessible URLs
+                            </li>
+                            <li>
+                                Supply your own preview images via a <code>Thumbnail</code> column
+                                in your dataset — useful for large or complex files where
+                                auto-generation isn&apos;t possible
+                            </li>
+                            <li>
+                                Navigate the filtered file list with arrow keys for rapid visual
+                                review
+                            </li>
+                        </ul>
+                    </>
+                ),
+            },
+            {
+                id: "code-generation",
+                heading: "Code generation",
+                body: (
+                    <p>
+                        <i>Content coming soon.</i>
+                    </p>
+                ),
+            },
+            {
+                id: "viewer-integrations",
+                heading: "Viewer integrations",
+                body: (
+                    <>
+                        <p>
+                            BFF connects directly to a variety of image viewers — web-based and
+                            desktop. Select any file and open it in the viewer best suited for its
+                            format and your workflow.
+                        </p>
+                        <ul>
+                            <li>
+                                Supported viewers: Vol-E, AGAVE, FIJI, Neuroglancer, Simularium,
+                                VolView, and more
+                            </li>
+                            <li>
+                                Open files with a single click from the file list or detail panel
+                            </li>
+                            <li>
+                                Use a metadata descriptor file to define custom viewer links per
+                                file
+                            </li>
+                        </ul>
+                        <p>
+                            <a href="/user-guide/app-information/supported-viewers">
+                                See the full viewer comparison table
+                            </a>
+                        </p>
+                    </>
+                ),
+            },
+            {
+                id: "serverless",
+                heading: "No infrastructure required",
+                body: (
+                    <>
+                        <p>
+                            BFF runs entirely in your browser or as a desktop application — no
+                            server, no database, and no IT support needed. It works with files
+                            wherever they live: local drives, network storage, or cloud buckets.
+                        </p>
+                        <ul>
+                            <li>
+                                <strong>Local</strong> — drag and drop a CSV or Parquet file and
+                                start exploring
+                            </li>
+                            <li>
+                                <strong>Cloud</strong> — works with S3 and public HTTP/HTTPS URLs
+                            </li>
+                            <li>
+                                <strong>Format agnostic</strong> — accepts metadata as CSV, Parquet,
+                                or JSON; references any file type
+                            </li>
+                            <li>No accounts, no authentication, no deployment</li>
+                        </ul>
+                        <p>
+                            <a href="/user-guide/other-resources/storage-options">
+                                See storage options
+                            </a>
+                        </p>
+                    </>
+                ),
+            },
+            {
+                id: "annotations",
+                heading: "In-browser dataset annotations",
+                body: (
+                    <>
+                        <p>
+                            Add, edit, or rename metadata columns directly within BFF without
+                            modifying your original dataset file. Annotations are stored in the
+                            browser and can be exported as a new CSV, making BFF useful as a
+                            lightweight data curation tool.
+                        </p>
+                        <ul>
+                            <li>Add new columns and fill in values per file</li>
+                            <li>Edit existing metadata values</li>
+                            <li>Export the annotated dataset as CSV</li>
+                        </ul>
+                    </>
+                ),
+            },
+        ],
+    },
+
     "app-information/specifications": {
         title: "Specifications",
-        intro: "Technical specifications for BFF.",
+        intro: "Technical specifications for BioFile Finder (BFF).",
         sections: [
             {
                 id: "file-size-limitations",
@@ -513,7 +722,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
     "app-information/supported-viewers": {
         title: "Supported viewers",
         intro:
-            "BFF links out to a variety of image viewers. Use the information below to choose the right one for your work.",
+            "BioFile Finder (BFF) links out to a variety of image viewers. Use the information below to choose the right one for your work.",
         sections: [
             {
                 id: "decision-guide",
@@ -822,7 +1031,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
     "real-world-use-cases/use-cases-overview": {
         title: "Use cases & scenarios",
         intro:
-            "BFF is flexible enough to fit many different workflows and contexts. This page highlights common use cases observed across research labs, core facilities, and data teams — along with real-world scenarios showing how different types of users leverage BFF in their work.",
+            "BioFile Finder (BFF) is flexible enough to fit many different workflows and contexts. This page highlights common use cases observed across research labs, core facilities, and data teams — along with real-world scenarios showing how different types of users leverage BFF in their work.",
         sections: [
             {
                 id: "use-case-table",
@@ -1179,7 +1388,8 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
 
     "real-world-use-cases/example-aics": {
         title: "The cell science accelerator at Allen Institute",
-        intro: "BFF was used in publication by the cell science accelerator at Allen Institute.",
+        intro:
+            "BioFile Finder (BFF) was used in publication by the cell science accelerator at Allen Institute.",
         sections: [
             {
                 id: "publication",
@@ -1255,7 +1465,8 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
 
     "real-world-use-cases/example-aibs": {
         title: "The brain science accelerator at Allen Institute",
-        intro: "BFF was used in publication by the brain science accelerator at Allen Institute.",
+        intro:
+            "BioFile Finder (BFF) was used in publication by the brain science accelerator at Allen Institute.",
         sections: [
             {
                 id: "publication",
@@ -1333,9 +1544,11 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                 id: "video",
                 heading: "",
                 body: (
-                    <p>
-                        <a href="#">Link to social&apos;s video</a> (not yet public)
-                    </p>
+                    <>
+                        {/* <p>
+                            <a href="#">Link to social&apos;s video</a> (not yet public)
+                        </p> */}
+                    </>
                 ),
             },
         ],
@@ -1343,17 +1556,19 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
 
     "real-world-use-cases/example-isas": {
         title: "AMBIOM at ISAS",
-        intro: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        intro: "",
         sections: [
             {
                 id: "publication",
                 heading: "",
                 body: (
                     <>
-                        <p>
+                        {/* <p>
                             <a href="#">Link to publication</a>
+                        </p> */}
+                        <p>
+                            <i>Content coming soon.</i>
                         </p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     </>
                 ),
             },
@@ -1508,7 +1723,14 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             store the dataset and files referenced in the dataset in{" "}
                             <a href="/user-guide/other-resources/storage-options">cloud storage</a>{" "}
                             to enable readers to explore the dataset and its files via a{" "}
-                            <a href="#">shareable BFF link</a>.
+                            <a href="#">
+                                shareable BFF link{" "}
+                                <Icon
+                                    iconName="Flag"
+                                    style={{ fontSize: 16, verticalAlign: "middle" }}
+                                />
+                            </a>
+                            .
                         </p>
                         <p>
                             Note: You can use BFF as a way to circumvent having to publish all files
@@ -1548,8 +1770,15 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 .
                             </li>
                             <li>
-                                See <a href="#">Dataset examples</a> for examples to follow when
-                                creating a dataset.
+                                See{" "}
+                                <a href="#">
+                                    Dataset examples{" "}
+                                    <Icon
+                                        iconName="Flag"
+                                        style={{ fontSize: 16, verticalAlign: "middle" }}
+                                    />
+                                </a>{" "}
+                                for examples to follow when creating a dataset.
                             </li>
                         </ul>
                     </>
@@ -1561,7 +1790,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
     "getting-started/creating-a-dataset": {
         title: "Creating a dataset",
         intro:
-            "BFF works by referencing a spreadsheet you provide, populated by key-value pairs that are the metadata associated with your image files.",
+            "BioFile Finder (BFF) works by referencing a spreadsheet you provide, populated by key-value pairs that are the metadata associated with your image files.",
         sections: [
             {
                 id: "creating-spreadsheet",
@@ -1632,6 +1861,10 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                     <Icon
                                         iconName="Download"
                                         style={{ fontSize: 11, verticalAlign: "middle" }}
+                                    />{" "}
+                                    <Icon
+                                        iconName="Flag"
+                                        style={{ fontSize: 16, verticalAlign: "middle" }}
                                     />
                                 </a>
                             </li>
@@ -1666,7 +1899,13 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             required column and a few special optional columns described below.
                         </p>
                         <p>
-                            <a href="#">See dataset examples</a>
+                            <a href="#">
+                                See dataset examples{" "}
+                                <Icon
+                                    iconName="Flag"
+                                    style={{ fontSize: 16, verticalAlign: "middle" }}
+                                />
+                            </a>
                         </p>
                     </>
                 ),
@@ -1767,6 +2006,10 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 <Icon
                                     iconName="Download"
                                     style={{ fontSize: 11, verticalAlign: "middle" }}
+                                />{" "}
+                                <Icon
+                                    iconName="Flag"
+                                    style={{ fontSize: 16, verticalAlign: "middle" }}
                                 />
                             </a>
                         </p>
@@ -1980,6 +2223,10 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 <Icon
                                     iconName="Download"
                                     style={{ fontSize: 11, verticalAlign: "middle" }}
+                                />{" "}
+                                <Icon
+                                    iconName="Flag"
+                                    style={{ fontSize: 16, verticalAlign: "middle" }}
                                 />
                             </a>
                         </p>
@@ -2021,7 +2268,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
     "getting-started/provenance": {
         title: "File & metadata provenance",
         intro:
-            'Information about how files relate to each other or to different pieces of metadata can be provided via an additional file called a "Provenance file". Provenance in BFF can describe relationships between files, between a file and a piece of metadata, and between two pieces of metadata.',
+            'Information about how files relate to each other or to different pieces of metadata can be provided via an additional file called a "Provenance file". Provenance in BioFile Finder (BFF) can describe relationships between files, between a file and a piece of metadata, and between two pieces of metadata.',
         sections: [
             {
                 id: "provenance-where",
@@ -2131,6 +2378,10 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 <Icon
                                     iconName="Download"
                                     style={{ fontSize: 11, verticalAlign: "middle" }}
+                                />{" "}
+                                <Icon
+                                    iconName="Flag"
+                                    style={{ fontSize: 16, verticalAlign: "middle" }}
                                 />
                             </a>
                         </p>
@@ -2165,6 +2416,10 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 <Icon
                                     iconName="Download"
                                     style={{ fontSize: 11, verticalAlign: "middle" }}
+                                />{" "}
+                                <Icon
+                                    iconName="Flag"
+                                    style={{ fontSize: 16, verticalAlign: "middle" }}
                                 />
                             </a>
                         </p>
@@ -2191,6 +2446,10 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 <Icon
                                     iconName="Download"
                                     style={{ fontSize: 11, verticalAlign: "middle" }}
+                                />{" "}
+                                <Icon
+                                    iconName="Flag"
+                                    style={{ fontSize: 16, verticalAlign: "middle" }}
                                 />
                             </a>
                         </p>
@@ -2203,7 +2462,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
     "other-resources/storage-options": {
         title: "Storage options",
         intro:
-            "BioFile Finder is agnostic of the image file location. BFF simply requires that the metadata file is accessible — where accessible is defined as whichever browser it is running inside can reach it.",
+            "BioFile Finder (BFF) is agnostic of the image file location. BFF simply requires that the metadata file is accessible — where accessible is defined as whichever browser it is running inside can reach it.",
         sections: [
             {
                 id: "private-cloud",
