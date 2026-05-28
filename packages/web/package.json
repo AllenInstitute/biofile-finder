@@ -1,9 +1,12 @@
 {
-
   "name": "biofile-finder",
   "description": "A web application for organizing that data, and provide simple hooks for incorporating that data into both programmatic and non-programmatic workflows",
   "main": "src/index.tsx",
   "scripts": {
+    "benchmark": "node scripts/run-local.js",
+    "benchmark:regression": "node scripts/run-regression.js",
+    "benchmark:compare": "node scripts/compare-results.js",
+    "benchmark:summary": "node scripts/summarize-results.js",
     "build": "webpack --config ./webpack/webpack.config.js --env production",
     "clean": "git clean -Xfd -e \"!node_modules\"",
     "packageForPublish": "node ./scripts/package-for-publish.js",
@@ -23,6 +26,7 @@
     "fork-ts-checker-webpack-plugin": "6.x",
     "html-webpack-plugin": "5.x",
     "mini-css-extract-plugin": "2.x",
+    "playwright": "^1.59.1",
     "postcss-loader": "6.x",
     "postcss-preset-env": "7.x",
     "react-svg-loader": "^3.0.3",

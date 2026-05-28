@@ -32,6 +32,7 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
+import PipelineService from "../../services/PipelineService";
 import S3StorageService from "../../services/S3StorageService";
 import Graph from "../../entity/Graph";
 
@@ -70,6 +71,7 @@ export const getProcessStatuses = (state: State) => state.interaction.status;
 export const getRefreshKey = (state: State) => state.interaction.refreshKey;
 export const getUserSelectedApplications = (state: State) =>
     state.interaction.userSelectedApplications;
+export const getSelectedPipelineId = (state: State) => state.interaction.selectedPipelineId;
 export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee;
 
@@ -87,6 +89,11 @@ export const getDatasetBucketUrl = createSelector(
 export const getLoadBalancerBaseUrl = createSelector(
     [getEnvironment],
     (environment) => LoadBalancerBaseUrl[environment]
+);
+
+export const getPipelineService = createSelector(
+    [getEnvironment],
+    (environment) => new PipelineService({ loadBalancerBaseUrl: LoadBalancerBaseUrl[environment] })
 );
 
 export const getMetadataManagementServiceBaseUrl = createSelector(

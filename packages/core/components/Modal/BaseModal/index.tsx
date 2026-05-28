@@ -1,4 +1,5 @@
 import { Modal } from "@fluentui/react";
+import classNames from "classnames";
 import { noop } from "lodash";
 import * as React from "react";
 
@@ -7,6 +8,7 @@ import { TertiaryButton } from "../../Buttons";
 
 interface BaseModalProps {
     body: React.ReactNode;
+    className?: string;
     footer?: React.ReactNode;
     onDismiss?: () => void;
     title?: string;
@@ -18,14 +20,14 @@ interface BaseModalProps {
  * for plugging content into.
  */
 export default function BaseModal(props: BaseModalProps) {
-    const { body, footer, title, onDismiss } = props;
+    const { body, className, footer, title, onDismiss } = props;
 
     const titleId = "base-modal-title";
     return (
         <Modal
             isOpen
             onDismiss={onDismiss}
-            containerClassName={styles.container}
+            containerClassName={classNames(styles.container, className)}
             titleAriaId={titleId}
             overlay={{ className: styles.overlay }}
         >
