@@ -5,7 +5,7 @@
 
 .node {
   background-color: var(--primary-dark);
-  border: 1px solid var(--primary-text-color);
+  border: 1px solid var(--border-secondary-color);
   border-radius: 5px;
   color: var(--primary-text-color);
   display: flex;
