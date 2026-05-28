@@ -302,7 +302,7 @@ describe("DatabaseService", () => {
 
             public query(sql: string): { promise: Promise<{ [key: string]: any }[]> } {
                 const parquetDescribeMatch = sql.match(
-                    /DESCRIBE SELECT \* FROM parquet_scan\("(.+)"\)/
+                    /DESCRIBE SELECT \* FROM parquet_scan\("(.+)-bff-filehandle"\)/
                 );
                 if (parquetDescribeMatch) {
                     const sourceName = parquetDescribeMatch[1];
