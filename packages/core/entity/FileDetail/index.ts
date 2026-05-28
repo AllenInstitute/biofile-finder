@@ -1,7 +1,7 @@
 import AnnotationName from "../Annotation/AnnotationName";
-import { FmsFileAnnotation } from "../../services/FileService";
+import { FmsFileAnnotation, MetadataValue, NestedMetadataValue, PrimitiveMetadataValue } from "../../services/FileService";
 import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
-import { Environment } from "../../constants";
+import { Environment, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
 const AICS_FMS_S3_URL_PREFIX = "https://s3.us-west-2.amazonaws.com/";
@@ -88,7 +88,9 @@ export interface FmsFile {
  * Facade for a FileDetailResponse.
  */
 export default class FileDetail {
-    private readonly fileDetail: FmsFile;
+    public readonly metadata: Map<string, MetadataValue>;
+    // DEPRECATED: to be removed in favor of the metadata property
+    public readonly annotations: FmsFileAnnotation[];
     private readonly env: Environment;
     private readonly uniqueId?: string;
 
@@ -100,14 +102,28 @@ export default class FileDetail {
         return !path.startsWith("http") && !path.startsWith("s3");
     }
 
-    constructor(fileDetail: FmsFile, env: Environment, uniqueId?: string) {
-        this.fileDetail = fileDetail;
+    constructor(file: FmsFile, env: Environment, uniqueId?: string) {
+        this.annotations = file.annotations;
+        this.metadata = Object.entries(file)
+            // Map key/value entries on the file info object
+            // to annotations-like structure so that we can treat all metadata as
+            // annotations in the frontend and avoid having some weird special cases
+            .flatMap(([key, value]) => {
+                if (key === "annotations") return value as FmsFileAnnotation[]; // Pass through the actual annotations array without modification since it's already in the format we want
+                // Skip any fields that have unexpected types to avoid runtime errors.
+                if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") {
+                    console.error(`Unexpected type for file metadata field ${key}: ${typeof value}. Expected string, number, or boolean. Skipping this field.`);
+                    return [];
+                }
+                return [{ name: key, values: [value] }];
+            })
+            // Finally, convert to a map for easier lookup later on
+            .reduce((accum, { name, values }) => {
+                accum.set(name, values);
+                return accum;
+            }, new Map<string, MetadataValue>());
         this.env = env;
         this.uniqueId = uniqueId;
-    }
-
-    public get details() {
-        return this.fileDetail;
     }
 
     public get uid(): string {
@@ -115,7 +131,7 @@ export default class FileDetail {
     }
 
     public get id(): string {
-        const id = this.fileDetail.file_id || this.getFirstAnnotationValue("File ID");
+        const id = this.getFirstAnnotationValue(AnnotationName.FILE_ID) || this.getFirstAnnotationValue("File ID");
         if (id === undefined) {
             throw new Error("File ID is not defined");
         }
@@ -123,7 +139,10 @@ export default class FileDetail {
     }
 
     public get name(): string {
-        const name = this.fileDetail.file_name || this.getFirstAnnotationValue("File Name");
+        // TODO: create ticket for removing name vs displayname
+        // TODO: make sure things like this get captured as constants after that change
+        // TODO: then make everything a list of annotations rather than this weird hybrid
+        const name = this.getFirstAnnotationValue(AnnotationName.FILE_NAME) || this.getFirstAnnotationValue("File Name");
         if (name === undefined) {
             throw new Error("File Name is not defined");
         }
@@ -131,7 +150,7 @@ export default class FileDetail {
     }
 
     public get path(): string {
-        const path = this.fileDetail.file_path || this.getFirstAnnotationValue("File Path");
+        const path = this.getFirstAnnotationValue(AnnotationName.FILE_PATH) || this.getFirstAnnotationValue("File Path");
         if (path === undefined) {
             throw new Error("File Path is not defined");
         }
@@ -153,48 +172,43 @@ export default class FileDetail {
         return path as string;
     }
 
-    public get isLikelyLocalFile(): boolean {
-        return FileDetail.isLikelyLocalFile(this.path);
-    }
-
-    public get downloadInProgress(): boolean {
-        const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL);
-        const cacheEvictionDate = this.getAnnotation(AnnotationName.CACHE_EVICTION_DATE);
-        return !cacheEvictionDate && shouldBeInLocal === true;
-    }
-
     public get size(): number | undefined {
-        const size = this.fileDetail.file_size || this.getFirstAnnotationValue("File Size");
-        if (size === undefined) {
-            return 0; // Default to 0 if size is not defined for now, need better system
+        const size = this.getFirstAnnotationValue(AnnotationName.FILE_SIZE) || this.getFirstAnnotationValue("File Size");
+        if (size !== undefined) {
+            if (typeof size === "number") {
+                return size;
+            }
+            if (typeof size === "string") {
+                return parseInt(size, 10);
+            }
         }
-        if (typeof size === "number") {
-            return size;
-        }
-        return parseInt(size as string, 10);
+        return 0; // Default to 0 if size is not defined for now, need better system
     }
 
     public get thumbnail(): string | undefined {
         return (
-            this.fileDetail.thumbnail ||
-            (this.getFirstAnnotationValue("Thumbnail") as string | undefined)
-        );
+            this.getFirstAnnotationValue(AnnotationName.THUMBNAIL_PATH) ||
+            this.getFirstAnnotationValue("Thumbnail")
+        ) as string | undefined;
     }
 
-    public get annotations() {
-        return this.fileDetail.annotations;
+    public get isLikelyLocalFile(): boolean {
+        return FileDetail.isLikelyLocalFile(this.path);
     }
 
-    public getNestedValues(annotationName: string) {
-        return this.getAnnotation(annotationName)?.nestedValues;
+    // TODO: Refactor to use boolean naming convention
+    public get downloadInProgress(): boolean {
+        const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL);
+        const cacheEvictionDate = this.getFirstAnnotationValue(AnnotationName.CACHE_EVICTION_DATE);
+        return cacheEvictionDate === undefined && shouldBeInLocal === true;
     }
 
-    public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {
-        return this.getAnnotation(annotationName)?.values[0];
+    public getAnnotation(annotationName: string): MetadataValue | undefined {
+        return this.metadata.get(annotationName);
     }
 
-    public getAnnotation(annotationName: string): FmsFileAnnotation | undefined {
-        return this.fileDetail.annotations.find((annotation) => annotation.name === annotationName);
+    public getFirstAnnotationValue(annotationName: string): PrimitiveMetadataValue | NestedMetadataValue | undefined {
+        return this.getAnnotation(annotationName)?.[0];
     }
 
     public async getPathToThumbnail(targetSize?: number): Promise<string | undefined> {
@@ -235,19 +249,16 @@ export default class FileDetail {
     }
 
     public getAnnotationNameToLinkMap(): { [annotationName: string]: string } {
-        return this.annotations
-            .filter(
-                (annotation) =>
-                    typeof annotation.values[0] === "string" &&
-                    annotation.values[0].startsWith("http") &&
-                    !["File Path", "Thumbnail"].includes(annotation.name)
-            )
-            .reduce(
-                (mapThusFar, annotation) => ({
-                    ...mapThusFar,
-                    [annotation.name]: annotation.values.join(",") as string,
-                }),
-                {} as { [annotationName: string]: string }
-            );
+        return Object.entries(this.metadata)
+            .reduce((accum, [annotationName, values]) => {
+                // Only include annotations whose values look like URLs and aren't the file path or thumbnail since those are handled separately.
+                if (typeof values[0] !== "string" || !values[0].startsWith("http") || TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotationName)) {
+                    return accum;
+                }
+                return {
+                    ...accum,
+                    [annotationName]: values.join(",") as string,
+                };
+            }, {} as { [annotationName: string]: string });
     }
 }

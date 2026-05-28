@@ -46,7 +46,7 @@ export default function QuerySort(props: Props) {
                               id: props.sort.annotationName,
                               title: `${props.sort.annotationName} (${props.sort.order})`,
                               description:
-                                  annotationNameToAnnotationMap[props.sort.annotationName]
+                                  annotationNameToAnnotationMap.get(props.sort.annotationName)
                                       ?.description,
                           },
                       ]

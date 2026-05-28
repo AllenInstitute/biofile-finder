@@ -3,6 +3,8 @@ import * as React from "react";
 import FileDetail from "../../entity/FileDetail";
 
 
+// TODO: Add unit test for this hook, consider making "300" size a constant exported or parameterized
+
 /**
  * Hook for async grabbing the thumbnail path for a file
  */

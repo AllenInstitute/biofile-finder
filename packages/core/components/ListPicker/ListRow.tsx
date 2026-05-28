@@ -19,7 +19,7 @@ export interface ListItem<T = any> {
     /** When true, renders as a non-interactive section label for an intermediate path node. */
     isGroupHeader?: boolean;
     selected: boolean;
-    displayValue: AnnotationValue;
+    displayValue: React.ReactNode;
     value: AnnotationValue;
     description?: string;
     data?: T; // optional "user data" to stash on a list item to retrieve later

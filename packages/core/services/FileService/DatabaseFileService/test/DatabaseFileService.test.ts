@@ -50,7 +50,7 @@ describe("DatabaseFileService", () => {
             });
             const data = response;
             expect(data.length).to.equal(2);
-            expect(data[0].details).to.deep.equal({
+            expect(data[0].metadata).to.deep.equal({
                 annotations: [
                     {
                         name: "File Size",

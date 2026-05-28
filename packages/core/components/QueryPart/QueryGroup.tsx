@@ -53,8 +53,8 @@ export default function QueryGroup(props: Props) {
             )}
             rows={props.groups.map((group) => ({
                 id: group,
-                title: group,
-                description: annotationNameToAnnotationMap[group]?.description,
+                title: group.split(".").join(" / "),
+                description: annotationNameToAnnotationMap.get(group)?.description,
             }))}
         />
     );

@@ -2,7 +2,6 @@ import { createSelector } from "reselect";
 
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
-import AnnotationName from "../../entity/Annotation/AnnotationName";
 
 // BASIC SELECTORS
 export const getAnnotations = (state: State) => state.metadata.annotations;
@@ -12,32 +11,16 @@ export const getEdgeDefinitions = (state: State) => state.metadata.edgeDefinitio
 export const getPasswordToProgramMap = (state: State) => state.metadata.passwordToProgramMap;
 
 // COMPOSED SELECTORS
-export const getSortedAnnotations = createSelector(getAnnotations, (annotations: Annotation[]) => {
-    // Sort annotations by file name first then everything else alphabetically
-    const fileNameAnnotationIndex = annotations.findIndex(
-        (annotation) =>
-            annotation.name === AnnotationName.FILE_NAME || annotation.name === "File Name"
-    );
-    if (fileNameAnnotationIndex === -1) {
-        return Annotation.sort(annotations);
-    }
-    return [
-        annotations[fileNameAnnotationIndex],
-        ...Annotation.sort([
-            ...annotations.slice(0, fileNameAnnotationIndex),
-            ...annotations.slice(fileNameAnnotationIndex + 1),
-        ]),
-    ];
-});
+export const getSortedAnnotations = createSelector(getAnnotations, Annotation.sort);
 
 export const getAnnotationNameToAnnotationMap = createSelector(
     getAnnotations,
-    (annotations): Record<string, Annotation> =>
+    (annotations): Map<string, Annotation> =>
         annotations.reduce(
-            (map, annotation) => ({
-                ...map,
-                [annotation.name]: annotation,
-            }),
-            {} as Record<string, Annotation>
+            (map, annotation) => {
+                map.set(annotation.name, annotation);
+                return map;
+            },
+            new Map<string, Annotation>()
         )
 );

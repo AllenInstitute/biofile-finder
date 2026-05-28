@@ -51,7 +51,7 @@ export default function QueryFilter(props: Props) {
             )}
             onRenderEditMenuList={(item) => (
                 <AnnotationFilterForm
-                    annotation={annotationNameToAnnotationMap[item.id] as Annotation}
+                    annotation={annotationNameToAnnotationMap.get(item.id) as Annotation}
                 />
             )}
             rows={Object.entries(filtersGroupedByName).map(([annotationName, filters]) => {
@@ -64,8 +64,8 @@ export default function QueryFilter(props: Props) {
                 const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
                 return {
                     id: filters[0].name,
-                    title: `${annotationName} ${operator} ${valueDisplay}`,
-                    description: annotationNameToAnnotationMap[annotationName]?.description,
+                    title: `${annotationName.split(".").join(" / ")} ${operator} ${valueDisplay}`,
+                    description: annotationNameToAnnotationMap.get(annotationName)?.description,
                 };
             })}
         />

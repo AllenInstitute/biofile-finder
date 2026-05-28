@@ -42,9 +42,9 @@ function Header(
         columnKey: column.name,
         displayValue: (
             <span onClick={() => dispatch(selection.actions.sortColumn(column.name))}>
-                <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
+                <Tooltip content={`${annotationNameToAnnotationMap.get(column.name)?.displayName.split(".").join(" / ")}\n${annotationNameToAnnotationMap.get(column.name)?.description}`}>
                     <span className={styles.headerTitle}>
-                        {annotationNameToAnnotationMap[column.name]?.displayName}
+                        {annotationNameToAnnotationMap.get(column.name)?.displayName.split(".").slice(-1)[0]}
                     </span>
                 </Tooltip>
                 {sortColumn?.annotationName === column.name &&

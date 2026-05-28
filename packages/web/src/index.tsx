@@ -24,6 +24,7 @@ import { createReduxStore } from "../../core/state";
 import "../../core/styles/global.css";
 import styles from "./src.module.css";
 import S3StorageService from "../../core/services/S3StorageService";
+import DatabaseServiceWeb from "./services/DatabaseServiceWeb";
 
 const APP_ID = "biofile-finder";
 
@@ -58,7 +59,7 @@ const router = createBrowserRouter(
 );
 
 async function asyncRender() {
-    const databaseService = new DatabaseService();
+    const databaseService = new DatabaseServiceWeb();
     await databaseService.initialize();
 
     // Memoized to make sure the object that collects these services doesn't

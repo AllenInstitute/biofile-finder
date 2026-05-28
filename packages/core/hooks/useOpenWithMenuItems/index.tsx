@@ -469,7 +469,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         () =>
             fileDetails?.annotations
                 .filter(
-                    (annotation) => annotationNameToAnnotationMap[annotation.name]?.isOpenFileLink
+                    (annotation) => annotationNameToAnnotationMap.get(annotation.name)?.isOpenFileLink
                 )
                 .reduce(
                     (mapThusFar, annotation) => ({

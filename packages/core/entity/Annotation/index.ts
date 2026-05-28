@@ -1,4 +1,4 @@
-import { get as _get, sortBy } from "lodash";
+import { get as _get, isObject, sortBy } from "lodash";
 
 import AnnotationName from "./AnnotationName";
 import annotationFormatterFactory, {
@@ -168,12 +168,8 @@ export default class Annotation {
     }
 
     /**
-     * Get the annotation this instance represents from a given FmsFile. An annotation on an FmsFile
-     * can either be at the "top-level" of the document or it can be within it's "annotations" list.
-     * A "top-level" annotation is expected to be basic file info, like size, name, path on disk, etc.
-     * An annotation within the "annotations" list can be absolutely anything--it conforms to the interface:
-     * { annotation_name: str, values: any[] }.
-     *
+     * Given a FileDetail, extract the value(s) of this annotation from that file and return a string
+     * suitable for display in the UI. Handles missing values and nested annotations gracefully.
      *
      * E.g., given an FmsFile that looks like:
      *  const fmsFile = { "file_size": 50 }
@@ -181,32 +177,20 @@ export default class Annotation {
      *  const displayValue = fileSizeAnnotation.extractFromFile(fmsFile); // ~= "50B"
      */
     public extractFromFile(file: FileDetail): string {
-        let value: string | undefined | any[];
-
-        if (file.details.hasOwnProperty(this.name)) {
-            // "top-level" annotation
-            value = _get(file.details, this.name, Annotation.MISSING_VALUE);
-        } else {
-            // part of the "annotations" list
-            const correspondingAnnotation = file.getAnnotation(this.name);
-            if (!correspondingAnnotation) {
-                value = Annotation.MISSING_VALUE;
-            } else {
-                value = correspondingAnnotation.values;
-            }
-        }
-
-        if (value === Annotation.MISSING_VALUE || value === null) {
+        const values = file.getAnnotation(this.name);
+        if (values === undefined || values === null || values.length < 1) {
             return Annotation.MISSING_VALUE;
         }
 
-        if (Array.isArray(value)) {
-            return value
-                .map((val) => this.formatter.displayValue(val, this.annotation.units))
-                .join(Annotation.SEPARATOR);
+        // Nested annotations are plain objects, so if we check for that
+        // we can display a special value for them instead of trying to display the object itself
+        if (isObject(values[0])) {
+            // For nested annotations, we want to show the number of entries
+            // in the nested object rather than trying to display the object itself
+            return `${values.length} ${values.length === 1 ? "entry" : "entries"}`;
         }
 
-        return this.formatter.displayValue(value, this.annotation.units);
+        return this.joinValuesForDisplay(values as AnnotationValue[]);
     }
 
     /**
@@ -214,6 +198,12 @@ export default class Annotation {
      */
     public getDisplayValue(value: AnnotationValue): string {
         return this.formatter.displayValue(value, this.annotation.units);
+    }
+
+    public joinValuesForDisplay(values: AnnotationValue[]): string {
+        return values
+            .map((value) => this.getDisplayValue(value))
+            .join(Annotation.SEPARATOR);
     }
 
     /**

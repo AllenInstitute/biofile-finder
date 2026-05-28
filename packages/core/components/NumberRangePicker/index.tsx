@@ -12,7 +12,7 @@ import { AnnotationValue } from "../../services/AnnotationService";
 import styles from "./NumberRangePicker.module.css";
 
 export interface ListItem {
-    displayValue: AnnotationValue;
+    displayValue: React.ReactNode;
     value: AnnotationValue;
 }
 
@@ -40,10 +40,10 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
     const { errorMessage, items, loading, onSearch, currentRange, units } = props;
 
     const overallMin = React.useMemo(() => {
-        return items[0]?.displayValue.toString() ?? "";
+        return items[0]?.value.toString() ?? "";
     }, [items]);
     const overallMax = React.useMemo(() => {
-        return items.at(-1)?.displayValue.toString() ?? "";
+        return items.at(-1)?.value.toString() ?? "";
     }, [items]);
 
     const [searchMinValue, setSearchMinValue] = React.useState(

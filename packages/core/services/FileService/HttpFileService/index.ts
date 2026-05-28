@@ -169,7 +169,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public async editFile(
         fileId: string,
         annotationNameToValuesMap: AnnotationNameToValuesMap,
-        annotationNameToAnnotationMap?: Record<string, Annotation>,
+        annotationNameToAnnotationMap?: Map<string, Annotation>,
         user?: string
     ): Promise<void> {
         if (!user) {
@@ -181,7 +181,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         try {
             const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpFileService.BASE_FILE_EDIT_URL}/${fileId}`;
             const annotations = Object.entries(annotationNameToValuesMap).map(([name, values]) => {
-                const annotationId = annotationNameToAnnotationMap?.[name].id;
+                const annotationId = annotationNameToAnnotationMap?.get(name)?.id;
                 if (!annotationId) {
                     throw new Error(
                         `Unable to edit file. Failed to find annotation id for annotation ${name}`

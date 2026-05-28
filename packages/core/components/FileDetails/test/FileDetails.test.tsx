@@ -36,7 +36,7 @@ describe("<FileDetails />", () => {
         // Act
         const { getByTestId, findByText, queryByText } = render(
             <Provider store={store}>
-                <FileDetails fileDetails={fileDetails} />
+                <FileDetails file={fileDetails} />
             </Provider>
         );
 
@@ -74,7 +74,7 @@ describe("<FileDetails />", () => {
         // Act
         const { getByTestId, findByText, queryByText } = render(
             <Provider store={store}>
-                <FileDetails fileDetails={fileDetails} />
+                <FileDetails file={fileDetails} />
             </Provider>
         );
 
@@ -112,7 +112,7 @@ describe("<FileDetails />", () => {
         // Act
         const { findByText, getByTestId, queryByText } = render(
             <Provider store={store}>
-                <FileDetails fileDetails={fileDetails} />
+                <FileDetails file={fileDetails} />
             </Provider>
         );
 
@@ -148,7 +148,7 @@ describe("<FileDetails />", () => {
         // Act
         const { findByText, getByTestId, queryByText } = render(
             <Provider store={store}>
-                <FileDetails fileDetails={fileDetails} />
+                <FileDetails file={fileDetails} />
             </Provider>
         );
         // Assert
@@ -182,7 +182,7 @@ describe("<FileDetails />", () => {
         // Act
         const { getByTestId, getByText, queryByText } = render(
             <Provider store={store}>
-                <FileDetails fileDetails={fileDetails} />
+                <FileDetails file={fileDetails} />
             </Provider>
         );
 

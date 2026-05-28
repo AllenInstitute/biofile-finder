@@ -1,0 +1,20 @@
+.link {
+    color: var(--aqua);
+}
+
+.link:hover {
+    color: var(--bright-aqua);
+}
+
+.value-truncated {
+    min-height: 30px;
+    max-height: 90px;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 4 !important; /* number of lines to show */
+            line-clamp: 4; 
+    -webkit-box-orient: vertical !important;
+    word-wrap: break-word !important;
+}

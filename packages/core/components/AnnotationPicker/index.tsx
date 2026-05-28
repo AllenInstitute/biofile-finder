@@ -143,13 +143,29 @@ export default function AnnotationPicker(props: Props) {
             !selected &&
             props.disableUnavailableAnnotations &&
             unavailableAnnotations.some((u) => u.name === annotation.name);
+
+        // TODO: Avoid relying on dot notation
+        const parts = annotation.displayName.split(".");
+        const displayValue =
+            parts.length > 1 ? (
+                <>
+                    <span style={{ opacity: 0.55 }}>
+                        {parts.slice(0, -1).join(" / ") + " / "}
+                    </span>
+                    {parts[parts.length - 1]}
+                </>
+            ) : (
+                annotation.displayName
+            );
+
         return {
             disabled,
             selected,
             data: annotation,
-            value: annotation.name,
+            // TODO: Should value be annotation.name?
+            value: annotation.displayName,
             description: annotation.description,
-            displayValue: annotation.displayName,
+            displayValue,
             recent: recentAnnotationNames.includes(annotation.name) && !selected,
             loading: props.disableUnavailableAnnotations && areAvailableAnnotationLoading,
         };
@@ -178,41 +194,51 @@ export default function AnnotationPicker(props: Props) {
     const hierarchicalItems: ListItem<Annotation>[] = [];
     for (const ann of topLevelAnnotations) {
         if (!isSelectable(ann)) continue;
-        const hasSubFields = subFieldsByParent.has(ann.name);
-        if (hasSubFields && ann.isNested) {
-            // Parent nested annotation (e.g. "Well"): show as a non-interactive group header.
-            // Selecting the raw JSON column directly is not meaningful for group-by or filtering;
-            // users should pick one of the sub-fields below it instead.
-            hierarchicalItems.push({
-                value: `__header__${ann.name}`,
-                displayValue: ann.displayName,
-                selected: false,
-                disabled: false,
-                isGroupHeader: true,
-                depth: 0,
-                data: undefined,
-            });
+
+        const subFields = subFieldsByParent.get(ann.name);
+        if (subFields) {
+            hierarchicalItems.push(...subFields.map(annotationToListItem));
         } else {
             hierarchicalItems.push(annotationToListItem(ann));
         }
-        if (hasSubFields) {
-            hierarchicalItems.push(
-                ...buildSubFieldItems(
-                    ann.name,
-                    subFieldsByParent.get(ann.name)!,
-                    annotationToListItem
-                )
-            );
-        }
+
+        // const hasSubFields = subFieldsByParent.has(ann.name);
+        // if (hasSubFields && ann.isNested) {
+            // Parent nested annotation (e.g. "Well"): show as a non-interactive group header.
+            // Selecting the raw JSON column directly is not meaningful for group-by or filtering;
+            // users should pick one of the sub-fields below it instead.
+            // hierarchicalItems.push({
+            //     value: `__header__${ann.name}`,
+            //     displayValue: ann.displayName,
+            //     selected: false,
+            //     disabled: false,
+            //     isGroupHeader: true,
+            //     depth: 0,
+            //     data: undefined,
+            // });
+        // } else {
+        //     hierarchicalItems.push(annotationToListItem(ann));
+        // }
+        // if (hasSubFields) {
+        //     hierarchicalItems.push(
+        //         ...buildSubFieldItems(
+        //             ann.name,
+        //             subFieldsByParent.get(ann.name)!,
+        //             annotationToListItem
+        //         )
+        //     );
+        // }
     }
 
     // Recent annotations stay at the top at depth 0 with their full display name.
     const recentItems = recentAnnotations.filter(isSelectable).map((a) => annotationToListItem(a));
 
     const items = uniqBy([...recentItems, ...hierarchicalItems], "value");
+    console.log("items", items);
 
     if (recentAnnotations.length) {
-        items.push(RECENT_ANNOTATIONS_DIVIDER);
+        // TODO: Disabled while causing bugs with nested values
+        // items.push(RECENT_ANNOTATIONS_DIVIDER);
     }
 
     const removeSelection = (item: ListItem<Annotation>) => {

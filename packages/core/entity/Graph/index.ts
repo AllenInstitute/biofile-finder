@@ -1,10 +1,11 @@
 import dagre, { GraphEdge } from "@dagrejs/dagre";
 import { Edge, Node } from "@xyflow/react";
 
+import Annotation from "../Annotation";
 import FileDetail from "../FileDetail";
 import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
-import FileService, { FmsFileAnnotation } from "../../services/FileService";
+import FileService, { FmsFileAnnotation, MetadataValue, PrimitiveMetadataValue } from "../../services/FileService";
 
 const FILE_NODE_WIDTH = 110;
 const FILE_NODE_HEIGHT = 125;
@@ -158,11 +159,11 @@ function createAnnotationEdge(
     file: FileDetail
 ): AnnotationEdge | undefined {
     if (edgeDefinition.relationshipType === "pointer") {
-        const annotation = file.getAnnotation(edgeDefinition.relationship);
-        if (!annotation) return undefined;
+        const value = file.getFirstAnnotationValue(edgeDefinition.relationship);
+        if (!value) return undefined;
         return {
-            name: annotation.name,
-            value: `${annotation.values[0]}`,
+            name: edgeDefinition.relationship,
+            value: String(value),
             parent: edgeDefinition.parent.name,
             child: edgeDefinition.child.name,
         };
@@ -477,8 +478,8 @@ export default class Graph {
         // Annotation may not exist on this file, this could happen
         // for some files for which there shouldn't be an edge connecting
         // to this file for that annotation
-        const annotation = thisNode.data.file.getAnnotation(edgeNode.name);
-        if (!annotation) {
+        const annotationValues = thisNode.data.file.getAnnotation(edgeNode.name);
+        if (!annotationValues) {
             return [];
         }
         // The Node could be a file such as when an annotation points to another
@@ -487,18 +488,21 @@ export default class Graph {
         // model that generated the current node ("thisNode")
         const isNodeAFile = edgeNode.type === "file";
         if (!isNodeAFile) {
-            return [this.createMetadataNode(thisNode.data.file, annotation)];
+            return [this.createMetadataNode(thisNode.data.file, edgeNode.name, annotationValues)];
         }
 
         return Promise.all(
-            (annotation.values as string[]).map(async (fileId) => {
-                // Avoid re-requesting the file when possible
-                const node = this.graph.node(fileId);
-                if (node) return node;
-                const file = await this.getFileById(fileId);
-                if (file) return createFileNode(file);
-                throw new Error(`Unable to find file ${fileId}`);
-            })
+            annotationValues
+                // Only string values can be file IDs, so filter out any non-string values that might be in the annotation
+                .map((value) => String(value))
+                .map(async (fileId) => {
+                    // Avoid re-requesting the file when possible
+                    const node = this.graph.node(fileId);
+                    if (node) return node;
+                    const file = await this.getFileById(fileId);
+                    if (file) return createFileNode(file);
+                    throw new Error(`Unable to find file ${fileId}`);
+                })
         );
     }
 
@@ -589,17 +593,17 @@ export default class Graph {
      * to create two distinct metadata nodes that are "A4" rather than a singular
      * "A4" node with two parents.
      */
-    private createMetadataNode(file: FileDetail, annotation: FmsFileAnnotation): MetadataNode {
-        const id = [...(this.childToAncestorsMap[annotation.name] || []), annotation.name]
+    private createMetadataNode(file: FileDetail, key: string, values: MetadataValue): MetadataNode {
+        const id = [...(this.childToAncestorsMap[key] || []), key]
             .map(
                 (annotationName) =>
-                    `${annotationName}: ${file.getAnnotation(annotationName)?.values?.join(", ")}`
+                    `${annotationName}: ${file.getAnnotation(annotationName)?.join(Annotation.SEPARATOR)}`
             )
             .join("-");
         return {
             id,
             data: {
-                annotation,
+                annotation: { name: key, values: values as PrimitiveMetadataValue[] },
                 file: undefined,
                 isSelected: false,
             },
