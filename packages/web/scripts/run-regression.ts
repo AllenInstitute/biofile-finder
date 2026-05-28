@@ -15,6 +15,7 @@ function testCaseKey(sources: ParquetSource[]): string {
     return sources.map((s) => s.label).join("+");
 }
 
+// Task names from benchmark/src/tasks.ts that are too slow for the fast benchmark.
 const SKIP_LARGE_TASKS = new Set(["sort_file_list_large_page"]);
 
 const FIXTURES_DIR = path.join(__dirname, "..", "fixtures");
