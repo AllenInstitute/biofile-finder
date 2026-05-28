@@ -158,7 +158,7 @@ export async function runBenchmarkPage({
     iterations?: number;
     warmupRounds?: number;
     channel?: string;
-}) {
+}): Promise<BenchmarkResults> {
     if (!skipBuild) buildBenchmark();
 
     if (!fs.existsSync(path.join(DIST_DIR, "index.html"))) {
