@@ -338,7 +338,7 @@ async function runInBrowser({
 async function injectFixtures(page: Page, testCases: TestCase[]) {
     const loaded = new Set<string>();
     for (const source of testCases.flat()) {
-        if (loaded.has(source.label)) continue;
+        if (loaded.has(source.label)) continue; // Don't add duplicate sources
         const localMatch = source.url.match(new RegExp(`^http://localhost:${PORT}/fixtures/(.+)$`));
         if (!localMatch) continue;
         const fixturePath = path.join(FIXTURES_DIR, localMatch[1]);
