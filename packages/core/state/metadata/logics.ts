@@ -75,15 +75,20 @@ const receiveAnnotationsLogic = createLogic({
             new Set<string>()
         );
         // Filter out any columns that were selected for display that no longer
-        // exist as annotations in the data source
-        const columnsThatStillExist = currentColumns.filter((column) =>
-            annotationNamesInDataSource.has(column.name)
+        // exist as annotations in the data source (or are nested parent columns)
+        const nestedParentNames = new Set(
+            annotations.filter((a) => a.isParent).map((a) => a.name)
+        );
+        const columnsThatStillExist = currentColumns.filter(
+            (column) =>
+                annotationNamesInDataSource.has(column.name) &&
+                !nestedParentNames.has(column.name)
         );
         const columnNamesThatStillExist = columnsThatStillExist.map((column) => column.name);
 
         // Grab the first countOfColumnsToShow annotations as columns based on the following priority:
         // 1) Was already a column
-        // 2) Is just in the data source
+        // 2) Is just in the data source (excluding nested parents — only leaves are shown)
         const countOfColumnsToShow = Math.max(4, columnsThatStillExist.length);
         const remainingMaxWidth = columnsThatStillExist.reduce(
             (remainingWidth, column) => remainingWidth - column.width,
@@ -92,7 +97,11 @@ const receiveAnnotationsLogic = createLogic({
         const columns = [
             ...columnsThatStillExist,
             ...annotations
-                .filter((annotation) => !columnNamesThatStillExist.includes(annotation.name))
+                .filter(
+                    (annotation) =>
+                        !columnNamesThatStillExist.includes(annotation.name) &&
+                        !annotation.isParent
+                )
                 .slice(0, countOfColumnsToShow - columnsThatStillExist.length)
                 .map((annotation) => ({
                     name: annotation.name,
@@ -120,20 +129,16 @@ const receiveAnnotationsLogic = createLogic({
         const annotationTypeByName = new Map(
             annotations.map((annotation) => [annotation.name, annotation.type as AnnotationType])
         );
-        const enrichedFilters = currentFilters.map((filter) =>
-            filter.annotationType
-                ? filter
-                : new FileFilter(
-                      filter.name,
-                      filter.value,
-                      filter.type,
-                      annotationTypeByName.get(filter.name)
-                  )
+        const enrichedFilters = currentFilters.map(
+            (filter) =>
+                new FileFilter(
+                    filter.path,
+                    filter.value,
+                    filter.type,
+                    annotationTypeByName.get(filter.name)
+                )
         );
-        const hasEnrichedFilters = enrichedFilters.some(
-            (filter, i) => filter !== currentFilters[i]
-        );
-        if (hasEnrichedFilters) {
+        if (enrichedFilters.length > 0) {
             dispatch(selection.actions.setFileFilters(enrichedFilters));
         }
 
@@ -276,7 +281,7 @@ const storeNewAnnotationLogic = createLogic({
             Object.values(AnnotationTypeIdMap).find((id) => id === annotation.annotationTypeId) ||
             AnnotationType.STRING;
         const newMmsAnnotation = new Annotation({
-            annotationName: annotation.name,
+            path: [annotation.name],
             annotationDisplayName: annotation.name,
             annotationId: annotation.annotationId,
             description: annotation.description,

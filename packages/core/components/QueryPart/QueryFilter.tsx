@@ -22,7 +22,7 @@ export default function QueryFilter(props: Props) {
     const dispatch = useDispatch();
 
     const filtersGroupedByName = useSelector(selection.selectors.getGroupedByFilterName);
-    const annotationNameToAnnotationMap = useSelector(
+    const pathToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
 
@@ -45,13 +45,13 @@ export default function QueryFilter(props: Props) {
                     annotationSubMenuRenderer={(annotationItem) => (
                         <AnnotationFilterForm annotation={annotationItem.data as Annotation} />
                     )}
-                    selections={props.filters.map((filter) => filter.name)}
+                    selections={props.filters.map((filter) => filter.path)}
                     setSelections={() => dispatch(selection.actions.setFileFilters([]))}
                 />
             )}
             onRenderEditMenuList={(item) => (
                 <AnnotationFilterForm
-                    annotation={annotationNameToAnnotationMap[item.id] as Annotation}
+                    annotation={pathToAnnotationMap.get(item.id) as Annotation}
                 />
             )}
             rows={Object.entries(filtersGroupedByName).map(([annotationName, filters]) => {
@@ -61,11 +61,13 @@ export default function QueryFilter(props: Props) {
                 else if (filters[0].type === FilterType.EXCLUDE) operator = "NO VALUE";
                 else if (filters[0].type === FilterType.FUZZY) operator = "CONTAINS";
 
+                const annotation = pathToAnnotationMap.get(annotationName);
+                const displayName = (annotation?.path ?? [annotationName]).join(" / ");
                 const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
                 return {
                     id: filters[0].name,
-                    title: `${annotationName} ${operator} ${valueDisplay}`,
-                    description: annotationNameToAnnotationMap[annotationName]?.description,
+                    title: `${displayName} ${operator} ${valueDisplay}`,
+                    description: annotation?.description,
                 };
             })}
         />

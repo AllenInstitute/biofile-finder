@@ -215,6 +215,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
         dataSourceNames: string[],
         metadataSource?: Source
     ): Promise<Annotation[]> {
+        // TODO: Does the underlying version of this in DatabaseService ever get called???
         if (!this.ready) {
             throw new Error("Database failed to initialize in fetchAnnotations");
         }
@@ -240,6 +241,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
         });
         const wrappedPromise = promise.then((result) =>
             result.map((row) => {
+                console.log("Annotation row:", row); // TODO: Remove
                 return new Annotation(row);
             })
         );

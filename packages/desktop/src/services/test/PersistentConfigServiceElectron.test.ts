@@ -126,7 +126,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 [PersistedConfigKeys.DisplayAnnotations]: [
                     {
                         annotationDisplayName: "Foo",
-                        annotationName: "foo",
+                        path: ["foo"],
                         description: "foo-long",
                         type: AnnotationType.STRING,
                         units: "string",

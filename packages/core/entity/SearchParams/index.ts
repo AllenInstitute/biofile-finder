@@ -55,7 +55,7 @@ DATE_LAST_MONTH.setMonth(BEGINNING_OF_TODAY.getMonth() - 1);
 const DATE_LAST_WEEK = new Date(BEGINNING_OF_TODAY);
 DATE_LAST_WEEK.setDate(BEGINNING_OF_TODAY.getDate() - 7);
 export const PAST_YEAR_FILTER = new FileFilter(
-    AnnotationName.UPLOADED,
+    [AnnotationName.UPLOADED],
     `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
 );
 export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
@@ -246,8 +246,11 @@ export default class SearchParams {
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
                 .map(
-                    (parsedFilter) =>
-                        new FileFilter(parsedFilter.name, parsedFilter.value, parsedFilter.type)
+                    (parsedFilter) => {
+                        // Support both new format {path: [...]} and legacy format {name}
+                        const path = parsedFilter.path ?? [parsedFilter.name];
+                        return new FileFilter(path, parsedFilter.value, parsedFilter.type);
+                    }
                 ),
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))

@@ -69,3 +69,7 @@
     margin-left: auto;
     padding-left: 6px;
 }
+
+.breadcrumbs {
+    opacity: 0.55;
+}

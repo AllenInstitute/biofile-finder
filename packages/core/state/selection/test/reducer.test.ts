@@ -57,7 +57,7 @@ describe("Selection reducer", () => {
                     index: 4,
                     sortOrder: 3,
                 }),
-                filters: [new FileFilter("file_id", "1238401234")],
+                filters: [new FileFilter(["file_id"], "1238401234")],
                 openFileFolders: [new FileFolder(["AICS-11"])],
             };
             const dataSources: DataSource[] = [
@@ -93,7 +93,7 @@ describe("Selection reducer", () => {
                 ...selection.initialState,
                 annotationHierarchy: ["Cell Line"],
                 columns: [{ name: "file_id", width: 0.5 }],
-                filters: [new FileFilter("file_id", "1238401234")],
+                filters: [new FileFilter(["file_id"], "1238401234")],
                 fileView: FileView.LIST,
                 openFileFolders: [new FileFolder(["AICS-11"])],
                 shouldShowNullGroups: false,
@@ -153,7 +153,7 @@ describe("Selection reducer", () => {
                 Environment.TEST
             );
             const fileSet = new FileSet({
-                filters: [new FileFilter("foo", "bar")],
+                filters: [new FileFilter(["foo"], "bar")],
             });
             const prevSelection = new FileSelection().select({
                 fileSet: fileSet,
@@ -223,8 +223,8 @@ describe("Selection reducer", () => {
                 filters: [],
             };
             const expectedFileFilters = [
-                new FileFilter("Cell Line", "AICS-0"),
-                new FileFilter("Date Created", "02/14/24"),
+                new FileFilter(["Cell Line"], "AICS-0"),
+                new FileFilter(["Date Created"], "02/14/24"),
             ];
             const action = selection.actions.setFileFilters(expectedFileFilters);
 
@@ -244,7 +244,7 @@ describe("Selection reducer", () => {
             // Arrange
             const initialSelectionState = {
                 ...selection.initialState,
-                filters: [new FileFilter("Date Created", "01/01/01")],
+                filters: [new FileFilter(["Date Created"], "01/01/01")],
                 fileSelection: new FileSelection().select({
                     fileSet: new FileSet(),
                     index: 4,
@@ -253,7 +253,7 @@ describe("Selection reducer", () => {
             };
 
             const action = selection.actions.setFileFilters([
-                new FileFilter("Cell Line", "AICS-0"),
+                new FileFilter(["Cell Line"], "AICS-0"),
             ]);
 
             // Act

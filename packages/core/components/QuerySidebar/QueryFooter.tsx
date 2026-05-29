@@ -30,7 +30,7 @@ export default function QueryFooter(props: Props) {
     const url = useSelector(selection.selectors.getEncodedSearchParams);
     const combinedFilters = React.useMemo(() => {
         const groupByFilters = props.queryComponents.hierarchy.map(
-            (annotationName) => new IncludeFilter(annotationName)
+            (annotationName) => new IncludeFilter(annotationName.split("."))
         );
         return [...props.queryComponents.filters, ...groupByFilters];
     }, [props.queryComponents.filters, props.queryComponents.hierarchy]);

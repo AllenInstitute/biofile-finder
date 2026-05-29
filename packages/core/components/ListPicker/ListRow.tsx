@@ -15,7 +15,8 @@ export interface ListItem<T = any> {
     recent?: boolean;
     isDivider?: boolean;
     selected: boolean;
-    displayValue: AnnotationValue;
+    breadcrumbs?: string[]; // optional array of strings to show as breadcrumbs to the left of the item
+    // displayValue: React.ReactNode;
     value: AnnotationValue;
     description?: string;
     data?: T; // optional "user data" to stash on a list item to retrieve later
@@ -44,8 +45,9 @@ export default function ListRow(props: Props) {
         return null;
     }
 
+    const breadcrumbs = item.breadcrumbs ? `${item.breadcrumbs.join(" / ")} / ` : "";
     return (
-        <Tooltip content={`${item.displayValue}${item.description ? `: ${item.description}` : ""}`}>
+        <Tooltip content={`${breadcrumbs}${item.value}${item.description ? `: ${item.description}` : ""}`}>
             <DefaultButton
                 className={classNames(styles.itemContainer, {
                     [styles.selected]: item.selected,
@@ -56,13 +58,13 @@ export default function ListRow(props: Props) {
                     iconName: props.subMenuRenderer && !item.isDivider ? "ChevronRight" : undefined,
                 }}
                 menuProps={props.subMenuRenderer ? buttonMenu : undefined}
-                data-testid={`default-button-${item.displayValue}`}
+                data-testid={`default-button-${item.value}`}
                 disabled={item.disabled}
                 onClick={() => (item.selected ? props.onDeselect(item) : props.onSelect(item))}
             >
                 <label className={styles.item}>
                     <div>{item.selected && <Icon iconName="CheckMark" />}</div>
-                    <p>{item.displayValue}</p>
+                    <p><span className={styles.breadcrumbs}>{breadcrumbs}</span>{item.value}</p>
                 </label>
                 {item.recent && <Icon iconName="Recent" />}
                 {item.loading && <LoadingIcon invertColor={!item.selected} />}

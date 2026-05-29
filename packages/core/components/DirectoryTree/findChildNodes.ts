@@ -42,18 +42,23 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     let values: string[] = [];
 
     const depth = pathToNode.length;
-    const annotationNameAtDepth = hierarchy[depth];
+    // TODO: stop relying on dot notation
+    const annotationAtDepth = hierarchy[depth].split(".").slice(-1)[0];
     let noValueFileCount = 0;
     if (shouldShowNullGroups) {
+        // Look up annotation metadata for nested sub-field support
+        const annotation = (await annotationService.fetchAnnotations())
+            .find((annotation) => annotation.name === annotationAtDepth);
+
         // Check whether we should include the 'no value' folder by getting a count
         noValueFileCount = await fileService.getCountOfMatchingFiles(
             new FileSet({
                 fileService,
-                filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
+                filters: [...fileSet.filters, new ExcludeFilter(annotation?.path ?? [annotationAtDepth])],
             })
         );
     }
-    if (fileSet.excludeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
+    if (fileSet.excludeFilters?.some((filter) => filter.name === annotationAtDepth)) {
         // User does not want files with this annotation; don't return any non-null values.
         return shouldShowNullGroups && noValueFileCount > 0 ? [NO_VALUE_NODE] : [];
     }
@@ -61,7 +66,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     const userSelectedFiltersForCurrentAnnotation = fileSet.filters
         .filter(
             (filter) =>
-                filter.name === annotationNameAtDepth &&
+                filter.name === annotationAtDepth &&
                 !filter.value.toString().includes("RANGE") && // 'RANGE' filters are handled by the value fetching endpoint
                 filter.type !== FilterType.ANY // 'Include' filters have a blank value and shouldn't be counted here
         )
@@ -71,7 +76,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
         // Fetch all values under current node, ignoring past hierarchy
         // Including the full hierarchy would filter out files that miss any part of the hierarchy
         values = await annotationService.fetchRootHierarchyValues(
-            [annotationNameAtDepth],
+            [annotationAtDepth],
             fileSet.filters
         );
     } else if (isRoot) {
@@ -88,7 +93,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     let filteredValues = values;
     // If specific value filter(s) are selected for this annotation, we should only use the selected values
     if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
-        if (fileSet.fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)) {
+        if (fileSet.fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationAtDepth)) {
             filteredValues = values.filter((value) =>
                 // If a user applies a fuzzy filter to an annotation, they can't add any other filters for it
                 value.includes(userSelectedFiltersForCurrentAnnotation[0])

@@ -54,7 +54,7 @@ describe("FileSelection", () => {
             // Arrange
             const fileSet1 = new FileSet();
             const fileSet2 = new FileSet({
-                filters: [new FileFilter("Workflow", "Pipeline 10000")],
+                filters: [new FileFilter(["Workflow"], "Pipeline 10000")],
             });
             const previouslySelectedRange = new NumericRange(30, 60);
             const newlySelectedRange = new NumericRange(4, 100);
@@ -114,10 +114,10 @@ describe("FileSelection", () => {
             // Arrange
             const fileSet1 = new FileSet();
             const fileSet2 = new FileSet({
-                filters: [new FileFilter("foo", "bar")],
+                filters: [new FileFilter(["foo"], "bar")],
             });
             const fileSet3 = new FileSet({
-                filters: [new FileFilter("foo", "bar"), new FileFilter("something", "other")],
+                filters: [new FileFilter(["foo"], "bar"), new FileFilter(["something"], "other")],
             });
 
             const selection = new FileSelection()
@@ -384,7 +384,7 @@ describe("FileSelection", () => {
     describe("focus", () => {
         const fileSet1 = new FileSet();
         const fileSet2 = new FileSet({
-            filters: [new FileFilter("Cell Line", "AICS-12")],
+            filters: [new FileFilter(["Cell Line"], "AICS-12")],
         });
         const baseSelection = new FileSelection()
             .select({ fileSet: fileSet1, index: new NumericRange(4, 100), sortOrder: 0 })
@@ -494,7 +494,7 @@ describe("FileSelection", () => {
             // Arrange
             const fileSet1 = new FileSet();
             const fileSet2 = new FileSet({
-                filters: [new FileFilter("foo", "bar")],
+                filters: [new FileFilter(["foo"], "bar")],
             });
             const prevSelection = new FileSelection()
                 .select({ fileSet: fileSet1, index: new NumericRange(3, 10), sortOrder: 0 })
@@ -528,7 +528,7 @@ describe("FileSelection", () => {
             // Arrange
             const fileSet1 = new FileSet();
             const fileSet2 = new FileSet({
-                filters: [new FileFilter("foo", "bar")],
+                filters: [new FileFilter(["foo"], "bar")],
             });
             const prevSelection = new FileSelection()
                 .select({ fileSet: fileSet1, index: new NumericRange(3, 10), sortOrder: 0 })
@@ -560,7 +560,7 @@ describe("FileSelection", () => {
             // Arrange
             const selectedFileSet = new FileSet();
             const notSelectedFileSet = new FileSet({
-                filters: [new FileFilter("foo", "bar")],
+                filters: [new FileFilter(["foo"], "bar")],
             });
             const selection = new FileSelection().select({
                 fileSet: selectedFileSet,
@@ -576,8 +576,8 @@ describe("FileSelection", () => {
     });
 
     describe("size", () => {
-        const pipeline4_4 = new FileFilter("Workflow", "Pipeline 4.4");
-        const aics12 = new FileFilter("Cell Line", "AICS-12");
+        const pipeline4_4 = new FileFilter(["Workflow"], "Pipeline 4.4");
+        const aics12 = new FileFilter(["Cell Line"], "AICS-12");
         const fileSet1 = new FileSet();
         const fileSet2 = new FileSet({
             filters: [aics12],
@@ -627,7 +627,7 @@ describe("FileSelection", () => {
             // Arrange
             const fileSet1 = new FileSet();
             const fileSet2 = new FileSet({
-                filters: [new FileFilter("foo", "bar")],
+                filters: [new FileFilter(["foo"], "bar")],
             });
             const selection = new FileSelection()
                 .select({ fileSet: fileSet1, index: 3, sortOrder: 0 })
@@ -684,11 +684,11 @@ describe("FileSelection", () => {
             const fileSet1 = new FileSet();
             const fileSet2 = new FileSet({
                 filters: [
-                    new FileFilter("filterName", "filterValue"),
+                    new FileFilter(["filterName"], "filterValue"),
                     new FuzzyFilter(fuzzyFilterNames[0], fuzzyFilterValues[0]),
                     new FuzzyFilter(fuzzyFilterNames[1], fuzzyFilterValues[1]),
-                    new IncludeFilter(includeFilterName),
-                    new ExcludeFilter(excludeFilterName),
+                    new IncludeFilter([includeFilterName]),
+                    new ExcludeFilter([excludeFilterName]),
                 ],
             });
             const selection = new FileSelection()

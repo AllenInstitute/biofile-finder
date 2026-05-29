@@ -263,13 +263,13 @@ const modifyFileFilters = createLogic({
                 case FilterType.ANY:
                 case FilterType.EXCLUDE:
                     const newFilter = new FileFilter(
-                        action.payload.annotationName,
+                        action.payload.path,
                         "",
                         action.payload.type
                     );
                     nextFilters = [
                         ...previousFilters.filter(
-                            (filter) => filter.name !== action.payload.annotationName
+                            (filter) => filter.path !== action.payload.path
                         ),
                         newFilter,
                     ];
@@ -281,13 +281,13 @@ const modifyFileFilters = createLogic({
                     nextFilters = previousFilters
                         .filter((filter) => {
                             return !(
-                                filter.name === action.payload.annotationName &&
+                                filter.path === action.payload.path &&
                                 (filter.type === FilterType.ANY ||
                                     filter.type === FilterType.EXCLUDE)
                             );
                         })
                         .map((filter) => {
-                            if (filter.name === action.payload.annotationName) {
+                            if (filter.path === action.payload.path) {
                                 filter.type = action.payload.type;
                             }
                             return filter;
@@ -438,7 +438,15 @@ const decodeSearchParamsLogics = createLogic({
         batch(() => {
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
-            columns && dispatch(setColumns(columns));
+            if (columns) {
+                const allAnnotations = metadata.selectors.getAnnotations(deps.getState());
+                const nestedParentNames = new Set(
+                    allAnnotations.filter((a) => a.isParent).map((a) => a.name)
+                );
+                dispatch(
+                    setColumns(columns.filter((col) => !nestedParentNames.has(col.name)))
+                );
+            }
             dispatch(setFileFilters(filters));
             fileView && dispatch(setFileView(fileView) as AnyAction);
             dispatch(setOpenFileFolders(openFolders));
@@ -465,6 +473,15 @@ const selectNearbyFile = createLogic({
         const hierarchy = selectionSelectors.getAnnotationHierarchy(deps.getState());
         const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
         const sortColumn = selectionSelectors.getSortColumn(deps.getState());
+        const annotations = metadata.selectors.getAnnotations(deps.getState());
+        const annotationMetaMap = new Map(annotations.map((a) => [a.name, a]));
+
+        // Build a correct FileFilter for a hierarchy annotation, using nested SQL when needed.
+        const makeHierarchyFilter = (name: string, filterValue: AnnotationValue): FileFilter => {
+            const meta = annotationMetaMap.get(name);
+            const path = meta?.path ?? name.split(".");
+            return new FileFilter(path, filterValue);
+        };
 
         const openFileListPaths = openFileFolders.filter(
             (fileFolder) => fileFolder.size() === hierarchy.length
@@ -513,8 +530,8 @@ const selectNearbyFile = createLogic({
                     // needed to open the file folder
                     filters: sortedOpenFileListPaths[
                         fileListIndexAboveCurrentFileList
-                    ].fileFolder.map(
-                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
+                    ].fileFolder.map((filterValue, index) =>
+                        makeHierarchyFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });
@@ -550,8 +567,8 @@ const selectNearbyFile = createLogic({
                     // needed to open the file folder
                     filters: sortedOpenFileListPaths[
                         fileListIndexBelowCurrentFileList
-                    ].fileFolder.map(
-                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
+                    ].fileFolder.map((filterValue, index) =>
+                        makeHierarchyFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });

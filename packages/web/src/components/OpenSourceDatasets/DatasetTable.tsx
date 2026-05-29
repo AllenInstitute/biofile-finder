@@ -30,7 +30,7 @@ interface DatasetTableProps {
 
 export default function DatasetTable(props: DatasetTableProps) {
     const [sortColumn, setSortColumn] = React.useState<FileSort | undefined>(
-        new FileSort(DatasetAnnotations.INDEX.displayLabel, SortOrder.ASC)
+        new FileSort([DatasetAnnotations.INDEX.displayLabel], SortOrder.ASC)
     );
     const columns = DATASET_TABLE_FIELDS.map(
         (value, index): IColumn => {
@@ -40,9 +40,9 @@ export default function DatasetTable(props: DatasetTableProps) {
                 fieldName: value.name,
                 isResizable: true,
                 minWidth: value?.minWidth,
-                isSorted: sortColumn?.annotationName == value.displayLabel,
+                isSorted: sortColumn?.path == value.path,
                 isSortedDescending: sortColumn?.order == SortOrder.DESC,
-                onColumnClick: () => onColumnClick(value.displayLabel),
+                onColumnClick: () => onColumnClick(value.path),
             };
         }
     );
@@ -107,9 +107,9 @@ export default function DatasetTable(props: DatasetTableProps) {
         return <div className={styles.doubleLine}>{fieldContent}</div>;
     }
 
-    function onColumnClick(columnName: string) {
+    function onColumnClick(columnName: string[]) {
         let sortOrder = SortOrder.ASC;
-        if (sortColumn?.annotationName == columnName)
+        if (sortColumn?.path == columnName)
             sortOrder = sortColumn.order == SortOrder.DESC ? SortOrder.ASC : SortOrder.DESC;
         const newSortColumn = new FileSort(columnName, sortOrder);
         setSortColumn(newSortColumn);

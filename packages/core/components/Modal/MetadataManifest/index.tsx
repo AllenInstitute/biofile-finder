@@ -46,8 +46,8 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
             </p>
             <AnnotationPicker
                 hasSelectAllCapability
-                selections={selectedAnnotations}
-                setSelections={setSelectedAnnotations}
+                selections={selectedAnnotations.map((a) => a.split("."))}
+                setSelections={(annotations) => setSelectedAnnotations(annotations.map((a) => a.join(".")))}
                 className={styles.listPicker}
             />
         </div>

@@ -115,15 +115,15 @@ describe("<DatasetTable />", () => {
         );
 
         const mockFileSortAsc = new FileSort(
-            DatasetAnnotations.DATASET_NAME.displayLabel,
+            [DatasetAnnotations.DATASET_NAME.displayLabel],
             SortOrder.ASC
         );
         const mockFileSortDesc = new FileSort(
-            DatasetAnnotations.DATASET_NAME.displayLabel,
+            [DatasetAnnotations.DATASET_NAME.displayLabel],
             SortOrder.DESC
         );
         const mockFileSortAscCount = new FileSort(
-            DatasetAnnotations.FILE_COUNT.displayLabel,
+            [DatasetAnnotations.FILE_COUNT.displayLabel],
             SortOrder.ASC
         );
 

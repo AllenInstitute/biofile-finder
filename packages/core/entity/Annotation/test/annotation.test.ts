@@ -11,7 +11,7 @@ import FileDetail from "../../FileDetail";
 describe("Annotation", () => {
     const annotationResponse = Object.freeze({
         annotationDisplayName: "Date uploaded",
-        annotationName: AnnotationName.UPLOADED,
+        path: [AnnotationName.UPLOADED],
         description: "Date the file was uploaded",
         type: AnnotationType.DATETIME,
     });
@@ -19,7 +19,7 @@ describe("Annotation", () => {
     describe("sort", () => {
         const asdf = new Annotation({
             annotationDisplayName: "asdf", // n.b.: lower case
-            annotationName: "asdf",
+            path: ["asdf"],
             description: "asdf",
             type: AnnotationType.STRING,
         });
@@ -31,14 +31,14 @@ describe("Annotation", () => {
 
         const cellLine = new Annotation({
             annotationDisplayName: "Cell Line",
-            annotationName: "Cell Line",
+            path: ["Cell Line"],
             description: "Cell line",
             type: AnnotationType.STRING,
         });
 
         const gene = new Annotation({
             annotationDisplayName: "Gene",
-            annotationName: "Gene",
+            path: ["Gene"],
             description: "Gene",
             type: AnnotationType.STRING,
         });
@@ -94,7 +94,7 @@ describe("Annotation", () => {
         it("gets the display value for a non-top-level annotation it represents from a given FmsFile", () => {
             const someDateAnnotation = {
                 annotationDisplayName: "Some Date",
-                annotationName: "someDateAnnotation",
+                path: ["someDateAnnotation"],
                 description: "Some date",
                 type: AnnotationType.DATETIME,
             };
@@ -125,7 +125,7 @@ describe("Annotation", () => {
         it("returns a MISSING_VALUE sentinel if the given FmsFile does not have the annotation", () => {
             const missingAnnotation = {
                 annotationDisplayName: "Nothing Here",
-                annotationName: "Nothing Here",
+                path: ["Nothing Here"],
                 description: "Nothing Here",
                 type: AnnotationType.STRING,
             };

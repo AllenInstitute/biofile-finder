@@ -81,6 +81,17 @@
     width: min-content;
 }
 
+.title-prefix {
+    opacity: 0.55;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 60%;
+    padding-right: 3px;
+    vertical-align: bottom;
+    white-space: nowrap;
+}
+
 .dynamic-row-title.shortened-row-title {
     max-width: calc(100% - 44px);
 }

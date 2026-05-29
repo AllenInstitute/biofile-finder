@@ -219,7 +219,7 @@ describe("<Query />", () => {
             const multiValueFilterName = "Colors";
             const multiValueList = ["red", "blue", "green"];
             const filters = multiValueList.map(
-                (color) => new FileFilter(multiValueFilterName, color)
+                (color) => new FileFilter([multiValueFilterName], color)
             );
 
             // Act
@@ -253,8 +253,8 @@ describe("<Query />", () => {
             const dateRangeFilterName = "Uploaded";
             const numberRangeFilterName = "Count";
             const filters = [
-                new FileFilter(dateRangeFilterName, `RANGE(${new Date(0)},${new Date()})`),
-                new FileFilter(numberRangeFilterName, `RANGE(0.123,45.678)`),
+                new FileFilter([dateRangeFilterName], `RANGE(${new Date(0)},${new Date()})`),
+                new FileFilter([numberRangeFilterName], `RANGE(0.123,45.678)`),
             ];
 
             // Act
@@ -290,10 +290,10 @@ describe("<Query />", () => {
             const filterName2 = "Also not a range filter";
 
             const filters = [
-                new FileFilter(filterName1, `RANGE`),
-                new FileFilter(filterName1, "RANGE(oops"),
-                new FileFilter(filterName1, "RANGEoops2)"),
-                new FileFilter(filterName2, `STRANGE(1,2)`),
+                new FileFilter([filterName1], `RANGE`),
+                new FileFilter([filterName1], "RANGE(oops"),
+                new FileFilter([filterName1], "RANGEoops2)"),
+                new FileFilter([filterName2], `STRANGE(1,2)`),
             ];
 
             // Act
@@ -328,8 +328,8 @@ describe("<Query />", () => {
             const includeFilterName = "Filter A";
             const excludeFilterName = "Filter B";
             const filters = [
-                new IncludeFilter(includeFilterName),
-                new ExcludeFilter(excludeFilterName),
+                new IncludeFilter([includeFilterName]),
+                new ExcludeFilter([excludeFilterName]),
             ];
 
             // Act

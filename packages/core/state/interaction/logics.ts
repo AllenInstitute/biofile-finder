@@ -615,7 +615,7 @@ const editFilesLogic = createLogic({
         const hasUnsavedChanges = interaction.selectors.getHasUnsavedChanges(deps.getState());
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
         const sortColumn = selection.selectors.getSortColumn(deps.getState());
-        const annotationNameToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
+        const pathToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
             deps.getState()
         );
         const {
@@ -671,7 +671,7 @@ const editFilesLogic = createLogic({
                     (fileId) =>
                         new Promise<void>(async (resolve, reject) => {
                             fileService
-                                .editFile(fileId, annotations, annotationNameToAnnotationMap, user)
+                                .editFile(fileId, annotations, pathToAnnotationMap, user)
                                 .then((_) => {
                                     totalFileEdited += 1;
                                     onProgress();

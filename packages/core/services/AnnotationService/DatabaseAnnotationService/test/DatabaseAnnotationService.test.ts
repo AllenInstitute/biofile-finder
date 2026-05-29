@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
 
+import Annotation from "../../../../entity/Annotation";
 import FileFilter, { FilterType } from "../../../../entity/FileFilter";
 import DatabaseService from "../../../DatabaseService";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
@@ -65,7 +66,7 @@ describe("DatabaseAnnotationService", () => {
                 dataSourceNames: [mockDataSourceName],
                 databaseService,
             });
-            const filter = new FileFilter("annotationName", "annotationValue");
+            const filter = new FileFilter(["annotationName"], "annotationValue");
             const values = await annotationService.fetchRootHierarchyValues(
                 [mockAnnotationName],
                 [filter]
@@ -78,7 +79,7 @@ describe("DatabaseAnnotationService", () => {
                 dataSourceNames: [mockDataSourceName],
                 databaseService,
             });
-            const filter = new FileFilter("annotationName", "annotationValue", FilterType.ANY);
+            const filter = new FileFilter(["annotationName"], "annotationValue", FilterType.ANY);
             const values = await annotationService.fetchRootHierarchyValues(
                 [mockAnnotationName],
                 [filter]
@@ -121,7 +122,7 @@ describe("DatabaseAnnotationService", () => {
                 dataSourceNames: ["mock1"],
                 databaseService,
             });
-            const filter = new FileFilter("bar", "barValue");
+            const filter = new FileFilter(["bar"], "barValue");
             const values = await annotationService.fetchHierarchyValuesUnderPath(
                 ["foo", "bar"],
                 ["baz"],
@@ -135,7 +136,7 @@ describe("DatabaseAnnotationService", () => {
                 dataSourceNames: ["mockDataSource"],
                 databaseService,
             });
-            const filter = new FileFilter("bar", "barValue", FilterType.FUZZY);
+            const filter = new FileFilter(["bar"], "barValue", FilterType.FUZZY);
             const values = await annotationService.fetchHierarchyValuesUnderPath(
                 ["foo", "bar"],
                 ["baz"],
@@ -158,6 +159,9 @@ describe("DatabaseAnnotationService", () => {
                 querySpy(sql); // pass SQL to the spy func
                 return { promise: Promise.resolve([]) };
             }
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return [];
+            }
         }
         const databaseService = new MockDatabaseService();
         const filterToRegex = (filter: FileFilter) => {
@@ -172,14 +176,14 @@ describe("DatabaseAnnotationService", () => {
             });
 
             // Filters with different quantities of values to match
-            const filter1a = new FileFilter("filter1", "value1a");
-            const filter1b = new FileFilter("filter1", "value1b");
-            const filter1c = new FileFilter("filter1", "value1c");
+            const filter1a = new FileFilter(["filter1"], "value1a");
+            const filter1b = new FileFilter(["filter1"], "value1b");
+            const filter1c = new FileFilter(["filter1"], "value1c");
 
-            const filter2a = new FileFilter("filter2", "value2a");
-            const filter2b = new FileFilter("filter2", "value2b");
+            const filter2a = new FileFilter(["filter2"], "value2a");
+            const filter2b = new FileFilter(["filter2"], "value2b");
 
-            const filter3 = new FileFilter("filter3", "value3");
+            const filter3 = new FileFilter(["filter3"], "value3");
 
             await annotationService.fetchHierarchyValuesUnderPath(
                 [], // hierarchy; skipping to simplify test
@@ -215,8 +219,8 @@ describe("DatabaseAnnotationService", () => {
                 databaseService,
             });
 
-            const filter1a = new FileFilter("filter1", "value1a");
-            const filter1b = new FileFilter("filter1", "value1b");
+            const filter1a = new FileFilter(["filter1"], "value1a");
+            const filter1b = new FileFilter(["filter1"], "value1b");
 
             await annotationService.fetchHierarchyValuesUnderPath(
                 ["group1", "group2", "group3", "group4"], // annotations to group by
@@ -235,9 +239,9 @@ describe("DatabaseAnnotationService", () => {
             ).to.be.true;
 
             // Includes a filter for each group in the hierarchy path so far
-            const hierarchyPath1 = filterToRegex(new FileFilter("group1", "value1"));
+            const hierarchyPath1 = filterToRegex(new FileFilter(["group1"], "value1"));
             expect(querySpy.calledWithMatch(hierarchyPath1)).to.be.true;
-            const hierarchyPath2 = filterToRegex(new FileFilter("group2", "value2"));
+            const hierarchyPath2 = filterToRegex(new FileFilter(["group2"], "value2"));
             expect(querySpy.calledWithMatch(hierarchyPath2)).to.be.true;
         });
     });
@@ -262,6 +266,9 @@ describe("DatabaseAnnotationService", () => {
                     };
                 }
                 return { promise: Promise.reject() };
+            }
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return [];
             }
         }
         const databaseService = new MockDatabaseService();

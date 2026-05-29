@@ -36,7 +36,13 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     public async fetchAnnotations(): Promise<Annotation[]> {
         const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}${this.pathSuffix}`;
 
-        const response = await this.get<AnnotationResponse>(requestUrl);
+        const response = await this.get<{
+            annotationId: number;
+            annotationName: string;
+            annotationDisplayName: string;
+            description: string;
+            type: AnnotationType;
+        }>(requestUrl);
         return [
             ...TOP_LEVEL_FILE_ANNOTATIONS,
             ...map(
@@ -44,6 +50,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
                 (annotationResponse) =>
                     new Annotation({
                         ...annotationResponse,
+                        path: [annotationResponse.annotationName],
                         isImmutable: IMMUTABLE_ANNOTATION_NAMES.has(
                             annotationResponse.annotationName
                         ),

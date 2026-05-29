@@ -197,14 +197,19 @@ export default class FileSet {
      * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses
      */
     public toQuerySQLBuilder(): SQLBuilder {
-        // Map the filter values to the annotation names they filter
-        const filtersGroupedByAnnotation = this.filters.reduce(
-            (map, filter) => ({
+        // Map the filter values to the annotation names they filter.
+        //
+        // Nested sub-field filters (e.g. "Well.Gene" vs "Well.Dose.Unit") are keyed
+        // by their full annotation name, ensuring each sub-field is independently ANDed.
+        // Filters sharing the same annotation name are OR-ed together (multiple
+        // allowed values for that field, as usual).
+        const filtersGroupedByAnnotation = this.filters.reduce((map, filter) => {
+            const key = filter.name;
+            return {
                 ...map,
-                [filter.name]: filter.name in map ? [...map[filter.name], filter] : [filter],
-            }),
-            {} as { [name: string]: FileFilter[] }
-        );
+                [key]: key in map ? [...map[key], filter] : [filter],
+            };
+        }, {} as { [key: string]: FileFilter[] });
 
         // Transform the map above into SQL comparison clauses
         const sqlBuilder = this.sort ? this.sort.toQuerySQLBuilder() : new SQLBuilder();

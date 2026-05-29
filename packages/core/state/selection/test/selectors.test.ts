@@ -18,17 +18,16 @@ describe("Selection selectors", () => {
                 ...TOP_LEVEL_FILE_ANNOTATIONS, // includes string, date and number types
                 // Add a boolean-type annotation for testing
                 new Annotation({
-                    annotationDisplayName: "IsTestAnnotation",
-                    annotationName: "IsTestAnnotation",
+                    path: ["IsTestAnnotation"],
                     description: "A test annotation of type boolean",
                     type: AnnotationType.BOOLEAN,
                 }),
             ];
             const filters = [
-                new ExcludeFilter("IsTestAnnotation"), // boolean
-                new IncludeFilter(AnnotationName.UPLOADED), // date
-                new ExcludeFilter(AnnotationName.FILE_SIZE), // number
-                new IncludeFilter(AnnotationName.FILE_NAME), // string
+                new ExcludeFilter(["IsTestAnnotation"]), // boolean
+                new IncludeFilter([AnnotationName.UPLOADED]), // date
+                new ExcludeFilter([AnnotationName.FILE_SIZE]), // number
+                new IncludeFilter([AnnotationName.FILE_NAME]), // string
             ];
             const state = mergeState(initialState, {
                 metadata: {

@@ -40,7 +40,7 @@ describe("SearchParams", () => {
                 columns: [],
                 fileView: FileView.LIST,
                 hierarchy: expectedAnnotationNames,
-                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                filters: expectedFilters.map(({ name, value }) => new FileFilter([name], value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
                 sources: [mockSource],
@@ -80,15 +80,15 @@ describe("SearchParams", () => {
                 fileView: FileView.LIST,
                 hierarchy: expectedAnnotationNames,
                 filters: [
-                    ...expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                    ...expectedFilters.map(({ name, value }) => new FileFilter([name], value)),
                     ...expectedFuzzyFilters.map(
                         (fuzzyFilter) => new FuzzyFilter(fuzzyFilter.annotationName)
                     ),
                     ...expectedExcludeFilters.map(
-                        (excludeFilter) => new ExcludeFilter(excludeFilter.annotationName)
+                        (excludeFilter) => new ExcludeFilter([excludeFilter.annotationName])
                     ),
                     ...expectedIncludeFilters.map(
-                        (includeFilter) => new IncludeFilter(includeFilter.annotationName)
+                        (includeFilter) => new IncludeFilter([includeFilter.annotationName])
                     ),
                 ],
                 openFolders: [],
@@ -205,15 +205,15 @@ describe("SearchParams", () => {
                 fileView: FileView.LIST,
                 hierarchy: expectedAnnotationNames,
                 filters: [
-                    ...expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                    ...expectedFilters.map(({ name, value }) => new FileFilter([name], value)),
                     ...expectedFuzzyFilters.map(
                         (fuzzyFilter) => new FuzzyFilter(fuzzyFilter.annotationName)
                     ),
                     ...expectedExcludeFilters.map(
-                        (excludeFilter) => new ExcludeFilter(excludeFilter.annotationName)
+                        (excludeFilter) => new ExcludeFilter([excludeFilter.annotationName])
                     ),
                     ...expectedIncludeFilters.map(
-                        (includeFilter) => new IncludeFilter(includeFilter.annotationName)
+                        (includeFilter) => new IncludeFilter([includeFilter.annotationName])
                     ),
                 ],
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
@@ -290,7 +290,7 @@ describe("SearchParams", () => {
                 columns: [],
                 fileView: FileView.LARGE_THUMBNAIL,
                 hierarchy: expectedAnnotationNames,
-                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                filters: expectedFilters.map(({ name, value }) => new FileFilter([name], value)),
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 sortColumn: new FileSort(AnnotationName.FILE_PATH, "Garbage" as any),
                 sources: [],
@@ -329,7 +329,7 @@ describe("SearchParams", () => {
                 { name: "Donor Plasmid", value: "ACTB-mEGFP" },
             ];
             const components: Partial<SearchParamsComponents> = {
-                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                filters: expectedFilters.map(({ name, value }) => new FileFilter([name], value)),
                 sources: [mockSourceWithUri],
             };
             const expectedPandasQueries = expectedFilters.map(
@@ -351,7 +351,7 @@ describe("SearchParams", () => {
                 { name: "Gene", value: "ACTB" },
             ];
             const components: Partial<SearchParamsComponents> = {
-                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                filters: expectedFilters.map(({ name, value }) => new FileFilter([name], value)),
                 sources: [mockSourceWithUri],
             };
             const expectedPandasQueries = expectedFilters.map(
@@ -419,7 +419,7 @@ describe("SearchParams", () => {
             ];
             const components: Partial<SearchParamsComponents> = {
                 hierarchy: expectedAnnotationNames,
-                filters: expectedFilters.map(({ name, value }) => new FileFilter(name, value)),
+                filters: expectedFilters.map(({ name, value }) => new FileFilter([name], value)),
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
                 sources: [mockSourceWithUri],
             };

@@ -6,13 +6,24 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import { JSONReadyRange } from "../../entity/NumericRange";
 
+export type PrimitiveMetadataValue = string | number | boolean;
+/**
+ * A value within a nested annotation entry. Can be a primitive, a nested object,
+ * or an array of nested entries — supporting arrays-of-objects at any depth.
+ */
+// export type NestedAnnotationValue = FmsFileAnnotationValue | NestedAnnotation | NestedAnnotation[];
+export type MetadataValue = PrimitiveMetadataValue[] | NestedMetadataValue[];
+export interface NestedMetadataValue {
+    [metadataKey: string]: MetadataValue;
+}
+
+// TODO: Remove this below interface type in favor of using the above schema
 /**
  * Represents a sub-document that can be found within an FmsFile's `annotations` list.
  */
 export interface FmsFileAnnotation {
-    [key: string]: any;
     name: string;
-    values: (string | number | boolean)[];
+    values: MetadataValue;
 }
 
 export interface GetFilesRequest {
@@ -59,7 +70,7 @@ export default interface FileService {
     editFile(
         fileId: string,
         annotations: AnnotationNameToValuesMap,
-        annotationNameToAnnotationMap?: Record<string, Annotation>,
+        pathToAnnotationMap?: Map<string, Annotation>,
         user?: string
     ): Promise<void>;
     getAggregateInformation(fileSelection: FileSelection): Promise<SelectionAggregationResult>;

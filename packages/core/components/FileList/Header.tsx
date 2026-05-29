@@ -28,7 +28,7 @@ function Header(
     ref: React.Ref<HTMLDivElement>
 ) {
     const dispatch = useDispatch();
-    const annotationNameToAnnotationMap = useSelector(
+    const pathToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
     const columns = useSelector(selection.selectors.getColumns);
@@ -38,7 +38,7 @@ function Header(
     const onReorder = React.useCallback(
         (newOrder: string[]) => {
             const reorderedColumns = newOrder.flatMap(
-                (name) => columns.find((c) => c.name === name) || []
+                (key) => columns.find((c) => c.name === key) || []
             );
             dispatch(selection.actions.setColumns(reorderedColumns));
         },
@@ -54,10 +54,10 @@ function Header(
         onDragEnd,
     } = useDragAndDropOrder(columnNames, onReorder);
 
-    const onResize = (name: string, width?: number) => {
+    const onResize = (key: string, width?: number) => {
         // Default to 0.25 if width is undefined
         // which resets the column width to the default
-        dispatch(selection.actions.resizeColumn({ name, width: width || 0.25 }));
+        dispatch(selection.actions.resizeColumn({ name: key, width: width || 0.25 }));
     };
 
     const onHeaderColumnClick = (evt: React.MouseEvent, column: Column) => {
@@ -67,47 +67,49 @@ function Header(
         dispatch(selection.actions.sortColumn(column.name));
     };
 
-    const headerCells: CellConfig[] = map(columns, (column) => ({
-        className: classNames(styles.headerCell, {
-            [styles.dragOver]: dragOverItem === column.name && draggedItem !== column.name,
-            [styles.dragging]: draggedItem === column.name,
-        }),
-        // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
-        columnKey: column.name,
-        displayValue: (
-            <div
-                draggable
-                aria-label={`${
-                    annotationNameToAnnotationMap[column.name]?.displayName
-                } column, draggable`}
-                className={styles.headerDragArea}
-                role="button"
-                tabIndex={0}
-                onDragStart={() => onDragStart(column.name)}
-                onDragOver={(e) => onDragOver(e, column.name)}
-                onDrop={() => onDrop(column.name)}
-                onDragEnd={onDragEnd}
-            >
-                <span
-                    onClick={(evt) => onHeaderColumnClick(evt, column)}
-                    className={styles.headerClickTarget}
+    const headerCells: CellConfig[] = map(columns, (column) => {
+        return {
+            className: classNames(styles.headerCell, {
+                [styles.dragOver]: dragOverItem === column.name && draggedItem !== column.name,
+                [styles.dragging]: draggedItem === column.name,
+            }),
+            // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
+            columnKey: column.name,
+            displayValue: (
+                <div
+                    draggable
+                    aria-label={`${
+                        pathToAnnotationMap.get(column.name)?.displayName
+                    } column, draggable`}
+                    className={styles.headerDragArea}
+                    role="button"
+                    tabIndex={0}
+                    onDragStart={() => onDragStart(column.name)}
+                    onDragOver={(e) => onDragOver(e, column.name)}
+                    onDrop={() => onDrop(column.name)}
+                    onDragEnd={onDragEnd}
                 >
-                    <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
-                        <span className={styles.headerTitle}>
-                            {annotationNameToAnnotationMap[column.name]?.displayName}
-                        </span>
-                    </Tooltip>
-                    {sortColumn?.annotationName === column.name &&
-                        (sortColumn?.order === SortOrder.DESC ? (
-                            <Icon className={styles.sortIcon} iconName="ChevronDown" />
-                        ) : (
-                            <Icon className={styles.sortIcon} iconName="ChevronUp" />
-                        ))}
-                </span>
-            </div>
-        ),
-        width: column.width,
-    }));
+                    <span
+                        onClick={(evt) => onHeaderColumnClick(evt, column)}
+                        className={styles.headerClickTarget}
+                    >
+                        <Tooltip content={`${pathToAnnotationMap.get(column.name)?.displayName.split(".").join(" / ")}\n${pathToAnnotationMap.get(column.name)?.description}`}>
+                            <span className={styles.headerTitle}>
+                                {pathToAnnotationMap.get(column.name)?.displayName.split(".").slice(-1)[0]}
+                            </span>
+                        </Tooltip>
+                        {sortColumn?.annotationName === column.name &&
+                            (sortColumn?.order === SortOrder.DESC ? (
+                                <Icon className={styles.sortIcon} iconName="ChevronDown" />
+                            ) : (
+                                <Icon className={styles.sortIcon} iconName="ChevronUp" />
+                            ))}
+                    </span>
+                </div>
+            ),
+            width: column.width,
+        };
+    });
 
     const onHeaderClick = (evt: React.MouseEvent) => {
         evt.preventDefault();

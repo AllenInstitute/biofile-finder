@@ -1,16 +1,9 @@
 import SQLBuilder from "../SQLBuilder";
-import { extractValuesFromRangeOperatorFilterString } from "../AnnotationFormatter/number-formatter";
-import { extractDatesFromRangeOperatorFilterString } from "../AnnotationFormatter/date-time-formatter";
-import annotationFormatterFactory, { AnnotationType } from "../AnnotationFormatter";
+import { AnnotationType } from "../AnnotationFormatter";
 import { NO_VALUE_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 
-// Matches the RANGE(min, max) filter encoding used by NumberRangePicker (numeric bounds)
-const RANGE_OPERATOR_REGEX = /^RANGE\([\d\-.]+,\s?[\d\-.]+\)$/;
-// Matches the RANGE(isoDate,isoDate) filter encoding used by DateRangePicker (ISO 8601 date strings)
-const DATE_RANGE_OPERATOR_REGEX = /^RANGE\([\d\-+:TZ.]+,[\d\-+:TZ.]+\)$/;
-
 export interface FileFilterJson {
-    name: string;
+    path: string[];
     value: any;
     type?: FilterType;
 }
@@ -35,29 +28,33 @@ export enum FilterType {
  * serializable to a URL query string-friendly format.
  */
 export default class FileFilter {
-    private readonly annotationName: string;
+    public readonly path: string[];
     private readonly annotationValue: any;
     private filterType: FilterType;
-    public readonly annotationType?: AnnotationType;
+    private readonly annotationType?: AnnotationType;
+    public static readonly FILTER_PATH_SEPARATOR = ",";
 
     public static isFileFilter(candidate: any): candidate is FileFilter {
         return candidate instanceof FileFilter;
     }
 
+    // TODO: Stop accepting string - this is just to avoid too many line changes at once
     constructor(
-        annotationName: string,
+        path: string | string[],
         annotationValue: any,
         filterType: FilterType = FilterType.DEFAULT,
         annotationType?: AnnotationType
     ) {
-        this.annotationName = annotationName;
+        this.path = Array.isArray(path) ? path : [path];
         this.annotationValue = annotationValue;
         this.filterType = annotationValue === NO_VALUE_NODE ? FilterType.EXCLUDE : filterType;
         this.annotationType = annotationType;
     }
 
-    public get name() {
-        return this.annotationName;
+    // TODO: Remove or replace when we stop using dot notation
+    // Also, "name" is a misnomer at this point since it may not be display-friendly, should be "key" or something
+    public get name(): string {
+        return this.path.join(".");
     }
 
     public get value() {
@@ -72,17 +69,41 @@ export default class FileFilter {
         this.filterType = filterType;
     }
 
+    /** Whether this filter targets a nested sub-field annotation. */
+    // public get isSubField(): boolean {
+    //     return this.path.length > 1;
+    // }
+
+    /** The parent column name when this filter targets a virtual sub-field annotation. */
+    // public get nestedParent(): string | undefined {
+    //     return this.path.length > 1 ? this.path[0] : undefined;
+    // }
+
+    /**
+     * Derive the DuckDB list expression from the path.
+     * E.g. for path ["Well","Dose","Unit"] → list_transform("Well", x -> x."Dose"."Unit")
+     */
+    private get nestedListExpression(): string | undefined {
+        if (this.path.length <= 1) return undefined;
+        const parent = this.path[0];
+        const fieldParts = this.path.slice(1);
+        const accessChain = fieldParts.map((p) => `"${p}"`).join(".");
+        // TODO: This can't be right - doesn't support layers of nesting beyond 1 sub-field, and also assumes the parent annotation is a STRUCT[] column
+        return `list_transform("${parent}", x -> x.${accessChain})`;
+    }
+
     public toQueryString(): string {
+        const name = JSON.stringify(this.path);
         switch (this.type) {
             case FilterType.ANY:
-                return `include=${this.annotationName}`;
+                return `include=${name}`;
             case FilterType.EXCLUDE:
-                return `exclude=${this.annotationName}`;
+                return `exclude=${name}`;
             case FilterType.FUZZY:
-                if (this.value === "") return `fuzzy=${this.annotationName}`;
-                return `${this.annotationName}=${this.annotationValue}&fuzzy=${this.annotationName}`;
+                if (this.value === "") return `fuzzy=${name}`;
+                return `${name}=${this.annotationValue}&fuzzy=${name}`;
         }
-        return `${this.annotationName}=${this.annotationValue}`;
+        return `${name}=${this.annotationValue}`;
     }
 
     /** Unlike with FileSort, we shouldn't construct a new SQLBuilder since these will
@@ -90,59 +111,57 @@ export default class FileFilter {
      * Instead, generate the string that can be passed into the .where() clause.
      */
     public toSQLWhereString(): string {
+        // --- Nested sub-field: derive list expression from path ---
+        // TODO: Doesn't work with layers of nesting
+        if (this.path.length > 1) {
+            const listExpr = this.nestedListExpression!;
+            const parent = this.path[0];
+            switch (this.type) {
+                case FilterType.ANY:
+                    return `len(${listExpr}) > 0`;
+                case FilterType.EXCLUDE:
+                    return `("${parent}" IS NULL OR len(${listExpr}) = 0)`;
+                case FilterType.FUZZY:
+                default:
+                    return SQLBuilder.listContains(listExpr, this.annotationValue);
+            }
+        }
+
+        // --- Flat (whole-column) filter — existing behaviour ---
+        const columnName = this.path[0];
         switch (this.type) {
             case FilterType.ANY:
-                return `"${this.annotationName}" IS NOT NULL`;
+                return `"${columnName}" IS NOT NULL`;
             case FilterType.EXCLUDE:
-                return `"${this.annotationName}" IS NULL`;
+                return `"${columnName}" IS NULL`;
             case FilterType.FUZZY:
-                return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
-            default:
-                switch (this.annotationType) {
-                    case AnnotationType.BOOLEAN:
-                        return `"${this.annotationName}" = ${this.annotationValue}`;
-                    case AnnotationType.NUMBER:
-                        if (RANGE_OPERATOR_REGEX.test(this.annotationValue)) {
-                            const {
-                                minValue,
-                                maxValue,
-                            } = extractValuesFromRangeOperatorFilterString(this.annotationValue);
-                            return `CAST("${this.annotationName}" AS DOUBLE) >= ${minValue} AND CAST("${this.annotationName}" AS DOUBLE) < ${maxValue}`;
-                        }
-                        return `CAST("${this.annotationName}" AS DOUBLE) = ${this.annotationValue}`;
-                    case AnnotationType.DATE:
-                    case AnnotationType.DATETIME:
-                        if (DATE_RANGE_OPERATOR_REGEX.test(this.annotationValue)) {
-                            const {
-                                startDate,
-                                endDate,
-                            } = extractDatesFromRangeOperatorFilterString(this.annotationValue);
-                            return `CAST("${
-                                this.annotationName
-                            }" AS TIMESTAMPTZ) >= CAST('${startDate?.toISOString()}' AS TIMESTAMPTZ) AND CAST("${
-                                this.annotationName
-                            }" AS TIMESTAMPTZ) < CAST('${endDate?.toISOString()}' AS TIMESTAMPTZ)`;
-                        } else {
-                            const dateFormatter = annotationFormatterFactory(this.annotationType);
-                            const dateString = dateFormatter.displayValue(this.annotationValue);
-                            return `CAST("${
-                                this.annotationName
-                            }" AS TIMESTAMPTZ) =  CAST('${new Date(
-                                dateString
-                            ).toISOString()}' as TIMESTAMPTZ)`;
-                        }
-                    case AnnotationType.DURATION:
-                        return `EXTRACT(epoch FROM "${
-                            this.annotationName
-                        }")::BIGINT * 1000 = ${Number(this.annotationValue)}`;
+                return SQLBuilder.regexMatchValueInList(columnName, this.annotationValue);
+            default: {
+                // Type-aware SQL generation
+                if (this.annotationType === AnnotationType.BOOLEAN) {
+                    return `"${columnName}" = ${this.annotationValue}`;
                 }
-                return SQLBuilder.regexMatchValueInList(this.annotationName, this.annotationValue);
+                const rangeMatch = String(this.annotationValue).match(/^RANGE\((.+),\s*(.+)\)$/);
+                if (rangeMatch) {
+                    const [, min, max] = rangeMatch;
+                    if (this.annotationType === AnnotationType.NUMBER) {
+                        return `CAST("${columnName}" AS DOUBLE) >= ${min} AND CAST("${columnName}" AS DOUBLE) < ${max}`;
+                    }
+                    if (this.annotationType === AnnotationType.DATETIME || this.annotationType === AnnotationType.DATE) {
+                        return `CAST("${columnName}" AS TIMESTAMPTZ) >= CAST('${min}' AS TIMESTAMPTZ) AND CAST("${columnName}" AS TIMESTAMPTZ) < CAST('${max}' AS TIMESTAMPTZ)`;
+                    }
+                }
+                if (this.annotationType === AnnotationType.DURATION) {
+                    return `EXTRACT(epoch FROM "${columnName}")::BIGINT * 1000 = ${this.annotationValue}`;
+                }
+                return SQLBuilder.regexMatchValueInList(columnName, this.annotationValue);
+            }
         }
     }
 
     public toJSON(): FileFilterJson {
         return {
-            name: this.annotationName,
+            path: this.path,
             value: this.annotationValue,
             type: this.filterType,
         };
@@ -150,7 +169,7 @@ export default class FileFilter {
 
     public equals(target: FileFilter): boolean {
         return (
-            this.annotationName === target.annotationName &&
+            JSON.stringify(this.path) === JSON.stringify(target.path) &&
             this.annotationValue === target.annotationValue &&
             this.filterType === target.filterType
         );

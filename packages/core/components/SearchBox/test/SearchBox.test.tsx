@@ -20,7 +20,7 @@ describe("<SearchBox/>", () => {
 
     it("initializes to values passed through props if provided", () => {
         // Arrange
-        const currentValue = new FileFilter("foo", "bar");
+        const currentValue = new FileFilter(["foo"], "bar");
 
         render(<SearchBox onSearch={noop} onReset={noop} defaultValue={currentValue} />);
 

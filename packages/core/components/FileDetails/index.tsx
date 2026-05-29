@@ -3,7 +3,7 @@ import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import FileAnnotationList from "./FileAnnotationList";
+import MetadataList from "./MetadataList";
 import Pagination from "./Pagination";
 import useThumbnailPath from "./useThumbnailPath";
 import { PrimaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
@@ -11,17 +11,18 @@ import Tooltip from "../Tooltip";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
 import FileDetail from "../../entity/FileDetail";
+import Tutorial from "../../entity/Tutorial";
 import useDownloadFiles from "../../hooks/useDownloadFiles";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../hooks/useTruncatedString";
 import { interaction, selection } from "../../state";
 
 import styles from "./FileDetails.module.css";
-import Tutorial from "../../entity/Tutorial";
+
 
 interface Props {
     className?: string;
-    fileDetails: FileDetail | undefined;
+    file: FileDetail | undefined;
     isLoading?: boolean;
     onClose?: () => void;
 }
@@ -80,11 +81,11 @@ export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
     const hasProvenanceSource = useSelector(selection.selectors.hasProvenanceSource);
 
-    const openWithMenuItems = useOpenWithMenuItems(props.fileDetails);
-    const truncatedFileName = useTruncatedString(props.fileDetails?.name || "", 30);
-    const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(props.fileDetails);
+    const openWithMenuItems = useOpenWithMenuItems(props.file);
+    const truncatedFileName = useTruncatedString(props.file?.name || "", 30);
+    const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(props.file);
     const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(
-        props.fileDetails
+        props.file
     );
     const [isFullscreenThumbnail, setIsFullscreenThumbnail] = React.useState(false);
     const isThumbnailClickable = !!thumbnailPath && !isThumbnailLoading;
@@ -101,131 +102,129 @@ export default function FileDetails(props: Props) {
             >
                 <div />
             </div>
-            <div className={styles.paginationAndContent}>
-                <div className={styles.overflowContainer}>
-                    {props.fileDetails && (
-                        <>
-                            {!props.onClose ? (
-                                <div className={styles.header}>
-                                    <div className={styles.leftAlign}>
-                                        <Pagination className={styles.pagination} />
-                                    </div>
-                                    {/* spacing component */}
-                                    <div className={styles.gutter}></div>
-                                    <div className={styles.rightAlign}>
-                                        <Tooltip content={disabledDownloadReason}>
-                                            <TertiaryButton
-                                                className={styles.tertiaryButton}
-                                                disabled={isDownloadDisabled}
-                                                iconName="Download"
-                                                id="download-file-button"
-                                                title={`Download file ${truncatedFileName} to local system`}
-                                                onClick={onDownload}
-                                            />
-                                        </Tooltip>
-                                        <PrimaryButton
-                                            id={Tutorial.OPEN_WITH_ID}
-                                            className={styles.openWithButton}
-                                            iconName="ChevronDownMed"
-                                            text="Open with"
-                                            title="Open file by selected method"
-                                            menuItems={openWithMenuItems}
-                                        />
-                                    </div>
+            {/* TODO: Overflow gradient is broken */}
+            <div className={styles.overflowContainer}>
+                {props.file && (
+                    <>
+                        {!props.onClose ? (
+                            <div className={styles.header}>
+                                <div className={styles.leftAlign}>
+                                    <Pagination className={styles.pagination} />
                                 </div>
-                            ) : (
-                                <div className={styles.titleRow}>
-                                    <h4>Metadata</h4>
-                                    <TransparentIconButton
-                                        className={styles.clearButton}
-                                        iconName="Clear"
-                                        onClick={props.onClose}
+                                {/* spacing component */}
+                                <div className={styles.gutter}></div>
+                                <div className={styles.rightAlign}>
+                                    <Tooltip content={disabledDownloadReason}>
+                                        <TertiaryButton
+                                            className={styles.tertiaryButton}
+                                            disabled={isDownloadDisabled}
+                                            iconName="Download"
+                                            id="download-file-button"
+                                            title={`Download file ${truncatedFileName} to local system`}
+                                            onClick={onDownload}
+                                        />
+                                    </Tooltip>
+                                    <PrimaryButton
+                                        id={Tutorial.OPEN_WITH_ID}
+                                        className={styles.openWithButton}
+                                        iconName="ChevronDownMed"
+                                        text="Open with"
+                                        title="Open file by selected method"
+                                        menuItems={openWithMenuItems}
                                     />
                                 </div>
-                            )}
-                            <p
-                                className={classNames(styles.fileName, {
-                                    [styles.leftAlign]: !!props.onClose,
-                                })}
-                            >
-                                {props.fileDetails?.name}
-                            </p>
-                            <div
-                                className={classNames(styles.thumbnailContainer, {
-                                    [styles.thumbnailContainerClickable]: isThumbnailClickable,
-                                })}
-                                onClick={() =>
-                                    isThumbnailClickable && setIsFullscreenThumbnail(true)
-                                }
-                                onKeyDown={(e) => {
-                                    if (
-                                        (e.key === "Enter" || e.key === " ") &&
-                                        isThumbnailClickable
-                                    ) {
-                                        e.preventDefault();
-                                        setIsFullscreenThumbnail(true);
-                                    }
-                                }}
-                                role={isThumbnailClickable ? "button" : undefined}
-                                tabIndex={isThumbnailClickable ? 0 : undefined}
-                                title={
-                                    isThumbnailClickable ? "Click to enlarge" : undefined
-                                }
-                            >
-                                <FileThumbnail
-                                    className={styles.thumbnail}
-                                    width="100%"
-                                    uri={thumbnailPath}
-                                    loading={isThumbnailLoading}
+                            </div>
+                        ) : (
+                            // TODO: What to do this button?
+                            <div className={styles.buttonRow}>
+                                <TransparentIconButton
+                                    className={styles.clearButton}
+                                    iconName="Clear"
+                                    onClick={props.onClose}
                                 />
                             </div>
-                            <Modal
-                                isOpen={isFullscreenThumbnail}
-                                onDismiss={() => setIsFullscreenThumbnail(false)}
-                                containerClassName={styles.fullscreenModalContainer}
-                                overlay={{ className: styles.fullscreenOverlay }}
-                                isBlocking={false}
-                            >
-                                <img
-                                    alt={props.fileDetails?.name}
-                                    className={styles.fullscreenImage}
-                                    src={thumbnailPath}
-                                    tabIndex={0}
-                                    onClick={() => setIsFullscreenThumbnail(false)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" || e.key === " ") {
-                                            e.preventDefault();
-                                            setIsFullscreenThumbnail(false);
-                                        }
-                                    }}
-                                />
-                            </Modal>
-                            {!props.onClose && (
-                                <div className={styles.titleRow}>
-                                    <h4>Metadata</h4>
-                                    {hasProvenanceSource && (
-                                        <DefaultButton
-                                            onClick={() =>
-                                                dispatch(
-                                                    interaction.actions.setOriginForProvenance(
-                                                        props.fileDetails
-                                                    )
-                                                )
-                                            }
-                                        >
-                                            View provenance
-                                        </DefaultButton>
-                                    )}
-                                </div>
-                            )}
-                            <FileAnnotationList
-                                className={styles.annotationList}
-                                fileDetails={props.fileDetails}
-                                isLoading={!!props.isLoading}
+                        )}
+                        <p
+                            className={classNames(styles.fileName, {
+                                [styles.leftAlign]: !!props.onClose,
+                            })}
+                        >
+                            {props.file?.name}
+                        </p>
+                        <div
+                            className={classNames(styles.thumbnailContainer, {
+                                [styles.thumbnailContainerClickable]: isThumbnailClickable,
+                            })}
+                            onClick={() =>
+                                isThumbnailClickable && setIsFullscreenThumbnail(true)
+                            }
+                            onKeyDown={(e) => {
+                                if (
+                                    (e.key === "Enter" || e.key === " ") &&
+                                    isThumbnailClickable
+                                ) {
+                                    e.preventDefault();
+                                    setIsFullscreenThumbnail(true);
+                                }
+                            }}
+                            role={isThumbnailClickable ? "button" : undefined}
+                            tabIndex={isThumbnailClickable ? 0 : undefined}
+                            title={
+                                isThumbnailClickable ? "Click to enlarge" : undefined
+                            }
+                        >
+                            <FileThumbnail
+                                className={styles.thumbnail}
+                                width="100%"
+                                uri={thumbnailPath}
+                                loading={isThumbnailLoading}
                             />
-                        </>
-                    )}
-                </div>
+                        </div>
+                        <Modal
+                            isOpen={isFullscreenThumbnail}
+                            onDismiss={() => setIsFullscreenThumbnail(false)}
+                            containerClassName={styles.fullscreenModalContainer}
+                            overlay={{ className: styles.fullscreenOverlay }}
+                            isBlocking={false}
+                        >
+                            <img
+                                alt={props.file?.name}
+                                className={styles.fullscreenImage}
+                                src={thumbnailPath}
+                                tabIndex={0}
+                                onClick={() => setIsFullscreenThumbnail(false)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        setIsFullscreenThumbnail(false);
+                                    }
+                                }}
+                            />
+                        </Modal>
+                        {/* TODO: What to do this view provenance button? */}
+                        {!props.onClose && (
+                            <div className={styles.buttonRow}>
+                                {hasProvenanceSource && (
+                                    <DefaultButton
+                                        onClick={() =>
+                                            dispatch(
+                                                interaction.actions.setOriginForProvenance(
+                                                    props.file
+                                                )
+                                            )
+                                        }
+                                    >
+                                        View provenance
+                                    </DefaultButton>
+                                )}
+                            </div>
+                        )}
+                        <MetadataList
+                            file={props.file}
+                            isLoading={!!props.isLoading}
+                        />
+                    </>
+                )}
             </div>
         </div>
     );

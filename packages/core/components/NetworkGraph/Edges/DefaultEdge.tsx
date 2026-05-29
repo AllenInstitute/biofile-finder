@@ -59,7 +59,7 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
                             parts: {
                                 ...currentQuery,
                                 hierarchy: [],
-                                filters: [new FileFilter(data.name, annotationValue)],
+                                filters: [new FileFilter([data.name], annotationValue)],
                             },
                         })
                     );
@@ -71,8 +71,8 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
                                 ...currentQuery,
                                 hierarchy: [],
                                 filters: [
-                                    new IncludeFilter(data.parent),
-                                    new IncludeFilter(data.child),
+                                    new IncludeFilter([data.parent]),
+                                    new IncludeFilter([data.child]),
                                 ],
                             },
                         })

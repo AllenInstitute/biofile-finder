@@ -18,7 +18,7 @@ interface Props {
 export default function QuerySort(props: Props) {
     const dispatch = useDispatch();
 
-    const annotationNameToAnnotationMap = useSelector(
+    const pathToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
 
@@ -26,7 +26,7 @@ export default function QuerySort(props: Props) {
         if (props.sort) {
             const oppositeOrder =
                 props.sort.order === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC;
-            const newSort = new FileSort(props.sort.annotationName, oppositeOrder);
+            const newSort = new FileSort(props.sort.path, oppositeOrder);
             dispatch(selection.actions.setSortColumn(newSort));
         }
     };
@@ -44,10 +44,9 @@ export default function QuerySort(props: Props) {
                     ? [
                           {
                               id: props.sort.annotationName,
-                              title: `${props.sort.annotationName} (${props.sort.order})`,
+                              title: `${props.sort.path.join(" / ")} (${props.sort.order})`,
                               description:
-                                  annotationNameToAnnotationMap[props.sort.annotationName]
-                                      ?.description,
+                                  pathToAnnotationMap.get(props.sort.annotationName)?.description,
                           },
                       ]
                     : []
@@ -56,11 +55,11 @@ export default function QuerySort(props: Props) {
                 <AnnotationPicker
                     disableUnavailableAnnotations
                     title="Select metadata to sort by"
-                    selections={props.sort?.annotationName ? [props.sort.annotationName] : []}
+                    selections={props.sort ? [props.sort.path] : []}
                     setSelections={(annotations) => {
-                        const newAnnotation = annotations.filter(
-                            (annotation) => annotation !== props.sort?.annotationName
-                        )[0];
+                        const newAnnotation = annotations.find(
+                            (a) => a.join(".") !== props.sort?.annotationName
+                        );
                         dispatch(
                             selection.actions.setSortColumn(
                                 newAnnotation

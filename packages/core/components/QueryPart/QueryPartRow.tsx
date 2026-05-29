@@ -11,6 +11,8 @@ import styles from "./QueryPartRow.module.css";
 export interface QueryPartRowItem extends DnDItem {
     description?: string;
     titleIconName?: string;
+    /** Greyed-out prefix shown before the title (truncates to "..." when space is tight). */
+    titlePrefix?: string;
     onClick?: (itemId: string) => void;
     onDelete?: (itemId: string) => void;
     onRenderEditMenuList?: (item: QueryPartRowItem) => React.ReactElement<QueryPartRowItem>;
@@ -54,7 +56,12 @@ export default function QueryGroupRow(props: Props) {
                     <Icon className={styles.icon} iconName={props.item.titleIconName} />
                 )}
                 <Tooltip content={props.item.description}>
-                    <p>{props.item.title}</p>
+                    <p>
+                        {props.item.titlePrefix && (
+                            <span className={styles.titlePrefix}>{props.item.titlePrefix}</span>
+                        )}
+                        {props.item.title}
+                    </p>
                 </Tooltip>
             </div>
             {!!props.item.onRenderEditMenuList && (

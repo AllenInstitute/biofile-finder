@@ -51,7 +51,9 @@ import Tutorial from "../../entity/Tutorial";
 import Tutorials from "../../hooks/useHelpOptions/Tutorials";
 
 export interface SelectionStateBranch {
+    // TODO: Restructure to avoid concatenating annotation names into a single string for recent annotations, should just be an array of annotation paths or something
     annotationHierarchy: string[];
+    // TODO: Restructure to avoid concatenating annotation names into a single string for recent annotations, should just be an array of annotation paths or something
     availableAnnotationsForHierarchy: string[];
     availableAnnotationsForHierarchyLoading: boolean;
     columns: Column[];
@@ -61,6 +63,7 @@ export interface SelectionStateBranch {
     filters: FileFilter[];
     isLoadingDataSource: boolean;
     openFileFolders: FileFolder[];
+    // TODO: Restructure to avoid concatenating annotation names into a single string for recent annotations, should just be an array of annotation paths or something
     recentAnnotations: string[];
     requiresDataSourceReload?: boolean;
     selectedQuery?: string;

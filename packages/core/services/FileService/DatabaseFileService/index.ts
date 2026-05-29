@@ -1,22 +1,81 @@
-import { isEmpty, isNil, uniqueId } from "lodash";
+import { castArray, isEmpty, isNil, isObject, uniqueId } from "lodash";
 
 import FileService, {
     GetFilesRequest,
     SelectionAggregationResult,
     Selection,
     AnnotationNameToValuesMap,
+    FmsFileAnnotation,
+    NestedMetadataValue,
+    MetadataValue,
+    PrimitiveMetadataValue,
 } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
+import { Environment, HIDDEN_UID_ANNOTATION } from "../../../constants";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
 import SQLBuilder from "../../../entity/SQLBuilder";
-import { Environment, HIDDEN_UID_ANNOTATION } from "../../../constants";
+
+
+// Helper function to determine if a value is a nested metadata object
+// (i.e., an array of objects) vs a primitive or array of primitives
+function isNestedMetadata(value: any): boolean {
+    // Is a single object that isn't null/undefined
+    // || is array of objects that isn't empty and whose first element is an object that isn't null/undefined
+    return (
+        !Array.isArray(value) &&
+        isObject(value) &&
+        !isNil(value)
+    ) || (
+        Array.isArray(value) &&
+        value.length > 0 &&
+        isObject(value[0]) &&
+        !isNil(value[0])
+    )
+}
+
+/**
+ * Recursively unwraps nested metadata values into a flat structure.
+ * For example, a value like:
+ * [
+ *   {
+ *     "Gene": "ABCD",
+ *     "Color": "Blue,Green"
+ *   },
+ *   {
+ *     "Size": ["Large", "Medium"],
+ *     "Solution": [
+ *       {
+ *         "Dose": "97",
+ *         "Unit": "mL"
+ *       }
+ *     ]
+ *   }
+ * ]
+ */
+function unwrapNestedMetadata(values: any): MetadataValue {
+    // Recursive case: values is an array of nested metadata objects
+    if (isNestedMetadata(values)) {
+        return (castArray(values) as NestedMetadataValue[])
+            .map((nestedValue) => (
+                Object.entries(nestedValue)
+                    .reduce((acc, [key, value]) => ({
+                        ...acc,
+                        [key]: unwrapNestedMetadata(value),
+                    }), {} as NestedMetadataValue)
+            ));
+    }
+    // Base case: values is a primitive or an array of primitives
+    return String(values as PrimitiveMetadataValue[])
+        .split(DatabaseService.LIST_DELIMITER)
+        .map((value) => value.trim());
+}
 
 interface Config {
     databaseService: DatabaseService;
@@ -33,7 +92,7 @@ export default class DatabaseFileService implements FileService {
     private readonly dataSourceNames: string[];
 
     private static convertDatabaseRowToFileDetail(
-        row: { [key: string]: string },
+        row: { [key: string]: any },
         env: Environment
     ): FileDetail {
         const uniqueId: string | undefined = row[HIDDEN_UID_ANNOTATION];
@@ -41,25 +100,33 @@ export default class DatabaseFileService implements FileService {
             throw new Error("Missing auto-generated unique ID");
         }
 
-        return new FileDetail(
-            {
-                annotations: Object.entries(row)
-                    .filter(
-                        ([name, values]) =>
-                            !isNil(values) &&
-                            // Omit hidden UID annotation
-                            name !== HIDDEN_UID_ANNOTATION
-                    )
-                    .map(([name, values]) => ({
-                        name,
-                        values: `${values}`
-                            .split(DatabaseService.LIST_DELIMITER)
-                            .map((value: string) => value.trim()),
-                    })),
-            },
-            env,
-            uniqueId
-        );
+        const annotations = Object.entries(row)
+            // Filter out null/undefined values and the unique ID annotation used for selection logic
+            .filter(
+                ([name, values]) =>
+                    !isNil(values) && name !== HIDDEN_UID_ANNOTATION
+            )
+            .flatMap(([name, values]): FmsFileAnnotation[] => {
+                // It is possible the column is formatted as a JSON string
+                // representing a nested annotation or array of annotations,
+                // so we attempt to parse that if the value is a string
+                if (typeof values === "string") {
+                    try {
+                        const parsed = JSON.parse(values);
+                        if (isNestedMetadata(parsed)) {
+                            return [{ name, values: unwrapNestedMetadata(parsed) }];
+                        }
+                    } catch {
+                        // Not JSON — fall through to plain string handling
+                    }
+                }
+
+                // Default case: primitive value or array of primitives,
+                // potentially delimited by DatabaseService.LIST_DELIMITER
+                return [{ name, values: unwrapNestedMetadata(values) }];
+            });
+
+        return new FileDetail({ annotations }, env, uniqueId);
     }
 
     constructor(
@@ -214,14 +281,14 @@ export default class DatabaseFileService implements FileService {
         if (selection.include && selection.include.length > 0) {
             subQuery.where(
                 selection.include
-                    .map((annotationName) => new IncludeFilter(annotationName).toSQLWhereString())
+                    .map((annotationName) => new IncludeFilter([annotationName]).toSQLWhereString())
                     .join(" AND ")
             );
         }
         if (selection.exclude && selection.exclude.length > 0) {
             subQuery.where(
                 selection.exclude
-                    .map((annotationName) => new ExcludeFilter(annotationName).toSQLWhereString())
+                    .map((annotationName) => new ExcludeFilter([annotationName]).toSQLWhereString())
                     .join(" AND ")
             );
         }

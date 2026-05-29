@@ -19,7 +19,7 @@ export default function QueryGroup(props: Props) {
     const dispatch = useDispatch();
     const shouldShowNullGroups = useSelector(selection.selectors.getShouldShowNullGroups);
 
-    const annotationNameToAnnotationMap = useSelector(
+    const pathToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
 
@@ -42,20 +42,30 @@ export default function QueryGroup(props: Props) {
             onRenderAddMenuList={() => (
                 <AnnotationPicker
                     disabledTopLevelAnnotations
-                    disableUnavailableAnnotations
+                    // TODO: fix
+                    // disableUnavailableAnnotations
                     title="Select metadata to group by"
-                    selections={props.groups}
+                    selections={props.groups.map((g) => g.split("."))}
                     setSelections={(annotations) => {
-                        dispatch(selection.actions.setAnnotationHierarchy(annotations));
+                        dispatch(selection.actions.setAnnotationHierarchy(annotations.map((a) => a.join("."))));
                     }}
                     shouldShowNullGroups={shouldShowNullGroups}
                 />
             )}
-            rows={props.groups.map((group) => ({
-                id: group,
-                title: group,
-                description: annotationNameToAnnotationMap[group]?.description,
-            }))}
+            rows={props.groups.map((group) => {
+                const annotation = pathToAnnotationMap.get(group);
+                const path = annotation?.path ?? [group];
+                const lastPart = path[path.length - 1];
+                const prefix = path.length > 1
+                    ? path.slice(0, -1).join(" / ") + " / "
+                    : undefined;
+                return {
+                    id: group,
+                    title: lastPart,
+                    titlePrefix: prefix,
+                    description: annotation?.description,
+                };
+            })}
         />
     );
 }

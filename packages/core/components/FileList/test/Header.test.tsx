@@ -70,7 +70,7 @@ describe("<Header />", () => {
                     name: name,
                     width: 1 / annotations.length,
                 })),
-                sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
+                sortColumn: new FileSort([AnnotationName.FILE_SIZE], SortOrder.DESC),
             },
         });
         const { store } = configureMockStore({ state });
@@ -109,7 +109,7 @@ describe("<Header />", () => {
                     name: name,
                     width: 1 / annotations.length,
                 })),
-                sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.ASC),
+                sortColumn: new FileSort([AnnotationName.FILE_SIZE], SortOrder.ASC),
             },
         });
         const { store } = configureMockStore({ state });

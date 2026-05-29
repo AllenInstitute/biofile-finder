@@ -12,7 +12,7 @@ describe("FileFilter", () => {
         it("emits a boolean equality clause for boolean filter values", () => {
             expect(
                 new FileFilter(
-                    "Is Control",
+                    ["Is Control"],
                     true,
                     FilterType.DEFAULT,
                     AnnotationType.BOOLEAN
@@ -20,7 +20,7 @@ describe("FileFilter", () => {
             ).to.equal(`"Is Control" = true`);
             expect(
                 new FileFilter(
-                    "Is Control",
+                    ["Is Control"],
                     false,
                     FilterType.DEFAULT,
                     AnnotationType.BOOLEAN
@@ -31,7 +31,7 @@ describe("FileFilter", () => {
         // NUMBER: RANGE(min,max) from NumberRangePicker must produce CAST AS DOUBLE comparison SQL
         it("emits a numeric range SQL clause for RANGE() filter values", () => {
             const filter = new FileFilter(
-                "Cell Count",
+                ["Cell Count"],
                 "RANGE(1, 50)",
                 FilterType.DEFAULT,
                 AnnotationType.NUMBER
@@ -44,7 +44,7 @@ describe("FileFilter", () => {
         // DATE/DATETIME: RANGE(isoDate,isoDate) from DateRangePicker must produce TIMESTAMPTZ comparison SQL
         it("emits a date range SQL clause for RANGE() filter values with ISO date strings", () => {
             const filter = new FileFilter(
-                "Date Created",
+                ["Date Created"],
                 "RANGE(2022-01-01T00:00:00.000Z,2022-01-31T00:00:00.000Z)",
                 FilterType.DEFAULT,
                 AnnotationType.DATETIME
@@ -57,7 +57,7 @@ describe("FileFilter", () => {
         // DURATION: INTERVAL columns use EXTRACT(epoch) to convert to ms for equality comparison
         it("emits an epoch extraction SQL clause for DURATION annotation type", () => {
             const filter = new FileFilter(
-                "Acquisition Duration",
+                ["Acquisition Duration"],
                 60000,
                 FilterType.DEFAULT,
                 AnnotationType.DURATION
@@ -71,9 +71,9 @@ describe("FileFilter", () => {
     describe("equals", () => {
         it("is backwards compatible when no type argument is provided", () => {
             // Arrange
-            const fileFilterNoType = new FileFilter("Annotation name", "test value");
+            const fileFilterNoType = new FileFilter(["Annotation name"], "test value");
             const fileFilterWithType = new FileFilter(
-                "Annotation name",
+                ["Annotation name"],
                 "test value",
                 FilterType.DEFAULT
             );
@@ -83,9 +83,9 @@ describe("FileFilter", () => {
         });
         it("returns true for include filter subtype and parent class", () => {
             // Arrange
-            const fileFilterIncludeConstructor = new IncludeFilter("Annotation name");
+            const fileFilterIncludeConstructor = new IncludeFilter(["Annotation name"]);
             const fileFilterParentConstructor = new FileFilter(
-                "Annotation name",
+                ["Annotation name"],
                 "",
                 FilterType.ANY
             );
@@ -95,9 +95,9 @@ describe("FileFilter", () => {
         });
         it("returns true for exclude filter subtype and parent class", () => {
             // Arrange
-            const fileFilterExcludeConstructor = new ExcludeFilter("Annotation name");
+            const fileFilterExcludeConstructor = new ExcludeFilter(["Annotation name"]);
             const fileFilterParentConstructor = new FileFilter(
-                "Annotation name",
+                ["Annotation name"],
                 "",
                 FilterType.EXCLUDE
             );
@@ -112,7 +112,7 @@ describe("FileFilter", () => {
                 "annotation value"
             );
             const fileFilterParentConstructor = new FileFilter(
-                "Annotation name",
+                ["Annotation name"],
                 "annotation value",
                 FilterType.FUZZY
             );
@@ -122,13 +122,13 @@ describe("FileFilter", () => {
         });
         it("returns false for different filter subtypes", () => {
             // Arrange
-            const fileFilter = new FileFilter("Annotation name", "annotation value");
+            const fileFilter = new FileFilter(["Annotation name"], "annotation value");
             const fileFilterFuzzyConstructor = new FuzzyFilter(
                 "Annotation name",
                 "annotation value"
             );
-            const fileFilterExcludeConstructor = new ExcludeFilter("Annotation name");
-            const fileFilterIncludeConstructor = new IncludeFilter("Annotation name");
+            const fileFilterExcludeConstructor = new ExcludeFilter(["Annotation name"]);
+            const fileFilterIncludeConstructor = new IncludeFilter(["Annotation name"]);
 
             // Act/Assert
             expect(!fileFilterFuzzyConstructor.equals(fileFilter));

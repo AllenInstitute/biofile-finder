@@ -340,7 +340,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const s3StorageService = useSelector(interaction.selectors.getS3StorageService);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
-    const annotationNameToAnnotationMap = useSelector(
+    const pathToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
@@ -349,8 +349,8 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
 
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const annotationNames = React.useMemo(
-        () => Array.from(Object.keys(annotationNameToAnnotationMap)).sort(),
-        [annotationNameToAnnotationMap]
+        () => Array.from(Object.keys(pathToAnnotationMap)).sort(),
+        [pathToAnnotationMap]
     );
     const [isSmallFile, setIsSmallFile] = React.useState(false);
     const [isMacOS, setIsMacOS] = React.useState(false);
@@ -439,7 +439,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         () =>
             fileDetails?.annotations
                 .filter(
-                    (annotation) => annotationNameToAnnotationMap[annotation.name]?.isOpenFileLink
+                    (annotation) => pathToAnnotationMap.get(annotation.name)?.isOpenFileLink
                 )
                 .reduce(
                     (mapThusFar, annotation) => ({
@@ -448,7 +448,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                     }),
                     {} as { [annotationName: string]: string }
                 ) || {},
-        [fileDetails, annotationNameToAnnotationMap]
+        [fileDetails, pathToAnnotationMap]
     );
 
     const authorDefinedApps = Object.entries(annotationNameToLinkMap).map(

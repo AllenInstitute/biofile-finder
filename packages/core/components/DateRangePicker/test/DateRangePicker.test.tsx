@@ -55,7 +55,7 @@ describe("<DateRangePicker />", () => {
             it(`initializes to values passed through props with time ${time}`, () => {
                 // Arrange
                 const currentRange = new FileFilter(
-                    "date",
+                    ["date"],
                     `RANGE(${startDate + time},${endDate + time})`
                 );
                 const { getByText } = render(
@@ -80,7 +80,7 @@ describe("<DateRangePicker />", () => {
                 const onSearch = sandbox.spy();
                 // Start with different date range so onSelect will be triggered by change
                 const currentRange = new FileFilter(
-                    "date",
+                    ["date"],
                     `RANGE(${startDate + time},2025-05-24${time})`
                 );
                 const { getAllByRole, getByRole } = render(
@@ -115,7 +115,7 @@ describe("<DateRangePicker />", () => {
                 // Arrange
                 const onSearch = sandbox.spy();
                 const currentRange = new FileFilter(
-                    "date",
+                    ["date"],
                     `RANGE(${startDate + time},${endDate + time})`
                 );
                 const { getAllByRole, getByRole } = render(

@@ -25,3 +25,92 @@
     width: 35vw;
     font-style: italic;
 }
+
+/* ---- Nested filter UI ---- */
+
+.nested-section {
+    background-color: var(--primary-background-color);
+    padding: 8px 30px 16px;
+    width: 35vw;
+}
+
+.nested-mode-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.nested-mode-btn {
+    flex: 1;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 3px;
+    background: var(--secondary-background-color, #f4f4f4);
+    color: var(--primary-text-color);
+}
+
+.nested-mode-btn.active {
+    background: var(--accent-color, #0078d4);
+    color: #fff;
+    border-color: var(--accent-color, #0078d4);
+}
+
+.nested-condition-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.nested-path-input,
+.nested-value-input {
+    flex: 1;
+    padding: 4px 8px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 3px;
+    background: var(--input-background-color, #fff);
+    color: var(--primary-text-color);
+    font-size: 0.85rem;
+}
+
+.nested-remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--error-color, #a80000);
+    font-size: 1rem;
+    padding: 2px 4px;
+}
+
+.nested-add-btn {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background: none;
+    border: 1px dashed var(--border-color, #ccc);
+    border-radius: 3px;
+    padding: 4px 10px;
+    color: var(--secondary-text-color, #555);
+    width: 100%;
+}
+
+.nested-apply-btn {
+    margin-top: 8px;
+    width: 100%;
+    padding: 5px;
+    cursor: pointer;
+    background: var(--accent-color, #0078d4);
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-size: 0.85rem;
+}
+
+.nested-note {
+    font-size: 0.75rem;
+    color: var(--secondary-text-color, #666);
+    font-style: italic;
+    margin-bottom: 8px;
+}

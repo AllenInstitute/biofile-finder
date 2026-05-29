@@ -1,4 +1,4 @@
-import { defaults, find, pull, take, uniqWith, zip } from "lodash";
+import { defaults, pull, take, uniqWith, zip } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -15,7 +15,6 @@ import {
 } from "./directory-hierarchy-state";
 import { findChildNodes } from "./findChildNodes";
 import FileList from "../FileList";
-import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import { ValueError } from "../../errors";
@@ -151,10 +150,6 @@ const useDirectoryHierarchy = (
                 try {
                     const depth = pathToNode.length;
                     const annotationNameAtDepth = hierarchy[depth];
-                    const annotationAtDepth = find(
-                        annotations,
-                        (annotation) => annotation.name === annotationNameAtDepth
-                    );
                     const allChildNodes = await findChildNodes({
                         ancestorNodes,
                         currentNode,
@@ -164,6 +159,8 @@ const useDirectoryHierarchy = (
                         fileService,
                         shouldShowNullGroups,
                     });
+
+                    const annotationMetaMap = new Map(annotations.map((a) => [a.name, a]));
                     const nodes = allChildNodes.map((value, idx) => {
                         let childNodeSortOrder: number;
                         if (isRoot) {
@@ -185,15 +182,10 @@ const useDirectoryHierarchy = (
                             take(hierarchy, depth + 1),
                             take(pathToChildNode, depth + 1)
                         ).map((pair) => {
-                            const [name, value] = pair as [string, string];
-                            const annotationType = annotations.find((ann) => ann.name === name)
-                                ?.type;
-                            return new FileFilter(
-                                name,
-                                value,
-                                FilterType.DEFAULT,
-                                annotationType as AnnotationType
-                            );
+                            const [name, filterValue] = pair as [string, string];
+                            const annotationMeta = annotationMetaMap.get(name);
+                            const path = annotationMeta?.path ?? name.split(".");
+                            return new FileFilter(path, filterValue);
                         });
                         // If we are grouping by a field (e.g., barcode)
                         // and also have filters applied for that field (e.g., barcode=1234, barcode=1357),
@@ -216,6 +208,7 @@ const useDirectoryHierarchy = (
                             sort: sortColumn,
                         });
 
+                    const annotationAtDepth = annotationMetaMap.get(annotationNameAtDepth);
                         const displayValue =
                             value === NO_VALUE_NODE
                                 ? `No value ("${hierarchy[depth]}")`

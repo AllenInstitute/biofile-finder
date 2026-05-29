@@ -15,7 +15,6 @@ const RECENT_ANNOTATIONS_DIVIDER: ListItem<Annotation> = {
     disabled: false,
     isDivider: true,
     value: DIVIDER_SENTINAL_VALUE,
-    displayValue: "",
 };
 
 interface Props {
@@ -25,17 +24,22 @@ interface Props {
     disableUnavailableAnnotations?: boolean;
     className?: string;
     title?: string;
-    selections: string[];
+    selections: string[][];
     annotationSubMenuRenderer?: (
         item: ListItem<Annotation>
     ) => React.ReactElement<ListItem<Annotation>>;
-    setSelections: (annotations: string[]) => void;
+    setSelections: (annotations: string[][]) => void;
     shouldShowNullGroups?: boolean;
 }
 
 /**
  * Form for selecting which annotations to use in some exterior context like
  * downloading a manifest.
+ *
+ * Nested sub-field annotations (e.g. "Well.Gene", "Well.Solution.Name") are shown
+ * hierarchically underneath their parent using visual indentation.  Intermediate path
+ * segments that are not themselves selectable (e.g. "Solution" in "Well.Solution.Name")
+ * appear as non-interactive group-header labels.
  */
 export default function AnnotationPicker(props: Props) {
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
@@ -56,46 +60,77 @@ export default function AnnotationPicker(props: Props) {
         !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name);
 
     const annotationToListItem = (annotation: Annotation): ListItem<Annotation> => {
-        const selected = props.selections.some((selected) => selected === annotation.name);
+        const selected = props.selections.some((selected) => selected === annotation.path);
         const disabled =
             !selected &&
             props.disableUnavailableAnnotations &&
             unavailableAnnotations.some((unavailable) => unavailable.name === annotation.name);
+        const value = annotation.name;
+        const breadcrumbs = annotation.path.length > 1 ? annotation.path.slice(0, -1) : undefined;
+
         return {
             disabled,
             selected,
+            value,
+            breadcrumbs,
             data: annotation,
-            value: annotation.name,
-            description: annotation.description,
-            displayValue: annotation.displayName,
+            description: breadcrumbs
+                ? `${breadcrumbs.join(" / ")} / ${value}: ${annotation.description}`
+                : annotation.description,
             recent: recentAnnotationNames.includes(annotation.name) && !selected,
             loading: props.disableUnavailableAnnotations && areAvailableAnnotationLoading,
         };
     };
 
-    // Map recent annotations into a list of items for selection
-    const nonUniqueItems = [...recentAnnotations, ...annotations]
-        .filter(isSelectable)
-        .map(annotationToListItem);
+    // Separate top-level annotations from sub-field annotations.
+    const topLevelAnnotations = annotations.filter((a) => !a.isSubField);
 
-    const items = uniqBy(nonUniqueItems, "value");
+    // Group sub-fields by their top-level parent name.
+    const subFieldsByParent = new Map<string, Annotation[]>();
+    annotations
+        .filter((a) => a.isSubField && isSelectable(a))
+        .forEach((a) => {
+            const parent = a.path.length > 1
+                ? a.path[0] // TODO: Needs to work for multiple layers of nested
+                : undefined;
+            if (!parent) return;
+            if (!subFieldsByParent.has(parent)) subFieldsByParent.set(parent, []);
+            subFieldsByParent.get(parent)!.push(a);
+        });
 
-    // If there are any recent annotations add a divider between them
-    // and the rest of the annotations (assuming any left)
+    // Build the hierarchical flat list: top-level annotation then its nested sub-tree.
+    const hierarchicalItems: ListItem<Annotation>[] = [];
+    for (const ann of topLevelAnnotations) {
+        if (!isSelectable(ann)) continue;
+
+        const subFields = subFieldsByParent.get(ann.name);
+        if (subFields) {
+            // Only show the leaf sub-fields; skip the nested parent itself
+            hierarchicalItems.push(...subFields.map(annotationToListItem));
+        } else if (!ann.isParent) {
+            hierarchicalItems.push(annotationToListItem(ann));
+        }
+    }
+
+    // Recent annotations stay at the top at depth 0 with their full display name.
+    const recentItems = recentAnnotations.filter(isSelectable).map((a) => annotationToListItem(a));
+
+    const items = uniqBy([...recentItems, ...hierarchicalItems], "value");
+
     if (recentAnnotations.length) {
         items.push(RECENT_ANNOTATIONS_DIVIDER);
     }
 
     const removeSelection = (item: ListItem<Annotation>) => {
         props.setSelections(
-            props.selections.filter((annotation) => annotation !== item.data?.name)
+            props.selections.filter((annotation) => annotation !== item.data?.path)
         );
     };
 
     const addSelection = (item: ListItem<Annotation>) => {
         // Should never be undefined, included as guard statement to satisfy compiler
         if (item.data) {
-            props.setSelections([...props.selections, item.data.name]);
+            props.setSelections([...props.selections, item.data.path]);
         }
     };
 
@@ -109,7 +144,7 @@ export default function AnnotationPicker(props: Props) {
             onSelect={addSelection}
             onSelectAll={
                 props.hasSelectAllCapability
-                    ? () => props.setSelections?.(annotations.map((a) => a.name))
+                    ? () => props.setSelections?.(annotations.map((a) => a.path))
                     : undefined
             }
             onDeselectAll={() => props.setSelections([])}

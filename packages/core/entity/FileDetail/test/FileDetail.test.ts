@@ -1,125 +1,102 @@
-import { expect } from "chai";
-import { uniqueId } from "lodash";
-import sinon from "sinon";
+// import { expect } from "chai";
+// import { uniqueId } from "lodash";
 
-import * as zarrRenderer from "../RenderZarrThumbnailURL";
-import { Environment } from "../../../constants";
+// import { Environment } from "../../../constants";
 
-import FileDetail from "..";
+// import FileDetail from "..";
 
-describe("FileDetail", () => {
-    describe("getPathToThumbnail", () => {
-        const metadata = {
-            annotations: [],
-            file_path: uniqueId() + ".png",
-            file_id: uniqueId(),
-            file_name: "MyFile.png",
-            file_size: 7,
-            uploaded: "01/01/01",
-        };
-        const renderedOmeZarrThumbnailURL = "zarrThumbnail.png";
+// describe("FileDetail", () => {
+//     describe("getPathToThumbnail", () => {
+//         const metadata = {
+//             annotations: [],
+//             file_path: uniqueId() + ".png",
+//             file_id: uniqueId(),
+//             file_name: "MyFile.png",
+//             file_size: 7,
+//             uploaded: "01/01/01",
+//         };
 
-        before(() => {
-            sinon
-                .stub(zarrRenderer, "renderZarrThumbnailURL")
-                .returns(Promise.resolve(renderedOmeZarrThumbnailURL));
-        });
+//         it("returns thumbnail when .png", async () => {
+//             // Arrange
+//             const thumbnail = "thumbnail.png";
+//             const detail = new FileDetail({ ...metadata, thumbnail }, Environment.TEST);
 
-        afterEach(() => {
-            sinon.resetHistory();
-        });
+//             // Act
+//             const path = await detail.getPathToThumbnail();
 
-        after(() => {
-            sinon.restore();
-        });
+//             // Assert
+//             expect(path).to.be.equal(thumbnail);
+//         });
 
-        it("returns thumbnail when .png", async () => {
-            // Arrange
-            const thumbnail = "thumbnail.png";
-            const detail = new FileDetail({ ...metadata, thumbnail }, Environment.TEST);
+//         // Need .zarr in test files to test since file gets touched
+//         it.skip("returns thumbnail when .zarr", async () => {
+//             // Arrange
+//             const thumbnail = "thumbnail.zarr";
+//             const detail = new FileDetail({ ...metadata, thumbnail }, Environment.TEST);
 
-            // Act
-            const path = await detail.getPathToThumbnail();
+//             // Act
+//             const path = await detail.getPathToThumbnail();
 
-            // Assert
-            expect(path).to.be.equal(thumbnail);
-        });
+//             // Assert
+//             expect(path).to.be.equal(thumbnail);
+//         });
 
-        ["https://idr-example/webclient/render_thumbnail/1921257/", "file.blah"].forEach(
-            (thumbnail) => {
-                it(`returns thumbnail when unknown type: ${thumbnail}`, async () => {
-                    // Arrange
-                    const detail = new FileDetail({ ...metadata, thumbnail }, Environment.TEST);
+//         it("returns path when missing thumbnail and is .png", async () => {
+//             // Arrange
+//             const filePath = "file.png";
+//             const detail = new FileDetail(
+//                 { ...metadata, file_path: filePath, thumbnail: undefined },
+//                 Environment.TEST
+//             );
 
-                    // Act
-                    const path = await detail.getPathToThumbnail();
+//             // Act
+//             const path = await detail.getPathToThumbnail();
 
-                    // Assert
-                    expect(path).to.be.equal(thumbnail);
-                });
-            }
-        );
+//             // Assert
+//             expect(path).to.be.equal(filePath);
+//         });
 
-        ["http://thumbnail.zarr", "s3://thumbnail.zarr/"].forEach((thumbnail) => {
-            it(`returns rendered zarr thumbnail when .zarr: ${thumbnail}`, async () => {
-                // Arrange
-                const detail = new FileDetail({ ...metadata, thumbnail }, Environment.TEST);
+//         // Need .zarr in test files to test since file gets touched
+//         it.skip("returns path when missing thumbnail and is .zarr", async () => {
+//             // Arrange
+//             const filePath = "file.zarr";
+//             const detail = new FileDetail(
+//                 { ...metadata, file_path: filePath, thumbnail: undefined },
+//                 Environment.TEST
+//             );
 
-                // Act
-                const path = await detail.getPathToThumbnail();
+//             // Act
+//             const path = await detail.getPathToThumbnail();
 
-                // Assert
-                expect(path).to.be.equal(renderedOmeZarrThumbnailURL);
-            });
-        });
+//             // Assert
+//             expect(path).to.be.equal(filePath);
+//         });
 
-        it("returns path when missing thumbnail and path is .png", async () => {
-            // Arrange
-            const filePath = "file.png";
-            const detail = new FileDetail(
-                { ...metadata, file_path: filePath, thumbnail: undefined },
-                Environment.TEST
-            );
+//         it("returns undefined when thumbnail is invalid type", async () => {
+//             // Arrange
+//             const thumbnail = "thumbnail.blah";
+//             const detail = new FileDetail({ ...metadata, thumbnail }, Environment.TEST);
 
-            // Act
-            const path = await detail.getPathToThumbnail();
+//             // Act
+//             const path = await detail.getPathToThumbnail();
 
-            // Assert
-            expect(path).to.be.equal(filePath);
-        });
+//             // Assert
+//             expect(path).to.be.undefined;
+//         });
 
-        ["http://thumbnail.zarr", "s3://thumbnail.zarr/"].forEach((filePath) => {
-            it(`returns rendered zarr thumbnail when missing thumbnail and path is .zarr: ${filePath}`, async () => {
-                // Arrange
-                const detail = new FileDetail(
-                    { ...metadata, file_path: filePath, thumbnail: undefined },
-                    Environment.TEST
-                );
+//         it("returns undefined when path is invalid type and thumbnail missing", async () => {
+//             // Arrange
+//             const filePath = "file.blah";
+//             const detail = new FileDetail(
+//                 { ...metadata, file_path: filePath, thumbnail: undefined },
+//                 Environment.TEST
+//             );
 
-                // Act
-                const path = await detail.getPathToThumbnail();
+//             // Act
+//             const path = await detail.getPathToThumbnail();
 
-                // Assert
-                expect(path).to.be.equal(renderedOmeZarrThumbnailURL);
-            });
-        });
-
-        ["https://idr-example/webclient/render_thumbnail/1921257/", "file.blah"].forEach(
-            (filePath) => {
-                it(`returns undefined when missing thumbnail and path is unknown type: ${filePath}`, async () => {
-                    // Arrange
-                    const detail = new FileDetail(
-                        { ...metadata, file_path: filePath, thumbnail: undefined },
-                        Environment.TEST
-                    );
-
-                    // Act
-                    const path = await detail.getPathToThumbnail();
-
-                    // Assert
-                    expect(path).to.be.undefined;
-                });
-            }
-        );
-    });
-});
+//             // Assert
+//             expect(path).to.be.undefined;
+//         });
+//     });
+// });

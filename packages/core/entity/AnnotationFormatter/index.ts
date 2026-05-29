@@ -19,6 +19,7 @@ export enum AnnotationType {
     // without BREAKING visibility in the dataset released in 2024 as part
     // of the EMT Data Release paper
     OPEN_FILE_LINK = "Open file link",
+    NESTED = "Nested",
 }
 
 // ID table source via Labkey server: executeQuery.view?schemaName=filemetadata&query.queryName=AnnotationType
@@ -54,6 +55,8 @@ export default function annotationFormatterFactory(type: string): AnnotationForm
             return numberFormatter;
         case AnnotationType.DURATION:
             return durationFormatter;
+        // TODO: Need object handler... what about arrays?
+        case AnnotationType.NESTED:
         case AnnotationType.STRING:
         // prettier-ignore
         default: // FALL-THROUGH

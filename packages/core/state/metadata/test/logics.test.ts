@@ -60,20 +60,17 @@ describe("Metadata logics", () => {
     describe("receiveAnnotations", () => {
         const mockAnnotations: Annotation[] = [
             new Annotation({
-                annotationDisplayName: "annotation A",
-                annotationName: "annotation A",
+                path: ["annotation A"],
                 description: "",
                 type: AnnotationType.NUMBER,
             }),
             new Annotation({
-                annotationDisplayName: "annotation B",
-                annotationName: "annotation B",
+                path: ["annotation B"],
                 description: "",
                 type: AnnotationType.DATE,
             }),
             new Annotation({
-                annotationDisplayName: "annotation C",
-                annotationName: "annotation C",
+                path: ["annotation C"],
                 description: "",
                 type: AnnotationType.STRING,
             }),
@@ -82,8 +79,8 @@ describe("Metadata logics", () => {
         it("dispatches filter updates if annotation types have been added", async () => {
             // arrange
             const mockFilters: FileFilter[] = [
-                new FileFilter(mockAnnotations[0].name, "123"),
-                new FileFilter(mockAnnotations[1].name, new Date()),
+                new FileFilter([mockAnnotations[0].name], "123"),
+                new FileFilter([mockAnnotations[1].name], new Date()),
             ];
             const state = mergeState(initialState, {
                 selection: {
@@ -116,10 +113,9 @@ describe("Metadata logics", () => {
             // arrange
             const mockFilters: FileFilter[] = [
                 new FileFilter(
-                    mockAnnotations[2].name,
+                    [mockAnnotations[2].name],
                     "test value",
                     FilterType.DEFAULT,
-                    AnnotationType.STRING
                 ),
             ];
             const state = mergeState(initialState, {

@@ -1,5 +1,5 @@
 import SearchParams, { SearchParamsComponents } from "../../../../core/entity/SearchParams";
-import { FmsFileAnnotation } from "../../../../core/services/FileService";
+import { FmsFileAnnotation, NestedMetadataValue, PrimitiveMetadataValue } from "../../../../core/services/FileService";
 
 /**
  * Represents an open-source dataset that will be publicly available on the BioFile Finder web version.
@@ -35,6 +35,10 @@ export class DatasetAnnotation {
         this.displayLabel = displayLabel;
         this.name = name;
         this.minWidth = minWidth;
+    }
+
+    public get path(): string[] {
+        return [this.name];
     }
 
     public equals(target: DatasetAnnotation): boolean {
@@ -171,15 +175,15 @@ export default class PublicDataset {
     }
 
     public get featured(): boolean {
-        return this.datasetDetails.featured?.toLowerCase() === "true";
+        return this.datasetDetails.featured === "TRUE";
     }
 
-    public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {
-        return this.getAnnotation(annotationName)?.values[0];
+    public getAnnotation(annotationName: string): PrimitiveMetadataValue[] | NestedMetadataValue[] | undefined {
+        return this.annotations.find((annotation) => annotation.name === annotationName)?.values;
     }
 
-    public getAnnotation(annotationName: string): FmsFileAnnotation | undefined {
-        return this.annotations.find((annotation) => annotation.name === annotationName);
+    public getFirstAnnotationValue(annotationName: string): PrimitiveMetadataValue | NestedMetadataValue | undefined {
+        return this.getAnnotation(annotationName)?.[0];
     }
 
     private setMetadata<K extends keyof PublicDatasetProps, V extends PublicDatasetProps[K]>(
