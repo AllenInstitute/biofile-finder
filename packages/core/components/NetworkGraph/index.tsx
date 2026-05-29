@@ -59,14 +59,8 @@ function NetworkGraph(props: NetworkGraphProps) {
     // Unfortunately we have to have some notion of state at a high level for control from the components
     // and at the dagre level for when the user does a drag action causing this duplication of efforts
     React.useEffect(() => {
-        let cancel = false;
-        if (!cancel) {
-            setEdges(graph.edges);
-            setNodes(graph.nodes);
-        }
-        return function cleanup() {
-            cancel = true;
-        };
+        setEdges(graph.edges);
+        setNodes(graph.nodes);
     }, [graph, setEdges, setNodes, refreshKey]);
 
     // The option to open this graph shouldn't even appear when a
