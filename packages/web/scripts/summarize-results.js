@@ -13,20 +13,12 @@ function defaultResultsFile() {
     const local = path.join(__dirname, "..", "benchmark-results-local.json");
     if (fs.existsSync(local)) return local;
 
-    try {
-        const branch =
-            process.env.BENCHMARK_BRANCH ||
-            execSync("git rev-parse --abbrev-ref HEAD", { stdio: "pipe" }).toString().trim();
-        const slug = branch.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
-        const stamped = path.join(__dirname, "..", `benchmark-results-${slug}.json`);
-        if (fs.existsSync(stamped)) return stamped;
-    } catch (e) {
-        if (e instanceof SomeSpecificError) {
-            return path.join(__dirname, "..", "benchmark-results.json");
-        } else {
-            throw e;
-        }
-    }
+    const branch =
+        process.env.BENCHMARK_BRANCH ||
+        execSync("git rev-parse --abbrev-ref HEAD", { stdio: "pipe" }).toString().trim();
+    const slug = branch.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
+    const stamped = path.join(__dirname, "..", `benchmark-results-${slug}.json`);
+    if (fs.existsSync(stamped)) return stamped;
 }
 
 const file = defaultResultsFile();
@@ -62,24 +54,28 @@ console.log(`Timestamp:   ${data.timestamp}`);
 console.log(`DuckDB init: ${fmt(data.initTimeMs)}`);
 console.log("");
 
-const sourceLabels = data.sources.map((s) => s.label);
+const sourceLabels = data.results.map((s) => s.labels);
 
 // Header row
 const COL_W = 20;
-console.log(col("  Query", 26) + sourceLabels.map((l) => rcol(l, COL_W)).join(""));
+console.log(
+    col("  Query", 26) + sourceLabels.map((labels) => rcol(labels.join(", "), COL_W)).join("")
+);
 console.log("  " + "─".repeat(24 + sourceLabels.length * COL_W));
 
 // Registration row
-const regCells = data.sources.map((s) => rcol(fmt(s.registrationMs), COL_W));
+const regCells = data.results.map((result) => rcol(fmt(result.registrationMs), COL_W));
 console.log("  " + col("registration", 24) + regCells.join(""));
 console.log("");
 
 // Query rows (p50 / p95)
-const queryNames = [...new Set(data.sources.flatMap((s) => s.queries.map((q) => q.name)))];
+const queryNames = [
+    ...new Set(data.results.flatMap((result) => result.queries.map((q) => q.name))),
+];
 
 for (const name of queryNames) {
-    const cells = data.sources.map((s) => {
-        const q = s.queries.find((x) => x.name === name);
+    const cells = data.results.map((result) => {
+        const q = result.queries.find((x) => x.name === name);
         if (!q) return rcol("—", COL_W);
         return rcol(`${fmt(q.p50)} / ${fmt(q.p95)}`, COL_W);
     });
@@ -89,8 +85,8 @@ for (const name of queryNames) {
 console.log("");
 console.log(SEP);
 console.log(
-    `  ${data.sources.length} source(s) · ${queryNames.length} queries · ` +
-        `${data.sources[0]?.queries[0]?.timings?.length ?? "?"} iterations each`
+    `  ${data.results.length} test case(s) · ${queryNames.length} queries · ` +
+        `${data.results[0]?.queries[0]?.timings?.length ?? "?"} iterations each`
 );
 console.log("  Timings shown as p50 / p95");
 console.log("");
