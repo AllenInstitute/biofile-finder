@@ -14,10 +14,9 @@
 }
 
 /*
- * TODO: The User Guide uses larger heading sizes than the global design system defaults.
- * These are scoped here intentionally to avoid affecting the rest of the app.
- * When the design system heading sizes are revisited globally (h2: 28px, h3: 20px/400),
- * these overrides can be removed and global.css updated instead.
+ * TODO: The User Guide uses larger, lighter heading sizes than the global design system defaults
+ * (global: h2 24px, h3 18px/600). These are scoped here intentionally to avoid affecting the
+ * rest of the app. If heading sizes are ever updated globally to match, these overrides can be removed.
  */
 .root h2 {
     font-size: 28px;
