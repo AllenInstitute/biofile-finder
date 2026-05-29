@@ -3,7 +3,7 @@ import classNames from "classnames";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import { PAGE_CONTENT } from "./content";
+import { PAGE_CONTENT } from "./content/index";
 import { NAV, getAdjacentPages } from "./nav";
 import styles from "./DocPage.module.css";
 
@@ -36,17 +36,19 @@ export default function DocPage({ sectionSlug, pageSlug }: DocPageProps) {
             <h1 className={styles.title}>{content.title}</h1>
             {content.intro && <p className={styles.intro}>{content.intro}</p>}
             <div className={styles.sections}>
-                {content.sections.map((sec) => (
-                    <section key={sec.id} id={sec.id} className={styles.section}>
-                        {sec.heading &&
-                            React.createElement(
-                                `h${sec.level ?? 2}`,
-                                { className: styles.sectionHeading },
-                                sec.heading
+                {content.sections.map((sec) => {
+                    const HeadingTag = `h${sec.level ?? 2}` as "h2" | "h3" | "h4";
+                    return (
+                        <section key={sec.id} id={sec.id} className={styles.section}>
+                            {sec.heading && (
+                                <HeadingTag className={styles.sectionHeading}>
+                                    {sec.heading}
+                                </HeadingTag>
                             )}
-                        <div className={styles.sectionBody}>{sec.body}</div>
-                    </section>
-                ))}
+                            <div className={styles.sectionBody}>{sec.body}</div>
+                        </section>
+                    );
+                })}
             </div>
             <div className={styles.pagination}>
                 {prev ? (

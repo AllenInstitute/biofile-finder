@@ -1,5 +1,31 @@
+/*
+ * Styles here fall into two categories:
+ *
+ * 1. CSS Module classes (.root, .sectionBody, etc.) — used in DocPage.tsx via styles.*
+ *
+ * 2. Content classes (.ug-image, .ug-scroll-container, etc.) — applied as plain strings
+ *    in the content/* files, which are data files that cannot import CSS modules.
+ *    Scoped via `.sectionBody :global(.ug-*)` to prevent leaking outside the content area.
+ *    When adding new content styles, add a ug-* class here instead of using inline styles.
+ */
+
 .root {
     max-width: 900px;
+}
+
+/*
+ * TODO: The User Guide uses larger heading sizes than the global design system defaults.
+ * These are scoped here intentionally to avoid affecting the rest of the app.
+ * When the design system heading sizes are revisited globally (h2: 28px, h3: 20px/400),
+ * these overrides can be removed and global.css updated instead.
+ */
+.root h2 {
+    font-size: 28px;
+}
+
+.root h3 {
+    font-size: 20px;
+    font-weight: 400;
 }
 
 .notFound {
@@ -158,15 +184,44 @@
     margin: 20px 0 30px 0;
 }
 
+/* Asymmetric 1:2 grid layout — used when pairing a narrow panel with a wide screenshot */
+.sectionBody :global(.ug-feature-grid--wide) {
+    grid-template-columns: 1fr 2fr;
+}
+
 .sectionBody :global(.ug-feature-card) {
     font-weight: 300;
     line-height: 1.6;
 }
 
 @media (max-width: 769px) {
-    .sectionBody :global(.ug-feature-grid) {
+    .sectionBody :global(.ug-feature-grid),
+    .sectionBody :global(.ug-feature-grid--wide) {
         grid-template-columns: 1fr;
     }
+}
+
+/* Content images */
+.sectionBody :global(.ug-image) {
+    width: 100%;
+    border-radius: 4px;
+}
+
+.sectionBody :global(.ug-image-mt) {
+    width: 100%;
+    border-radius: 4px;
+    margin-top: 8px;
+}
+
+/* Inline icons within body text */
+.sectionBody :global(.ug-icon-sm) {
+    font-size: 11px;
+    vertical-align: middle;
+}
+
+.sectionBody :global(.ug-icon-md) {
+    font-size: 16px;
+    vertical-align: middle;
 }
 
 /* Placeholder box (for diagrams/future content) */

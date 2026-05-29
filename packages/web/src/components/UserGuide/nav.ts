@@ -6,6 +6,7 @@ export type NavHeading = {
 export type NavPage = {
     title: string;
     slug: string;
+    // headings: reserved for possible future in-page anchor navigation in the sidebar
     headings?: NavHeading[];
 };
 

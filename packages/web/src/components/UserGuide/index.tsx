@@ -22,6 +22,16 @@ export default function UserGuide() {
         }
     }, [location.pathname]);
 
+    // Close mobile menu on Escape — standard accessibility expectation for overlays
+    React.useEffect(() => {
+        if (!menuOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setMenuOpen(false);
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [menuOpen]);
+
     if (!sectionSlug || !pageSlug) {
         return <Navigate to="/user-guide/about/overview" replace />;
     }
