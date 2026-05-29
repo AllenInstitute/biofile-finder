@@ -11,7 +11,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--light-grey);
     margin-bottom: 20px;
 }
@@ -46,7 +46,7 @@
 }
 
 .sectionHeading {
-    margin-bottom: 12px;
+    margin-bottom: 20px;
 }
 
 .sectionBody {
@@ -93,10 +93,6 @@
     margin: 20px 0 10px 0;
 }
 
-.sectionBody h4 {
-    margin-bottom: 3px;
-}
-
 /* Inline table styles for HTML tables in content */
 .sectionBody :global(.ug-scroll-container) {
     position: relative;
@@ -119,10 +115,14 @@
     cursor: ew-resize;
 }
 
+.sectionBody :global(.ug-scroll-table) table {
+    min-width: 1140px;
+}
+
 .sectionBody table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 12px;
     margin-bottom:20px;
 }
 
@@ -139,7 +139,7 @@
     padding: 8px 12px;
     border: 1px solid var(--border-color);
     vertical-align: top;
-    line-height: 1.5;
+    line-height: 1.3;
 }
 
 .sectionBody tr:nth-child(odd) td {
@@ -154,8 +154,8 @@
 .sectionBody :global(.ug-feature-grid) {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap:24px;
-    margin: 20px 0 40px 0;
+    gap:22px;
+    margin: 20px 0 30px 0;
 }
 
 .sectionBody :global(.ug-feature-card) {
@@ -175,7 +175,7 @@
     border: 1px dashed var(--border-color);
     border-radius: var(--small-border-radius);
     color: var(--light-grey);
-    font-size: 13px;
+    font-size: 14px;
     font-style: italic;
     padding: 24px;
     text-align: center;
@@ -236,7 +236,7 @@
 }
 
 .pageNavTitle {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--primary-text-color);
 }

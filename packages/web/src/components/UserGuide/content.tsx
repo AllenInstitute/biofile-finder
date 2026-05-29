@@ -1,6 +1,13 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
+import GroupingHierarchy from "./assets/grouping-hierarchy.png";
+import GroupingPanel from "./assets/grouping-panel.png";
+import QueryingFilters from "./assets/querying-filters.png";
+import QueryingResults from "./assets/querying-results.png";
+import SharingUrl from "./assets/sharing-url.png";
+import Thumbnails from "./assets/thumbnails.png";
+
 export interface PageContent {
     title: string;
     intro: string;
@@ -30,7 +37,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             curate, collaborate on, and share datasets. The intuitive interface
                             requires no coding, allowing users to quickly preview data through
                             thumbnails, open files in common industry tools, or visualize them in
-                            the companion web-based 3D volume viewer, Vole-E.
+                            the companion web-based 3D volume viewer, Vol-E.
                         </p>
                         {/* <p>
                             <a href="#">Read publication in Nature Methods</a>
@@ -50,33 +57,19 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                         </p>
                         <ul>
                             <li>
-                                <span>Wet-lab scientists</span> —{" "}
-                                <i>
-                                    I have thousands of images and I just want to find the right
-                                    ones.
-                                </i>
+                                <span>Wet-lab scientists</span>
                             </li>
                             <li>
-                                <span>Computational biologists</span> —{" "}
-                                <i>
-                                    I want to query millions of files without writing a pipeline to
-                                    do it.
-                                </i>
+                                <span>Computational biologists</span>
                             </li>
                             <li>
-                                <span>Data Engineers & Platform Teams</span> —{" "}
-                                <i>
-                                    I&apos;d like to provide my users self-service data access
-                                    without building a portal.
-                                </i>
+                                <span>Data Engineers & Platform Teams</span>
                             </li>
                             <li>
-                                <span>Academic Facility Managers & PIs</span> —{" "}
-                                <i>I need to make my shared data actually usable.</i>
+                                <span>Academic Facility Managers & PIs</span>
                             </li>
                             <li>
-                                <span>GLAM & Museum Professionals</span> —{" "}
-                                <i>I want to make my collection metadata interactive.</i>
+                                <span>GLAM & Museum Professionals</span>
                             </li>
                         </ul>
                         <p>
@@ -124,6 +117,14 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 open instantly.
                             </div>
                         </div>
+                    </>
+                ),
+            },
+            {
+                id: "bff-comparison-table",
+                heading: "How BFF compares",
+                body: (
+                    <>
                         <p>
                             The following table highlights how BFF compares to similar tools in the
                             bioimaging data management ecosystem.
@@ -164,7 +165,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                             <td>
                                                 <strong>Cost</strong>
                                             </td>
-                                            <td>Free / open-source</td>
+                                            <td>Free/open-source</td>
                                             <td>
                                                 Free / open-source (self-hosted infrastructure
                                                 costs)
@@ -442,6 +443,18 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             <li>Full-text search across all metadata</li>
                             <li>Scales to 10M+ rows, limited only by browser memory</li>
                         </ul>
+                        <div className="ug-feature-grid" style={{ gridTemplateColumns: "1fr 2fr" }}>
+                            <img
+                                src={QueryingFilters}
+                                alt="Filter panel showing active filters: Drug Label equals Staurosporine, Structure equals Microtubules, Treatment Group equals Drug, with Treatment Group sorted ascending"
+                                style={{ width: "100%", borderRadius: 4 }}
+                            />
+                            <img
+                                src={QueryingResults}
+                                alt="File list showing Microtubules folder with two files visible, Treatment Group column sorted ascending"
+                                style={{ width: "100%", borderRadius: 4 }}
+                            />
+                        </div>
                     </>
                 ),
             },
@@ -465,6 +478,18 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             <li>Combine grouping with filters for focused exploration</li>
                             <li>Switch views without affecting the underlying data</li>
                         </ul>
+                        <div className="ug-feature-grid" style={{ gridTemplateColumns: "1fr 2fr" }}>
+                            <img
+                                src={GroupingPanel}
+                                alt="Group by panel showing four nested grouping levels: Structure, Drug Label, Drug Concentration, and Timepoint"
+                                style={{ width: "100%", borderRadius: 4 }}
+                            />
+                            <img
+                                src={GroupingHierarchy}
+                                alt="File list showing a multi-level folder hierarchy expanded under Microtubules > Staurosporine > 0.5 > 2, revealing individual files"
+                                style={{ width: "100%", borderRadius: 4 }}
+                            />
+                        </div>
                     </>
                 ),
             },
@@ -510,6 +535,11 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             grouped view — making it a powerful tool for transparent and
                             reproducible science.
                         </p>
+                        <img
+                            src={SharingUrl}
+                            alt="Browser URL bar showing a BFF link with filters, groupings, and query state encoded as URL parameters"
+                            style={{ width: "100%", borderRadius: 4, marginTop: 8 }}
+                        />
                     </>
                 ),
             },
@@ -538,6 +568,11 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 review
                             </li>
                         </ul>
+                        <img
+                            src={Thumbnails}
+                            alt="Thumbnail grid view showing a Golgi folder with 72 files, each displaying a rendered microscopy image thumbnail"
+                            style={{ width: "100%", borderRadius: 4, marginTop: 8 }}
+                        />
                     </>
                 ),
             },
@@ -575,60 +610,9 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                         </ul>
                         <p>
                             <a href="/user-guide/app-information/supported-viewers">
-                                See the full viewer comparison table
+                                See the viewer comparison table
                             </a>
                         </p>
-                    </>
-                ),
-            },
-            {
-                id: "serverless",
-                heading: "No infrastructure required",
-                body: (
-                    <>
-                        <p>
-                            BFF runs entirely in your browser or as a desktop application — no
-                            server, no database, and no IT support needed. It works with files
-                            wherever they live: local drives, network storage, or cloud buckets.
-                        </p>
-                        <ul>
-                            <li>
-                                <strong>Local</strong> — drag and drop a CSV or Parquet file and
-                                start exploring
-                            </li>
-                            <li>
-                                <strong>Cloud</strong> — works with S3 and public HTTP/HTTPS URLs
-                            </li>
-                            <li>
-                                <strong>Format agnostic</strong> — accepts metadata as CSV, Parquet,
-                                or JSON; references any file type
-                            </li>
-                            <li>No accounts, no authentication, no deployment</li>
-                        </ul>
-                        <p>
-                            <a href="/user-guide/other-resources/storage-options">
-                                See storage options
-                            </a>
-                        </p>
-                    </>
-                ),
-            },
-            {
-                id: "annotations",
-                heading: "In-browser dataset annotations",
-                body: (
-                    <>
-                        <p>
-                            Add, edit, or rename metadata columns directly within BFF without
-                            modifying your original dataset file. Annotations are stored in the
-                            browser and can be exported as a new CSV, making BFF useful as a
-                            lightweight data curation tool.
-                        </p>
-                        <ul>
-                            <li>Add new columns and fill in values per file</li>
-                            <li>Edit existing metadata values</li>
-                            <li>Export the annotated dataset as CSV</li>
-                        </ul>
                     </>
                 ),
             },
@@ -730,8 +714,8 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                 body: (
                     <>
                         <p>
-                            Note: File format will heavily limit viewer options, but when multiple
-                            are available, the following information may help guide your decision.
+                            File format will heavily limit viewer options, but when multiple options
+                            are feasible, the following information may help guide your decision.
                         </p>
                         <ul>
                             <li>
@@ -1145,7 +1129,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             its well position, compound treatment, concentration, cell line, and
                             measured phenotype scores.
                         </p>
-                        <h4>Solution using BFF</h4>
+                        <h4>How BFF helps</h4>
                         <p>
                             Load the manifest into BFF and immediately group files by Plate &gt;
                             Treatment &gt; Concentration to see how many images exist at each
@@ -1176,7 +1160,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             confirm that every file has complete, consistent metadata — no missing
                             cell lines, no mislabeled plates, no blank file paths.
                         </p>
-                        <h4>Solution using BFF</h4>
+                        <h4>How BFF helps</h4>
                         <p>
                             Load your metadata file and use BFF&apos;s filters to find gaps. Group
                             by &quot;Cell Line&quot; and look for a blank or &quot;(No value)&quot;
@@ -1210,7 +1194,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             particular experimental condition, or everything captured on a specific
                             date.
                         </p>
-                        <h4>Solution using BFF</h4>
+                        <h4>How BFF helps</h4>
                         <p>
                             Apply filters to narrow down to exactly the subset you care about:
                             &quot;Cell Line = iPSC&quot; AND &quot;Plate = 007&quot; AND &quot;QC
@@ -1243,7 +1227,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             entries, consistent naming. Doing this manually in Excel breaks down
                             past a few thousand rows.
                         </p>
-                        <h4>Solution using BFF</h4>
+                        <h4>How BFF helps</h4>
                         <p>
                             Load a 2-million-row Parquet manifest and immediately see the total file
                             count in the aggregate info bar. Group by &quot;Experiment &gt; Plate
@@ -1281,7 +1265,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             easy way to browse, search, and share access to this inventory without
                             maintaining a server.
                         </p>
-                        <h4>Solution using BFF</h4>
+                        <h4>How BFF helps</h4>
                         <p>
                             Export your inventory as a Parquet file (or maintain it as a CSV) with
                             columns for file path, file name, and any annotations that matter to
@@ -1438,7 +1422,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             timelapse datasets in the browser, and interact with the dataset using
                             the same flexible metadata-driven framework.
                         </p>
-                        <h4>Key takeaways:</h4>
+                        <h4>Key takeaways</h4>
                         <blockquote>
                             <p>
                                 &ldquo;Every organizational choice comes at the cost of another. In
@@ -1515,7 +1499,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             across different domains, extending from cell imaging to brain section
                             and genomic data visualization.
                         </p>
-                        <h4>Key takeaways:</h4>
+                        <h4>Key takeaways</h4>
                         <blockquote>
                             <p>
                                 &ldquo;BioFile Finder is a data management tool&hellip; like a fancy
@@ -1722,15 +1706,8 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             If data is intended to be publicly shared — like in a publication —
                             store the dataset and files referenced in the dataset in{" "}
                             <a href="/user-guide/other-resources/storage-options">cloud storage</a>{" "}
-                            to enable readers to explore the dataset and its files via a{" "}
-                            <a href="#">
-                                shareable BFF link{" "}
-                                <Icon
-                                    iconName="Flag"
-                                    style={{ fontSize: 16, verticalAlign: "middle" }}
-                                />
-                            </a>
-                            .
+                            to enable readers to explore the dataset and its files via a sharable
+                            BFF link (URL).
                         </p>
                         <p>
                             Note: You can use BFF as a way to circumvent having to publish all files
@@ -1794,7 +1771,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
         sections: [
             {
                 id: "creating-spreadsheet",
-                heading: "Creating a spreadsheet",
+                heading: "What is a dataset?",
                 body: (
                     <>
                         <p>
@@ -1803,86 +1780,15 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             flexible — any columns beyond the required ones are yours to define
                             based on what matters to your workflow.
                         </p>
-                        <ul>
-                            <li>
-                                <a href="/user-guide/app-information/specifications">
-                                    See App information
-                                </a>{" "}
-                                for detailed info on accepted file types and other limitations.
-                            </li>
-                            <li>
-                                <a href="/user-guide/getting-started/metadata-guidance">
-                                    See Metadata guidance
-                                </a>{" "}
-                                for detailed info on best practices.
-                            </li>
-                        </ul>
-                    </>
-                ),
-            },
-            {
-                id: "spreadsheet-examples",
-                heading: "Spreadsheet (dataset) examples",
-                body: (
-                    <>
-                        <h3>Basic example</h3>
                         <p>
-                            Each row is a file. Columns can be anything meaningful to your workflow
-                            — here a well position, gene target, and color channel.
+                            <a href="/user-guide/app-information/specifications">
+                                See App information
+                            </a>{" "}
+                            for accepted file types and size limitations.
                         </p>
-                        <table className="ug-table">
-                            <thead>
-                                <tr>
-                                    <th>File Path</th>
-                                    <th>Well</th>
-                                    <th>Gene</th>
-                                    <th>Color</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Abc123.txt</td>
-                                    <td>B3</td>
-                                    <td>CDH2</td>
-                                    <td>Blue</td>
-                                </tr>
-                                <tr>
-                                    <td>Def456.txt</td>
-                                    <td>G9</td>
-                                    <td>VIM</td>
-                                    <td>Green</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <ul>
-                            <li>
-                                <a href="#">
-                                    Download this example as CSV{" "}
-                                    <Icon
-                                        iconName="Download"
-                                        style={{ fontSize: 11, verticalAlign: "middle" }}
-                                    />{" "}
-                                    <Icon
-                                        iconName="Flag"
-                                        style={{ fontSize: 16, verticalAlign: "middle" }}
-                                    />
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/datasets">Browse open-source datasets</a>
-                            </li>
-                        </ul>
                     </>
                 ),
             },
-        ],
-    },
-
-    "getting-started/metadata-guidance": {
-        title: "Metadata guidance",
-        intro:
-            "Clear, consistent metadata is what turns microscopy data from a static file into something others can actually find, interpret, and reuse. This section outlines recommended metadata practices that support sharing datasets in a way that is both accessible and meaningful to a broad audience — from collaborators to future researchers. Rather than prescribing a rigid standard, the guidance focuses on capturing the essential context needed to understand how the data was generated, how it is structured, and how it can be used. Our hope is that by following these suggestions, you can make your data easier to explore, visualize, and integrate into downstream analyses, while reducing ambiguity and the need for follow-up clarification.",
-        sections: [
             {
                 id: "rows-columns",
                 heading: "Rows and columns",
@@ -1897,15 +1803,6 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                         <p>
                             <strong>Columns:</strong> Columns can be anything, but there is one
                             required column and a few special optional columns described below.
-                        </p>
-                        <p>
-                            <a href="#">
-                                See dataset examples{" "}
-                                <Icon
-                                    iconName="Flag"
-                                    style={{ fontSize: 16, verticalAlign: "middle" }}
-                                />
-                            </a>
                         </p>
                     </>
                 ),
@@ -1962,6 +1859,67 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
+                id: "spreadsheet-examples",
+                heading: "Spreadsheet (dataset) examples",
+                body: (
+                    <>
+                        <h3>Basic example</h3>
+                        <p>
+                            Each row is a file. Columns can be anything meaningful to your workflow
+                            — here a well position, gene target, and color channel.
+                        </p>
+                        <table className="ug-table">
+                            <thead>
+                                <tr>
+                                    <th>File Path</th>
+                                    <th>Well</th>
+                                    <th>Gene</th>
+                                    <th>Color</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Abc123.txt</td>
+                                    <td>B3</td>
+                                    <td>CDH2</td>
+                                    <td>Blue</td>
+                                </tr>
+                                <tr>
+                                    <td>Def456.txt</td>
+                                    <td>G9</td>
+                                    <td>VIM</td>
+                                    <td>Green</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p>
+                            <a href="#">
+                                Download this example as CSV{" "}
+                                <Icon
+                                    iconName="Download"
+                                    style={{ fontSize: 11, verticalAlign: "middle" }}
+                                />{" "}
+                                <Icon
+                                    iconName="Flag"
+                                    style={{ fontSize: 16, verticalAlign: "middle" }}
+                                />
+                            </a>
+                        </p>
+                        <p>
+                            <a href="/datasets">Browse open-source datasets</a>
+                        </p>
+                    </>
+                ),
+            },
+        ],
+    },
+
+    "getting-started/metadata-guidance": {
+        title: "Metadata guidance",
+        intro:
+            "Clear, consistent metadata is what turns microscopy data from a static file into something others can actually find, interpret, and reuse. This section outlines recommended metadata practices that support sharing datasets in a way that is both accessible and meaningful to a broad audience — from collaborators to future researchers. Rather than prescribing a rigid standard, the guidance focuses on capturing the essential context needed to understand how the data was generated, how it is structured, and how it can be used. Our hope is that by following these suggestions, you can make your data easier to explore, visualize, and integrate into downstream analyses, while reducing ambiguity and the need for follow-up clarification.",
+        sections: [
+            {
                 id: "recommendations",
                 heading: "Recommendations",
                 body: (
@@ -2013,13 +1971,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 />
                             </a>
                         </p>
-                        <p>
-                            Descriptions for these fields can be found below as an example for{" "}
-                            <a href="/user-guide/getting-started/metadata-guidance#column-descriptions">
-                                providing metadata field descriptions inside BFF
-                            </a>
-                            .
-                        </p>
+                        <p>Example descriptions for these fields are provided below.</p>
                     </>
                 ),
             },
@@ -2046,177 +1998,157 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 most types; the only value you may need to supply is{" "}
                                 <code>Open file link</code>, which tells BFF the column represents a
                                 link that can be opened with the &ldquo;Open with&hellip;&rdquo;
-                                button.
+                                button. This is useful for pointing to alternative viewers or
+                                related resources — for example, a column containing a direct link
+                                to open a file in a specific tool.
                             </li>
                         </ul>
                         <h3>Example</h3>
-                        <div className="ug-scroll-container">
-                            <div className="ug-scroll-table">
-                                <table className="ug-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Column Name</th>
-                                            <th>Description</th>
-                                            <th>Type</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Metadata Field</td>
-                                            <td>Name of the metadata attribute being described</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Study Description</td>
-                                            <td>
-                                                Summary of the study&apos;s purpose, design, and
-                                                scope
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Authors</td>
-                                            <td>List of contributors to the dataset or study</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Organization</td>
-                                            <td>
-                                                Institution or organization responsible for the
-                                                dataset
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Publication</td>
-                                            <td>
-                                                Associated publication or DOI describing the dataset
-                                            </td>
-                                            <td>Open file link</td>
-                                        </tr>
-                                        <tr>
-                                            <td>License</td>
-                                            <td>
-                                                Usage license governing the dataset (e.g., CC-BY)
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Release Date</td>
-                                            <td>Date the dataset was made publicly available</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Imaging Method</td>
-                                            <td>
-                                                Microscopy or imaging modality used (e.g., confocal,
-                                                light-sheet)
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Cell Line</td>
-                                            <td>Cell line used in the experiment</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Organism</td>
-                                            <td>Species from which the sample was derived</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Gene</td>
-                                            <td>
-                                                Gene(s) of interest or manipulated in the experiment
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Compound</td>
-                                            <td>Chemical compound or treatment applied</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Antibody</td>
-                                            <td>Antibody used for staining or detection</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Channel — Content</td>
-                                            <td>
-                                                Imaging channel identifier or label (e.g., Channel
-                                                1, GFP)
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Channel — Biological Entity</td>
-                                            <td>
-                                                Biological structure or molecule represented in the
-                                                channel
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Instrument</td>
-                                            <td>Microscope or imaging instrument used</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Dimension</td>
-                                            <td>
-                                                Dimensionality of the dataset (e.g., 2D, 3D, time
-                                                series)
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Pixel/Voxel Size / Time resolution</td>
-                                            <td>
-                                                Spatial or temporal resolution of the imaging data
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Study Unique ID</td>
-                                            <td>Unique identifier for the overall study</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Dataset Unique ID</td>
-                                            <td>
-                                                Unique identifier for a specific dataset within the
-                                                study
-                                            </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Pathology/Disease</td>
-                                            <td>Disease or pathological condition represented</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Phenotype</td>
-                                            <td>Observed or computed phenotype from analysis</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Organ</td>
-                                            <td>Organ or tissue source of the sample</td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Analyzed Data</td>
-                                            <td>
-                                                Link to derived or processed data (e.g.,
-                                                segmentation, features)
-                                            </td>
-                                            <td>Open file link</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <table className="ug-table">
+                            <thead>
+                                <tr>
+                                    <th>Column Name</th>
+                                    <th>Description</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Metadata Field</td>
+                                    <td>Name of the metadata attribute being described</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Study Description</td>
+                                    <td>Summary of the study&apos;s purpose, design, and scope</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Authors</td>
+                                    <td>List of contributors to the dataset or study</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Organization</td>
+                                    <td>Institution or organization responsible for the dataset</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Publication</td>
+                                    <td>Associated publication or DOI describing the dataset</td>
+                                    <td>Open file link</td>
+                                </tr>
+                                <tr>
+                                    <td>License</td>
+                                    <td>Usage license governing the dataset (e.g., CC-BY)</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Release Date</td>
+                                    <td>Date the dataset was made publicly available</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Imaging Method</td>
+                                    <td>
+                                        Microscopy or imaging modality used (e.g., confocal,
+                                        light-sheet)
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Cell Line</td>
+                                    <td>Cell line used in the experiment</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Organism</td>
+                                    <td>Species from which the sample was derived</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Gene</td>
+                                    <td>Gene(s) of interest or manipulated in the experiment</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Compound</td>
+                                    <td>Chemical compound or treatment applied</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Antibody</td>
+                                    <td>Antibody used for staining or detection</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Channel — Content</td>
+                                    <td>
+                                        Imaging channel identifier or label (e.g., Channel 1, GFP)
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Channel — Biological Entity</td>
+                                    <td>
+                                        Biological structure or molecule represented in the channel
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Instrument</td>
+                                    <td>Microscope or imaging instrument used</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Dimension</td>
+                                    <td>
+                                        Dimensionality of the dataset (e.g., 2D, 3D, time series)
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Pixel/Voxel Size / Time resolution</td>
+                                    <td>Spatial or temporal resolution of the imaging data</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Study Unique ID</td>
+                                    <td>Unique identifier for the overall study</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Dataset Unique ID</td>
+                                    <td>
+                                        Unique identifier for a specific dataset within the study
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Pathology/Disease</td>
+                                    <td>Disease or pathological condition represented</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Phenotype</td>
+                                    <td>Observed or computed phenotype from analysis</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Organ</td>
+                                    <td>Organ or tissue source of the sample</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>Analyzed Data</td>
+                                    <td>
+                                        Link to derived or processed data (e.g., segmentation,
+                                        features)
+                                    </td>
+                                    <td>Open file link</td>
+                                </tr>
+                            </tbody>
+                        </table>
                         <p>
                             <a href="#">
                                 Download this example as CSV{" "}
@@ -2231,21 +2163,6 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             </a>
                         </p>
                     </>
-                ),
-            },
-            {
-                id: "alternative-viewers",
-                heading: "Alternative viewers or links",
-                body: (
-                    <p>
-                        Use the <code>Type</code> column in your metadata descriptor file and
-                        specify <code>Open file link</code> to tell BFF that a column represents a
-                        link to open with the &ldquo;Open with&hellip;&rdquo; button.{" "}
-                        <a href="/user-guide/getting-started/metadata-guidance#column-descriptions">
-                            See the Type description above
-                        </a>
-                        .
-                    </p>
                 ),
             },
             {
@@ -2462,73 +2379,40 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
     "other-resources/storage-options": {
         title: "Storage options",
         intro:
-            "BioFile Finder (BFF) is agnostic of the image file location. BFF simply requires that the metadata file is accessible — where accessible is defined as whichever browser it is running inside can reach it.",
+            "Whether cloud, local, or network storage, BioFile Finder (BFF) is agnostic of where your files live. The only requirement is that the metadata file is accessible to the browser running BFF.",
         sections: [
             {
-                id: "private-cloud",
-                heading: "Can I use private cloud data with BFF?",
-                body: (
-                    <p>
-                        Yes! The browser running BFF just has to have access to the files. If your
-                        cloud data is hosted on a private AWS S3 bucket for example, you just have
-                        to ensure that BFF has{" "}
-                        <a href="/user-guide/other-resources/cors">CORS permission enabled</a>.
-                    </p>
-                ),
-            },
-            {
-                id: "public-cloud",
-                heading: "Can I use public cloud data with BFF?",
-                body: (
-                    <p>
-                        Yes! As long as BFF has permission to access that bucket.{" "}
-                        <a href="/user-guide/other-resources/cors">See CORS permissions</a>.
-                    </p>
-                ),
-            },
-            {
-                id: "hard-drive",
-                heading: "Can I use data on a hard drive with BFF?",
+                id: "cloud-storage",
+                heading: "Cloud storage",
                 body: (
                     <>
+                        <h3>Public vs private</h3>
                         <p>
-                            Yes! The dataset file (the .csv, .json, or .parquet table) BFF ingests
-                            can be anywhere. However, when you refresh the page or try to send a
-                            link to your dataset you&apos;ll be prompted to re-enter your dataset
-                            since the reference to the dataset will have been broken.
-                        </p>
-                        <p>
-                            The images or files that the dataset references can also be on a hard
-                            drive. You will only be able to view files on a hard drive in a desktop
-                            application (e.g. FIJI) since web-based viewers won&apos;t have access
-                            to your local file system. Similarly, if the hard drive isn&apos;t
-                            connected to your computer then BFF will only be able to display the
-                            metadata for the file — the viewers BFF hands the file off to will be
-                            unable to display it since it would be unreachable.
+                            BFF works with both private and public cloud storage. The only
+                            requirement is that{" "}
+                            <a href="/user-guide/other-resources/cors">CORS permissions</a> are
+                            configured on the bucket so the browser can access the files.
                         </p>
                     </>
                 ),
             },
             {
-                id: "network-storage",
-                heading: "Can I use data on a network attached file system with BFF?",
+                id: "hard-drive",
+                heading: "Local and network storage",
                 body: (
                     <>
                         <p>
-                            Yes! The dataset file (the .csv, .json, or .parquet table) BFF ingests
-                            can be anywhere. However, when you refresh the page or try to send a
-                            link to your dataset you&apos;ll be prompted to re-enter your dataset
-                            since the reference to the dataset will have been broken.
+                            BFF can load a dataset file from a local hard drive or network-attached
+                            storage. However, because BFF runs in the browser, local paths are not
+                            persisted — if you refresh the page or share the link, you will be
+                            prompted to reload the dataset file.
                         </p>
                         <p>
-                            The images or files that the dataset references can also be in a network
-                            attached storage. You will only be able to view files on a network
-                            attached storage in a desktop application (e.g. FIJI) since web-based
-                            viewers won&apos;t have access to your local file system. Similarly, if
-                            the network attached storage isn&apos;t connected to your computer then
-                            BFF will only be able to display the metadata for the file — the viewers
-                            BFF hands the file off to will be unable to display the file since it
-                            would be unreachable.
+                            Files referenced in the dataset can also live locally or on a network
+                            drive, but they can only be opened in desktop applications (e.g. FIJI).
+                            Web-based viewers do not have access to the local file system. If the
+                            drive is disconnected, BFF will still display the metadata but the
+                            viewers will be unable to open the files.
                         </p>
                     </>
                 ),
@@ -2538,13 +2422,6 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                 heading: "Cloud storage examples",
                 body: (
                     <>
-                        <p>
-                            For information on compatibility with different storage options,{" "}
-                            <a href="/user-guide/app-information/supported-viewers">
-                                See Supported viewers
-                            </a>
-                        </p>
-
                         <h3>Open source image archives (IDR, BIA, SSBD)</h3>
                         <p>
                             A useful way to think about integrating the Image Data Resource (IDR),
@@ -2602,7 +2479,6 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             linking and normalized navigation from raw images through to derived
                             analysis.
                         </p>
-
                         <h3>Google Sheets</h3>
                         <p>You can use Google Sheets to publish your dataset publicly as a CSV:</p>
                         <ol>
@@ -2610,11 +2486,11 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 Click <strong>File</strong> in the toolbar
                             </li>
                             <li>
-                                Select <strong>Share</strong> then <strong>Publish to web</strong>
+                                Choose <strong>Share</strong> then <strong>Publish to web</strong>
                             </li>
                             <li>
-                                In the modal that appears, select the sheet you want to publish and
-                                select <strong>Comma-separated values</strong>
+                                Select the sheet you want to publish and select{" "}
+                                <strong>Comma-separated values</strong>
                             </li>
                             <li>
                                 Click <strong>Publish</strong> and copy/paste the link into BFF
@@ -2625,7 +2501,7 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                             In GitHub you can link to the <strong>Raw</strong> version of a file in
                             a repository to share the dataset with anyone that has access to that
                             repository. This also provides implicit dataset versioning, which can be
-                            extremely useful for collaboration.
+                            very useful for collaboration.
                         </p>
                         <ol>
                             <li>
@@ -2644,31 +2520,26 @@ export const PAGE_CONTENT: Record<string, PageContent> = {
                                 target="_blank"
                                 rel="noreferrer"
                             >
-                                See their documentation here{" "}
+                                See GitHub documentation{" "}
                                 <Icon
                                     iconName="OpenInNewWindow"
                                     style={{ fontSize: 11, verticalAlign: "middle" }}
                                 />
                             </a>
-                            .
                         </p>
                         <h3>AWS S3</h3>
                         <p>
-                            Your organization may have support for this, but here is an example of a
-                            cloud storage service compatible with BioFile Finder.{" "}
+                            Your organization may provide support for choosing the best option, but
+                            AWS S3 is a commonly used cloud storage service compatible with BFF that
+                            you may consider.{" "}
                             <a href="https://aws.amazon.com/s3/" target="_blank" rel="noreferrer">
-                                AWS S3 documentation{" "}
+                                See AWS S3 documentation{" "}
                                 <Icon
                                     iconName="OpenInNewWindow"
                                     style={{ fontSize: 11, verticalAlign: "middle" }}
                                 />
                             </a>
                             .
-                        </p>
-                        <p>
-                            You will need to make sure the cloud bucket enables BFF and any viewers
-                            to have CORS permission.{" "}
-                            <a href="/user-guide/other-resources/cors">See Avoiding CORS errors</a>.
                         </p>
                     </>
                 ),
