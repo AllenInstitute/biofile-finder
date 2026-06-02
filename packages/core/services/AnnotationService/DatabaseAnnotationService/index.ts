@@ -51,7 +51,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
      */
     public async fetchAnnotationDetails(name: string): Promise<AnnotationDetails> {
         const annotationNameToTypeMap = await this.databaseService.fetchAnnotationTypes();
-        const type = annotationNameToTypeMap[name] as AnnotationType;
+        const type = annotationNameToTypeMap[name];
         // If the annotation type is not recognized, default to string
         if (!Object.values(AnnotationType).includes(type) || type === AnnotationType.LOOKUP) {
             return { type: AnnotationType.STRING };
@@ -129,9 +129,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const annotationMeta = annotations.find((a) => a.name === annotation);
 
         let selectExpr: string;
-        if (annotationMeta?.isSubField && annotationMeta.nestedListExpression) {
+        if (annotationMeta?.isSubField && annotationMeta.path.length > 1) {
             // For nested sub-fields, unnest the list_transform expression and alias it
-            selectExpr = `DISTINCT unnest(${annotationMeta.nestedListExpression}) AS "${annotation}"`;
+            selectExpr = `DISTINCT unnest(${SQLBuilder.buildNestedAccessExpression(annotationMeta.path, annotationMeta.pathIsArray)}) AS "${annotation}"`;
         } else {
             selectExpr = `DISTINCT "${annotation}"`;
         }
@@ -185,8 +185,8 @@ export default class DatabaseAnnotationService implements AnnotationService {
         // For nested sub-fields, use len(list_transform(...)) > 0 instead of "name" IS NOT NULL
         const hierarchyNotNullExprs = annotations.map((annotation) => {
             const meta = annotationMetaMap.get(annotation);
-            if (meta?.isSubField && meta.nestedListExpression) {
-                return `len(${meta.nestedListExpression}) > 0`;
+            if (meta?.isSubField && meta.path.length > 1) {
+                return `len(${SQLBuilder.buildNestedAccessExpression(meta.path, meta.pathIsArray)}) > 0`;
             }
             return `"${annotation}" IS NOT NULL`;
         });

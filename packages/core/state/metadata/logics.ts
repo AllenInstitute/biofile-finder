@@ -70,19 +70,15 @@ const receiveAnnotationsLogic = createLogic({
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
         const currentFilters = selection.selectors.getFileFilters(deps.getState());
 
-        const annotationNamesInDataSource = annotations.reduce(
-            (set, annotation) => set.add(annotation.name),
-            new Set<string>()
+        const annotationPathsInDataSource = new Set(
+            annotations.map((annotation) => annotation.path.join("."))
         );
         // Filter out any columns that were selected for display that no longer
         // exist as annotations in the data source (or are nested parent columns)
-        const nestedParentNames = new Set(
-            annotations.filter((a) => a.isParent).map((a) => a.name)
-        );
         const columnsThatStillExist = currentColumns.filter(
             (column) =>
-                annotationNamesInDataSource.has(column.name) &&
-                !nestedParentNames.has(column.name)
+                annotationPathsInDataSource.has(column.name) &&
+                !annotations.find((a) => a.path.join(".") === column.name)?.isParent
         );
         const columnNamesThatStillExist = columnsThatStillExist.map((column) => column.name);
 
@@ -99,12 +95,12 @@ const receiveAnnotationsLogic = createLogic({
             ...annotations
                 .filter(
                     (annotation) =>
-                        !columnNamesThatStillExist.includes(annotation.name) &&
+                        !columnNamesThatStillExist.includes(annotation.path.join(".")) &&
                         !annotation.isParent
                 )
                 .slice(0, countOfColumnsToShow - columnsThatStillExist.length)
                 .map((annotation) => ({
-                    name: annotation.name,
+                    name: annotation.path.join("."),
                     width:
                         remainingMaxWidth / (countOfColumnsToShow - columnsThatStillExist.length),
                 })),
@@ -112,7 +108,7 @@ const receiveAnnotationsLogic = createLogic({
         dispatch(selection.actions.setColumns(columns));
 
         const isCurrentSortColumnValid =
-            currentSortColumn && annotationNamesInDataSource.has(currentSortColumn.annotationName);
+            currentSortColumn && annotationPathsInDataSource.has(currentSortColumn.annotationName);
         if (!isCurrentSortColumnValid) {
             // Default to sorting by "Uploaded" for AICS FMS queries
             if (isQueryingAicsFms) {
@@ -127,7 +123,10 @@ const receiveAnnotationsLogic = createLogic({
         // This handles filters deserialized from URLs or persisted state that lack annotationType,
         // ensuring toSQLWhereString() generates correct SQL instead of falling back to regex match.
         const annotationTypeByName = new Map(
-            annotations.map((annotation) => [annotation.name, annotation.type as AnnotationType])
+            annotations.map((annotation) => [annotation.name, annotation.type])
+        );
+        const annotationPathIsArrayByName = new Map(
+            annotations.map((annotation) => [annotation.name, annotation.pathIsArray])
         );
         const enrichedFilters = currentFilters.map(
             (filter) =>
@@ -135,7 +134,8 @@ const receiveAnnotationsLogic = createLogic({
                     filter.path,
                     filter.value,
                     filter.type,
-                    annotationTypeByName.get(filter.name)
+                    annotationTypeByName.get(filter.name),
+                    filter.pathIsArray.length ? filter.pathIsArray : annotationPathIsArrayByName.get(filter.name)
                 )
         );
         if (enrichedFilters.length > 0) {
@@ -278,14 +278,14 @@ const storeNewAnnotationLogic = createLogic({
         } = deps.action as StoreNewAnnotationAction;
         const annotations = metadata.selectors.getAnnotations(deps.getState());
         const type =
-            Object.values(AnnotationTypeIdMap).find((id) => id === annotation.annotationTypeId) ||
+            Object.entries(AnnotationTypeIdMap).find(([_type, id]) => id === annotation.annotationTypeId)?.[0] as AnnotationType ||
             AnnotationType.STRING;
         const newMmsAnnotation = new Annotation({
+            type,
             path: [annotation.name],
             annotationDisplayName: annotation.name,
             annotationId: annotation.annotationId,
             description: annotation.description,
-            type: type as AnnotationType,
         });
         dispatch(receiveAnnotations([...annotations, newMmsAnnotation]));
         done();

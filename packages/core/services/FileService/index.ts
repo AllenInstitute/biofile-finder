@@ -2,6 +2,7 @@ import { AnnotationValue } from "../AnnotationService";
 import { DownloadResult } from "../FileDownloadService";
 import Annotation from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
+import FileFilter from "../../entity/FileFilter";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import { JSONReadyRange } from "../../entity/NumericRange";
@@ -38,17 +39,12 @@ export interface SelectionAggregationResult {
 }
 
 export interface Selection {
-    filters: {
-        [index: string]: (string | number | boolean)[];
-    };
+    filters: FileFilter[];
     indexRanges: JSONReadyRange[];
     sort?: {
         annotationName: string;
         ascending: boolean;
     };
-    fuzzy?: string[];
-    exclude?: string[];
-    include?: string[];
 }
 
 export interface AnnotationNameToValuesMap {

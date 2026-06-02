@@ -54,19 +54,25 @@ export default function QueryFilter(props: Props) {
                     annotation={pathToAnnotationMap.get(item.id) as Annotation}
                 />
             )}
-            rows={Object.entries(filtersGroupedByName).map(([annotationName, filters]) => {
+            rows={Object.entries(filtersGroupedByName).map(([pathKey, filters]) => {
                 let operator = "EQUALS";
                 if (filters.length > 1) operator = "ONE OF";
                 else if (filters[0].type === FilterType.ANY) operator = "ANY VALUE";
                 else if (filters[0].type === FilterType.EXCLUDE) operator = "NO VALUE";
                 else if (filters[0].type === FilterType.FUZZY) operator = "CONTAINS";
 
-                const annotation = pathToAnnotationMap.get(annotationName);
-                const displayName = (annotation?.path ?? [annotationName]).join(" / ");
+                const annotation = pathToAnnotationMap.get(pathKey);
+                // TODO: Fix once avoiding dot notation
+                const path = pathKey.split(".");
+                const leafName = path[path.length - 1];
+                const titlePrefix = path.length > 1
+                    ? path.slice(0, -1).join(" / ") + " / "
+                    : undefined;
                 const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
                 return {
                     id: filters[0].name,
-                    title: `${displayName} ${operator} ${valueDisplay}`,
+                    title: `${leafName} ${operator} ${valueDisplay}`,
+                    titlePrefix,
                     description: annotation?.description,
                 };
             })}

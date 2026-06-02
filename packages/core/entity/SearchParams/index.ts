@@ -249,7 +249,7 @@ export default class SearchParams {
                     (parsedFilter) => {
                         // Support both new format {path: [...]} and legacy format {name}
                         const path = parsedFilter.path ?? [parsedFilter.name];
-                        return new FileFilter(path, parsedFilter.value, parsedFilter.type);
+                        return new FileFilter(path, parsedFilter.value, parsedFilter.type, parsedFilter.valueType, parsedFilter.pathIsArray);
                     }
                 ),
             openFolders: unparsedOpenFolders
@@ -261,7 +261,10 @@ export default class SearchParams {
                 ? JSON.parse(showNoValueGroupsString)
                 : true,
             sortColumn: parsedSort
-                ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
+                ? new FileSort(
+                      parsedSort.path ? JSON.parse(parsedSort.path) : [parsedSort.annotationName],
+                      parsedSort.order || SortOrder.ASC
+                  )
                 : undefined,
             sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
             sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,

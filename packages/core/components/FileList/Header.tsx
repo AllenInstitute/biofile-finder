@@ -67,6 +67,22 @@ function Header(
         dispatch(selection.actions.sortColumn(column.name));
     };
 
+    // Identify leaf names that appear on more than one column so we can
+    // show the parent path prefix to disambiguate them in the header.
+    const duplicateLeafNames = React.useMemo(() => {
+        const leafCounts = new Map<string, number>();
+        for (const colName of columnNames) {
+            const parts = colName.split(".");
+            const leaf = parts[parts.length - 1];
+            leafCounts.set(leaf, (leafCounts.get(leaf) || 0) + 1);
+        }
+        const dupes = new Set<string>();
+        for (const [leaf, count] of leafCounts) {
+            if (count > 1) dupes.add(leaf);
+        }
+        return dupes;
+    }, [columnNames]);
+
     const headerCells: CellConfig[] = map(columns, (column) => {
         return {
             className: classNames(styles.headerCell, {
@@ -79,7 +95,7 @@ function Header(
                 <div
                     draggable
                     aria-label={`${
-                        pathToAnnotationMap.get(column.name)?.displayName
+                        pathToAnnotationMap.get(column.name)?.displayName ?? column.name
                     } column, draggable`}
                     className={styles.headerDragArea}
                     role="button"
@@ -89,22 +105,37 @@ function Header(
                     onDrop={() => onDrop(column.name)}
                     onDragEnd={onDragEnd}
                 >
-                    <span
+                    <div
                         onClick={(evt) => onHeaderColumnClick(evt, column)}
                         className={styles.headerClickTarget}
                     >
-                        <Tooltip content={`${pathToAnnotationMap.get(column.name)?.displayName.split(".").join(" / ")}\n${pathToAnnotationMap.get(column.name)?.description}`}>
-                            <span className={styles.headerTitle}>
-                                {pathToAnnotationMap.get(column.name)?.displayName.split(".").slice(-1)[0]}
-                            </span>
-                        </Tooltip>
+                        {(() => {
+                            const annotation = pathToAnnotationMap.get(column.name);
+                            const path = column.name.split(".");
+                            const leafName = path[path.length - 1];
+                            const prefix = path.length > 1
+                                ? path.slice(0, -1).join(" / ") + " / "
+                                : undefined;
+                            const fullLabel = path.join(" / ");
+                            const isDuplicateLeafName = duplicateLeafNames.has(leafName);
+                            return (
+                                <Tooltip content={`${fullLabel}\n${annotation?.description ?? ""}`}>
+                                    <span className={styles.headerTitle}>
+                                        {(prefix && isDuplicateLeafName) && (
+                                            <span className={styles.headerTitlePrefix}>{prefix}</span>
+                                        )}
+                                        {leafName}
+                                    </span>
+                                </Tooltip>
+                            );
+                        })()}
                         {sortColumn?.annotationName === column.name &&
                             (sortColumn?.order === SortOrder.DESC ? (
                                 <Icon className={styles.sortIcon} iconName="ChevronDown" />
                             ) : (
                                 <Icon className={styles.sortIcon} iconName="ChevronUp" />
                             ))}
-                    </span>
+                    </div>
                 </div>
             ),
             width: column.width,

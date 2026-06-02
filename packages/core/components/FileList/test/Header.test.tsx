@@ -8,6 +8,7 @@ import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { initialState, selection } from "../../../state";
 import Header from "../Header";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 describe("<Header />", () => {
     it("dispatches sort action when clicked when file attribute", () => {
@@ -21,9 +22,9 @@ describe("<Header />", () => {
         const state = mergeState(initialState, {
             metadata: {
                 annotations: annotations.map((name) => ({
-                    name,
-                    displayName: name,
+                    path: [name],
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: {
@@ -60,9 +61,9 @@ describe("<Header />", () => {
         const state = mergeState(initialState, {
             metadata: {
                 annotations: annotations.map((name) => ({
-                    name,
-                    displayName: name,
+                    path: [name],
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: {
@@ -99,9 +100,9 @@ describe("<Header />", () => {
         const state = mergeState(initialState, {
             metadata: {
                 annotations: annotations.map((name) => ({
-                    name,
-                    displayName: name,
+                    path: [name],
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: {
@@ -142,9 +143,9 @@ describe("<Header />", () => {
         const state = mergeState(initialState, {
             metadata: {
                 annotations: annotations.map((name) => ({
-                    name,
-                    displayName: name,
+                    path: [name],
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: { columns },

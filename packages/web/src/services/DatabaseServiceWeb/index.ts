@@ -241,7 +241,6 @@ export default class DatabaseServiceWeb extends DatabaseService {
         });
         const wrappedPromise = promise.then((result) =>
             result.map((row) => {
-                console.log("Annotation row:", row); // TODO: Remove
                 return new Annotation(row);
             })
         );

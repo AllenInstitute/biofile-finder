@@ -6,13 +6,8 @@ export interface FileFilterJson {
     path: string[];
     value: any;
     type?: FilterType;
-}
-
-// Filter with formatted value
-export interface Filter {
-    name: string;
-    value: any;
-    displayValue: string;
+    valueType?: AnnotationType;
+    pathIsArray?: boolean[];
 }
 
 // These also correspond to query param names
@@ -29,9 +24,14 @@ export enum FilterType {
  */
 export default class FileFilter {
     public readonly path: string[];
-    private readonly annotationValue: any;
-    private filterType: FilterType;
-    private readonly annotationType?: AnnotationType;
+    public readonly value: any;
+    public type: FilterType;
+    public readonly valueType?: AnnotationType;
+    /**
+     * Which non-leaf path segments are arrays (STRUCT[]). Length = path.length - 1.
+     * Defaults to [true, false, ...] (root is array, rest are scalar structs).
+     */
+    public readonly pathIsArray: boolean[];
     public static readonly FILTER_PATH_SEPARATOR = ",";
 
     public static isFileFilter(candidate: any): candidate is FileFilter {
@@ -42,13 +42,18 @@ export default class FileFilter {
     constructor(
         path: string | string[],
         annotationValue: any,
-        filterType: FilterType = FilterType.DEFAULT,
-        annotationType?: AnnotationType
+        type: FilterType = FilterType.DEFAULT,
+        valueType?: AnnotationType,
+        pathIsArray?: boolean[]
     ) {
         this.path = Array.isArray(path) ? path : [path];
-        this.annotationValue = annotationValue;
-        this.filterType = annotationValue === NO_VALUE_NODE ? FilterType.EXCLUDE : filterType;
-        this.annotationType = annotationType;
+        this.value = annotationValue;
+        this.type = annotationValue === NO_VALUE_NODE ? FilterType.EXCLUDE : type;
+        // This and pathisarray will be removed in the future
+        // however in the meantime this default pathIsArray logic is worrisome unfortunately
+        this.valueType = valueType;
+        this.pathIsArray = pathIsArray ??
+            Array.from({ length: Math.max(0, this.path.length - 1) }, (_, i) => i === 0);
     }
 
     // TODO: Remove or replace when we stop using dot notation
@@ -57,39 +62,13 @@ export default class FileFilter {
         return this.path.join(".");
     }
 
-    public get value() {
-        return this.annotationValue;
-    }
-
-    public get type() {
-        return this.filterType;
-    }
-
-    public set type(filterType: FilterType) {
-        this.filterType = filterType;
-    }
-
-    /** Whether this filter targets a nested sub-field annotation. */
-    // public get isSubField(): boolean {
-    //     return this.path.length > 1;
-    // }
-
-    /** The parent column name when this filter targets a virtual sub-field annotation. */
-    // public get nestedParent(): string | undefined {
-    //     return this.path.length > 1 ? this.path[0] : undefined;
-    // }
-
     /**
-     * Derive the DuckDB list expression from the path.
-     * E.g. for path ["Well","Dose","Unit"] → list_transform("Well", x -> x."Dose"."Unit")
+     * Derive the DuckDB list expression from the path, correctly handling intermediate arrays.
+     * Uses SQLBuilder.buildNestedAccessExpression for the actual generation.
      */
     private get nestedListExpression(): string | undefined {
         if (this.path.length <= 1) return undefined;
-        const parent = this.path[0];
-        const fieldParts = this.path.slice(1);
-        const accessChain = fieldParts.map((p) => `"${p}"`).join(".");
-        // TODO: This can't be right - doesn't support layers of nesting beyond 1 sub-field, and also assumes the parent annotation is a STRUCT[] column
-        return `list_transform("${parent}", x -> x.${accessChain})`;
+        return SQLBuilder.buildNestedAccessExpression(this.path, this.pathIsArray);
     }
 
     public toQueryString(): string {
@@ -101,9 +80,9 @@ export default class FileFilter {
                 return `exclude=${name}`;
             case FilterType.FUZZY:
                 if (this.value === "") return `fuzzy=${name}`;
-                return `${name}=${this.annotationValue}&fuzzy=${name}`;
+                return `${name}=${this.value}&fuzzy=${name}`;
         }
-        return `${name}=${this.annotationValue}`;
+        return `${name}=${this.value}`;
     }
 
     /** Unlike with FileSort, we shouldn't construct a new SQLBuilder since these will
@@ -122,8 +101,27 @@ export default class FileFilter {
                 case FilterType.EXCLUDE:
                     return `("${parent}" IS NULL OR len(${listExpr}) = 0)`;
                 case FilterType.FUZZY:
-                default:
-                    return SQLBuilder.listContains(listExpr, this.annotationValue);
+                    return SQLBuilder.listContains(listExpr, this.value);
+                default: {
+                    // Type-aware nested filtering: check if any element in the list matches
+                    const rangeMatch = String(this.value).match(/^RANGE\((.+),\s*(.+)\)$/);
+                    if (rangeMatch) {
+                        const [, min, max] = rangeMatch;
+                        if (this.valueType === AnnotationType.NUMBER) {
+                            return `len(list_filter(${listExpr}, __el -> CAST(__el AS DOUBLE) >= ${min} AND CAST(__el AS DOUBLE) < ${max})) > 0`;
+                        }
+                        if (this.valueType === AnnotationType.DATETIME || this.valueType === AnnotationType.DATE) {
+                            return `len(list_filter(${listExpr}, __el -> CAST(__el AS TIMESTAMPTZ) >= CAST('${min}' AS TIMESTAMPTZ) AND CAST(__el AS TIMESTAMPTZ) < CAST('${max}' AS TIMESTAMPTZ))) > 0`;
+                        }
+                    }
+                    if (this.valueType === AnnotationType.BOOLEAN) {
+                        return `list_has(${listExpr}, ${this.value})`;
+                    }
+                    if (this.valueType === AnnotationType.DURATION) {
+                        return `len(list_filter(${listExpr}, __el -> EXTRACT(epoch FROM __el)::BIGINT * 1000 = ${this.value})) > 0`;
+                    }
+                    return SQLBuilder.listContains(listExpr, this.value);
+                }
             }
         }
 
@@ -135,26 +133,26 @@ export default class FileFilter {
             case FilterType.EXCLUDE:
                 return `"${columnName}" IS NULL`;
             case FilterType.FUZZY:
-                return SQLBuilder.regexMatchValueInList(columnName, this.annotationValue);
+                return SQLBuilder.regexMatchValueInList(columnName, this.value);
             default: {
                 // Type-aware SQL generation
-                if (this.annotationType === AnnotationType.BOOLEAN) {
-                    return `"${columnName}" = ${this.annotationValue}`;
+                if (this.valueType === AnnotationType.BOOLEAN) {
+                    return `"${columnName}" = ${this.value}`;
                 }
-                const rangeMatch = String(this.annotationValue).match(/^RANGE\((.+),\s*(.+)\)$/);
+                const rangeMatch = String(this.value).match(/^RANGE\((.+),\s*(.+)\)$/);
                 if (rangeMatch) {
                     const [, min, max] = rangeMatch;
-                    if (this.annotationType === AnnotationType.NUMBER) {
+                    if (this.valueType === AnnotationType.NUMBER) {
                         return `CAST("${columnName}" AS DOUBLE) >= ${min} AND CAST("${columnName}" AS DOUBLE) < ${max}`;
                     }
-                    if (this.annotationType === AnnotationType.DATETIME || this.annotationType === AnnotationType.DATE) {
+                    if (this.valueType === AnnotationType.DATETIME || this.valueType === AnnotationType.DATE) {
                         return `CAST("${columnName}" AS TIMESTAMPTZ) >= CAST('${min}' AS TIMESTAMPTZ) AND CAST("${columnName}" AS TIMESTAMPTZ) < CAST('${max}' AS TIMESTAMPTZ)`;
                     }
                 }
-                if (this.annotationType === AnnotationType.DURATION) {
-                    return `EXTRACT(epoch FROM "${columnName}")::BIGINT * 1000 = ${this.annotationValue}`;
+                if (this.valueType === AnnotationType.DURATION) {
+                    return `EXTRACT(epoch FROM "${columnName}")::BIGINT * 1000 = ${this.value}`;
                 }
-                return SQLBuilder.regexMatchValueInList(columnName, this.annotationValue);
+                return SQLBuilder.regexMatchValueInList(columnName, this.value);
             }
         }
     }
@@ -162,16 +160,18 @@ export default class FileFilter {
     public toJSON(): FileFilterJson {
         return {
             path: this.path,
-            value: this.annotationValue,
-            type: this.filterType,
+            value: this.value,
+            type: this.type,
+            valueType: this.valueType,
+            pathIsArray: this.pathIsArray,
         };
     }
 
     public equals(target: FileFilter): boolean {
         return (
             JSON.stringify(this.path) === JSON.stringify(target.path) &&
-            this.annotationValue === target.annotationValue &&
-            this.filterType === target.filterType
+            this.value === target.value &&
+            this.type === target.type
         );
     }
 }

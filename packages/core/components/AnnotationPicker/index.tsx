@@ -15,6 +15,7 @@ const RECENT_ANNOTATIONS_DIVIDER: ListItem<Annotation> = {
     disabled: false,
     isDivider: true,
     value: DIVIDER_SENTINAL_VALUE,
+    displayValue: DIVIDER_SENTINAL_VALUE,
 };
 
 interface Props {
@@ -74,6 +75,7 @@ export default function AnnotationPicker(props: Props) {
             value,
             breadcrumbs,
             data: annotation,
+            displayValue: value,
             description: breadcrumbs
                 ? `${breadcrumbs.join(" / ")} / ${value}: ${annotation.description}`
                 : annotation.description,

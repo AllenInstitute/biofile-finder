@@ -1,4 +1,4 @@
-import { compact, join, uniqueId } from "lodash";
+import { compact, filter, join, map, uniqueId } from "lodash";
 
 import FileService, {
     GetFilesRequest,
@@ -13,6 +13,8 @@ import Annotation from "../../../entity/Annotation";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
+import { JSONReadyRange } from "../../../entity/NumericRange";
+import { FilterType } from "../../../entity/FileFilter";
 
 interface SelectionAggregationRequest {
     selections: Selection[];
@@ -20,6 +22,20 @@ interface SelectionAggregationRequest {
 
 interface Config extends ConnectionConfig {
     downloadService: FileDownloadService;
+}
+
+interface CsvSelection {
+    filters: {
+        [filterName: string]: (string | number | boolean)[];
+    };
+    indexRanges: JSONReadyRange[];
+    sort?: {
+        annotationName: string;
+        ascending: boolean;
+    };
+    fuzzy?: string[];
+    exclude?: string[];
+    include?: string[];
 }
 
 /**
@@ -112,8 +128,31 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
 
     private async getSelectionsCsv(
         annotations: string[],
-        selections: Selection[]
+        unparsedSelections: Selection[]
     ): Promise<{ url: string; data: Blob }> {
+        const selections: CsvSelection[] = unparsedSelections.map((selection) => ({
+            filters: filter(
+                    selection.filters,
+                    (filter) => filter.type === FilterType.DEFAULT || filter.type === FilterType.FUZZY
+                ).reduce((acc, filter) => ({
+                    ...acc,
+                    [filter.name]: filter.value,
+                }), {} as { [filterName: string]: (string | number | boolean)[] }),
+            indexRanges: selection.indexRanges,
+            sort: selection.sort,
+            fuzzy: map(filter(
+                selection.filters,
+                (filter) => filter.type === FilterType.FUZZY
+            ), "values").flat(),
+            exclude: map(filter(
+                selection.filters,
+                (filter) => filter.type === FilterType.EXCLUDE
+            ), "values").flat(),
+            include: map(filter(
+                selection.filters,
+                (filter) => filter.type === FilterType.ANY
+            ), "values").flat(),
+        }));
         const postData = JSON.stringify({ annotations, selections });
         const url = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
         const data = await this.downloadService.prepareHttpResourceForDownload(url, postData);

@@ -128,7 +128,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                     return {
                         path: row.path,
                         description: row.description,
-                        type: row.type as AnnotationType,
+                        type: row.type,
                     };
                 }
             );
@@ -387,7 +387,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             for (const row of rows) {
                 const columnName = row["column_name"];
                 const dataType = row["data_type"] as string;
-                const explicitType = annotationNameToTypeMap[columnName] as AnnotationType;
+                const explicitType = annotationNameToTypeMap[columnName];
                 const resolvedType =
                     explicitType ||
                     DatabaseServiceWebWorker.columnTypeToAnnotationType(dataType);
@@ -401,11 +401,12 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                             type: AnnotationType.NESTED,
                         })
                     );
+                    const rootIsArray = dataType.trimEnd().endsWith("[]");
                     const subFields =
                         DatabaseServiceWebWorker.parseStructFields(dataType);
                     for (const field of subFields) {
-                        // TODO: ... ? heyo why dot notation?
                         const fieldParts = field.name.split(".");
+                        const pathIsArray = [rootIsArray, ...field.intermediateIsArray];
                         annotations.push(
                             new Annotation({
                                 path: [columnName, ...fieldParts],
@@ -413,6 +414,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                                 type: DatabaseServiceWebWorker.columnTypeToAnnotationType(
                                     field.type
                                 ),
+                                pathIsArray,
                             })
                         );
                     }

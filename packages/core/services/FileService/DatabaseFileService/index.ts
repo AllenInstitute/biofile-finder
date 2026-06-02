@@ -1,4 +1,4 @@
-import { castArray, isEmpty, isNil, isObject, uniqueId } from "lodash";
+import { castArray, isNil, isObject, uniqueId } from "lodash";
 
 import FileService, {
     GetFilesRequest,
@@ -15,8 +15,7 @@ import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import { Environment, HIDDEN_UID_ANNOTATION } from "../../../constants";
-import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
-import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
+import FileFilter from "../../../entity/FileFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
@@ -271,27 +270,14 @@ export default class DatabaseFileService implements FileService {
      * Applies filters and sorting to a query. ie Column names, if none then use annotationName
      */
     public static applyFiltersAndSorting(subQuery: SQLBuilder, selection: Selection): void {
-        if (!isEmpty(selection.filters)) {
-            subQuery.where(
-                Object.entries(selection.filters).flatMap(([column, values]) =>
-                    values.map((v) => SQLBuilder.regexMatchValueInList(column, v)).join(" OR ")
-                )
-            );
-        }
-        if (selection.include && selection.include.length > 0) {
-            subQuery.where(
-                selection.include
-                    .map((annotationName) => new IncludeFilter([annotationName]).toSQLWhereString())
-                    .join(" AND ")
-            );
-        }
-        if (selection.exclude && selection.exclude.length > 0) {
-            subQuery.where(
-                selection.exclude
-                    .map((annotationName) => new ExcludeFilter([annotationName]).toSQLWhereString())
-                    .join(" AND ")
-            );
-        }
+        // Group by annotation name: same-name filters are OR'd, different names are AND'd
+        const grouped = selection.filters.reduce((acc, f) => {
+            acc[f.name] = [...(acc[f.name] || []), f];
+            return acc;
+        }, {} as { [key: string]: FileFilter[] });
+        Object.values(grouped).forEach((filters) => {
+            subQuery.where(filters.map((f) => f.toSQLWhereString()).join(" OR "));
+        });
         if (selection.sort) {
             subQuery.orderBy(
                 `"${selection.sort.annotationName}" ${selection.sort.ascending ? "ASC" : "DESC"}`

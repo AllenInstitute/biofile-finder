@@ -38,10 +38,7 @@ export default class FileSet {
 
     private cache: LRUCache<number, FileDetail>;
     private readonly fileService: FileService;
-    private readonly _filters: FileFilter[];
-    public readonly fuzzyFilters?: FuzzyFilter[];
-    public readonly excludeFilters?: ExcludeFilter[];
-    public readonly includeFilters?: IncludeFilter[];
+    public readonly filters: FileFilter[];
     public readonly sort?: FileSort;
     private totalFileCount: number | undefined;
     private indexesForFilesCurrentlyLoading: Set<number> = new Set();
@@ -54,10 +51,7 @@ export default class FileSet {
         const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
 
         this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
-        this._filters = filters;
-        this.fuzzyFilters = filters.filter((f) => f.type === FilterType.FUZZY);
-        this.excludeFilters = filters.filter((f) => f.type === FilterType.EXCLUDE);
-        this.includeFilters = filters.filter((f) => f.type === FilterType.ANY);
+        this.filters = filters;
         this.sort = sort;
         this.fileService = fileService;
 
@@ -68,10 +62,6 @@ export default class FileSet {
 
     public get files() {
         return this.cache;
-    }
-
-    public get filters() {
-        return this._filters;
     }
 
     /**

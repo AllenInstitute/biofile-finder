@@ -1,15 +1,16 @@
 import { get as _get, isObject, sortBy } from "lodash";
 
 import AnnotationName from "./AnnotationName";
-import annotationFormatterFactory, {
+import getFormatter, {
     AnnotationFormatter,
     AnnotationType,
 } from "../AnnotationFormatter";
 import FileDetail from "../FileDetail";
-import { AnnotationValue } from "../../services/AnnotationService";
+
+export type AnnotationValue = string | number | boolean | Date;
 
 /**
- * Expected JSON structure of an annotation returned from the query service.
+ * Expected JSON structure of an annotation given to this entity's constructor.
  */
 export interface AnnotationResponse {
     /**
@@ -23,6 +24,15 @@ export interface AnnotationResponse {
     type: AnnotationType;
     isImmutable?: boolean;
     units?: string;
+
+    /**
+     * For sub-field annotations, indicates which non-leaf path segments are arrays (STRUCT[]).
+     * Length equals path.length - 1. For example, for path ["Well", "Dose", "Unit"]:
+     *   pathIsArray[0] = true means "Well" is STRUCT[] (root array)
+     *   pathIsArray[1] = true means "Dose" is STRUCT[] (intermediate array)
+     * If undefined, defaults to [true, false, false, ...] (root is array, rest are scalars).
+     */
+    pathIsArray?: boolean[];
 
     // Undefined when pulled from a non-AICS FMS data source
     annotationId?: number;
@@ -47,8 +57,31 @@ export default class Annotation {
     public static SEPARATOR = ", ";
     public static MISSING_VALUE = " -- ";
 
-    private readonly annotation: AnnotationResponse;
-    private readonly formatter: AnnotationFormatter;
+    /** 
+     * The full path of this annotation, including parent annotation(s) for nested annotations. For example:
+     * - For a flat annotation like "Gene", path = ["Gene"].
+     * - For a nested sub-field like "Well.Dose.Unit", path = ["Well", "Dose", "Unit"].
+     */
+    public readonly path: string[];
+    public readonly name: string;
+    public readonly displayName: string;
+    public readonly description: string;
+    public readonly type: AnnotationType;
+    public readonly units: string | undefined;
+    public readonly id: number | undefined;
+    /**
+     * Which non-leaf path segments are arrays (STRUCT[]). Length = path.length - 1.
+     * Defaults to [true, false, ...] if not provided (root is array, rest are scalar structs).
+     */
+    public readonly pathIsArray: boolean[];
+
+    /**
+     * Whether or not this annotation is immutable. Immutable annotations are not expected to change
+     * over time, and are not expected to be updated by the user. Examples include file size, file
+     * name, file path, etc. Mutable annotations are expected to be updated by the user, and can
+     * change over time. Examples include Gene, Cell Line, Program, etc.
+     */
+    public readonly isImmutable: boolean;
 
     public static sort(annotations: Annotation[]): Annotation[] {
         // start by putting in alpha order
@@ -64,98 +97,55 @@ export default class Annotation {
     }
 
     constructor(annotation: AnnotationResponse) {
-        this.annotation = annotation;
-
-        this.formatter = annotationFormatterFactory(this.annotation.type);
+        this.path = annotation.path;
+        this.name = annotation.path.slice(-1)[0];
+        this.displayName = annotation.annotationDisplayName || this.name;
+        this.description = annotation.description;
+        this.type = annotation.type;
+        this.units = annotation.units;
+        this.isImmutable = annotation.isImmutable || false;
+        this.id = annotation.annotationId;
+        // Default: root is array, intermediates are scalar structs
+        this.pathIsArray = annotation.pathIsArray ??
+            Array.from({ length: Math.max(0, annotation.path.length - 1) }, (_, i) => i === 0);
     }
 
-    public get description(): string {
-        return this.annotation.description;
+    public get formatter(): AnnotationFormatter {
+        return getFormatter(this.type);
     }
 
-    public get displayName(): string {
-        return this.annotation.annotationDisplayName || this.name;
-    }
-
-    public get name(): string {
-        return this.annotation.path.slice(-1)[0];
-    }
-
-    public get type(): string | AnnotationType {
-        return this.annotation.type;
-    }
-
+    // Whether this annotations represents a value that can be treated as Markdown
     public get isMarkdown(): boolean {
         return this.type === AnnotationType.MARKDOWN;
     }
 
+    // Whether this annotation represents an open file link (ex. www.example.com)
     public get isOpenFileLink(): boolean {
         return this.type === AnnotationType.OPEN_FILE_LINK;
     }
 
-    /**
-     * Whether or not this annotation is immutable. Immutable annotations are not expected to change
-     * over time, and are not expected to be updated by the user. Examples include file size, file
-     * name, file path, etc. Mutable annotations are expected to be updated by the user, and can
-     * change over time. Examples include Gene, Cell Line, Program, etc.
-     */
-    public get isImmutable(): boolean {
-        return this.annotation.isImmutable || false;
-    }
-
-    /** Whether this annotation represents a nested/STRUCT column (the parent itself). */
+    // Whether this annotation represents a nested/STRUCT column (the parent itself)
     public get isParent(): boolean {
-        return this.annotation.type === AnnotationType.NESTED;
+        return this.type === AnnotationType.NESTED;
     }
 
-    /** Whether this is a virtual sub-field annotation derived from a nested parent. */
+    // Whether this is a virtual sub-field annotation derived from a nested parent
     public get isSubField(): boolean {
-        return this.annotation.path.length > 1;
+        return this.path.length > 1;
     }
 
-    /** The parent column name for a nested sub-field annotation (e.g. "Well" for path ["Well","Gene"]). */
+    // The parent column name for a nested sub-field annotation (e.g. "Well" for path ["Well","Gene"])
     public get parents(): string[] | undefined {
-        if (this.annotation.path.length <= 1) return undefined;
-        return this.annotation.path.slice(0, -1);
-    }
-
-    /** The sub-field path parts within the parent (e.g. ["Dose","Unit"] for path ["Well","Dose","Unit"]). */
-    public get nestedFieldParts(): string[] | undefined {
-        if (this.annotation.path.length <= 1) return undefined;
-        return this.annotation.path.slice(1);
+        if (this.path.length <= 1) return undefined;
+        return this.path.slice(0, -1);
     }
 
     // TODO: This can't be right...
-    /** DuckDB JSONPath expression for this sub-field (e.g. "$[*].Dose.Unit"). */
+    // DuckDB JSONPath expression for this sub-field (e.g. "$[*].Dose.Unit").
     public get nestedJsonPath(): string | undefined {
         const parts = this.nestedFieldParts;
         if (!parts) return undefined;
         return `$[*].${parts.join(".")}`;
-    }
-
-    /**
-     * DuckDB list expression for accessing this sub-field from a STRUCT[] column.
-     * E.g. list_transform("Well", x -> x."Dose"."Unit")
-     */
-    public get nestedListExpression(): string | undefined {
-        const parts = this.nestedFieldParts;
-        if (!parts) return undefined;
-        const accessChain = parts.map((p) => `"${p}"`).join(".");
-        // TODO: This can't be right - doesn't support layers of nesting beyond 1 sub-field, and also assumes the parent annotation is a STRUCT[] column
-        return `list_transform("${this.annotation.path[0]}", x -> x.${accessChain})`;
-    }
-
-    public get units(): string | undefined {
-        return this.annotation.units;
-    }
-
-    /** The path array that identifies this annotation in the hierarchy. */
-    public get path(): string[] {
-        return this.annotation.path;
-    }
-
-    public get id(): number | undefined {
-        return this.annotation.annotationId;
     }
 
     /**
@@ -188,7 +178,7 @@ export default class Annotation {
      * Given a value, return the result of running it through this annotation's formatter.
      */
     public getDisplayValue(value: AnnotationValue): string {
-        return this.formatter.displayValue(value, this.annotation.units);
+        return this.formatter.displayValue(value, this.units);
     }
 
     public joinValuesForDisplay(values: AnnotationValue[]): string {
@@ -197,11 +187,9 @@ export default class Annotation {
             .join(Annotation.SEPARATOR);
     }
 
-    /**
-     * Given a value expected to belong to this annotation, return the result of coercing, if necessary,
-     * that value to accord with this annotation's type.
-     */
-    public valueOf(value: any): AnnotationValue {
-        return this.formatter.valueOf(value);
+    /** The sub-field path parts within the parent (e.g. ["Dose","Unit"] for path ["Well","Dose","Unit"]). */
+    public get nestedFieldParts(): string[] | undefined {
+        if (this.path.length <= 1) return undefined;
+        return this.path.slice(1);
     }
 }

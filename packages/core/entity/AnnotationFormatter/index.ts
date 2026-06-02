@@ -23,7 +23,7 @@ export enum AnnotationType {
 }
 
 // ID table source via Labkey server: executeQuery.view?schemaName=filemetadata&query.queryName=AnnotationType
-export const AnnotationTypeIdMap = {
+export const AnnotationTypeIdMap: Partial<Record<AnnotationType, number>> = {
     [AnnotationType.STRING]: 1,
     [AnnotationType.NUMBER]: 2,
     [AnnotationType.BOOLEAN]: 3,
@@ -36,6 +36,11 @@ export const AnnotationTypeIdMap = {
 
 export interface AnnotationFormatter {
     displayValue(value: any, unit?: string): string;
+
+    /**
+     * Given a value expected to belong to this annotation, return the result of coercing, if necessary,
+     * that value to accord with this annotation's type.
+     */
     valueOf(value: any): string | number | boolean;
 }
 
@@ -43,7 +48,7 @@ export interface AnnotationFormatter {
  * Factory to return annotation formatter functions. Annotation formatters are responsible for accepting some value and
  * readying that value for presentation according to the values intended type.
  */
-export default function annotationFormatterFactory(type: string): AnnotationFormatter {
+export default function getFormatter(type: string): AnnotationFormatter {
     switch (type) {
         case AnnotationType.BOOLEAN:
             return booleanFormatter;

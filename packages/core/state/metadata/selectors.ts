@@ -1,3 +1,4 @@
+import { keyBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
@@ -22,11 +23,5 @@ export const getSortedAnnotations = createSelector(getAnnotations, Annotation.so
 export const getAnnotationNameToAnnotationMap = createSelector(
     getAnnotations,
     (annotations): Map<string, Annotation> =>
-        annotations.reduce(
-            (map, annotation) => {
-                map.set(annotation.path.join("."), annotation);
-                return map;
-            },
-            new Map<string, Annotation>()
-        )
+        new Map(Object.entries(keyBy(annotations, (annotation) => annotation.path.join("."))))
 );

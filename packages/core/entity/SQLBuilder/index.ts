@@ -1,4 +1,5 @@
 import { castArray } from "lodash";
+
 import { HIDDEN_UID_ANNOTATION } from "../../constants";
 
 // TODO: Add unit tests
@@ -93,6 +94,70 @@ export default class SQLBuilder {
         // Cast the list elements to VARCHAR for uniform comparison, since the list may
         // contain INTEGERs / FLOATs but UI values are always strings.
         return `list_has(list_transform(${listExpression}, __el -> CAST(__el AS VARCHAR)), '${escaped}')`;
+    }
+
+    /**
+     * Build a DuckDB expression that extracts a nested sub-field from a STRUCT[] column,
+     * correctly handling intermediate arrays at any depth.
+     *
+     * @param path       Full annotation path, e.g. ["Well", "Dose", "Unit"]
+     * @param pathIsArray Boolean array (length = path.length - 1) indicating which non-leaf
+     *                    segments are arrays (STRUCT[]). E.g. [true, true] means both "Well"
+     *                    and "Dose" are STRUCT[] columns.
+     * @returns A SQL expression that produces a flat list of leaf values, e.g.:
+     *   flatten(list_transform("Well", x -> list_transform(x."Dose", y -> y."Unit")))
+     *
+     * When only the root is an array (common case):
+     *   list_transform("Well", x -> x."Dose"."Unit")
+     */
+    public static buildNestedAccessExpression(path: string[], pathIsArray: boolean[]): string {
+        const VAR_NAMES = ["x", "y", "z", "w", "v", "u", "t", "s"];
+        let varIdx = 0;
+        let flattenCount = 0;
+
+        // Recursive builder: at each array boundary, introduce a list_transform;
+        // at each scalar struct boundary, continue with dot access.
+        function buildInner(segmentIdx: number, currentExpr: string): string {
+            if (segmentIdx === 0) {
+                // Root column
+                if (pathIsArray[0]) {
+                    const v = VAR_NAMES[varIdx++];
+                    const inner = buildInner(1, v);
+                    return `list_transform("${path[0]}", ${v} -> ${inner})`;
+                } else {
+                    // Singular struct at root (rare) — just dot access
+                    return buildInner(1, `"${path[0]}"`);
+                }
+            }
+
+            const isLeaf = segmentIdx === path.length - 1;
+            const access = `${currentExpr}."${path[segmentIdx]}"`;
+
+            if (isLeaf) {
+                return access;
+            }
+
+            // Intermediate segment
+            if (pathIsArray[segmentIdx]) {
+                // This intermediate is an array — need another list_transform
+                flattenCount++;
+                const v = VAR_NAMES[varIdx++];
+                const inner = buildInner(segmentIdx + 1, v);
+                return `list_transform(${access}, ${v} -> ${inner})`;
+            } else {
+                // Scalar struct — continue dot access
+                return buildInner(segmentIdx + 1, access);
+            }
+        }
+
+        let expr = buildInner(0, "");
+
+        // Each intermediate array adds one level of list nesting that must be flattened
+        for (let i = 0; i < flattenCount; i++) {
+            expr = `flatten(${expr})`;
+        }
+
+        return expr;
     }
 
     public describe(): SQLBuilder {

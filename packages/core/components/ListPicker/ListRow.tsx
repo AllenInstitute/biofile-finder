@@ -16,7 +16,7 @@ export interface ListItem<T = any> {
     isDivider?: boolean;
     selected: boolean;
     breadcrumbs?: string[]; // optional array of strings to show as breadcrumbs to the left of the item
-    // displayValue: React.ReactNode;
+    displayValue: AnnotationValue;
     value: AnnotationValue;
     description?: string;
     data?: T; // optional "user data" to stash on a list item to retrieve later
@@ -64,7 +64,7 @@ export default function ListRow(props: Props) {
             >
                 <label className={styles.item}>
                     <div>{item.selected && <Icon iconName="CheckMark" />}</div>
-                    <p><span className={styles.breadcrumbs}>{breadcrumbs}</span>{item.value}</p>
+                    <p><span className={styles.breadcrumbs}>{breadcrumbs}</span>{item.displayValue ?? item.value}</p>
                 </label>
                 {item.recent && <Icon iconName="Recent" />}
                 {item.loading && <LoadingIcon invertColor={!item.selected} />}
