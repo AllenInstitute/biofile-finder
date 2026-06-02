@@ -174,4 +174,103 @@ export default class FileFilter {
             this.type === target.type
         );
     }
+
+    /**
+     * Generate a correlated WHERE clause for multiple sub-field filters that share the
+     * same nested parent. Ensures ALL conditions are satisfied within the SAME array element.
+     *
+     * For example, given filters on ["Items","Color"]="blue" and ["Items","Size"]="Large":
+     *   len(list_filter("Items", __elem -> CAST(__elem."Color" AS VARCHAR) = 'blue'
+     *       AND CAST(__elem."Size" AS VARCHAR) = 'Large')) > 0
+     *
+     * Filters that use ANY/EXCLUDE/FUZZY or target different root parents should NOT be
+     * passed here — they should continue using independent toSQLWhereString() calls.
+     *
+     * @param filters Array of filters that all share the same root parent (path[0]).
+     *               Only DEFAULT-type filters with path.length > 1 are correlated;
+     *               others are emitted independently.
+     */
+    public static toCorrelatedSQLWhereString(filters: FileFilter[]): string {
+        if (filters.length === 0) return "1=1";
+
+        // Separate filters into those that can be correlated and those that can't
+        const correlatable: FileFilter[] = [];
+        const independent: FileFilter[] = [];
+        for (const f of filters) {
+            if (f.path.length > 1 && f.type === FilterType.DEFAULT) {
+                correlatable.push(f);
+            } else {
+                independent.push(f);
+            }
+        }
+
+        const clauses: string[] = [];
+
+        // Independent filters emit normally (OR'd within their own group if same name)
+        if (independent.length > 0) {
+            clauses.push(independent.map((f) => f.toSQLWhereString()).join(" OR "));
+        }
+
+        if (correlatable.length > 0) {
+            // Group correlatable filters by their specific sub-field (name) so multiple
+            // values for the same sub-field are OR'd, but different sub-fields are AND'd
+            const bySubField = new Map<string, FileFilter[]>();
+            for (const f of correlatable) {
+                const key = f.name;
+                if (!bySubField.has(key)) bySubField.set(key, []);
+                bySubField.get(key)!.push(f);
+            }
+
+            const parent = correlatable[0].path[0];
+            const lambdaVar = "__elem";
+
+            // Build one lambda condition per sub-field group
+            const lambdaConditions: string[] = [];
+            for (const [, subFieldFilters] of bySubField) {
+                // All filters in this group share the same path, just different values — OR them
+                const fieldConditions = subFieldFilters.map((f) => {
+                    const fieldParts = f.path.slice(1);
+                    const fieldAccess = `${lambdaVar}.${fieldParts.map((p) => `"${p}"`).join(".")}`;
+                    return FileFilter.buildElementCondition(fieldAccess, f);
+                });
+                if (fieldConditions.length === 1) {
+                    lambdaConditions.push(fieldConditions[0]);
+                } else {
+                    lambdaConditions.push(`(${fieldConditions.join(" OR ")})`);
+                }
+            }
+
+            const lambda = lambdaConditions.join(" AND ");
+            clauses.push(`len(list_filter("${parent}", ${lambdaVar} -> ${lambda})) > 0`);
+        }
+
+        return clauses.join(" AND ");
+    }
+
+    /**
+     * Build a single condition expression for testing one filter against an element variable
+     * inside a list_filter lambda. Handles type-aware comparisons.
+     */
+    private static buildElementCondition(fieldAccess: string, filter: FileFilter): string {
+        const escaped = `${filter.value}`.replaceAll("'", "''");
+
+        const rangeMatch = String(filter.value).match(/^RANGE\((.+),\s*(.+)\)$/);
+        if (rangeMatch) {
+            const [, min, max] = rangeMatch;
+            if (filter.valueType === AnnotationType.NUMBER) {
+                return `CAST(${fieldAccess} AS DOUBLE) >= ${min} AND CAST(${fieldAccess} AS DOUBLE) < ${max}`;
+            }
+            if (filter.valueType === AnnotationType.DATETIME || filter.valueType === AnnotationType.DATE) {
+                return `CAST(${fieldAccess} AS TIMESTAMPTZ) >= CAST('${min}' AS TIMESTAMPTZ) AND CAST(${fieldAccess} AS TIMESTAMPTZ) < CAST('${max}' AS TIMESTAMPTZ)`;
+            }
+        }
+        if (filter.valueType === AnnotationType.BOOLEAN) {
+            return `${fieldAccess} = ${filter.value}`;
+        }
+        if (filter.valueType === AnnotationType.DURATION) {
+            return `EXTRACT(epoch FROM ${fieldAccess})::BIGINT * 1000 = ${filter.value}`;
+        }
+        // Default: cast to VARCHAR and compare
+        return `CAST(${fieldAccess} AS VARCHAR) = '${escaped}'`;
+    }
 }

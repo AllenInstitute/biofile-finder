@@ -90,10 +90,12 @@ export default class DatabaseAnnotationService implements AnnotationService {
             {} as { [name: string]: FileFilter[] }
         );
 
-        // Look up annotation metadata to determine nestedParent for internal filters
+        // Look up annotation metadata to determine nestedParent for internal filters.
+        // Keyed by full dotted path (e.g. "Well.Column") so hierarchy entries like
+        // "Well.Column" resolve to the annotation with path ["Well","Column"].
         // TODO: Avoid fetch? use mapping?
         const annotations = await this.fetchAnnotations();
-        const annotationMetaMap = new Map(annotations.map((a) => [a.name, a]));
+        const annotationMetaMap = new Map(annotations.map((a) => [a.path.join("."), a]));
 
         hierarchy
             // Map before filter because index is important to map to the path
@@ -140,12 +142,32 @@ export default class DatabaseAnnotationService implements AnnotationService {
             .select(selectExpr)
             .from(this.dataSourceNames);
 
+        // Separate flat vs nested filters, correlating nested sub-field filters
+        // that share the same root parent (ensures same-element matching)
+        const flatGroups: { [key: string]: FileFilter[] } = {};
+        const nestedByParent = new Map<string, FileFilter[]>();
+
         Object.keys(filtersByAnnotation).forEach((annotationToFilter) => {
             const appliedFilters = filtersByAnnotation[annotationToFilter];
+            const sample = appliedFilters[0];
+            if (sample && sample.path.length > 1) {
+                const parent = sample.path[0];
+                if (!nestedByParent.has(parent)) nestedByParent.set(parent, []);
+                nestedByParent.get(parent)!.push(...appliedFilters);
+            } else {
+                flatGroups[annotationToFilter] = appliedFilters;
+            }
+        });
+
+        Object.values(flatGroups).forEach((appliedFilters) => {
             sqlBuilder.where(
                 appliedFilters.map((filter) => filter.toSQLWhereString()).join(" OR ")
             );
         });
+
+        for (const [_, parentFilters] of nestedByParent) {
+            sqlBuilder.where(FileFilter.toCorrelatedSQLWhereString(parentFilters));
+        }
 
         const rows = await this.databaseService.query(sqlBuilder.toSQL()).promise;
         const rowsSplitByDelimiter = rows

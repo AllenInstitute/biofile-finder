@@ -119,25 +119,30 @@ const receiveAnnotationsLogic = createLogic({
             }
         }
 
-        // Enrich active filters with annotationType from the loaded annotations.
-        // This handles filters deserialized from URLs or persisted state that lack annotationType,
-        // ensuring toSQLWhereString() generates correct SQL instead of falling back to regex match.
-        const annotationTypeByName = new Map(
-            annotations.map((annotation) => [annotation.name, annotation.type])
+        // Enrich active filters with annotationType, correct path, and pathIsArray from the loaded
+        // annotations. Keyed by full dotted path (e.g. "Well.Column") so that:
+        //   (a) filters decoded from legacy URLs with path=["Well.Column"] get their path corrected
+        //       to the multi-element form ["Well","Column"], and
+        //   (b) valueType / pathIsArray are backfilled for any filter missing them.
+        const annotationByFullPath = new Map(
+            annotations.map((annotation) => [annotation.path.join("."), annotation])
         );
-        const annotationPathIsArrayByName = new Map(
-            annotations.map((annotation) => [annotation.name, annotation.pathIsArray])
-        );
-        const enrichedFilters = currentFilters.map(
-            (filter) =>
-                new FileFilter(
-                    filter.path,
-                    filter.value,
-                    filter.type,
-                    annotationTypeByName.get(filter.name),
-                    filter.pathIsArray.length ? filter.pathIsArray : annotationPathIsArrayByName.get(filter.name)
-                )
-        );
+        const enrichedFilters = currentFilters.map((filter) => {
+            const annotation = annotationByFullPath.get(filter.name);
+            return new FileFilter(
+                // If the annotation has a multi-element path, use it — corrects legacy
+                // single-element paths like ["Well.Column"] → ["Well", "Column"].
+                annotation?.path ?? filter.path,
+                filter.value,
+                filter.type,
+                annotation?.type ?? filter.valueType,
+                annotation?.pathIsArray?.length
+                    ? annotation.pathIsArray
+                    : filter.pathIsArray.length
+                    ? filter.pathIsArray
+                    : undefined
+            );
+        });
         if (enrichedFilters.length > 0) {
             dispatch(selection.actions.setFileFilters(enrichedFilters));
         }

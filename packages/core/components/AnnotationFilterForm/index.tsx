@@ -42,14 +42,17 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         annotationService
     );
 
+    // FileFilter.name is path.join("."), so we need the full dotted path for comparison
+    const annotationFilterKey = props.annotation.path.join(".");
+
     const fuzzySearchEnabled = React.useMemo(
-        () => !!fuzzyFilters?.some((filter) => filter.name === props.annotation.name),
-        [fuzzyFilters, props.annotation]
+        () => !!fuzzyFilters?.some((filter) => filter.name === annotationFilterKey),
+        [fuzzyFilters, annotationFilterKey]
     );
 
     const filtersForAnnotation = React.useMemo(
-        () => allFilters.filter((filter) => filter.name === props.annotation.name),
-        [allFilters, props.annotation]
+        () => allFilters.filter((filter) => filter.name === annotationFilterKey),
+        [allFilters, annotationFilterKey]
     );
 
     // Assume all filters use same type
@@ -133,7 +136,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         if (filterValue && filterValue.trim()) {
             dispatch(
                 selection.actions.setFileFilters([
-                    ...allFilters.filter((filter) => filter.name !== props.annotation.name),
+                    ...allFilters.filter((filter) => filter.name !== annotationFilterKey),
                     new FileFilter(
                         props.annotation.path,
                         filterValue,

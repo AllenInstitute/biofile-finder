@@ -69,11 +69,12 @@ export default function QueryFilter(props: Props) {
                     ? path.slice(0, -1).join(" / ") + " / "
                     : undefined;
                 const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
+                const title = `${leafName} ${operator} ${valueDisplay}`;
                 return {
-                    id: filters[0].name,
-                    title: `${leafName} ${operator} ${valueDisplay}`,
+                    id: pathKey,
+                    title,
                     titlePrefix,
-                    description: annotation?.description,
+                    description: `${titlePrefix ?? ""}${title}\n${annotation?.description ?? ""}`,
                 };
             })}
         />

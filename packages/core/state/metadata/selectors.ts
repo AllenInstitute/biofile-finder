@@ -22,6 +22,12 @@ export const getSortedAnnotations = createSelector(getAnnotations, Annotation.so
 
 export const getAnnotationNameToAnnotationMap = createSelector(
     getAnnotations,
-    (annotations): Map<string, Annotation> =>
-        new Map(Object.entries(keyBy(annotations, (annotation) => annotation.path.join("."))))
+    (annotations): Map<string, Annotation> => {
+        // Index by last segment first (lower priority), then by full dotted path (higher priority).
+        // This lets sub-field rows (which only know their local field name, e.g. "Value") find their
+        // annotation, while full-path keys ("Well.Value") win over any name-only collisions.
+        const byName = keyBy(annotations, (annotation) => annotation.name);
+        const byFullPath = keyBy(annotations, (annotation) => annotation.path.join("."));
+        return new Map(Object.entries({ ...byName, ...byFullPath }));
+    }
 );

@@ -184,16 +184,29 @@ export default class FileSet {
     }
 
     /**
-     * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses
+     * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses.
+     *
+     * Nested sub-field filters sharing the same root parent column are automatically
+     * correlated: they use list_filter to ensure all conditions match the SAME array
+     * element (rather than checking each sub-field independently across the whole array).
      */
     public toQuerySQLBuilder(): SQLBuilder {
-        // Map the filter values to the annotation names they filter.
-        //
-        // Nested sub-field filters (e.g. "Well.Gene" vs "Well.Dose.Unit") are keyed
-        // by their full annotation name, ensuring each sub-field is independently ANDed.
-        // Filters sharing the same annotation name are OR-ed together (multiple
-        // allowed values for that field, as usual).
-        const filtersGroupedByAnnotation = this.filters.reduce((map, filter) => {
+        // Separate flat (path.length === 1) filters from nested sub-field filters
+        const flatFilters: FileFilter[] = [];
+        const nestedByParent = new Map<string, FileFilter[]>();
+
+        for (const filter of this.filters) {
+            if (filter.path.length <= 1) {
+                flatFilters.push(filter);
+            } else {
+                const parent = filter.path[0];
+                if (!nestedByParent.has(parent)) nestedByParent.set(parent, []);
+                nestedByParent.get(parent)!.push(filter);
+            }
+        }
+
+        // Group flat filters by annotation name (same name = OR'd, different names = AND'd)
+        const flatGrouped = flatFilters.reduce((map, filter) => {
             const key = filter.name;
             return {
                 ...map,
@@ -201,14 +214,20 @@ export default class FileSet {
             };
         }, {} as { [key: string]: FileFilter[] });
 
-        // Transform the map above into SQL comparison clauses
         const sqlBuilder = this.sort ? this.sort.toQuerySQLBuilder() : new SQLBuilder();
 
-        Object.entries(filtersGroupedByAnnotation).forEach(([_, appliedFilters]) => {
+        // Flat filters: each annotation group is one WHERE clause
+        Object.entries(flatGrouped).forEach(([_, appliedFilters]) => {
             sqlBuilder.where(
                 appliedFilters.map((filter) => filter.toSQLWhereString()).join(" OR ")
             );
         });
+
+        // Nested filters: correlate all sub-field filters sharing the same parent
+        // so that conditions are tested against the same array element
+        for (const [_, parentFilters] of nestedByParent) {
+            sqlBuilder.where(FileFilter.toCorrelatedSQLWhereString(parentFilters));
+        }
 
         return sqlBuilder;
     }
