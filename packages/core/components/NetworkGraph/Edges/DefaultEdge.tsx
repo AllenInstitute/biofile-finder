@@ -1,15 +1,16 @@
 import { DefaultButton, IContextualMenuItem } from "@fluentui/react";
 import { getBezierPath, EdgeLabelRenderer, BaseEdge, EdgeProps, Edge } from "@xyflow/react";
 import React, { FC } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import { useButtonMenu } from "../../Buttons";
 import MarkdownText from "../../MarkdownText";
 import Tooltip from "../../Tooltip";
+import FileFilter from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import { AnnotationEdge } from "../../../entity/Graph";
-import FileFilter from "../../../entity/FileFilter";
-import { interaction, selection } from "../../../state";
+import SearchParams from "../../../entity/SearchParams";
+import { selection } from "../../../state";
 
 import styles from "./DefaultEdge.module.css";
 
@@ -25,7 +26,6 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
     data,
 }) => {
     const annotationValue = data ? `${data.value}` : "";
-    const dispatch = useDispatch();
     const currentQuery = useSelector(selection.selectors.getCurrentQueryParts);
     /**
      *  External util from reactflow that returns a "bezier" type path between two nodes
@@ -48,37 +48,25 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
 
     const buttonMenuItems: IContextualMenuItem[] = [
         {
-            key: "Open query for files from this process",
-            text: "Open query for files from this process",
+            key: "Open files from this process as new query",
+            text: "Open files from this process as new query",
             onClick: () => {
                 if (!data) return;
+                let newUrl;
                 if (data.name) {
-                    dispatch(
-                        selection.actions.addQuery({
-                            name: `Files processed by ${data.name}: ${annotationValue}`,
-                            parts: {
-                                ...currentQuery,
-                                hierarchy: [],
-                                filters: [new FileFilter(data.name, annotationValue)],
-                            },
-                        })
-                    );
+                    newUrl = SearchParams.encode({
+                        ...currentQuery,
+                        hierarchy: [],
+                        filters: [new FileFilter(data.name, annotationValue)],
+                    });
                 } else {
-                    dispatch(
-                        selection.actions.addQuery({
-                            name: `Files processed by ${annotationValue}`,
-                            parts: {
-                                ...currentQuery,
-                                hierarchy: [],
-                                filters: [
-                                    new IncludeFilter(data.parent),
-                                    new IncludeFilter(data.child),
-                                ],
-                            },
-                        })
-                    );
+                    newUrl = SearchParams.encode({
+                        ...currentQuery,
+                        hierarchy: [],
+                        filters: [new IncludeFilter(data.parent), new IncludeFilter(data.child)],
+                    });
                 }
-                dispatch(interaction.actions.setOriginForProvenance());
+                window.open(`/app?${newUrl}`, "_blank");
             },
         },
     ];

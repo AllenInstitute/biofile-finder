@@ -7,6 +7,7 @@ import {
     useEdgesState,
     Controls,
     useReactFlow,
+    ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import classNames from "classnames";
@@ -45,7 +46,7 @@ const NODE_TYPES = {
 /**
  * Component for rendering a graph at the given origin
  */
-export default function NetworkGraph(props: NetworkGraphProps) {
+function NetworkGraph(props: NetworkGraphProps) {
     const dispatch = useDispatch();
     const graph = useSelector(interaction.selectors.getGraph);
     const isLoading = useSelector(interaction.selectors.isGraphLoading);
@@ -58,14 +59,8 @@ export default function NetworkGraph(props: NetworkGraphProps) {
     // Unfortunately we have to have some notion of state at a high level for control from the components
     // and at the dagre level for when the user does a drag action causing this duplication of efforts
     React.useEffect(() => {
-        let cancel = false;
-        if (!cancel) {
-            setEdges(graph.edges);
-            setNodes(graph.nodes);
-        }
-        return function cleanup() {
-            cancel = true;
-        };
+        setEdges(graph.edges);
+        setNodes(graph.nodes);
     }, [graph, setEdges, setNodes, refreshKey]);
 
     // The option to open this graph shouldn't even appear when a
@@ -119,5 +114,15 @@ export default function NetworkGraph(props: NetworkGraphProps) {
                 <Controls showInteractive={false} />
             </ReactFlow>
         </div>
+    );
+}
+
+// The ReactFlow component can only access state (useReactFlow) if it's the child of a ReactFlowProvider
+// See https://reactflow.dev/learn/troubleshooting/common-errors#001
+export default function WrappedNetworkGraph(props: NetworkGraphProps) {
+    return (
+        <ReactFlowProvider>
+            <NetworkGraph {...props} />
+        </ReactFlowProvider>
     );
 }
