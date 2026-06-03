@@ -163,6 +163,9 @@ describe("Graph", () => {
                 }
                 throw new Error("Too many calls!");
             }
+            public async getFileByUid(): Promise<FileDetail | undefined> {
+                return Promise.resolve(sourceFile);
+            }
         }
         const expectedPointer = "Algorithm";
         const expectedAlgorithm = "v1.2.0";

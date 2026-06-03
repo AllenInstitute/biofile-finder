@@ -10,6 +10,7 @@ import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
+import FileFilter from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import FileSelection from "../../../entity/FileSelection";
@@ -135,6 +136,32 @@ export default class DatabaseFileService implements FileService {
         const rows = await this.databaseService.query(sql).promise;
         const env = this.downloadService.getEnvironmentFromUrl();
         return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
+    }
+
+    /**
+     * Get a single file that has a unique ID matching uid
+     */
+    public async getFileByUid(uid: string): Promise<FileDetail | undefined> {
+        let files;
+        try {
+            files = await this.getFiles({
+                from: 0,
+                limit: 1,
+                fileSet: new FileSet({
+                    fileService: this,
+                    filters: [new FileFilter(HIDDEN_UID_ANNOTATION, uid)],
+                }),
+            });
+        } catch (err) {
+            console.error(`Failed to find file with uid ${uid}. Error: ${(err as Error).message}`);
+            return undefined;
+        }
+        if (files.length !== 1) {
+            throw new Error(
+                `Failed to fetch 1 file for uid ${uid}. Found ${files.length} instead.`
+            );
+        }
+        return files[0];
     }
 
     private getSelectionSql(annotations: string[], selections: Selection[]): string {

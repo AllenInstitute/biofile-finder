@@ -502,7 +502,7 @@ export default class Graph {
                 // Avoid re-requesting the file when possible
                 const node = this.graph.node(fileId);
                 if (node) return node;
-                const file = await this.getFileById(fileId);
+                const file = await this.fileService.getFileByUid(fileId);
                 if (file) return createFileNode(file);
                 throw new Error(`Unable to find file ${fileId}`);
             })
@@ -544,30 +544,6 @@ export default class Graph {
         // key "Publication" will be coming from the files themselves
         const files = await this.getFilesByAnnotation(thisNode.data.annotation);
         await Promise.all(files.map((file) => this.expand(createFileNode(file))));
-    }
-
-    /**
-     * Retrieve the one file that is identified by this ID
-     */
-    private async getFileById(id: string): Promise<FileDetail | undefined> {
-        let files;
-        try {
-            files = await this.fileService.getFiles({
-                from: 0,
-                limit: 1,
-                fileSet: new FileSet({
-                    fileService: this.fileService,
-                    filters: [new FileFilter("File ID", id)],
-                }),
-            });
-        } catch (err) {
-            console.error(`Failed to find file ${id}. Error: ${(err as Error).message}`);
-            return undefined;
-        }
-        if (files.length !== 1) {
-            throw new Error(`Failed to fetch 1 file for ID ${id}. Found ${files.length} instead.`);
-        }
-        return files[0];
     }
 
     /**
