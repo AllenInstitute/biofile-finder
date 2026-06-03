@@ -93,7 +93,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
         // Look up annotation metadata to determine nestedParent for internal filters.
         // Keyed by full dotted path (e.g. "Well.Column") so hierarchy entries like
         // "Well.Column" resolve to the annotation with path ["Well","Column"].
-        // TODO: Avoid fetch? use mapping?
+        // TODO: This is an N+1 fetch when cache isn't ready — fetchFilteredValuesForAnnotation also calls
+        // fetchAnnotations() independently. Pass the annotations through to avoid the
+        // second round-trip once this stabilizes or share the promise?
         const annotations = await this.fetchAnnotations();
         const annotationMetaMap = new Map(annotations.map((a) => [a.path.join("."), a]));
 
@@ -125,15 +127,21 @@ export default class DatabaseAnnotationService implements AnnotationService {
             return [];
         }
 
-        // Look up annotation metadata to determine if this is a nested sub-field
-        // TODO: Avoid fetch? use mapping?
+        // Look up annotation metadata to determine if this is a nested sub-field.
+        // Keyed by full dotted path so "Well.Column" resolves to the annotation with
+        // path ["Well","Column"] rather than falling back to the flat "Well.Column" column.
+        // TODO: This is an N+1 fetch when cache isn't ready — fetchFilteredValuesForAnnotation also calls
+        // fetchAnnotations() independently. Pass the annotations through to avoid the
+        // second round-trip once this stabilizes or share the promise?
         const annotations = await this.fetchAnnotations();
-        const annotationMeta = annotations.find((a) => a.name === annotation);
+        const annotationMeta = annotations.find((a) => a.path.join(".") === annotation);
 
         let selectExpr: string;
         if (annotationMeta?.isSubField && annotationMeta.path.length > 1) {
-            // For nested sub-fields, unnest the list_transform expression and alias it
-            selectExpr = `DISTINCT unnest(${SQLBuilder.buildNestedAccessExpression(annotationMeta.path, annotationMeta.pathIsArray)}) AS "${annotation}"`;
+            // For nested sub-fields, unnest the list_transform expression and alias it.
+            // DISTINCT is intentionally omitted here: DuckDB does not support
+            // "SELECT DISTINCT unnest(...)" — JS-side uniq() deduplicates instead.
+            selectExpr = `unnest(${SQLBuilder.buildNestedAccessExpression(annotationMeta.path, annotationMeta.pathIsArray)}) AS "${annotation}"`;
         } else {
             selectExpr = `DISTINCT "${annotation}"`;
         }
@@ -199,9 +207,13 @@ export default class DatabaseAnnotationService implements AnnotationService {
             return [];
         }
 
-        // Look up annotation metadata for nested sub-field handling
+        // Look up annotation metadata for nested sub-field handling.
+        // Keyed by full dotted path so "Well.Column" resolves to path ["Well","Column"].
+        // TODO: This is an N+1 fetch when cache isn't ready — fetchFilteredValuesForAnnotation also calls
+        // fetchAnnotations() independently. Pass the annotations through to avoid the
+        // second round-trip once this stabilizes or share the promise?
         const allAnnotations = await this.fetchAnnotations();
-        const annotationMetaMap = new Map(allAnnotations.map((a) => [a.name, a]));
+        const annotationMetaMap = new Map(allAnnotations.map((a) => [a.path.join("."), a]));
 
         // Build proper IS NOT NULL expressions for the current hierarchy annotations:
         // For nested sub-fields, use len(list_transform(...)) > 0 instead of "name" IS NOT NULL

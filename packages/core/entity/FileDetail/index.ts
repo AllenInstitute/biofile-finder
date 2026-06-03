@@ -2,6 +2,7 @@ import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 import AnnotationName from "../Annotation/AnnotationName";
 import { Environment } from "../../constants";
 import { FmsFileAnnotation, MetadataValue, NestedMetadataValue, PrimitiveMetadataValue } from "../../services/FileService";
+import { isNil, isObject, uniq } from "lodash";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
 const AICS_FMS_S3_URL_PREFIX = "https://s3.us-west-2.amazonaws.com/";
@@ -101,6 +102,43 @@ export default class FileDetail {
     private static isLikelyLocalFile(path: string): boolean {
         return !path.startsWith("http") && !path.startsWith("s3");
     }
+
+    /**
+     * Recursively extract leaf values from nested metadata by traversing the given path segments.
+     * At each level, if the current values are NestedMetadataValue[], look up the next segment
+     * in each entry and collect the results. Handles arbitrary nesting depth.
+     */
+    private static extractNestedValues(
+        values: MetadataValue,
+        remainingPath: string[]
+    ): MetadataValue | undefined {
+        if (remainingPath.length === 0) return values;
+
+        const [nextSegment, ...rest] = remainingPath;
+
+        // Collect values for `nextSegment` from each nested entry
+        const collected: MetadataValue[number][] = [];
+        for (const entry of values) {
+            // Only NestedMetadataValue objects have sub-fields to traverse
+            if (isNil(entry) || !isObject(entry)) continue;
+
+            const nestedEntry = entry as NestedMetadataValue;
+            const nestedValue = nestedEntry[nextSegment];
+            if (isNil(nestedValue)) continue;
+
+            // Base case: if this is the last segment, collect the primitive values
+            if (rest.length === 0) {
+                collected.push(...nestedValue);
+            } else {
+                // More path segments remain — recurse deeper
+                const deeper = FileDetail.extractNestedValues(nestedValue, rest);
+                if (deeper) collected.push(...deeper);
+            }
+        }
+
+        return collected.length > 0 ? (collected as MetadataValue) : undefined;
+    }
+
 
     constructor(file: FmsFile, env: Environment, uniqueId?: string) {
         this.annotations = file.annotations;
@@ -203,8 +241,29 @@ export default class FileDetail {
         return cacheEvictionDate === undefined && shouldBeInLocal === true;
     }
 
-    public getAnnotation(annotationName: string): MetadataValue | undefined {
-        return this.metadata.get(annotationName);
+    /**
+     * Retrieve the annotation value(s) for a given annotation name or path.
+     * For nested annotations, the path can be specified as an array of strings
+     * (e.g. ["Well", "Dose", "Unit"]) to traverse into nested metadata structures
+     * and retrieve leaf values.
+     */
+    public getAnnotation(path: string | string[]): MetadataValue | undefined {
+        // Simple case: primitive annotation lookup by name (e.g. "Gene")
+        if (!Array.isArray(path)) return this.metadata.get(path);
+        if (path.length === 0) return undefined;
+        if (path.length === 1) return this.metadata.get(path[0]);
+
+        // For nested paths like ["Well", "Dose", "Unit"], traverse the nested structure:
+        // 1. Get the root value (e.g., the "Well" column — a NestedMetadataValue[])
+        // 2. For each subsequent path segment, drill into matching sub-fields
+        const rootValue = this.metadata.get(path[0]);
+        if (!rootValue) return undefined;
+
+        const values = FileDetail.extractNestedValues(rootValue, path.slice(1));
+        return (isObject(values) && !isNil(values))
+            ? uniq(values as PrimitiveMetadataValue[])
+            : values as NestedMetadataValue[] | undefined;
+
     }
 
     public getFirstAnnotationValue(annotationName: string): PrimitiveMetadataValue | NestedMetadataValue | undefined {

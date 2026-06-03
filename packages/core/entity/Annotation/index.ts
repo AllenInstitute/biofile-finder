@@ -1,4 +1,4 @@
-import { get as _get, isObject, sortBy } from "lodash";
+import { get as _get, isEmpty, isNil, isObject, sortBy } from "lodash";
 
 import AnnotationName from "./AnnotationName";
 import getFormatter, {
@@ -159,15 +159,13 @@ export default class Annotation {
      */
     public extractFromFile(file: FileDetail): string {
         const values = file.getAnnotation(this.name);
-        if (values === undefined || values === null || values.length < 1) {
+        if (isNil(values) || isEmpty(values)) {
             return Annotation.MISSING_VALUE;
         }
 
-        // Nested annotations are plain objects, so if we check for that
-        // we can display a special value for them instead of trying to display the object itself
+        // Nested annotations are plain objects: show entry count rather than
+        // trying to stringify the whole object.
         if (isObject(values[0])) {
-            // For nested annotations, we want to show the number of entries
-            // in the nested object rather than trying to display the object itself
             return `${values.length} ${values.length === 1 ? "entry" : "entries"}`;
         }
 

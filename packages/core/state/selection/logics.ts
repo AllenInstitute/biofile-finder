@@ -1,4 +1,4 @@
-import { castArray, find, sortBy, truncate, uniqWith } from "lodash";
+import { castArray, find, isEqual, sortBy, truncate, uniqWith } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { batch } from "react-redux";
@@ -269,7 +269,7 @@ const modifyFileFilters = createLogic({
                     );
                     nextFilters = [
                         ...previousFilters.filter(
-                            (filter) => filter.path !== action.payload.path
+                            (filter) => !isEqual(filter.path, action.payload.path)
                         ),
                         newFilter,
                     ];
@@ -279,19 +279,22 @@ const modifyFileFilters = createLogic({
                 case FilterType.FUZZY:
                 default:
                     nextFilters = previousFilters
-                        .filter((filter) => {
-                            return !(
-                                filter.path === action.payload.path &&
-                                (filter.type === FilterType.ANY ||
-                                    filter.type === FilterType.EXCLUDE)
-                            );
-                        })
-                        .map((filter) => {
-                            if (filter.path === action.payload.path) {
-                                filter.type = action.payload.type;
-                            }
-                            return filter;
-                        });
+                        .filter((filter) => !(
+                            isEqual(filter.path, action.payload.path) &&
+                            (filter.type === FilterType.ANY ||
+                                filter.type === FilterType.EXCLUDE)
+                        ))
+                        .map((filter) => (
+                            !isEqual(filter.path, action.payload.path)
+                            ? filter
+                            : new FileFilter(
+                                filter.path,
+                                filter.value,
+                                action.payload.type,
+                                filter.valueType,
+                                filter.pathIsArray
+                            )
+                        ));
             }
         } else {
             const incomingFilters = castArray(action.payload);

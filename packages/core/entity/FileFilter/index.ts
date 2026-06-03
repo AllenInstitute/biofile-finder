@@ -52,6 +52,8 @@ export default class FileFilter {
         // This and pathisarray will be removed in the future
         // however in the meantime this default pathIsArray logic is worrisome unfortunately
         this.valueType = valueType;
+        // TODO: Extract this default (root is array, intermediates are scalar structs) into a
+        // shared utility — it's duplicated in Annotation and FileSort constructors.
         this.pathIsArray = pathIsArray ??
             Array.from({ length: Math.max(0, this.path.length - 1) }, (_, i) => i === 0);
     }

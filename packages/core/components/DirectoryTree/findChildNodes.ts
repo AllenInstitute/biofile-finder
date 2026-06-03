@@ -76,10 +76,11 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
         .map((filter) => filter.value);
 
     if (shouldShowNullGroups) {
-        // Fetch all values under current node, ignoring past hierarchy
-        // Including the full hierarchy would filter out files that miss any part of the hierarchy
+        // Fetch all values under current node, ignoring past hierarchy.
+        // Use the full hierarchy entry (e.g. "Well.Column") not just the leaf ("Column")
+        // so nested-annotation lookups in fetchRootHierarchyValues resolve correctly.
         values = await annotationService.fetchRootHierarchyValues(
-            [annotationAtDepth],
+            [hierarchy[depth]],
             fileSet.filters
         );
     } else if (isRoot) {

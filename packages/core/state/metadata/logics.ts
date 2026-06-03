@@ -1,4 +1,4 @@
-import { uniqBy } from "lodash";
+import { isEqual, uniqBy } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { interaction, metadata, ReduxLogicDeps, selection } from "..";
@@ -129,21 +129,33 @@ const receiveAnnotationsLogic = createLogic({
         );
         const enrichedFilters = currentFilters.map((filter) => {
             const annotation = annotationByFullPath.get(filter.name);
-            return new FileFilter(
-                // If the annotation has a multi-element path, use it — corrects legacy
-                // single-element paths like ["Well.Column"] → ["Well", "Column"].
-                annotation?.path ?? filter.path,
-                filter.value,
-                filter.type,
-                annotation?.type ?? filter.valueType,
-                annotation?.pathIsArray?.length
-                    ? annotation.pathIsArray
-                    : filter.pathIsArray.length
+            // TODO: We should migrate annotation info out of filter so that
+            // things like this are unnecessary - avoiding for now to conserve line changes
+            if (!annotation) return filter; // no matching annotation — leave as-is
+
+            const newPath = annotation.path;
+            const newType = annotation.type;
+            const newPathIsArray = annotation.pathIsArray?.length
+                ? annotation.pathIsArray
+                : (
+                    filter.pathIsArray.length
                     ? filter.pathIsArray
                     : undefined
-            );
+                );
+
+            // Return the same object if nothing would change, so the reference-equality
+            // check below can correctly detect a no-op and skip the dispatch.
+            const isPathUnchanged = isEqual(newPath, filter.path);
+            const isTypeUnchanged = newType === filter.valueType;
+            const isPathIsArrayUnchanged = isEqual(newPathIsArray ?? [], filter.pathIsArray);
+            if (isPathUnchanged && isTypeUnchanged && isPathIsArrayUnchanged) return filter;
+
+            return new FileFilter(newPath, filter.value, filter.type, newType, newPathIsArray);
         });
-        if (enrichedFilters.length > 0) {
+
+        // Only dispatch if at least one filter actually changed
+        const hasChanges = enrichedFilters.some((f, i) => f !== currentFilters[i]);
+        if (hasChanges) {
             dispatch(selection.actions.setFileFilters(enrichedFilters));
         }
 
