@@ -221,6 +221,7 @@ describe("SearchParams", () => {
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
                 sourceMetadata: undefined,
                 prov: undefined,
+                provOriginId: undefined,
                 sources: [mockSource],
             };
             const encodedUrl = SearchParams.encode(components);
@@ -245,6 +246,7 @@ describe("SearchParams", () => {
                 sortColumn: undefined,
                 sourceMetadata: undefined,
                 prov: undefined,
+                provOriginId: undefined,
                 sources: [],
             };
             const encodedUrl = SearchParams.encode(components);
