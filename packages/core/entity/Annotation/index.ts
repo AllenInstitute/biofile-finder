@@ -158,13 +158,15 @@ export default class Annotation {
      *  const displayValue = fileSizeAnnotation.extractFromFile(fmsFile); // ~= "50B"
      */
     public extractFromFile(file: FileDetail): string {
-        const values = file.getAnnotation(this.name);
+        // Use the full path so FileDetail can traverse nested STRUCT columns.
+        // For flat annotations path = ["Gene"], for sub-fields path = ["Well","Column"].
+        const values = file.getAnnotation(this.path);
         if (isNil(values) || isEmpty(values)) {
             return Annotation.MISSING_VALUE;
         }
 
-        // Nested annotations are plain objects: show entry count rather than
-        // trying to stringify the whole object.
+        // Nested parent annotations (the STRUCT column itself, not a leaf sub-field):
+        // show entry count rather than trying to stringify the whole object.
         if (isObject(values[0])) {
             return `${values.length} ${values.length === 1 ? "entry" : "entries"}`;
         }
