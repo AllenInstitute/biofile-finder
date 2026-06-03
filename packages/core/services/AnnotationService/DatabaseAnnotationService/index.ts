@@ -5,7 +5,7 @@ import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import Annotation from "../../../entity/Annotation";
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import { Source } from "../../../entity/SearchParams";
 import SQLBuilder from "../../../entity/SQLBuilder";
@@ -107,8 +107,8 @@ export default class DatabaseAnnotationService implements AnnotationService {
                     const annotationPath = meta?.path ?? annotation.split(".");
                     filtersByAnnotation[annotation] = [
                         index < path.length
-                            ? new FileFilter(annotationPath, path[index])
-                            : new IncludeFilter(annotationPath), // If no value provided in hierachy, equivalent to Include filter
+                            ? new FileFilter(annotationPath, path[index], FilterType.DEFAULT, meta?.type, meta?.pathIsArray)
+                            : new IncludeFilter(annotationPath, meta?.pathIsArray), // If no value provided in hierarchy, equivalent to Include filter
                     ];
                 }
             });

@@ -476,14 +476,13 @@ const selectNearbyFile = createLogic({
         const hierarchy = selectionSelectors.getAnnotationHierarchy(deps.getState());
         const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
         const sortColumn = selectionSelectors.getSortColumn(deps.getState());
-        const annotations = metadata.selectors.getAnnotations(deps.getState());
-        const annotationMetaMap = new Map(annotations.map((a) => [a.name, a]));
+        const annotationByName = metadata.selectors.getAnnotationNameToAnnotationMap(deps.getState());
 
         // Build a correct FileFilter for a hierarchy annotation, using nested SQL when needed.
         const makeHierarchyFilter = (name: string, filterValue: AnnotationValue): FileFilter => {
-            const meta = annotationMetaMap.get(name);
+            const meta = annotationByName.get(name);
             const path = meta?.path ?? name.split(".");
-            return new FileFilter(path, filterValue);
+            return new FileFilter(path, filterValue, FilterType.DEFAULT, meta?.type, meta?.pathIsArray);
         };
 
         const openFileListPaths = openFileFolders.filter(

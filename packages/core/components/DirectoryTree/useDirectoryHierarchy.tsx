@@ -101,6 +101,7 @@ const useDirectoryHierarchy = (
         DEFAULTS
     );
     const annotations = useSelector(metadata.selectors.getAnnotations);
+    const annotationByName = useSelector(metadata.selectors.getAnnotationNameToAnnotationMap);
     const hierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const fileService = useSelector(interaction.selectors.getFileService);
@@ -160,7 +161,6 @@ const useDirectoryHierarchy = (
                         shouldShowNullGroups,
                     });
 
-                    const annotationMetaMap = new Map(annotations.map((a) => [a.name, a]));
                     const nodes = allChildNodes.map((value, idx) => {
                         let childNodeSortOrder: number;
                         if (isRoot) {
@@ -183,9 +183,15 @@ const useDirectoryHierarchy = (
                             take(pathToChildNode, depth + 1)
                         ).map((pair) => {
                             const [name, filterValue] = pair as [string, string];
-                            const annotationMeta = annotationMetaMap.get(name);
+                            const annotationMeta = annotationByName.get(name);
                             const path = annotationMeta?.path ?? name.split(".");
-                            return new FileFilter(path, filterValue);
+                            return new FileFilter(
+                                path,
+                                filterValue,
+                                FilterType.DEFAULT,
+                                annotationMeta?.type,
+                                annotationMeta?.pathIsArray
+                            );
                         });
                         // If we are grouping by a field (e.g., barcode)
                         // and also have filters applied for that field (e.g., barcode=1234, barcode=1357),
@@ -208,7 +214,7 @@ const useDirectoryHierarchy = (
                             sort: sortColumn,
                         });
 
-                    const annotationAtDepth = annotationMetaMap.get(annotationNameAtDepth);
+                    const annotationAtDepth = annotationByName.get(annotationNameAtDepth);
                         const displayValue =
                             value === NO_VALUE_NODE
                                 ? `No value ("${hierarchy[depth]}")`

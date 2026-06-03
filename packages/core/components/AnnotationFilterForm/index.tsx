@@ -38,7 +38,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const canFuzzySearch = useSelector(selection.selectors.isQueryingAicsFms);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
-        props.annotation.name,
+        // Use full dotted path (e.g. "Well.Column") so DatabaseAnnotationService can
+        // resolve the correct sub-field annotation. For flat annotations path.join(".")
+        // equals name, so this is backward-compatible.
+        props.annotation.path.join("."),
         annotationService
     );
 

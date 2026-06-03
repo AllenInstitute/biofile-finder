@@ -119,6 +119,12 @@ export default class FileFilter {
                     if (this.valueType === AnnotationType.BOOLEAN) {
                         return `list_has(${listExpr}, ${this.value})`;
                     }
+                    if (this.valueType === AnnotationType.NUMBER) {
+                        // Cast the search value to DOUBLE and compare numerically.
+                        // Avoids the CAST(2.0 AS VARCHAR)='2.0' vs '2' mismatch that
+                        // occurs when floats are compared as strings.
+                        return `list_has(${listExpr}, TRY_CAST('${this.value}' AS DOUBLE))`;
+                    }
                     if (this.valueType === AnnotationType.DURATION) {
                         return `len(list_filter(${listExpr}, __el -> EXTRACT(epoch FROM __el)::BIGINT * 1000 = ${this.value})) > 0`;
                     }
@@ -269,8 +275,18 @@ export default class FileFilter {
         if (filter.valueType === AnnotationType.BOOLEAN) {
             return `${fieldAccess} = ${filter.value}`;
         }
+        if (filter.valueType === AnnotationType.NUMBER) {
+            // Compare numerically to avoid CAST(2.0 AS VARCHAR)='2.0' vs '2' mismatch
+            return `CAST(${fieldAccess} AS DOUBLE) = TRY_CAST('${escaped}' AS DOUBLE)`;
+        }
         if (filter.valueType === AnnotationType.DURATION) {
             return `EXTRACT(epoch FROM ${fieldAccess})::BIGINT * 1000 = ${filter.value}`;
+        }
+        // If no explicit type but value is numeric, compare as DOUBLE to avoid float/string mismatch
+        // (e.g. CAST(2.0 AS VARCHAR) = '2.0' ≠ '2' but CAST(2.0 AS DOUBLE) = 2.0 = TRY_CAST('2' AS DOUBLE))
+        const asNum = Number(filter.value);
+        if (!isNaN(asNum) && String(filter.value).trim() !== "") {
+            return `CAST(${fieldAccess} AS DOUBLE) = TRY_CAST('${escaped}' AS DOUBLE)`;
         }
         // Default: cast to VARCHAR and compare
         return `CAST(${fieldAccess} AS VARCHAR) = '${escaped}'`;
