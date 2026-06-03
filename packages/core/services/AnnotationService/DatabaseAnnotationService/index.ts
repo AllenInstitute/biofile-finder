@@ -1,4 +1,4 @@
-import { castArray, isNil, isObject, uniq } from "lodash";
+import { isNil, uniq } from "lodash";
 
 import AnnotationService, { AnnotationDetails, AnnotationValue } from "..";
 import DatabaseService from "../../DatabaseService";
@@ -176,16 +176,10 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const rowsSplitByDelimiter = rows
             .flatMap((row) => {
                 if (isNil(row[annotation])) return [];
-                const isArrayOfObjects = (
-                    Array.isArray(row[annotation]) &&
-                    row[annotation].length > 0 &&
-                    isObject(row[annotation][0])
-                );
-                const isSingularObject = isObject(row[annotation]);
-                if (isArrayOfObjects || isSingularObject) {
-                    // TODO: Make sure this is what I want to do for fetchValues()
-                    // might want to be an error?
-                    return JSON.stringify(castArray(row[annotation])).split(DatabaseService.LIST_DELIMITER);
+                // For array columns (e.g. VARCHAR[]), DuckDB returns JS arrays after
+                // the JSON round-trip. Flatten them so each element is treated individually.
+                if (Array.isArray(row[annotation])) {
+                    return row[annotation].map((v: unknown) => String(v).trim());
                 }
                 return String(row[annotation]).split(DatabaseService.LIST_DELIMITER);
             })

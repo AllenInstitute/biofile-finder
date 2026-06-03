@@ -1,5 +1,5 @@
 import * as React from "react";
-import { uniqBy } from "lodash";
+import { isEqual, uniqBy } from "lodash";
 import { useSelector } from "react-redux";
 
 import ListPicker from "../ListPicker";
@@ -37,10 +37,10 @@ interface Props {
  * Form for selecting which annotations to use in some exterior context like
  * downloading a manifest.
  *
- * Nested sub-field annotations (e.g. "Well.Gene", "Well.Solution.Name") are shown
- * hierarchically underneath their parent using visual indentation.  Intermediate path
- * segments that are not themselves selectable (e.g. "Solution" in "Well.Solution.Name")
- * appear as non-interactive group-header labels.
+ * Nested sub-field annotations (e.g. "Well.Gene", "Well.Dose.Unit") are listed under their
+ * top-level parent, with each leaf showing its full ancestry as breadcrumbs (e.g.
+ * "Well / Dose / Unit"). Leaves are grouped by root parent and ordered so that sub-fields
+ * sharing an intermediate parent stay adjacent.
  */
 export default function AnnotationPicker(props: Props) {
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
@@ -61,7 +61,12 @@ export default function AnnotationPicker(props: Props) {
         !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name);
 
     const annotationToListItem = (annotation: Annotation): ListItem<Annotation> => {
-        const selected = props.selections.some((selected) => selected === annotation.path);
+        // Compare by value, not reference: selections may hold path arrays from a previous
+        // set of Annotation instances (e.g. after RECEIVE_ANNOTATIONS rebuilds them), so
+        // reference equality would silently drop the selected state.
+        const selected = props.selections.some((selectedPath) =>
+            isEqual(selectedPath, annotation.path)
+        );
         const disabled =
             !selected &&
             props.disableUnavailableAnnotations &&
@@ -87,18 +92,24 @@ export default function AnnotationPicker(props: Props) {
     // Separate top-level annotations from sub-field annotations.
     const topLevelAnnotations = annotations.filter((a) => !a.isSubField);
 
-    // Group sub-fields by their top-level parent name.
+    // Group sub-fields by their top-level (root) parent name. Note this buckets by root only;
+    // intermediate segments are conveyed via breadcrumbs rather than their own sub-groups.
     const subFieldsByParent = new Map<string, Annotation[]>();
     annotations
         .filter((a) => a.isSubField && isSelectable(a))
         .forEach((a) => {
-            const parent = a.path.length > 1
-                ? a.path[0] // TODO: Needs to work for multiple layers of nested
-                : undefined;
+            const parent = a.path.length > 1 ? a.path[0] : undefined;
             if (!parent) return;
             if (!subFieldsByParent.has(parent)) subFieldsByParent.set(parent, []);
             subFieldsByParent.get(parent)!.push(a);
         });
+
+    // Keep sub-fields sharing an intermediate parent adjacent (e.g. all "Well.Dose.*"
+    // together) by ordering each bucket on the full dotted path. Without this, leaf-name
+    // sorting can interleave siblings from different intermediate parents.
+    for (const subFields of subFieldsByParent.values()) {
+        subFields.sort((a, b) => a.path.join(".").localeCompare(b.path.join(".")));
+    }
 
     // Build the hierarchical flat list: top-level annotation then its nested sub-tree.
     const hierarchicalItems: ListItem<Annotation>[] = [];
@@ -125,7 +136,7 @@ export default function AnnotationPicker(props: Props) {
 
     const removeSelection = (item: ListItem<Annotation>) => {
         props.setSelections(
-            props.selections.filter((annotation) => annotation !== item.data?.path)
+            props.selections.filter((path) => !isEqual(path, item.data?.path))
         );
     };
 
