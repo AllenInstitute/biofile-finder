@@ -5,6 +5,7 @@ import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import FileSort from "../../entity/FileSort";
 import { JSONReadyRange } from "../../entity/NumericRange";
 
 export type PrimitiveMetadataValue = string | number | boolean;
@@ -41,10 +42,7 @@ export interface SelectionAggregationResult {
 export interface Selection {
     filters: FileFilter[];
     indexRanges: JSONReadyRange[];
-    sort?: {
-        annotationName: string;
-        ascending: boolean;
-    };
+    sort?: FileSort;
 }
 
 export interface AnnotationNameToValuesMap {

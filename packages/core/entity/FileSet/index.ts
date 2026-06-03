@@ -214,7 +214,10 @@ export default class FileSet {
             };
         }, {} as { [key: string]: FileFilter[] });
 
-        const sqlBuilder = this.sort ? this.sort.toQuerySQLBuilder() : new SQLBuilder();
+        const sqlBuilder = new SQLBuilder();
+
+        // Apply sort
+        if (this.sort) sqlBuilder.orderBy(this.sort.toOrderByClause());
 
         // Flat filters: each annotation group is one WHERE clause
         Object.entries(flatGrouped).forEach(([_, appliedFilters]) => {

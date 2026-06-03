@@ -6,6 +6,7 @@ import getFormatter, {
     AnnotationType,
 } from "../AnnotationFormatter";
 import FileDetail from "../FileDetail";
+import defaultPathIsArray from "../pathIsArray";
 
 export type AnnotationValue = string | number | boolean | Date;
 
@@ -105,9 +106,9 @@ export default class Annotation {
         this.units = annotation.units;
         this.isImmutable = annotation.isImmutable || false;
         this.id = annotation.annotationId;
-        // Default: root is array, intermediates are scalar structs
-        this.pathIsArray = annotation.pathIsArray ??
-            Array.from({ length: Math.max(0, annotation.path.length - 1) }, (_, i) => i === 0);
+        // `annotation.pathIsArray` is the authoritative, schema-derived value
+        // (DatabaseService.parseStructFields). defaultPathIsArray is only a fallback.
+        this.pathIsArray = annotation.pathIsArray ?? defaultPathIsArray(annotation.path);
     }
 
     public get formatter(): AnnotationFormatter {
@@ -138,14 +139,6 @@ export default class Annotation {
     public get parents(): string[] | undefined {
         if (this.path.length <= 1) return undefined;
         return this.path.slice(0, -1);
-    }
-
-    // TODO: This can't be right...
-    // DuckDB JSONPath expression for this sub-field (e.g. "$[*].Dose.Unit").
-    public get nestedJsonPath(): string | undefined {
-        const parts = this.nestedFieldParts;
-        if (!parts) return undefined;
-        return `$[*].${parts.join(".")}`;
     }
 
     /**

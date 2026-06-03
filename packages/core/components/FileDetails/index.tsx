@@ -135,7 +135,6 @@ export default function FileDetails(props: Props) {
                                 </div>
                             </div>
                         ) : (
-                            // TODO: What to do this button?
                             <div className={styles.buttonRow}>
                                 <TransparentIconButton
                                     className={styles.clearButton}
@@ -201,7 +200,6 @@ export default function FileDetails(props: Props) {
                                 }}
                             />
                         </Modal>
-                        {/* TODO: What to do this view provenance button? */}
                         {!props.onClose && (
                             <div className={styles.buttonRow}>
                                 {hasProvenanceSource && (

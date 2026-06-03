@@ -42,8 +42,7 @@ export default function QueryGroup(props: Props) {
             onRenderAddMenuList={() => (
                 <AnnotationPicker
                     disabledTopLevelAnnotations
-                    // TODO: fix
-                    // disableUnavailableAnnotations
+                    disableUnavailableAnnotations
                     title="Select metadata to group by"
                     selections={props.groups.map((g) => g.split("."))}
                     setSelections={(annotations) => {

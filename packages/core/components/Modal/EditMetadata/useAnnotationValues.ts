@@ -4,8 +4,6 @@ import * as React from "react";
 import FileSelection from "../../../entity/FileSelection";
 import { PrimitiveMetadataValue } from "../../../services/FileService";
 
-// TODO: Add unit tests for this hook
-
 
 /**
  * Custom hook for fetching the values of a particular annotation across all files in a FileSelection.

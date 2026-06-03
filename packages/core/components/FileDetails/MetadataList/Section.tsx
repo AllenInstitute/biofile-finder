@@ -19,8 +19,6 @@ interface Props {
     contextMenuItems?: IContextualMenuItem[];
 }
 
-// TODO: just combine this and <Row />
-
 /**
  * A collapsible group component for rendering nested metadata fields.
  * Supports label, expand/collapse functionality, and custom row components.

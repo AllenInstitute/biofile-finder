@@ -1,6 +1,6 @@
 import { IContextualMenuItem } from "@fluentui/react";
 import classNames from "classnames";
-import { isObject } from "lodash";
+import { isNil, isObject } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -46,7 +46,7 @@ export default function Row(props: Props) {
     // TODO: Change this data model to avoid explicit isObject check
     // If the value is an array of objects, treat it as nested metadata and
     // render child rows for each object in the array.
-    const childRows = isObject(props.value[0])
+    const childRows = (!isNil(props.value[0]) && isObject(props.value[0]))
         ? (props.value as NestedMetadataValue[])
         : [];
 

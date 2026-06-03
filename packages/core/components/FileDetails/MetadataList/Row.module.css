@@ -55,7 +55,6 @@
     min-height: 18px;
 }
 
-/* TODO: Improve this separator (visually) */
 .separator {
     border-bottom: 2px solid var(--border-color);
     border-right: 2px solid var(--border-color);

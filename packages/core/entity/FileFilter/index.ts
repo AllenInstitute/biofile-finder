@@ -1,13 +1,12 @@
 import SQLBuilder from "../SQLBuilder";
 import { AnnotationType } from "../AnnotationFormatter";
+import defaultPathIsArray from "../pathIsArray";
 import { NO_VALUE_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 
 export interface FileFilterJson {
     path: string[];
     value: any;
     type?: FilterType;
-    valueType?: AnnotationType;
-    pathIsArray?: boolean[];
 }
 
 // These also correspond to query param names
@@ -49,13 +48,10 @@ export default class FileFilter {
         this.path = Array.isArray(path) ? path : [path];
         this.value = annotationValue;
         this.type = annotationValue === NO_VALUE_NODE ? FilterType.EXCLUDE : type;
-        // This and pathisarray will be removed in the future
-        // however in the meantime this default pathIsArray logic is worrisome unfortunately
         this.valueType = valueType;
-        // TODO: Extract this default (root is array, intermediates are scalar structs) into a
-        // shared utility — it's duplicated in Annotation and FileSort constructors.
-        this.pathIsArray = pathIsArray ??
-            Array.from({ length: Math.max(0, this.path.length - 1) }, (_, i) => i === 0);
+        // See defaultPathIsArray: schema-derived flags (Annotation.pathIsArray) are authoritative;
+        // this default is only a fallback for paths lacking schema metadata.
+        this.pathIsArray = pathIsArray ?? defaultPathIsArray(this.path);
     }
 
     // TODO: Remove or replace when we stop using dot notation
@@ -166,12 +162,14 @@ export default class FileFilter {
     }
 
     public toJSON(): FileFilterJson {
+        // Intentionally omit valueType and pathIsArray: they are derived from the data source's
+        // annotation schema and recovered on load (metadata `receiveAnnotations` enrichment), so
+        // serializing them would duplicate schema state in the URL and risk drift if the schema
+        // changes. The data source is the single source of truth.
         return {
             path: this.path,
             value: this.value,
             type: this.type,
-            valueType: this.valueType,
-            pathIsArray: this.pathIsArray,
         };
     }
 

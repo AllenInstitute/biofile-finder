@@ -279,9 +279,7 @@ export default class DatabaseFileService implements FileService {
             subQuery.where(filters.map((f) => f.toSQLWhereString()).join(" OR "));
         });
         if (selection.sort) {
-            subQuery.orderBy(
-                `"${selection.sort.annotationName}" ${selection.sort.ascending ? "ASC" : "DESC"}`
-            );
+            subQuery.orderBy(selection.sort.toOrderByClause());
         }
     }
 

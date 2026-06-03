@@ -7,8 +7,6 @@ import FileDetail from "../../../entity/FileDetail";
 import { MetadataValue, NestedMetadataValue, PrimitiveMetadataValue } from "../../../services/FileService";
 import { interaction } from "../../../state";
 
-// TODO: Add unit tests
-
 /**
  * Custom hook responsible for determining the appropriate text to display for a given metadata value in the file details pane.
  * This is responsible for handling any special cases for certain annotation keys where we want to display something other than the default text (e.g. file paths).

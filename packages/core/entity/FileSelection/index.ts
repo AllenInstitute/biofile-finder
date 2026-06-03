@@ -1,8 +1,7 @@
 import { find, isArray, reject } from "lodash";
 
-import FileFilter, { FilterType } from "../FileFilter";
+import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
-import { SortOrder } from "../FileSort";
 import NumericRange from "../NumericRange";
 import FileDetail from "../FileDetail";
 import { IndexError, ValueError } from "../../errors";
@@ -497,12 +496,7 @@ export default class FileSelection {
         return [...this.groupByFileSet().entries()].map(([fileSet, selectedRanges]) => ({
             filters: fileSet.filters,
             indexRanges: selectedRanges.map((range) => range.toJSON()),
-            sort: fileSet.sort
-                ? {
-                      annotationName: fileSet.sort.annotationName,
-                      ascending: fileSet.sort.order === SortOrder.ASC,
-                  }
-                : undefined,
+            sort: fileSet.sort,
         }));
     }
 

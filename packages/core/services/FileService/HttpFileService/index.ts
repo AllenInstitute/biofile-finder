@@ -15,6 +15,7 @@ import FileSet from "../../../entity/FileSet";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
 import { JSONReadyRange } from "../../../entity/NumericRange";
 import { FilterType } from "../../../entity/FileFilter";
+import { SortOrder } from "../../../entity/FileSort";
 
 interface SelectionAggregationRequest {
     selections: Selection[];
@@ -139,7 +140,12 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
                     [filter.name]: filter.value,
                 }), {} as { [filterName: string]: (string | number | boolean)[] }),
             indexRanges: selection.indexRanges,
-            sort: selection.sort,
+            sort: selection.sort
+                ? {
+                      annotationName: selection.sort.annotationName,
+                      ascending: selection.sort.order === SortOrder.ASC,
+                  }
+                : undefined,
             fuzzy: map(filter(
                 selection.filters,
                 (filter) => filter.type === FilterType.FUZZY

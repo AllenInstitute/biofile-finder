@@ -1,5 +1,6 @@
 import { isEqual } from "lodash";
 import SQLBuilder from "../SQLBuilder";
+import defaultPathIsArray from "../pathIsArray";
 
 export enum SortOrder {
     ASC = "ASC",
@@ -23,8 +24,8 @@ export default class FileSort {
     constructor(path: string | string[], order: SortOrder, pathIsArray?: boolean[]) {
         this.path = Array.isArray(path) ? path : [path];
         this.order = order;
-        this.pathIsArray = pathIsArray ??
-            Array.from({ length: Math.max(0, this.path.length - 1) }, (_, i) => i === 0);
+        // Schema-derived flags (Annotation.pathIsArray) are authoritative; this is a fallback.
+        this.pathIsArray = pathIsArray ?? defaultPathIsArray(this.path);
     }
 
     // TODO: This is a misnomer since it may not be display-friendly, should be "key" or something
@@ -37,15 +38,21 @@ export default class FileSort {
         return `sort=${JSON.stringify(this.path)}(${this.order})`;
     }
 
-    public toQuerySQLBuilder(): SQLBuilder {
+    /**
+     * Build the ORDER BY clause body (without the "ORDER BY" keyword) for this sort, so callers
+     * that already have a SQLBuilder can append it via `.orderBy(...)`. Centralizes the nested
+     * sub-field sort logic so the file-list query and the manifest/download query stay in sync.
+     */
+    public toOrderByClause(): string {
         if (this.path.length > 1) {
-            // For nested sub-fields, sort by the first element of the extracted list.
-            // This is an approximation — sorting by array values is inherently ambiguous,
-            // but using [1] (first element) provides deterministic results.
+            // For nested sub-fields, sort by the min (ASC) or max (DESC) value in the
+            // extracted list. list_sort ensures deterministic results regardless of the
+            // original element order in the array.
             const listExpr = SQLBuilder.buildNestedAccessExpression(this.path, this.pathIsArray);
-            return new SQLBuilder().orderBy(`(${listExpr})[1] ${this.order}`);
+            const idx = this.order === SortOrder.ASC ? 1 : -1;
+            return `list_sort(${listExpr})[${idx}] ${this.order}`;
         }
-        return new SQLBuilder().orderBy(`"${this.path[0]}" ${this.order}`);
+        return `"${this.path[0]}" ${this.order}`;
     }
 
     public toJSON(): Record<string, string> {

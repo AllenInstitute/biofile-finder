@@ -128,13 +128,8 @@ export default class DatabaseAnnotationService implements AnnotationService {
         }
 
         // Look up annotation metadata to determine if this is a nested sub-field.
-        // Keyed by full dotted path so "Well.Column" resolves to the annotation with
-        // path ["Well","Column"] rather than falling back to the flat "Well.Column" column.
-        // TODO: This is an N+1 fetch when cache isn't ready — fetchFilteredValuesForAnnotation also calls
-        // fetchAnnotations() independently. Pass the annotations through to avoid the
-        // second round-trip once this stabilizes or share the promise?
-        const annotations = await this.fetchAnnotations();
-        const annotationMeta = annotations.find((a) => a.path.join(".") === annotation);
+        const nameToAnnotationMap = await this.fetchNameToAnnotationMap();
+        const annotationMeta = nameToAnnotationMap.get(annotation);
 
         let selectExpr: string;
         if (annotationMeta?.isSubField && annotationMeta.path.length > 1) {
@@ -208,17 +203,12 @@ export default class DatabaseAnnotationService implements AnnotationService {
         }
 
         // Look up annotation metadata for nested sub-field handling.
-        // Keyed by full dotted path so "Well.Column" resolves to path ["Well","Column"].
-        // TODO: This is an N+1 fetch when cache isn't ready — fetchFilteredValuesForAnnotation also calls
-        // fetchAnnotations() independently. Pass the annotations through to avoid the
-        // second round-trip once this stabilizes or share the promise?
-        const allAnnotations = await this.fetchAnnotations();
-        const annotationMetaMap = new Map(allAnnotations.map((a) => [a.path.join("."), a]));
+        const nameToAnnotationMap = await this.fetchNameToAnnotationMap();
 
         // Build proper IS NOT NULL expressions for the current hierarchy annotations:
         // For nested sub-fields, use len(list_transform(...)) > 0 instead of "name" IS NOT NULL
         const hierarchyNotNullExprs = annotations.map((annotation) => {
-            const meta = annotationMetaMap.get(annotation);
+            const meta = nameToAnnotationMap.get(annotation);
             if (meta?.isSubField && meta.path.length > 1) {
                 return `len(${SQLBuilder.buildNestedAccessExpression(meta.path, meta.pathIsArray)}) > 0`;
             }
@@ -251,12 +241,12 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         // Include virtual sub-field annotations for any available parent STRUCT columns
         const availableAnnotations = [...availablePhysicalColumns];
-        for (const ann of allAnnotations) {
+        for (const ann of nameToAnnotationMap.values()) {
             if (ann.isSubField && ann.parents?.[0] && availablePhysicalColumns.has(ann.parents[0])) {
                 availableAnnotations.push(ann.name);
             }
         }
-        return availableAnnotations;
+        return uniq(availableAnnotations);
     }
 
     /**
@@ -275,5 +265,10 @@ export default class DatabaseAnnotationService implements AnnotationService {
             annotation.name,
             annotation.description
         );
+    }
+
+    private async fetchNameToAnnotationMap(): Promise<Map<string, Annotation>> {
+        const annotations = await this.fetchAnnotations();
+        return new Map(annotations.map((a) => [a.path.join("."), a]));
     }
 }
