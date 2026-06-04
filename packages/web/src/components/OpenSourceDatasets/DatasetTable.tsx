@@ -10,6 +10,7 @@ import {
 } from "@fluentui/react";
 import { ShimmeredDetailsList } from "@fluentui/react/lib/ShimmeredDetailsList";
 import classNames from "classnames";
+import { isEqual } from "lodash";
 import * as React from "react";
 
 import DatasetRow from "./DatasetRow";
@@ -40,7 +41,7 @@ export default function DatasetTable(props: DatasetTableProps) {
                 fieldName: value.name,
                 isResizable: true,
                 minWidth: value?.minWidth,
-                isSorted: sortColumn?.path == value.path,
+                isSorted: isEqual(sortColumn?.path, value.path),
                 isSortedDescending: sortColumn?.order == SortOrder.DESC,
                 onColumnClick: () => onColumnClick(value.path),
             };
@@ -109,7 +110,7 @@ export default function DatasetTable(props: DatasetTableProps) {
 
     function onColumnClick(columnName: string[]) {
         let sortOrder = SortOrder.ASC;
-        if (sortColumn?.path == columnName)
+        if (isEqual(sortColumn?.path, columnName))
             sortOrder = sortColumn.order == SortOrder.DESC ? SortOrder.ASC : SortOrder.DESC;
         const newSortColumn = new FileSort(columnName, sortOrder);
         setSortColumn(newSortColumn);
