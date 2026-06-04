@@ -890,7 +890,7 @@ export default abstract class DatabaseService {
          */
         const nullGroupCountSql = `
             SELECT COUNT(*) AS null_group_count,
-            FROM parquet_metadata('${filename}')
+            FROM parquet_metadata('${fileHandleName(filename)}')
             WHERE path_in_schema = '${column}'
             AND stats_null_count > 0`;
         const nullGroupCount = (await this.query(nullGroupCountSql).promise)[0].null_group_count;
@@ -900,7 +900,7 @@ export default abstract class DatabaseService {
 
         const validationSql = `
             SELECT COUNT(*) AS no_data_count,
-            FROM parquet_metadata('${filename}')
+            FROM parquet_metadata('${fileHandleName(filename)}')
             WHERE path_in_schema = '${column}'
             AND (
                 stats_null_count IS NULL
@@ -919,7 +919,7 @@ export default abstract class DatabaseService {
         // whitespace and/or non-printable control characters.
         const lowMinCountSql = `
             SELECT COUNT(*) as low_min_count,
-            FROM parquet_metadata('${filename}')
+            FROM parquet_metadata('${fileHandleName(filename)}')
             WHERE path_in_schema = '${column}'
             AND stats_min_value < '!'`;
         const lowMinCount = (await this.query(lowMinCountSql).promise)[0].low_min_count;
