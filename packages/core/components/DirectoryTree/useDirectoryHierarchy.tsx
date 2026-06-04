@@ -100,7 +100,6 @@ const useDirectoryHierarchy = (
         params,
         DEFAULTS
     );
-    const annotations = useSelector(metadata.selectors.getAnnotations);
     const annotationByName = useSelector(metadata.selectors.getAnnotationNameToAnnotationMap);
     const hierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
@@ -255,7 +254,7 @@ const useDirectoryHierarchy = (
         };
     }, [
         ancestorNodes,
-        annotations,
+        annotationByName,
         annotationService,
         currentNode,
         collapsed,

@@ -242,21 +242,21 @@ describe("<AnnotationFilterForm />", () => {
                 </Provider>
             );
             await waitFor(
-                () => expect(getByTestId(`${LISTROW_TESTID_PREFIX}False`)).to.not.be.undefined
+                () => expect(getByTestId(`${LISTROW_TESTID_PREFIX}false`)).to.not.be.undefined
             );
 
             // (sanity-check): Check that the "False" input is selected
             expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(1);
 
             // Act: Deselect the "False" input
-            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}False`));
+            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}false`));
             await logicMiddleware.whenComplete();
 
             // Assert: Check that the "False" input is deselected
             expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(0);
 
             // Act: Reselect the "False" input
-            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}False`));
+            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}false`));
             await logicMiddleware.whenComplete();
 
             // Assert: Check that the "False" input is selected again
@@ -278,8 +278,7 @@ describe("<AnnotationFilterForm />", () => {
             sandbox.restore();
         });
 
-        it("naturally sorts values", async () => {
-            // arrange
+        it("renders a NumberRangePicker instead of a list", async () => {
             const responseStub = {
                 when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
                 respondWith: {
@@ -298,24 +297,19 @@ describe("<AnnotationFilterForm />", () => {
                 responseStubs: responseStub,
             });
 
-            const { findAllByRole } = render(
+            const { findByTestId } = render(
                 <Provider store={store}>
                     <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
 
-            // wait a couple render cycles for the async react hook to retrieve the annotation values
-            const annotationValueListItems = await findAllByRole("listitem");
+            // NumberRangePicker renders min/max inputs with these test ids
+            const minInput = await findByTestId("rangemin");
+            const maxInput = await findByTestId("rangemax");
 
-            expect(annotationValueListItems.length).to.equal(6);
-            const expectedOrder = [-12, 0, 5, 6.3, 8, 10000000000];
-            annotationValueListItems.forEach((listItem, index) => {
-                const { getByTestId } = within(listItem);
-
-                // getByLabelText will throw if it can't find a matching node
-                expect(getByTestId(`${LISTROW_TESTID_PREFIX}${expectedOrder[index]}`)).to.not.be
-                    .undefined;
-            });
+            // Values are naturally sorted so rangemin gets the overall min and rangemax the max
+            expect((minInput as HTMLInputElement).value).to.equal("-12");
+            expect((maxInput as HTMLInputElement).value).to.equal("10000000000");
         });
     });
 

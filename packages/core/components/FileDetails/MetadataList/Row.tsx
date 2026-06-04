@@ -121,7 +121,7 @@ export default function Row(props: Props) {
                     onContextMenu={onContextMenuHandlerFactory(props.name)}
                     style={{ paddingLeft: `calc(${props.depth} * 18px)` }}
                 >
-                    {props.name}
+                    {annotation?.displayName ?? props.name}
                 </span>
             </Cell>
             <Cell

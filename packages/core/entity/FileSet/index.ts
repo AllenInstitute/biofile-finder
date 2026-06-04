@@ -1,11 +1,8 @@
 import { defaults, find, join, map, uniqueId } from "lodash";
 import LRUCache from "lru-cache";
 
-import FileFilter, { FilterType } from "../FileFilter";
+import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
-import FuzzyFilter from "../FileFilter/FuzzyFilter";
-import ExcludeFilter from "../FileFilter/ExcludeFilter";
-import IncludeFilter from "../FileFilter/IncludeFilter";
 import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
 import SQLBuilder from "../SQLBuilder";
@@ -200,8 +197,9 @@ export default class FileSet {
                 flatFilters.push(filter);
             } else {
                 const parent = filter.path[0];
-                if (!nestedByParent.has(parent)) nestedByParent.set(parent, []);
-                nestedByParent.get(parent)!.push(filter);
+                const group = nestedByParent.get(parent) ?? [];
+                group.push(filter);
+                nestedByParent.set(parent, group);
             }
         }
 

@@ -1,7 +1,10 @@
+import { isEqual } from "lodash";
+
 import SQLBuilder from "../SQLBuilder";
 import { AnnotationType } from "../AnnotationFormatter";
 import defaultPathIsArray from "../pathIsArray";
 import { NO_VALUE_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
+import { PrimitiveMetadataValue } from "../../services/FileService";
 
 export interface FileFilterJson {
     path: string[];
@@ -37,6 +40,18 @@ export default class FileFilter {
         return candidate instanceof FileFilter;
     }
 
+    /**
+     * Parse the RANGE(min, max) encoding produced by the number/date range pickers.
+     * Returns the raw min/max strings, or undefined when the value is not a range.
+     * Centralized so the flat-column and nested-sub-field branches share one definition.
+     */
+    private static parseRangeBounds(value: any): { min: string; max: string } | undefined {
+        const match = String(value).match(/^RANGE\((.+),\s*(.+)\)$/);
+        if (!match) return undefined;
+        const [, min, max] = match;
+        return { min, max };
+    }
+
     // TODO: Stop accepting string - this is just to avoid too many line changes at once
     constructor(
         path: string | string[],
@@ -60,17 +75,11 @@ export default class FileFilter {
         return this.path.join(".");
     }
 
-    /**
-     * Derive the DuckDB list expression from the path, correctly handling intermediate arrays.
-     * Uses SQLBuilder.buildNestedAccessExpression for the actual generation.
-     */
-    private get nestedListExpression(): string | undefined {
-        if (this.path.length <= 1) return undefined;
-        return SQLBuilder.buildNestedAccessExpression(this.path, this.pathIsArray);
-    }
-
     public toQueryString(): string {
-        const name = JSON.stringify(this.path);
+        // Use the dotted name (not the JSON path array): this string is sent to the FES HTTP
+        // API and used in FileSet cache keys, both of which expect `annotation=value` form.
+        // URL-sharing serialization uses toJSON()/path instead.
+        const name = this.name;
         switch (this.type) {
             case FilterType.ANY:
                 return `include=${name}`;
@@ -91,7 +100,8 @@ export default class FileFilter {
         // --- Nested sub-field: derive list expression from path ---
         // TODO: Doesn't work with layers of nesting
         if (this.path.length > 1) {
-            const listExpr = this.nestedListExpression!;
+            // Guarded by path.length > 1, so the expression is always defined here.
+            const listExpr = SQLBuilder.buildNestedAccessExpression(this.path, this.pathIsArray);
             const parent = this.path[0];
             switch (this.type) {
                 case FilterType.ANY:
@@ -102,9 +112,9 @@ export default class FileFilter {
                     return SQLBuilder.listContains(listExpr, this.value);
                 default: {
                     // Type-aware nested filtering: check if any element in the list matches
-                    const rangeMatch = String(this.value).match(/^RANGE\((.+),\s*(.+)\)$/);
-                    if (rangeMatch) {
-                        const [, min, max] = rangeMatch;
+                    const range = FileFilter.parseRangeBounds(this.value);
+                    if (range) {
+                        const { min, max } = range;
                         if (this.valueType === AnnotationType.NUMBER) {
                             return `len(list_filter(${listExpr}, __el -> CAST(__el AS DOUBLE) >= ${min} AND CAST(__el AS DOUBLE) < ${max})) > 0`;
                         }
@@ -143,9 +153,9 @@ export default class FileFilter {
                 if (this.valueType === AnnotationType.BOOLEAN) {
                     return `"${columnName}" = ${this.value}`;
                 }
-                const rangeMatch = String(this.value).match(/^RANGE\((.+),\s*(.+)\)$/);
-                if (rangeMatch) {
-                    const [, min, max] = rangeMatch;
+                const range = FileFilter.parseRangeBounds(this.value);
+                if (range) {
+                    const { min, max } = range;
                     if (this.valueType === AnnotationType.NUMBER) {
                         return `CAST("${columnName}" AS DOUBLE) >= ${min} AND CAST("${columnName}" AS DOUBLE) < ${max}`;
                     }
@@ -175,7 +185,7 @@ export default class FileFilter {
 
     public equals(target: FileFilter): boolean {
         return (
-            JSON.stringify(this.path) === JSON.stringify(target.path) &&
+            isEqual(this.path, target.path) &&
             this.value === target.value &&
             this.type === target.type
         );
@@ -222,9 +232,9 @@ export default class FileFilter {
             // values for the same sub-field are OR'd, but different sub-fields are AND'd
             const bySubField = new Map<string, FileFilter[]>();
             for (const f of correlatable) {
-                const key = f.name;
-                if (!bySubField.has(key)) bySubField.set(key, []);
-                bySubField.get(key)!.push(f);
+                const group = bySubField.get(f.name) ?? [];
+                group.push(f);
+                bySubField.set(f.name, group);
             }
 
             const parent = correlatable[0].path[0];

@@ -42,6 +42,13 @@ export default function MetadataList(props: Props) {
                 uncategorizedSection[key] = values;
             }
         }
+
+        // A file actively downloading to local (VAST) storage may not yet have a local-path
+        // annotation. Surface a placeholder row so the "copying in progress" affordance shows;
+        // useDisplayText renders the progress message regardless of this value.
+        if (file.downloadInProgress && !(AnnotationName.LOCAL_FILE_PATH in uncategorizedSection)) {
+            uncategorizedSection[AnnotationName.LOCAL_FILE_PATH] = [""];
+        }
         const sections = Object.keys(keyToSectionMap).sort().map((sectionName) => (
             <Section
                 key={sectionName}

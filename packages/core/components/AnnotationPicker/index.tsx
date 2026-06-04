@@ -100,8 +100,9 @@ export default function AnnotationPicker(props: Props) {
         .forEach((a) => {
             const parent = a.path.length > 1 ? a.path[0] : undefined;
             if (!parent) return;
-            if (!subFieldsByParent.has(parent)) subFieldsByParent.set(parent, []);
-            subFieldsByParent.get(parent)!.push(a);
+            const bucket = subFieldsByParent.get(parent) ?? [];
+            bucket.push(a);
+            subFieldsByParent.set(parent, bucket);
         });
 
     // Keep sub-fields sharing an intermediate parent adjacent (e.g. all "Well.Dose.*"

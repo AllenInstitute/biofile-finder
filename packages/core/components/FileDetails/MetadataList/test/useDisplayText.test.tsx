@@ -277,7 +277,8 @@ describe("useDisplayText", () => {
             // Using a service that never resolves to simulate loading state
             class NeverResolveService extends ExecutionEnvServiceNoop {
                 public formatPathForHost(): Promise<string> {
-                    return new Promise(() => {}); // never resolves
+                    // Intentionally never resolves, to simulate the loading state
+                    return new Promise<string>(() => undefined);
                 }
             }
 

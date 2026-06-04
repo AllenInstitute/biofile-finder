@@ -1,4 +1,4 @@
-import { groupBy, keyBy, map } from "lodash";
+import { groupBy, map } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";

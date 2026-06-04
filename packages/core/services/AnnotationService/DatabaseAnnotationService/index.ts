@@ -155,8 +155,9 @@ export default class DatabaseAnnotationService implements AnnotationService {
             const sample = appliedFilters[0];
             if (sample && sample.path.length > 1) {
                 const parent = sample.path[0];
-                if (!nestedByParent.has(parent)) nestedByParent.set(parent, []);
-                nestedByParent.get(parent)!.push(...appliedFilters);
+                const group = nestedByParent.get(parent) ?? [];
+                group.push(...appliedFilters);
+                nestedByParent.set(parent, group);
             } else {
                 flatGroups[annotationToFilter] = appliedFilters;
             }

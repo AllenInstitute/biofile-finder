@@ -3,7 +3,7 @@ import { map } from "lodash";
 import IMMUTABLE_ANNOTATION_NAMES from "./immutableAnnotationNames";
 import AnnotationService, { AnnotationDetails, AnnotationValue } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
-import Annotation, { AnnotationResponse, AnnotationResponseMms } from "../../../entity/Annotation";
+import Annotation, { AnnotationResponseMms } from "../../../entity/Annotation";
 import { AnnotationType, AnnotationTypeIdMap } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";

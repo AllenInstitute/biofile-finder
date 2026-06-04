@@ -53,6 +53,12 @@ export default function useDisplayText(file: FileDetail, key: string, value: Met
             return { text: localPath, emphasize: false };
         }
 
+        // Cloud file path: render the canonical S3 URL rather than the raw stored path
+        // (FileDetail.path performs the S3-bucket → https URL conversion).
+        if (key === AnnotationName.FILE_PATH) {
+            return { text: file.path, emphasize: false };
+        }
+
         // When rendering metadata fields that are arrays of objects, we want to show the number of entries in the array
         // rather than trying to join the objects into a string
         if (childRows.length > 0) {

@@ -331,12 +331,8 @@ export default class SearchParams {
     }
 
     private static convertFilterToPython(filter: FileFilter) {
-        // TO DO: Support querying non-string types
-        if (filter.value.includes("RANGE")) {
-            return;
-            //     let begin, end;
-            //     return `\`${filter.name}\`>="${begin}"&\`${filter.name}\`<"${end}"`
-        }
+        // TODO: Support querying non-string types
+        if (String(filter.value).includes("RANGE")) return;
         return `\`${filter.name}\`=="${filter.value}"`;
     }
 

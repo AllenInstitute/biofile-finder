@@ -35,7 +35,9 @@ export default class FileSort {
     }
 
     public toQueryString(): string {
-        return `sort=${JSON.stringify(this.path)}(${this.order})`;
+        // Dotted name (not the JSON path array): consumed by the FES HTTP API and FileSet
+        // cache keys, which expect `sort=annotation(ORDER)`. URL-sharing uses toJSON()/path.
+        return `sort=${this.annotationName}(${this.order})`;
     }
 
     /**
