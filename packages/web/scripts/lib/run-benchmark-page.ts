@@ -233,7 +233,9 @@ async function runColdStartBenchmarks({
 
                 const timing = runResult.queries[0]?.timings[0];
                 if (timing !== undefined) {
-                    timingsMap.get(taskName)!.push(timing);
+                    const timings = timingsMap.get(taskName);
+                    if (!timings) throw Error(`${taskName} not in timingsMap!`);
+                    timings.push(timing);
                 }
             }
         }
