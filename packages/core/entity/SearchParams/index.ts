@@ -185,7 +185,7 @@ export default class SearchParams {
                             : undefined,
                 })
             );
-            // Only include the graph origin if we also a provenance source file
+            // Only include the graph origin if we also have a provenance source file
             if (urlComponents.provOriginId) {
                 params.append(
                     URLQueryArgShorthands.PROVENANCE_ORIGIN_ID,
@@ -264,7 +264,7 @@ export default class SearchParams {
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
             prov: unparsedSourceProvenance ? JSON.parse(unparsedSourceProvenance) : undefined,
-            // only include the graph origin if we also have a provenance source to draw from
+            // only include the graph origin if we also have a provenance source file
             provOriginId:
                 provenanceOriginId && unparsedSourceProvenance ? provenanceOriginId : undefined,
             showNoValueGroups: showNoValueGroupsString ? JSON.parse(showNoValueGroupsString) : true,
