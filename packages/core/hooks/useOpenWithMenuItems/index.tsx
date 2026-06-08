@@ -7,6 +7,11 @@ import useOpenInCfe from "./useOpenInCfe";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
+import {
+    MetadataValue,
+    NestedMetadataValue,
+    PrimitiveMetadataValue,
+} from "../../services/FileService";
 import { interaction, metadata, selection } from "../../state";
 import { getVolEBaseUrl } from "../../state/interaction/selectors";
 
@@ -340,18 +345,15 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const s3StorageService = useSelector(interaction.selectors.getS3StorageService);
     const userSelectedApplications = useSelector(interaction.selectors.getUserSelectedApplications);
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
-    const annotationNameToAnnotationMap = useSelector(
-        metadata.selectors.getAnnotationNameToAnnotationMap
-    );
+    const pathToAnnotationMap = useSelector(metadata.selectors.getAnnotationNameToAnnotationMap);
     const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
     const fileService = useSelector(interaction.selectors.getFileService);
     const volEBaseUrl = useSelector(getVolEBaseUrl);
 
     const fileSelection = useSelector(selection.selectors.getFileSelection);
-    const annotationNames = React.useMemo(
-        () => Array.from(Object.keys(annotationNameToAnnotationMap)).sort(),
-        [annotationNameToAnnotationMap]
-    );
+    const annotationNames = React.useMemo(() => [...pathToAnnotationMap.keys()].sort(), [
+        pathToAnnotationMap,
+    ]);
     const [isSmallFile, setIsSmallFile] = React.useState(false);
     const [isMacOS, setIsMacOS] = React.useState(false);
 
@@ -386,11 +388,14 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         const message: VolEMessage = { meta: {} };
 
         for (const detail of details) {
-            const sceneMeta: Record<string, unknown> = {};
-            for (const annotation of detail.annotations) {
-                const isSingleValue = annotation.values.length === 1;
-                const value = isSingleValue ? annotation.values[0] : annotation.values;
-                sceneMeta[annotation.name] = value;
+            const sceneMeta: Record<
+                string,
+                MetadataValue | NestedMetadataValue | PrimitiveMetadataValue
+            > = {};
+            for (const [name, values] of detail.metadata.entries()) {
+                const isSingleValue = values.length === 1;
+                const value = isSingleValue ? values[0] : values;
+                sceneMeta[name] = value;
             }
             scenes.push(detail.path);
             if (Object.keys(sceneMeta).length > 0) {
@@ -437,18 +442,16 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
         () =>
-            fileDetails?.annotations
-                .filter(
-                    (annotation) => annotationNameToAnnotationMap[annotation.name]?.isOpenFileLink
-                )
+            [...(fileDetails?.metadata.entries() ?? [])]
+                .filter(([name]) => pathToAnnotationMap.get(name)?.isOpenFileLink)
                 .reduce(
-                    (mapThusFar, annotation) => ({
+                    (mapThusFar, [name, values]) => ({
                         ...mapThusFar,
-                        [annotation.name]: annotation.values.join(",") as string,
+                        [name]: values.join(",") as string,
                     }),
                     {} as { [annotationName: string]: string }
-                ) || {},
-        [fileDetails, annotationNameToAnnotationMap]
+                ),
+        [fileDetails, pathToAnnotationMap]
     );
 
     const authorDefinedApps = Object.entries(annotationNameToLinkMap).map(

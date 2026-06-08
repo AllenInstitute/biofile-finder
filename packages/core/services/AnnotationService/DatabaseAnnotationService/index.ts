@@ -5,7 +5,7 @@ import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import Annotation from "../../../entity/Annotation";
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import { Source } from "../../../entity/SearchParams";
 import SQLBuilder from "../../../entity/SQLBuilder";
@@ -51,7 +51,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
      */
     public async fetchAnnotationDetails(name: string): Promise<AnnotationDetails> {
         const annotationNameToTypeMap = await this.databaseService.fetchAnnotationTypes();
-        const type = annotationNameToTypeMap[name] as AnnotationType;
+        const type = annotationNameToTypeMap[name];
         // If the annotation type is not recognized, default to string
         if (!Object.values(AnnotationType).includes(type) || type === AnnotationType.LOOKUP) {
             return { type: AnnotationType.STRING };
@@ -90,14 +90,31 @@ export default class DatabaseAnnotationService implements AnnotationService {
             {} as { [name: string]: FileFilter[] }
         );
 
+        // Look up annotation metadata to determine nestedParent for internal filters.
+        // Keyed by full dotted path (e.g. "Well.Column") so hierarchy entries like
+        // "Well.Column" resolve to the annotation with path ["Well","Column"].
+        // TODO: This is an N+1 fetch when cache isn't ready — fetchFilteredValuesForAnnotation also calls
+        // fetchAnnotations() independently. Pass the annotations through to avoid the
+        // second round-trip once this stabilizes or share the promise?
+        const annotations = await this.fetchAnnotations();
+        const annotationMetaMap = new Map(annotations.map((a) => [a.path.join("."), a]));
+
         hierarchy
             // Map before filter because index is important to map to the path
             .forEach((annotation, index) => {
                 if (!filtersByAnnotation[annotation]) {
+                    const meta = annotationMetaMap.get(annotation);
+                    const annotationPath = meta?.path ?? annotation.split(".");
                     filtersByAnnotation[annotation] = [
                         index < path.length
-                            ? new FileFilter(annotation, path[index])
-                            : new IncludeFilter(annotation), // If no value provided in hierachy, equivalent to Include filter
+                            ? new FileFilter(
+                                  annotationPath,
+                                  path[index],
+                                  FilterType.DEFAULT,
+                                  meta?.type,
+                                  meta?.pathIsArray
+                              )
+                            : new IncludeFilter(annotationPath, meta?.pathIsArray), // If no value provided in hierarchy, equivalent to Include filter
                     ];
                 }
             });
@@ -116,24 +133,64 @@ export default class DatabaseAnnotationService implements AnnotationService {
             return [];
         }
 
-        const sqlBuilder = new SQLBuilder()
-            .select(`DISTINCT "${annotation}"`)
-            .from(this.dataSourceNames);
+        // Look up annotation metadata to determine if this is a nested sub-field.
+        const nameToAnnotationMap = await this.fetchNameToAnnotationMap();
+        const annotationMeta = nameToAnnotationMap.get(annotation);
+
+        let selectExpr: string;
+        if (annotationMeta?.isSubField && annotationMeta.path.length > 1) {
+            // For nested sub-fields, unnest the list_transform expression and alias it.
+            // DISTINCT is intentionally omitted here: DuckDB does not support
+            // "SELECT DISTINCT unnest(...)" — JS-side uniq() deduplicates instead.
+            selectExpr = `unnest(${SQLBuilder.buildNestedAccessExpression(
+                annotationMeta.path,
+                annotationMeta.pathIsArray
+            )}) AS "${annotation}"`;
+        } else {
+            selectExpr = `DISTINCT "${annotation}"`;
+        }
+
+        const sqlBuilder = new SQLBuilder().select(selectExpr).from(this.dataSourceNames);
+
+        // Separate flat vs nested filters, correlating nested sub-field filters
+        // that share the same root parent (ensures same-element matching)
+        const flatGroups: { [key: string]: FileFilter[] } = {};
+        const nestedByParent = new Map<string, FileFilter[]>();
 
         Object.keys(filtersByAnnotation).forEach((annotationToFilter) => {
             const appliedFilters = filtersByAnnotation[annotationToFilter];
+            const sample = appliedFilters[0];
+            if (sample && sample.path.length > 1) {
+                const parent = sample.path[0];
+                const group = nestedByParent.get(parent) ?? [];
+                group.push(...appliedFilters);
+                nestedByParent.set(parent, group);
+            } else {
+                flatGroups[annotationToFilter] = appliedFilters;
+            }
+        });
+
+        Object.values(flatGroups).forEach((appliedFilters) => {
             sqlBuilder.where(
                 appliedFilters.map((filter) => filter.toSQLWhereString()).join(" OR ")
             );
         });
 
+        for (const [_, parentFilters] of nestedByParent) {
+            sqlBuilder.where(FileFilter.toCorrelatedSQLWhereString(parentFilters));
+        }
+
         const rows = await this.databaseService.query(sqlBuilder.toSQL()).promise;
         const rowsSplitByDelimiter = rows
-            .flatMap((row) =>
-                isNil(row[annotation])
-                    ? []
-                    : `${row[annotation]}`.split(DatabaseService.LIST_DELIMITER)
-            )
+            .flatMap((row) => {
+                if (isNil(row[annotation])) return [];
+                // For array columns (e.g. VARCHAR[]), DuckDB returns JS arrays after
+                // the JSON round-trip. Flatten them so each element is treated individually.
+                if (Array.isArray(row[annotation])) {
+                    return row[annotation].map((v: unknown) => String(v).trim());
+                }
+                return String(row[annotation]).split(DatabaseService.LIST_DELIMITER);
+            })
             .map((value) => value.trim());
         return uniq(rowsSplitByDelimiter);
     }
@@ -147,6 +204,22 @@ export default class DatabaseAnnotationService implements AnnotationService {
             return [];
         }
 
+        // Look up annotation metadata for nested sub-field handling.
+        const nameToAnnotationMap = await this.fetchNameToAnnotationMap();
+
+        // Build proper IS NOT NULL expressions for the current hierarchy annotations:
+        // For nested sub-fields, use len(list_transform(...)) > 0 instead of "name" IS NOT NULL
+        const hierarchyNotNullExprs = annotations.map((annotation) => {
+            const meta = nameToAnnotationMap.get(annotation);
+            if (meta?.isSubField && meta.path.length > 1) {
+                return `len(${SQLBuilder.buildNestedAccessExpression(
+                    meta.path,
+                    meta.pathIsArray
+                )}) > 0`;
+            }
+            return `"${annotation}" IS NOT NULL`;
+        });
+
         // Subquery 1
         const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
         const columnNamesSql = new SQLBuilder().from(aggregateDataSourceName).limit(1).toSQL();
@@ -158,7 +231,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 .select(`'${columnName.replace(/'/g, "''")}' AS column_name`)
                 .from(aggregateDataSourceName)
                 .where(`"${columnName}" IS NOT NULL`)
-                .where(annotations.map((annotation) => `"${annotation}" IS NOT NULL`))
+                .where(hierarchyNotNullExprs)
                 // This limit is non-deterministic, but we just want to know if
                 // any rows are non-null for this column, and a
                 // non-deterministic query will be faster.
@@ -167,7 +240,22 @@ export default class DatabaseAnnotationService implements AnnotationService {
             return this.databaseService.query(sql).promise;
         });
         const results = (await Promise.all(queries)) as QueryResult[][];
-        return results.filter((result) => result.length > 0).map((result) => result[0].column_name);
+        const availablePhysicalColumns = new Set(
+            results.filter((result) => result.length > 0).map((result) => result[0].column_name)
+        );
+
+        // Include virtual sub-field annotations for any available parent STRUCT columns
+        const availableAnnotations = [...availablePhysicalColumns];
+        for (const ann of nameToAnnotationMap.values()) {
+            if (
+                ann.isSubField &&
+                ann.parents?.[0] &&
+                availablePhysicalColumns.has(ann.parents[0])
+            ) {
+                availableAnnotations.push(ann.path.join("."));
+            }
+        }
+        return uniq(availableAnnotations);
     }
 
     /**
@@ -186,5 +274,10 @@ export default class DatabaseAnnotationService implements AnnotationService {
             annotation.name,
             annotation.description
         );
+    }
+
+    private async fetchNameToAnnotationMap(): Promise<Map<string, Annotation>> {
+        const annotations = await this.fetchAnnotations();
+        return new Map(annotations.map((a) => [a.path.join("."), a]));
     }
 }

@@ -1,0 +1,24 @@
+.bottom-border {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.container {
+    width: 100%;
+}
+
+.label-with-toggle {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.placeholder-toggle {
+    width: var(--toggle-button-size);
+    height: var(--toggle-button-size);
+}
+
+/* TODO: Improve this separator (visually) */
+.separator {
+    padding: 16px 0;
+    width: 100%;
+}

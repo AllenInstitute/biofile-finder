@@ -1,4 +1,4 @@
-import { castArray, find, sortBy, truncate, uniqWith } from "lodash";
+import { castArray, find, isEqual, sortBy, truncate, uniqWith } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 import { batch } from "react-redux";
@@ -236,7 +236,7 @@ const setAvailableAnnotationsLogic = createLogic({
                 err
             );
             const annotations = metadata.selectors.getAnnotations(getState());
-            dispatch(setAvailableAnnotations(annotations.map((a: Annotation) => a.name)));
+            dispatch(setAvailableAnnotations(annotations.map((a: Annotation) => a.path.join("."))));
         } finally {
             done();
         }
@@ -262,14 +262,10 @@ const modifyFileFilters = createLogic({
                 // and replace with a new single filter
                 case FilterType.ANY:
                 case FilterType.EXCLUDE:
-                    const newFilter = new FileFilter(
-                        action.payload.annotationName,
-                        "",
-                        action.payload.type
-                    );
+                    const newFilter = new FileFilter(action.payload.path, "", action.payload.type);
                     nextFilters = [
                         ...previousFilters.filter(
-                            (filter) => filter.name !== action.payload.annotationName
+                            (filter) => !isEqual(filter.path, action.payload.path)
                         ),
                         newFilter,
                     ];
@@ -279,19 +275,25 @@ const modifyFileFilters = createLogic({
                 case FilterType.FUZZY:
                 default:
                     nextFilters = previousFilters
-                        .filter((filter) => {
-                            return !(
-                                filter.name === action.payload.annotationName &&
-                                (filter.type === FilterType.ANY ||
-                                    filter.type === FilterType.EXCLUDE)
-                            );
-                        })
-                        .map((filter) => {
-                            if (filter.name === action.payload.annotationName) {
-                                filter.type = action.payload.type;
-                            }
-                            return filter;
-                        });
+                        .filter(
+                            (filter) =>
+                                !(
+                                    isEqual(filter.path, action.payload.path) &&
+                                    (filter.type === FilterType.ANY ||
+                                        filter.type === FilterType.EXCLUDE)
+                                )
+                        )
+                        .map((filter) =>
+                            !isEqual(filter.path, action.payload.path)
+                                ? filter
+                                : new FileFilter(
+                                      filter.path,
+                                      filter.value,
+                                      action.payload.type,
+                                      filter.valueType,
+                                      filter.pathIsArray
+                                  )
+                        );
             }
         } else {
             const incomingFilters = castArray(action.payload);
@@ -438,7 +440,13 @@ const decodeSearchParamsLogics = createLogic({
         batch(() => {
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
-            columns && dispatch(setColumns(columns));
+            if (columns) {
+                const allAnnotations = metadata.selectors.getAnnotations(deps.getState());
+                const nestedParentNames = new Set(
+                    allAnnotations.filter((a) => a.isParent).map((a) => a.name)
+                );
+                dispatch(setColumns(columns.filter((col) => !nestedParentNames.has(col.name))));
+            }
             dispatch(setFileFilters(filters));
             fileView && dispatch(setFileView(fileView) as AnyAction);
             dispatch(setOpenFileFolders(openFolders));
@@ -465,6 +473,22 @@ const selectNearbyFile = createLogic({
         const hierarchy = selectionSelectors.getAnnotationHierarchy(deps.getState());
         const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
         const sortColumn = selectionSelectors.getSortColumn(deps.getState());
+        const annotationByName = metadata.selectors.getAnnotationNameToAnnotationMap(
+            deps.getState()
+        );
+
+        // Build a correct FileFilter for a hierarchy annotation, using nested SQL when needed.
+        const makeHierarchyFilter = (name: string, filterValue: AnnotationValue): FileFilter => {
+            const meta = annotationByName.get(name);
+            const path = meta?.path ?? name.split(".");
+            return new FileFilter(
+                path,
+                filterValue,
+                FilterType.DEFAULT,
+                meta?.type,
+                meta?.pathIsArray
+            );
+        };
 
         const openFileListPaths = openFileFolders.filter(
             (fileFolder) => fileFolder.size() === hierarchy.length
@@ -513,8 +537,8 @@ const selectNearbyFile = createLogic({
                     // needed to open the file folder
                     filters: sortedOpenFileListPaths[
                         fileListIndexAboveCurrentFileList
-                    ].fileFolder.map(
-                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
+                    ].fileFolder.map((filterValue, index) =>
+                        makeHierarchyFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });
@@ -550,8 +574,8 @@ const selectNearbyFile = createLogic({
                     // needed to open the file folder
                     filters: sortedOpenFileListPaths[
                         fileListIndexBelowCurrentFileList
-                    ].fileFolder.map(
-                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
+                    ].fileFolder.map((filterValue, index) =>
+                        makeHierarchyFilter(hierarchy[index], filterValue)
                     ),
                     sort: sortColumn,
                 });

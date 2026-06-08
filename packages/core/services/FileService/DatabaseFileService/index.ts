@@ -1,22 +1,81 @@
-import { isEmpty, isNil, uniqueId } from "lodash";
+import { castArray, isNil, isObject, uniqueId } from "lodash";
 
 import FileService, {
     GetFilesRequest,
     SelectionAggregationResult,
     Selection,
     AnnotationNameToValuesMap,
+    FmsFileAnnotation,
+    NestedMetadataValue,
+    MetadataValue,
+    PrimitiveMetadataValue,
 } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
-import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
-import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
+import { Environment, HIDDEN_UID_ANNOTATION } from "../../../constants";
+import FileFilter from "../../../entity/FileFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
 import SQLBuilder from "../../../entity/SQLBuilder";
-import { Environment, HIDDEN_UID_ANNOTATION } from "../../../constants";
+
+// Helper function to determine if a value is a nested metadata object
+// (i.e., an array of objects) vs a primitive or array of primitives
+function isNestedMetadata(value: MetadataValue): NestedMetadataValue[] | null {
+    // Is a single object that isn't null/undefined
+    // || is array of objects that isn't empty and whose first element is an object that isn't null/undefined
+    const isNestedMetadata =
+        (!Array.isArray(value) && isObject(value) && !isNil(value)) ||
+        (Array.isArray(value) && value.length > 0 && isObject(value[0]) && !isNil(value[0]));
+    if (isNestedMetadata)
+        return castArray<NestedMetadataValue>(value as NestedMetadataValue | NestedMetadataValue[]);
+    return null;
+}
+
+/**
+ * Recursively unwraps nested metadata values into a flat structure.
+ * For example, a value like:
+ * [
+ *   {
+ *     "Gene": "ABCD",
+ *     "Color": "Blue,Green"
+ *   },
+ *   {
+ *     "Size": ["Large", "Medium"],
+ *     "Solution": [
+ *       {
+ *         "Dose": "97",
+ *         "Unit": "mL"
+ *       }
+ *     ]
+ *   }
+ * ]
+ */
+function unwrapNestedMetadata(values: MetadataValue | undefined | null): MetadataValue {
+    // Guard: null/undefined field values inside a nested struct show as empty rather than
+    // the string "null" or "undefined" that String() would produce.
+    if (isNil(values)) return [];
+
+    // Recursive case: values is an array of nested metadata objects
+    const nested = isNestedMetadata(values);
+    if (nested) {
+        return nested.map((nestedValue) =>
+            Object.entries(nestedValue).reduce(
+                (acc, [key, value]) => ({
+                    ...acc,
+                    [key]: unwrapNestedMetadata(value),
+                }),
+                {} as NestedMetadataValue
+            )
+        );
+    }
+    // Base case: values is a primitive or an array of primitives
+    return String(values as PrimitiveMetadataValue[])
+        .split(DatabaseService.LIST_DELIMITER)
+        .map((value) => value.trim());
+}
 
 interface Config {
     databaseService: DatabaseService;
@@ -33,7 +92,7 @@ export default class DatabaseFileService implements FileService {
     private readonly dataSourceNames: string[];
 
     private static convertDatabaseRowToFileDetail(
-        row: { [key: string]: string },
+        row: { [key: string]: any },
         env: Environment
     ): FileDetail {
         const uniqueId: string | undefined = row[HIDDEN_UID_ANNOTATION];
@@ -41,25 +100,133 @@ export default class DatabaseFileService implements FileService {
             throw new Error("Missing auto-generated unique ID");
         }
 
-        return new FileDetail(
-            {
-                annotations: Object.entries(row)
-                    .filter(
-                        ([name, values]) =>
-                            !isNil(values) &&
-                            // Omit hidden UID annotation
-                            name !== HIDDEN_UID_ANNOTATION
-                    )
-                    .map(([name, values]) => ({
-                        name,
-                        values: `${values}`
-                            .split(DatabaseService.LIST_DELIMITER)
-                            .map((value: string) => value.trim()),
-                    })),
-            },
-            env,
-            uniqueId
-        );
+        const annotations = Object.entries(row)
+            // Filter out null/undefined values and the unique ID annotation used for selection logic
+            .filter(([name, values]) => !isNil(values) && name !== HIDDEN_UID_ANNOTATION)
+            .flatMap(([name, values]): FmsFileAnnotation[] => {
+                // It is possible the column is formatted as a JSON string
+                // representing a nested annotation or array of annotations,
+                // so we attempt to parse that if the value is a string
+                if (typeof values === "string") {
+                    try {
+                        const parsed = JSON.parse(values);
+                        if (isNestedMetadata(parsed)) {
+                            return [{ name, values: unwrapNestedMetadata(parsed) }];
+                        }
+                    } catch {
+                        // Not JSON — fall through to plain string handling
+                    }
+                }
+
+                // Default case: primitive value or array of primitives,
+                // potentially delimited by DatabaseService.LIST_DELIMITER
+                return [{ name, values: unwrapNestedMetadata(values) }];
+            });
+
+        return new FileDetail({ annotations }, env, uniqueId);
+    }
+
+    /**
+     * Build the SELECT clause columns for a manifest query.
+     *
+     * Selecting a nested sub-field column (dotted name like "Well.Dose.Unit") directly would
+     * cause a DuckDB Binder Error since no such column exists at the top level.
+     *
+     * For CSV, nested sub-fields are extracted and joined into a readable comma-separated
+     * VARCHAR cell per row (e.g. "uM, mM"), which is the most human-readable form for a
+     * flat text format.
+     *
+     * For JSON and Parquet we preserve nested structure so the output file round-trips back
+     * into BFF with the same annotation columns. We reconstruct a *partial* STRUCT containing
+     * only the user-selected sub-fields:
+     *
+     *   "Well.Color" selected           → list_transform("Well", __e -> {'Color': __e."Color"}) AS "Well"
+     *   "Well.Color" + "Well.Name"      → list_transform("Well", __e -> {'Color': __e."Color", 'Name': __e."Name"}) AS "Well"
+     *   "Well.Dose.Unit"                → list_transform("Well", __e -> {'Dose': {'Unit': __e."Dose"."Unit"}}) AS "Well"
+     *
+     * Multiple sub-fields sharing the same root are grouped into one expression so the root
+     * column appears only once in the SELECT list.
+     */
+    private static buildManifestSelectColumns(
+        annotations: string[],
+        format: "csv" | "json" | "parquet"
+    ): string {
+        if (format === "csv") {
+            // CSV: flatten nested sub-fields into a readable comma-separated VARCHAR cell.
+            return annotations
+                .map((annotation) => {
+                    const path = annotation.split(".");
+                    if (path.length > 1)
+                        throw new Error("CSV manifest does not support nested annotation paths");
+                    return `"${annotation}"`;
+                })
+                .join(", ");
+        }
+
+        // JSON / Parquet: reconstruct a partial STRUCT[] for each root column containing only
+        // the selected sub-fields, preserving the nested structure without sibling fields.
+        const flatCols: string[] = [];
+        const rootGroups = new Map<string, string[][]>(); // root → [relative sub-paths]
+
+        for (const annotation of annotations) {
+            // TODO: dotted-name => nested is the same heuristic used elsewhere; once
+            // pathIsArray is sourced from Redux/schema state, pass it through here.
+            const path = annotation.split(".");
+            if (path.length === 1) {
+                flatCols.push(`"${path[0]}"`);
+            } else {
+                const [root, ...subPath] = path;
+                const group = rootGroups.get(root) ?? [];
+                group.push(subPath);
+                rootGroups.set(root, group);
+            }
+        }
+
+        const nestedCols: string[] = [];
+        for (const [root, subPaths] of rootGroups) {
+            const structExpr = DatabaseFileService.buildPartialStructExpr(subPaths, "__e");
+            nestedCols.push(
+                `${SQLBuilder.listTransform(`"${root}"`, "__e", structExpr)} AS "${root}"`
+            );
+        }
+
+        return [...flatCols, ...nestedCols].join(", ");
+    }
+
+    /**
+     * Recursively build a DuckDB struct literal `{field: expr, ...}` containing only the
+     * given sub-paths, accessed relative to `elemVar`.
+     *
+     * Examples (elemVar = "__e"):
+     *   paths [["Color"]]              →  {'Color': __e."Color"}
+     *   paths [["Dose","Unit"]]         →  {'Dose': {'Unit': __e."Dose"."Unit"}}
+     *   paths [["Color"],["Dose","Unit"]]→  {'Color': __e."Color", 'Dose': {'Unit': __e."Dose"."Unit"}}
+     */
+    private static buildPartialStructExpr(paths: string[][], elemVar: string): string {
+        // Group paths by their first segment so shared intermediates are collapsed.
+        // This happens because STRUCTS are all contained as a single column in the file
+        const grouped = new Map<string, string[][]>();
+        for (const path of paths) {
+            const [head, ...tail] = path;
+            const group = grouped.get(head) ?? [];
+            grouped.set(head, group);
+            if (tail.length > 0) group.push(tail);
+        }
+
+        const entries: string[] = [];
+        for (const [field, subPaths] of grouped) {
+            const access = `${elemVar}."${field}"`;
+            if (subPaths.length === 0) {
+                // Leaf field — plain scalar access
+                entries.push(`'${field}': ${access}`);
+            } else {
+                // Intermediate struct — recurse to build nested struct literal
+                entries.push(
+                    `'${field}': ${DatabaseFileService.buildPartialStructExpr(subPaths, access)}`
+                );
+            }
+        }
+        return `{${entries.join(", ")}}`;
     }
 
     constructor(
@@ -137,9 +304,13 @@ export default class DatabaseFileService implements FileService {
         return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
     }
 
-    private getSelectionSql(annotations: string[], selections: Selection[]): string {
+    private getSelectionSql(
+        annotations: string[],
+        selections: Selection[],
+        format: "csv" | "json" | "parquet" = "csv"
+    ): string {
         const sqlBuilder = new SQLBuilder()
-            .select(annotations.map((annotation) => `"${annotation}"`).join(", "))
+            .select(DatabaseFileService.buildManifestSelectColumns(annotations, format))
             .from(this.dataSourceNames);
         DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
         return sqlBuilder.toSQL();
@@ -155,7 +326,7 @@ export default class DatabaseFileService implements FileService {
                 "Only CSV manifest is supported at this time for downloading from Database"
             );
         }
-        const sql = this.getSelectionSql(annotations, selections);
+        const sql = this.getSelectionSql(annotations, selections, format);
         const buffer = await this.databaseService.saveQuery(uniqueId(), sql, format);
         // ISOString is `YYYY-MM-DDTHH:mm:ss.sssZ`
         const dateTime = new Date().toISOString().replaceAll(":", "-");
@@ -171,7 +342,10 @@ export default class DatabaseFileService implements FileService {
         selections: Selection[],
         format: "csv" | "json" | "parquet"
     ): Promise<DownloadResult> {
-        return this.handleFileDownload(this.getSelectionSql(annotations, selections), format);
+        return this.handleFileDownload(
+            this.getSelectionSql(annotations, selections, format),
+            format
+        );
     }
 
     /**
@@ -204,31 +378,16 @@ export default class DatabaseFileService implements FileService {
      * Applies filters and sorting to a query. ie Column names, if none then use annotationName
      */
     public static applyFiltersAndSorting(subQuery: SQLBuilder, selection: Selection): void {
-        if (!isEmpty(selection.filters)) {
-            subQuery.where(
-                Object.entries(selection.filters).flatMap(([column, values]) =>
-                    values.map((v) => SQLBuilder.regexMatchValueInList(column, v)).join(" OR ")
-                )
-            );
-        }
-        if (selection.include && selection.include.length > 0) {
-            subQuery.where(
-                selection.include
-                    .map((annotationName) => new IncludeFilter(annotationName).toSQLWhereString())
-                    .join(" AND ")
-            );
-        }
-        if (selection.exclude && selection.exclude.length > 0) {
-            subQuery.where(
-                selection.exclude
-                    .map((annotationName) => new ExcludeFilter(annotationName).toSQLWhereString())
-                    .join(" AND ")
-            );
-        }
+        // Group by annotation name: same-name filters are OR'd, different names are AND'd
+        const grouped = selection.filters.reduce((acc, f) => {
+            acc[f.name] = [...(acc[f.name] || []), f];
+            return acc;
+        }, {} as { [key: string]: FileFilter[] });
+        Object.values(grouped).forEach((filters) => {
+            subQuery.where(filters.map((f) => f.toSQLWhereString()).join(" OR "));
+        });
         if (selection.sort) {
-            subQuery.orderBy(
-                `"${selection.sort.annotationName}" ${selection.sort.ascending ? "ASC" : "DESC"}`
-            );
+            subQuery.orderBy(selection.sort.toOrderByClause());
         }
     }
 

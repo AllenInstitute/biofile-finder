@@ -50,6 +50,8 @@ import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
 import Tutorials from "../../hooks/useHelpOptions/Tutorials";
 
+// TODO: Restructure annotationHierarchy, availableAnnotationsForHierarchy, and recentAnnotations
+// to store annotation paths (string[][]) instead of concatenated dotted strings.
 export interface SelectionStateBranch {
     annotationHierarchy: string[];
     availableAnnotationsForHierarchy: string[];
@@ -131,7 +133,7 @@ export default makeReducer<SelectionStateBranch>(
                 if (state.sortColumn?.order === SortOrder.DESC) {
                     return {
                         ...state,
-                        sortColumn: new FileSort(action.payload, SortOrder.ASC),
+                        sortColumn: new FileSort(action.payload.split("."), SortOrder.ASC),
                     };
                 }
 
@@ -145,7 +147,7 @@ export default makeReducer<SelectionStateBranch>(
             // Default to sorting descending on initial sort
             return {
                 ...state,
-                sortColumn: new FileSort(action.payload, SortOrder.DESC),
+                sortColumn: new FileSort(action.payload.split("."), SortOrder.DESC),
             };
         },
         [CHANGE_DATA_SOURCES]: (state, action: ChangeDataSourcesAction) => ({

@@ -11,6 +11,7 @@ import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadSe
 import { HIDDEN_UID_ANNOTATION } from "../../../../constants";
 
 import DatabaseFileService from "..";
+import FileFilter from "../../../../entity/FileFilter";
 
 describe("DatabaseFileService", () => {
     const totalFileSize = 864452;
@@ -51,25 +52,12 @@ describe("DatabaseFileService", () => {
             });
             const data = response;
             expect(data.length).to.equal(2);
-            expect(data[0].details).to.deep.equal({
-                annotations: [
-                    {
-                        name: "File Size",
-                        values: ["432226"],
-                    },
-                    {
-                        name: "File Path",
-                        values: ["path/to/file"],
-                    },
-                    {
-                        name: "File Name",
-                        values: ["file"],
-                    },
-                    {
-                        name: "num_files",
-                        values: ["6"],
-                    },
-                ],
+            // metadata is a Map — convert to a plain object for a readable deep-equal assertion
+            expect(Object.fromEntries(data[0].metadata)).to.deep.equal({
+                "File Size": ["432226"],
+                "File Path": ["path/to/file"],
+                "File Name": ["file"],
+                num_files: ["6"],
             });
         });
 
@@ -165,7 +153,7 @@ describe("DatabaseFileService", () => {
                         { start: 0, end: 0 },
                         { start: 2, end: 2 },
                     ], // Two unique files
-                    filters: {},
+                    filters: [],
                     sort: undefined,
                 },
             ];
@@ -184,7 +172,7 @@ describe("DatabaseFileService", () => {
             const selections = [
                 {
                     indexRanges: [{ start: 0, end: 2 }], // File range
-                    filters: {},
+                    filters: [],
                     sort: undefined,
                 },
             ];
@@ -201,18 +189,21 @@ describe("DatabaseFileService", () => {
             const selectionsWithOR = [
                 {
                     indexRanges: [{ start: 0, end: 2 }], // File range
-                    filters: {
-                        Structure: ["structure1", "structure2"],
-                    },
+                    // Two filters on the SAME annotation are OR'd together
+                    filters: [
+                        new FileFilter("Structure", "structure1"),
+                        new FileFilter("Structure", "structure2"),
+                    ],
                 },
             ];
             const selectionsWithAND = [
                 {
                     indexRanges: [{ start: 0, end: 2 }], // File range
-                    filters: {
-                        "Cell Line": ["AICS-01"],
-                        Structure: ["structure1"],
-                    },
+                    // Filters on DIFFERENT annotations are AND'd together
+                    filters: [
+                        new FileFilter("Cell Line", "AICS-01"),
+                        new FileFilter("Structure", "structure1"),
+                    ],
                 },
             ];
             // Make a separate SQLBuilder for comparison
@@ -377,7 +368,7 @@ describe("DatabaseFileService", () => {
             const selections = [
                 {
                     indexRanges: [{ start: 5, end: 7 }],
-                    filters: {},
+                    filters: [],
                     sort: undefined,
                 },
             ];
@@ -389,6 +380,151 @@ describe("DatabaseFileService", () => {
             const any = match(/.*/);
             expect(saveQuerySpy.calledWith(any, match(/hidden_bff_uid\s+IN\s*\(/i), any)).to.be
                 .true;
+        });
+
+        it("fails on nested annotation paths for CSV format", async () => {
+            // Arrange
+            class MockParquetManifestService extends DatabaseServiceNoop {
+                protected readonly existingDataSources = new Set(["parquet_source"]);
+                public saveQuery(
+                    _destination?: string,
+                    _sql?: string,
+                    _format?: string
+                ): Promise<Uint8Array> {
+                    return Promise.resolve(new Uint8Array());
+                }
+            }
+            const mockDbService = new MockParquetManifestService();
+            const databaseFileService = new DatabaseFileService({
+                dataSourceNames: ["parquet_source"],
+                databaseService: mockDbService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+            const selections = [
+                { indexRanges: [{ start: 0, end: 1 }], filters: [], sort: undefined },
+            ];
+
+            try {
+                // Act
+                await databaseFileService.getManifest(
+                    ["File Name", "Well.Dose.Unit"],
+                    selections,
+                    "csv"
+                );
+                expect.fail("Expected error was not thrown");
+            } catch (error) {
+                // Assert: CSV format — nested column extracted and stringified with array_to_string
+                expect((error as Error).message).to.equal(
+                    "CSV manifest does not support nested annotation paths"
+                );
+            }
+        });
+
+        it("reconstructs a partial struct for parquet to include only selected sub-fields", async () => {
+            class MockParquetManifestService extends DatabaseServiceNoop {
+                protected readonly existingDataSources = new Set(["parquet_source"]);
+                public saveQuery(
+                    _destination?: string,
+                    _sql?: string,
+                    _format?: string
+                ): Promise<Uint8Array> {
+                    return Promise.resolve(new Uint8Array());
+                }
+            }
+            const mockDbService = new MockParquetManifestService();
+            const saveQuerySpy = sandbox.spy(mockDbService, "saveQuery");
+            const databaseFileService = new DatabaseFileService({
+                dataSourceNames: ["parquet_source"],
+                databaseService: mockDbService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+            const selections = [
+                { indexRanges: [{ start: 0, end: 1 }], filters: [], sort: undefined },
+            ];
+
+            // Only "Well.Color" is selected — sibling "Well.Name" must NOT appear.
+            await databaseFileService.download(["File Name", "Well.Color"], selections, "parquet");
+
+            const sql = saveQuerySpy.firstCall.args[1] as string;
+            expect(sql).to.include(`"File Name"`);
+            // Partial struct contains only the selected field
+            expect(sql).to.include(
+                `list_transform("Well", __e -> {'Color': __e."Color"}) AS "Well"`
+            );
+            // Unselected sibling "Name" must not appear anywhere
+            expect(sql).to.not.include(`"Name"`);
+            // No array_to_string (that's the CSV/JSON path)
+            expect(sql).to.not.include("array_to_string");
+        });
+
+        it("groups multiple sub-fields of the same root into one partial struct for parquet", async () => {
+            class MockParquetManifestService extends DatabaseServiceNoop {
+                protected readonly existingDataSources = new Set(["parquet_source"]);
+                public saveQuery(
+                    _destination?: string,
+                    _sql?: string,
+                    _format?: string
+                ): Promise<Uint8Array> {
+                    return Promise.resolve(new Uint8Array());
+                }
+            }
+            const mockDbService = new MockParquetManifestService();
+            const saveQuerySpy = sandbox.spy(mockDbService, "saveQuery");
+            const databaseFileService = new DatabaseFileService({
+                dataSourceNames: ["parquet_source"],
+                databaseService: mockDbService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+            const selections = [
+                { indexRanges: [{ start: 0, end: 1 }], filters: [], sort: undefined },
+            ];
+
+            // "Well.Dose.Unit" and "Well.Dose.Value" — both under the same root, sharing "Dose".
+            await databaseFileService.download(
+                ["File Name", "Well.Dose.Unit", "Well.Dose.Value"],
+                selections,
+                "parquet"
+            );
+
+            const sql = saveQuerySpy.firstCall.args[1] as string;
+            // Both sub-fields are nested under the same list_transform, not two separate columns
+            expect(sql).to.include(
+                `list_transform("Well", __e -> {'Dose': {'Unit': __e."Dose"."Unit", 'Value': __e."Dose"."Value"}}) AS "Well"`
+            );
+            // list_transform("Well", ...) appears only once (no duplicate root column)
+            expect((sql.match(/list_transform\("Well"/g) || []).length).to.equal(1);
+        });
+
+        it("uses partial struct for JSON (not array_to_string) so the output stays nested", async () => {
+            class MockJsonManifestService extends DatabaseServiceNoop {
+                protected readonly existingDataSources = new Set(["parquet_source"]);
+                public saveQuery(
+                    _destination?: string,
+                    _sql?: string,
+                    _format?: string
+                ): Promise<Uint8Array> {
+                    return Promise.resolve(new Uint8Array());
+                }
+            }
+            const mockDbService = new MockJsonManifestService();
+            const saveQuerySpy = sandbox.spy(mockDbService, "saveQuery");
+            const databaseFileService = new DatabaseFileService({
+                dataSourceNames: ["parquet_source"],
+                databaseService: mockDbService,
+                downloadService: new FileDownloadServiceNoop(),
+            });
+            const selections = [
+                { indexRanges: [{ start: 0, end: 1 }], filters: [], sort: undefined },
+            ];
+
+            await databaseFileService.download(["File Name", "Well.Color"], selections, "json");
+
+            const sql = saveQuerySpy.firstCall.args[1] as string;
+            // JSON uses the same partial-struct path as parquet — NOT array_to_string
+            expect(sql).to.include(
+                `list_transform("Well", __e -> {'Color': __e."Color"}) AS "Well"`
+            );
+            expect(sql).to.not.include("array_to_string");
         });
     });
 });

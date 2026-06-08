@@ -19,9 +19,7 @@ export default function QueryGroup(props: Props) {
     const dispatch = useDispatch();
     const shouldShowNullGroups = useSelector(selection.selectors.getShouldShowNullGroups);
 
-    const annotationNameToAnnotationMap = useSelector(
-        metadata.selectors.getAnnotationNameToAnnotationMap
-    );
+    const pathToAnnotationMap = useSelector(metadata.selectors.getAnnotationNameToAnnotationMap);
 
     const onDelete = (annotationName: string) => {
         dispatch(selection.actions.removeFromAnnotationHierarchy(annotationName));
@@ -44,18 +42,31 @@ export default function QueryGroup(props: Props) {
                     disabledTopLevelAnnotations
                     disableUnavailableAnnotations
                     title="Select metadata to group by"
-                    selections={props.groups}
+                    selections={props.groups.map((g) => g.split("."))}
                     setSelections={(annotations) => {
-                        dispatch(selection.actions.setAnnotationHierarchy(annotations));
+                        dispatch(
+                            selection.actions.setAnnotationHierarchy(
+                                annotations.map((a) => a.join("."))
+                            )
+                        );
                     }}
                     shouldShowNullGroups={shouldShowNullGroups}
                 />
             )}
-            rows={props.groups.map((group) => ({
-                id: group,
-                title: group,
-                description: annotationNameToAnnotationMap[group]?.description,
-            }))}
+            rows={props.groups.map((group) => {
+                const annotation = pathToAnnotationMap.get(group);
+                // TODO: Avoid this reliance on dot notation
+                const path = annotation?.path ?? group.split(".");
+                // Prefer annotation.displayName so FMS top-level fields show "File Name"
+                // rather than the raw key "file_name".
+                const leafLabel = annotation?.displayName ?? path[path.length - 1];
+                return {
+                    id: group,
+                    title: leafLabel,
+                    titlePrefixParts: path.slice(0, -1),
+                    description: annotation?.description,
+                };
+            })}
         />
     );
 }

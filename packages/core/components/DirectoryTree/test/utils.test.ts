@@ -76,19 +76,19 @@ describe("DirectoryTree utilities", () => {
         // Create mock annotations and hierarchy
         const firstAnn = new Annotation({
             annotationDisplayName: "Annotation1",
-            annotationName: "annotation1",
+            path: ["annotation1"],
             description: "",
             type: AnnotationType.STRING,
         });
         const secondAnn = new Annotation({
             annotationDisplayName: "Annotation2",
-            annotationName: "annotation2",
+            path: ["annotation2"],
             description: "",
             type: AnnotationType.STRING,
         });
         const numericAnn = new Annotation({
             annotationDisplayName: "NumericAnn",
-            annotationName: "numericAnn",
+            path: ["numericAnn"],
             description: "",
             type: AnnotationType.NUMBER,
         });
@@ -238,7 +238,7 @@ describe("DirectoryTree utilities", () => {
             expect(childNodes).to.deep.equal([secondLevelHierarchyValues[1]]);
         });
         it("returns only the NO_VALUE node when annotation has exclude filter applied and NO_VALUE has files", async () => {
-            const fileSet = new FileSet({ filters: [new ExcludeFilter(secondAnn.displayName)] });
+            const fileSet = new FileSet({ filters: [new ExcludeFilter([secondAnn.displayName])] });
             const childNodes = await findChildNodes({
                 annotationService,
                 fileService,
@@ -265,7 +265,7 @@ describe("DirectoryTree utilities", () => {
             expect(childNodes).to.deep.equal(numericHierarchyValues);
         });
         it("returns all values when 'include' filter is applied on hierarchy field", async () => {
-            const fileSet = new FileSet({ filters: [new IncludeFilter(secondAnn.displayName)] });
+            const fileSet = new FileSet({ filters: [new IncludeFilter([secondAnn.displayName])] });
             const childNodes = await findChildNodes({
                 annotationService,
                 fileService,

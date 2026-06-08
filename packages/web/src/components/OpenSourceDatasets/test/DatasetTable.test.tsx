@@ -114,16 +114,10 @@ describe("<DatasetTable />", () => {
             </Provider>
         );
 
-        const mockFileSortAsc = new FileSort(
-            DatasetAnnotations.DATASET_NAME.displayLabel,
-            SortOrder.ASC
-        );
-        const mockFileSortDesc = new FileSort(
-            DatasetAnnotations.DATASET_NAME.displayLabel,
-            SortOrder.DESC
-        );
+        const mockFileSortAsc = new FileSort(DatasetAnnotations.DATASET_NAME.path, SortOrder.ASC);
+        const mockFileSortDesc = new FileSort(DatasetAnnotations.DATASET_NAME.path, SortOrder.DESC);
         const mockFileSortAscCount = new FileSort(
-            DatasetAnnotations.FILE_COUNT.displayLabel,
+            DatasetAnnotations.FILE_COUNT.path,
             SortOrder.ASC
         );
 

@@ -27,7 +27,7 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
         const annotationsPreviouslySelectedAvailable = (
             annotationsPreviouslySelected || []
         ).filter((annotationName) =>
-            annotations.some((annotation) => annotationName === annotation.name)
+            annotations.some((annotation) => annotationName === annotation.path.join("."))
         );
         setSelectedAnnotations(annotationsPreviouslySelectedAvailable);
     }, [annotations, annotationsPreviouslySelected]);
@@ -46,8 +46,10 @@ export default function MetadataManifest({ onDismiss }: ModalProps) {
             </p>
             <AnnotationPicker
                 hasSelectAllCapability
-                selections={selectedAnnotations}
-                setSelections={setSelectedAnnotations}
+                selections={selectedAnnotations.map((a) => a.split("."))}
+                setSelections={(annotations) =>
+                    setSelectedAnnotations(annotations.map((a) => a.join(".")))
+                }
                 className={styles.listPicker}
             />
         </div>

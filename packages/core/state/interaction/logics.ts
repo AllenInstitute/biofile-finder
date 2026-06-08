@@ -422,9 +422,7 @@ const promptForNewExecutable = createLogic({
             const selectedFilesDetails = await fileSelection.fetchAllDetails();
             const fileKinds = uniq(
                 selectedFilesDetails.flatMap(
-                    (file) =>
-                        file.annotations.find((a) => a.name === AnnotationName.KIND)
-                            ?.values as string[]
+                    (file) => (file.getAnnotation(AnnotationName.KIND) ?? []) as string[]
                 )
             );
 
@@ -505,9 +503,7 @@ const openWithDefault = createLogic({
 
         // Map apps to the files they are meant to open
         const appToFiles = filesToOpen.reduce((appToFilesMap, file) => {
-            const kinds =
-                (file.annotations.find((a) => a.name === AnnotationName.KIND)
-                    ?.values as string[]) || [];
+            const kinds = (file.getAnnotation(AnnotationName.KIND) ?? []) as string[];
             const kind = kinds.length ? kinds[0] : "SYSTEM_DEFAULT";
             const app = kindToApp[kind] || SYSTEM_DEFAULT_APP;
             return {
@@ -615,7 +611,7 @@ const editFilesLogic = createLogic({
         const hasUnsavedChanges = interaction.selectors.getHasUnsavedChanges(deps.getState());
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
         const sortColumn = selection.selectors.getSortColumn(deps.getState());
-        const annotationNameToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
+        const pathToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
             deps.getState()
         );
         const {
@@ -671,7 +667,7 @@ const editFilesLogic = createLogic({
                     (fileId) =>
                         new Promise<void>(async (resolve, reject) => {
                             fileService
-                                .editFile(fileId, annotations, annotationNameToAnnotationMap, user)
+                                .editFile(fileId, annotations, pathToAnnotationMap, user)
                                 .then((_) => {
                                     totalFileEdited += 1;
                                     onProgress();
@@ -742,7 +738,9 @@ const refresh = createLogic({
         } catch (err) {
             console.error(`Error encountered while refreshing: ${err}`);
             const annotations = metadata.selectors.getAnnotations(deps.getState());
-            dispatch(selection.actions.setAvailableAnnotations(annotations.map((a) => a.name)));
+            dispatch(
+                selection.actions.setAvailableAnnotations(annotations.map((a) => a.path.join(".")))
+            );
         } finally {
             done();
         }
@@ -876,10 +874,8 @@ const copyFilesLogic = createLogic({
                     status === "DOWNLOAD_STARTED"
                 ) {
                     const file = fileDetails.find((f) => f.id === fileId);
-                    const isAlreadyCached = file?.annotations.some(
-                        ({ name, values }) =>
-                            name === "Should Be in Local Cache" && values[0] === true
-                    );
+                    const isAlreadyCached =
+                        file?.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL) === true;
                     (isAlreadyCached ? extendedExpirationFiles : newlyCachedFiles).push(fileId);
                 } else {
                     failedFiles.push(fileId);

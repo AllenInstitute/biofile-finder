@@ -17,6 +17,11 @@
     padding-right: 8px;
 }
 
+.icon-wrap {
+    display: inline-flex;
+    align-items: center;
+}
+
 .hidden-inner-icon i:last-of-type {
     display: none;
 }
@@ -67,10 +72,12 @@
 .row-title > p, .row-title > div > p {
     font-size: var(--s-paragraph-size);
     margin: 0;
-    display: block;
+    display: flex;
+    align-items: baseline;
+    position: relative; /* anchor the hidden measurement probes */
+    min-width: 0;
     padding: 0;
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
     padding-top: 1px;
     height: calc(var(--s-paragraph-size) + 4px);
@@ -79,6 +86,49 @@
 .dynamic-row-title {
     max-width: calc(100% - 22px);
     width: min-content;
+}
+
+.title-prefix {
+    opacity: 0.55;
+    flex: 0 0 auto;
+    overflow: hidden;
+    /* Fall back in case a measurement is slightly off */
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /* Gap before the leaf; the prefix's own trailing space collapses, so add it explicitly. */
+    padding-right: 4px;
+}
+
+/* Restore normal left-to-right reading order inside an rtl-truncating box (the nested leaf). */
+.title-prefix-inner {
+    direction: ltr;
+    unicode-bidi: embed;
+}
+
+.title-leaf {
+    /* Avoid letting the leaf ever shrink when the prefix is shown */
+    flex: 0 0 auto;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 100%;
+}
+
+/* Nested leaf last-resort truncation happens from the START ("…umn"), never the end. */
+.title-leaf-nested {
+    direction: rtl;
+}
+
+/* Off-screen container holding width-measurement probes; never affects layout or a11y. */
+.measure-probe-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+    pointer-events: none;
+    white-space: nowrap;
 }
 
 .dynamic-row-title.shortened-row-title {

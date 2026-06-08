@@ -58,7 +58,7 @@ describe("Selection logics", () => {
     describe("selectFile", () => {
         const fileSet1 = new FileSet();
         const fileSet2 = new FileSet({
-            filters: [new FileFilter("Cell Line", "AICS-13")],
+            filters: [new FileFilter(["Cell Line"], "AICS-13")],
         });
 
         it("does not include existing file selections when updateExistingSelection is false", async () => {
@@ -1106,7 +1106,7 @@ describe("Selection logics", () => {
             const currentFilters = initialState.selection.filters;
 
             // act
-            const filter = new FileFilter("foo", 2);
+            const filter = new FileFilter(["foo"], 2);
             store.dispatch(addFileFilter(filter));
             await logicMiddleware.whenComplete();
 
@@ -1121,8 +1121,8 @@ describe("Selection logics", () => {
 
         it("removes a FileFilter from state", async () => {
             // setup
-            const filterToRemove = new FileFilter("foo", 2);
-            const filterToKeep = new FileFilter("bar", 3);
+            const filterToRemove = new FileFilter(["foo"], 2);
+            const filterToKeep = new FileFilter(["bar"], 3);
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
                 state: {
@@ -1149,7 +1149,7 @@ describe("Selection logics", () => {
 
         it("adds many FileFilters to state", async () => {
             // setup
-            const filterToKeep = new FileFilter("bar", 3);
+            const filterToKeep = new FileFilter(["bar"], 3);
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
                 state: {
@@ -1162,7 +1162,7 @@ describe("Selection logics", () => {
             });
 
             // act
-            const filters = [new FileFilter("foo", 2), new FileFilter("foo", 10)];
+            const filters = [new FileFilter(["foo"], 2), new FileFilter(["foo"], 10)];
             store.dispatch(addFileFilter(filters));
             await logicMiddleware.whenComplete();
 
@@ -1177,8 +1177,8 @@ describe("Selection logics", () => {
 
         it("removes many FileFilters from state", async () => {
             // setup
-            const filterToKeep = new FileFilter("bar", 3);
-            const filtersToRemove = [new FileFilter("foo", 2), new FileFilter("foo", 10)];
+            const filterToKeep = new FileFilter(["bar"], 3);
+            const filtersToRemove = [new FileFilter(["foo"], 2), new FileFilter(["foo"], 10)];
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
                 state: {
@@ -1206,9 +1206,9 @@ describe("Selection logics", () => {
         it("does nothing if the net result would have no impact", async () => {
             // setup
             const filtersToKeep = [
-                new FileFilter("arg", 10),
-                new FileFilter("bar", 3),
-                new FileFilter("bar", 4),
+                new FileFilter(["arg"], 10),
+                new FileFilter(["bar"], 3),
+                new FileFilter(["bar"], 4),
             ];
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
@@ -1365,7 +1365,7 @@ describe("Selection logics", () => {
                 state,
             });
             const hierarchy = annotations.slice(0, 2).map((a) => a.name);
-            const filters = [new FileFilter(annotations[3].name, "20x")];
+            const filters = [new FileFilter([annotations[3].name], "20x")];
             const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
             const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
             const encodedURL = SearchParams.encode({

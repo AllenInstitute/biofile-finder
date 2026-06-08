@@ -55,7 +55,7 @@ DATE_LAST_MONTH.setMonth(BEGINNING_OF_TODAY.getMonth() - 1);
 const DATE_LAST_WEEK = new Date(BEGINNING_OF_TODAY);
 DATE_LAST_WEEK.setDate(BEGINNING_OF_TODAY.getDate() - 7);
 export const PAST_YEAR_FILTER = new FileFilter(
-    AnnotationName.UPLOADED,
+    [AnnotationName.UPLOADED],
     `RANGE(${DATE_LAST_YEAR.toISOString()},${END_OF_TODAY.toISOString()})`
 );
 export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
@@ -245,20 +245,30 @@ export default class SearchParams {
             columns: ColumnCoder.decode(unparsedColumns),
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
-                .map(
-                    (parsedFilter) =>
-                        new FileFilter(parsedFilter.name, parsedFilter.value, parsedFilter.type)
-                ),
+                .map((parsedFilter) => {
+                    // Support both new format {path: [...]} and legacy format {name}
+                    const path = parsedFilter.path ?? [parsedFilter.name];
+                    return new FileFilter(
+                        path,
+                        parsedFilter.value,
+                        parsedFilter.type,
+                        parsedFilter.valueType,
+                        parsedFilter.pathIsArray
+                    );
+                }),
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
             prov: unparsedSourceProvenance ? JSON.parse(unparsedSourceProvenance) : undefined,
-            showNoValueGroups: showNoValueGroupsString
-                ? JSON.parse(showNoValueGroupsString)
-                : true,
+            showNoValueGroups: showNoValueGroupsString ? JSON.parse(showNoValueGroupsString) : true,
             sortColumn: parsedSort
-                ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
+                ? new FileSort(
+                      // path is now encoded as an array (toJSON); tolerate the legacy
+                      // stringified-array form and the even older `annotationName` field.
+                      SearchParams.parseSortPath(parsedSort),
+                      parsedSort.order || SortOrder.ASC
+                  )
                 : undefined,
             sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
             sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
@@ -314,6 +324,25 @@ export default class SearchParams {
         return `${imports}${sourceString}${fullQueryString}`;
     }
 
+    /**
+     * Resolve a sort's path from a decoded `sort` param across formats:
+     * - current: `path` is an array (["Well","Dose","Unit"])
+     * - legacy:  `path` is a JSON-stringified array ("[\"file_size\"]")
+     * - oldest:  no `path`, only a dotted `annotationName`
+     */
+    private static parseSortPath(parsedSort: {
+        path?: string | string[];
+        annotationName?: string;
+    }): string[] {
+        if (Array.isArray(parsedSort.path)) {
+            return parsedSort.path;
+        }
+        if (typeof parsedSort.path === "string") {
+            return JSON.parse(parsedSort.path);
+        }
+        return [parsedSort.annotationName as string];
+    }
+
     private static convertSortToPython(sortColumn: FileSort) {
         return `.sort_values(by='${sortColumn.annotationName}', ascending=${
             sortColumn.order == "ASC" ? "True" : "False"
@@ -325,12 +354,8 @@ export default class SearchParams {
     }
 
     private static convertFilterToPython(filter: FileFilter) {
-        // TO DO: Support querying non-string types
-        if (filter.value.includes("RANGE")) {
-            return;
-            //     let begin, end;
-            //     return `\`${filter.name}\`>="${begin}"&\`${filter.name}\`<"${end}"`
-        }
+        // TODO: Support querying non-string types
+        if (String(filter.value).includes("RANGE")) return;
         return `\`${filter.name}\`=="${filter.value}"`;
     }
 

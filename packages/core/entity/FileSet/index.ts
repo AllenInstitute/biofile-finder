@@ -1,11 +1,8 @@
 import { defaults, find, join, map, uniqueId } from "lodash";
 import LRUCache from "lru-cache";
 
-import FileFilter, { FilterType } from "../FileFilter";
+import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
-import FuzzyFilter from "../FileFilter/FuzzyFilter";
-import ExcludeFilter from "../FileFilter/ExcludeFilter";
-import IncludeFilter from "../FileFilter/IncludeFilter";
 import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
 import SQLBuilder from "../SQLBuilder";
@@ -38,10 +35,7 @@ export default class FileSet {
 
     private cache: LRUCache<number, FileDetail>;
     private readonly fileService: FileService;
-    private readonly _filters: FileFilter[];
-    public readonly fuzzyFilters?: FuzzyFilter[];
-    public readonly excludeFilters?: ExcludeFilter[];
-    public readonly includeFilters?: IncludeFilter[];
+    public readonly filters: FileFilter[];
     public readonly sort?: FileSort;
     private totalFileCount: number | undefined;
     private indexesForFilesCurrentlyLoading: Set<number> = new Set();
@@ -54,10 +48,7 @@ export default class FileSet {
         const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
 
         this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
-        this._filters = filters;
-        this.fuzzyFilters = filters.filter((f) => f.type === FilterType.FUZZY);
-        this.excludeFilters = filters.filter((f) => f.type === FilterType.EXCLUDE);
-        this.includeFilters = filters.filter((f) => f.type === FilterType.ANY);
+        this.filters = filters;
         this.sort = sort;
         this.fileService = fileService;
 
@@ -68,10 +59,6 @@ export default class FileSet {
 
     public get files() {
         return this.cache;
-    }
-
-    public get filters() {
-        return this._filters;
     }
 
     /**
@@ -194,26 +181,54 @@ export default class FileSet {
     }
 
     /**
-     * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses
+     * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses.
+     *
+     * Nested sub-field filters sharing the same root parent column are automatically
+     * correlated: they use list_filter to ensure all conditions match the SAME array
+     * element (rather than checking each sub-field independently across the whole array).
      */
     public toQuerySQLBuilder(): SQLBuilder {
-        // Map the filter values to the annotation names they filter
-        const filtersGroupedByAnnotation = this.filters.reduce(
-            (map, filter) => ({
+        // Separate flat (path.length === 1) filters from nested sub-field filters
+        const flatFilters: FileFilter[] = [];
+        const nestedByParent = new Map<string, FileFilter[]>();
+
+        for (const filter of this.filters) {
+            if (filter.path.length <= 1) {
+                flatFilters.push(filter);
+            } else {
+                const parent = filter.path[0];
+                const group = nestedByParent.get(parent) ?? [];
+                group.push(filter);
+                nestedByParent.set(parent, group);
+            }
+        }
+
+        // Group flat filters by annotation name (same name = OR'd, different names = AND'd)
+        const flatGrouped = flatFilters.reduce((map, filter) => {
+            const key = filter.name;
+            return {
                 ...map,
-                [filter.name]: filter.name in map ? [...map[filter.name], filter] : [filter],
-            }),
-            {} as { [name: string]: FileFilter[] }
-        );
+                [key]: key in map ? [...map[key], filter] : [filter],
+            };
+        }, {} as { [key: string]: FileFilter[] });
 
-        // Transform the map above into SQL comparison clauses
-        const sqlBuilder = this.sort ? this.sort.toQuerySQLBuilder() : new SQLBuilder();
+        const sqlBuilder = new SQLBuilder();
 
-        Object.entries(filtersGroupedByAnnotation).forEach(([_, appliedFilters]) => {
+        // Apply sort
+        if (this.sort) sqlBuilder.orderBy(this.sort.toOrderByClause());
+
+        // Flat filters: each annotation group is one WHERE clause
+        Object.entries(flatGrouped).forEach(([_, appliedFilters]) => {
             sqlBuilder.where(
                 appliedFilters.map((filter) => filter.toSQLWhereString()).join(" OR ")
             );
         });
+
+        // Nested filters: correlate all sub-field filters sharing the same parent
+        // so that conditions are tested against the same array element
+        for (const [_, parentFilters] of nestedByParent) {
+            sqlBuilder.where(FileFilter.toCorrelatedSQLWhereString(parentFilters));
+        }
 
         return sqlBuilder;
     }

@@ -224,7 +224,7 @@ export default function NewAnnotationPathway(props: NewAnnotationProps) {
         }
         const annotation = new Annotation({
             annotationDisplayName: newFieldName,
-            annotationName: newFieldName,
+            path: [newFieldName],
             description: newFieldDescription,
             type: newFieldDataType,
         });

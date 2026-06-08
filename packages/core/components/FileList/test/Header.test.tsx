@@ -8,6 +8,7 @@ import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { initialState, selection } from "../../../state";
 import Header from "../Header";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 
 describe("<Header />", () => {
     it("dispatches sort action when clicked when file attribute", () => {
@@ -21,9 +22,9 @@ describe("<Header />", () => {
         const state = mergeState(initialState, {
             metadata: {
                 annotations: annotations.map((name) => ({
-                    name,
-                    displayName: name,
+                    path: [name],
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: {
@@ -60,9 +61,9 @@ describe("<Header />", () => {
         const state = mergeState(initialState, {
             metadata: {
                 annotations: annotations.map((name) => ({
-                    name,
-                    displayName: name,
+                    path: [name],
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: {
@@ -70,7 +71,7 @@ describe("<Header />", () => {
                     name: name,
                     width: 1 / annotations.length,
                 })),
-                sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
+                sortColumn: new FileSort([AnnotationName.FILE_SIZE], SortOrder.DESC),
             },
         });
         const { store } = configureMockStore({ state });
@@ -99,9 +100,9 @@ describe("<Header />", () => {
         const state = mergeState(initialState, {
             metadata: {
                 annotations: annotations.map((name) => ({
-                    name,
-                    displayName: name,
+                    path: [name],
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: {
@@ -109,7 +110,7 @@ describe("<Header />", () => {
                     name: name,
                     width: 1 / annotations.length,
                 })),
-                sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.ASC),
+                sortColumn: new FileSort([AnnotationName.FILE_SIZE], SortOrder.ASC),
             },
         });
         const { store } = configureMockStore({ state });
@@ -142,9 +143,9 @@ describe("<Header />", () => {
         const state = mergeState(initialState, {
             metadata: {
                 annotations: annotations.map((name) => ({
-                    name,
-                    displayName: name,
+                    path: [name],
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: { columns },

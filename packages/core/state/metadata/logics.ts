@@ -1,4 +1,4 @@
-import { uniqBy } from "lodash";
+import { isEqual, uniqBy } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { interaction, metadata, ReduxLogicDeps, selection } from "..";
@@ -70,20 +70,21 @@ const receiveAnnotationsLogic = createLogic({
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
         const currentFilters = selection.selectors.getFileFilters(deps.getState());
 
-        const annotationNamesInDataSource = annotations.reduce(
-            (set, annotation) => set.add(annotation.name),
-            new Set<string>()
+        const annotationPathsInDataSource = new Set(
+            annotations.map((annotation) => annotation.path.join("."))
         );
         // Filter out any columns that were selected for display that no longer
-        // exist as annotations in the data source
-        const columnsThatStillExist = currentColumns.filter((column) =>
-            annotationNamesInDataSource.has(column.name)
+        // exist as annotations in the data source (or are nested parent columns)
+        const columnsThatStillExist = currentColumns.filter(
+            (column) =>
+                annotationPathsInDataSource.has(column.name) &&
+                !annotations.find((a) => a.path.join(".") === column.name)?.isParent
         );
         const columnNamesThatStillExist = columnsThatStillExist.map((column) => column.name);
 
         // Grab the first countOfColumnsToShow annotations as columns based on the following priority:
         // 1) Was already a column
-        // 2) Is just in the data source
+        // 2) Is just in the data source (excluding nested parents — only leaves are shown)
         const countOfColumnsToShow = Math.max(4, columnsThatStillExist.length);
         const remainingMaxWidth = columnsThatStillExist.reduce(
             (remainingWidth, column) => remainingWidth - column.width,
@@ -92,10 +93,14 @@ const receiveAnnotationsLogic = createLogic({
         const columns = [
             ...columnsThatStillExist,
             ...annotations
-                .filter((annotation) => !columnNamesThatStillExist.includes(annotation.name))
+                .filter(
+                    (annotation) =>
+                        !columnNamesThatStillExist.includes(annotation.path.join(".")) &&
+                        !annotation.isParent
+                )
                 .slice(0, countOfColumnsToShow - columnsThatStillExist.length)
                 .map((annotation) => ({
-                    name: annotation.name,
+                    name: annotation.path.join("."),
                     width:
                         remainingMaxWidth / (countOfColumnsToShow - columnsThatStillExist.length),
                 })),
@@ -103,7 +108,7 @@ const receiveAnnotationsLogic = createLogic({
         dispatch(selection.actions.setColumns(columns));
 
         const isCurrentSortColumnValid =
-            currentSortColumn && annotationNamesInDataSource.has(currentSortColumn.annotationName);
+            currentSortColumn && annotationPathsInDataSource.has(currentSortColumn.annotationName);
         if (!isCurrentSortColumnValid) {
             // Default to sorting by "Uploaded" for AICS FMS queries
             if (isQueryingAicsFms) {
@@ -114,26 +119,41 @@ const receiveAnnotationsLogic = createLogic({
             }
         }
 
-        // Enrich active filters with annotationType from the loaded annotations.
-        // This handles filters deserialized from URLs or persisted state that lack annotationType,
-        // ensuring toSQLWhereString() generates correct SQL instead of falling back to regex match.
-        const annotationTypeByName = new Map(
-            annotations.map((annotation) => [annotation.name, annotation.type as AnnotationType])
+        // Enrich active filters with annotationType, correct path, and pathIsArray from the loaded
+        // annotations. Keyed by full dotted path (e.g. "Well.Column") so that:
+        //   (a) filters decoded from legacy URLs with path=["Well.Column"] get their path corrected
+        //       to the multi-element form ["Well","Column"], and
+        //   (b) valueType / pathIsArray are backfilled for any filter missing them.
+        const annotationByFullPath = new Map(
+            annotations.map((annotation) => [annotation.path.join("."), annotation])
         );
-        const enrichedFilters = currentFilters.map((filter) =>
-            filter.annotationType
-                ? filter
-                : new FileFilter(
-                      filter.name,
-                      filter.value,
-                      filter.type,
-                      annotationTypeByName.get(filter.name)
-                  )
-        );
-        const hasEnrichedFilters = enrichedFilters.some(
-            (filter, i) => filter !== currentFilters[i]
-        );
-        if (hasEnrichedFilters) {
+        const enrichedFilters = currentFilters.map((filter) => {
+            const annotation = annotationByFullPath.get(filter.name);
+            // TODO: We should migrate annotation info out of filter so that
+            // things like this are unnecessary - avoiding for now to conserve line changes
+            if (!annotation) return filter; // no matching annotation — leave as-is
+
+            const newPath = annotation.path;
+            const newType = annotation.type;
+            const newPathIsArray = annotation.pathIsArray?.length
+                ? annotation.pathIsArray
+                : filter.pathIsArray.length
+                ? filter.pathIsArray
+                : undefined;
+
+            // Return the same object if nothing would change, so the reference-equality
+            // check below can correctly detect a no-op and skip the dispatch.
+            const isPathUnchanged = isEqual(newPath, filter.path);
+            const isTypeUnchanged = newType === filter.valueType;
+            const isPathIsArrayUnchanged = isEqual(newPathIsArray ?? [], filter.pathIsArray);
+            if (isPathUnchanged && isTypeUnchanged && isPathIsArrayUnchanged) return filter;
+
+            return new FileFilter(newPath, filter.value, filter.type, newType, newPathIsArray);
+        });
+
+        // Only dispatch if at least one filter actually changed
+        const hasChanges = enrichedFilters.some((f, i) => f !== currentFilters[i]);
+        if (hasChanges) {
             dispatch(selection.actions.setFileFilters(enrichedFilters));
         }
 
@@ -273,14 +293,15 @@ const storeNewAnnotationLogic = createLogic({
         } = deps.action as StoreNewAnnotationAction;
         const annotations = metadata.selectors.getAnnotations(deps.getState());
         const type =
-            Object.values(AnnotationTypeIdMap).find((id) => id === annotation.annotationTypeId) ||
-            AnnotationType.STRING;
+            (Object.entries(AnnotationTypeIdMap).find(
+                ([_type, id]) => id === annotation.annotationTypeId
+            )?.[0] as AnnotationType) || AnnotationType.STRING;
         const newMmsAnnotation = new Annotation({
-            annotationName: annotation.name,
+            type,
+            path: [annotation.name],
             annotationDisplayName: annotation.name,
             annotationId: annotation.annotationId,
             description: annotation.description,
-            type: type as AnnotationType,
         });
         dispatch(receiveAnnotations([...annotations, newMmsAnnotation]));
         done();

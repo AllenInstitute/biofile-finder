@@ -31,24 +31,27 @@ interface AnnotationFilterFormProps {
  * amongst its items; if the annotation is of type date, it will render a date input; etc.
  */
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
+    // FileFilter.name is path.join("."), so we need the full dotted path for comparison
+    const annotationFilterKey = props.annotation.path.join(".");
+
     const dispatch = useDispatch();
     const allFilters = useSelector(selection.selectors.getFileFilters);
     const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
     const canFuzzySearch = useSelector(selection.selectors.isQueryingAicsFms);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
-        props.annotation.name,
+        annotationFilterKey,
         annotationService
     );
 
     const fuzzySearchEnabled = React.useMemo(
-        () => !!fuzzyFilters?.some((filter) => filter.name === props.annotation.name),
-        [fuzzyFilters, props.annotation]
+        () => !!fuzzyFilters?.some((filter) => filter.name === annotationFilterKey),
+        [fuzzyFilters, annotationFilterKey]
     );
 
     const filtersForAnnotation = React.useMemo(
-        () => allFilters.filter((filter) => filter.name === props.annotation.name),
-        [allFilters, props.annotation]
+        () => allFilters.filter((filter) => filter.name === annotationFilterKey),
+        [allFilters, annotationFilterKey]
     );
 
     // Assume all filters use same type
@@ -80,24 +83,26 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     const onSelect = (item: ListItem) => {
-        dispatch(selection.actions.changeFileFilterType(props.annotation.name, FilterType.DEFAULT));
+        dispatch(selection.actions.changeFileFilterType(props.annotation.path, FilterType.DEFAULT));
         dispatch(selection.actions.addFileFilter(createFileFilter(item)));
     };
 
     // TODO: Should this select ALL or just the visible items in list?
     const onSelectAll = () => {
-        dispatch(selection.actions.changeFileFilterType(props.annotation.name, FilterType.DEFAULT));
+        dispatch(selection.actions.changeFileFilterType(props.annotation.path, FilterType.DEFAULT));
         dispatch(selection.actions.addFileFilter(items.map((item) => createFileFilter(item))));
     };
 
     const createFileFilter = (item: ListItem) => {
+        const formattedValue = props.annotation.formatter.valueOf(item.value);
+        const value = isNil(formattedValue) ? item.value : formattedValue;
+
         return new FileFilter(
-            props.annotation.name,
-            isNil(props.annotation.valueOf(item.value))
-                ? item.value
-                : props.annotation.valueOf(item.value),
+            props.annotation.path,
+            value,
             filterType,
-            props.annotation.type as AnnotationType
+            props.annotation.type,
+            props.annotation.pathIsArray
         );
     };
 
@@ -116,7 +121,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                 default:
                     dispatch(
                         selection.actions.changeFileFilterType(
-                            props.annotation.name,
+                            props.annotation.path,
                             option.key as FilterType
                         )
                     );
@@ -128,12 +133,13 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         if (filterValue && filterValue.trim()) {
             dispatch(
                 selection.actions.setFileFilters([
-                    ...allFilters.filter((filter) => filter.name !== props.annotation.name),
+                    ...allFilters.filter((filter) => filter.name !== annotationFilterKey),
                     new FileFilter(
-                        props.annotation.name,
+                        props.annotation.path,
                         filterValue,
                         type,
-                        props.annotation.type as AnnotationType
+                        props.annotation.type,
+                        props.annotation.pathIsArray
                     ),
                 ])
             );
@@ -164,7 +170,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const typeHasDedicatedPicker =
         props.annotation.name !== AnnotationName.FILE_SIZE &&
         [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
-            props.annotation.type as AnnotationType
+            props.annotation.type
         );
 
     const searchFormType = () => {

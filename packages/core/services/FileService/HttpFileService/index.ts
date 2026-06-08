@@ -1,4 +1,4 @@
-import { compact, join, uniqueId } from "lodash";
+import { compact, filter, join, map, uniqueId } from "lodash";
 
 import FileService, {
     GetFilesRequest,
@@ -13,13 +13,65 @@ import Annotation from "../../../entity/Annotation";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
+import { JSONReadyRange } from "../../../entity/NumericRange";
+import { FilterType } from "../../../entity/FileFilter";
+import { SortOrder } from "../../../entity/FileSort";
+
+// Interface expected by FES API
+interface FESFileSelection {
+    filters: {
+        [filterName: string]: (string | number | boolean)[];
+    };
+    indexRanges: JSONReadyRange[];
+    sort?: {
+        annotationName: string;
+        ascending: boolean;
+    };
+    fuzzy?: string[];
+    exclude?: string[];
+    include?: string[];
+}
 
 interface SelectionAggregationRequest {
-    selections: Selection[];
+    selections: FESFileSelection[];
 }
 
 interface Config extends ConnectionConfig {
     downloadService: FileDownloadService;
+}
+
+function simplifyCsvSelection(selections: Selection[]): FESFileSelection[] {
+    return selections.map((selection) => ({
+        filters: filter(
+            selection.filters,
+            (filter) => filter.type === FilterType.DEFAULT || filter.type === FilterType.FUZZY
+        ).reduce(
+            (acc, filter) => ({
+                ...acc,
+                [filter.name]: [...(acc[filter.name] || []), filter.value],
+            }),
+            {} as { [filterName: string]: (string | number | boolean)[] }
+        ),
+        indexRanges: selection.indexRanges,
+        sort: selection.sort
+            ? {
+                  annotationName: selection.sort.annotationName,
+                  ascending: selection.sort.order === SortOrder.ASC,
+              }
+            : undefined,
+        fuzzy: map(
+            filter(selection.filters, (filter) => filter.type === FilterType.FUZZY),
+            "name"
+        ).flat(),
+        exclude: map(
+            filter(selection.filters, (filter) => filter.type === FilterType.EXCLUDE),
+            "name"
+        ).flat(),
+        include: map(
+            filter(selection.filters, (filter) => filter.type === FilterType.ANY),
+            "name"
+        ).flat(),
+    }));
 }
 
 /**
@@ -80,7 +132,9 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         fileSelection: FileSelection
     ): Promise<SelectionAggregationResult> {
         const selections = fileSelection.toCompactSelectionList();
-        const postBody: SelectionAggregationRequest = { selections };
+        const postBody: SelectionAggregationRequest = {
+            selections: simplifyCsvSelection(selections),
+        };
         const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.SELECTION_AGGREGATE_URL}${this.pathSuffix}`;
 
         const response = await this.post<SelectionAggregationResult>(
@@ -90,7 +144,9 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
 
         // data is always an array, this endpoint should always return an array of length 1
         if (response.data.length !== 1) {
-            throw new Error(`Expected response.data of ${postBody} to contain a single count`);
+            throw new Error(
+                `Expected response.data of ${JSON.stringify(postBody)} to contain a single count`
+            );
         }
         return response.data[0];
     }
@@ -114,7 +170,10 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         annotations: string[],
         selections: Selection[]
     ): Promise<{ url: string; data: Blob }> {
-        const postData = JSON.stringify({ annotations, selections });
+        const postData = JSON.stringify({
+            annotations,
+            selections: simplifyCsvSelection(selections),
+        });
         const url = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_CSV_DOWNLOAD_URL}${this.pathSuffix}`;
         const data = await this.downloadService.prepareHttpResourceForDownload(url, postData);
         return { url, data };
@@ -169,7 +228,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     public async editFile(
         fileId: string,
         annotationNameToValuesMap: AnnotationNameToValuesMap,
-        annotationNameToAnnotationMap?: Record<string, Annotation>,
+        pathToAnnotationMap?: Map<string, Annotation>,
         user?: string
     ): Promise<void> {
         if (!user) {
@@ -181,7 +240,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         try {
             const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpFileService.BASE_FILE_EDIT_URL}/${fileId}`;
             const annotations = Object.entries(annotationNameToValuesMap).map(([name, values]) => {
-                const annotationId = annotationNameToAnnotationMap?.[name].id;
+                const annotationId = pathToAnnotationMap?.get(name)?.id;
                 if (!annotationId) {
                     throw new Error(
                         `Unable to edit file. Failed to find annotation id for annotation ${name}`

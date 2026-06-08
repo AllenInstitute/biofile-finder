@@ -15,12 +15,13 @@ export default function ColumnPicker() {
     return (
         <AnnotationPicker
             title="Select metadata to display as columns"
-            selections={columnNames}
+            selections={columnNames.map((n) => n.split("."))}
             setSelections={(selectedColumns) => {
+                const selectedKeys = selectedColumns.map((c) => c.join("."));
                 const adjustedColumns = columns.filter((column) =>
-                    selectedColumns.includes(column.name)
+                    selectedKeys.includes(column.name)
                 );
-                selectedColumns.forEach((selectedColumn) => {
+                selectedKeys.forEach((selectedColumn) => {
                     if (!columnNames.includes(selectedColumn)) {
                         adjustedColumns.push({
                             name: selectedColumn,

@@ -271,6 +271,10 @@ export default abstract class DatabaseService {
         if (columnType?.startsWith("DECIMAL")) {
             return AnnotationType.NUMBER;
         }
+        // STRUCT types (including STRUCT[]) represent nested/object metadata
+        if (columnType?.startsWith("STRUCT") || columnType?.includes("STRUCT")) {
+            return AnnotationType.NESTED;
+        }
         switch (columnType) {
             case "INTEGER":
             case "BIGINT":
@@ -300,6 +304,90 @@ export default abstract class DatabaseService {
             default:
                 return AnnotationType.STRING;
         }
+    }
+
+    /**
+     * Parse all leaf fields from a DuckDB STRUCT type string, recursing into nested STRUCTs.
+     * Returns a flat list with dot-separated paths for nested fields, including which
+     * intermediate path segments are arrays.
+     *
+     * e.g. "STRUCT(Gene VARCHAR, Dose STRUCT(Unit VARCHAR, Value DOUBLE)[])[]"
+     *   → [
+     *       {name: "Gene", type: "VARCHAR", intermediateIsArray: []},
+     *       {name: "Dose.Unit", type: "VARCHAR", intermediateIsArray: [true]},
+     *       {name: "Dose.Value", type: "DOUBLE", intermediateIsArray: [true]}
+     *     ]
+     * The intermediateIsArray tracks whether each non-leaf intermediate (excluding the final
+     * leaf itself) was an array type. This is combined with the root's array-ness by the caller.
+     */
+    public static parseStructFields(
+        dataType: string
+    ): { name: string; type: string; intermediateIsArray: boolean[] }[] {
+        const topLevel = DatabaseService.parseStructFieldsShallow(dataType);
+        const result: { name: string; type: string; intermediateIsArray: boolean[] }[] = [];
+        for (const field of topLevel) {
+            if (DatabaseService.isStructType(field.type)) {
+                const isArray = field.type.trimEnd().endsWith("[]");
+                // Recurse into nested STRUCT
+                const nested = DatabaseService.parseStructFields(field.type);
+                for (const sub of nested) {
+                    result.push({
+                        name: `${field.name}.${sub.name}`,
+                        type: sub.type,
+                        intermediateIsArray: [isArray, ...sub.intermediateIsArray],
+                    });
+                }
+            } else {
+                result.push({ name: field.name, type: field.type, intermediateIsArray: [] });
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Parse only the immediate (top-level) fields from a DuckDB STRUCT type string.
+     */
+    private static parseStructFieldsShallow(dataType: string): { name: string; type: string }[] {
+        // Strip trailing [] for STRUCT[] types
+        const structDef = dataType.replace(/\[\]$/, "").trim();
+        // Extract the content inside STRUCT(...)
+        const match = structDef.match(/^STRUCT\((.+)\)$/i);
+        if (!match) return [];
+
+        const fields: { name: string; type: string }[] = [];
+        const content = match[1];
+        // Parse field definitions, handling nested parens (e.g. STRUCT within STRUCT)
+        let depth = 0;
+        let current = "";
+        for (const char of content) {
+            if (char === "(") depth++;
+            else if (char === ")") depth--;
+            else if (char === "," && depth === 0) {
+                const field = DatabaseService.parseStructFieldDef(current.trim());
+                if (field) fields.push(field);
+                current = "";
+                continue;
+            }
+            current += char;
+        }
+        // Last field
+        const lastField = DatabaseService.parseStructFieldDef(current.trim());
+        if (lastField) fields.push(lastField);
+
+        return fields;
+    }
+
+    private static isStructType(type: string): boolean {
+        return /^STRUCT\(/i.test(type.replace(/\[\]$/, "").trim());
+    }
+
+    private static parseStructFieldDef(fieldDef: string): { name: string; type: string } | null {
+        // Field format: `fieldName TYPE` or `"fieldName" TYPE`
+        const quoted = fieldDef.match(/^"([^"]+)"\s+(.+)$/);
+        if (quoted) return { name: quoted[1], type: quoted[2].trim() };
+        const unquoted = fieldDef.match(/^(\S+)\s+(.+)$/);
+        if (unquoted) return { name: unquoted[1], type: unquoted[2].trim() };
+        return null;
     }
 
     private static truncateString(str: string, length: number): string {
@@ -1167,17 +1255,52 @@ export default abstract class DatabaseService {
                 this.fetchAnnotationTypes(),
             ]);
 
-            const annotations = rows.map(
-                (row) =>
-                    new Annotation({
-                        annotationName: row["column_name"],
-                        annotationDisplayName: row["column_name"],
-                        description: annotationNameToDescriptionMap[row["column_name"]] || "",
-                        type:
-                            (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
-                            DatabaseService.columnTypeToAnnotationType(row["data_type"]),
-                    })
-            );
+            const annotations: Annotation[] = [];
+            for (const row of rows) {
+                const columnName = row["column_name"];
+                const dataType = row["data_type"] as string;
+                const explicitType = annotationNameToTypeMap[columnName] as AnnotationType;
+                const resolvedType =
+                    explicitType || DatabaseService.columnTypeToAnnotationType(dataType);
+
+                if (resolvedType === AnnotationType.NESTED) {
+                    // Mark parent as nested
+                    annotations.push(
+                        new Annotation({
+                            annotationDisplayName: columnName,
+                            path: [columnName],
+                            description: annotationNameToDescriptionMap[columnName] || "",
+                            type: AnnotationType.NESTED,
+                        })
+                    );
+                    // The root column itself is an array (STRUCT[])
+                    const rootIsArray = dataType.trimEnd().endsWith("[]");
+                    // Parse STRUCT fields recursively and create sub-field annotations
+                    const subFields = DatabaseService.parseStructFields(dataType);
+                    for (const field of subFields) {
+                        const fieldParts = field.name.split(".");
+                        // pathIsArray: [rootIsArray, ...intermediate array flags]
+                        const pathIsArray = [rootIsArray, ...field.intermediateIsArray];
+                        annotations.push(
+                            new Annotation({
+                                path: [columnName, ...fieldParts],
+                                description: "",
+                                type: DatabaseService.columnTypeToAnnotationType(field.type),
+                                pathIsArray,
+                            })
+                        );
+                    }
+                } else {
+                    annotations.push(
+                        new Annotation({
+                            annotationDisplayName: columnName,
+                            path: [columnName],
+                            description: annotationNameToDescriptionMap[columnName] || "",
+                            type: resolvedType,
+                        })
+                    );
+                }
+            }
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);
         }
 
@@ -1224,7 +1347,7 @@ export default abstract class DatabaseService {
         }
     }
 
-    public async fetchAnnotationTypes(): Promise<Record<string, string>> {
+    public async fetchAnnotationTypes(): Promise<Record<string, AnnotationType>> {
         // Unless we have actually added the source metadata table we can't fetch the types
         if (!this.sourceMetadataName || !this.existingDataSources.has(this.sourceMetadataName)) {
             return {};
@@ -1240,7 +1363,7 @@ export default abstract class DatabaseService {
             return rows.reduce(
                 (map, row) =>
                     DatabaseService.ANNOTATION_TYPE_SET.has(row["Type"])
-                        ? { ...map, [row["Column Name"]]: row["Type"] }
+                        ? { ...map, [row["Column Name"]]: row["Type"] as AnnotationType }
                         : // Ignore row if invalid annotation type
                           map,
                 {}

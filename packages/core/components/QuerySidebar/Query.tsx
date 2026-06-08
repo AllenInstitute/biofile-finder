@@ -31,7 +31,9 @@ interface QueryProps {
 export default function Query(props: QueryProps) {
     const dispatch = useDispatch();
     const queries = useSelector(selection.selectors.getQueries);
-    const annotations = useSelector(metadata.selectors.getSortedAnnotations);
+    const annotationNameToAnnotationMap = useSelector(
+        metadata.selectors.getAnnotationNameToAnnotationMap
+    );
     const currentQueryParts = useSelector(selection.selectors.getCurrentQueryParts);
 
     const shouldHaveDataSource = !!window.location.search;
@@ -169,11 +171,7 @@ export default function Query(props: QueryProps) {
                     <p className={styles.displayRow}>
                         <strong>Group by:</strong>{" "}
                         {queryComponents.hierarchy
-                            .map(
-                                (a) =>
-                                    annotations.find((annotation) => annotation.name === a)
-                                        ?.displayName || a
-                            )
+                            .map((a) => annotationNameToAnnotationMap.get(a)?.displayName ?? a)
                             .join(", ")}
                     </p>
                 )}

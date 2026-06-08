@@ -3,7 +3,7 @@ import { map } from "lodash";
 import IMMUTABLE_ANNOTATION_NAMES from "./immutableAnnotationNames";
 import AnnotationService, { AnnotationDetails, AnnotationValue } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
-import Annotation, { AnnotationResponse, AnnotationResponseMms } from "../../../entity/Annotation";
+import Annotation, { AnnotationResponseMms } from "../../../entity/Annotation";
 import { AnnotationType, AnnotationTypeIdMap } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
@@ -36,7 +36,13 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
     public async fetchAnnotations(): Promise<Annotation[]> {
         const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}${this.pathSuffix}`;
 
-        const response = await this.get<AnnotationResponse>(requestUrl);
+        const response = await this.get<{
+            annotationId: number;
+            annotationName: string;
+            annotationDisplayName: string;
+            description: string;
+            type: AnnotationType;
+        }>(requestUrl);
         return [
             ...TOP_LEVEL_FILE_ANNOTATIONS,
             ...map(
@@ -44,6 +50,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
                 (annotationResponse) =>
                     new Annotation({
                         ...annotationResponse,
+                        path: [annotationResponse.annotationName],
                         isImmutable: IMMUTABLE_ANNOTATION_NAMES.has(
                             annotationResponse.annotationName
                         ),
@@ -197,15 +204,12 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
 
         try {
             const requestUrl = `${this.metadataManagementServiceBaseURl}/${HttpAnnotationService.BASE_MMS_ANNOTATION_URL}/`;
-            const type = annotation.type as AnnotationType;
-            const annotationTypeId =
-                type in AnnotationTypeIdMap
-                    ? AnnotationTypeIdMap[type as AnnotationType.STRING]
-                    : AnnotationTypeIdMap[AnnotationType.STRING];
             const response = await this.post<AnnotationResponseMms>(
                 requestUrl,
                 JSON.stringify({
-                    annotationTypeId,
+                    annotationTypeId:
+                        AnnotationTypeIdMap[annotation.type] ||
+                        AnnotationTypeIdMap[AnnotationType.STRING],
                     annotationOptions,
                     description: annotation.description,
                     name: annotation.name,

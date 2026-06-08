@@ -1,4 +1,4 @@
-import { defaults, find, pull, take, uniqWith, zip } from "lodash";
+import { defaults, pull, take, uniqWith, zip } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
@@ -15,7 +15,6 @@ import {
 } from "./directory-hierarchy-state";
 import { findChildNodes } from "./findChildNodes";
 import FileList from "../FileList";
-import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import { ValueError } from "../../errors";
@@ -101,7 +100,7 @@ const useDirectoryHierarchy = (
         params,
         DEFAULTS
     );
-    const annotations = useSelector(metadata.selectors.getAnnotations);
+    const annotationByName = useSelector(metadata.selectors.getAnnotationNameToAnnotationMap);
     const hierarchy = useSelector(selection.selectors.getAnnotationHierarchy);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const fileService = useSelector(interaction.selectors.getFileService);
@@ -151,10 +150,6 @@ const useDirectoryHierarchy = (
                 try {
                     const depth = pathToNode.length;
                     const annotationNameAtDepth = hierarchy[depth];
-                    const annotationAtDepth = find(
-                        annotations,
-                        (annotation) => annotation.name === annotationNameAtDepth
-                    );
                     const allChildNodes = await findChildNodes({
                         ancestorNodes,
                         currentNode,
@@ -164,6 +159,7 @@ const useDirectoryHierarchy = (
                         fileService,
                         shouldShowNullGroups,
                     });
+
                     const nodes = allChildNodes.map((value, idx) => {
                         let childNodeSortOrder: number;
                         if (isRoot) {
@@ -185,14 +181,15 @@ const useDirectoryHierarchy = (
                             take(hierarchy, depth + 1),
                             take(pathToChildNode, depth + 1)
                         ).map((pair) => {
-                            const [name, value] = pair as [string, string];
-                            const annotationType = annotations.find((ann) => ann.name === name)
-                                ?.type;
+                            const [name, filterValue] = pair as [string, string];
+                            const annotationMeta = annotationByName.get(name);
+                            const path = annotationMeta?.path ?? name.split(".");
                             return new FileFilter(
-                                name,
-                                value,
+                                path,
+                                filterValue,
                                 FilterType.DEFAULT,
-                                annotationType as AnnotationType
+                                annotationMeta?.type,
+                                annotationMeta?.pathIsArray
                             );
                         });
                         // If we are grouping by a field (e.g., barcode)
@@ -216,6 +213,7 @@ const useDirectoryHierarchy = (
                             sort: sortColumn,
                         });
 
+                        const annotationAtDepth = annotationByName.get(annotationNameAtDepth);
                         const displayValue =
                             value === NO_VALUE_NODE
                                 ? `No value ("${hierarchy[depth]}")`
@@ -256,7 +254,7 @@ const useDirectoryHierarchy = (
         };
     }, [
         ancestorNodes,
-        annotations,
+        annotationByName,
         annotationService,
         currentNode,
         collapsed,

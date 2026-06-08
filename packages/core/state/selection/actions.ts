@@ -84,18 +84,15 @@ export const CHANGE_FILE_FILTER_TYPE = makeConstant(STATE_BRANCH_NAME, "change-f
 
 export interface ChangeFileFilterTypeAction {
     payload: {
-        annotationName: string;
+        path: string[];
         type: FilterType;
     };
     type: string;
 }
 
-export function changeFileFilterType(
-    annotationName: string,
-    type: FilterType
-): ChangeFileFilterTypeAction {
+export function changeFileFilterType(path: string[], type: FilterType): ChangeFileFilterTypeAction {
     return {
-        payload: { annotationName, type },
+        payload: { path, type },
         type: CHANGE_FILE_FILTER_TYPE,
     };
 }
@@ -139,7 +136,7 @@ export function setSortColumn(fileSort?: FileSort): SetSortColumnAction {
 }
 
 export interface Column {
-    name: string;
+    name: string; // TODO: "name" is a misnomer at this point, should be "key" or something since it may not be display-friendly
     width: number; // percent between 0 and 1
 }
 

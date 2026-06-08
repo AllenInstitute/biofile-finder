@@ -16,8 +16,7 @@ import { Environment } from "../../../constants";
 
 describe("<LazilyRenderedRow />", () => {
     const fileNameAnnotation = new Annotation({
-        annotationDisplayName: "Name",
-        annotationName: "file_name",
+        path: ["file_name"],
         description: "name of file",
         type: AnnotationType.STRING,
     });

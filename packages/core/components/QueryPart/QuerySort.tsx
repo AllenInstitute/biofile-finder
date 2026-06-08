@@ -18,15 +18,13 @@ interface Props {
 export default function QuerySort(props: Props) {
     const dispatch = useDispatch();
 
-    const annotationNameToAnnotationMap = useSelector(
-        metadata.selectors.getAnnotationNameToAnnotationMap
-    );
+    const pathToAnnotationMap = useSelector(metadata.selectors.getAnnotationNameToAnnotationMap);
 
     const onToggleSortOrder = () => {
         if (props.sort) {
             const oppositeOrder =
                 props.sort.order === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC;
-            const newSort = new FileSort(props.sort.annotationName, oppositeOrder);
+            const newSort = new FileSort(props.sort.path, oppositeOrder);
             dispatch(selection.actions.setSortColumn(newSort));
         }
     };
@@ -42,13 +40,20 @@ export default function QuerySort(props: Props) {
             rows={
                 props.sort
                     ? [
-                          {
-                              id: props.sort.annotationName,
-                              title: `${props.sort.annotationName} (${props.sort.order})`,
-                              description:
-                                  annotationNameToAnnotationMap[props.sort.annotationName]
-                                      ?.description,
-                          },
+                          (() => {
+                              const annotation = pathToAnnotationMap.get(props.sort.annotationName);
+                              // Prefer the annotation's displayName so FMS top-level fields
+                              // show "File Name" rather than the raw key "file_name".
+                              const leafLabel =
+                                  annotation?.displayName ??
+                                  props.sort.path[props.sort.path.length - 1];
+                              return {
+                                  id: props.sort.annotationName,
+                                  title: `${leafLabel} (${props.sort.order})`,
+                                  titlePrefixParts: props.sort.path.slice(0, -1),
+                                  description: annotation?.description,
+                              };
+                          })(),
                       ]
                     : []
             }
@@ -56,11 +61,11 @@ export default function QuerySort(props: Props) {
                 <AnnotationPicker
                     disableUnavailableAnnotations
                     title="Select metadata to sort by"
-                    selections={props.sort?.annotationName ? [props.sort.annotationName] : []}
+                    selections={props.sort ? [props.sort.path] : []}
                     setSelections={(annotations) => {
-                        const newAnnotation = annotations.filter(
-                            (annotation) => annotation !== props.sort?.annotationName
-                        )[0];
+                        const newAnnotation = annotations.find(
+                            (a) => a.join(".") !== props.sort?.annotationName
+                        );
                         dispatch(
                             selection.actions.setSortColumn(
                                 newAnnotation

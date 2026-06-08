@@ -217,8 +217,8 @@ describe("Interaction logics", () => {
             // arrange
             const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
             const filters = [
-                new FileFilter("Cell Line", "AICS-12"),
-                new FileFilter("Notes", "Hello"),
+                new FileFilter(["Cell Line"], "AICS-12"),
+                new FileFilter(["Notes"], "Hello"),
             ];
             sandbox.stub(fileSelection, "toCompactSelectionList").throws("Test failed");
             const state = mergeState(initialState, {
@@ -707,14 +707,14 @@ describe("Interaction logics", () => {
         const mockAnnotations = [
             new Annotation({
                 annotationDisplayName: AnnotationName.KIND,
-                annotationName: AnnotationName.KIND,
+                path: [AnnotationName.KIND],
                 description: "",
                 type: AnnotationType.STRING,
                 annotationId: 0,
             }),
             new Annotation({
                 annotationDisplayName: "Cell Line",
-                annotationName: "Cell Line",
+                path: ["Cell Line"],
                 description: "",
                 type: AnnotationType.STRING,
                 annotationId: 1,
@@ -805,7 +805,7 @@ describe("Interaction logics", () => {
             store.dispatch(
                 editFiles(
                     { "Cell Line": ["AICS-12"] },
-                    [new FileFilter(AnnotationName.KIND, "PNG")],
+                    [new FileFilter([AnnotationName.KIND], "PNG")],
                     "Test"
                 )
             );
@@ -1170,7 +1170,7 @@ describe("Interaction logics", () => {
             // Arrange
             sandbox.stub(interaction.selectors, "getAnnotationService").throws();
             const expectedAnnotation = new Annotation({
-                annotationName: "Failure",
+                path: ["Failure"],
                 annotationDisplayName: "Failure",
                 type: AnnotationType.BOOLEAN,
                 description: "Test annotation for failure",

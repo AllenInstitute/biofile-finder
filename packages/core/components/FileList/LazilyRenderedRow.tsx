@@ -4,10 +4,10 @@ import { map } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
+import { OnSelect } from "./useFileSelector";
 import FileRow from "../../components/FileRow";
 import FileSet from "../../entity/FileSet";
 import { metadata, selection } from "../../state";
-import { OnSelect } from "./useFileSelector";
 
 import styles from "./LazilyRenderedRow.module.css";
 
@@ -41,9 +41,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
 
     const columns = useSelector(selection.selectors.getColumns);
     const isSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
-    const annotationNameToAnnotationMap = useSelector(
-        metadata.selectors.getAnnotationNameToAnnotationMap
-    );
+    const pathToAnnotationMap = useSelector(metadata.selectors.getAnnotationNameToAnnotationMap);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
 
     const file = fileSet.getFileByIndex(index);
@@ -66,7 +64,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
             <FileRow
                 cells={map(columns, (column) => ({
                     columnKey: column.name,
-                    displayValue: annotationNameToAnnotationMap[column.name]?.extractFromFile(file),
+                    displayValue: pathToAnnotationMap.get(column.name)?.extractFromFile(file),
                     width: column.width,
                 }))}
                 rowIdentifier={{ index, id: file.uid }}

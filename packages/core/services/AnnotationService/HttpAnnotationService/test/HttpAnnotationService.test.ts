@@ -129,7 +129,7 @@ describe("HttpAnnotationService", () => {
                 fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient,
             });
-            const filter = new FileFilter("bar", "barValue");
+            const filter = new FileFilter(["bar"], "barValue");
             const values = await annotationService.fetchRootHierarchyValues(["foo"], [filter]);
             expect(values).to.equal(expectedValues);
         });
@@ -174,7 +174,7 @@ describe("HttpAnnotationService", () => {
                 fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient,
             });
-            const filter = new FileFilter("bar", "barValue");
+            const filter = new FileFilter(["bar"], "barValue");
             const values = await annotationService.fetchHierarchyValuesUnderPath(
                 ["foo", "bar"],
                 ["baz"],
