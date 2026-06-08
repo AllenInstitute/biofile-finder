@@ -22,7 +22,7 @@ export default function useAnnotationValues(
                 const firstValue = keyValues?.[0];
                 // If the annotation doesn't exist or isn't an array of primitive values, skip it.
                 // Otherwise, add all of its values to the list of values for this annotation.
-                if (isNil(firstValue) || !isObject(firstValue)) return acc;
+                if (isNil(firstValue) || isObject(firstValue)) return acc;
                 return [...acc, ...(keyValues as PrimitiveMetadataValue[])];
             }, [] as PrimitiveMetadataValue[]);
             setValues(uniq(allValues));
