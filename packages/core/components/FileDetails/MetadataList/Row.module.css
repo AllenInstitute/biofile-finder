@@ -26,6 +26,7 @@
 .key {
     /* flex child */
     flex: 1 1 40%;
+    overflow: hidden;
 
     display: flex;
     font-weight: 500;
@@ -34,6 +35,8 @@
 
 .key > span:last-child {
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .key-value {
