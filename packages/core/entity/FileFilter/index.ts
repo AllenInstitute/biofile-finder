@@ -193,6 +193,12 @@ export default class FileFilter {
                 if (this.valueType === AnnotationType.DURATION) {
                     return SQLBuilder.durationEquals(`"${columnName}"`, this.value);
                 }
+                if (this.valueType === AnnotationType.NUMBER) {
+                    // Compare numerically to avoid float/string mismatch: DuckDB stores
+                    // numbers as DOUBLE (e.g. 1.0) but folder paths use string values
+                    // (e.g. "1"), so a regex match on "1" would never match "1.0".
+                    return `CAST("${columnName}" AS DOUBLE) = TRY_CAST('${this.value}' AS DOUBLE)`;
+                }
                 return SQLBuilder.regexMatchValueInList(columnName, this.value);
             }
         }
