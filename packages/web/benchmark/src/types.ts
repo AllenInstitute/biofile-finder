@@ -8,11 +8,14 @@ export interface ParquetSource {
     label: string;
 }
 
+export type TestCase = ParquetSource[];
+
 /** Injected as window.__benchmarkConfig before the page loads. */
 export interface BenchmarkConfig {
-    sources: ParquetSource[];
+    testCases: TestCase[];
     iterations?: number;
     warmupRounds?: number;
+    taskFilter?: string[];
 }
 
 export interface QueryResult {
@@ -24,7 +27,7 @@ export interface QueryResult {
 }
 
 export interface SourceResult {
-    label: string;
+    labels: string[];
     registrationMs: number;
     queries: QueryResult[];
 }
@@ -34,5 +37,5 @@ export interface BenchmarkResults {
     commit: string;
     branch: string;
     initTimeMs: number;
-    sources: SourceResult[];
+    results: SourceResult[];
 }

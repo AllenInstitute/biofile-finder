@@ -6,13 +6,30 @@
  * BenchmarkConfig into the page, and returns the BenchmarkResults.
  */
 
-"use strict";
+// This script uses the global window object to communicate with the playwright
+// controller. The type declaration here adds the necessary variables to the
+// window object's type, Window.
+declare global {
+    interface Window {
+        __localFilesRequested: boolean;
+        __pendingLocalFiles: any;
+        __resolveLocalFiles: (
+            value: Record<string, File> | PromiseLike<Record<string, File>>
+        ) => void;
+        __benchmarkResults: BenchmarkResults;
+        __benchmarkError: string;
+    }
+}
 
-const { chromium } = require("playwright");
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const { execSync } = require("child_process");
+import { chromium } from "playwright";
+import type { Page } from "playwright";
+import http from "http";
+import fs from "fs";
+import path from "path";
+import { execSync } from "child_process";
+import { BenchmarkResults, SourceResult, TestCase } from "../../benchmark/src/types";
+import { BENCHMARK_TASKS } from "../../benchmark/src/tasks";
+import { DEFAULT_ITERATIONS, buildQueryResult } from "../../benchmark/src/stats";
 
 const DIST_DIR = path.join(__dirname, "..", "..", "benchmark", "dist");
 const FIXTURES_DIR = path.join(__dirname, "..", "..", "fixtures");
@@ -30,17 +47,20 @@ const MIME = {
     ".parquet": "application/octet-stream",
 };
 
-function mimeFor(filePath) {
+function mimeFor(filePath: string) {
     for (const [ext, type] of Object.entries(MIME)) {
         if (filePath.endsWith(ext)) return type;
     }
     return "application/octet-stream";
 }
 
-function startServer() {
+function startServer(): Promise<
+    http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
+> {
     return new Promise((resolve, reject) => {
         const server = http.createServer((req, res) => {
-            const relPath = req.url === "/" ? "/index.html" : req.url.split("?")[0];
+            const relPath =
+                req.url === "/" || req.url === undefined ? "/index.html" : req.url.split("?")[0];
 
             // Serve fixture files from /fixtures/ — fallback path if file injection fails.
             const fixtureMatch = relPath.match(/^\/fixtures\/(.+)$/);
@@ -117,7 +137,7 @@ function buildBenchmark() {
  * Run the benchmark page with the given config and return the BenchmarkResults.
  *
  * @param {object} options
- * @param {{ url: string, label: string }[]} options.sources  Parquet sources to benchmark.
+ * @param {{ url: string, label: string }[][]} options.testCases Parquet sources to benchmark.
  * @param {boolean} [options.skipBuild=false]                  Skip webpack build.
  * @param {number}  [options.iterations]                        Override timed iteration count.
  * @param {number}  [options.warmupRounds]                      Override warmup round count.
@@ -128,7 +148,21 @@ function buildBenchmark() {
  *                                                              Chromium (default; required for CI).
  * @returns {Promise<object>}  Raw BenchmarkResults from the page.
  */
-async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmupRounds, channel }) {
+export async function runBenchmarkPage({
+    testCases,
+    skipBuild = false,
+    iterations,
+    warmupRounds,
+    channel,
+    taskFilter,
+}: {
+    testCases: TestCase[];
+    skipBuild?: boolean;
+    iterations?: number;
+    warmupRounds?: number;
+    channel?: string;
+    taskFilter?: string[];
+}): Promise<BenchmarkResults> {
     if (!skipBuild) buildBenchmark();
 
     if (!fs.existsSync(path.join(DIST_DIR, "index.html"))) {
@@ -137,11 +171,117 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
         );
     }
 
-    const launchOptions = { headless: true };
-    if (channel) launchOptions.channel = channel;
-
     const server = await startServer();
-    const browser = await chromium.launch(launchOptions);
+
+    try {
+        if (warmupRounds === 0) {
+            return await runColdStartBenchmarks({ testCases, iterations, channel, taskFilter });
+        } else {
+            // Warmups > 0: all test cases share a single browser instance.
+            return await runInBrowser({ testCases, iterations, warmupRounds, channel, taskFilter });
+        }
+    } finally {
+        await new Promise((res) => server.close(res));
+    }
+}
+
+/**
+ * warmupRounds=0 path: each (testCase, task, iteration) triple gets a fresh
+ * browser so every measurement is a cold start.
+ */
+async function runColdStartBenchmarks({
+    testCases,
+    iterations,
+    channel,
+    taskFilter,
+}: {
+    testCases: TestCase[];
+    iterations?: number;
+    channel?: string;
+    taskFilter?: string[];
+}): Promise<BenchmarkResults> {
+    const allTaskNames = taskFilter ?? BENCHMARK_TASKS.map((task) => task.name);
+    const iterationCount = iterations ?? DEFAULT_ITERATIONS;
+
+    let initTimeMs = 0;
+    const sourceResults: SourceResult[] = [];
+
+    for (const testCase of testCases) {
+        let registrationMs = 0;
+
+        console.log(
+            `[playwright] warmupRounds=0: running ${allTaskNames.length} task(s) × ` +
+                `${iterationCount} iteration(s) in separate browser instances`
+        );
+
+        const timingsMap = new Map<string, number[]>(allTaskNames.map((name) => [name, []]));
+
+        for (const taskName of allTaskNames) {
+            for (let i = 0; i < iterationCount; i++) {
+                console.log(
+                    `[playwright] Launching browser for "${taskName}" ` +
+                        `iteration ${i + 1}/${iterationCount} ` +
+                        `(${testCase.map((source) => source.label).join(", ")})`
+                );
+                const run = await runInBrowser({
+                    testCases: [testCase],
+                    iterations: 1,
+                    warmupRounds: 0,
+                    channel,
+                    taskFilter: [taskName],
+                });
+
+                if (initTimeMs === 0) initTimeMs = run.initTimeMs;
+                const runResult = run.results[0];
+                if (registrationMs === 0) registrationMs = runResult.registrationMs;
+
+                const timing = runResult.queries[0]?.timings[0];
+                if (timing !== undefined) {
+                    const timings = timingsMap.get(taskName);
+                    if (!timings) throw Error(`${taskName} not in timingsMap!`);
+                    timings.push(timing);
+                }
+            }
+        }
+
+        sourceResults.push({
+            labels: testCase.map((source) => source.label),
+            registrationMs,
+            queries: allTaskNames.map((name) => buildQueryResult(name, timingsMap.get(name) ?? [])),
+        });
+    }
+
+    return {
+        timestamp: new Date().toISOString(),
+        commit: "unknown",
+        branch: "unknown",
+        initTimeMs,
+        results: sourceResults,
+    };
+}
+
+/**
+ * Launch a single browser, run the benchmark with the given config, and return
+ * the raw BenchmarkResults. Both the warmup>0 path (all test cases) and the
+ * warmup=0 path (one test case + task filter) funnel through here.
+ */
+async function runInBrowser({
+    testCases,
+    iterations,
+    warmupRounds,
+    channel,
+    taskFilter,
+}: {
+    testCases: TestCase[];
+    iterations?: number;
+    warmupRounds?: number;
+    channel?: string;
+    taskFilter?: string[];
+}): Promise<BenchmarkResults> {
+    const browser = await chromium.launch({
+        channel,
+        headless: true,
+    });
 
     try {
         const context = await browser.newContext();
@@ -156,13 +296,14 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
         // synchronously on startup — no callback handshake needed.
         await page.addInitScript({
             content: `window.__benchmarkConfig = ${JSON.stringify({
-                sources,
+                testCases,
                 iterations,
                 warmupRounds,
+                taskFilter,
             })};`,
         });
 
-        console.log(`[playwright] Starting benchmark (${sources.length} source(s))...`);
+        console.log(`[playwright] Starting benchmark (${testCases.length} test case(s))...`);
         await page.goto(`http://localhost:${PORT}/`, { waitUntil: "domcontentloaded" });
 
         // Wait for the benchmark to signal it's ready for file injection
@@ -174,30 +315,7 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
         // The browser reads the file lazily via FileReader (BROWSER_FILEREADER protocol),
         // which is identical to how the real app loads files via the file picker —
         // no HTTP range-request overhead, so DuckDB sort performance matches real-user timing.
-        for (const source of sources) {
-            const localMatch = source.url.match(
-                new RegExp(`^http://localhost:${PORT}/fixtures/(.+)$`)
-            );
-            if (!localMatch) continue;
-            const fixturePath = path.join(FIXTURES_DIR, localMatch[1]);
-            if (!fs.existsSync(fixturePath)) continue;
-
-            console.log(`[playwright] Injecting ${source.label} via setInputFiles...`);
-            const inputHandle = await page.evaluateHandle(() => {
-                const inp = document.createElement("input");
-                inp.type = "file";
-                document.body.appendChild(inp);
-                return inp;
-            });
-            await inputHandle.setInputFiles(fixturePath);
-            await page.evaluate((label) => {
-                const inputs = document.querySelectorAll("input[type=file]");
-                const inp = inputs[inputs.length - 1];
-                window.__pendingLocalFiles = window.__pendingLocalFiles || {};
-                window.__pendingLocalFiles[label] = inp.files[0];
-                inp.remove();
-            }, source.label);
-        }
+        await injectFixtures(page, testCases);
 
         // Signal the benchmark to proceed with injected File objects
         await page.evaluate(() => {
@@ -220,7 +338,39 @@ async function runBenchmarkPage({ sources, skipBuild = false, iterations, warmup
         return await page.evaluate(() => window.__benchmarkResults);
     } finally {
         await browser.close();
-        await new Promise((res) => server.close(res));
+    }
+}
+
+async function injectFixtures(page: Page, testCases: TestCase[]) {
+    const loaded = new Set<string>();
+    for (const source of testCases.flat()) {
+        if (loaded.has(source.label)) continue; // Don't add duplicate sources
+        const localMatch = source.url.match(new RegExp(`^http://localhost:${PORT}/fixtures/(.+)$`));
+        if (!localMatch) continue;
+        const fixturePath = path.join(FIXTURES_DIR, localMatch[1]);
+        if (!fs.existsSync(fixturePath)) continue;
+
+        console.log(`[playwright] Injecting ${source.label} via setInputFiles...`);
+        const inputHandle = await page.evaluateHandle(() => {
+            const inp: HTMLInputElement = document.createElement("input");
+            inp.type = "file";
+            document.body.appendChild(inp);
+            return inp;
+        });
+        await inputHandle.setInputFiles(fixturePath);
+        await page.evaluate((label) => {
+            const inputs: NodeListOf<HTMLInputElement> = document.querySelectorAll(
+                "input[type=file]"
+            );
+            const inp = inputs[inputs.length - 1];
+            window.__pendingLocalFiles = window.__pendingLocalFiles || {};
+            if (!inp.files) {
+                throw new Error(`Injected file not found for ${label}.`);
+            }
+            window.__pendingLocalFiles[label] = inp.files[0];
+            inp.remove();
+        }, source.label);
+        loaded.add(source.label);
     }
 }
 
