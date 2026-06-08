@@ -1,5 +1,6 @@
 import { IContextualMenuItem } from "@fluentui/react";
 import classNames from "classnames";
+import { isNil, isObject } from "lodash";
 import * as React from "react";
 
 import ContentLengthToggle from "./ContentLengthToggle";
@@ -48,7 +49,9 @@ export default function Section(props: Props) {
 }
 
 /**
- * Helper component to render section entries sorted by their name.
+ * Helper component to render section entries sorted by:
+ * 1) If the key represents primitive values vs nested values (primitive values first, then nested values)
+ * 2) Alphabetical order of the keys
  */
 const collator = new Intl.Collator("en");
 function SortedSectionEntry(props: {
@@ -58,7 +61,15 @@ function SortedSectionEntry(props: {
     return (
         <>
             {Object.entries(props.row)
-                .sort(([keyA], [keyB]) => collator.compare(keyA, keyB))
+                .sort(([keyA, arrayA], [keyB, arrayB]) => {
+                    const valueA = arrayA.length > 0 ? arrayA[0] : undefined;
+                    const valueB = arrayB.length > 0 ? arrayB[0] : undefined;
+                    const isGroupA = !isNil(valueA) && isObject(valueA);
+                    const isGroupB = !isNil(valueB) && isObject(valueB);
+                    if (!isGroupA && isGroupB) return -1;
+                    if (isGroupA && !isGroupB) return 1;
+                    return collator.compare(keyA, keyB);
+                })
                 .map(([key, value]) => (
                     <props.renderer key={key} name={key} value={value} />
                 ))}
