@@ -1,6 +1,6 @@
 .row-container {
     border-bottom: 2px solid var(--border-color);
-    padding-top: 8px
+    padding-top: 8px;
 }
 
 .row {
