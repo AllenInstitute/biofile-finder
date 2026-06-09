@@ -9,10 +9,12 @@ import SQLBuilder from "../../../../core/entity/SQLBuilder";
 import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 import { DatabaseService } from "../../../../core/services";
-import { initializeDuckDB } from "../../../../core/services/DatabaseService";
+import { CancellablePromise, initializeDuckDB } from "../../../../core/services/DatabaseService";
 
 declare const self: DedicatedWorkerGlobalScope & typeof globalThis;
 let databaseService: DatabaseServiceWebWorker | null = null;
+let queryTimingEnabled = false;
+const accumulatedTimings = new Map<string, number[]>();
 
 // Map to track connectionNumber -> connection object
 const activeConnections = new Map<number, duckdb.AsyncDuckDBConnection>();
@@ -44,7 +46,8 @@ function cancelActiveConnection(connection: duckdb.AsyncDuckDBConnection): void 
 type MessageHandler<T extends WorkerMsgType> = (payload: WorkerReqPayload<T>) => Promise<void>;
 
 const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
-    [WorkerMsgType.INIT]: async () => {
+    [WorkerMsgType.INIT]: async (payload) => {
+        queryTimingEnabled = payload?.queryTiming ?? false;
         if (!databaseService) await initDuckDB();
         self.postMessage({ type: WorkerResType.READY });
     },
@@ -239,13 +242,11 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
         await this.prepareDataSource(dataSource, skipNormalization);
     }
 
-    public query(
-        sql: string
-    ): { promise: Promise<QueryRow[]>; cancel?: (reason?: string) => void } {
-        return { promise: this.queryWorker(sql) };
+    public query<T = QueryRow>(sql: string): CancellablePromise<T[]> {
+        return { promise: this.queryWorker<T>(sql) };
     }
 
-    public async queryWorker(sql: string, queryId?: string): Promise<QueryRow[]> {
+    public async queryWorker<T = QueryRow>(sql: string, queryId?: string): Promise<T[]> {
         if (!this.database) {
             throw new Error("DuckDB not initialized");
         }
@@ -260,8 +261,26 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                 type: WorkerResType.STARTED,
                 payload: { connectionId, id: queryId },
             });
+        const t0 = queryTimingEnabled ? performance.now() : 0;
         try {
             const result = await connection.query(sql);
+            if (queryTimingEnabled) {
+                const elapsed = performance.now() - t0;
+                // Service-layer methods prefix SQL with a `-- label\n` comment so timings
+                // can be grouped by logical operation rather than raw SQL text.
+                const labelMatch = sql.match(/^--\s*(.+)\n/);
+                const label = labelMatch ? labelMatch[1].trim() : "query";
+                const existing = accumulatedTimings.get(label) ?? [];
+                accumulatedTimings.set(label, [...existing, elapsed]);
+                // Strip the label comment from the first line, collapse whitespace,
+                // and truncate so the console log stays readable.
+                const body = sql
+                    .replace(/^--[^\n]*\n/, "") // remove `-- label\n` prefix
+                    .replace(/\s+/g, " ") // collapse newlines/indentation
+                    .trim()
+                    .slice(0, 200);
+                console.log(`[duckdb] ${elapsed}ms — [${label}] ${body}`);
+            }
 
             // Apache Arrow JS (used by duckdb-wasm) only reads the first 8 bytes, losing the nanoseconds.
             // Re-run with INTERVAL columns cast to ms integers so the data survives Arrow.
@@ -291,6 +310,31 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             await connection.close();
             activeConnections.delete(connectionId);
         }
+    }
+
+    // Benchmark-facing activation path. The production path passes queryTiming via the
+    // INIT payload (read from localStorage) so the flag is set before any queries run.
+    public enableQueryTiming(): void {
+        queryTimingEnabled = true;
+    }
+
+    // Benchmark only — clears the in-memory annotation cache so each timed iteration
+    // hits DuckDB rather than returning a cached result from a prior warmup pass.
+    public clearAnnotationCache(sourceName: string): void {
+        this.dataSourceToAnnotationsMap.delete(sourceName);
+    }
+
+    public clearTimings(): void {
+        accumulatedTimings.clear();
+    }
+
+    /** Sum of all accumulated DuckDB query times across all labels since last clearTimings(). */
+    public sumTimings(): number {
+        let total = 0;
+        accumulatedTimings.forEach((values) => {
+            total += values.reduce((a, b) => a + b, 0);
+        });
+        return total;
     }
 
     // public wrapper so that the worker can access the function

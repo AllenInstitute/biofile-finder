@@ -9,6 +9,7 @@ import { Column } from "../../state/selection/actions";
 // used as a fallback when calculating column widths based on content,
 // and as the default width when resetting column widths
 export const DEFAULT_COLUMN_WIDTH = 150;
+export const MINIMUM_COLUMN_WIDTH = 50; // px; somewhat arbitrary;
 
 // These values CANNOT change otherwise it would break compatibility
 // with any existing URLs that use these in the encoding
@@ -100,8 +101,8 @@ enum URLQueryArgShorthands {
 }
 
 class ColumnCoder {
-    private static readonly COLUMN_DELIMETER = ",";
-    private static readonly VALUE_DELIMETER = ":";
+    private static readonly COLUMN_DELIMITER = ",";
+    private static readonly VALUE_DELIMITER = ":";
     private static readonly COLUMN_VALUE_PRECISION = 10; // The divisor used when encoding column widths to shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths
 
     public static encode(columns: Column[]): string {
@@ -111,29 +112,29 @@ class ColumnCoder {
                 // this is an arbitrary choice to balance URL length with precision of column widths
                 .map(
                     (column) =>
-                        `${column.name}${ColumnCoder.VALUE_DELIMETER}${Math.ceil(
+                        `${column.name}${ColumnCoder.VALUE_DELIMITER}${Math.ceil(
                             column.width / ColumnCoder.COLUMN_VALUE_PRECISION
                         )}`
                 )
                 // Arbitrary limit to prevent URLs from getting too long;
                 // if users have more than 6 columns they can resize and reorder them in-app after loading the URL
                 .slice(0, 6)
-                .join(ColumnCoder.COLUMN_DELIMETER)
+                .join(ColumnCoder.COLUMN_DELIMITER)
         );
     }
 
     public static decode(encoded: string): Column[] {
         return encoded
-            .split(ColumnCoder.COLUMN_DELIMETER)
+            .split(ColumnCoder.COLUMN_DELIMITER)
             .filter((unparsedColumn) => !!unparsedColumn)
             .map((unparsedColumn) => {
-                const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMETER);
+                const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMITER);
                 const parsedWidth = parseFloat(widthAsStr);
                 // The column width was previously encoded as a number between 0 and 1 representing the percentage of available
                 // space the column should take up, but this was difficult to work with and unintuitive for users.
                 // Now we encode the actual pixel width, which is more straightforward to understand and work with when manually editing URLs.
                 // To maintain backwards compatibility with existing URLs, we continue to support previously encoded widths as percentages,
-                // but we convert them to pixel widths in the encoding process.
+                // but we default them to a default column width in pixels in the decoding process.
                 // Also, multiply the parsedWidth by COLUMN_VALUE_PRECISION because it is encoded as the actual width divided by COLUMN_VALUE_PRECISION to
                 // shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths.
                 const width =

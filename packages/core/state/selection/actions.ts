@@ -153,7 +153,7 @@ export const RESIZE_COLUMN = makeConstant(STATE_BRANCH_NAME, "resize-column");
 export interface ResizeColumnAction {
     payload: {
         name: string;
-        width?: number; // width in pixels, if not provided, defaults to auto-sizing bsaed on content
+        width?: number; // width in pixels, if not provided, defaults to auto-sizing based on content
     };
     type: string;
 }

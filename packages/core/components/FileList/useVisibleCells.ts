@@ -9,10 +9,12 @@ const OVERSCAN = 200;
 
 /**
  * Custom hook to determine which columns in a FileRow should be rendered based on
- * the current horizontal scroll position and container width. Returns the indices
- * of the first and last visible columns, as well as the amount of left and right padding
- * needed to offset the visible columns within the FileRow. This is used to implement
- * virtualized horizontal scrolling within FileRow, which is necessary to efficiently
+ * the current horizontal scroll position and container width.
+ *
+ * Returns an object containing the visible `columns` to render and `padding`
+ * values for the left and right spacer widths needed to offset those columns
+ * within the FileRow. This is used to implement virtualized horizontal
+ * scrolling within FileRow so large column sets can be rendered efficiently.
  */
 export default function useVisibleColumns() {
     const columns = useSelector(selection.selectors.getColumns);

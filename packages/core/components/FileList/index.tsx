@@ -154,7 +154,7 @@ export default function FileList(props: FileListProps) {
             el.removeEventListener("wheel", onWheel);
             cancelAnimationFrame(rafIdRef.current);
         };
-    }, [totalCount]); // re-attach when totalCount changes (outerRef may remount)
+    }, [fileSet.instanceId, fileView, measuredWidth]);
 
     // Restore horizontal scroll position after InfiniteLoader remounts (e.g., sort changes).
     // The key change unmounts the scrollable container, creating a new one with scrollLeft=0.
@@ -166,7 +166,7 @@ export default function FileList(props: FileListProps) {
         if (target > 0 && Math.abs(el.scrollLeft - target) > 1) {
             el.scrollLeft = target;
         }
-    });
+    }, [fileSet.instanceId, fileView]);
 
     // This hook is responsible for ensuring that if the details pane is currently showing a file row
     // within this FileList the file row shown in the details pane is scrolled into view.

@@ -5,6 +5,7 @@ import interact from "interactjs";
 import * as React from "react";
 
 import Tooltip from "../Tooltip";
+import { MINIMUM_COLUMN_WIDTH } from "../../entity/SearchParams";
 
 import styles from "./Cell.module.css";
 
@@ -38,8 +39,6 @@ enum ResizeDirection {
  * This component uses pixel-based widths for columns.
  */
 export default class Cell extends React.Component<React.PropsWithChildren<CellProps>, CellState> {
-    public static MINIMUM_WIDTH = 50; // px; somewhat arbitrary
-
     public state: CellState = {
         resizeTargetClassName: styles.cursorResizeEitherDirection,
     };
@@ -101,7 +100,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 onDoubleClick={this.onDoubleClick}
                 style={{
                     width: `${provisionalWidth || width}px`,
-                    minWidth: Cell.MINIMUM_WIDTH,
+                    minWidth: MINIMUM_COLUMN_WIDTH,
                 }}
             >
                 <div className={styles.cellContent}>
@@ -125,7 +124,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
             <div
                 className={classNames(styles.cell, this.props.className)}
                 onContextMenu={this.props.onContextMenu}
-                style={{ width: `${this.props.width}px`, minWidth: Cell.MINIMUM_WIDTH }}
+                style={{ width: `${this.props.width}px`, minWidth: MINIMUM_COLUMN_WIDTH }}
                 data-testid={NON_RESIZEABLE_CELL_TEST_ID}
             >
                 <Tooltip content={this.props.title}>
@@ -176,7 +175,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
         if (this.resizeIsAllowed(dx, allowedResizeDirection)) {
             nextState = {
                 ...nextState,
-                provisionalWidth: Math.max(nextWidth, Cell.MINIMUM_WIDTH),
+                provisionalWidth: Math.max(nextWidth, MINIMUM_COLUMN_WIDTH),
             };
         }
 
@@ -206,7 +205,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
             return ResizeDirection.BIGGER_OR_SMALLER;
         }
 
-        if (expectedWidth <= Cell.MINIMUM_WIDTH) {
+        if (expectedWidth <= MINIMUM_COLUMN_WIDTH) {
             return ResizeDirection.BIGGER;
         }
 

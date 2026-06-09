@@ -762,6 +762,8 @@ const setOriginForProvenance = createLogic({
             graph.reset();
             dispatch(refreshGraph());
         } else {
+            // Clear old nodes
+            graph.reset();
             dispatch(expandGraph(file));
         }
         done();

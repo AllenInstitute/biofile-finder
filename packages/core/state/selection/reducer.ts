@@ -228,7 +228,7 @@ export default makeReducer<SelectionStateBranch>(
                         continue;
                     }
                     moving = {
-                        name: matchingSpecialAnnotation.displayName,
+                        name: matchingSpecialAnnotation.name,
                         width: DEFAULT_COLUMN_WIDTH,
                     };
                 }
