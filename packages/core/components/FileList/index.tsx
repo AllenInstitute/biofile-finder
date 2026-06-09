@@ -127,9 +127,22 @@ export default function FileList(props: FileListProps) {
                 setHorizontalScroll({ scrollLeft: el.scrollLeft, containerWidth: el.clientWidth });
             });
         };
+        // Enable diagonal scrolling: the browser/OS may axis-lock trackpad gestures
+        // to one dimension. Wheel events carry the raw deltas for both axes, so we
+        // intercept them and apply both deltaX and deltaY manually.
+        const onWheel = (e: WheelEvent) => {
+            if (e.deltaX !== 0 && e.deltaY !== 0) {
+                e.preventDefault();
+                el.scrollLeft += e.deltaX;
+                el.scrollTop += e.deltaY;
+            }
+        };
+
         el.addEventListener("scroll", onScroll, { passive: true });
+        el.addEventListener("wheel", onWheel, { passive: false });
         return () => {
             el.removeEventListener("scroll", onScroll);
+            el.removeEventListener("wheel", onWheel);
             cancelAnimationFrame(rafIdRef.current);
         };
     }, [fileSet.instanceId, fileView, measuredWidth]);
