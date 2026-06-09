@@ -220,7 +220,7 @@ describe("SearchParams", () => {
                 showNoValueGroups: false,
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
                 sourceMetadata: undefined,
-                prov: undefined,
+                provenanceSource: undefined,
                 provOriginId: undefined,
                 sources: [mockSource],
             };
@@ -245,7 +245,7 @@ describe("SearchParams", () => {
                 showNoValueGroups: false,
                 sortColumn: undefined,
                 sourceMetadata: undefined,
-                prov: undefined,
+                provenanceSource: undefined,
                 provOriginId: undefined,
                 sources: [],
             };
