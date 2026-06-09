@@ -22,11 +22,11 @@ describe("<SearchBoxForm/>", () => {
         );
 
         // Consistency checks
-        expect(getByText("Off")).to.exist;
+        expect(getByText("Enable fuzzy (non-exact) matching")).to.exist;
         expect(onSearch.called).to.equal(false);
 
         // Act
-        fireEvent.click(getByRole("switch"));
+        fireEvent.click(getByRole("checkbox"));
         // Enter values
         fireEvent.change(getByRole("searchbox"), {
             target: {
@@ -41,7 +41,7 @@ describe("<SearchBoxForm/>", () => {
         });
 
         // Assert
-        expect(getByText("On")).to.exist;
+        expect(getByText("Disable fuzzy (non-exact) matching")).to.exist;
         expect(onSearch.called).to.equal(true);
     });
 
@@ -58,12 +58,12 @@ describe("<SearchBoxForm/>", () => {
             />
         );
         // Consistency check
-        expect(getByText("On")).to.exist;
+        expect(getByText("Disable fuzzy (non-exact) matching")).to.exist;
 
         // Act
-        fireEvent.click(getByRole("switch"));
+        fireEvent.click(getByRole("checkbox"));
 
         // Assert
-        expect(getByText("Off")).to.exist;
+        expect(getByText("Enable fuzzy (non-exact) matching")).to.exist;
     });
 });

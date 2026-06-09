@@ -9,7 +9,7 @@ import FileService, { FmsFileAnnotation } from "../../services/FileService";
 const FILE_NODE_WIDTH = 110;
 const FILE_NODE_HEIGHT = 125;
 const METADATA_NODE_WIDTH = 180;
-const METADATA_NODE_HEIGHT = 45;
+const METADATA_NODE_HEIGHT = 90;
 const ROW_SPACING = Math.max(FILE_NODE_HEIGHT, METADATA_NODE_HEIGHT) + 25;
 const COLUMN_SPACING = Math.max(FILE_NODE_WIDTH, METADATA_NODE_WIDTH) + 25;
 
@@ -328,6 +328,13 @@ export default class Graph {
         this.graph = new dagre.graphlib.Graph<FileNode | MetadataNode>()
             .setGraph({ rankdir: "TB" })
             .setDefaultEdgeLabel(() => ({}));
+    }
+
+    /**
+     * Reset the layout of the graph to its default (tree view)
+     */
+    public resetLayout() {
+        dagre.layout(this.graph);
     }
 
     /**
