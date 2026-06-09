@@ -132,7 +132,7 @@ export function getGridPosition(
  */
 function createFileNode(file: FileDetail, isSelected = false): FileNode {
     return {
-        id: file.id, // TODO: This doesn't have to be tied to FMS's ID system, we could be more generic here
+        id: `${file.uid}`, // quotes to stringify
         data: {
             annotation: undefined,
             file,
@@ -444,8 +444,16 @@ export default class Graph {
 
                 // Check this file node for any viable connections
                 const [parentNodes, childNodes] = await Promise.all([
-                    this.getFileNodeConnections(thisNode as FileNode, edgeDefinition.parent),
-                    this.getFileNodeConnections(thisNode as FileNode, edgeDefinition.child),
+                    this.getFileNodeConnections(
+                        thisNode as FileNode,
+                        edgeDefinition.parent,
+                        edgeDefinition.child.name
+                    ),
+                    this.getFileNodeConnections(
+                        thisNode as FileNode,
+                        edgeDefinition.child,
+                        edgeDefinition.parent.name
+                    ),
                 ]);
 
                 // Only generate the edge if the parent and child node both exist
@@ -474,10 +482,16 @@ export default class Graph {
      */
     private async getFileNodeConnections(
         thisNode: FileNode,
-        edgeNode: EdgeNode
+        edgeNode: EdgeNode,
+        lookupType: string // to do: change arg name
     ): Promise<(FileNode | MetadataNode)[]> {
         // The node might just be the current node!
-        const isEdgeNodeThisNode = edgeNode.name === "File ID"; // TODO: Expand this... should there be type of "ID" or "Self" or smthn..?
+        // to do: create const that contains these
+        const isEdgeNodeThisNode =
+            edgeNode.name === "self" ||
+            edgeNode.name == "File ID" ||
+            edgeNode.name == "File Path" ||
+            edgeNode.name == "id"; // TODO: Expand this... should there be type of "ID" or "Self" or smthn..?
         if (isEdgeNodeThisNode) {
             return [thisNode];
         }
@@ -498,13 +512,21 @@ export default class Graph {
         }
 
         return Promise.all(
-            (annotation.values as string[]).map(async (fileId) => {
+            (annotation.values as string[]).map(async (value) => {
                 // Avoid re-requesting the file when possible
-                const node = this.graph.node(fileId);
-                if (node) return node;
-                const file = await this.fileService.getFileByUid(fileId);
-                if (file) return createFileNode(file);
-                throw new Error(`Unable to find file ${fileId}`);
+                // to do: make list a const
+                if (["id", "self", "uid"].includes(lookupType)) {
+                    const node = this.graph.node(value);
+                    if (node) return node;
+                }
+                const file = await this.getFileByValueForAnnotation(lookupType, [value]);
+                if (file) {
+                    // If we've already created a node with the same uid, skip it
+                    const node = this.graph.node(file.uid);
+                    if (node) return node;
+                    return createFileNode(file);
+                }
+                throw new Error(`Unable to find file with value ${value}`);
             })
         );
     }
@@ -558,6 +580,39 @@ export default class Graph {
                 filters: [new FileFilter(annotation.name, annotation.values)],
             }),
         });
+    }
+
+    /**
+     * Get a single file that matches an annotation/value pair
+     */
+    private async getFileByValueForAnnotation(
+        annotationName: string,
+        annotationValue: (string | number | boolean)[]
+    ): Promise<FileDetail | undefined> {
+        let files;
+        try {
+            files = await this.fileService.getFiles({
+                from: 0,
+                limit: 2,
+                fileSet: new FileSet({
+                    fileService: this.fileService,
+                    filters: [new FileFilter(annotationName, annotationValue)],
+                }),
+            });
+        } catch (err) {
+            console.error(
+                `Failed to find file with value ${annotationValue} for annotation ${annotationName}. Error: ${
+                    (err as Error).message
+                }`
+            );
+            return undefined;
+        }
+        if (files.length !== 1) {
+            throw new Error(
+                `Failed to fetch 1 file with value ${annotationValue} for annotation ${annotationName}. Found ${files.length} instead.`
+            );
+        }
+        return files[0];
     }
 
     /**
