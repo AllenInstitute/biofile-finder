@@ -28,7 +28,7 @@ export enum NodeType {
 
 interface EdgeNode {
     name: string;
-    type: "file" | "metadata";
+    type: "file" | "metadata" | "self";
 }
 
 export interface EdgeDefinition {
@@ -481,6 +481,10 @@ export default class Graph {
         );
     }
 
+    private static isNodeAFile(node: EdgeNode): boolean {
+        return node.type === "file" || node.type === "self"; // self refers to the file, so is technically also a file type
+    }
+
     /**
      * Finds all the nodes related to the given file type node
      */
@@ -490,7 +494,9 @@ export default class Graph {
         identifierType: string // if we need to look up the file, which annotation to use (e.g., File Path, File ID)
     ): Promise<(FileNode | MetadataNode)[]> {
         // The node might just be the current node!
-        const isEdgeNodeThisNode = FILE_IDENTIFIERS.includes(edgeNode.name.toLocaleLowerCase());
+        const isEdgeNodeThisNode =
+            edgeNode.type === "self" ||
+            FILE_IDENTIFIERS.includes(edgeNode.name.toLocaleLowerCase());
         if (isEdgeNodeThisNode) {
             return [thisNode];
         }
@@ -505,8 +511,7 @@ export default class Graph {
         // file via an annotation; an example of this is the "Input File" metadata key
         // we have seen users use to note the ID of a file used as input to the segmentation
         // model that generated the current node ("thisNode")
-        const isNodeAFile = edgeNode.type === "file";
-        if (!isNodeAFile) {
+        if (!Graph.isNodeAFile(edgeNode)) {
             return [this.createMetadataNode(thisNode.data.file, annotation)];
         }
 
@@ -547,7 +552,7 @@ export default class Graph {
         // and edges that aren't relevant to this annotation
         const annotationName = thisNode.data.annotation.name;
         const isFileToFileEdge =
-            edgeDefinition.parent.type === "file" && edgeDefinition.child.type === "file";
+            Graph.isNodeAFile(edgeDefinition.parent) && Graph.isNodeAFile(edgeDefinition.child);
         const hasConnectionToThisNode =
             annotationName === edgeDefinition.parent.name ||
             annotationName === edgeDefinition.child.name;
