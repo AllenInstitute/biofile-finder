@@ -709,16 +709,18 @@ export interface SetVisibleModalAction {
     payload: {
         fileFiltersForVisibleModal: FileFilter[];
         visibleModal: ModalType;
+        selectedPipelineId?: string;
     };
 }
 
 export function setVisibleModal(
     visibleModal: ModalType,
-    fileFiltersForVisibleModal: FileFilter[] = []
+    fileFiltersForVisibleModal: FileFilter[] = [],
+    selectedPipelineId?: string
 ): SetVisibleModalAction {
     return {
         type: SET_VISIBLE_MODAL,
-        payload: { visibleModal, fileFiltersForVisibleModal },
+        payload: { visibleModal, fileFiltersForVisibleModal, selectedPipelineId },
     };
 }
 

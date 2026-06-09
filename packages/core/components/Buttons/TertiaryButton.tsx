@@ -16,6 +16,7 @@ interface Props {
     menuItems?: IContextualMenuItem[];
     onClick?: () => void;
     invertColor?: boolean;
+    text?: string;
     title: string;
 }
 
@@ -37,6 +38,7 @@ export default function TertiaryButton(props: Props) {
             menuDirection={props.menuDirection}
             menuItems={props.menuItems}
             onClick={props.onClick}
+            text={props.text}
             title={props.title}
         />
     );
