@@ -302,13 +302,13 @@ describe("DatabaseAnnotationService", () => {
             ]);
 
             // Both annotations should have computed widths (not just DEFAULT_COLUMN_WIDTH)
-            expect(result).to.have.property("Cell Line");
-            expect(result).to.have.property("Gene");
+            expect(result.has("Cell Line")).to.be.true;
+            expect(result.has("Gene")).to.be.true;
             // The width for "Cell Line" should reflect max(20, "Cell Line".length=9) = 20
             // and for "Gene" should reflect max(10, "Gene".length=4) = 10
             // Both should be > MINIMUM_COLUMN_WIDTH
-            expect(result["Cell Line"]).to.be.greaterThan(MINIMUM_COLUMN_WIDTH);
-            expect(result["Gene"]).to.be.greaterThan(MINIMUM_COLUMN_WIDTH);
+            expect(result.get("Cell Line")).to.be.greaterThan(MINIMUM_COLUMN_WIDTH);
+            expect(result.get("Gene")).to.be.greaterThan(MINIMUM_COLUMN_WIDTH);
         });
 
         it("caps width at DEFAULT_COLUMN_WIDTH * 3 when ignoreWidthLimit is false", async () => {
@@ -329,15 +329,16 @@ describe("DatabaseAnnotationService", () => {
                 "LongAnnotation",
             ]);
 
-            expect(result["LongAnnotation"]).to.equal(DEFAULT_COLUMN_WIDTH * 3);
+            expect(result.get("LongAnnotation")).to.equal(DEFAULT_COLUMN_WIDTH * 3);
         });
 
         it("does not cap width when ignoreWidthLimit is true", async () => {
             // Return a very long value length that would exceed the cap
+            const annotationLengthValue = 5_000;
             class MockDatabaseService extends DatabaseServiceNoop {
                 public query(): { promise: Promise<any> } {
                     return {
-                        promise: Promise.resolve([{ LongAnnotation: 500 }]),
+                        promise: Promise.resolve([{ LongAnnotation: annotationLengthValue }]),
                     };
                 }
             }
@@ -351,8 +352,8 @@ describe("DatabaseAnnotationService", () => {
                 true
             );
 
-            // With ignoreWidthLimit=true, width should not be capped
-            expect(result["LongAnnotation"]).to.be.greaterThan(DEFAULT_COLUMN_WIDTH * 3);
+            // With ignoreWidthLimit=true, width should not be capped at DEFAULT_COLUMN_WIDTH * 3
+            expect(result.get("LongAnnotation")).to.be.greaterThan(DEFAULT_COLUMN_WIDTH * 3);
         });
 
         it("falls back to DEFAULT_COLUMN_WIDTH when query fails", async () => {
@@ -370,7 +371,7 @@ describe("DatabaseAnnotationService", () => {
 
             const result = await annotationService.fetchOptimalWidthForAnnotations(["SomeColumn"]);
 
-            expect(result["SomeColumn"]).to.equal(DEFAULT_COLUMN_WIDTH);
+            expect(result.get("SomeColumn")).to.equal(DEFAULT_COLUMN_WIDTH);
         });
 
         it("includes TOP_LEVEL_FILE_ANNOTATIONS with default widths when not in query results", async () => {
@@ -392,8 +393,8 @@ describe("DatabaseAnnotationService", () => {
 
             // All top-level file annotations should be present with default widths
             for (const annotation of TOP_LEVEL_FILE_ANNOTATIONS) {
-                expect(result).to.have.property(annotation.name);
-                expect(result[annotation.name]).to.equal(DEFAULT_COLUMN_WIDTH);
+                expect(result.has(annotation.name)).to.be.true;
+                expect(result.get(annotation.name)).to.equal(DEFAULT_COLUMN_WIDTH);
             }
         });
 
@@ -406,12 +407,12 @@ describe("DatabaseAnnotationService", () => {
             const result = await annotationService.fetchOptimalWidthForAnnotations(["SomeColumn"]);
 
             // fetchLengthiestValues returns {} for empty data sources, so all should be default
-            expect(result["SomeColumn"]).to.equal(DEFAULT_COLUMN_WIDTH);
+            expect(result.get("SomeColumn")).to.equal(DEFAULT_COLUMN_WIDTH);
         });
 
         it("uses annotation name length when it is longer than the longest value", async () => {
-            const veryLongAnnotationName = "VeryLongAnnotationName".repeat(100); // 2400 chars
-            // Annotation name "VeryLongAnnotationName" (2400 chars) > longest value length (5)
+            const veryLongAnnotationName = "VeryLongAnnotationName".repeat(100); // 2200 chars
+            // Annotation name "VeryLongAnnotationName" (2200 chars) > longest value length (51)
             class MockDatabaseService extends DatabaseServiceNoop {
                 public query(): { promise: Promise<any> } {
                     return {
@@ -444,8 +445,8 @@ describe("DatabaseAnnotationService", () => {
 
             // The width for "VeryLongAnnotationName" should be wider because
             // the annotation name is longer than the value
-            expect(resultShortValue[veryLongAnnotationName]).to.be.greaterThan(
-                resultShortName["X"]
+            expect(resultShortValue.get(veryLongAnnotationName)).to.be.greaterThan(
+                resultShortName.get("X") ?? Number.POSITIVE_INFINITY
             );
         });
     });

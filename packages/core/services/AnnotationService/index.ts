@@ -28,6 +28,6 @@ export default interface AnnotationService {
     fetchOptimalWidthForAnnotations(
         annotationNames: string[],
         ignoreWidthLimit?: boolean
-    ): Promise<Record<string, number>>;
+    ): Promise<Map<string, number>>;
     validateAnnotationValues(name: string, values: AnnotationValue[]): Promise<boolean>;
 }

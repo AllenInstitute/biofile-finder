@@ -195,15 +195,15 @@ export default class DatabaseAnnotationService implements AnnotationService {
     }
 
     /**
-     * Fetch the length of the longest value for each annotation, which can be used to compute optimal column widths in the UI.
-     * This is a bit of a hack, but it allows us to avoid fetching all values for an annotation just to compute column widths.
+     * Fetch the optimal width in pixels for a set of annotations based on the length of their longest value
+     * and the annotation name, to help compute column widths in the UI.
      */
     public async fetchOptimalWidthForAnnotations(
         annotationNames: string[],
         ignoreWidthLimit = false
-    ): Promise<Record<string, number>> {
+    ): Promise<Map<string, number>> {
         // Try to fetch values for new annotations to compute optimal column widths
-        const widthByAnnotation: Record<string, number> = {};
+        const widthByAnnotation: Map<string, number> = new Map();
         try {
             const fetchQuery = this.fetchLengthiestValues(annotationNames);
             // Set a timeout on this query in case it takes too long to return,
@@ -231,19 +231,19 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 // Avoid letting width get too small by setting a minimum width
                 // like in the case of canvas measurement failing
                 const width = Math.max(minOptimalWidth, MINIMUM_COLUMN_WIDTH);
-                widthByAnnotation[annotation] = width;
+                widthByAnnotation.set(annotation, width);
             }
         } catch {
             // If fetching values fails entirely, fall through to default widths
         }
         for (const annotationName of annotationNames) {
-            if (!widthByAnnotation.hasOwnProperty(annotationName)) {
-                widthByAnnotation[annotationName] = DEFAULT_COLUMN_WIDTH;
+            if (!widthByAnnotation.has(annotationName)) {
+                widthByAnnotation.set(annotationName, DEFAULT_COLUMN_WIDTH);
             }
         }
         for (const annotation of TOP_LEVEL_FILE_ANNOTATIONS) {
-            if (!widthByAnnotation.hasOwnProperty(annotation.name)) {
-                widthByAnnotation[annotation.name] = DEFAULT_COLUMN_WIDTH;
+            if (!widthByAnnotation.has(annotation.name)) {
+                widthByAnnotation.set(annotation.name, DEFAULT_COLUMN_WIDTH);
             }
         }
         return widthByAnnotation;

@@ -300,7 +300,7 @@ describe("DatabaseService", () => {
                 return Promise.resolve();
             }
 
-            public query(sql: string): { promise: Promise<{ [key: string]: any }[]> } {
+            public query(sql: string): { promise: Promise<any> } {
                 const parquetDescribeMatch = sql.match(
                     /DESCRIBE SELECT \* FROM parquet_scan\("(.+)"\)/
                 );

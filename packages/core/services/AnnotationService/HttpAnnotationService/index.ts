@@ -164,11 +164,16 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
      */
     public async fetchOptimalWidthForAnnotations(
         annotationNames: string[]
-    ): Promise<Record<string, number>> {
-        const widthByAnnotation: Record<string, number> = {};
+    ): Promise<Map<string, number>> {
+        const widthByAnnotation: Map<string, number> = new Map();
         for (const annotationName of annotationNames) {
-            if (!widthByAnnotation.hasOwnProperty(annotationName)) {
-                widthByAnnotation[annotationName] = DEFAULT_COLUMN_WIDTH;
+            if (!widthByAnnotation.has(annotationName)) {
+                widthByAnnotation.set(annotationName, DEFAULT_COLUMN_WIDTH);
+            }
+        }
+        for (const annotation of TOP_LEVEL_FILE_ANNOTATIONS) {
+            if (!widthByAnnotation.has(annotation.name)) {
+                widthByAnnotation.set(annotation.name, DEFAULT_COLUMN_WIDTH);
             }
         }
         return widthByAnnotation;

@@ -64,7 +64,7 @@ import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import Annotation from "../../entity/Annotation";
-import SearchParams from "../../entity/SearchParams";
+import SearchParams, { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -435,7 +435,7 @@ const resizeColumnLogic = createLogic({
                 [column.name],
                 true
             );
-            width = autoSizedWidth[column.name] as number;
+            width = autoSizedWidth.get(column.name) ?? DEFAULT_COLUMN_WIDTH;
         }
 
         dispatch(
