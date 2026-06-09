@@ -13,8 +13,8 @@ const METADATA_NODE_HEIGHT = 90;
 const ROW_SPACING = Math.max(FILE_NODE_HEIGHT, METADATA_NODE_HEIGHT) + 25;
 const COLUMN_SPACING = Math.max(FILE_NODE_WIDTH, METADATA_NODE_WIDTH) + 25;
 
-// Using these in the provenance relationship definitions means we're referring to the file itself
-const NON_ANNOTATION_FILE_IDENTIFIERS = ["self", "id", "uid", ""]; // These indicate to use the file uid, not an actual annotation
+// Using these in the provenance relationship definitions means we're uniquely identifying a file
+const NON_ANNOTATION_FILE_IDENTIFIERS = ["self", "id", "uid", ""]; // These indicate to use the uid of the current file, not an actual annotation
 const FILE_IDENTIFIERS = [...NON_ANNOTATION_FILE_IDENTIFIERS, "file id", "file path"];
 
 export enum EdgeType {
