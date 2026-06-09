@@ -109,6 +109,7 @@ function Header(
                 onDrop={() => onDrop(column.name)}
                 onDragEnd={onDragEnd}
                 onClick={(evt) => onHeaderColumnClick(evt, column.name)}
+                onContextMenu={(evt) => onHeaderColumnClick(evt, column.name)}
             >
                 <div
                     onClick={(evt) => onHeaderNameClick(evt, column.name)}
