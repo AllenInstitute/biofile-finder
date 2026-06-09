@@ -24,7 +24,7 @@ export default function ColumnPicker() {
                     if (!columnNames.includes(selectedColumn)) {
                         adjustedColumns.push({
                             name: selectedColumn,
-                            width: 0.25, // Default width of 25%
+                            width: 150, // Default width in px
                         });
                     }
                 });

@@ -15,7 +15,7 @@ function DraggableList({
     onReorder,
 }: {
     items: string[];
-    onReorder: (newOrder: string[]) => void;
+    onReorder: (item: string, moveTo: number) => void;
 }) {
     const {
         draggedItem,
@@ -62,7 +62,7 @@ describe("useDragAndDropOrder", () => {
         fireEvent.dragOver(getByTestId("a"));
         fireEvent.drop(getByTestId("a"));
 
-        expect(onReorder.calledOnceWith(["c", "a", "b"])).to.be.true;
+        expect(onReorder.calledOnceWith("c", 0)).to.be.true;
     });
 
     it("does not call onReorder when an item is dropped onto itself", () => {

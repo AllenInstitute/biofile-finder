@@ -702,7 +702,7 @@ describe("Selection logics", () => {
                 return Promise.reject("MockDatabaseService:saveQuery");
             }
 
-            public query(): { promise: Promise<{ [key: string]: string }[]> } {
+            public query(): { promise: Promise<any> } {
                 return { promise: Promise.reject("MockDatabaseService:query") };
             }
         }

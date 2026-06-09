@@ -5,6 +5,7 @@ import interact from "interactjs";
 import * as React from "react";
 
 import Tooltip from "../Tooltip";
+import { MINIMUM_COLUMN_WIDTH } from "../../entity/SearchParams";
 
 import styles from "./Cell.module.css";
 
@@ -14,14 +15,14 @@ export interface CellProps {
     className?: string;
     columnKey: string;
     onContextMenu?: (evt: React.MouseEvent) => void;
-    onResize?: (columnKey: string, nextWidth?: number) => void; // nextWith is a percentage of parent element's width, a number between 0 and 1.
+    onResize?: (columnKey: string, nextWidth?: number) => void; // nextWidth is in pixels
     title?: string;
-    width: number; // percentage of parent element's width, a number between 0 and 1.
+    width: number; // width in pixels
 }
 
 interface CellState {
     containerClassName?: string;
-    provisionalWidth?: number; // a percentage of parent element's width, a number between 0 and 1
+    provisionalWidth?: number; // width in pixels
     resizeTargetClassName: string;
 }
 
@@ -35,13 +36,9 @@ enum ResizeDirection {
  * not resizable--this is determined by whether `props.onResize` is provided. If the cell is resizable, a user can reset
  * the width to its default by double clicking the cell.
  *
- * This component deals in percentage widths to avoid requiring components that make use of this to measure themselves; e.g.
- * it enables a configuration of, "each cell should take up 25% of the total width," without having to resolve that
- * within pixel space.
+ * This component uses pixel-based widths for columns.
  */
 export default class Cell extends React.Component<React.PropsWithChildren<CellProps>, CellState> {
-    public static MINIMUM_WIDTH = 50; // px; somewhat arbitrary
-
     public state: CellState = {
         resizeTargetClassName: styles.cursorResizeEitherDirection,
     };
@@ -102,8 +99,8 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 onContextMenu={this.props.onContextMenu}
                 onDoubleClick={this.onDoubleClick}
                 style={{
-                    width: `${(provisionalWidth || width) * 100}%`,
-                    minWidth: Cell.MINIMUM_WIDTH,
+                    width: `${provisionalWidth || width}px`,
+                    minWidth: MINIMUM_COLUMN_WIDTH,
                 }}
             >
                 <div className={styles.cellContent}>
@@ -127,7 +124,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
             <div
                 className={classNames(styles.cell, this.props.className)}
                 onContextMenu={this.props.onContextMenu}
-                style={{ width: `${this.props.width * 100}%` }}
+                style={{ width: `${this.props.width}px`, minWidth: MINIMUM_COLUMN_WIDTH }}
                 data-testid={NON_RESIZEABLE_CELL_TEST_ID}
             >
                 <Tooltip content={this.props.title}>
@@ -149,22 +146,6 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
     }
 
     /**
-     * Determine total width of encompassing row this cell sits within. Used to translate full pixel width
-     * into a percentage.
-     */
-    private measureRowWidth(): number {
-        // If for some reason we don't have a reference to the cell's HTMLElement, well, return a number that
-        // won't fail when used as a divisor.
-        if (!this.cell.current) {
-            return 1;
-        }
-
-        // The FileRow is an inline element, which for whatever reason doesn't report width
-        // it's parent does, though. Huge shrug.
-        return this.cell.current.parentElement?.parentElement?.clientWidth || 1;
-    }
-
-    /**
      * On start of resize, set expectations for what the user can do.
      */
     private onResizeStart(e: InteractEvent): void {
@@ -183,7 +164,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
     private onResize(e: InteractEvent): void {
         const { provisionalWidth } = this.state;
 
-        const nextWidth = e.rect.width / this.measureRowWidth();
+        const nextWidth = e.rect.width;
         const allowedResizeDirection = this.getAllowedResizeDirection(e.rect.width, e.target);
 
         let nextState: CellState = {
@@ -194,7 +175,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
         if (this.resizeIsAllowed(dx, allowedResizeDirection)) {
             nextState = {
                 ...nextState,
-                provisionalWidth: nextWidth,
+                provisionalWidth: Math.max(nextWidth, MINIMUM_COLUMN_WIDTH),
             };
         }
 
@@ -224,7 +205,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
             return ResizeDirection.BIGGER_OR_SMALLER;
         }
 
-        if (expectedWidth <= Cell.MINIMUM_WIDTH) {
+        if (expectedWidth <= MINIMUM_COLUMN_WIDTH) {
             return ResizeDirection.BIGGER;
         }
 

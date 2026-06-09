@@ -91,6 +91,7 @@ export interface InteractionStateBranch {
     selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
     userSelectedApplications?: UserSelectedApplication[];
+    selectedPipelineId?: string;
     visibleModal?: ModalType;
 }
 
@@ -217,6 +218,7 @@ export default makeReducer<InteractionStateBranch>(
         [SET_VISIBLE_MODAL]: (state, action: SetVisibleModalAction) => ({
             ...state,
             fileFiltersForVisibleModal: action.payload.fileFiltersForVisibleModal,
+            selectedPipelineId: action.payload.selectedPipelineId,
             visibleModal: action.payload.visibleModal,
         }),
         [SHOW_MANIFEST_DOWNLOAD_DIALOG]: (state, action: ShowManifestDownloadDialogAction) => ({
