@@ -10,6 +10,11 @@ import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
+export interface CancellablePromise<T> {
+    promise: Promise<T>;
+    cancel?: (reason?: string) => void;
+}
+
 enum PreDefinedColumn {
     FILE_ID = "File ID",
     FILE_PATH = "File Path",
@@ -153,13 +158,11 @@ export default abstract class DatabaseService {
         }
     }
 
-    public query(
-        sql: string
-    ): { promise: Promise<{ [key: string]: any }[]>; cancel?: (reason?: string) => void } {
-        return { promise: this.runQuery(sql) };
+    public query<T = { [key: string]: any }>(sql: string): CancellablePromise<T[]> {
+        return { promise: this.runQuery<T>(sql) };
     }
 
-    private async runQuery(sql: string): Promise<{ [key: string]: any }[]> {
+    private async runQuery<T>(sql: string): Promise<T[]> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }

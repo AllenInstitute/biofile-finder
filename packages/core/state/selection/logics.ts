@@ -426,17 +426,16 @@ const expandAllFileFolders = createLogic({
 const resizeColumnLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: column } = deps.action as ResizeColumnAction;
+        const annotationService = interaction.selectors.getAnnotationService(deps.getState());
         const columns = selectionSelectors.getColumns(deps.getState());
 
         let width = column.width;
         if (!width) {
-            // TODO: To come in follow-up
-            // const autoSizedWidth = await annotationService.fetchOptimalWidthForAnnotations(
-            //     [column.name],
-            //     true
-            // );
-            // width = autoSizedWidth[column.name] as number;
-            width = DEFAULT_COLUMN_WIDTH;
+            const autoSizedWidth = await annotationService.fetchOptimalWidthForAnnotations(
+                [column.name],
+                true
+            );
+            width = autoSizedWidth.get(column.name) ?? DEFAULT_COLUMN_WIDTH;
         }
 
         dispatch(

@@ -9,6 +9,7 @@ import { Column } from "../../state/selection/actions";
 // used as a fallback when calculating column widths based on content,
 // and as the default width when resetting column widths
 export const DEFAULT_COLUMN_WIDTH = 150;
+export const MINIMUM_COLUMN_WIDTH = 50; // px; somewhat arbitrary;
 
 // These values CANNOT change otherwise it would break compatibility
 // with any existing URLs that use these in the encoding
