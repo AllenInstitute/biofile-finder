@@ -1,5 +1,6 @@
 .cell {
     --padding: 16px;
+    --resize-target-offset: 8px;
 
     position: relative;
     display: inline-block;
@@ -14,6 +15,7 @@
     background-color: inherit;
 }
 
+
 .cell:first-of-type {
     padding-left: calc(var(--padding) / 2);
 }
@@ -25,7 +27,7 @@
 .cell-content {
     overflow: hidden;
     /* Leave room for the resize handle */
-    width: calc(100% - 8px);
+    width: calc(100% - var(--resize-target-offset));
 }
 
 .cursor-resize-either-direction {
@@ -41,7 +43,7 @@
     font-size: 18px;
     font-weight: bolder;
     position: absolute;
-    right: calc(1em / 2);
+    right: var(--resize-target-offset);
     text-align: center;
     top: 3px;
     touch-action: none;

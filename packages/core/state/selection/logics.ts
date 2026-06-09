@@ -51,17 +51,20 @@ import {
     CHANGE_FILE_FILTER_TYPE,
     AddDataSourceReloadError,
     setFileView,
-    setColumns,
     EXPAND_ALL_FILE_FOLDERS,
     toggleNullValueGroups,
     setIsLoadingSource,
+    RESIZE_COLUMN,
+    ResizeColumnAction,
+    setColumns,
+    Column,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import Annotation from "../../entity/Annotation";
-import SearchParams from "../../entity/SearchParams";
+import SearchParams, { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -413,6 +416,39 @@ const expandAllFileFolders = createLogic({
         done();
     },
     type: [EXPAND_ALL_FILE_FOLDERS],
+});
+
+/**
+ * Interceptor responsible for processing RESIZE_COLUMN action into
+ * automatic width adjustment based on whether the user selected a specific width
+ * or if they just want the default auto-size behavior
+ */
+const resizeColumnLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: column } = deps.action as ResizeColumnAction;
+        const columns = selectionSelectors.getColumns(deps.getState());
+
+        let width = column.width;
+        if (!width) {
+            // TODO: To come in follow-up
+            // const autoSizedWidth = await annotationService.fetchOptimalWidthForAnnotations(
+            //     [column.name],
+            //     true
+            // );
+            // width = autoSizedWidth[column.name] as number;
+            width = DEFAULT_COLUMN_WIDTH;
+        }
+
+        dispatch(
+            setColumns(
+                columns.map(
+                    (c) => ({ ...c, width: c.name === column.name ? width : c.width } as Column)
+                )
+            )
+        );
+        done();
+    },
+    type: RESIZE_COLUMN,
 });
 
 /**
@@ -904,4 +940,5 @@ export default [
     setDataSourceReloadErrorLogic,
     changeQueryLogic,
     removeQueryLogic,
+    resizeColumnLogic,
 ];

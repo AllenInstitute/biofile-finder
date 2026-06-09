@@ -7,7 +7,6 @@ import {
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
-    RESIZE_COLUMN,
     SORT_COLUMN,
     SET_SORT_COLUMN,
     CHANGE_DATA_SOURCES,
@@ -31,7 +30,6 @@ import {
     SetRequiresDataSourceReload,
     SET_FILE_VIEW,
     SetFileView,
-    ResizeColumnAction,
     Column,
     SetColumns,
     SET_COLUMNS,
@@ -40,13 +38,16 @@ import {
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
     SET_IS_LOADING_DATA_SOURCE,
+    REORDER_COLUMNS,
+    ReorderColumnsAction,
 } from "./actions";
 import interaction from "../interaction";
-import { FileView, Source } from "../../entity/SearchParams";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../entity/FileSort";
+import { DEFAULT_COLUMN_WIDTH, FileView, Source } from "../../entity/SearchParams";
 import Tutorial from "../../entity/Tutorial";
 import Tutorials from "../../hooks/useHelpOptions/Tutorials";
 
@@ -208,16 +209,40 @@ export default makeReducer<SelectionStateBranch>(
             availableAnnotationsForHierarchyLoading: true,
             fileSelection: new FileSelection(),
         }),
-        [RESIZE_COLUMN]: (state, action: ResizeColumnAction) => ({
-            ...state,
-            columns: state.columns.map((column) =>
-                column.name !== action.payload.name ? column : action.payload
-            ),
-        }),
         [SET_COLUMNS]: (state, action: SetColumns) => ({
             ...state,
             columns: action.payload,
         }),
+        [REORDER_COLUMNS]: (state, action: ReorderColumnsAction) => {
+            let columns = [...state.columns];
+            for (const reorder of action.payload) {
+                const remaining = columns.filter((col) => reorder.name !== col.name);
+                let moving = columns.find((col) => reorder.name === col.name);
+                if (!moving) {
+                    // Check for matching column in special top level annotations like File Name
+                    // and if still no match just skip
+                    const matchingSpecialAnnotation = TOP_LEVEL_FILE_ANNOTATIONS.find(
+                        (a) => reorder.name === a.name || reorder.name === a.displayName
+                    );
+                    if (!matchingSpecialAnnotation) {
+                        continue;
+                    }
+                    moving = {
+                        name: matchingSpecialAnnotation.name,
+                        width: DEFAULT_COLUMN_WIDTH,
+                    };
+                }
+
+                const moveTo = Math.min(reorder.moveTo, remaining.length);
+                columns = [
+                    ...remaining.slice(0, moveTo),
+                    // Optionally update widths of moved columns if provided in the action
+                    { ...moving, width: reorder.width ?? moving.width },
+                    ...remaining.slice(moveTo),
+                ];
+            }
+            return { ...state, columns };
+        },
         [SET_FILE_SELECTION]: (state, action) => ({
             ...state,
             fileSelection: action.payload,

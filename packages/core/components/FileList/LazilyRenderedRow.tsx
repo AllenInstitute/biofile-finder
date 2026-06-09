@@ -4,10 +4,11 @@ import { map } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
+import { OnSelect } from "./useFileSelector";
+import useVisibleColumns from "./useVisibleCells";
 import FileRow from "../../components/FileRow";
 import FileSet from "../../entity/FileSet";
 import { metadata, selection } from "../../state";
-import { OnSelect } from "./useFileSelector";
 
 import styles from "./LazilyRenderedRow.module.css";
 
@@ -27,8 +28,6 @@ interface LazilyRenderedRowProps {
     style: React.CSSProperties; // injected by react-window
 }
 
-const MARGIN = 1.5; // px; defined in LazilyRenderedRow.module.css
-
 /**
  * A single file in the listing of available files FMS.
  */
@@ -39,7 +38,8 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
         style,
     } = props;
 
-    const columns = useSelector(selection.selectors.getColumns);
+    const { columns: visibleColumns, padding } = useVisibleColumns();
+    const totalColumnWidth = useSelector(selection.selectors.getTotalColumnWidth);
     const isSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
@@ -64,13 +64,14 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     if (file) {
         content = (
             <FileRow
-                cells={map(columns, (column) => ({
+                cells={map(visibleColumns, (column) => ({
                     columnKey: column.name,
                     displayValue: annotationNameToAnnotationMap[column.name]?.extractFromFile(file),
                     width: column.width,
                 }))}
                 rowIdentifier={{ index, id: file.uid }}
                 onSelect={onSelect}
+                padding={padding}
             />
         );
     } else {
@@ -95,7 +96,7 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
             })}
             style={{
                 ...style,
-                width: `calc(100% - ${2 * MARGIN}px)`,
+                width: `${totalColumnWidth}px`,
             }}
             onContextMenu={onContextMenu}
         >

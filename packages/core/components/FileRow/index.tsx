@@ -25,6 +25,10 @@ interface FileRowProps {
     onContextMenu?: (evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, nextWidth?: number) => void;
     onSelect?: OnSelect;
+    // Used by Header and Row to add padding for overscanning purposes.
+    // The padding is added to the left and right of the row, and is
+    // meant to be large enough to accommodate the scrollbar width as well as some buffer.
+    padding?: { left: number; right: number };
 }
 
 /**
@@ -51,7 +55,11 @@ export default function FileRow(props: FileRowProps) {
     };
 
     return (
-        <div className={classNames(styles.row, className)} onClick={onClick}>
+        <div
+            className={classNames(styles.row, className)}
+            onClick={onClick}
+            style={{ paddingLeft: props.padding?.left, paddingRight: props.padding?.right }}
+        >
             {map(cells, (cell) => (
                 <Cell
                     className={classNames(cell.className, {

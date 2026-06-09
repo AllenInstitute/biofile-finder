@@ -5,6 +5,11 @@ import FileSort, { SortOrder } from "../FileSort";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Column } from "../../state/selection/actions";
 
+// Somewhat arbitrary default column width in pixels;
+// used as a fallback when calculating column widths based on content,
+// and as the default width when resetting column widths
+export const DEFAULT_COLUMN_WIDTH = 150;
+
 // These values CANNOT change otherwise it would break compatibility
 // with any existing URLs that use these in the encoding
 export enum FileView {
@@ -60,10 +65,10 @@ export const PAST_YEAR_FILTER = new FileFilter(
 );
 export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
     columns: [
-        { name: AnnotationName.FILE_NAME, width: 0.4 },
-        { name: AnnotationName.KIND, width: 0.2 },
-        { name: AnnotationName.TYPE, width: 0.25 },
-        { name: AnnotationName.FILE_SIZE, width: 0.15 },
+        { name: AnnotationName.FILE_NAME, width: 300 },
+        { name: AnnotationName.KIND, width: 150 },
+        { name: AnnotationName.TYPE, width: 200 },
+        { name: AnnotationName.FILE_SIZE, width: 100 },
     ],
     fileView: FileView.LIST,
     hierarchy: [],
@@ -95,22 +100,47 @@ enum URLQueryArgShorthands {
 }
 
 class ColumnCoder {
-    private static readonly COLUMN_DELIMETER = ",";
-    private static readonly VALUE_DELIMETER = ":";
+    private static readonly COLUMN_DELIMITER = ",";
+    private static readonly VALUE_DELIMITER = ":";
+    private static readonly COLUMN_VALUE_PRECISION = 10; // The divisor used when encoding column widths to shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths
 
     public static encode(columns: Column[]): string {
-        return columns
-            .map((column) => `${column.name}${ColumnCoder.VALUE_DELIMETER}${column.width}`)
-            .join(ColumnCoder.COLUMN_DELIMETER);
+        return (
+            columns
+                // Encode width as divided by COLUMN_VALUE_PRECISION to shorten the resulting URL;
+                // this is an arbitrary choice to balance URL length with precision of column widths
+                .map(
+                    (column) =>
+                        `${column.name}${ColumnCoder.VALUE_DELIMITER}${Math.ceil(
+                            column.width / ColumnCoder.COLUMN_VALUE_PRECISION
+                        )}`
+                )
+                // Arbitrary limit to prevent URLs from getting too long;
+                // if users have more than 6 columns they can resize and reorder them in-app after loading the URL
+                .slice(0, 6)
+                .join(ColumnCoder.COLUMN_DELIMITER)
+        );
     }
 
     public static decode(encoded: string): Column[] {
         return encoded
-            .split(ColumnCoder.COLUMN_DELIMETER)
+            .split(ColumnCoder.COLUMN_DELIMITER)
             .filter((unparsedColumn) => !!unparsedColumn)
             .map((unparsedColumn) => {
-                const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMETER);
-                return { name, width: parseFloat(widthAsStr) };
+                const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMITER);
+                const parsedWidth = parseFloat(widthAsStr);
+                // The column width was previously encoded as a number between 0 and 1 representing the percentage of available
+                // space the column should take up, but this was difficult to work with and unintuitive for users.
+                // Now we encode the actual pixel width, which is more straightforward to understand and work with when manually editing URLs.
+                // To maintain backwards compatibility with existing URLs, we continue to support previously encoded widths as percentages,
+                // but we default them to a default column width in pixels in the decoding process.
+                // Also, multiply the parsedWidth by COLUMN_VALUE_PRECISION because it is encoded as the actual width divided by COLUMN_VALUE_PRECISION to
+                // shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths.
+                const width =
+                    parsedWidth <= 1
+                        ? DEFAULT_COLUMN_WIDTH
+                        : parsedWidth * ColumnCoder.COLUMN_VALUE_PRECISION;
+                return { name, width };
             });
     }
 }
@@ -254,9 +284,7 @@ export default class SearchParams {
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
             prov: unparsedSourceProvenance ? JSON.parse(unparsedSourceProvenance) : undefined,
-            showNoValueGroups: showNoValueGroupsString
-                ? JSON.parse(showNoValueGroupsString)
-                : true,
+            showNoValueGroups: showNoValueGroupsString ? JSON.parse(showNoValueGroupsString) : true,
             sortColumn: parsedSort
                 ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
                 : undefined,
