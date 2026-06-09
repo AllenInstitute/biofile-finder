@@ -1,9 +1,7 @@
 import { BENCHMARK_TASKS, createServices } from "./tasks";
 import { BenchmarkConfig, BenchmarkResults, QueryResult, SourceResult } from "./types";
+import { DEFAULT_ITERATIONS, DEFAULT_WARMUP_ROUNDS, buildQueryResult } from "./stats";
 import DatabaseServiceWebWorker from "../../src/services/DatabaseServiceWeb/duckdb-worker.worker";
-
-const DEFAULT_ITERATIONS = 5;
-const DEFAULT_WARMUP_ROUNDS = 1;
 
 // Updates the #status element in the benchmark HTML page and mirrors to console.
 // The page can run headlessly in CI (Playwright), so the console log is the
@@ -12,14 +10,6 @@ function setStatus(msg: string) {
     const el = document.getElementById("status");
     if (el) el.textContent = msg;
     console.log("[benchmark]", msg);
-}
-
-// Nearest-rank percentile over a pre-sorted array. Used to report p50 and p95
-// across timed iterations — p95 surfaces occasional slow outliers (GC pauses,
-// DuckDB cache misses) that the median would hide.
-function percentile(sorted: number[], p: number): number {
-    const idx = Math.ceil((p / 100) * sorted.length) - 1;
-    return sorted[Math.max(0, idx)];
 }
 
 // Fisher-Yates shuffle — randomizes task order each timed iteration so that a
@@ -53,7 +43,8 @@ async function benchmarkSource(
     service: DatabaseServiceWebWorker,
     sourceNames: string[],
     iterations: number,
-    warmupRounds: number
+    warmupRounds: number,
+    tasks: typeof BENCHMARK_TASKS
 ): Promise<QueryResult[]> {
     const { annotationSvc, fileSvc } = createServices(service, sourceNames);
 
@@ -64,17 +55,17 @@ async function benchmarkSource(
     // of every task reflect cold-start overhead rather than steady-state cost.
     setStatus(`Warming up ${sourceNames.join(", ")} (${warmupRounds} rounds)...`);
     for (let w = 0; w < warmupRounds; w++) {
-        for (const task of BENCHMARK_TASKS) {
+        for (const task of tasks) {
             service.clearTimings();
             await task.run(annotationSvc, fileSvc);
         }
     }
 
-    const timingsMap = new Map<string, number[]>(BENCHMARK_TASKS.map(({ name }) => [name, []]));
+    const timingsMap = new Map<string, number[]>(tasks.map(({ name }) => [name, []]));
 
     for (let i = 0; i < iterations; i++) {
         setStatus(`Timing ${sourceNames.join(", ")} — iteration ${i + 1}/${iterations}...`);
-        for (const task of shuffle(BENCHMARK_TASKS)) {
+        for (const task of shuffle(tasks)) {
             if (task.resetAnnotationCache) {
                 for (const sourceName of sourceNames) {
                     service.clearAnnotationCache(sourceName);
@@ -94,16 +85,7 @@ async function benchmarkSource(
         }
     }
 
-    return BENCHMARK_TASKS.map(({ name }) => {
-        const timings = [...(timingsMap.get(name) ?? [])].sort((a, b) => a - b);
-        return {
-            name,
-            timings,
-            p50: percentile(timings, 50),
-            p95: percentile(timings, 95),
-            p99: percentile(timings, 99),
-        };
-    });
+    return tasks.map(({ name }) => buildQueryResult(name, timingsMap.get(name) ?? []));
 }
 
 async function main() {
@@ -113,6 +95,16 @@ async function main() {
     }
     const iterations = config.iterations ?? DEFAULT_ITERATIONS;
     const warmupRounds = config.warmupRounds ?? DEFAULT_WARMUP_ROUNDS;
+    const taskFilter = config.taskFilter;
+
+    // When a taskFilter is provided, only run the requested tasks.
+    if (taskFilter) {
+        const validNames = new Set(BENCHMARK_TASKS.map((t) => t.name));
+        const invalid = taskFilter.filter((n) => !validNames.has(n));
+        if (invalid.length) {
+            throw new Error(`Unknown task(s) in taskFilter: ${invalid.join(", ")}`);
+        }
+    }
 
     setStatus("Initializing DuckDB-WASM...");
     const initStart = performance.now();
@@ -149,6 +141,10 @@ async function main() {
         await service.execute('DROP VIEW IF EXISTS "__bff_warmup__"');
     }
 
+    const activeTasks = taskFilter
+        ? BENCHMARK_TASKS.filter((t) => taskFilter.includes(t.name))
+        : BENCHMARK_TASKS;
+
     const sourceResults: SourceResult[] = [];
 
     for (const sources of config.testCases) {
@@ -171,7 +167,13 @@ async function main() {
         const registrationMs = performance.now() - regStart;
 
         const labels = sources.map((source) => source.label);
-        const queries = await benchmarkSource(service, labels, iterations, warmupRounds);
+        const queries = await benchmarkSource(
+            service,
+            labels,
+            iterations,
+            warmupRounds,
+            activeTasks
+        );
         sourceResults.push({ labels, registrationMs, queries });
 
         for (const source of sources) {

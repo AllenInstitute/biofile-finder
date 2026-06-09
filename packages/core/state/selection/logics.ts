@@ -706,10 +706,13 @@ const changeProvenanceSourceLogic = createLogic({
                     selectedSourceProvenance
                 );
                 dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
+                // provenance definitions may finish loading after we've already processed url query args.
+                // If we do have a graph origin, this ensures the graph actually starts rendering
                 dispatch(changeProvenanceOriginId(origin) as AnyAction);
             } else {
                 await databaseService.deleteSourceProvenance();
                 dispatch(metadata.actions.receiveEdgeDefinitions([]));
+                // if we no longer have provenance definitions, we need to clear the graph origin
                 dispatch(changeProvenanceOriginId() as AnyAction);
             }
         } catch (err) {

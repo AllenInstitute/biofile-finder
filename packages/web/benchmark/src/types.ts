@@ -15,6 +15,7 @@ export interface BenchmarkConfig {
     testCases: TestCase[];
     iterations?: number;
     warmupRounds?: number;
+    taskFilter?: string[];
 }
 
 export interface QueryResult {
