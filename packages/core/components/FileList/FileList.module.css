@@ -33,70 +33,59 @@
     margin-block-end: 0;
 }
 
-.horizontal-left-gradient, .horizontal-right-gradient, .vertical-top-gradient, .vertical-bottom-gradient {
-    pointer-events: none;
+.horizontal-gradient {
+    background-image: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.9));
     position: absolute;
-    opacity: 1;
-    z-index: 10;
-}
-
-.horizontal-left-gradient, .horizontal-right-gradient {
     height: calc(100% - var(--scrollbar-size));
     width: 60px;
-}
-
-.horizontal-left-gradient {
-    background-image: linear-gradient(to left, transparent, rgba(0, 0, 0, 0.9));
-    left: 0;
-}
-
-.horizontal-right-gradient {
-    background-image: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.9));
+    pointer-events: none;
+    opacity: 1;
+    z-index: 10;
     right: 0;
-}
-
-.vertical-top-gradient {
-    background-image: linear-gradient(to top, transparent, rgba(0, 0, 0, 0.9));
-    top: 33.5px; /* height of header + 3.5px to cover header shadow */
-}
-
-.vertical-bottom-gradient {
-    background-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.9));
-    bottom: 0;
 }
 
 /* For browsers that always show scrollbar, adjust shadow to avoid covering */
 @supports selector(::-webkit-scrollbar) {
-    .vertical-top-gradient, .vertical-bottom-gradient {
+    .vertical-gradient {
+        background-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.9));
+        position: absolute;
         height: 50px;
         width: calc(100% - var(--scrollbar-size));
+        pointer-events: none;
+        opacity: 1;
+        z-index: 10;
+        bottom: 0;
     }
 
-    .vertical-bottom-gradient.cropped-gradient {
-        bottom: var(--scrollbar-size);
+    .vertical-gradient-cropped {
+        bottom: var(--scrollbar-size) !important;
     }
 
-    .horizontal-right-gradient.cropped-gradient {
-        right: calc(var(--scrollbar-size) - 1px);
+    .horizontal-gradient-cropped {
+        right: calc(var(--scrollbar-size)) !important;
     }
 }
 
-/* Overwrite the above styling that adjusts the gradient for the scrollbar */
 @supports (scrollbar-color: auto) {
-    .vertical-top-gradient, .vertical-bottom-gradient {
+    .vertical-gradient {
+        background-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.9));
+        position: absolute;
         height: 50px;
         width: 100%;
+        pointer-events: none;
+        opacity: 1;
+        z-index: 10;
+        bottom: 0;
     }
 
-    .vertical-bottom-gradient {
+    .vertical-gradient-cropped {
+        position: absolute;
         bottom: 0 !important;
-    }
-
-    .vertical-top-gradient.cropped-gradient, .vertical-bottom-gradient.cropped-gradient {
         width: 100% !important;
     }
 
-    .horizontal-right-gradient.cropped-gradient {
+    .horizontal-gradient-cropped {
+        position: absolute;
         right: 0 !important;
         height: 100% !important;
     }

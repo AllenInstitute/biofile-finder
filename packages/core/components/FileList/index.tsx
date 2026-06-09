@@ -53,7 +53,6 @@ export default function FileList(props: FileListProps) {
     const [totalCount, setTotalCount] = React.useState<number | null>(null);
     const [localError, setLocalError] = React.useState<Error>();
     const [lastVisibleRowIndex, setLastVisibleRowIndex] = React.useState<number>(0);
-    const [firstVisibleRowIndex, setFirstVisibleRowIndex] = React.useState<number>(0);
     const fileView = useSelector(selection.selectors.getFileView);
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const fileGridColumnCount = useSelector(selection.selectors.getFileGridColCount);
@@ -91,20 +90,12 @@ export default function FileList(props: FileListProps) {
     const isRowHeightOverflowing = totalRows * rowHeight > height;
     // hide overlay when we reach the bottom of the list
     const atEndOfList = lastVisibleRowIndex === totalRows - 1;
-    const atStartOfList = firstVisibleRowIndex === 0;
 
     // Track horizontal scroll position for cell virtualization
     const [horizontalScroll, setHorizontalScroll] = React.useState({
         scrollLeft: 0,
         containerWidth: 0,
     });
-
-    // hide right side horizontal gradient when scrolled all the way to the right
-    // hide left side horizontal gradient when scrolled all the way to the left
-    const atEndOfHorizontalScroll =
-        horizontalScroll.containerWidth > 0 &&
-        horizontalScroll.scrollLeft + horizontalScroll.containerWidth >= totalColumnWidth - 1;
-    const atStartOfHorizontalScroll = horizontalScroll.scrollLeft === 0;
 
     const listRef = React.useRef<FixedSizeList | null>(null);
     const gridRef = React.useRef<FixedSizeGrid | null>(null);
@@ -328,7 +319,6 @@ export default function FileList(props: FileListProps) {
                             const overscanStopIndex =
                                 overscanRowStopIndex * (overscanColumnStopIndex + 1);
 
-                            setFirstVisibleRowIndex(visibleRowStartIndex);
                             setLastVisibleRowIndex(visibleRowStopIndex);
                             onItemsRendered({
                                 // call onItemsRendered from InfiniteLoader
@@ -347,7 +337,6 @@ export default function FileList(props: FileListProps) {
                                     height={height} // height of the list itself; affects number of rows rendered at any given time
                                     itemCount={totalCount || DEFAULT_TOTAL_COUNT}
                                     onItemsRendered={(renderProps) => {
-                                        setFirstVisibleRowIndex(renderProps.visibleStartIndex);
                                         setLastVisibleRowIndex(renderProps.visibleStopIndex);
                                         onItemsRendered(renderProps);
                                     }}
@@ -405,28 +394,16 @@ export default function FileList(props: FileListProps) {
                 >
                     <div
                         className={classNames({
-                            [styles.horizontalLeftGradient]:
-                                isColumnWidthOverflowing && !atStartOfHorizontalScroll,
+                            [styles.horizontalGradient]: isColumnWidthOverflowing,
+                            [styles.horizontalGradientCropped]: isRowHeightOverflowing,
                         })}
-                    />
+                    ></div>
                     <div
                         className={classNames({
-                            [styles.horizontalRightGradient]:
-                                isColumnWidthOverflowing && !atEndOfHorizontalScroll,
-                            [styles.croppedGradient]: isRowHeightOverflowing,
+                            [styles.verticalGradient]: isRowHeightOverflowing && !atEndOfList,
+                            [styles.verticalGradientCropped]: isColumnWidthOverflowing,
                         })}
-                    />
-                    <div
-                        className={classNames({
-                            [styles.verticalTopGradient]: isRowHeightOverflowing && !atStartOfList,
-                        })}
-                    />
-                    <div
-                        className={classNames({
-                            [styles.verticalBottomGradient]: isRowHeightOverflowing && !atEndOfList,
-                            [styles.croppedGradient]: isColumnWidthOverflowing,
-                        })}
-                    />
+                    ></div>
                     {content}
                 </div>
                 <p className={styles.rowCountDisplay}>
