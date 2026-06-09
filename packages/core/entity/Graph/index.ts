@@ -13,6 +13,10 @@ const METADATA_NODE_HEIGHT = 90;
 const ROW_SPACING = Math.max(FILE_NODE_HEIGHT, METADATA_NODE_HEIGHT) + 25;
 const COLUMN_SPACING = Math.max(FILE_NODE_WIDTH, METADATA_NODE_WIDTH) + 25;
 
+// Using these in the provenance relationship definitions means we're referring to the file itself
+const NON_ANNOTATION_FILE_IDENTIFIERS = ["self", "id", "uid", ""]; // These indicate to use the file uid, not an actual annotation
+const FILE_IDENTIFIERS = [...NON_ANNOTATION_FILE_IDENTIFIERS, "file id", "file path"];
+
 export enum EdgeType {
     DEFAULT = "default",
 }
@@ -483,15 +487,10 @@ export default class Graph {
     private async getFileNodeConnections(
         thisNode: FileNode,
         edgeNode: EdgeNode,
-        lookupType: string // to do: change arg name
+        identifierType: string // if we need to look up the file, which annotation to use (e.g., File Path, File ID)
     ): Promise<(FileNode | MetadataNode)[]> {
         // The node might just be the current node!
-        // to do: create const that contains these
-        const isEdgeNodeThisNode =
-            edgeNode.name === "self" ||
-            edgeNode.name == "File ID" ||
-            edgeNode.name == "File Path" ||
-            edgeNode.name == "id"; // TODO: Expand this... should there be type of "ID" or "Self" or smthn..?
+        const isEdgeNodeThisNode = FILE_IDENTIFIERS.includes(edgeNode.name.toLocaleLowerCase());
         if (isEdgeNodeThisNode) {
             return [thisNode];
         }
@@ -514,12 +513,11 @@ export default class Graph {
         return Promise.all(
             (annotation.values as string[]).map(async (value) => {
                 // Avoid re-requesting the file when possible
-                // to do: make list a const
-                if (["id", "self", "uid"].includes(lookupType)) {
+                if (NON_ANNOTATION_FILE_IDENTIFIERS.includes(identifierType.toLocaleLowerCase())) {
                     const node = this.graph.node(value);
                     if (node) return node;
                 }
-                const file = await this.getFileByValueForAnnotation(lookupType, [value]);
+                const file = await this.getFileByIdentifier(identifierType, [value]);
                 if (file) {
                     // If we've already created a node with the same uid, skip it
                     const node = this.graph.node(file.uid);
@@ -585,23 +583,23 @@ export default class Graph {
     /**
      * Get a single file that matches an annotation/value pair
      */
-    private async getFileByValueForAnnotation(
-        annotationName: string,
-        annotationValue: (string | number | boolean)[]
+    private async getFileByIdentifier(
+        identifierName: string, // e.g., File ID, File Name, File Path
+        identifierValue: (string | number | boolean)[]
     ): Promise<FileDetail | undefined> {
         let files;
         try {
             files = await this.fileService.getFiles({
                 from: 0,
-                limit: 2,
+                limit: 2, // We only want one result, so if there are >=2 it's not a unique identifier
                 fileSet: new FileSet({
                     fileService: this.fileService,
-                    filters: [new FileFilter(annotationName, annotationValue)],
+                    filters: [new FileFilter(identifierName, identifierValue)],
                 }),
             });
         } catch (err) {
             console.error(
-                `Failed to find file with value ${annotationValue} for annotation ${annotationName}. Error: ${
+                `Failed to find file with value ${identifierName} for annotation ${identifierValue}. Error: ${
                     (err as Error).message
                 }`
             );
@@ -609,7 +607,7 @@ export default class Graph {
         }
         if (files.length !== 1) {
             throw new Error(
-                `Failed to fetch 1 file with value ${annotationValue} for annotation ${annotationName}. Found ${files.length} instead.`
+                `Failed to fetch 1 file with value ${identifierName} for annotation ${identifierValue}. Found ${files.length} instead.`
             );
         }
         return files[0];
