@@ -125,7 +125,7 @@ export const NAV: NavSection[] = [
                 ],
             },
             {
-                title: "Creating a dataset",
+                title: "Creating a dataset metadata file",
                 slug: "creating-a-dataset",
                 headings: [
                     { id: "creating-spreadsheet", text: "What is a dataset?" },

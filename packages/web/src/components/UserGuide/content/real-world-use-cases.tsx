@@ -16,7 +16,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                 heading: "How people use BFF",
                 body: (
                     <>
-                        <p>This table is summary of the in-depth use cases described below.</p>
+                        <p>This table is a summary of the in-depth use cases described below.</p>
                         <table className="ug-table">
                             <thead>
                                 <tr>
@@ -318,7 +318,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                             paths you need, and get back to your actual work. Share your exact query
                             with a collaborator by copying the URL.
                         </p>
-                        <h3>Data Engineers &amp; Platform Teams</h3>
+                        <h3>Data engineers &amp; platform teams</h3>
                         <p>
                             <i>
                                 I want to give users self-service data access without building a
@@ -334,7 +334,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                             maintain, no accounts to manage. Host a static web page and you&apos;re
                             done.
                         </p>
-                        <h3>Academic Facility Managers &amp; PIs</h3>
+                        <h3>Academic facility managers &amp; PIs</h3>
                         <p>
                             <i>I need to make my shared data actually usable.</i>
                         </p>
@@ -346,7 +346,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                             BFF link and reviewers, collaborators, or new lab members can explore it
                             immediately—no software to install, no accounts to create.
                         </p>
-                        <h3>GLAM &amp; Museum Professionals</h3>
+                        <h3>GLAM &amp; museum professionals</h3>
                         <p>
                             <i>I want to make my collection metadata interactive.</i>
                         </p>

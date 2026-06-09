@@ -78,7 +78,7 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
                 body: (
                     <>
                         <p>
-                            A number of thoughful features set BFF apart from other similar tools.
+                            A number of thoughtful features set BFF apart from other similar tools.
                             Key differentiators include:
                         </p>
                         <div className="ug-feature-grid">

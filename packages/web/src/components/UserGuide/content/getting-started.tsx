@@ -7,17 +7,18 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
     "getting-started/setup-overview": {
         title: "Setup overview",
         intro:
-            "BioFile Finder (BFF) works by connecting a metadata table to the files you want to explore. Rather than ingesting image data directly, BFF reads a dataset file (CSV, Parquet, or JSON) containing metadata and file references. Once loaded, BFF turns that dataset into an interactive interface for filtering, grouping, searching, previewing, and sharing files.",
+            "BioFile Finder (BFF) works by connecting a metadata file, which is a spreadsheet or table, to the files you want to explore. Rather than ingesting image data directly, BFF reads a metadata file (CSV, Parquet, or JSON) containing metadata and file references. Once loaded, BFF turns that metadata into an interactive interface for filtering, grouping, searching, previewing, and sharing files.",
         sections: [
             {
                 id: "basic-setup",
                 heading: "Basic setup",
                 body: (
                     <>
-                        <h3>1. Create a dataset file</h3>
+                        <h3>1. Create a metadata file describing your dataset</h3>
                         <p>
-                            Prepare a metadata table describing your files. Each row typically
-                            represents a file, while columns contain metadata such as:
+                            Prepare a metadata file describing the files in your dataset. The
+                            metadata file can be provided as CSV, Parquet, or JSON. Each row
+                            typically represents a file, while columns contain metadata such as:
                         </p>
                         <ul>
                             <li>File path</li>
@@ -31,7 +32,7 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                         <p>
                             See:{" "}
                             <a href="/user-guide/getting-started/creating-a-dataset">
-                                Creating a dataset
+                                Creating a metadata file
                             </a>
                             ,{" "}
                             <a href="/user-guide/getting-started/metadata-guidance">
@@ -41,8 +42,8 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
 
                         <h3>2. Reference your files</h3>
                         <p>
-                            Your dataset must include paths or URLs pointing to the files you want
-                            BFF to access. Files can live:
+                            Your metadata file must include file paths or URLs pointing to the files
+                            you want BFF to access. Those files can live:
                         </p>
                         <ul>
                             <li>Locally on your computer</li>
@@ -65,11 +66,11 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                             </a>
                         </p>
 
-                        <h3>3. Load the dataset into BFF</h3>
+                        <h3>3. Load the metadata file into BFF</h3>
                         <p>Open BFF and either:</p>
                         <ul>
-                            <li>Drag and drop a dataset file</li>
-                            <li>Paste a dataset URL</li>
+                            <li>Drag and drop a metadata file</li>
+                            <li>Paste a URL to file location</li>
                             <li>Open a shared BFF link</li>
                         </ul>
                         <p>
@@ -87,7 +88,7 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                     <>
                         <p>To use BFF, you only need:</p>
                         <ul>
-                            <li>Metadata file (CSV, Parquet, or JSON).</li>
+                            <li>A metadata file (CSV, Parquet, or JSON).</li>
                             <li>Files to reference in the dataset.</li>
                             <li>File paths linking metadata to images.</li>
                         </ul>
@@ -150,7 +151,7 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                         </p>
                         <p>
                             Note: You can use BFF as a way to circumvent having to publish all files
-                            by publishing only the dataset file and instructing readers to request
+                            by publishing only the metadata file and instructing readers to request
                             files directly. This allows viewers to see metadata about every file in
                             the dataset without you paying for full cloud storage of each file.
                             Building on this approach, you can host thumbnails of each file so
@@ -197,7 +198,7 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
     },
 
     "getting-started/creating-a-dataset": {
-        title: "Creating a dataset",
+        title: "Creating a dataset metadata file",
         intro:
             "BioFile Finder (BFF) works by referencing a spreadsheet you provide, populated by key-value pairs that are the metadata associated with your image files.",
         sections: [

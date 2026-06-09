@@ -30,10 +30,10 @@ export const OTHER_RESOURCES_CONTENT: Record<string, PageContent> = {
                 body: (
                     <>
                         <p>
-                            BFF can load a dataset file from a local hard drive or network-attached
+                            BFF can load a metadata file from a local hard drive or network-attached
                             storage. However, because BFF runs in the browser, local paths are not
                             persisted — if you refresh the page or share the link, you will be
-                            prompted to reload the dataset file.
+                            prompted to reload the metadata file.
                         </p>
                         <p>
                             Files referenced in the dataset can also live locally or on a network
