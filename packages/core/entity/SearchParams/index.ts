@@ -100,8 +100,8 @@ enum URLQueryArgShorthands {
 }
 
 class ColumnCoder {
-    private static readonly COLUMN_DELIMETER = ",";
-    private static readonly VALUE_DELIMETER = ":";
+    private static readonly COLUMN_DELIMITER = ",";
+    private static readonly VALUE_DELIMITER = ":";
     private static readonly COLUMN_VALUE_PRECISION = 10; // The divisor used when encoding column widths to shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths
 
     public static encode(columns: Column[]): string {
@@ -111,23 +111,23 @@ class ColumnCoder {
                 // this is an arbitrary choice to balance URL length with precision of column widths
                 .map(
                     (column) =>
-                        `${column.name}${ColumnCoder.VALUE_DELIMETER}${Math.ceil(
+                        `${column.name}${ColumnCoder.VALUE_DELIMITER}${Math.ceil(
                             column.width / ColumnCoder.COLUMN_VALUE_PRECISION
                         )}`
                 )
                 // Arbitrary limit to prevent URLs from getting too long;
                 // if users have more than 6 columns they can resize and reorder them in-app after loading the URL
                 .slice(0, 6)
-                .join(ColumnCoder.COLUMN_DELIMETER)
+                .join(ColumnCoder.COLUMN_DELIMITER)
         );
     }
 
     public static decode(encoded: string): Column[] {
         return encoded
-            .split(ColumnCoder.COLUMN_DELIMETER)
+            .split(ColumnCoder.COLUMN_DELIMITER)
             .filter((unparsedColumn) => !!unparsedColumn)
             .map((unparsedColumn) => {
-                const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMETER);
+                const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMITER);
                 const parsedWidth = parseFloat(widthAsStr);
                 // The column width was previously encoded as a number between 0 and 1 representing the percentage of available
                 // space the column should take up, but this was difficult to work with and unintuitive for users.
