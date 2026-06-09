@@ -2,11 +2,21 @@
 // benchmark-results-<branch>.json. Called once per branch by benchmark.yml.
 
 import { ParquetSource } from "../benchmark/src/types";
+import { BENCHMARK_TASKS } from "../benchmark/src/tasks";
 
 import path from "path";
 import fs from "fs";
 import { execSync } from "child_process";
 import { runBenchmarkPage } from "./lib/run-benchmark-page";
+
+const LARGE_TEST_CASE_LABELS = new Set(["10m+10m_2", "20m"]);
+
+function testCaseKey(sources: ParquetSource[]): string {
+    return sources.map((s) => s.label).join("+");
+}
+
+// Task names from benchmark/src/tasks.ts that are too slow for the fast benchmark.
+const SKIP_LARGE_TASKS = new Set(["sort_file_list_large_page"]);
 
 const FIXTURES_DIR = path.join(__dirname, "..", "fixtures");
 
@@ -47,19 +57,21 @@ const TEST_CASES: ParquetSource[][] = [
     ],
 ];
 
-const inputFiles = new Set(
-    TEST_CASES.flat().flatMap(({ url }) => url.replace("http://localhost:18765/fixtures/", ""))
-);
-
-const missing = Array.from(inputFiles).filter(
-    (fileName) => !fs.existsSync(path.join(FIXTURES_DIR, fileName))
-);
-if (missing.length > 0) {
-    console.error(
-        `Missing fixture files: ${missing.join(", ")}\n` +
-            `Download them to ${FIXTURES_DIR} before running this script.`
+function checkFixtures(testCases: ParquetSource[][]) {
+    const inputFiles = new Set(
+        testCases.flat().flatMap(({ url }) => url.replace("http://localhost:18765/fixtures/", ""))
     );
-    process.exit(1);
+
+    const missing = Array.from(inputFiles).filter(
+        (fileName) => !fs.existsSync(path.join(FIXTURES_DIR, fileName))
+    );
+    if (missing.length > 0) {
+        console.error(
+            `Missing fixture files: ${missing.join(", ")}\n` +
+                `Download them to ${FIXTURES_DIR} before running this script.`
+        );
+        process.exit(1);
+    }
 }
 
 function getCurrentBranch(): string {
@@ -82,18 +94,30 @@ function getArgValue(flag: string): number | undefined {
 
 async function main() {
     const skipBuild = process.argv.includes("--skip-build");
+    const skipLarge = process.argv.includes("--skip-large");
     const iterations = getArgValue("--iterations");
     const warmup = getArgValue("--warmup");
 
+    const testCases = skipLarge
+        ? TEST_CASES.filter((tc) => !LARGE_TEST_CASE_LABELS.has(testCaseKey(tc)))
+        : TEST_CASES;
+    const taskFilter = skipLarge
+        ? BENCHMARK_TASKS.map((t) => t.name).filter((n) => !SKIP_LARGE_TASKS.has(n))
+        : undefined;
+
+    checkFixtures(testCases);
+
     console.log(`[regression] Using local fixtures from ${FIXTURES_DIR}`);
+    if (skipLarge) console.log(`[regression] Skipping large test cases and sort task`);
     if (iterations) console.log(`[regression] Iterations: ${iterations}`);
     if (warmup !== undefined) console.log(`[regression] Warmup rounds: ${warmup}`);
 
     const rawResults = await runBenchmarkPage({
-        testCases: TEST_CASES,
+        testCases,
         skipBuild,
         iterations,
         warmupRounds: warmup,
+        taskFilter,
     });
 
     const branch = getCurrentBranch();

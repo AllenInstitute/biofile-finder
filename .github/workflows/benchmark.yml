@@ -22,6 +22,11 @@ on:
         required: false
         type: string
         default: "1"
+      skip_large:
+        description: "Skip 10m+10m, 20m test cases and the large sort task"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -61,8 +66,10 @@ jobs:
           curl -fL "$BASE/synthetic-100k.parquet" -o packages/web/fixtures/synthetic-100k.parquet
           curl -fL "$BASE/synthetic-1m.parquet"   -o packages/web/fixtures/synthetic-1m.parquet
           curl -fL "$BASE/synthetic-10m.parquet"  -o packages/web/fixtures/synthetic-10m.parquet
-          curl -fL "$BASE/synthetic-10m-copy.parquet"  -o packages/web/fixtures/synthetic-10m-copy.parquet
-          curl -fL "$BASE/synthetic-20m.parquet"  -o packages/web/fixtures/synthetic-20m.parquet
+          if [ "${{ github.event.inputs.skip_large }}" != "true" ]; then
+            curl -fL "$BASE/synthetic-10m-copy.parquet"  -o packages/web/fixtures/synthetic-10m-copy.parquet
+            curl -fL "$BASE/synthetic-20m.parquet"  -o packages/web/fixtures/synthetic-20m.parquet
+          fi
 
       - uses: actions/setup-node@v4
         with:
@@ -77,7 +84,7 @@ jobs:
         working-directory: packages/web
 
       - name: Run benchmark (${{ github.event.inputs.compare_branch }})
-        run: npm run benchmark:regression -- --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
+        run: npm run benchmark:regression -- --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }} ${{ github.event.inputs.skip_large == 'true' && '--skip-large' || '' }}
         working-directory: packages/web
         env:
           BENCHMARK_BRANCH: ${{ github.event.inputs.compare_branch }}
@@ -94,7 +101,7 @@ jobs:
         run: npm ci
 
       - name: Run benchmark (${{ github.event.inputs.base_branch }})
-        run: npm run benchmark:regression -- --skip-build --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
+        run: npm run benchmark:regression -- --skip-build --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }} ${{ github.event.inputs.skip_large == 'true' && '--skip-large' || '' }}
         working-directory: packages/web
         env:
           BENCHMARK_BRANCH: ${{ github.event.inputs.base_branch }}
