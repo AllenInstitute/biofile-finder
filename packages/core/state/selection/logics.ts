@@ -435,7 +435,7 @@ const decodeSearchParamsLogics = createLogic({
             sortColumn,
             sources,
             sourceMetadata,
-            prov,
+            provenanceSource,
             provOriginId,
         } = SearchParams.decode(encodedURL);
 
@@ -451,7 +451,7 @@ const decodeSearchParamsLogics = createLogic({
         });
         batch(() => {
             dispatch(changeSourceMetadata(sourceMetadata));
-            dispatch(changeProvenanceSource(prov));
+            dispatch(changeProvenanceSource(provenanceSource));
             dispatch(changeProvenanceOriginId(provOriginId) as AnyAction);
         });
         done();

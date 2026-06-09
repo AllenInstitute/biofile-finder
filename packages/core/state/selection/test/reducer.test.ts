@@ -112,7 +112,7 @@ describe("Selection reducer", () => {
                 fileView: "fileView",
                 sources: "dataSources",
                 sourceMetadata: "sourceMetadata",
-                prov: "sourceProvenance",
+                provenanceSource: "sourceProvenance",
                 provOriginId: "provenanceOriginId",
                 filters: "filters",
                 openFolders: "openFileFolders",
