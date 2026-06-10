@@ -521,12 +521,16 @@ describe("<DirectoryTree />", () => {
             </Provider>
         );
 
+        // sanity-check: make sure the file selection count is empty
+        let fileSelection = selection.selectors.getFileSelection(store.getState());
+        expect(fileSelection.count()).to.equal(0);
+
         // Simulate Ctrl+A keydown
         fireEvent.keyDown(window, { key: "a", ctrlKey: true });
 
         // After the async fetchTotalCount resolves, the file selection should include all files
         await waitFor(() => {
-            const fileSelection = selection.selectors.getFileSelection(store.getState());
+            fileSelection = selection.selectors.getFileSelection(store.getState());
             expect(fileSelection.count()).to.equal(totalFilesCount);
         });
     });
