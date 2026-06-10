@@ -13,10 +13,6 @@ const METADATA_NODE_HEIGHT = 90;
 const ROW_SPACING = Math.max(FILE_NODE_HEIGHT, METADATA_NODE_HEIGHT) + 25;
 const COLUMN_SPACING = Math.max(FILE_NODE_WIDTH, METADATA_NODE_WIDTH) + 25;
 
-// Using these in the provenance relationship definitions means we're uniquely identifying a file
-const NON_ANNOTATION_FILE_IDENTIFIERS = ["self", "id", "uid", ""]; // These indicate to use the uid of the current file, not an actual annotation
-const FILE_IDENTIFIERS = [...NON_ANNOTATION_FILE_IDENTIFIERS, "file id", "file path"];
-
 export enum EdgeType {
     DEFAULT = "default",
 }
@@ -136,7 +132,7 @@ export function getGridPosition(
  */
 function createFileNode(file: FileDetail, isSelected = false): FileNode {
     return {
-        id: `${file.uid}`, // quotes to stringify
+        id: file.path,
         data: {
             annotation: undefined,
             file,
@@ -241,6 +237,10 @@ export default class Graph {
             }),
             {} as { [child: string]: string[] }
         );
+    }
+
+    private static isNodeAFile(node: EdgeNode): boolean {
+        return node.type === "file" || node.type === "self"; // self refers to the file, so is technically also a file type
     }
 
     constructor(fileService: FileService, edgeDefinitions: EdgeDefinition[]) {
@@ -448,16 +448,8 @@ export default class Graph {
 
                 // Check this file node for any viable connections
                 const [parentNodes, childNodes] = await Promise.all([
-                    this.getFileNodeConnections(
-                        thisNode as FileNode,
-                        edgeDefinition.parent,
-                        edgeDefinition.child.name
-                    ),
-                    this.getFileNodeConnections(
-                        thisNode as FileNode,
-                        edgeDefinition.child,
-                        edgeDefinition.parent.name
-                    ),
+                    this.getFileNodeConnections(thisNode as FileNode, edgeDefinition.parent),
+                    this.getFileNodeConnections(thisNode as FileNode, edgeDefinition.child),
                 ]);
 
                 // Only generate the edge if the parent and child node both exist
@@ -481,22 +473,15 @@ export default class Graph {
         );
     }
 
-    private static isNodeAFile(node: EdgeNode): boolean {
-        return node.type === "file" || node.type === "self"; // self refers to the file, so is technically also a file type
-    }
-
     /**
      * Finds all the nodes related to the given file type node
      */
     private async getFileNodeConnections(
         thisNode: FileNode,
-        edgeNode: EdgeNode,
-        identifierType: string // if we need to look up the file, which annotation to use (e.g., File Path, File ID)
+        edgeNode: EdgeNode
     ): Promise<(FileNode | MetadataNode)[]> {
         // The node might just be the current node!
-        const isEdgeNodeThisNode =
-            edgeNode.type === "self" ||
-            FILE_IDENTIFIERS.includes(edgeNode.name.toLocaleLowerCase());
+        const isEdgeNodeThisNode = edgeNode.type === "self";
         if (isEdgeNodeThisNode) {
             return [thisNode];
         }
@@ -517,17 +502,18 @@ export default class Graph {
 
         return Promise.all(
             (annotation.values as string[]).map(async (value) => {
-                // Avoid re-requesting the file when possible
-                if (NON_ANNOTATION_FILE_IDENTIFIERS.includes(identifierType.toLocaleLowerCase())) {
-                    const node = this.graph.node(value);
-                    if (node) return node;
-                }
-                const file = await this.getFileByIdentifier(identifierType, [value]);
-                if (file) {
-                    // If we've already created a node with the same uid, skip it
-                    const node = this.graph.node(file.uid);
-                    if (node) return node;
-                    return createFileNode(file);
+                // // Avoid re-requesting the file when possible
+                const node = this.graph.node(value);
+                if (node) return node;
+                try {
+                    const file = await this.getFileByIdentifier("File Path", [value]);
+                    if (file) {
+                        return createFileNode(file);
+                    }
+                } catch {
+                    // try looking up by id
+                    const fileById = await this.getFileByIdentifier("File id", [value]);
+                    if (fileById) return createFileNode(fileById);
                 }
                 throw new Error(`Unable to find file with value ${value}`);
             })
