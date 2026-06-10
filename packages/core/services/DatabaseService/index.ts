@@ -27,6 +27,19 @@ const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
 
 const DATA_SOURCE_COLUMN = "Data source";
 
+// Suffix appended to every DuckDB file-handle name so that a short name like
+// "foo" can never prefix-match a longer name like "foo2".
+// See https://github.com/duckdb/duckdb-wasm/issues/2227
+//
+// This is a workaround, not a complete fix: a collision is still possible if a
+// user uploads a file whose name already ends with this suffix (e.g.
+// "foo-bff-filehandle.parquet"). A proper fix requires an upstream change in
+// duckdb-wasm to use exact-match lookups for registered file handles.
+const FILE_HANDLE_SUFFIX = "-bff-filehandle";
+function fileHandleName(name: string): string {
+    return name + FILE_HANDLE_SUFFIX;
+}
+
 // Map each actual column name to the predefined column name when they fuzzy-match.
 function getActualToPreDefinedColumnMap(columns: string[]): Map<string, string> {
     const map = new Map<string, string>();
@@ -216,9 +229,11 @@ export default abstract class DatabaseService {
             throw new Error("Database failed to initialize");
         }
 
+        const handle = fileHandleName(name);
+
         if (uri instanceof File) {
             await this.database.registerFileHandle(
-                name,
+                handle,
                 uri,
                 duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
                 true
@@ -228,13 +243,13 @@ export default abstract class DatabaseService {
                 ? duckdb.DuckDBDataProtocol.S3
                 : duckdb.DuckDBDataProtocol.HTTP;
 
-            await this.database.registerFileURL(name, uri, protocol, false);
+            await this.database.registerFileURL(handle, uri, protocol, false);
         }
 
         if (type === "parquet") {
             await this.createParquetDirectView(name);
         } else if (type === "json") {
-            await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${name}');`);
+            await this.execute(`CREATE TABLE "${name}" AS FROM read_json_auto('${handle}');`);
         } else {
             // Default to CSV. Use sample_size=-1 to scan the full file before deciding column
             // types, eliminating "first N rows look numeric, later rows have strings" failures.
@@ -242,7 +257,7 @@ export default abstract class DatabaseService {
             // so the file always loads successfully.
             try {
                 await this.execute(
-                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, sample_size=-1);`
+                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${handle}', header=true, sample_size=-1);`
                 );
             } catch {
                 console.warn(
@@ -250,7 +265,7 @@ export default abstract class DatabaseService {
                 );
                 await this.execute(`DROP TABLE IF EXISTS "${name}"`);
                 await this.execute(
-                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${name}', header=true, all_varchar=true);`
+                    `CREATE TABLE "${name}" AS FROM read_csv_auto('${handle}', header=true, all_varchar=true);`
                 );
             }
         }
@@ -801,7 +816,7 @@ export default abstract class DatabaseService {
             selectParts.push(`"filename" AS "${DATA_SOURCE_COLUMN}"`);
         }
         // 4. Create the view for this data source
-        const quotedNames = sourceNames.map((name) => `'${name}'`).join(", ");
+        const quotedNames = sourceNames.map((name) => `'${fileHandleName(name)}'`).join(", ");
         const createViewSql = `CREATE VIEW "${aggregateName}"
             AS SELECT ${selectParts.join(", ")}
             FROM parquet_scan(ARRAY[${quotedNames}], union_by_name = true);`;
@@ -878,7 +893,7 @@ export default abstract class DatabaseService {
          */
         const nullGroupCountSql = `
             SELECT COUNT(*) AS null_group_count,
-            FROM parquet_metadata('${filename}')
+            FROM parquet_metadata('${fileHandleName(filename)}')
             WHERE path_in_schema = '${column}'
             AND stats_null_count > 0`;
         const nullGroupCount = (await this.query(nullGroupCountSql).promise)[0].null_group_count;
@@ -888,7 +903,7 @@ export default abstract class DatabaseService {
 
         const validationSql = `
             SELECT COUNT(*) AS no_data_count,
-            FROM parquet_metadata('${filename}')
+            FROM parquet_metadata('${fileHandleName(filename)}')
             WHERE path_in_schema = '${column}'
             AND (
                 stats_null_count IS NULL
@@ -907,7 +922,7 @@ export default abstract class DatabaseService {
         // whitespace and/or non-printable control characters.
         const lowMinCountSql = `
             SELECT COUNT(*) as low_min_count,
-            FROM parquet_metadata('${filename}')
+            FROM parquet_metadata('${fileHandleName(filename)}')
             WHERE path_in_schema = '${column}'
             AND stats_min_value < '!'`;
         const lowMinCount = (await this.query(lowMinCountSql).promise)[0].low_min_count;
@@ -1190,7 +1205,7 @@ export default abstract class DatabaseService {
     // Similar to getColumnsOnDataSource below, but suitable for use during the
     // data source preparation step.
     private async getRawParquetColumns(name: string): Promise<string[]> {
-        const sql = `DESCRIBE SELECT * FROM parquet_scan("${name}")`;
+        const sql = `DESCRIBE SELECT * FROM parquet_scan("${fileHandleName(name)}")`;
         const rows = await this.query(sql).promise;
         return rows.map((row) => row["column_name"] as string);
     }
