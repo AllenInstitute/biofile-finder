@@ -25,7 +25,7 @@ describe("DatabaseFileService", () => {
 
     class MockDatabaseService extends DatabaseServiceNoop {
         protected readonly existingDataSources = new Set(["MockDataSource"]);
-        public query(): { promise: Promise<{ [key: string]: string }[]> } {
+        public query(): { promise: Promise<any> } {
             return { promise: Promise.resolve(files) };
         }
     }
@@ -83,7 +83,7 @@ describe("DatabaseFileService", () => {
             ];
             class MockParquetDatabaseService extends DatabaseServiceNoop {
                 protected readonly existingDataSources = new Set(["parquet_source"]);
-                public query(_sql?: string): { promise: Promise<{ [key: string]: string }[]> } {
+                public query(_sql?: string): { promise: Promise<any> } {
                     return { promise: Promise.resolve(parquetFiles) };
                 }
             }
@@ -255,7 +255,7 @@ describe("DatabaseFileService", () => {
                 return Promise.reject("MockDatabaseEditService:saveQuery");
             }
 
-            public query(): { promise: Promise<{ [key: string]: string }[]> } {
+            public query(): { promise: Promise<any> } {
                 return { promise: Promise.reject("MockDatabaseEditService:query") };
             }
 

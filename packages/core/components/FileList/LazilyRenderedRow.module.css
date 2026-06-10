@@ -14,6 +14,10 @@
     padding: 0px;
 }
 
+.row.even-row > div {
+    background-color: var(--primary-background-color);
+}
+
 .row > div, .row > div > div {
     height: 100%;
 }
@@ -30,4 +34,9 @@
 
 .shimmer > div {
     border-radius: var(--small-border-radius);
+}
+
+/* Hides strange little white pixel rendered by shimmer due to border radius */
+.shimmer svg:last-of-type {
+    display: none;
 }
