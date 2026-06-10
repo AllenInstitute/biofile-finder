@@ -43,10 +43,8 @@ export const hasProvenanceSource = createSelector(
     (source): boolean => !!source
 );
 
-export const isColumnWidthOverflowing = createSelector(
-    [getColumns, getFileView],
-    (columns, fileView): boolean =>
-        fileView === FileView.LIST && columns.reduce((acc, column) => acc + column.width, 0) > 1
+export const getTotalColumnWidth = createSelector([getColumns], (columns): number =>
+    columns.reduce((acc, column) => acc + column.width, 0)
 );
 
 export const isQueryingAicsFms = createSelector(

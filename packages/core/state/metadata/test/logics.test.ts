@@ -143,9 +143,9 @@ describe("Metadata logics", () => {
         it("only dispatches columns that still exist in the data source", async () => {
             // arrange
             const mockColumns = mockAnnotations.map((ann) => {
-                return { name: ann.name, width: 0.2 };
+                return { name: ann.name, width: 200 };
             });
-            const columnNoLongerExists = { name: "old column", width: 0.2 };
+            const columnNoLongerExists = { name: "old column", width: 200 };
             const state = mergeState(initialState, {
                 selection: {
                     columns: [...mockColumns, columnNoLongerExists],
@@ -170,6 +170,57 @@ describe("Metadata logics", () => {
                 .at(0);
             // the call should not include the column that no longer exists
             expect(matchingAction?.payload.length).to.equal(mockColumns.length);
+        });
+
+        it("dispatches all annotations as columns when there are no existing columns", async () => {
+            // arrange: no existing columns
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: initialState,
+                logics: metadataLogics,
+            });
+
+            // act
+            store.dispatch(receiveAnnotations(mockAnnotations));
+            await logicMiddleware.whenComplete();
+
+            // assert: all annotations should be shown as columns, plus a "File Name" column prepended
+            expect(actions.includesMatch({ type: SET_COLUMNS })).to.be.true;
+            const matchingAction = actions.list
+                .filter((action) => action.type === SET_COLUMNS)
+                .at(0);
+            // 3 mock annotations + 1 prepended "file_name" column
+            expect(matchingAction?.payload.length).to.equal(mockAnnotations.length + 1);
+            expect(matchingAction?.payload[0].name).to.equal("file_name");
+        });
+
+        it("adds all new annotations as columns to existing ones", async () => {
+            // arrange: some existing columns
+            const existingColumns = [{ name: mockAnnotations[0].name, width: 300 }];
+            const state = mergeState(initialState, {
+                selection: {
+                    columns: existingColumns,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: metadataLogics,
+            });
+
+            // act: receive annotations that include one already shown and two new ones
+            store.dispatch(receiveAnnotations(mockAnnotations));
+            await logicMiddleware.whenComplete();
+
+            // assert: all annotations should be columns (existing kept, new ones added)
+            expect(actions.includesMatch({ type: SET_COLUMNS })).to.be.true;
+            const matchingAction = actions.list
+                .filter((action) => action.type === SET_COLUMNS)
+                .at(0);
+            expect(matchingAction?.payload.length).to.equal(mockAnnotations.length);
+            // existing column should retain its original width
+            const existingColumn = matchingAction?.payload.find(
+                (col: { name: string; width: number }) => col.name === mockAnnotations[0].name
+            );
+            expect(existingColumn?.width).to.equal(300);
         });
     });
 
