@@ -38,6 +38,8 @@ import {
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
     SET_IS_LOADING_DATA_SOURCE,
+    CHANGE_PROVENANCE_ORIGIN_ID,
+    ChangeProvenanceOriginId,
     REORDER_COLUMNS,
     ReorderColumnsAction,
 } from "./actions";
@@ -62,6 +64,7 @@ export interface SelectionStateBranch {
     filters: FileFilter[];
     isLoadingDataSource: boolean;
     openFileFolders: FileFolder[];
+    provenanceOriginId?: string;
     recentAnnotations: string[];
     requiresDataSourceReload?: boolean;
     selectedQuery?: string;
@@ -155,6 +158,10 @@ export default makeReducer<SelectionStateBranch>(
             fileSelection: new FileSelection(),
             openFileFolders: [],
         }),
+        [CHANGE_PROVENANCE_ORIGIN_ID]: (state, action: ChangeProvenanceOriginId) => ({
+            ...state,
+            provenanceOriginId: action.payload,
+        }),
         [CHANGE_PROVENANCE_SOURCE]: (state, action: ChangeProvenanceSource) => ({
             ...state,
             sourceProvenance: action.payload,
@@ -187,6 +194,7 @@ export default makeReducer<SelectionStateBranch>(
             dataSources: initialState.dataSources,
             sourceMetadata: undefined,
             sourceProvenance: undefined,
+            provenanceOriginId: undefined,
 
             // If a file is selected, deselect it
             fileForDetailPanel: undefined,

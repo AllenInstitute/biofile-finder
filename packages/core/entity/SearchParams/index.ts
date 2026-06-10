@@ -34,7 +34,8 @@ export interface SearchParamsComponents {
     fileView?: FileView;
     sources: Source[];
     sourceMetadata?: Source;
-    prov?: Source;
+    provenanceSource?: Source; // file containing provenance relationship info
+    provOriginId?: string; // currently selected uid of origin for prov graph
     filters: FileFilter[];
     openFolders: FileFolder[];
     sortColumn?: FileSort;
@@ -94,10 +95,11 @@ export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
 };
 
 // We want to eventually use shorthands and other tricks to
-// try to shortern the resulting URL however we can
+// try to shorten the resulting URL however we can
 enum URLQueryArgShorthands {
     COLUMNS = "c",
     FILE_VIEW = "v",
+    PROVENANCE_ORIGIN_ID = "p",
 }
 
 class ColumnCoder {
@@ -202,18 +204,25 @@ export default class SearchParams {
                 })
             );
         }
-        if (urlComponents.prov) {
+        if (urlComponents.provenanceSource) {
             params.append(
                 "prov",
                 JSON.stringify({
-                    ...urlComponents.prov,
+                    ...urlComponents.provenanceSource,
                     uri:
-                        typeof urlComponents.prov.uri === "string" ||
-                        urlComponents.prov.uri instanceof String
-                            ? urlComponents.prov.uri
+                        typeof urlComponents.provenanceSource.uri === "string" ||
+                        urlComponents.provenanceSource.uri instanceof String
+                            ? urlComponents.provenanceSource.uri
                             : undefined,
                 })
             );
+            // Only include the graph origin if we also have a provenance source file
+            if (urlComponents.provOriginId) {
+                params.append(
+                    URLQueryArgShorthands.PROVENANCE_ORIGIN_ID,
+                    urlComponents.provOriginId
+                );
+            }
         }
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
@@ -261,6 +270,7 @@ export default class SearchParams {
         const showNoValueGroupsString = params.get("showNulls");
         const fileView = (params.get(URLQueryArgShorthands.FILE_VIEW) as FileView) || FileView.LIST;
         const hierarchyDepth = hierarchy.length;
+        const provenanceOriginId = params.get(URLQueryArgShorthands.PROVENANCE_ORIGIN_ID);
 
         const parsedSort = unparsedSort ? JSON.parse(unparsedSort) : undefined;
         if (
@@ -284,7 +294,12 @@ export default class SearchParams {
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
-            prov: unparsedSourceProvenance ? JSON.parse(unparsedSourceProvenance) : undefined,
+            provenanceSource: unparsedSourceProvenance
+                ? JSON.parse(unparsedSourceProvenance)
+                : undefined,
+            // only include the graph origin if we also have a provenance source file
+            provOriginId:
+                provenanceOriginId && unparsedSourceProvenance ? provenanceOriginId : undefined,
             showNoValueGroups: showNoValueGroupsString ? JSON.parse(showNoValueGroupsString) : true,
             sortColumn: parsedSort
                 ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)

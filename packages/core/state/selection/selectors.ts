@@ -26,6 +26,7 @@ export const getRequiresDataSourceReload = (state: State) =>
 export const getSelectedDataSources = (state: State) => state.selection.dataSources;
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
 export const getSelectedSourceProvenance = (state: State) => state.selection.sourceProvenance;
+export const getProvenanceOriginId = (state: State) => state.selection.provenanceOriginId;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
 export const getShouldShowNullGroups = (state: State) => state.selection.shouldShowNullGroups;
@@ -93,6 +94,7 @@ export const getCurrentQueryParts = createSelector(
         getSelectedDataSources,
         getSelectedSourceMetadata,
         getSelectedSourceProvenance,
+        getProvenanceOriginId,
     ],
     (
         hierarchy,
@@ -104,7 +106,8 @@ export const getCurrentQueryParts = createSelector(
         sortColumn,
         sources,
         sourceMetadata,
-        prov
+        provenanceSource,
+        provOriginId
     ): SearchParamsComponents => ({
         columns,
         hierarchy,
@@ -115,7 +118,8 @@ export const getCurrentQueryParts = createSelector(
         sortColumn,
         sources,
         sourceMetadata,
-        prov,
+        provenanceSource,
+        provOriginId,
     })
 );
 
