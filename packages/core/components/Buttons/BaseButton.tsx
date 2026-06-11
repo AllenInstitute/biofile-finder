@@ -14,6 +14,9 @@ interface Props {
     id?: string;
     isSelected?: boolean;
     menuDirection?: DirectionalHint;
+    // Optional Fluent icon name for the trailing menu chevron. When omitted the
+    // chevron stays hidden (the app's default), preserving existing call sites.
+    menuIconName?: string;
     menuItems?: IContextualMenuItem[];
     onClick?: () => void;
     text?: string;
@@ -70,7 +73,11 @@ export default function BaseButton(props: Props) {
                 ariaLabel={props.title}
                 disabled={props.disabled}
                 id={props.id}
-                menuIconProps={{ className: styles.hidden }}
+                menuIconProps={
+                    props.menuIconName
+                        ? { iconName: props.menuIconName }
+                        : { className: styles.hidden }
+                }
                 menuProps={styledMenu}
                 onClick={props.onClick}
             >

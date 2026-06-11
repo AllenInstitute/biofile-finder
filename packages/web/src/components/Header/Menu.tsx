@@ -4,8 +4,10 @@ import * as React from "react";
 import { useDispatch } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 
-import { PrimaryButton, TertiaryButton, useButtonMenu } from "../../../../core/components/Buttons";
+import { TertiaryButton, useButtonMenu } from "../../../../core/components/Buttons";
 import useHelpOptions from "../../../../core/hooks/useHelpOptions";
+import LaunchAppMenu from "../LaunchAppMenu";
+import { EXAMPLE_DATASET_URL } from "../../constants";
 
 import styles from "./Menu.module.css";
 
@@ -49,15 +51,7 @@ export default function Menu() {
                     menuProps={helpMenu}
                     text="Help"
                 />
-                {currentPath !== "/app" && (
-                    <Link to="app">
-                        <PrimaryButton
-                            className={styles.startButton}
-                            title="Get started in the app"
-                            text="LAUNCH APP"
-                        />
-                    </Link>
-                )}
+                {currentPath !== "/app" && <LaunchAppMenu className={styles.startButton} />}
             </div>
             <div className={styles.smallMenu}>
                 <TertiaryButton
@@ -66,10 +60,17 @@ export default function Menu() {
                     menuItems={[
                         {
                             key: "start",
-                            text: "Get started",
+                            text: "Start with your data",
                             target: "_self",
                             rel: "noreferrer",
                             href: "/app",
+                        },
+                        {
+                            key: "example-dataset",
+                            text: "Explore example dataset",
+                            target: "_self",
+                            rel: "noreferrer",
+                            href: EXAMPLE_DATASET_URL,
                         },
                         {
                             key: "datasets",
