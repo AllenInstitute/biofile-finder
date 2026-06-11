@@ -511,9 +511,8 @@ export default class Graph {
                         return createFileNode(file);
                     }
                 } catch {
-                    // Backup while moving between provenance versions: Try looking by "File Id", this should be removed in the future
-                    
-                    const fileById = await this.getFileBy("File Id", [value]);
+                    // Backup while moving between provenance versions: Try looking by "File ID", this should be removed in the future
+                    const fileById = await this.getFileBy("File ID", [value]);
                     if (fileById) return createFileNode(fileById);
                 }
                 throw new Error(`Unable to find file with value ${value}`);
