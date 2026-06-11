@@ -502,17 +502,17 @@ export default class Graph {
 
         return Promise.all(
             (annotation.values as string[]).map(async (value) => {
-                // // Avoid re-requesting the file when possible
-                const node = this.graph.node(value);
+                // Avoid re-requesting the file when possible
+                const node = this.graph.node(value); // the value should be a file path
                 if (node) return node;
                 try {
-                    const file = await this.getFileByIdentifier("File Path", [value]);
+                    const file = await this.getFileBy("File Path", [value]);
                     if (file) {
                         return createFileNode(file);
                     }
                 } catch {
                     // try looking up by id
-                    const fileById = await this.getFileByIdentifier("File id", [value]);
+                    const fileById = await this.getFileBy("File Id", [value]);
                     if (fileById) return createFileNode(fileById);
                 }
                 throw new Error(`Unable to find file with value ${value}`);
@@ -572,11 +572,11 @@ export default class Graph {
     }
 
     /**
-     * Get a single file that matches an annotation/value pair
+     * Get a single file that matches a column/value pair
      */
-    private async getFileByIdentifier(
-        identifierName: string, // e.g., File ID, File Name, File Path
-        identifierValue: (string | number | boolean)[]
+    private async getFileBy(
+        column: string,
+        value: (string | number | boolean)[]
     ): Promise<FileDetail | undefined> {
         let files;
         try {
@@ -585,12 +585,12 @@ export default class Graph {
                 limit: 2, // We only want one result, so if there are >=2 it's not a unique identifier
                 fileSet: new FileSet({
                     fileService: this.fileService,
-                    filters: [new FileFilter(identifierName, identifierValue)],
+                    filters: [new FileFilter(column, value)],
                 }),
             });
         } catch (err) {
             console.error(
-                `Failed to find file with value ${identifierName} for annotation ${identifierValue}. Error: ${
+                `Failed to find file with value ${column} for annotation ${value}. Error: ${
                     (err as Error).message
                 }`
             );
@@ -598,7 +598,7 @@ export default class Graph {
         }
         if (files.length !== 1) {
             throw new Error(
-                `Failed to fetch 1 file with value ${identifierName} for annotation ${identifierValue}. Found ${files.length} instead.`
+                `Failed to fetch 1 file with value ${column} for annotation ${value}. Found ${files.length} instead.`
             );
         }
         return files[0];
