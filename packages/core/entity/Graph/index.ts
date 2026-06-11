@@ -511,7 +511,8 @@ export default class Graph {
                         return createFileNode(file);
                     }
                 } catch {
-                    // try looking up by id
+                    // Backup while moving between provenance versions: Try looking by "File Id", this should be removed in the future
+                    
                     const fileById = await this.getFileBy("File Id", [value]);
                     if (fileById) return createFileNode(fileById);
                 }
