@@ -118,7 +118,11 @@ const selectFile = createLogic({
             fileSet,
             index: selection,
             sortOrder,
-            indexToFocus: lastTouched,
+            // If selection is a number set it to be indexToFocus otherwise
+            // if selection is a NumericRange set the indexToFocus to be the start of the range
+            // (this is somewhat arbitrary but it is consistent with how we handle range selections
+            // in other places in the app and seems reasonable as a default)
+            indexToFocus: typeof selection === "number" ? selection : selection.min,
         });
         next(setFileSelection(nextFileSelection));
     },
