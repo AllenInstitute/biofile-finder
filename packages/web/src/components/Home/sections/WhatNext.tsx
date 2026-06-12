@@ -11,9 +11,7 @@ import styles from "../Home.module.css";
 
 /** Renders an action card's CTA as an internal Link or external anchor. */
 function CardAction(cta: ActionCard["cta"]) {
-    const button = (
-        <SecondaryButton className={styles.ctaButton} text={cta.text} title={cta.text} />
-    );
+    const button = <SecondaryButton className={styles.ctaButton} text={cta.text} />;
     if (cta.external) {
         return (
             <a

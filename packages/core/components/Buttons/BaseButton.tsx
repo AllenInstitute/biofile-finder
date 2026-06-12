@@ -8,9 +8,16 @@ import Tooltip from "../Tooltip";
 import styles from "./BaseButton.module.css";
 
 interface Props {
+    // Accessible name when no tooltip is wanted. `title` also sets the
+    // accessible name but additionally shows a tooltip; use `ariaLabel` to
+    // name the button (e.g. an icon-only button) without a tooltip.
+    ariaLabel?: string;
     className?: string;
     disabled?: boolean;
     iconName?: string;
+    // Which side of the text the icon sits on. Defaults to "before" (the icon
+    // leads the text), preserving existing call sites.
+    iconPosition?: "before" | "after";
     id?: string;
     isSelected?: boolean;
     menuDirection?: DirectionalHint;
@@ -37,17 +44,23 @@ export default function BaseButton(props: Props) {
         directionalHint: props.menuDirection,
     });
 
+    const iconAfter = props.iconPosition === "after";
+    const icon = props.iconName && (
+        <Icon
+            className={classNames(styles.buttonIcon, {
+                [styles.padRight]: !!props.text && !iconAfter,
+                [styles.padLeft]: !!props.text && iconAfter,
+            })}
+            iconName={props.iconName}
+        />
+    );
     const content = (
         <span className={styles.buttonContent}>
-            {props.iconName && (
-                <Icon
-                    className={classNames(styles.buttonIcon, { [styles.padRight]: !!props.text })}
-                    iconName={props.iconName}
-                />
-            )}
+            {!iconAfter && icon}
             <span className={styles.buttonText}>
                 {props?.useSentenceCase ? props.text : props.text?.toUpperCase()}
             </span>
+            {iconAfter && icon}
         </span>
     );
 
@@ -70,12 +83,13 @@ export default function BaseButton(props: Props) {
                     [styles.selected]: props.isSelected,
                 })}
                 data-testid={`base-button-${props.id}`}
-                ariaLabel={props.title}
+                ariaLabel={props.ariaLabel ?? props.title}
                 disabled={props.disabled}
                 id={props.id}
                 menuIconProps={
                     props.menuIconName
-                        ? { iconName: props.menuIconName }
+                        ? // Match the weight/styling of the button's leading/trailing icons.
+                          { iconName: props.menuIconName, className: styles.buttonIcon }
                         : { className: styles.hidden }
                 }
                 menuProps={styledMenu}

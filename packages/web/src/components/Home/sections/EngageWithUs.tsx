@@ -25,7 +25,7 @@ export default function EngageWithUs() {
                             rel="noreferrer"
                             aria-label={isEmail ? link.text : `${link.text} (opens in new tab)`}
                         >
-                            {link.text}
+                            <span className={styles.externalLinkText}>{link.text}</span>
                             <Icon
                                 className={styles.externalIcon}
                                 iconName={isEmail ? "Mail" : "OpenInNewWindow"}

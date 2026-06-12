@@ -6,8 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 
 import { TertiaryButton, useButtonMenu } from "../../../../core/components/Buttons";
 import useHelpOptions from "../../../../core/hooks/useHelpOptions";
-import LaunchAppMenu from "../LaunchAppMenu";
-import { EXAMPLE_DATASET_URL } from "../../constants";
+import LaunchAppMenu, { LAUNCH_APP_MENU_ITEMS } from "../LaunchAppMenu";
 
 import styles from "./Menu.module.css";
 
@@ -21,6 +20,11 @@ export default function Menu() {
     const helpMenuOptions = useHelpOptions(dispatch, true, isApp);
     const helpMenu = useButtonMenu({
         items: helpMenuOptions,
+        directionalHint: DirectionalHint.bottomAutoEdge,
+    });
+    // Submenu for the mobile menu's "Launch app" item, styled like the Help submenu.
+    const launchMenu = useButtonMenu({
+        items: LAUNCH_APP_MENU_ITEMS,
         directionalHint: DirectionalHint.bottomAutoEdge,
     });
 
@@ -56,21 +60,12 @@ export default function Menu() {
             <div className={styles.smallMenu}>
                 <TertiaryButton
                     iconName="NumberedListText"
-                    title="Menu"
+                    ariaLabel="Menu"
                     menuItems={[
                         {
-                            key: "start",
-                            text: "Start with your data",
-                            target: "_self",
-                            rel: "noreferrer",
-                            href: "/app",
-                        },
-                        {
-                            key: "example-dataset",
-                            text: "Explore example dataset",
-                            target: "_self",
-                            rel: "noreferrer",
-                            href: EXAMPLE_DATASET_URL,
+                            key: "launch",
+                            text: "Launch app",
+                            subMenuProps: launchMenu,
                         },
                         {
                             key: "datasets",

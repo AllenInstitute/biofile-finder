@@ -21,7 +21,7 @@
 }
 
 .body {
-    color: var(--secondary-text-color);
+    /* Color is inherited from the app layout (--secondary-text-color). */
     flex: 1 1 auto;
     font-size: var(--l-paragraph-size);
     line-height: 1.6;

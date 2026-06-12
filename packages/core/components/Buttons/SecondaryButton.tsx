@@ -10,6 +10,7 @@ interface Props {
     className?: string;
     disabled?: boolean;
     iconName?: string;
+    iconPosition?: "before" | "after";
     id?: string;
     menuDirection?: DirectionalHint;
     menuIconName?: string;
@@ -30,6 +31,7 @@ export default function SecondaryButton(props: Props) {
             })}
             disabled={props.disabled}
             iconName={props.iconName}
+            iconPosition={props.iconPosition}
             id={props.id}
             menuDirection={props.menuDirection}
             menuIconName={props.menuIconName}

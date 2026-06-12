@@ -16,14 +16,24 @@ export default function Hero() {
             <div className={styles.heroContent}>
                 <h1 className={styles.heroTitle}>{APPLICATION_NAME}</h1>
                 <p className={styles.heroTagline}>Find, explore, and share data—faster.</p>
-                {/* No onClick -> PrimaryButton renders a div, so the anchor owns navigation. */}
-                <a href={LINKS.tryNow} target="_self" rel="noreferrer">
+                {/*
+                    Navigate via onClick (rather than wrapping in an <a>) so the
+                    button's tooltip host wraps the button directly. The
+                    inline-block wrapper shrinks the (block) tooltip host to the
+                    button's width so the tooltip anchors to the button instead
+                    of centering on the full-width hero band. `title` drives the
+                    tooltip.
+                */}
+                <div className={styles.heroCta}>
                     <PrimaryButton
                         className={styles.ctaButton}
+                        iconName="Forward"
+                        iconPosition="after"
                         text="Try BioFile Finder now"
                         title="Launch BioFile Finder with an example dataset"
+                        onClick={() => window.location.assign(LINKS.tryNow)}
                     />
-                </a>
+                </div>
             </div>
         </section>
     );

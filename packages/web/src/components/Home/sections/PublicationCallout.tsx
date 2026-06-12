@@ -30,8 +30,8 @@ export default function PublicationCallout() {
                     <SecondaryButton
                         className={styles.ctaButton}
                         iconName="OpenInNewWindow"
+                        iconPosition="after"
                         text="Read publication"
-                        title="Read publication"
                     />
                 </a>
             </div>

@@ -21,11 +21,7 @@ export default function GetStarted() {
             <div className={styles.buttonRow}>
                 {/* TODO(user-guide): repoint to the user guide once that branch merges. */}
                 <Link to={LINKS.userGuide}>
-                    <SecondaryButton
-                        className={styles.ctaButton}
-                        text="Read guidance"
-                        title="Read guidance"
-                    />
+                    <SecondaryButton className={styles.ctaButton} text="Read guidance" />
                 </Link>
                 <LaunchAppMenu className={styles.ctaButton} />
             </div>

@@ -6,7 +6,7 @@
 
 /* Full-bleed band; default sits on the page background. */
 .band {
-    padding: calc(4 * var(--margin)) calc(2 * var(--margin));
+    padding: calc(3 * var(--margin)) calc(2 * var(--margin));
     width: 100%;
 }
 
@@ -22,8 +22,8 @@
 }
 
 .section-heading {
+    /* font-weight inherited from the global h2 (300). */
     font-size: 28px;
-    font-weight: 300;
     margin-bottom: calc(3 * var(--margin));
     text-align: center;
 }
@@ -52,26 +52,32 @@
     width: 100%;
 }
 
+/* Shrink-wraps the hero CTA so its tooltip anchors to the button. */
+.hero-cta {
+    display: inline-block;
+}
+
 /* Homepage-specific oversized H1 (global h1 is 38px). */
 .hero-title {
-    font-size: clamp(40px, 6vw, 64px);
-    font-weight: 300;
+    font-size: clamp(40px, 6vw, 80px);
+    font-weight: 600;
     margin: 0;
 }
 
 .hero-tagline {
+    /* font-weight inherited from the global p (400). */
     font-size: 20px;
-    font-weight: 400;
     margin: var(--margin) 0 calc(2 * var(--margin));
 }
 
 /* ---------- Intro band ---------- */
 
 .intro-container {
-    align-items: center;
+    /* max-width comes from the shared .container; logo stays left, text flows
+       to its right and wraps without stacking. */
+    align-items: flex-start;
     display: flex;
     gap: calc(2 * var(--margin));
-    max-width: 1200px;
 }
 
 .intro-logo {
@@ -155,12 +161,13 @@
 
 /* Inline text link in body copy (e.g. "Visit the user guide to learn more"). */
 .text-link {
-    color: var(--bright-aqua);
+    color: var(--aqua);
     font-weight: 600;
 }
 
 .text-link:hover,
 .text-link:focus {
+    color: var(--bright-aqua);
     text-decoration: underline;
 }
 
@@ -176,24 +183,26 @@
 
 .external-link {
     align-items: center;
-    color: var(--bright-aqua);
+    color: var(--aqua);
     display: inline-flex;
     font-size: var(--l-paragraph-size);
     gap: 6px;
 }
 
+/* Brighten the whole link (text + icon) on hover/focus. */
 .external-link:hover,
 .external-link:focus {
+    color: var(--bright-aqua);
+}
+
+/* Underline only the text (not the icon or the gap between them) on hover. */
+.external-link:hover .external-link-text,
+.external-link:focus .external-link-text {
     text-decoration: underline;
 }
 
 .external-icon {
     font-size: var(--xs-paragraph-size);
+    font-weight: 600;
 }
 
-@media screen and (max-width: 749px) {
-    .intro-container {
-        flex-direction: column;
-        text-align: center;
-    }
-}

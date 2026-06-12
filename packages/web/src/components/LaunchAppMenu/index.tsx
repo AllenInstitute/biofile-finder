@@ -1,43 +1,46 @@
-import { DirectionalHint } from "@fluentui/react";
+import { DirectionalHint, IContextualMenuItem } from "@fluentui/react";
 import * as React from "react";
 
 import { SecondaryButton } from "../../../../core/components/Buttons";
 import { EXAMPLE_DATASET_URL } from "../../constants";
 
 /**
- * Dropdown button that launches the app. Offers two entry points:
+ * The two ways to launch the app:
  *   - "Start with your data"     -> the app's data-source picker (/app)
  *   - "Explore example dataset"  -> the app pre-loaded with a public dataset
  *
- * Shared by the global Header nav and the home page "How do I get started?"
- * section so the entry points stay defined in exactly one place.
+ * Defined once here and shared by the desktop dropdown (below), the home page
+ * "How do I get started?" section, and the Header's mobile menu submenu so the
+ * entry points stay in exactly one place.
  */
+export const LAUNCH_APP_MENU_ITEMS: IContextualMenuItem[] = [
+    {
+        key: "your-data",
+        text: "Start with your data",
+        href: "/app",
+        target: "_self",
+    },
+    {
+        key: "example-dataset",
+        text: "Explore example dataset",
+        href: EXAMPLE_DATASET_URL,
+        target: "_self",
+    },
+];
+
 interface LaunchAppMenuProps {
     className?: string;
 }
 
+/** Dropdown button that launches the app (desktop nav + get-started section). */
 export default function LaunchAppMenu(props: LaunchAppMenuProps) {
     return (
         <SecondaryButton
             className={props.className}
-            title="Launch app"
             text="Launch app"
             menuIconName="ChevronDown"
             menuDirection={DirectionalHint.bottomAutoEdge}
-            menuItems={[
-                {
-                    key: "your-data",
-                    text: "Start with your data",
-                    href: "/app",
-                    target: "_self",
-                },
-                {
-                    key: "example-dataset",
-                    text: "Explore example dataset",
-                    href: EXAMPLE_DATASET_URL,
-                    target: "_self",
-                },
-            ]}
+            menuItems={LAUNCH_APP_MENU_ITEMS}
         />
     );
 }
