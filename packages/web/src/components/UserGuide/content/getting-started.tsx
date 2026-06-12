@@ -208,7 +208,7 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 body: (
                     <>
                         <p>
-                            A BFF dataset is a tabular file where each row represents a file and
+                            A BFF dataset is a tabular file where each row represents a file, and
                             each column is a piece of metadata about that file. The format is
                             flexible — any columns beyond the required ones are yours to define
                             based on what matters to your workflow.
@@ -299,7 +299,7 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                         <h3>Basic example</h3>
                         <p>
                             Each row is a file. Columns can be anything meaningful to your workflow
-                            — here a well position, gene target, and color channel.
+                            — here a well position, gene target, and fluorophore.
                         </p>
                         <table className="ug-table">
                             <thead>
@@ -307,7 +307,7 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                                     <th>File Path</th>
                                     <th>Well</th>
                                     <th>Gene</th>
-                                    <th>Color</th>
+                                    <th>Fluorophore</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -315,13 +315,13 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                                     <td>Abc123.txt</td>
                                     <td>B3</td>
                                     <td>CDH2</td>
-                                    <td>Blue</td>
+                                    <td>EGFP</td>
                                 </tr>
                                 <tr>
                                     <td>Def456.txt</td>
                                     <td>G9</td>
                                     <td>VIM</td>
-                                    <td>Green</td>
+                                    <td>Alexa Fluor 405</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -351,6 +351,36 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 heading: "Recommendations",
                 body: (
                     <>
+                        <h3>REMBI</h3>
+                        <p>
+                            REMBI (Recommended Metadata for Biological Images), published in{" "}
+                            <a
+                                href="https://www.nature.com/articles/s41592-021-01166-8"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                Nature Methods in 2021{" "}
+                                <Icon iconName="OpenInNewWindow" className="ug-icon-sm" />
+                            </a>
+                            , was among the first community-driven efforts to establish a practical
+                            and modality-independent framework for describing biological imaging
+                            experiments. Rather than prescribing a rigid file format, REMBI defines
+                            a structured metadata model organized into a series of logical modules
+                            that capture the complete context of an imaging study, including
+                            study-level information, biological samples, specimen preparation, image
+                            acquisition parameters, image data, image correlations, and image
+                            analysis outputs. The framework was designed to support both light and
+                            electron microscopy and to align with FAIR data principles by ensuring
+                            that image datasets remain interpretable, reproducible, and reusable
+                            long after their original publication.
+                        </p>
+                        <p>
+                            <a href="#">
+                                Download REMBI-based template{" "}
+                                <Icon iconName="Download" className="ug-icon-sm" />{" "}
+                                <Icon iconName="Flag" className="ug-icon-md" />
+                            </a>
+                        </p>
                         <h3>FoundingGIDE</h3>
                         <p>
                             The following interpretation of the{" "}

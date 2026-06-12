@@ -298,7 +298,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                 heading: "Real-world scenarios",
                 body: (
                     <>
-                        <h3>Wet-lab scientists</h3>
+                        <h3>Imaging scientists</h3>
                         <p>
                             <i>
                                 I have thousands of images and I just want to find the right ones.
