@@ -31,7 +31,7 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                         </ul>
                         <p>
                             See:{" "}
-                            <a href="/user-guide/getting-started/creating-a-dataset">
+                            <a href="/user-guide/getting-started/creating-a-metadata-file">
                                 Creating a metadata file
                             </a>
                             ,{" "}
@@ -185,7 +185,7 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                             </li>
                             <li>
                                 See{" "}
-                                <a href="/user-guide/getting-started/creating-a-dataset#spreadsheet-examples">
+                                <a href="/user-guide/getting-started/creating-a-metadata-file#spreadsheet-examples">
                                     Dataset examples
                                 </a>{" "}
                                 for examples to follow when creating a dataset.
@@ -197,7 +197,7 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
         ],
     },
 
-    "getting-started/creating-a-dataset": {
+    "getting-started/creating-a-metadata-file": {
         title: "Creating a dataset metadata file",
         intro:
             "BioFile Finder (BFF) works by referencing a spreadsheet you provide, populated by key-value pairs that are the metadata associated with your image files.",

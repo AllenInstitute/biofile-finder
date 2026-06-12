@@ -55,17 +55,17 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
                                 <span>Computational biologists</span>
                             </li>
                             <li>
-                                <span>Data Engineers & Platform Teams</span>
+                                <span>Data engineers & platform teams</span>
                             </li>
                             <li>
-                                <span>Academic Facility Managers & PIs</span>
+                                <span>Core facility managers & PIs</span>
                             </li>
                             <li>
-                                <span>GLAM & Museum Professionals</span>
+                                <span>GLAM & museum professionals</span>
                             </li>
                         </ul>
                         <p>
-                            <a href="/user-guide/real-world-use-cases/use-cases-overview">
+                            <a href="/user-guide/real-world-use-cases/use-cases">
                                 Read detailed scenarios and use cases
                             </a>
                         </p>
@@ -114,12 +114,12 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
             },
             {
                 id: "bff-comparison-table",
-                heading: "How BFF compares",
+                heading: "BFF and Related Tool Capabilities",
                 body: (
                     <>
                         <p>
-                            The following table highlights how BFF compares to similar tools in the
-                            bioimaging data management ecosystem.
+                            The following table provides a feature overview of BFF alongside other
+                            similar, tools.
                         </p>
                         <div
                             className="ug-scroll-container"
@@ -417,7 +417,7 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
         ],
     },
 
-    "about/features": {
+    "about/feature-highlights": {
         title: "Feature highlights",
         intro:
             "BioFile Finder (BFF) packs a lot of capability into a serverless, browser-based tool. Here is an overview of its key features.",
@@ -606,7 +606,7 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
                         </ul>
                         <p>
                             <a href="/user-guide/app-information/supported-viewers#viewer-table">
-                                See the viewer comparison table
+                                See the image viewer comparison table
                             </a>
                         </p>
                     </>

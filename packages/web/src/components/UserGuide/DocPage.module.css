@@ -100,7 +100,7 @@
 
 .sectionBody li span,
 .sectionBody :global(.ug-feature-card) span {
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .sectionBody a {
@@ -222,6 +222,12 @@
     vertical-align: middle;
 }
 
+/* "Open in new window" external-link icons (targeted by Fluent's icon name so
+   other small icons sharing .ug-icon-sm are unaffected). */
+.sectionBody :global([data-icon-name="OpenInNewWindow"]) {
+    font-weight: 600;
+}
+
 /* Placeholder box (for diagrams/future content) */
 .sectionBody :global(.ug-placeholder) {
     background-color: var(--accent-dark);
@@ -276,6 +282,7 @@
 
 .pageNavIcon {
     font-size: 12px;
+    font-weight: 600;
     color: var(--aqua);
     flex-shrink: 0;
 }

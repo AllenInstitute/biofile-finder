@@ -6,7 +6,7 @@ import type { PageContent } from "./types";
 // Note: "real-world-use-cases/other-examples" exists in this file but has no
 // corresponding nav entry. It is unreachable unless added to nav.ts.
 export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
-    "real-world-use-cases/use-cases-overview": {
+    "real-world-use-cases/use-cases": {
         title: "Use cases & scenarios",
         intro:
             "BioFile Finder (BFF) is flexible enough to fit many different workflows and contexts. This page highlights common use cases observed across research labs, core facilities, and data teams — along with real-world scenarios showing how different types of users leverage BFF in their work.",

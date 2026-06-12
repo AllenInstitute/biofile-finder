@@ -33,7 +33,7 @@ export const NAV: NavSection[] = [
             },
             {
                 title: "Feature highlights",
-                slug: "features",
+                slug: "feature-highlights",
                 headings: [
                     { id: "in-browser-querying", text: "In-browser querying" },
                     { id: "dynamic-grouping", text: "Dynamic grouping & hierarchy" },
@@ -51,7 +51,7 @@ export const NAV: NavSection[] = [
         pages: [
             {
                 title: "Use cases & scenarios",
-                slug: "use-cases-overview",
+                slug: "use-cases",
                 headings: [
                     { id: "use-case-table", text: "How people use BFF" },
                     { id: "explore-screening", text: "Explore screening results" },
@@ -126,7 +126,7 @@ export const NAV: NavSection[] = [
             },
             {
                 title: "Creating a dataset metadata file",
-                slug: "creating-a-dataset",
+                slug: "creating-a-metadata-file",
                 headings: [
                     { id: "creating-spreadsheet", text: "What is a dataset?" },
                     { id: "rows-columns", text: "Rows and columns" },
@@ -145,7 +145,7 @@ export const NAV: NavSection[] = [
                 ],
             },
             {
-                title: "Provenance",
+                title: "File & metadata provenance",
                 slug: "provenance",
                 headings: [
                     { id: "provenance-where", text: "Where to add the file" },
