@@ -81,9 +81,13 @@
 }
 
 .intro-logo {
+    /* Scales gently with the viewport, bounded so it stays balanced next to
+       the text. NOTE: the source asset is only 128px, so it is crisp up to
+       ~64px on Retina; replace site-logo.png with a higher-res file to keep
+       these larger sizes sharp. */
     flex: none;
-    height: 64px;
-    width: 64px;
+    height: auto;
+    width: clamp(80px, 6vw, 96px);
 }
 
 .intro-body {
