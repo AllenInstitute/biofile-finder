@@ -65,9 +65,9 @@
     "clean-webpack-plugin": "4.x",
     "css-loader": "6.x",
     "dotenv-webpack": "7.x",
-    "electron": "22.3.x",
-    "electron-builder": "24.13.x",
-    "electron-mocha": "11.0.x",
+    "electron": "42.x",
+    "electron-builder": "26.x",
+    "electron-mocha": "13.x",
     "fork-ts-checker-webpack-plugin": "6.x",
     "html-webpack-plugin": "5.x",
     "mini-css-extract-plugin": "2.x",
@@ -85,7 +85,7 @@
   "dependencies": {
     "@aics/frontend-insights": "0.2.x",
     "@aics/frontend-insights-plugin-amplitude-node": "0.2.x",
-    "electron-store": "8.0.x",
+    "electron-store": "8.x",
     "regenerator-runtime": "0.13.x",
     "webpack-node-externals": "^3.0.0"
   }
