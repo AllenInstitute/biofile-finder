@@ -396,13 +396,13 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                             minimal, harmonized metadata schema that enables interoperability across
                             bioimaging data resources. Because imaging datasets are generated and
                             stored using diverse, often incompatible metadata models, they are
-                            difficult to search, integrate, and reuse across repositories.
-                            FoundingGIDE addresses this by defining a shared set of metadata fields,
-                            grounded in common ontologies, that can be consistently applied across
-                            studies. This template translates those recommendations into a simple,
-                            spreadsheet-based format supporting cross-repository discovery, FAIR
-                            data principles, and integration into a broader global image data
-                            ecosystem.
+                            difficult to integrate with other datasets and reuse across
+                            repositories. FoundingGIDE addressed this by defining a shared set of
+                            metadata fields, grounded in common ontologies, that can be consistently
+                            applied across studies. This template translates those recommendations
+                            into a simple, spreadsheet-based format supporting cross-repository
+                            discovery, FAIR data principles, and integration of datasets into a
+                            broader global image data ecosystem.
                         </p>
                         <p>
                             Fields included: Metadata Field, Study Description, Authors,
