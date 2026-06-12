@@ -98,7 +98,7 @@ export const HOW_CARDS: AccentCard[] = [
 
 export const NEXT_CARDS: ActionCard[] = [
     {
-        title: "See how scientists use BioFile Finder",
+        title: "See how scientists use BFF",
         body:
             "BioFile Finder has been used across many dataset types to support the release of published datasets and ongoing work.",
         // TODO(user-guide): repoint to use-cases page when available.
