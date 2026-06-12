@@ -18,15 +18,15 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Build/release Electron app
-        uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
+        uses: AllenCell/action-electron-builder@biofile-finder
         env:
           AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
         with:
@@ -37,7 +37,7 @@ jobs:
           windows_certs_password: ${{ secrets.CSC_KEY_PASSWORD }}
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: electron-build-${{ github.event.inputs.os }}
           path: |

@@ -12,8 +12,8 @@ To help with the management of three interconnected packages, this project makes
 
 
 ### System requirements
-1. NodeJS version 20.x (use `nvm` or similar)
-2. NPM version 10.x
+1. NodeJS version 24.x (use `nvm` or similar)
+2. NPM version 11.x
 
 
 ### Initial setup
