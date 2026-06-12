@@ -4,7 +4,7 @@ import { memoize } from "lodash";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 
 import NotificationServiceWeb from "./services/NotificationServiceWeb";
 import ApplicationInfoServiceWeb from "./services/ApplicationInfoServiceWeb";
@@ -14,10 +14,10 @@ import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
 import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
 import PersistentConfigServiceWeb from "./services/PersistentConfigServiceWeb";
 import ErrorPage from "./components/ErrorPage";
-import Learn from "./components/Learn";
 import Home from "./components/Home";
 import Layout from "./components/Layout";
 import OpenSourceDatasets from "./components/OpenSourceDatasets";
+import UserGuide from "./components/UserGuide";
 import SiteLogo from "../assets/site-logo.png";
 import FmsFileExplorer from "../../core/App";
 import { createReduxStore } from "../../core/state";
@@ -39,16 +39,20 @@ const router = createBrowserRouter(
                     element: <Home />, // Splash page
                 },
                 {
-                    path: "learn",
-                    element: <Learn />,
-                },
-                {
                     path: "app",
                     element: <FmsFileExplorer className={styles.app} />,
                 },
                 {
                     path: "datasets",
                     element: <OpenSourceDatasets />,
+                },
+                {
+                    path: "user-guide",
+                    element: <Navigate to="/user-guide/about/overview" replace />,
+                },
+                {
+                    path: "user-guide/:sectionSlug/:pageSlug",
+                    element: <UserGuide />,
                 },
             ],
         },

@@ -1,0 +1,306 @@
+/*
+ * Styles here fall into two categories:
+ *
+ * 1. CSS Module classes (.root, .sectionBody, etc.) — used in DocPage.tsx via styles.*
+ *
+ * 2. Content classes (.ug-image, .ug-scroll-container, etc.) — applied as plain strings
+ *    in the content/* files, which are data files that cannot import CSS modules.
+ *    Scoped via `.sectionBody :global(.ug-*)` to prevent leaking outside the content area.
+ *    When adding new content styles, add a ug-* class here instead of using inline styles.
+ */
+
+.root {
+    max-width: 900px;
+}
+
+/*
+ * TODO: The User Guide uses larger, lighter heading sizes than the global design system defaults
+ * (global: h2 24px, h3 18px/600). These are scoped here intentionally to avoid affecting the
+ * rest of the app. If heading sizes are ever updated globally to match, these overrides can be removed.
+ */
+.root h2 {
+    font-size: 28px;
+}
+
+.root h3 {
+    font-size: 20px;
+    font-weight: 400;
+}
+
+.notFound {
+    padding: 40px;
+    color: var(--light-grey);
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--light-grey);
+    margin-bottom: 20px;
+}
+
+.breadcrumbSeparator {
+    font-size: 10px;
+    color: var(--light-grey);
+}
+
+.breadcrumbPage {
+    color: var(--primary-text-color);
+}
+
+.title {
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.intro {
+    line-height: 1.6;
+    margin-bottom:34px;
+}
+
+.sections {
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+}
+
+.section {
+    scroll-margin-top: 80px;
+}
+
+.sectionHeading {
+    margin-bottom: 20px;
+}
+
+.sectionBody {
+    line-height: 1.6;
+    color: var(--primary-text-color);
+}
+
+.sectionBody p {
+    margin: 0 0 12px;
+}
+
+.sectionBody p:last-child {
+    margin-bottom: 0;
+}
+
+.sectionBody ul,
+.sectionBody ol {
+    margin: 10px 0 20px 20px;
+    padding: 0;
+}
+
+.sectionBody li {
+    margin-bottom: 6px;
+    line-height: 1.6;
+}
+
+.sectionBody li span,
+.sectionBody :global(.ug-feature-card) span {
+    font-weight: 600;
+}
+
+.sectionBody a {
+    color: var(--aqua);
+    text-decoration: none;
+}
+
+.sectionBody a:hover {
+    color: var(--bright-aqua);
+    text-decoration: underline;
+}
+
+.sectionBody h3 {
+    margin: 20px 0 10px 0;
+}
+
+/* Inline table styles for HTML tables in content */
+.sectionBody :global(.ug-scroll-container) {
+    position: relative;
+}
+
+.sectionBody :global(.ug-scroll-container)::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 100%;
+    background-image: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.9));
+    pointer-events: none;
+    z-index: 1;
+}
+
+.sectionBody :global(.ug-scroll-table) {
+    overflow-x: auto;
+    cursor: ew-resize;
+}
+
+.sectionBody :global(.ug-scroll-table) table {
+    min-width: 1140px;
+}
+
+.sectionBody table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom:20px;
+}
+
+.sectionBody th {
+    background-color: var(--aqua);
+    color: var(--white);
+    font-weight: 600;
+    padding: 10px 12px;
+    text-align: left;
+    border: 1px solid var(--border-color);
+}
+
+.sectionBody td {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.3;
+}
+
+.sectionBody tr:nth-child(odd) td {
+    background-color: var(--primary-dark);
+}
+
+.sectionBody tr:nth-child(even) td {
+    background-color: var(--secondary-dark);
+}
+
+/* 2x2 feature grid */
+.sectionBody :global(.ug-feature-grid) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap:22px;
+    margin: 20px 0 30px 0;
+}
+
+/* Asymmetric 1:2 grid layout — used when pairing a narrow panel with a wide screenshot */
+.sectionBody :global(.ug-feature-grid--wide) {
+    grid-template-columns: 1fr 2fr;
+}
+
+.sectionBody :global(.ug-feature-card) {
+    font-weight: 300;
+    line-height: 1.6;
+}
+
+@media (max-width: 769px) {
+    .sectionBody :global(.ug-feature-grid),
+    .sectionBody :global(.ug-feature-grid--wide) {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Content images */
+.sectionBody :global(.ug-image) {
+    width: 100%;
+    border-radius: 4px;
+}
+
+.sectionBody :global(.ug-image-mt) {
+    width: 100%;
+    border-radius: 4px;
+    margin-top: 8px;
+}
+
+/* Inline icons within body text */
+.sectionBody :global(.ug-icon-sm) {
+    font-size: 11px;
+    vertical-align: middle;
+}
+
+.sectionBody :global(.ug-icon-md) {
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+/* "Open in new window" external-link icons (targeted by Fluent's icon name so
+   other small icons sharing .ug-icon-sm are unaffected). */
+.sectionBody :global([data-icon-name="OpenInNewWindow"]) {
+    font-weight: 600;
+}
+
+/* Placeholder box (for diagrams/future content) */
+.sectionBody :global(.ug-placeholder) {
+    background-color: var(--accent-dark);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--small-border-radius);
+    color: var(--light-grey);
+    font-size: 14px;
+    font-style: italic;
+    padding: 24px;
+    text-align: center;
+    margin: 16px 0;
+}
+
+/* Pagination row */
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+.pageNav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--small-border-radius);
+    color: var(--primary-text-color);
+    text-decoration: none;
+    flex: 1;
+    max-width: 300px;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.pageNav:hover {
+    border-color: var(--aqua);
+    background-color: var(--aqua-secondary-hover);
+    color: var(--white);
+}
+
+.pageNavPrev {
+    justify-content: flex-start;
+}
+
+.pageNavNext {
+    justify-content: flex-end;
+    margin-left: auto;
+}
+
+.pageNavIcon {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--aqua);
+    flex-shrink: 0;
+}
+
+.pageNavLabel {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--light-grey);
+    margin-bottom: 2px;
+}
+
+.pageNavTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-text-color);
+}
+
+.pageNav:hover .pageNavTitle {
+    color: var(--white);
+}
