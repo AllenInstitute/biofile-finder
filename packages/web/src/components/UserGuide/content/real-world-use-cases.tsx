@@ -28,7 +28,9 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                             <tbody>
                                 <tr>
                                     <td>
-                                        <strong>Explore screening results</strong>
+                                        <a href="#explore-screening">
+                                            <strong>Explore screening results</strong>
+                                        </a>
                                     </td>
                                     <td>
                                         Group by plate/treatment; filter by phenotype; share URL
@@ -37,7 +39,9 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <strong>Validate metadata</strong>
+                                        <a href="#validate-metadata">
+                                            <strong>Validate metadata</strong>
+                                        </a>
                                     </td>
                                     <td>
                                         Filter for blanks/duplicates; group to check counts; export
@@ -47,7 +51,9 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <strong>Inspect image subsets</strong>
+                                        <a href="#inspect-subsets">
+                                            <strong>Inspect image subsets</strong>
+                                        </a>
                                     </td>
                                     <td>
                                         Multi-filter to exact subset; open in viewer; arrow-key
@@ -57,7 +63,9 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <strong>Perform QC on datasets</strong>
+                                        <a href="#perform-qc">
+                                            <strong>Perform QC on datasets</strong>
+                                        </a>
                                     </td>
                                     <td>
                                         Aggregate counts per group; filter for anomalies;
@@ -67,7 +75,9 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <strong>Manage image inventory</strong>
+                                        <a href="#manage-inventory">
+                                            <strong>Manage image inventory</strong>
+                                        </a>
                                     </td>
                                     <td>
                                         Host metadata file; browse by any column; shareable filtered
