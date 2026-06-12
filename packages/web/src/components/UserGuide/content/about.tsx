@@ -605,7 +605,7 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
                             </li>
                         </ul>
                         <p>
-                            <a href="/user-guide/app-information/supported-viewers">
+                            <a href="/user-guide/app-information/supported-viewers#viewer-table">
                                 See the viewer comparison table
                             </a>
                         </p>

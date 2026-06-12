@@ -185,8 +185,8 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                             </li>
                             <li>
                                 See{" "}
-                                <a href="#">
-                                    Dataset examples <Icon iconName="Flag" className="ug-icon-md" />
+                                <a href="/user-guide/getting-started/creating-a-dataset#spreadsheet-examples">
+                                    Dataset examples
                                 </a>{" "}
                                 for examples to follow when creating a dataset.
                             </li>

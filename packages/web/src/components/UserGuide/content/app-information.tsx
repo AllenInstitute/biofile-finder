@@ -99,37 +99,23 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                             are feasible, the following information may help guide your decision.
                         </p>
                         <ul>
+                            <li>&ldquo;I need to measure/analyze my images&rdquo; → FIJI</li>
+                            <li>&ldquo;I need a beautiful 3D render&rdquo; → AGAVE</li>
                             <li>
-                                <strong>&ldquo;I need to measure/analyze my images&rdquo;</strong> →{" "}
-                                <strong>FIJI</strong>
+                                &ldquo;I need to explore a huge dataset in the cloud&rdquo; →
+                                Neuroglancer or Vol-E
                             </li>
                             <li>
-                                <strong>&ldquo;I need a beautiful 3D render&rdquo;</strong> →{" "}
-                                <strong>AGAVE</strong>
+                                &ldquo;I need to view a simulation over time&rdquo; → Simularium
                             </li>
                             <li>
-                                <strong>
-                                    &ldquo;I need to explore a huge dataset in the cloud&rdquo;
-                                </strong>{" "}
-                                → <strong>Neuroglancer</strong> or <strong>Vol-E</strong>
+                                &ldquo;I need to check my OME-Zarr is valid&rdquo; → OME NGFF
+                                Validator
                             </li>
+                            <li>&ldquo;I have DICOM/medical volumes&rdquo; → VolView</li>
                             <li>
-                                <strong>&ldquo;I need to view a simulation over time&rdquo;</strong>{" "}
-                                → <strong>Simularium</strong>
-                            </li>
-                            <li>
-                                <strong>&ldquo;I need to check my OME-Zarr is valid&rdquo;</strong>{" "}
-                                → <strong>OME NGFF Validator</strong>
-                            </li>
-                            <li>
-                                <strong>&ldquo;I have DICOM/medical volumes&rdquo;</strong> →{" "}
-                                <strong>VolView</strong>
-                            </li>
-                            <li>
-                                <strong>
-                                    &ldquo;I just want to glance at a simple file quickly&rdquo;
-                                </strong>{" "}
-                                → <strong>Browser / OS preview</strong>
+                                &ldquo;I just want to glance at a simple file quickly&rdquo; →
+                                Browser / OS preview
                             </li>
                         </ul>
                     </>
@@ -166,9 +152,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td>
-                                                <strong>Type</strong>
-                                            </td>
+                                            <td>Type</td>
                                             <td>Web-based 3D volume viewer</td>
                                             <td>Desktop GPU-accelerated volume renderer</td>
                                             <td>Desktop image analysis suite</td>
@@ -179,9 +163,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             <td>Web-based 3D volume viewer</td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Platform</strong>
-                                            </td>
+                                            <td>Platform</td>
                                             <td>Web app (browser)</td>
                                             <td>Desktop (Windows, macOS, Linux)</td>
                                             <td>Desktop (Windows, macOS, Linux)</td>
@@ -192,9 +174,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             <td>Web app (browser)</td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Installation required</strong>
-                                            </td>
+                                            <td>Installation required</td>
                                             <td>No</td>
                                             <td>Yes (standalone app)</td>
                                             <td>Yes (Java-based)</td>
@@ -205,9 +185,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             <td>No</td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Cost</strong>
-                                            </td>
+                                            <td>Cost</td>
                                             <td>Free / open-source</td>
                                             <td>Free / open-source</td>
                                             <td>Free / open-source</td>
@@ -218,9 +196,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             <td>Free / open-source</td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Primary use case</strong>
-                                            </td>
+                                            <td>Primary use case</td>
                                             <td>
                                                 Interactive 3D volume rendering of microscopy data
                                             </td>
@@ -249,9 +225,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Supported formats</strong>
-                                            </td>
+                                            <td>Supported formats</td>
                                             <td>OME-Zarr, TIFF, OME-TIFF</td>
                                             <td>
                                                 OME-TIFF, TIFF, CZI, LIF, and other microscopy
@@ -265,9 +239,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             <td>DICOM, NIFTI, MHA, VTI, NRRD, Zarr</td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>3D volume rendering</strong>
-                                            </td>
+                                            <td>3D volume rendering</td>
                                             <td>Yes — real-time ray marching</td>
                                             <td>Yes — GPU path tracing, cinematic quality</td>
                                             <td>Limited — 3D Viewer plugin</td>
@@ -278,9 +250,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             <td>Yes — GPU-accelerated ray casting</td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Multi-channel support</strong>
-                                            </td>
+                                            <td>Multi-channel support</td>
                                             <td>Yes</td>
                                             <td>Yes</td>
                                             <td>Yes</td>
@@ -291,9 +261,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             <td>Yes</td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Time series / 4D</strong>
-                                            </td>
+                                            <td>Time series / 4D</td>
                                             <td>Yes</td>
                                             <td>Yes</td>
                                             <td>Yes</td>
@@ -304,9 +272,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             <td>Limited</td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Large data / streaming</strong>
-                                            </td>
+                                            <td>Large data / streaming</td>
                                             <td>Yes — streams OME-Zarr from cloud/HTTP</td>
                                             <td>No — loads full volume into GPU memory</td>
                                             <td>Limited</td>
@@ -317,9 +283,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             <td>Yes — progressive loading</td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Cloud / remote data</strong>
-                                            </td>
+                                            <td>Cloud / remote data</td>
                                             <td>Yes — HTTP/S3 URLs</td>
                                             <td>No — local files only</td>
                                             <td>Limited</td>
@@ -330,9 +294,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             <td>Yes</td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Collaborative / sharing</strong>
-                                            </td>
+                                            <td>Collaborative / sharing</td>
                                             <td>Shareable URL with view state</td>
                                             <td>No</td>
                                             <td>No</td>
@@ -343,9 +305,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             <td>Shareable URL via hosted instance</td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Best for</strong>
-                                            </td>
+                                            <td>Best for</td>
                                             <td>
                                                 Quick interactive exploration of cloud-hosted
                                                 OME-Zarr volumes
@@ -369,9 +329,7 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>
-                                                <strong>Limitations</strong>
-                                            </td>
+                                            <td>Limitations</td>
                                             <td>No analysis tools; limited format support</td>
                                             <td>Requires dedicated GPU; local files only</td>
                                             <td>
