@@ -11,6 +11,7 @@
 
 .heading {
     /* Lighter than the global h3 weight to match the marketing layout. */
+    font-size: 20px;
     font-weight: 400;
     line-height: 1.4;
 }

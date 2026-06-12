@@ -31,7 +31,7 @@ export default function Hero() {
                         iconPosition="after"
                         text="Try BioFile Finder now"
                         title="Launch BioFile Finder with an example dataset"
-                        onClick={() => window.location.assign(LINKS.tryNow)}
+                        onClick={() => window.open(LINKS.tryNow, "_blank", "noopener,noreferrer")}
                     />
                 </div>
             </div>

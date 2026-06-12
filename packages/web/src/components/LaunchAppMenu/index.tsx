@@ -18,13 +18,15 @@ export const LAUNCH_APP_MENU_ITEMS: IContextualMenuItem[] = [
         key: "your-data",
         text: "Start with your data",
         href: "/app",
-        target: "_self",
+        target: "_blank",
+        rel: "noreferrer",
     },
     {
         key: "example-dataset",
         text: "Explore example dataset",
         href: EXAMPLE_DATASET_URL,
-        target: "_self",
+        target: "_blank",
+        rel: "noreferrer",
     },
 ];
 
