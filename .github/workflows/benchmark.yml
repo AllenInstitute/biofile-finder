@@ -82,6 +82,7 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
         working-directory: packages/web
+        timeout-minutes: 60 
 
       - name: Run benchmark (${{ github.event.inputs.compare_branch }})
         run: npm run benchmark:regression -- --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }} ${{ github.event.inputs.skip_large == 'true' && '--skip-large' || '' }}
