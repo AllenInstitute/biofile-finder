@@ -45,7 +45,7 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.compare_branch }}
 
@@ -53,7 +53,7 @@ jobs:
       # Must come after checkout so git clean -ffdx does not wipe them.
       - name: Cache benchmark fixtures
         id: fixture-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: packages/web/fixtures
           key: benchmark-fixtures-v1.2
@@ -71,7 +71,7 @@ jobs:
             curl -fL "$BASE/synthetic-20m.parquet"  -o packages/web/fixtures/synthetic-20m.parquet
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: "24"
           cache: "npm"
@@ -92,7 +92,7 @@ jobs:
       - name: Save compare branch results
         run: mv packages/web/benchmark-results-*.json /tmp/benchmark-compare.json
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.base_branch }}
           clean: false
@@ -114,7 +114,7 @@ jobs:
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-results
           path: |
