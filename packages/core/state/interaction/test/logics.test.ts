@@ -707,14 +707,14 @@ describe("Interaction logics", () => {
         const mockAnnotations = [
             new Annotation({
                 annotationDisplayName: AnnotationName.KIND,
-                annotationName: AnnotationName.KIND,
+                path: [AnnotationName.KIND],
                 description: "",
                 type: AnnotationType.STRING,
                 annotationId: 0,
             }),
             new Annotation({
                 annotationDisplayName: "Cell Line",
-                annotationName: "Cell Line",
+                path: ["Cell Line"],
                 description: "",
                 type: AnnotationType.STRING,
                 annotationId: 1,
@@ -1170,7 +1170,7 @@ describe("Interaction logics", () => {
             // Arrange
             sandbox.stub(interaction.selectors, "getAnnotationService").throws();
             const expectedAnnotation = new Annotation({
-                annotationName: "Failure",
+                path: ["Failure"],
                 annotationDisplayName: "Failure",
                 type: AnnotationType.BOOLEAN,
                 description: "Test annotation for failure",

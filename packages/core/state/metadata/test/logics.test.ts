@@ -33,7 +33,7 @@ describe("Metadata logics", () => {
                         data: [
                             {
                                 annotationDisplayName: "Foo",
-                                annotationName: "foo",
+                                path: ["foo"],
                                 values: [],
                                 type: "Text",
                             },
@@ -61,19 +61,19 @@ describe("Metadata logics", () => {
         const mockAnnotations: Annotation[] = [
             new Annotation({
                 annotationDisplayName: "annotation A",
-                annotationName: "annotation A",
+                path: ["annotation A"],
                 description: "",
                 type: AnnotationType.NUMBER,
             }),
             new Annotation({
                 annotationDisplayName: "annotation B",
-                annotationName: "annotation B",
+                path: ["annotation B"],
                 description: "",
                 type: AnnotationType.DATE,
             }),
             new Annotation({
                 annotationDisplayName: "annotation C",
-                annotationName: "annotation C",
+                path: ["annotation C"],
                 description: "",
                 type: AnnotationType.STRING,
             }),

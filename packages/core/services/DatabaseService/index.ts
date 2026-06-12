@@ -1173,7 +1173,7 @@ export default abstract class DatabaseService {
             const annotations = rows.map(
                 (row) =>
                     new Annotation({
-                        annotationName: row["column_name"],
+                        path: [row["column_name"]],
                         annotationDisplayName: row["column_name"],
                         description: annotationNameToDescriptionMap[row["column_name"]] || "",
                         type:

@@ -19,7 +19,7 @@ describe("<AnnotationFilterForm />", () => {
         // setup
         const fooAnnotation = new Annotation({
             annotationDisplayName: "Foo",
-            annotationName: "foo",
+            path: ["foo"],
             description: "",
             type: AnnotationType.STRING,
         });
@@ -168,7 +168,7 @@ describe("<AnnotationFilterForm />", () => {
         // setup
         const fooAnnotation = new Annotation({
             annotationDisplayName: "Foo",
-            annotationName: "foo",
+            path: ["foo"],
             description: "",
             type: AnnotationType.BOOLEAN,
         });
@@ -267,7 +267,7 @@ describe("<AnnotationFilterForm />", () => {
     describe("Number annotation", () => {
         const fooAnnotation = new Annotation({
             annotationDisplayName: "Foo",
-            annotationName: "foo",
+            path: ["foo"],
             description: "",
             type: AnnotationType.NUMBER,
         });
@@ -316,7 +316,7 @@ describe("<AnnotationFilterForm />", () => {
     describe("Duration annotation", () => {
         const fooAnnotation = new Annotation({
             annotationDisplayName: "Foo",
-            annotationName: "foo",
+            path: ["foo"],
             description: "",
             type: AnnotationType.DURATION,
         });

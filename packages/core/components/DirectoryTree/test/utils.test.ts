@@ -76,19 +76,19 @@ describe("DirectoryTree utilities", () => {
         // Create mock annotations and hierarchy
         const firstAnn = new Annotation({
             annotationDisplayName: "Annotation1",
-            annotationName: "annotation1",
+            path: ["annotation1"],
             description: "",
             type: AnnotationType.STRING,
         });
         const secondAnn = new Annotation({
             annotationDisplayName: "Annotation2",
-            annotationName: "annotation2",
+            path: ["annotation2"],
             description: "",
             type: AnnotationType.STRING,
         });
         const numericAnn = new Annotation({
             annotationDisplayName: "NumericAnn",
-            annotationName: "numericAnn",
+            path: ["numericAnn"],
             description: "",
             type: AnnotationType.NUMBER,
         });

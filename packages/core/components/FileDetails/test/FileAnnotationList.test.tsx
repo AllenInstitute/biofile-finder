@@ -19,19 +19,19 @@ describe("<FileAnnotationList />", () => {
             ...TOP_LEVEL_FILE_ANNOTATIONS,
             new Annotation({
                 annotationDisplayName: "Cache Eviction Date",
-                annotationName: AnnotationName.CACHE_EVICTION_DATE,
+                path: [AnnotationName.CACHE_EVICTION_DATE],
                 description: "Indicates when the cache for this file should be evicted.",
                 type: AnnotationType.STRING,
             }),
             new Annotation({
                 annotationDisplayName: "File Path (Local VAST)",
-                annotationName: AnnotationName.LOCAL_FILE_PATH,
+                path: [AnnotationName.LOCAL_FILE_PATH],
                 description: "Local path for the file on the host machine.",
                 type: AnnotationType.STRING,
             }),
             new Annotation({
                 annotationDisplayName: "Should Be in Local Cache",
-                annotationName: AnnotationName.SHOULD_BE_IN_LOCAL,
+                path: [AnnotationName.SHOULD_BE_IN_LOCAL],
                 description: "Indicates if the file should be cached locally.",
                 type: AnnotationType.BOOLEAN,
             }),

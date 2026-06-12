@@ -43,13 +43,13 @@ describe("<DirectoryTree />", () => {
 
     const fooAnnotation = new Annotation({
         annotationDisplayName: "Foo",
-        annotationName: "foo",
+        path: ["foo"],
         description: "",
         type: AnnotationType.STRING,
     });
     const barAnnotation = new Annotation({
         annotationDisplayName: "Bar",
-        annotationName: "bar",
+        path: ["bar"],
         description: "",
         type: AnnotationType.STRING,
     });

@@ -48,14 +48,14 @@ describe("DatabaseService", () => {
         const mockAnnotations = [
             new Annotation({
                 annotationDisplayName: AnnotationName.KIND,
-                annotationName: AnnotationName.KIND,
+                path: [AnnotationName.KIND],
                 description: "",
                 type: AnnotationType.STRING,
                 annotationId: 0,
             }),
             new Annotation({
                 annotationDisplayName: "Cell Line",
-                annotationName: "Cell Line",
+                path: ["Cell Line"],
                 description: "",
                 type: AnnotationType.STRING,
                 annotationId: 1,
@@ -144,7 +144,7 @@ describe("DatabaseService", () => {
             // Arrange
             const filePathAnnotation = new Annotation({
                 annotationDisplayName: AnnotationName.FILE_PATH,
-                annotationName: "File Path",
+                path: ["File Path"],
                 description: "",
                 type: AnnotationType.STRING,
                 annotationId: 3,
@@ -176,7 +176,7 @@ describe("DatabaseService", () => {
             const badColumnName = '"Bad" column name';
             const doubleQuoteAnnotation = new Annotation({
                 annotationDisplayName: badColumnName,
-                annotationName: badColumnName,
+                path: [badColumnName],
                 description: "",
                 type: AnnotationType.STRING,
                 annotationId: 3,

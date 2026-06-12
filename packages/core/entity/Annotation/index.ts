@@ -12,13 +12,18 @@ import { AnnotationValue } from "../../services/AnnotationService";
  * Expected JSON structure of an annotation returned from the query service.
  */
 export interface AnnotationResponse {
+    /**
+     * The path segments describing this annotation's position in the hierarchy.
+     * For a flat annotation like "Gene", path = ["Gene"].
+     * For a nested sub-field like "Well.Dose", path = ["Well", "Dose"] (not yet supported).
+     */
+    path: string[];
+    description: string;
+    type: AnnotationType;
     // Undefined when pulled from a non-AICS FMS data source
     annotationId?: number;
-    annotationDisplayName: string;
-    annotationName: string;
-    description: string;
+    annotationDisplayName?: string;
     isImmutable?: boolean;
-    type: AnnotationType;
     units?: string;
 }
 
@@ -42,6 +47,8 @@ export default class Annotation {
     private readonly annotation: AnnotationResponse;
     private readonly formatter: AnnotationFormatter;
 
+    public readonly path: string[];
+
     public static sort(annotations: Annotation[]): Annotation[] {
         // start by putting in alpha order
         const collator = new Intl.Collator("en");
@@ -56,8 +63,13 @@ export default class Annotation {
     }
 
     constructor(annotation: AnnotationResponse) {
+        if (annotation.path.length > 1) {
+            throw new Error(
+                `Nested annotations are not yet supported (path: ${annotation.path.join(".")})`
+            );
+        }
         this.annotation = annotation;
-
+        this.path = annotation.path;
         this.formatter = annotationFormatterFactory(this.annotation.type);
     }
 
@@ -66,11 +78,11 @@ export default class Annotation {
     }
 
     public get displayName(): string {
-        return this.annotation.annotationDisplayName;
+        return this.annotation.annotationDisplayName || this.annotation.path[0];
     }
 
     public get name(): string {
-        return this.annotation.annotationName;
+        return this.annotation.path[0];
     }
 
     public get type(): string | AnnotationType {

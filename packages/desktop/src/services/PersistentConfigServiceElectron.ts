@@ -24,8 +24,9 @@ const OPTIONS: Options<Record<string, unknown>> = {
                     annotationDisplayName: {
                         type: "string",
                     },
-                    annotationName: {
-                        type: "string",
+                    path: {
+                        type: "array",
+                        items: { type: "string" },
                     },
                     description: {
                         type: "string",
@@ -51,8 +52,9 @@ const OPTIONS: Options<Record<string, unknown>> = {
                     annotationDisplayName: {
                         type: "string",
                     },
-                    annotationName: {
-                        type: "string",
+                    path: {
+                        type: "array",
+                        items: { type: "string" },
                     },
                     description: {
                         type: "string",

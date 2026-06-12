@@ -19,7 +19,7 @@ describe("Selection selectors", () => {
                 // Add a boolean-type annotation for testing
                 new Annotation({
                     annotationDisplayName: "IsTestAnnotation",
-                    annotationName: "IsTestAnnotation",
+                    path: ["IsTestAnnotation"],
                     description: "A test annotation of type boolean",
                     type: AnnotationType.BOOLEAN,
                 }),

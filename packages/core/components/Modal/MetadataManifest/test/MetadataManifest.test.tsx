@@ -81,7 +81,7 @@ describe("<MetadataManifest />", () => {
                 annotations: [
                     new Annotation({
                         annotationDisplayName: "Cell Line",
-                        annotationName: "Cell Line",
+                        path: ["Cell Line"],
                         description: "test",
                         type: AnnotationType.STRING,
                     }),
@@ -126,7 +126,7 @@ describe("<MetadataManifest />", () => {
                         (c) =>
                             new Annotation({
                                 annotationDisplayName: c,
-                                annotationName: c,
+                                path: [c],
                                 description: "test",
                                 type: AnnotationType.STRING,
                             })

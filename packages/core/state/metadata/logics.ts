@@ -289,7 +289,7 @@ const storeNewAnnotationLogic = createLogic({
             Object.values(AnnotationTypeIdMap).find((id) => id === annotation.annotationTypeId) ||
             AnnotationType.STRING;
         const newMmsAnnotation = new Annotation({
-            annotationName: annotation.name,
+            path: [annotation.name],
             annotationDisplayName: annotation.name,
             annotationId: annotation.annotationId,
             description: annotation.description,

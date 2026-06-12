@@ -16,7 +16,7 @@ import FileList from "..";
 
 const FILE_NAME_ANNOTATION = new Annotation({
     annotationDisplayName: "File Name",
-    annotationName: "file_name",
+    path: ["file_name"],
     description: "",
     type: AnnotationType.STRING,
 });

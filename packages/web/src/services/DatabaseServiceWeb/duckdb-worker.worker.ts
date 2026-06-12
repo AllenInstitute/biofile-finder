@@ -126,7 +126,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
             const result: AnnotationResponse[] = rows.map(
                 (row): AnnotationResponse => {
                     return {
-                        annotationName: row.name,
+                        path: [row.name],
                         annotationDisplayName: row.displayName,
                         description: row.description,
                         type: row.type as AnnotationType,
@@ -385,7 +385,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             const annotations = rows.map(
                 (row) =>
                     new Annotation({
-                        annotationName: row["column_name"],
+                        path: [row["column_name"]],
                         annotationDisplayName: row["column_name"],
                         description: annotationNameToDescriptionMap[row["column_name"]] || "",
                         type:
