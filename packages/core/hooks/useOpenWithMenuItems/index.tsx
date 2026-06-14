@@ -263,7 +263,9 @@ function getSupportedApps(
                 if (new URL(fileDetails.path).hostname === "idr.openmicroscopy.org") {
                     return [apps.idrviewer];
                     // Handle bff app deployed within omero-biofilefinder
-                } else if (new URL(window.location.href).pathname === "/biofilefinder/bff/app/") {
+                } else if (
+                    new URL(window.location.href).pathname.endsWith("/biofilefinder/bff/app/")
+                ) {
                     return [apps.omero];
                 }
             } catch (_e) {
