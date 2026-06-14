@@ -20,6 +20,7 @@ enum AppKeys {
     FIJI = "fiji",
     NEUROGLANCER = "neuroglancer",
     IDR_VIEWER = "idrviewer",
+    OMERO = "omero",
     SIMULARIUM = "simularium",
     VALIDATOR = "validator",
     VOLE = "vole",
@@ -33,6 +34,7 @@ interface Apps {
     [AppKeys.CFE]: IContextualMenuItem;
     [AppKeys.FIJI]: IContextualMenuItem;
     [AppKeys.IDR_VIEWER]: IContextualMenuItem;
+    [AppKeys.OMERO]: IContextualMenuItem;
     [AppKeys.NEUROGLANCER]: IContextualMenuItem;
     [AppKeys.SIMULARIUM]: IContextualMenuItem;
     [AppKeys.VALIDATOR]: IContextualMenuItem;
@@ -155,6 +157,14 @@ const APPS = (
         disabled: !fileDetails?.path,
         target: "_blank",
     } as IContextualMenuItem,
+    [AppKeys.OMERO]: {
+        key: AppKeys.OMERO,
+        text: "OMERO",
+        title: "Open in OMERO",
+        href: fileDetails?.path,
+        disabled: !fileDetails?.path,
+        target: "_blank",
+    } as IContextualMenuItem,
     [AppKeys.NEUROGLANCER]: {
         key: AppKeys.NEUROGLANCER,
         text: "Neuroglancer",
@@ -244,13 +254,17 @@ function getSupportedApps(
                 : [apps.fiji, apps.agave, apps.vole];
         case "zarr":
         case "": // No extension
-            // For IDR images, the only supported viewer is the IDR Viewer.
-            // The file path itself is the IDR Viewer URL, so return early with just that item.
-            // Use URL parsing to precisely match the IDR hostname and avoid substring false-positives.
+            // For IDR/OMERO images, the only supported viewer is the IDR/OMERO Viewer.
+            // The file path itself is the IDR/OMERO Viewer URL, so return early with just that item.
+            // Use URL parsing to precisely match the IDR/OMERO hostname and avoid substring false-positives.
             // Ex. https://idr.openmicroscopy.org/webclient/img_detail/14239685/
             try {
+                // Handle IDR...
                 if (new URL(fileDetails.path).hostname === "idr.openmicroscopy.org") {
                     return [apps.idrviewer];
+                    // Handle bff app deployed within omero-biofilefinder
+                } else if (new URL(window.location.href).pathname === "/biofilefinder/bff/app/") {
+                    return [apps.omero];
                 }
             } catch (_e) {
                 // Not a valid URL; skip IDR check
@@ -538,8 +552,8 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     // Grab every other known app
     const unsupportedApps = Object.values(apps)
         .filter((app) => supportedApps.every((item) => item.key !== app.key))
-        // IDR Viewer is only relevant for IDR images (handled above); never show it elsewhere
-        .filter((app) => app.key !== AppKeys.IDR_VIEWER)
+        // IDR & OMERO Viewers are only relevant for OMERO images (handled above); never show them elsewhere
+        .filter((app) => app.key !== AppKeys.IDR_VIEWER && app.key !== AppKeys.OMERO)
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
     if (plateLink && isAicsEmployee) {
