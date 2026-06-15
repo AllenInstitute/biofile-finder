@@ -696,6 +696,28 @@ export function changeSourceMetadata(source?: Source): ChangeSourceMetadataActio
 }
 
 /**
+ * CHANGE_PROVENANCE_ORIGIN_ID
+ *
+ * Intention to update the uid of the file used to originate the provenance graph
+ */
+export const CHANGE_PROVENANCE_ORIGIN_ID = makeConstant(
+    STATE_BRANCH_NAME,
+    "change-provenance-origin-id"
+);
+
+export interface ChangeProvenanceOriginId {
+    payload?: string;
+    type: string;
+}
+
+export function changeProvenanceOriginId(uid?: string): ChangeProvenanceOriginId {
+    return {
+        payload: uid,
+        type: CHANGE_PROVENANCE_ORIGIN_ID,
+    };
+}
+
+/**
  * CHANGE_PROVENANCE_SOURCE
  *
  * Intention to update the source file supplying provenance info about the selected data sources

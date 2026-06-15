@@ -37,6 +37,8 @@ import {
     TOGGLE_NULL_VALUE_GROUPS,
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
+    CHANGE_PROVENANCE_ORIGIN_ID,
+    ChangeProvenanceOriginId,
     SET_IS_LOADING_DATA_SOURCE,
     SetOpenFileFoldersAction,
     SetFileSelection,
@@ -65,6 +67,7 @@ export interface SelectionStateBranch {
     isLoadingDataSource: boolean;
     lastTouchedFolder?: FileFolder;
     openFileFolders: FileFolder[];
+    provenanceOriginId?: string;
     recentAnnotations: string[];
     requiresDataSourceReload?: boolean;
     selectedQuery?: string;
@@ -159,6 +162,10 @@ export default makeReducer<SelectionStateBranch>(
             lastTouchedFolder: undefined,
             openFileFolders: [],
         }),
+        [CHANGE_PROVENANCE_ORIGIN_ID]: (state, action: ChangeProvenanceOriginId) => ({
+            ...state,
+            provenanceOriginId: action.payload,
+        }),
         [CHANGE_PROVENANCE_SOURCE]: (state, action: ChangeProvenanceSource) => ({
             ...state,
             sourceProvenance: action.payload,
@@ -192,6 +199,7 @@ export default makeReducer<SelectionStateBranch>(
             dataSources: initialState.dataSources,
             sourceMetadata: undefined,
             sourceProvenance: undefined,
+            provenanceOriginId: undefined,
 
             // If a file is selected, deselect it
             fileForDetailPanel: undefined,
