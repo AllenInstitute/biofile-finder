@@ -10,6 +10,31 @@
   stroke: var(--primary-text-color);
 }
 
+.reset-button {
+  width: unset;
+  color: var(--primary-text-color);
+  border: none;
+  position: absolute;
+  z-index: 100;
+  right: 0;
+  margin: 10px;
+}
+
+.reset-button i {
+  font-weight: 400;
+  padding-right: 8px;
+}
+
+/* Use sentence case */
+.reset-button span {
+  font-weight: 400;
+  text-transform: lowercase;
+}
+
+.reset-button span:first-letter {
+  text-transform: uppercase;
+}
+
 .simple-container {
   display: flex;
 }

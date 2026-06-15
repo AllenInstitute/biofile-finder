@@ -6,12 +6,14 @@ import { Source } from "../../../../core/entity/SearchParams";
 import {
     CanceledError,
     Pending,
+    QueryRow,
     WorkerMsgType,
     WorkerResPayload,
     WorkerResponse,
     WorkerResType,
 } from "./types";
 import { DatabaseService } from "../../../../core/services";
+import { CancellablePromise } from "../../../../core/services/DatabaseService";
 
 export default class DatabaseServiceWeb extends DatabaseService {
     // Initialize with AICS FMS data source name to pretend it always exists
@@ -42,8 +44,14 @@ export default class DatabaseServiceWeb extends DatabaseService {
     }
 
     public async initialize() {
-        this.worker.postMessage({ type: WorkerMsgType.INIT });
+        this.worker.postMessage({
+            type: WorkerMsgType.INIT,
+            payload: { queryTiming: localStorage.getItem("bff_query_timing") === "1" },
+        });
         await this.dbInitialized;
+        if (localStorage.getItem("bff_query_timing") === "1") {
+            console.log("[bff] Query timing enabled. Query times will appear in the console.");
+        }
     }
 
     public async saveQuery(
@@ -77,15 +85,13 @@ export default class DatabaseServiceWeb extends DatabaseService {
         return promise;
     }
 
-    public query(
-        sql: string
-    ): { promise: Promise<{ [key: string]: any }[]>; cancel?: (reason?: string) => void } {
+    public query<T = QueryRow>(sql: string): CancellablePromise<T[]> {
         if (!this.ready) {
             throw new Error(`Database failed to initialize in query with ${sql}`);
         }
         const queryId = `q-${Date.now()}-${uniqueId()}`;
         let settled = false;
-        const promise = new Promise<any>((resolve, reject) => {
+        const promise = new Promise<T[]>((resolve, reject) => {
             this.pending.set(queryId, {
                 resolve,
                 reject,

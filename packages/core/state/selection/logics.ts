@@ -43,6 +43,8 @@ import {
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
     changeProvenanceSource,
+    CHANGE_PROVENANCE_ORIGIN_ID,
+    changeProvenanceOriginId,
     setRequiresDataSourceReload,
     addDataSourceReloadError,
     removeDataSourceReloadError,
@@ -51,17 +53,21 @@ import {
     CHANGE_FILE_FILTER_TYPE,
     AddDataSourceReloadError,
     setFileView,
-    setColumns,
     EXPAND_ALL_FILE_FOLDERS,
     toggleNullValueGroups,
     setIsLoadingSource,
+    ChangeProvenanceOriginId,
+    RESIZE_COLUMN,
+    ResizeColumnAction,
+    setColumns,
+    Column,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import Annotation from "../../entity/Annotation";
-import SearchParams from "../../entity/SearchParams";
+import SearchParams, { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -115,7 +121,11 @@ const selectFile = createLogic({
             fileSet,
             index: selection,
             sortOrder,
-            indexToFocus: lastTouched,
+            // If selection is a number set it to be indexToFocus otherwise
+            // if selection is a NumericRange set the indexToFocus to be the start of the range
+            // (this is somewhat arbitrary but it is consistent with how we handle range selections
+            // in other places in the app and seems reasonable as a default)
+            indexToFocus: typeof selection === "number" ? selection : selection.min,
         });
         next(setFileSelection(nextFileSelection));
     },
@@ -416,6 +426,38 @@ const expandAllFileFolders = createLogic({
 });
 
 /**
+ * Interceptor responsible for processing RESIZE_COLUMN action into
+ * automatic width adjustment based on whether the user selected a specific width
+ * or if they just want the default auto-size behavior
+ */
+const resizeColumnLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: column } = deps.action as ResizeColumnAction;
+        const annotationService = interaction.selectors.getAnnotationService(deps.getState());
+        const columns = selectionSelectors.getColumns(deps.getState());
+
+        let width = column.width;
+        if (!width) {
+            const autoSizedWidth = await annotationService.fetchOptimalWidthForAnnotations(
+                [column.name],
+                true
+            );
+            width = autoSizedWidth.get(column.name) ?? DEFAULT_COLUMN_WIDTH;
+        }
+
+        dispatch(
+            setColumns(
+                columns.map(
+                    (c) => ({ ...c, width: c.name === column.name ? width : c.width } as Column)
+                )
+            )
+        );
+        done();
+    },
+    type: RESIZE_COLUMN,
+});
+
+/**
  * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
  * other actions responsible for rehydrating the SearchParams into application state.
  */
@@ -432,7 +474,8 @@ const decodeSearchParamsLogics = createLogic({
             sortColumn,
             sources,
             sourceMetadata,
-            prov,
+            provenanceSource,
+            provOriginId,
         } = SearchParams.decode(encodedURL);
 
         batch(() => {
@@ -447,7 +490,8 @@ const decodeSearchParamsLogics = createLogic({
         });
         batch(() => {
             dispatch(changeSourceMetadata(sourceMetadata));
-            dispatch(changeProvenanceSource(prov));
+            dispatch(changeProvenanceSource(provenanceSource));
+            dispatch(changeProvenanceOriginId(provOriginId) as AnyAction);
         });
         done();
     },
@@ -663,6 +707,27 @@ const changeSourceMetadataLogic = createLogic({
 });
 
 /**
+ * Interceptor responsible for processing a file uid (string) into a FileDetail
+ * that can be used as the origin for the relationship graph
+ */
+const changeProvenanceOriginIdLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: uid } = deps.action as ChangeProvenanceOriginId;
+        const fileService = interaction.selectors.getFileService(deps.getState());
+        if (uid) {
+            const file = await fileService.getFileByUid(uid);
+            if (file) {
+                dispatch(interaction.actions.setOriginForProvenance(file));
+            }
+        } else {
+            dispatch(interaction.actions.setOriginForProvenance());
+        }
+        done();
+    },
+    type: CHANGE_PROVENANCE_ORIGIN_ID,
+});
+
+/**
  * Interceptor responsible for passing the CHANGE_PROVENANCE_SOURCE action to the database service.
  */
 const changeProvenanceSourceLogic = createLogic({
@@ -672,6 +737,7 @@ const changeProvenanceSourceLogic = createLogic({
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
+        const origin = selectionSelectors.getProvenanceOriginId(deps.getState());
 
         try {
             if (selectedSourceProvenance) {
@@ -679,9 +745,14 @@ const changeProvenanceSourceLogic = createLogic({
                     selectedSourceProvenance
                 );
                 dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
+                // provenance definitions may finish loading after we've already processed url query args.
+                // If we do have a graph origin, this ensures the graph actually starts rendering
+                dispatch(changeProvenanceOriginId(origin) as AnyAction);
             } else {
                 await databaseService.deleteSourceProvenance();
                 dispatch(metadata.actions.receiveEdgeDefinitions([]));
+                // if we no longer have provenance definitions, we need to clear the graph origin
+                dispatch(changeProvenanceOriginId() as AnyAction);
             }
         } catch (err) {
             const msg = `Failed processing provenance. Error: ${(err as Error).message}`;
@@ -899,9 +970,11 @@ export default [
     changeDataSourceLogic,
     changeSourceMetadataLogic,
     changeProvenanceSourceLogic,
+    changeProvenanceOriginIdLogic,
     addQueryLogic,
     replaceDataSourceLogic,
     setDataSourceReloadErrorLogic,
     changeQueryLogic,
     removeQueryLogic,
+    resizeColumnLogic,
 ];

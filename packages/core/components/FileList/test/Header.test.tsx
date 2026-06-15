@@ -127,7 +127,7 @@ describe("<Header />", () => {
         expect(fileSizeCell).to.exist;
     });
 
-    it("dispatches setColumns with reordered columns when column is dragged to new position", () => {
+    it("dispatches reorderColumns with reordered columns when column is dragged to new position", () => {
         // Arrange
         const annotations = [
             AnnotationName.FILE_NAME,
@@ -168,12 +168,10 @@ describe("<Header />", () => {
         fireEvent.drop(fileNameCell);
 
         // Assert: FILE_SIZE should be moved to index 0, rest shift right
-        const expectedColumns = [
-            { name: AnnotationName.FILE_SIZE, width: 1 / annotations.length },
-            { name: AnnotationName.FILE_NAME, width: 1 / annotations.length },
-            { name: AnnotationName.KIND, width: 1 / annotations.length },
-            { name: AnnotationName.UPLOADED, width: 1 / annotations.length },
-        ];
-        expect(actions.includesMatch(selection.actions.setColumns(expectedColumns))).to.be.true;
+        expect(
+            actions.includesMatch(
+                selection.actions.reorderColumns([{ name: AnnotationName.FILE_SIZE, moveTo: 0 }])
+            )
+        ).to.be.true;
     });
 });

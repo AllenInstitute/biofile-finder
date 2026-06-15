@@ -57,7 +57,7 @@ describe("<LazilyRenderedRow />", () => {
         // Arrange
         const state = mergeState(initialState, {});
         state.metadata.annotations = [fileNameAnnotation];
-        state.selection.columns = [{ name: fileNameAnnotation.name, width: 0.25 }];
+        state.selection.columns = [{ name: fileNameAnnotation.name, width: 200 }];
 
         const { store } = configureMockStore({ state });
 

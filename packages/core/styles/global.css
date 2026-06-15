@@ -55,6 +55,7 @@ body {
     --secondary-dark: #1c1c1c;
     --accent-dark: #3d3d3d;
     --medium-grey: #575859;
+    --med-light-grey: #999;
     --light-grey: #BFBFBF;
     --white: #ffffff;
     --red: #c23030;
@@ -70,6 +71,7 @@ body {
     --highlight-hover-background-color: var(--bright-aqua);
     --highlight-hover-text-color: var(--white);
     --border-color: var(--medium-grey);
+    --border-secondary-color: var(--med-light-grey);
     --error-background-color: var(--red);
     --error-text-color: var(--white);
     --aqua-secondary-hover: rgba(13, 187, 206, 0.18);

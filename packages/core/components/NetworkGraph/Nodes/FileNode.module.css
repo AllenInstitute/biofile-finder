@@ -6,7 +6,7 @@
 .file-node {
   height: unset;
   background-color: var(--primary-dark);
-  border: 1px solid var(--primary-text-color);
+  border: 1px solid var(--border-secondary-color);
   color: var(--primary-text-color);
   padding: 10px;
   border-radius: 5px;
@@ -27,7 +27,10 @@
 }
 
 .current-file {
+  background-color: var(--aqua);
   border-color: var(--highlight-background-color);
+  color: var(--highlight-text-color);
+  font-weight: 600;
 }
 
 .handle {

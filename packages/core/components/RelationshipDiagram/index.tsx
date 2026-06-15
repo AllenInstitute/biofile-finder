@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { PrimaryButton } from "../Buttons";
 import NetworkGraph from "../NetworkGraph";
 import FileDetail from "../../entity/FileDetail";
-import { interaction } from "../../state";
+import { selection } from "../../state";
 
 import styles from "./RelationshipDiagram.module.css";
 
@@ -27,10 +27,10 @@ export default function RelationshipDiagram({ className, origin }: Props) {
                 <PrimaryButton
                     iconName="Back"
                     text="Back"
-                    onClick={() => dispatch(interaction.actions.setOriginForProvenance(undefined))}
+                    onClick={() => dispatch(selection.actions.changeProvenanceOriginId())}
                     title="Close provenance relationship diagram"
                 />
-                <h2>Provenance for {origin?.name}</h2>
+                <h2>Relationship diagram for {origin?.name}</h2>
             </div>
             <NetworkGraph className={styles.networkGraph} />
         </div>

@@ -7,7 +7,6 @@ import {
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
-    RESIZE_COLUMN,
     SORT_COLUMN,
     SET_SORT_COLUMN,
     CHANGE_DATA_SOURCES,
@@ -31,7 +30,6 @@ import {
     SetRequiresDataSourceReload,
     SET_FILE_VIEW,
     SetFileView,
-    ResizeColumnAction,
     Column,
     SetColumns,
     SET_COLUMNS,
@@ -39,14 +37,21 @@ import {
     TOGGLE_NULL_VALUE_GROUPS,
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
+    CHANGE_PROVENANCE_ORIGIN_ID,
+    ChangeProvenanceOriginId,
     SET_IS_LOADING_DATA_SOURCE,
+    SetOpenFileFoldersAction,
+    SetFileSelection,
+    REORDER_COLUMNS,
+    ReorderColumnsAction,
 } from "./actions";
 import interaction from "../interaction";
-import { FileView, Source } from "../../entity/SearchParams";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../entity/FileSort";
+import { DEFAULT_COLUMN_WIDTH, FileView, Source } from "../../entity/SearchParams";
 import Tutorial from "../../entity/Tutorial";
 import Tutorials from "../../hooks/useHelpOptions/Tutorials";
 
@@ -60,7 +65,9 @@ export interface SelectionStateBranch {
     fileView: FileView;
     filters: FileFilter[];
     isLoadingDataSource: boolean;
+    lastTouchedFolder?: FileFolder;
     openFileFolders: FileFolder[];
+    provenanceOriginId?: string;
     recentAnnotations: string[];
     requiresDataSourceReload?: boolean;
     selectedQuery?: string;
@@ -152,7 +159,12 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             dataSources: uniqBy(action.payload, "name"),
             fileSelection: new FileSelection(),
+            lastTouchedFolder: undefined,
             openFileFolders: [],
+        }),
+        [CHANGE_PROVENANCE_ORIGIN_ID]: (state, action: ChangeProvenanceOriginId) => ({
+            ...state,
+            provenanceOriginId: action.payload,
         }),
         [CHANGE_PROVENANCE_SOURCE]: (state, action: ChangeProvenanceSource) => ({
             ...state,
@@ -180,12 +192,14 @@ export default makeReducer<SelectionStateBranch>(
             columns: initialState.columns,
             filters: initialState.filters,
             fileView: initialState.fileView,
+            lastTouchedFolder: undefined,
             openFileFolders: initialState.openFileFolders,
             shouldShowNullGroups: initialState.shouldShowNullGroups,
             sortColumn: undefined,
             dataSources: initialState.dataSources,
             sourceMetadata: undefined,
             sourceProvenance: undefined,
+            provenanceOriginId: undefined,
 
             // If a file is selected, deselect it
             fileForDetailPanel: undefined,
@@ -208,20 +222,60 @@ export default makeReducer<SelectionStateBranch>(
             availableAnnotationsForHierarchyLoading: true,
             fileSelection: new FileSelection(),
         }),
-        [RESIZE_COLUMN]: (state, action: ResizeColumnAction) => ({
-            ...state,
-            columns: state.columns.map((column) =>
-                column.name !== action.payload.name ? column : action.payload
-            ),
-        }),
         [SET_COLUMNS]: (state, action: SetColumns) => ({
             ...state,
             columns: action.payload,
         }),
-        [SET_FILE_SELECTION]: (state, action) => ({
-            ...state,
-            fileSelection: action.payload,
-        }),
+        [SET_FILE_SELECTION]: (state, action: SetFileSelection) => {
+            const focusedItem = action.payload.focusedItem;
+            const filters = focusedItem?.fileSet.filters ?? [];
+            // Build a FileFolder from only the hierarchy-level filters (in hierarchy
+            // order) so it matches the openFileFolders shape. Global filters that are
+            // not part of the hierarchy must be excluded; otherwise the folder path
+            // will be too long and the Ctrl+A select-all shortcut won't match it.
+            const hierarchyValues = state.annotationHierarchy
+                .map((name) => filters.find((f) => f.name === name))
+                .filter((f): f is FileFilter => f !== undefined)
+                .map((f) => f.value);
+            return {
+                ...state,
+                fileSelection: action.payload,
+                lastTouchedFolder:
+                    hierarchyValues.length > 0
+                        ? new FileFolder(hierarchyValues)
+                        : state.lastTouchedFolder,
+            };
+        },
+        [REORDER_COLUMNS]: (state, action: ReorderColumnsAction) => {
+            let columns = [...state.columns];
+            for (const reorder of action.payload) {
+                const remaining = columns.filter((col) => reorder.name !== col.name);
+                let moving = columns.find((col) => reorder.name === col.name);
+                if (!moving) {
+                    // Check for matching column in special top level annotations like File Name
+                    // and if still no match just skip
+                    const matchingSpecialAnnotation = TOP_LEVEL_FILE_ANNOTATIONS.find(
+                        (a) => reorder.name === a.name || reorder.name === a.displayName
+                    );
+                    if (!matchingSpecialAnnotation) {
+                        continue;
+                    }
+                    moving = {
+                        name: matchingSpecialAnnotation.name,
+                        width: DEFAULT_COLUMN_WIDTH,
+                    };
+                }
+
+                const moveTo = Math.min(reorder.moveTo, remaining.length);
+                columns = [
+                    ...remaining.slice(0, moveTo),
+                    // Optionally update widths of moved columns if provided in the action
+                    { ...moving, width: reorder.width ?? moving.width },
+                    ...remaining.slice(moveTo),
+                ];
+            }
+            return { ...state, columns };
+        },
         [SET_ANNOTATION_HIERARCHY]: (state, action) => ({
             ...state,
             annotationHierarchy: action.payload,
@@ -238,12 +292,30 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [COLLAPSE_ALL_FILE_FOLDERS]: (state) => ({
             ...state,
+            lastTouchedFolder: undefined,
             openFileFolders: [],
         }),
-        [SET_OPEN_FILE_FOLDERS]: (state, action) => ({
-            ...state,
-            openFileFolders: action.payload,
-        }),
+        [SET_OPEN_FILE_FOLDERS]: (state, action: SetOpenFileFoldersAction) => {
+            const openFileFolders = action.payload;
+            // If folders are being opened (as opposed to closed), update the open folders and last touched folder accordingly
+            if (openFileFolders.length > state.openFileFolders.length) {
+                return {
+                    ...state,
+                    openFileFolders,
+                };
+            }
+            // If the last-touched folder is still open, keep it as the last-touched folder
+            // otherwise it will become undefined which will cause the directory tree to
+            // lose track of which folder the user is in and reset
+            const lastTouchedFolder = openFileFolders.find((f) =>
+                f.equals(state.lastTouchedFolder)
+            );
+            return {
+                ...state,
+                lastTouchedFolder: lastTouchedFolder,
+                openFileFolders,
+            };
+        },
         [TOGGLE_NULL_VALUE_GROUPS]: (state, action) => ({
             ...state,
             shouldShowNullGroups:
