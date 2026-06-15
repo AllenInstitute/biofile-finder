@@ -34,7 +34,6 @@
 
 .mobileMenuTrigger {
     width: 200px;
-    margin: 0 auto;
 }
 
 .mobileMenuTrigger button {
@@ -68,7 +67,9 @@
     z-index: 201;
     background-color: var(--primary-dark);
     border-bottom: 1px solid var(--border-color);
-    max-height: 60vh;
+    /* Fill from the bottom of the mobile nav bar (global header 60px + this
+       bar ~59px) to the bottom of the viewport, scrolling when items overflow. */
+    max-height: calc(100vh - var(--header-bar-height) - 59px);
     overflow-y: auto;
 }
 
@@ -83,7 +84,6 @@
 
     .mobilNav {
         display: flex;
-        justify-content: center;
     }
 
     .content {
