@@ -10,7 +10,10 @@
     border-right: 1px solid var(--border-color);
     position: sticky;
     top: 0;
+    /* Always fill the viewport below the header; scroll nav independently of
+       the page when its items overflow vertically. */
     height: calc(100vh - var(--header-bar-height));
+    overflow-y: auto;
 }
 
 .content {
