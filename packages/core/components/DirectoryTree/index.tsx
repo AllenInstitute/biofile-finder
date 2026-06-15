@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import RootLoadingIndicator from "./RootLoadingIndicator";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
+import useSelectAll from "./useSelectAll";
 import AggregateInfoBox from "../AggregateInfoBox";
 import EmptyFileListMessage from "../EmptyFileListMessage";
 import FileSet from "../../entity/FileSet";
@@ -73,6 +74,9 @@ export default function DirectoryTree(props: FileListProps) {
         window.addEventListener("keydown", onArrowKeyDown, true);
         return () => window.removeEventListener("keydown", onArrowKeyDown, true);
     }, [dispatch, visibleModal]);
+
+    // Ctrl+A / Cmd+A: select all files in the last-opened folder (or root for flat lists)
+    useSelectAll();
 
     const {
         state: { content, error, isLoading },
