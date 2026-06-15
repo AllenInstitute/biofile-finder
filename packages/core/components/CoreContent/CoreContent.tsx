@@ -26,8 +26,8 @@ export default function CoreContent() {
 
     // The relationship diagram should only display if:
     // - the edge definitions have been fully loaded
-    // - the url still contains an ID for the origin
-    // - the ID for the origin can be processed into a file
+    // - the url still contains an ID representing the origin
+    // - that ID can be/has been processed into an origin file
     const shouldDisplayProvenanceGraph = React.useMemo(() => {
         return (
             !!origin &&
