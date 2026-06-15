@@ -77,7 +77,7 @@ export default function DataSourcePrompt(props: Props) {
                     parts: {
                         sources: [dataSource],
                         sourceMetadata: metadataSource,
-                        provenanceSource,
+                        provenanceSource: provenanceSource,
                     },
                     loading: true,
                 })
