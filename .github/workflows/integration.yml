@@ -103,7 +103,7 @@ jobs:
           node-version: 24
 
       - name: Build Electron app
-        uses: AllenCell/action-electron-builder@biofile-finder
+        uses: AllenCell/action-electron-builder@v2.0.0
         with:
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
