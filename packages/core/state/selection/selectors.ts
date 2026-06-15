@@ -19,6 +19,7 @@ export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getFileView = (state: State) => state.selection.fileView;
 export const getIsLoadingSource = (state: State) => state.selection.isLoadingDataSource;
+export const getLastTouchedFolder = (state: State) => state.selection.lastTouchedFolder;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
 export const getRecentAnnotations = (state: State) => state.selection.recentAnnotations;
 export const getRequiresDataSourceReload = (state: State) =>
@@ -26,6 +27,7 @@ export const getRequiresDataSourceReload = (state: State) =>
 export const getSelectedDataSources = (state: State) => state.selection.dataSources;
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
 export const getSelectedSourceProvenance = (state: State) => state.selection.sourceProvenance;
+export const getProvenanceOriginId = (state: State) => state.selection.provenanceOriginId;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
 export const getShouldShowNullGroups = (state: State) => state.selection.shouldShowNullGroups;
@@ -93,6 +95,7 @@ export const getCurrentQueryParts = createSelector(
         getSelectedDataSources,
         getSelectedSourceMetadata,
         getSelectedSourceProvenance,
+        getProvenanceOriginId,
     ],
     (
         hierarchy,
@@ -104,7 +107,8 @@ export const getCurrentQueryParts = createSelector(
         sortColumn,
         sources,
         sourceMetadata,
-        prov
+        provenanceSource,
+        provOriginId
     ): SearchParamsComponents => ({
         columns,
         hierarchy,
@@ -115,7 +119,8 @@ export const getCurrentQueryParts = createSelector(
         sortColumn,
         sources,
         sourceMetadata,
-        prov,
+        provenanceSource,
+        provOriginId,
     })
 );
 
