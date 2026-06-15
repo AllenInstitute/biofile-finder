@@ -79,9 +79,11 @@ const receiveAnnotationsLogic = createLogic({
         // Filter out any columns that were selected for display that no longer
         // exist as annotations in the data source
         const columnsThatStillExist = currentColumns.filter((column) =>
-            annotationNamesInDataSource.has(column.name)
+            annotationNamesInDataSource.has(column.name.join("."))
         );
-        const columnNamesThatStillExist = columnsThatStillExist.map((column) => column.name);
+        const columnNamesThatStillExist = columnsThatStillExist.map((column) =>
+            column.name.join(".")
+        );
 
         const newAnnotations = annotations.filter(
             (annotation) => !columnNamesThatStillExist.includes(annotation.name)
@@ -95,7 +97,7 @@ const receiveAnnotationsLogic = createLogic({
         let columns: Column[] = [
             ...columnsThatStillExist,
             ...newAnnotations.map((annotation) => ({
-                name: annotation.name,
+                name: [annotation.name],
                 width: widthByAnnotation.get(annotation.name) ?? DEFAULT_COLUMN_WIDTH,
             })),
         ];
@@ -104,12 +106,14 @@ const receiveAnnotationsLogic = createLogic({
         // "File Name" first for any data source
         if (!columnsThatStillExist.length) {
             // Remove filename annotations from columns before re-adding it at the front,
-            columns = columns.filter((column) => column.name !== AnnotationName.FILE_NAME);
+            columns = columns.filter(
+                (column) => column.name.join(".") !== AnnotationName.FILE_NAME[0]
+            );
 
             // Add "File Name" back to the front of the columns array
             columns.unshift({
                 name: AnnotationName.FILE_NAME,
-                width: widthByAnnotation.get(AnnotationName.FILE_NAME) ?? DEFAULT_COLUMN_WIDTH,
+                width: widthByAnnotation.get(AnnotationName.FILE_NAME[0]) ?? DEFAULT_COLUMN_WIDTH,
             });
         }
 
@@ -134,10 +138,10 @@ const receiveAnnotationsLogic = createLogic({
             annotations.map((annotation) => [annotation.name, annotation.type as AnnotationType])
         );
         const enrichedFilters = currentFilters.map((filter) =>
-            filter.annotationType
+            filter.valueType
                 ? filter
                 : new FileFilter(
-                      filter.name,
+                      filter.path,
                       filter.value,
                       filter.type,
                       annotationTypeByName.get(filter.name)

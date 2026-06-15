@@ -216,8 +216,8 @@ export default makeReducer<SelectionStateBranch>(
         [REORDER_COLUMNS]: (state, action: ReorderColumnsAction) => {
             let columns = [...state.columns];
             for (const reorder of action.payload) {
-                const remaining = columns.filter((col) => reorder.name !== col.name);
-                let moving = columns.find((col) => reorder.name === col.name);
+                const remaining = columns.filter((col) => reorder.name !== col.name.join("."));
+                let moving = columns.find((col) => reorder.name === col.name.join("."));
                 if (!moving) {
                     // Check for matching column in special top level annotations like File Name
                     // and if still no match just skip
@@ -228,7 +228,7 @@ export default makeReducer<SelectionStateBranch>(
                         continue;
                     }
                     moving = {
-                        name: matchingSpecialAnnotation.name,
+                        name: [matchingSpecialAnnotation.name],
                         width: DEFAULT_COLUMN_WIDTH,
                     };
                 }

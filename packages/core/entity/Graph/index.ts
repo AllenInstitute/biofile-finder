@@ -557,7 +557,7 @@ export default class Graph {
                 limit: 1,
                 fileSet: new FileSet({
                     fileService: this.fileService,
-                    filters: [new FileFilter("File ID", id)],
+                    filters: [new FileFilter(["File ID"], id)],
                 }),
             });
         } catch (err) {
@@ -579,7 +579,7 @@ export default class Graph {
             limit: 100, // Arbitrary, might want to consider another value or paging
             fileSet: new FileSet({
                 fileService: this.fileService,
-                filters: [new FileFilter(annotation.name, annotation.values)],
+                filters: [new FileFilter([annotation.name], annotation.values)],
             }),
         });
     }

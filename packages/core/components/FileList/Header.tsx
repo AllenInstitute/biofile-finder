@@ -88,51 +88,54 @@ function Header(
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
     };
 
-    const headerCells: CellConfig[] = map(visibleColumns, (column) => ({
-        className: classNames(styles.headerCell, {
-            [styles.dragOver]: dragOverItem === column.name && draggedItem !== column.name,
-            [styles.dragging]: draggedItem === column.name,
-        }),
-        // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
-        columnKey: column.name,
-        displayValue: (
-            <div
-                draggable
-                aria-label={`${
-                    annotationNameToAnnotationMap[column.name]?.displayName
-                } column, draggable`}
-                className={styles.headerDragArea}
-                role="button"
-                tabIndex={0}
-                onDragStart={() => onDragStart(column.name)}
-                onDragOver={(e) => onDragOver(e, column.name)}
-                onDrop={() => onDrop(column.name)}
-                onDragEnd={onDragEnd}
-                onClick={(evt) => onHeaderColumnClick(evt, column.name)}
-                onContextMenu={(evt) => onHeaderColumnClick(evt, column.name)}
-            >
+    const headerCells: CellConfig[] = map(visibleColumns, (column) => {
+        const columnKey = column.name.join(".");
+        return {
+            className: classNames(styles.headerCell, {
+                [styles.dragOver]: dragOverItem === columnKey && draggedItem !== columnKey,
+                [styles.dragging]: draggedItem === columnKey,
+            }),
+            // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
+            columnKey,
+            displayValue: (
                 <div
-                    onClick={(evt) => onHeaderNameClick(evt, column.name)}
-                    className={styles.headerClickTarget}
+                    draggable
+                    aria-label={`${
+                        annotationNameToAnnotationMap[columnKey]?.displayName
+                    } column, draggable`}
+                    className={styles.headerDragArea}
+                    role="button"
+                    tabIndex={0}
+                    onDragStart={() => onDragStart(columnKey)}
+                    onDragOver={(e) => onDragOver(e, columnKey)}
+                    onDrop={() => onDrop(columnKey)}
+                    onDragEnd={onDragEnd}
+                    onClick={(evt) => onHeaderColumnClick(evt, columnKey)}
+                    onContextMenu={(evt) => onHeaderColumnClick(evt, columnKey)}
                 >
-                    <span className={styles.headerTooltipWrapper}>
-                        <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
-                            <span className={styles.headerTitle}>
-                                {annotationNameToAnnotationMap[column.name]?.displayName}
-                            </span>
-                        </Tooltip>
-                    </span>
-                    {sortColumn?.annotationName === column.name &&
-                        (sortColumn?.order === SortOrder.DESC ? (
-                            <Icon className={styles.sortIcon} iconName="ChevronDown" />
-                        ) : (
-                            <Icon className={styles.sortIcon} iconName="ChevronUp" />
-                        ))}
+                    <div
+                        onClick={(evt) => onHeaderNameClick(evt, columnKey)}
+                        className={styles.headerClickTarget}
+                    >
+                        <span className={styles.headerTooltipWrapper}>
+                            <Tooltip content={annotationNameToAnnotationMap[columnKey]?.description}>
+                                <span className={styles.headerTitle}>
+                                    {annotationNameToAnnotationMap[columnKey]?.displayName}
+                                </span>
+                            </Tooltip>
+                        </span>
+                        {sortColumn?.annotationName === columnKey &&
+                            (sortColumn?.order === SortOrder.DESC ? (
+                                <Icon className={styles.sortIcon} iconName="ChevronDown" />
+                            ) : (
+                                <Icon className={styles.sortIcon} iconName="ChevronUp" />
+                            ))}
+                    </div>
                 </div>
-            </div>
-        ),
-        width: column.width,
-    }));
+            ),
+            width: column.width,
+        };
+    });
 
     return (
         <div ref={ref} {...rest}>

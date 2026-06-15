@@ -6,6 +6,6 @@ import FileFilter, { FilterType } from "../FileFilter";
  */
 export default class FuzzyFilter extends FileFilter {
     constructor(annotationName: string, annotationValue = "") {
-        super(annotationName, annotationValue, FilterType.FUZZY);
+        super([annotationName], annotationValue, FilterType.FUZZY);
     }
 }

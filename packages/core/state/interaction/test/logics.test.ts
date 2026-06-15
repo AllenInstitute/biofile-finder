@@ -217,8 +217,8 @@ describe("Interaction logics", () => {
             // arrange
             const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
             const filters = [
-                new FileFilter("Cell Line", "AICS-12"),
-                new FileFilter("Notes", "Hello"),
+                new FileFilter(["Cell Line"], "AICS-12"),
+                new FileFilter(["Notes"], "Hello"),
             ];
             sandbox.stub(fileSelection, "toCompactSelectionList").throws("Test failed");
             const state = mergeState(initialState, {
@@ -706,8 +706,8 @@ describe("Interaction logics", () => {
         }
         const mockAnnotations = [
             new Annotation({
-                annotationDisplayName: AnnotationName.KIND,
-                path: [AnnotationName.KIND],
+                annotationDisplayName: AnnotationName.KIND[0],
+                path: AnnotationName.KIND,
                 description: "",
                 type: AnnotationType.STRING,
                 annotationId: 0,
@@ -1421,7 +1421,7 @@ describe("Interaction logics", () => {
         for (let i = 0; i <= 50; i++) {
             csvFiles.push({
                 file_path: `/csv${i}.txt`,
-                annotations: [{ name: AnnotationName.KIND, values: [csvKind] }],
+                annotations: [{ name: AnnotationName.KIND[0], values: [csvKind] }],
             });
         }
         const pngKind = "PNG";
@@ -1429,7 +1429,7 @@ describe("Interaction logics", () => {
         for (let i = 0; i <= 50; i++) {
             pngFiles.push({
                 file_path: `/png${i}.txt`,
-                annotations: [{ name: AnnotationName.KIND, values: [pngKind] }],
+                annotations: [{ name: AnnotationName.KIND[0], values: [pngKind] }],
             });
         }
         const files = [...csvFiles, ...pngFiles];

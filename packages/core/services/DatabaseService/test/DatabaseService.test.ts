@@ -47,8 +47,8 @@ describe("DatabaseService", () => {
     describe("addDataSource", () => {
         const mockAnnotations = [
             new Annotation({
-                annotationDisplayName: AnnotationName.KIND,
-                path: [AnnotationName.KIND],
+                annotationDisplayName: AnnotationName.KIND[0],
+                path: AnnotationName.KIND,
                 description: "",
                 type: AnnotationType.STRING,
                 annotationId: 0,
@@ -143,7 +143,7 @@ describe("DatabaseService", () => {
         it("successfully adds source when has File Path column", async () => {
             // Arrange
             const filePathAnnotation = new Annotation({
-                annotationDisplayName: AnnotationName.FILE_PATH,
+                annotationDisplayName: AnnotationName.FILE_PATH[0],
                 path: ["File Path"],
                 description: "",
                 type: AnnotationType.STRING,

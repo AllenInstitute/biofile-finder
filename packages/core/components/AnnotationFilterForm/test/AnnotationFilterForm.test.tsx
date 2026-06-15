@@ -85,7 +85,7 @@ describe("<AnnotationFilterForm />", () => {
             // start with the input selected
             const state = mergeState(initialState, {
                 selection: {
-                    filters: [new FileFilter(fooAnnotation.name, "b")],
+                    filters: [new FileFilter([fooAnnotation.name], "b")],
                 },
             });
             const { store, logicMiddleware } = configureMockStore({
@@ -226,7 +226,7 @@ describe("<AnnotationFilterForm />", () => {
             // Arrange: Start with the "False" input selected
             const state = mergeState(initialState, {
                 selection: {
-                    filters: [new FileFilter(fooAnnotation.name, false)],
+                    filters: [new FileFilter([fooAnnotation.name], false)],
                 },
             });
             const { store, logicMiddleware } = configureMockStore({

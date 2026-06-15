@@ -120,8 +120,8 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 if (!filtersByAnnotation[annotation]) {
                     filtersByAnnotation[annotation] = [
                         index < path.length
-                            ? new FileFilter(annotation, path[index])
-                            : new IncludeFilter(annotation), // If no value provided in hierachy, equivalent to Include filter
+                            ? new FileFilter([annotation], path[index])
+                            : new IncludeFilter([annotation]), // If no value provided in hierachy, equivalent to Include filter
                     ];
                 }
             });

@@ -13,10 +13,10 @@ describe("<Header />", () => {
     it("dispatches sort action when clicked when file attribute", () => {
         // Arrange
         const annotations = [
-            AnnotationName.FILE_NAME,
-            AnnotationName.KIND,
-            AnnotationName.FILE_SIZE,
-            AnnotationName.UPLOADED,
+            AnnotationName.FILE_NAME[0],
+            AnnotationName.KIND[0],
+            AnnotationName.FILE_SIZE[0],
+            AnnotationName.UPLOADED[0],
         ];
         const state = mergeState(initialState, {
             metadata: {
@@ -28,7 +28,7 @@ describe("<Header />", () => {
             },
             selection: {
                 columns: annotations.map((name) => ({
-                    name: name,
+                    name: [name],
                     width: 1 / annotations.length,
                 })),
             },
@@ -41,21 +41,21 @@ describe("<Header />", () => {
         );
 
         // Act
-        const fileSizeColumn = getAllByText(AnnotationName.FILE_SIZE)[0];
+        const fileSizeColumn = getAllByText(AnnotationName.FILE_SIZE[0])[0];
         fireEvent.click(fileSizeColumn);
 
         // Assert
-        expect(actions.includesMatch(selection.actions.sortColumn(AnnotationName.FILE_SIZE))).to.be
+        expect(actions.includesMatch(selection.actions.sortColumn(AnnotationName.FILE_SIZE[0]))).to.be
             .true;
     });
 
     it("renders downward chevron when column is sorted descending", () => {
         // Arrange
         const annotations = [
-            AnnotationName.FILE_NAME,
-            AnnotationName.KIND,
-            AnnotationName.FILE_SIZE,
-            AnnotationName.UPLOADED,
+            AnnotationName.FILE_NAME[0],
+            AnnotationName.KIND[0],
+            AnnotationName.FILE_SIZE[0],
+            AnnotationName.UPLOADED[0],
         ];
         const state = mergeState(initialState, {
             metadata: {
@@ -67,7 +67,7 @@ describe("<Header />", () => {
             },
             selection: {
                 columns: annotations.map((name) => ({
-                    name: name,
+                    name: [name],
                     width: 1 / annotations.length,
                 })),
                 sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.DESC),
@@ -83,7 +83,7 @@ describe("<Header />", () => {
         );
 
         // Assert
-        const fileSizeCell = getAllByText(AnnotationName.FILE_SIZE)[0];
+        const fileSizeCell = getAllByText(AnnotationName.FILE_SIZE[0])[0];
         fileSizeCell.querySelector("i[data-icon-name='ChevronDown']");
         expect(fileSizeCell).to.exist;
     });
@@ -91,10 +91,10 @@ describe("<Header />", () => {
     it("renders upward chevron when column is sorted ascending", () => {
         // Arrange
         const annotations = [
-            AnnotationName.FILE_NAME,
-            AnnotationName.KIND,
-            AnnotationName.FILE_SIZE,
-            AnnotationName.UPLOADED,
+            AnnotationName.FILE_NAME[0],
+            AnnotationName.KIND[0],
+            AnnotationName.FILE_SIZE[0],
+            AnnotationName.UPLOADED[0],
         ];
         const state = mergeState(initialState, {
             metadata: {
@@ -106,7 +106,7 @@ describe("<Header />", () => {
             },
             selection: {
                 columns: annotations.map((name) => ({
-                    name: name,
+                    name: [name],
                     width: 1 / annotations.length,
                 })),
                 sortColumn: new FileSort(AnnotationName.FILE_SIZE, SortOrder.ASC),
@@ -122,7 +122,7 @@ describe("<Header />", () => {
         );
 
         // Assert
-        const fileSizeCell = getAllByText(AnnotationName.FILE_SIZE)[0];
+        const fileSizeCell = getAllByText(AnnotationName.FILE_SIZE[0])[0];
         fileSizeCell.querySelector("i[data-icon-name='ChevronUp']");
         expect(fileSizeCell).to.exist;
     });
@@ -130,13 +130,13 @@ describe("<Header />", () => {
     it("dispatches reorderColumns with reordered columns when column is dragged to new position", () => {
         // Arrange
         const annotations = [
-            AnnotationName.FILE_NAME,
-            AnnotationName.KIND,
-            AnnotationName.FILE_SIZE,
-            AnnotationName.UPLOADED,
+            AnnotationName.FILE_NAME[0],
+            AnnotationName.KIND[0],
+            AnnotationName.FILE_SIZE[0],
+            AnnotationName.UPLOADED[0],
         ];
         const columns = annotations.map((name) => ({
-            name: name,
+            name: [name],
             width: 1 / annotations.length,
         }));
         const state = mergeState(initialState, {
@@ -157,10 +157,10 @@ describe("<Header />", () => {
         );
 
         // Act: drag FILE_SIZE column (index 2) onto FILE_NAME column (index 0)
-        const fileSizeCell = getAllByText(AnnotationName.FILE_SIZE)[0].closest(
+        const fileSizeCell = getAllByText(AnnotationName.FILE_SIZE[0])[0].closest(
             "[draggable]"
         ) as HTMLElement;
-        const fileNameCell = getAllByText(AnnotationName.FILE_NAME)[0].closest(
+        const fileNameCell = getAllByText(AnnotationName.FILE_NAME[0])[0].closest(
             "[draggable]"
         ) as HTMLElement;
         fireEvent.dragStart(fileSizeCell);
@@ -170,7 +170,7 @@ describe("<Header />", () => {
         // Assert: FILE_SIZE should be moved to index 0, rest shift right
         expect(
             actions.includesMatch(
-                selection.actions.reorderColumns([{ name: AnnotationName.FILE_SIZE, moveTo: 0 }])
+                selection.actions.reorderColumns([{ name: AnnotationName.FILE_SIZE[0], moveTo: 0 }])
             )
         ).to.be.true;
     });

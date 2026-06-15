@@ -22,7 +22,7 @@ export const getSortedAnnotations = createSelector(getAnnotations, (annotations:
     // Sort annotations by file name first then everything else alphabetically
     const fileNameAnnotationIndex = annotations.findIndex(
         (annotation) =>
-            annotation.name === AnnotationName.FILE_NAME || annotation.name === "File Name"
+            annotation.name === AnnotationName.FILE_NAME[0] || annotation.name === "File Name"
     );
     if (fileNameAnnotationIndex === -1) {
         return Annotation.sort(annotations);

@@ -92,7 +92,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const createFileFilter = (item: ListItem) => {
         return new FileFilter(
-            props.annotation.name,
+            [props.annotation.name],
             isNil(props.annotation.valueOf(item.value))
                 ? item.value
                 : props.annotation.valueOf(item.value),
@@ -130,7 +130,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                 selection.actions.setFileFilters([
                     ...allFilters.filter((filter) => filter.name !== props.annotation.name),
                     new FileFilter(
-                        props.annotation.name,
+                        [props.annotation.name],
                         filterValue,
                         type,
                         props.annotation.type as AnnotationType
@@ -162,7 +162,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
     const typeHasDedicatedPicker =
-        props.annotation.name !== AnnotationName.FILE_SIZE &&
+        props.annotation.name !== AnnotationName.FILE_SIZE[0] &&
         [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
             props.annotation.type as AnnotationType
         );

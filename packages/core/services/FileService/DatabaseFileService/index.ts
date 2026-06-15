@@ -214,14 +214,14 @@ export default class DatabaseFileService implements FileService {
         if (selection.include && selection.include.length > 0) {
             subQuery.where(
                 selection.include
-                    .map((annotationName) => new IncludeFilter(annotationName).toSQLWhereString())
+                    .map((annotationName) => new IncludeFilter([annotationName]).toSQLWhereString())
                     .join(" AND ")
             );
         }
         if (selection.exclude && selection.exclude.length > 0) {
             subQuery.where(
                 selection.exclude
-                    .map((annotationName) => new ExcludeFilter(annotationName).toSQLWhereString())
+                    .map((annotationName) => new ExcludeFilter([annotationName]).toSQLWhereString())
                     .join(" AND ")
             );
         }

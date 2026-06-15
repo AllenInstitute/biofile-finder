@@ -472,7 +472,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 disabled:
                     (!filters && !fileDetails) ||
                     (app.filePath.toLowerCase().includes("zen") &&
-                        !fileDetails?.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH)),
+                        !fileDetails?.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH[0])),
                 onClick() {
                     if (filters) {
                         dispatch(interaction.actions.openWith(app, filters));

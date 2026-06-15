@@ -36,11 +36,11 @@ export default function DatasetTable(props: DatasetTableProps) {
         (value, index): IColumn => {
             return {
                 key: `column${index}`,
-                name: value.displayLabel.toUpperCase(),
+                name: value.displayLabel[0].toUpperCase(),
                 fieldName: value.name,
                 isResizable: true,
                 minWidth: value?.minWidth,
-                isSorted: sortColumn?.annotationName == value.displayLabel,
+                isSorted: sortColumn?.annotationName == value.displayLabel[0],
                 isSortedDescending: sortColumn?.order == SortOrder.DESC,
                 onColumnClick: () => onColumnClick(value.displayLabel),
             };
@@ -107,9 +107,9 @@ export default function DatasetTable(props: DatasetTableProps) {
         return <div className={styles.doubleLine}>{fieldContent}</div>;
     }
 
-    function onColumnClick(columnName: string) {
+    function onColumnClick(columnName: string[]) {
         let sortOrder = SortOrder.ASC;
-        if (sortColumn?.annotationName == columnName)
+        if (sortColumn?.annotationName == columnName[0])
             sortOrder = sortColumn.order == SortOrder.DESC ? SortOrder.ASC : SortOrder.DESC;
         const newSortColumn = new FileSort(columnName, sortOrder);
         setSortColumn(newSortColumn);

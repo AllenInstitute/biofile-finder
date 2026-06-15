@@ -25,7 +25,7 @@ describe("Selection selectors", () => {
                 }),
             ];
             const filters = [
-                new ExcludeFilter("IsTestAnnotation"), // boolean
+                new ExcludeFilter(["IsTestAnnotation"]), // boolean
                 new IncludeFilter(AnnotationName.UPLOADED), // date
                 new ExcludeFilter(AnnotationName.FILE_SIZE), // number
                 new IncludeFilter(AnnotationName.FILE_NAME), // string

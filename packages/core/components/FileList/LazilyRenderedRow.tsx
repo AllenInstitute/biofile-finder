@@ -64,11 +64,16 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
     if (file) {
         content = (
             <FileRow
-                cells={map(visibleColumns, (column) => ({
-                    columnKey: column.name,
-                    displayValue: annotationNameToAnnotationMap[column.name]?.extractFromFile(file),
-                    width: column.width,
-                }))}
+                cells={map(visibleColumns, (column) => {
+                    const columnKey = column.name.join(".");
+                    return {
+                        columnKey,
+                        displayValue: annotationNameToAnnotationMap[columnKey]?.extractFromFile(
+                            file
+                        ),
+                        width: column.width,
+                    };
+                })}
                 rowIdentifier={{ index, id: file.uid }}
                 onSelect={onSelect}
                 padding={padding}

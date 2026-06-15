@@ -158,8 +158,8 @@ export default class FileDetail {
     }
 
     public get downloadInProgress(): boolean {
-        const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL);
-        const cacheEvictionDate = this.getAnnotation(AnnotationName.CACHE_EVICTION_DATE);
+        const shouldBeInLocal = this.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL[0]);
+        const cacheEvictionDate = this.getAnnotation(AnnotationName.CACHE_EVICTION_DATE[0]);
         return !cacheEvictionDate && shouldBeInLocal === true;
     }
 
@@ -233,7 +233,7 @@ export default class FileDetail {
 
     public getLinkToPlateUI(labkeyHost: string): string | undefined {
         // Grabbing plate barcode
-        const platebarcode = this.getFirstAnnotationValue(AnnotationName.PLATE_BARCODE);
+        const platebarcode = this.getFirstAnnotationValue(AnnotationName.PLATE_BARCODE[0]);
         if (!platebarcode) {
             return undefined;
         }

@@ -55,7 +55,7 @@ describe("<DirectoryTree />", () => {
     });
 
     const baseDisplayAnnotations = TOP_LEVEL_FILE_ANNOTATIONS.filter(
-        (a) => a.name === AnnotationName.FILE_NAME
+        (a) => a.name === AnnotationName.FILE_NAME[0]
     );
     const state = mergeState(initialState, {
         metadata: {
@@ -64,7 +64,7 @@ describe("<DirectoryTree />", () => {
         selection: {
             annotationHierarchy: [fooAnnotation.name, barAnnotation.name],
             columns: [...baseDisplayAnnotations, fooAnnotation, barAnnotation].map((a) => ({
-                name: a.name,
+                name: [a.name],
                 width: 100,
             })),
             shouldShowNullGroups: false,
@@ -345,7 +345,7 @@ describe("<DirectoryTree />", () => {
         // simulate a user filtering the list of top level hierarchy values
         const topLevelFilter = topLevelHierarchyValues[0];
         store.dispatch(
-            selection.actions.addFileFilter(new FileFilter(fooAnnotation.name, topLevelFilter))
+            selection.actions.addFileFilter(new FileFilter([fooAnnotation.name], topLevelFilter))
         );
 
         // after going through the store and an update cycle or two, the tree should be filtered
@@ -367,7 +367,7 @@ describe("<DirectoryTree />", () => {
             selection: {
                 annotationHierarchy: [fooAnnotation.name],
                 columns: [...baseDisplayAnnotations, fooAnnotation, barAnnotation].map((a) => ({
-                    name: a.name,
+                    name: [a.name],
                     width: 100,
                 })),
             },
@@ -393,10 +393,10 @@ describe("<DirectoryTree />", () => {
         const filter1 = topLevelHierarchyValues[0];
         const filter2 = topLevelHierarchyValues[1];
         store.dispatch(
-            selection.actions.addFileFilter(new FileFilter(fooAnnotation.name, filter1))
+            selection.actions.addFileFilter(new FileFilter([fooAnnotation.name], filter1))
         );
         store.dispatch(
-            selection.actions.addFileFilter(new FileFilter(fooAnnotation.name, filter2))
+            selection.actions.addFileFilter(new FileFilter([fooAnnotation.name], filter2))
         );
 
         // after going through the store and an update cycle or two, the tree should be filtered

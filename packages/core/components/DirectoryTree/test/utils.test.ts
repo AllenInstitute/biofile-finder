@@ -224,7 +224,7 @@ describe("DirectoryTree utilities", () => {
         });
         it("excludes the NO_VALUE node when annotation has filter applied", async () => {
             const fileSet = new FileSet({
-                filters: [new FileFilter(secondAnn.displayName, secondLevelHierarchyValues[1])],
+                filters: [new FileFilter([secondAnn.displayName], secondLevelHierarchyValues[1])],
             });
             const childNodes = await findChildNodes({
                 annotationService,
@@ -238,7 +238,7 @@ describe("DirectoryTree utilities", () => {
             expect(childNodes).to.deep.equal([secondLevelHierarchyValues[1]]);
         });
         it("returns only the NO_VALUE node when annotation has exclude filter applied and NO_VALUE has files", async () => {
-            const fileSet = new FileSet({ filters: [new ExcludeFilter(secondAnn.displayName)] });
+            const fileSet = new FileSet({ filters: [new ExcludeFilter([secondAnn.displayName])] });
             const childNodes = await findChildNodes({
                 annotationService,
                 fileService,
@@ -252,7 +252,7 @@ describe("DirectoryTree utilities", () => {
         });
         it("returns all appropriate values when range is applied", async () => {
             const fileSet = new FileSet({
-                filters: [new FileFilter(numericAnn.displayName, "RANGE(1,5)")],
+                filters: [new FileFilter([numericAnn.displayName], "RANGE(1,5)")],
             });
             const childNodes = await findChildNodes({
                 annotationService,
@@ -265,7 +265,7 @@ describe("DirectoryTree utilities", () => {
             expect(childNodes).to.deep.equal(numericHierarchyValues);
         });
         it("returns all values when 'include' filter is applied on hierarchy field", async () => {
-            const fileSet = new FileSet({ filters: [new IncludeFilter(secondAnn.displayName)] });
+            const fileSet = new FileSet({ filters: [new IncludeFilter([secondAnn.displayName])] });
             const childNodes = await findChildNodes({
                 annotationService,
                 fileService,

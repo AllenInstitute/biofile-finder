@@ -70,9 +70,9 @@ export default function DatasetDetails(props: DatasetDetailsProps) {
             const ret = [
                 ...accum,
                 <DatasetDetailsRow
-                    key={field.displayLabel}
+                    key={field.displayLabel[0]}
                     className={styles.row}
-                    name={field.displayLabel}
+                    name={field.displayLabel[0]}
                     value={datasetFieldValue}
                     link={link || undefined}
                 />,

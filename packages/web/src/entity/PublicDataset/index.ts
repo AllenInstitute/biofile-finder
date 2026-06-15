@@ -1,3 +1,5 @@
+import { isEqual } from "lodash";
+
 import SearchParams, { SearchParamsComponents } from "../../../../core/entity/SearchParams";
 import { FmsFileAnnotation } from "../../../../core/services/FileService";
 
@@ -27,18 +29,18 @@ export interface PublicDatasetProps {
 }
 
 export class DatasetAnnotation {
-    public displayLabel: string;
+    public displayLabel: string[];
     public name: string;
     public minWidth: number;
 
-    constructor(displayLabel: string, name: string, minWidth = 0) {
+    constructor(displayLabel: string[], name: string, minWidth = 0) {
         this.displayLabel = displayLabel;
         this.name = name;
         this.minWidth = minWidth;
     }
 
     public equals(target: DatasetAnnotation): boolean {
-        return this.displayLabel === target.displayLabel && this.name === target.name;
+        return isEqual(this.displayLabel, target.displayLabel) && this.name === target.name;
     }
 }
 
@@ -48,26 +50,26 @@ export class DatasetAnnotation {
  * Matches fields in the dataset manifest to props in this interface
  */
 export const DatasetAnnotations = {
-    CREATION_DATE: new DatasetAnnotation("Creation date", "created", 112),
-    DATASET_ID: new DatasetAnnotation("Dataset ID", "dataset_id"),
-    DATASET_NAME: new DatasetAnnotation("Dataset name", "dataset_name", 50),
-    DATASET_PATH: new DatasetAnnotation("File Path", "dataset_path"),
-    DATASET_SIZE: new DatasetAnnotation("Size", "dataset_size", 78),
-    DATASET_DESCRIPTION: new DatasetAnnotation("Short description", "description", 200),
-    DOI: new DatasetAnnotation("DOI", "doi"),
-    FEATURED: new DatasetAnnotation("Featured", "featured"),
-    FILE_COUNT: new DatasetAnnotation("File count", "file_count", 89),
-    INDEX: new DatasetAnnotation("Index", "index", 1),
-    ORGANIZATION: new DatasetAnnotation("Organization", "organization", 114),
-    PUBLICATION_DATE: new DatasetAnnotation("Publication date", "published", 128),
-    RELATED_PUBLICATON: new DatasetAnnotation("Related publication", "related_publication", 178),
+    CREATION_DATE: new DatasetAnnotation(["Creation date"], "created", 112),
+    DATASET_ID: new DatasetAnnotation(["Dataset ID"], "dataset_id"),
+    DATASET_NAME: new DatasetAnnotation(["Dataset name"], "dataset_name", 50),
+    DATASET_PATH: new DatasetAnnotation(["File Path"], "dataset_path"),
+    DATASET_SIZE: new DatasetAnnotation(["Size"], "dataset_size", 78),
+    DATASET_DESCRIPTION: new DatasetAnnotation(["Short description"], "description", 200),
+    DOI: new DatasetAnnotation(["DOI"], "doi"),
+    FEATURED: new DatasetAnnotation(["Featured"], "featured"),
+    FILE_COUNT: new DatasetAnnotation(["File count"], "file_count", 89),
+    INDEX: new DatasetAnnotation(["Index"], "index", 1),
+    ORGANIZATION: new DatasetAnnotation(["Organization"], "organization", 114),
+    PUBLICATION_DATE: new DatasetAnnotation(["Publication date"], "published", 128),
+    RELATED_PUBLICATON: new DatasetAnnotation(["Related publication"], "related_publication", 178),
     RELATED_PUBLICATION_LINK: new DatasetAnnotation(
-        "Related publication link",
+        ["Related publication link"],
         "related_publication_link"
     ),
-    SOURCE: new DatasetAnnotation("Source", "source"),
-    SPECIFIC_QUERY: new DatasetAnnotation("Specific query", "specific_query"),
-    VERSION: new DatasetAnnotation("Version", "version"),
+    SOURCE: new DatasetAnnotation(["Source"], "source"),
+    SPECIFIC_QUERY: new DatasetAnnotation(["Specific query"], "specific_query"),
+    VERSION: new DatasetAnnotation(["Version"], "version"),
 };
 
 // Limited set used for the details panel
@@ -108,7 +110,7 @@ export default class PublicDataset {
                 dataset_name: datasetDetails.dataset_name,
             };
             Object.values(DatasetAnnotations).forEach((value) => {
-                const equivalentAnnotation = annotations.find((e) => e.name === value.displayLabel);
+                const equivalentAnnotation = annotations.find((e) => isEqual([e.name], value.displayLabel));
                 // csv may set empty fields to string of value 'null'
                 if (equivalentAnnotation && equivalentAnnotation.values[0] !== "null") {
                     this.setMetadata(
@@ -174,12 +176,12 @@ export default class PublicDataset {
         return this.datasetDetails.featured?.toLowerCase() === "true";
     }
 
-    public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {
-        return this.getAnnotation(annotationName)?.values[0];
+    public getFirstAnnotationValue(column: string[]): string | number | boolean | undefined {
+        return this.getAnnotation(column)?.values[0];
     }
 
-    public getAnnotation(annotationName: string): FmsFileAnnotation | undefined {
-        return this.annotations.find((annotation) => annotation.name === annotationName);
+    public getAnnotation(column: string[]): FmsFileAnnotation | undefined {
+        return this.annotations.find((annotation) => isEqual([annotation.name], column));
     }
 
     private setMetadata<K extends keyof PublicDatasetProps, V extends PublicDatasetProps[K]>(

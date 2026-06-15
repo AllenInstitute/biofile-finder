@@ -6,13 +6,15 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import { JSONReadyRange } from "../../entity/NumericRange";
 
+export type PrimitiveMetadataValue = string | number | boolean;
+
 /**
  * Represents a sub-document that can be found within an FmsFile's `annotations` list.
  */
 export interface FmsFileAnnotation {
     [key: string]: any;
     name: string;
-    values: (string | number | boolean)[];
+    values: PrimitiveMetadataValue[];
 }
 
 export interface GetFilesRequest {
@@ -28,7 +30,7 @@ export interface SelectionAggregationResult {
 
 export interface Selection {
     filters: {
-        [index: string]: (string | number | boolean)[];
+        [index: string]: PrimitiveMetadataValue[];
     };
     indexRanges: JSONReadyRange[];
     sort?: {

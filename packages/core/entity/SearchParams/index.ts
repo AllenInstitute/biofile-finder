@@ -112,7 +112,7 @@ class ColumnCoder {
                 // this is an arbitrary choice to balance URL length with precision of column widths
                 .map(
                     (column) =>
-                        `${column.name}${ColumnCoder.VALUE_DELIMITER}${Math.ceil(
+                        `${column.name.join(".")}${ColumnCoder.VALUE_DELIMITER}${Math.ceil(
                             column.width / ColumnCoder.COLUMN_VALUE_PRECISION
                         )}`
                 )
@@ -141,7 +141,7 @@ class ColumnCoder {
                     parsedWidth <= 1
                         ? DEFAULT_COLUMN_WIDTH
                         : parsedWidth * ColumnCoder.COLUMN_VALUE_PRECISION;
-                return { name, width };
+                return { name: name.split("."), width };
             });
     }
 }
@@ -278,7 +278,11 @@ export default class SearchParams {
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
                 .map(
                     (parsedFilter) =>
-                        new FileFilter(parsedFilter.name, parsedFilter.value, parsedFilter.type)
+                        new FileFilter(
+                            parsedFilter.path ?? parsedFilter.name,
+                            parsedFilter.value,
+                            parsedFilter.type
+                        )
                 ),
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
@@ -287,7 +291,10 @@ export default class SearchParams {
             prov: unparsedSourceProvenance ? JSON.parse(unparsedSourceProvenance) : undefined,
             showNoValueGroups: showNoValueGroupsString ? JSON.parse(showNoValueGroupsString) : true,
             sortColumn: parsedSort
-                ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
+                ? new FileSort(
+                      parsedSort.path ?? parsedSort.annotationName,
+                      parsedSort.order || SortOrder.ASC
+                  )
                 : undefined,
             sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
             sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,

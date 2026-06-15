@@ -45,7 +45,7 @@ describe("<DatasetDetails />", () => {
             // Act / Assert
             DATASET_DISPLAY_FIELDS.forEach((field) => {
                 const value = _get(mockDataset.details, field.name);
-                expect(queryByText(field.displayLabel)).to.exist;
+                expect(queryByText(field.displayLabel[0])).to.exist;
                 expect(queryByText(value)).to.exist;
             });
         });

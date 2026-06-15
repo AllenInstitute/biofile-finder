@@ -11,7 +11,7 @@ import FileDetail from "../../FileDetail";
 describe("Annotation", () => {
     const annotationResponse = Object.freeze({
         annotationDisplayName: "Date uploaded",
-        path: [AnnotationName.UPLOADED],
+        path: AnnotationName.UPLOADED,
         description: "Date the file was uploaded",
         type: AnnotationType.DATETIME,
     });
@@ -26,7 +26,7 @@ describe("Annotation", () => {
 
         const fileType = find(
             TOP_LEVEL_FILE_ANNOTATIONS,
-            (annotation) => annotation.name === AnnotationName.FILE_NAME
+            (annotation) => annotation.name === AnnotationName.FILE_NAME[0]
         );
 
         const cellLine = new Annotation({

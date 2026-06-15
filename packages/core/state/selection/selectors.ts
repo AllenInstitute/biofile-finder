@@ -78,7 +78,7 @@ export const getDefaultFileFilters = createSelector([getFileFilters], (filters):
 );
 
 export const getColumnNames = createSelector([getColumns], (columns): string[] =>
-    columns.map((column) => column.name)
+    columns.map((column) => column.name.join("."))
 );
 
 export const getCurrentQueryParts = createSelector(

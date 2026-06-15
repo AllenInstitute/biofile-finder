@@ -302,7 +302,7 @@ const downloadFilesLogic = createLogic({
                 name: file.name,
                 size: file.size,
                 path: fileDownloadService.isFileSystemAccessible
-                    ? ((file.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH) ||
+                    ? ((file.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH[0]) ||
                           file.path) as string)
                     : file.path,
             }));
@@ -423,7 +423,7 @@ const promptForNewExecutable = createLogic({
             const fileKinds = uniq(
                 selectedFilesDetails.flatMap(
                     (file) =>
-                        file.annotations.find((a) => a.name === AnnotationName.KIND)
+                        file.annotations.find((a) => a.name === AnnotationName.KIND[0])
                             ?.values as string[]
                 )
             );
@@ -506,7 +506,7 @@ const openWithDefault = createLogic({
         // Map apps to the files they are meant to open
         const appToFiles = filesToOpen.reduce((appToFilesMap, file) => {
             const kinds =
-                (file.annotations.find((a) => a.name === AnnotationName.KIND)
+                (file.annotations.find((a) => a.name === AnnotationName.KIND[0])
                     ?.values as string[]) || [];
             const kind = kinds.length ? kinds[0] : "SYSTEM_DEFAULT";
             const app = kindToApp[kind] || SYSTEM_DEFAULT_APP;
@@ -565,7 +565,7 @@ const openWithLogic = createLogic({
             // Default to local path for desktop apps
             filesToOpen.map((file) => {
                 const filePath =
-                    file.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH) ?? file.path;
+                    file.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH[0]) ?? file.path;
                 return executionEnvService.formatPathForHost(filePath as string);
             })
         );

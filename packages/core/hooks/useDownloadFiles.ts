@@ -43,7 +43,7 @@ export default (fileDetails?: FileDetail) => {
                                 size: fileDetails.size,
                                 path: fileDownloadService.isFileSystemAccessible
                                     ? ((fileDetails.getFirstAnnotationValue(
-                                          AnnotationName.LOCAL_FILE_PATH
+                                          AnnotationName.LOCAL_FILE_PATH[0]
                                       ) || fileDetails.path) as string)
                                     : fileDetails.path,
                             },

@@ -49,7 +49,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
         noValueFileCount = await fileService.getCountOfMatchingFiles(
             new FileSet({
                 fileService,
-                filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
+                filters: [...fileSet.filters, new ExcludeFilter([annotationNameAtDepth])],
             })
         );
     }

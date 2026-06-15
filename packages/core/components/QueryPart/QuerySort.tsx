@@ -26,7 +26,7 @@ export default function QuerySort(props: Props) {
         if (props.sort) {
             const oppositeOrder =
                 props.sort.order === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC;
-            const newSort = new FileSort(props.sort.annotationName, oppositeOrder);
+            const newSort = new FileSort(props.sort.path, oppositeOrder);
             dispatch(selection.actions.setSortColumn(newSort));
         }
     };
@@ -64,7 +64,7 @@ export default function QuerySort(props: Props) {
                         dispatch(
                             selection.actions.setSortColumn(
                                 newAnnotation
-                                    ? new FileSort(newAnnotation, SortOrder.DESC)
+                                    ? new FileSort([newAnnotation], SortOrder.DESC)
                                     : undefined
                             )
                         );

@@ -82,8 +82,8 @@ describe("Metadata logics", () => {
         it("dispatches filter updates if annotation types have been added", async () => {
             // arrange
             const mockFilters: FileFilter[] = [
-                new FileFilter(mockAnnotations[0].name, "123"),
-                new FileFilter(mockAnnotations[1].name, new Date()),
+                new FileFilter([mockAnnotations[0].name], "123"),
+                new FileFilter([mockAnnotations[1].name], new Date()),
             ];
             const state = mergeState(initialState, {
                 selection: {
@@ -116,7 +116,7 @@ describe("Metadata logics", () => {
             // arrange
             const mockFilters: FileFilter[] = [
                 new FileFilter(
-                    mockAnnotations[2].name,
+                    [mockAnnotations[2].name],
                     "test value",
                     FilterType.DEFAULT,
                     AnnotationType.STRING
@@ -143,9 +143,9 @@ describe("Metadata logics", () => {
         it("only dispatches columns that still exist in the data source", async () => {
             // arrange
             const mockColumns = mockAnnotations.map((ann) => {
-                return { name: ann.name, width: 200 };
+                return { name: [ann.name], width: 200 };
             });
-            const columnNoLongerExists = { name: "old column", width: 200 };
+            const columnNoLongerExists = { name: ["old column"], width: 200 };
             const state = mergeState(initialState, {
                 selection: {
                     columns: [...mockColumns, columnNoLongerExists],
@@ -190,12 +190,12 @@ describe("Metadata logics", () => {
                 .at(0);
             // 3 mock annotations + 1 prepended "file_name" column
             expect(matchingAction?.payload.length).to.equal(mockAnnotations.length + 1);
-            expect(matchingAction?.payload[0].name).to.equal("file_name");
+            expect(matchingAction?.payload[0].name).to.deep.equal(["file_name"]);
         });
 
         it("adds all new annotations as columns to existing ones", async () => {
             // arrange: some existing columns
-            const existingColumns = [{ name: mockAnnotations[0].name, width: 300 }];
+            const existingColumns = [{ name: [mockAnnotations[0].name], width: 300 }];
             const state = mergeState(initialState, {
                 selection: {
                     columns: existingColumns,
@@ -218,7 +218,8 @@ describe("Metadata logics", () => {
             expect(matchingAction?.payload.length).to.equal(mockAnnotations.length);
             // existing column should retain its original width
             const existingColumn = matchingAction?.payload.find(
-                (col: { name: string; width: number }) => col.name === mockAnnotations[0].name
+                (col: { name: string[]; width: number }) =>
+                    col.name.join(".") === mockAnnotations[0].name
             );
             expect(existingColumn?.width).to.equal(300);
         });

@@ -75,7 +75,7 @@ describe("<MetadataManifest />", () => {
         const state = mergeState(visibleDialogState, {
             interaction: {
                 csvColumns: ["Cell Line"],
-                fileFiltersForVisibleModal: [new FileFilter("Cell Line", "AICS-11")],
+                fileFiltersForVisibleModal: [new FileFilter(["Cell Line"], "AICS-11")],
             },
             metadata: {
                 annotations: [

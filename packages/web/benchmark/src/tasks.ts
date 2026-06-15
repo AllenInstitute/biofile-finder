@@ -84,7 +84,7 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
         name: "sort_file_list",
         run: (_, f) =>
             f.getFiles({
-                fileSet: new FileSet({ sort: new FileSort("File Size", SortOrder.DESC) }),
+                fileSet: new FileSet({ sort: new FileSort(["File Size"], SortOrder.DESC) }),
                 from: 0,
                 limit: 50,
             }),
@@ -93,7 +93,7 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
         name: "sort_file_list_large_page",
         run: (_, f) =>
             f.getFiles({
-                fileSet: new FileSet({ sort: new FileSort("File Size", SortOrder.DESC) }),
+                fileSet: new FileSet({ sort: new FileSort(["File Size"], SortOrder.DESC) }),
                 from: 0,
                 limit: 100,
             }),
@@ -103,13 +103,13 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
     {
         name: "filter_count",
         run: (_, f) =>
-            f.getCountOfMatchingFiles(new FileSet({ filters: [new FileFilter("cell_line", 3)] })),
+            f.getCountOfMatchingFiles(new FileSet({ filters: [new FileFilter(["cell_line"], 3)] })),
     },
     {
         name: "filter_browse",
         run: (_, f) =>
             f.getFiles({
-                fileSet: new FileSet({ filters: [new FileFilter("cell_line", 3)] }),
+                fileSet: new FileSet({ filters: [new FileFilter(["cell_line"], 3)] }),
                 from: 0,
                 limit: 100,
             }),
@@ -120,7 +120,7 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
     {
         name: "null_group_count",
         run: (_, f) =>
-            f.getCountOfMatchingFiles(new FileSet({ filters: [new ExcludeFilter("cell_line")] })),
+            f.getCountOfMatchingFiles(new FileSet({ filters: [new ExcludeFilter(["cell_line"])] })),
     },
 
     // Changing the grouping annotation — fires parallel IS NOT NULL queries, one per schema
@@ -147,7 +147,7 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
                 fileSet: new FileSet({
                     filters: [
                         new FileFilter(
-                            "acquisition_date",
+                            ["acquisition_date"],
                             "RANGE(2024-01-01,2024-06-30)",
                             FilterType.DEFAULT,
                             AnnotationType.DATE

@@ -15,21 +15,21 @@ import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("FileSet", () => {
-    const scientistEqualsJane = new FileFilter("scientist", "jane");
-    const scientistEqualsJohn = new FileFilter("scientist", "john");
+    const scientistEqualsJane = new FileFilter(["scientist"], "jane");
+    const scientistEqualsJohn = new FileFilter(["scientist"], "john");
     const matrigelIsHard = new FileFilter(
-        "matrigel_is_hardened",
+        ["matrigel_is_hardened"],
         true,
         FilterType.DEFAULT,
         AnnotationType.BOOLEAN
     );
-    const dateCreatedDescending = new FileSort("date_created", SortOrder.DESC);
+    const dateCreatedDescending = new FileSort(["date_created"], SortOrder.DESC);
     const fuzzyFileName = new FuzzyFilter("file_name");
     const fuzzyFilePath = new FuzzyFilter("file_path");
-    const anyGene = new IncludeFilter("gene");
-    const anyKind = new IncludeFilter("kind");
-    const noCellLine = new ExcludeFilter("cell_line");
-    const noCellBatch = new ExcludeFilter("cell_batch");
+    const anyGene = new IncludeFilter(["gene"]);
+    const anyKind = new IncludeFilter(["kind"]);
+    const noCellLine = new ExcludeFilter(["cell_line"]);
+    const noCellBatch = new ExcludeFilter(["cell_batch"]);
 
     describe("toQueryString", () => {
         it("returns an empty string if file set represents a query with no filters and no sorting applied", () => {

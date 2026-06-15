@@ -19,19 +19,19 @@ describe("<FileAnnotationList />", () => {
             ...TOP_LEVEL_FILE_ANNOTATIONS,
             new Annotation({
                 annotationDisplayName: "Cache Eviction Date",
-                path: [AnnotationName.CACHE_EVICTION_DATE],
+                path: AnnotationName.CACHE_EVICTION_DATE,
                 description: "Indicates when the cache for this file should be evicted.",
                 type: AnnotationType.STRING,
             }),
             new Annotation({
                 annotationDisplayName: "File Path (Local VAST)",
-                path: [AnnotationName.LOCAL_FILE_PATH],
+                path: AnnotationName.LOCAL_FILE_PATH,
                 description: "Local path for the file on the host machine.",
                 type: AnnotationType.STRING,
             }),
             new Annotation({
                 annotationDisplayName: "Should Be in Local Cache",
-                path: [AnnotationName.SHOULD_BE_IN_LOCAL],
+                path: AnnotationName.SHOULD_BE_IN_LOCAL,
                 description: "Indicates if the file should be cached locally.",
                 type: AnnotationType.BOOLEAN,
             }),
@@ -69,9 +69,9 @@ describe("<FileAnnotationList />", () => {
                     file_size: 7,
                     uploaded: "01/01/01",
                     annotations: [
-                        { name: AnnotationName.CACHE_EVICTION_DATE, values: ["SOME DATE"] },
-                        { name: AnnotationName.SHOULD_BE_IN_LOCAL, values: [true] },
-                        { name: AnnotationName.LOCAL_FILE_PATH, values: [relativePath] },
+                        { name: AnnotationName.CACHE_EVICTION_DATE[0], values: ["SOME DATE"] },
+                        { name: AnnotationName.SHOULD_BE_IN_LOCAL[0], values: [true] },
+                        { name: AnnotationName.LOCAL_FILE_PATH[0], values: [relativePath] },
                     ],
                 },
                 Environment.TEST
@@ -171,7 +171,7 @@ describe("<FileAnnotationList />", () => {
                     file_name: "MyFile.txt",
                     file_size: 7,
                     uploaded: "01/01/01",
-                    annotations: [{ name: AnnotationName.SHOULD_BE_IN_LOCAL, values: [true] }],
+                    annotations: [{ name: AnnotationName.SHOULD_BE_IN_LOCAL[0], values: [true] }],
                 },
                 Environment.TEST
             );

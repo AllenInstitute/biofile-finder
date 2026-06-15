@@ -108,8 +108,8 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             const config = {
                 [PersistedConfigKeys.AllenMountPoint]: "/some/path/to/allen",
                 [PersistedConfigKeys.Columns]: [
-                    { name: "a", width: 200 },
-                    { name: "b", width: 250 },
+                    { name: ["a"], width: 200 },
+                    { name: ["b"], width: 250 },
                 ],
                 [PersistedConfigKeys.CsvColumns]: ["a", "b"],
                 [PersistedConfigKeys.ImageJExecutable]: "/my/imagej",

@@ -92,12 +92,12 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
                     // store we have to convert back into their class instances
                     sortColumn: query.parts.sortColumn
                         ? new FileSort(
-                              query.parts.sortColumn.annotationName,
+                              query.parts.sortColumn.path,
                               query.parts.sortColumn.order
                           )
                         : undefined,
                     filters: query.parts.filters.map(
-                        (filter) => new FileFilter(filter.name, filter.value)
+                        (filter) => new FileFilter(filter.path, filter.value)
                     ),
                     openFolders: query.parts.openFolders.map(
                         (folder) => new FileFolder(((folder as unknown) as string).split("."))

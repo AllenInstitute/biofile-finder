@@ -18,12 +18,12 @@ export default function ColumnPicker() {
             selections={columnNames}
             setSelections={(selectedColumns) => {
                 const adjustedColumns = columns.filter((column) =>
-                    selectedColumns.includes(column.name)
+                    selectedColumns.includes(column.name.join("."))
                 );
                 selectedColumns.forEach((selectedColumn) => {
                     if (!columnNames.includes(selectedColumn)) {
                         adjustedColumns.push({
-                            name: selectedColumn,
+                            name: selectedColumn.split("."),
                             width: 150, // Default width in px
                         });
                     }

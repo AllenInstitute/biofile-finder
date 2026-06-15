@@ -189,7 +189,7 @@ const useDirectoryHierarchy = (
                             const annotationType = annotations.find((ann) => ann.name === name)
                                 ?.type;
                             return new FileFilter(
-                                name,
+                                [name],
                                 value,
                                 FilterType.DEFAULT,
                                 annotationType as AnnotationType

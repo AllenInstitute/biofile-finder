@@ -58,7 +58,7 @@ export default class Annotation {
 
         // put an annotation from "TOP_LEVEL_ANNOTATIONS" ahead of the others
         return sortBy(sortedByDisplayName, (annotation) =>
-            annotation.name === AnnotationName.FILE_NAME ? 0 : Number.POSITIVE_INFINITY
+            annotation.name === AnnotationName.FILE_NAME[0] ? 0 : Number.POSITIVE_INFINITY
         );
     }
 
@@ -78,11 +78,7 @@ export default class Annotation {
     }
 
     public get displayName(): string {
-        return this.annotation.annotationDisplayName || this.annotation.path[0];
-    }
-
-    public get name(): string {
-        return this.annotation.path[0];
+        return this.annotation.annotationDisplayName || this.annotation.path.join(".");
     }
 
     public get type(): string | AnnotationType {

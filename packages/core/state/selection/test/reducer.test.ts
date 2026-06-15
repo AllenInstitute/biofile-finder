@@ -57,7 +57,7 @@ describe("Selection reducer", () => {
                     index: 4,
                     sortOrder: 3,
                 }),
-                filters: [new FileFilter("file_id", "1238401234")],
+                filters: [new FileFilter(["file_id"], "1238401234")],
                 openFileFolders: [new FileFolder(["AICS-11"])],
             };
             const dataSources: DataSource[] = [
@@ -92,8 +92,8 @@ describe("Selection reducer", () => {
             const state = {
                 ...selection.initialState,
                 annotationHierarchy: ["Cell Line"],
-                columns: [{ name: "file_id", width: 200 }],
-                filters: [new FileFilter("file_id", "1238401234")],
+                columns: [{ name: ["file_id"], width: 200 }],
+                filters: [new FileFilter(["file_id"], "1238401234")],
                 fileView: FileView.LIST,
                 openFileFolders: [new FileFolder(["AICS-11"])],
                 shouldShowNullGroups: false,
@@ -153,7 +153,7 @@ describe("Selection reducer", () => {
                 Environment.TEST
             );
             const fileSet = new FileSet({
-                filters: [new FileFilter("foo", "bar")],
+                filters: [new FileFilter(["foo"], "bar")],
             });
             const prevSelection = new FileSelection().select({
                 fileSet: fileSet,
@@ -193,11 +193,11 @@ describe("Selection reducer", () => {
             // arrange
             const initialSelectionState = {
                 ...selection.initialState,
-                columns: [{ name: "Green", width: 110 }],
+                columns: [{ name: ["Green"], width: 110 }],
             };
             const columns = [
-                { name: "Orange", width: 250 },
-                { name: "Red", width: 180 },
+                { name: ["Orange"], width: 250 },
+                { name: ["Red"], width: 180 },
             ];
 
             const action = selection.actions.setColumns(columns);
@@ -221,10 +221,10 @@ describe("Selection reducer", () => {
             const state = {
                 ...selection.initialState,
                 columns: [
-                    { name: "A", width: 100 },
-                    { name: "B", width: 100 },
-                    { name: "C", width: 100 },
-                    { name: "D", width: 100 },
+                    { name: ["A"], width: 100 },
+                    { name: ["B"], width: 100 },
+                    { name: ["C"], width: 100 },
+                    { name: ["D"], width: 100 },
                 ],
             };
             const action = selection.actions.reorderColumns([{ name: "C", moveTo: 0 }]);
@@ -236,10 +236,10 @@ describe("Selection reducer", () => {
             expect(
                 selection.selectors.getColumns({ ...initialState, selection: nextState })
             ).to.deep.equal([
-                { name: "C", width: 100 },
-                { name: "A", width: 100 },
-                { name: "B", width: 100 },
-                { name: "D", width: 100 },
+                { name: ["C"], width: 100 },
+                { name: ["A"], width: 100 },
+                { name: ["B"], width: 100 },
+                { name: ["D"], width: 100 },
             ]);
         });
 
@@ -248,10 +248,10 @@ describe("Selection reducer", () => {
             const state = {
                 ...selection.initialState,
                 columns: [
-                    { name: "A", width: 100 },
-                    { name: "B", width: 100 },
-                    { name: "C", width: 100 },
-                    { name: "D", width: 100 },
+                    { name: ["A"], width: 100 },
+                    { name: ["B"], width: 100 },
+                    { name: ["C"], width: 100 },
+                    { name: ["D"], width: 100 },
                 ],
             };
             const action = selection.actions.reorderColumns([
@@ -266,10 +266,10 @@ describe("Selection reducer", () => {
             expect(
                 selection.selectors.getColumns({ ...initialState, selection: nextState })
             ).to.deep.equal([
-                { name: "D", width: 100 },
-                { name: "A", width: 100 },
-                { name: "C", width: 100 },
-                { name: "B", width: 100 },
+                { name: ["D"], width: 100 },
+                { name: ["A"], width: 100 },
+                { name: ["C"], width: 100 },
+                { name: ["B"], width: 100 },
             ]);
         });
 
@@ -278,9 +278,9 @@ describe("Selection reducer", () => {
             const state = {
                 ...selection.initialState,
                 columns: [
-                    { name: "A", width: 100 },
-                    { name: "B", width: 100 },
-                    { name: "C", width: 100 },
+                    { name: ["A"], width: 100 },
+                    { name: ["B"], width: 100 },
+                    { name: ["C"], width: 100 },
                 ],
             };
             const action = selection.actions.reorderColumns([{ name: "A", moveTo: 99 }]);
@@ -292,9 +292,9 @@ describe("Selection reducer", () => {
             expect(
                 selection.selectors.getColumns({ ...initialState, selection: nextState })
             ).to.deep.equal([
-                { name: "B", width: 100 },
-                { name: "C", width: 100 },
-                { name: "A", width: 100 },
+                { name: ["B"], width: 100 },
+                { name: ["C"], width: 100 },
+                { name: ["A"], width: 100 },
             ]);
         });
 
@@ -303,9 +303,9 @@ describe("Selection reducer", () => {
             const state = {
                 ...selection.initialState,
                 columns: [
-                    { name: "A", width: 100 },
-                    { name: "B", width: 100 },
-                    { name: "C", width: 100 },
+                    { name: ["A"], width: 100 },
+                    { name: ["B"], width: 100 },
+                    { name: ["C"], width: 100 },
                 ],
             };
             const action = selection.actions.reorderColumns([{ name: "A", moveTo: 2, width: 200 }]);
@@ -317,9 +317,9 @@ describe("Selection reducer", () => {
             expect(
                 selection.selectors.getColumns({ ...initialState, selection: nextState })
             ).to.deep.equal([
-                { name: "B", width: 100 },
-                { name: "C", width: 100 },
-                { name: "A", width: 200 },
+                { name: ["B"], width: 100 },
+                { name: ["C"], width: 100 },
+                { name: ["A"], width: 200 },
             ]);
         });
     });
@@ -332,8 +332,8 @@ describe("Selection reducer", () => {
                 filters: [],
             };
             const expectedFileFilters = [
-                new FileFilter("Cell Line", "AICS-0"),
-                new FileFilter("Date Created", "02/14/24"),
+                new FileFilter(["Cell Line"], "AICS-0"),
+                new FileFilter(["Date Created"], "02/14/24"),
             ];
             const action = selection.actions.setFileFilters(expectedFileFilters);
 
@@ -353,7 +353,7 @@ describe("Selection reducer", () => {
             // Arrange
             const initialSelectionState = {
                 ...selection.initialState,
-                filters: [new FileFilter("Date Created", "01/01/01")],
+                filters: [new FileFilter(["Date Created"], "01/01/01")],
                 fileSelection: new FileSelection().select({
                     fileSet: new FileSet(),
                     index: 4,
@@ -362,7 +362,7 @@ describe("Selection reducer", () => {
             };
 
             const action = selection.actions.setFileFilters([
-                new FileFilter("Cell Line", "AICS-0"),
+                new FileFilter(["Cell Line"], "AICS-0"),
             ]);
 
             // Act
@@ -390,7 +390,7 @@ describe("Selection reducer", () => {
             // Act
             const selectionState = selection.reducer(
                 state,
-                selection.actions.sortColumn(AnnotationName.FILE_SIZE)
+                selection.actions.sortColumn(AnnotationName.FILE_SIZE[0])
             );
             const actual = selection.selectors.getSortColumn({
                 ...initialState,
@@ -412,7 +412,7 @@ describe("Selection reducer", () => {
             // Act
             const selectionState = selection.reducer(
                 state,
-                selection.actions.sortColumn(AnnotationName.FILE_SIZE)
+                selection.actions.sortColumn(AnnotationName.FILE_SIZE[0])
             );
             const actual = selection.selectors.getSortColumn({
                 ...initialState,
@@ -434,7 +434,7 @@ describe("Selection reducer", () => {
             // Act
             const selectionState = selection.reducer(
                 state,
-                selection.actions.sortColumn(AnnotationName.FILE_NAME)
+                selection.actions.sortColumn(AnnotationName.FILE_NAME[0])
             );
             const actual = selection.selectors.getSortColumn({
                 ...initialState,
@@ -455,7 +455,7 @@ describe("Selection reducer", () => {
             // Act
             const selectionState = selection.reducer(
                 state,
-                selection.actions.sortColumn(AnnotationName.FILE_ID)
+                selection.actions.sortColumn(AnnotationName.FILE_ID[0])
             );
             const actual = selection.selectors.getSortColumn({
                 ...initialState,

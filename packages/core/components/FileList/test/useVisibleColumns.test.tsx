@@ -48,16 +48,16 @@ function renderWithContext(columns: Column[], scrollLeft: number, containerWidth
 
 describe("useVisibleColumns", () => {
     const columns: Column[] = [
-        { name: "A", width: 200 },
-        { name: "B", width: 3000 },
-        { name: "C", width: 200 },
-        { name: "D", width: 100 },
-        { name: "E", width: 200 },
-        { name: "F", width: 200 },
-        { name: "G", width: 2 },
-        { name: "H", width: 200 },
-        { name: "I", width: 200 },
-        { name: "J", width: 2000 },
+        { name: ["A"], width: 200 },
+        { name: ["B"], width: 3000 },
+        { name: ["C"], width: 200 },
+        { name: ["D"], width: 100 },
+        { name: ["E"], width: 200 },
+        { name: ["F"], width: 200 },
+        { name: ["G"], width: 2 },
+        { name: ["H"], width: 200 },
+        { name: ["I"], width: 200 },
+        { name: ["J"], width: 2000 },
     ];
 
     it("returns first N columns when containerWidth is 0 (not yet measured)", () => {
@@ -100,10 +100,10 @@ describe("useVisibleColumns", () => {
 
     it("handles columns with uneven widths", () => {
         const unevenColumns: Column[] = [
-            { name: "narrow", width: 50 },
-            { name: "wide", width: 500 },
-            { name: "medium", width: 150 },
-            { name: "large", width: 400 },
+            { name: ["narrow"], width: 50 },
+            { name: ["wide"], width: 500 },
+            { name: ["medium"], width: 150 },
+            { name: ["large"], width: 400 },
         ];
         // scrollLeft=100, containerWidth=300 → viewStart=-100, viewEnd=600
         // narrow(0-50): 50 > -100 → visible, leftPad=0
@@ -112,6 +112,8 @@ describe("useVisibleColumns", () => {
         const result = renderWithContext(unevenColumns, 100, 300);
         expect(result.columns).to.deep.equal(["narrow", "wide", "medium"]);
         expect(result.left).to.equal(0);
-        expect(result.right).to.equal(unevenColumns.find((c) => c.name === "large")?.width);
+        expect(result.right).to.equal(
+            unevenColumns.find((c) => c.name.join(".") === "large")?.width
+        );
     });
 });

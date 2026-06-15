@@ -34,7 +34,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
 
         async function formatPathForHost() {
             if (!active) return;
-            const localPath = fileDetails?.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH);
+            const localPath = fileDetails?.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH[0]);
             const formatted =
                 typeof localPath === "string"
                     ? await executionEnvService.formatPathForHost(localPath)
@@ -66,7 +66,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
             let annotationValue = annotation.extractFromFile(fileDetails);
             let fmsStateIndicator = false;
 
-            if (annotation.name === AnnotationName.LOCAL_FILE_PATH) {
+            if (annotation.name === AnnotationName.LOCAL_FILE_PATH[0]) {
                 if (fileDetails && fileDetails.downloadInProgress) {
                     annotationValue = "Copying to VAST in progress…";
                     fmsStateIndicator = true;
@@ -79,7 +79,7 @@ export default function FileAnnotationList(props: FileAnnotationListProps) {
                 }
             }
 
-            if (annotation.name === AnnotationName.FILE_PATH) {
+            if (annotation.name === AnnotationName.FILE_PATH[0]) {
                 // Display the full http://... URL
                 annotationValue = fileDetails.path;
             }

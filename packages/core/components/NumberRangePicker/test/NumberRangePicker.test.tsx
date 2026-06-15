@@ -31,7 +31,7 @@ describe("<NumberRangePicker />", () => {
 
     it("initializes to values passed through props if provided", () => {
         // Arrange
-        const currentRange = new FileFilter("foo", "RANGE(0, 12.34)");
+        const currentRange = new FileFilter(["foo"], "RANGE(0, 12.34)");
         const items: ListItem[] = ["-20", "20"].map((val) => ({
             displayValue: val,
             value: val,
@@ -47,7 +47,7 @@ describe("<NumberRangePicker />", () => {
     it("renders a 'Reset' button if given a callback", () => {
         // Arrange
         const onSearch = sinon.spy();
-        const currentRange = new FileFilter("Test Numerical Annotation", "RANGE(1, 12.34)");
+        const currentRange = new FileFilter(["Test Numerical Annotation"], "RANGE(1, 12.34)");
         const items: ListItem[] = ["0", "20"].map((val) => ({
             displayValue: val,
             value: val,

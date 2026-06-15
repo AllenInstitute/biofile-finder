@@ -250,7 +250,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
         try {
             const details = await fileSelection.fetchAllDetails();
             const filePaths = details
-                .map((d) => d.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH))
+                .map((d) => d.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH[0]))
                 .filter((p): p is string => typeof p === "string");
 
             const result = await pipelineService.submitComputeTask({

@@ -441,7 +441,7 @@ const resizeColumnLogic = createLogic({
         dispatch(
             setColumns(
                 columns.map(
-                    (c) => ({ ...c, width: c.name === column.name ? width : c.width } as Column)
+                    (c) => ({ ...c, width: c.name.join(".") === column.name ? width : c.width } as Column)
                 )
             )
         );
@@ -549,7 +549,7 @@ const selectNearbyFile = createLogic({
                     filters: sortedOpenFileListPaths[
                         fileListIndexAboveCurrentFileList
                     ].fileFolder.map(
-                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
+                        (filterValue, index) => new FileFilter([hierarchy[index]], filterValue)
                     ),
                     sort: sortColumn,
                 });
@@ -586,7 +586,7 @@ const selectNearbyFile = createLogic({
                     filters: sortedOpenFileListPaths[
                         fileListIndexBelowCurrentFileList
                     ].fileFolder.map(
-                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
+                        (filterValue, index) => new FileFilter([hierarchy[index]], filterValue)
                     ),
                     sort: sortColumn,
                 });
