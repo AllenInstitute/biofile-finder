@@ -43,6 +43,8 @@ import {
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
     changeProvenanceSource,
+    CHANGE_PROVENANCE_ORIGIN_ID,
+    changeProvenanceOriginId,
     setRequiresDataSourceReload,
     addDataSourceReloadError,
     removeDataSourceReloadError,
@@ -54,6 +56,7 @@ import {
     EXPAND_ALL_FILE_FOLDERS,
     toggleNullValueGroups,
     setIsLoadingSource,
+    ChangeProvenanceOriginId,
     RESIZE_COLUMN,
     ResizeColumnAction,
     setColumns,
@@ -471,7 +474,8 @@ const decodeSearchParamsLogics = createLogic({
             sortColumn,
             sources,
             sourceMetadata,
-            prov,
+            provenanceSource,
+            provOriginId,
         } = SearchParams.decode(encodedURL);
 
         batch(() => {
@@ -486,7 +490,8 @@ const decodeSearchParamsLogics = createLogic({
         });
         batch(() => {
             dispatch(changeSourceMetadata(sourceMetadata));
-            dispatch(changeProvenanceSource(prov));
+            dispatch(changeProvenanceSource(provenanceSource));
+            dispatch(changeProvenanceOriginId(provOriginId) as AnyAction);
         });
         done();
     },
@@ -702,6 +707,27 @@ const changeSourceMetadataLogic = createLogic({
 });
 
 /**
+ * Interceptor responsible for processing a file uid (string) into a FileDetail
+ * that can be used as the origin for the relationship graph
+ */
+const changeProvenanceOriginIdLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: uid } = deps.action as ChangeProvenanceOriginId;
+        const fileService = interaction.selectors.getFileService(deps.getState());
+        if (uid) {
+            const file = await fileService.getFileByUid(uid);
+            if (file) {
+                dispatch(interaction.actions.setOriginForProvenance(file));
+            }
+        } else {
+            dispatch(interaction.actions.setOriginForProvenance());
+        }
+        done();
+    },
+    type: CHANGE_PROVENANCE_ORIGIN_ID,
+});
+
+/**
  * Interceptor responsible for passing the CHANGE_PROVENANCE_SOURCE action to the database service.
  */
 const changeProvenanceSourceLogic = createLogic({
@@ -711,6 +737,7 @@ const changeProvenanceSourceLogic = createLogic({
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
+        const origin = selectionSelectors.getProvenanceOriginId(deps.getState());
 
         try {
             if (selectedSourceProvenance) {
@@ -718,9 +745,14 @@ const changeProvenanceSourceLogic = createLogic({
                     selectedSourceProvenance
                 );
                 dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
+                // provenance definitions may finish loading after we've already processed url query args.
+                // If we do have a graph origin, this ensures the graph actually starts rendering
+                dispatch(changeProvenanceOriginId(origin) as AnyAction);
             } else {
                 await databaseService.deleteSourceProvenance();
                 dispatch(metadata.actions.receiveEdgeDefinitions([]));
+                // if we no longer have provenance definitions, we need to clear the graph origin
+                dispatch(changeProvenanceOriginId() as AnyAction);
             }
         } catch (err) {
             const msg = `Failed processing provenance. Error: ${(err as Error).message}`;
@@ -938,6 +970,7 @@ export default [
     changeDataSourceLogic,
     changeSourceMetadataLogic,
     changeProvenanceSourceLogic,
+    changeProvenanceOriginIdLogic,
     addQueryLogic,
     replaceDataSourceLogic,
     setDataSourceReloadErrorLogic,

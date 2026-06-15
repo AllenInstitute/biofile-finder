@@ -14,7 +14,7 @@ import FileDetail from "../../entity/FileDetail";
 import useDownloadFiles from "../../hooks/useDownloadFiles";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../hooks/useTruncatedString";
-import { interaction, selection } from "../../state";
+import { selection } from "../../state";
 
 import styles from "./FileDetails.module.css";
 import Tutorial from "../../entity/Tutorial";
@@ -194,8 +194,8 @@ export default function FileDetails(props: Props) {
                                     <DefaultButton
                                         onClick={() =>
                                             dispatch(
-                                                interaction.actions.setOriginForProvenance(
-                                                    props.fileDetails
+                                                selection.actions.changeProvenanceOriginId(
+                                                    props.fileDetails?.uid
                                                 )
                                             )
                                         }
