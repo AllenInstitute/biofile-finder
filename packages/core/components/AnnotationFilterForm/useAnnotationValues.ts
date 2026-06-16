@@ -1,8 +1,9 @@
 import * as React from "react";
 
 import { naturalComparator } from "../../util/strings";
-import AnnotationService, { AnnotationValue } from "../../services/AnnotationService";
+import AnnotationService from "../../services/AnnotationService";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
+import { AnnotationValue } from "../../entity/Annotation";
 
 /**
  * Custom React hook to accomplish requesting the unique values for annotations. This hook will request values for the given

@@ -50,6 +50,8 @@ import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
 import Tutorials from "../../hooks/useHelpOptions/Tutorials";
 
+// TODO: Restructure annotationHierarchy, availableAnnotationsForHierarchy, and recentAnnotations
+// to store annotation paths (string[][]) instead of concatenated dotted strings.
 export interface SelectionStateBranch {
     annotationHierarchy: string[];
     availableAnnotationsForHierarchy: string[];

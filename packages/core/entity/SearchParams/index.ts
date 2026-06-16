@@ -245,20 +245,26 @@ export default class SearchParams {
             columns: ColumnCoder.decode(unparsedColumns),
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
-                .map(
-                    (parsedFilter) =>
-                        new FileFilter(parsedFilter.name, parsedFilter.value, parsedFilter.type)
-                ),
+                .map((parsedFilter) => {
+                    return new FileFilter(
+                        parsedFilter.path ?? parsedFilter.name,
+                        parsedFilter.value,
+                        parsedFilter.type,
+                        parsedFilter.valueType,
+                        parsedFilter.pathIsArray
+                    );
+                }),
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
                 .map((parsedFolder) => new FileFolder(parsedFolder)),
             prov: unparsedSourceProvenance ? JSON.parse(unparsedSourceProvenance) : undefined,
-            showNoValueGroups: showNoValueGroupsString
-                ? JSON.parse(showNoValueGroupsString)
-                : true,
+            showNoValueGroups: showNoValueGroupsString ? JSON.parse(showNoValueGroupsString) : true,
             sortColumn: parsedSort
-                ? new FileSort(parsedSort.annotationName, parsedSort.order || SortOrder.ASC)
+                ? new FileSort(
+                      parsedSort.path ?? parsedSort.annotationName,
+                      parsedSort.order || SortOrder.ASC
+                  )
                 : undefined,
             sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
             sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
@@ -325,12 +331,8 @@ export default class SearchParams {
     }
 
     private static convertFilterToPython(filter: FileFilter) {
-        // TO DO: Support querying non-string types
-        if (filter.value.includes("RANGE")) {
-            return;
-            //     let begin, end;
-            //     return `\`${filter.name}\`>="${begin}"&\`${filter.name}\`<"${end}"`
-        }
+        // TODO: Support querying non-string types
+        if (String(filter.value).includes("RANGE")) return;
         return `\`${filter.name}\`=="${filter.value}"`;
     }
 

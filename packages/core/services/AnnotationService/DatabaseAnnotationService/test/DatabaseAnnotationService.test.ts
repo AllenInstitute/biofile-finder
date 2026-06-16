@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import sinon from "sinon";
 
+import Annotation from "../../../../entity/Annotation";
+import { AnnotationType } from "../../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../../entity/FileFilter";
 import DatabaseService from "../../../DatabaseService";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
@@ -16,6 +18,9 @@ describe("DatabaseAnnotationService", () => {
         class MockDatabaseService extends DatabaseServiceNoop {
             public query(): { promise: Promise<{ [key: string]: string }[]> } {
                 return { promise: Promise.resolve(annotations) };
+            }
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return [];
             }
         }
         const databaseService = new MockDatabaseService();
@@ -98,6 +103,9 @@ describe("DatabaseAnnotationService", () => {
             public query(): { promise: Promise<{ [key: string]: string }[]> } {
                 return { promise: Promise.resolve(annotations) };
             }
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return [];
+            }
         }
         const databaseService = new MockDatabaseService();
 
@@ -157,6 +165,9 @@ describe("DatabaseAnnotationService", () => {
             public query(sql: string): { promise: Promise<{ [key: string]: string }[]> } {
                 querySpy(sql); // pass SQL to the spy func
                 return { promise: Promise.resolve([]) };
+            }
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return [];
             }
         }
         const databaseService = new MockDatabaseService();
@@ -263,6 +274,9 @@ describe("DatabaseAnnotationService", () => {
                 }
                 return { promise: Promise.reject() };
             }
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return [];
+            }
         }
         const databaseService = new MockDatabaseService();
 
@@ -276,6 +290,55 @@ describe("DatabaseAnnotationService", () => {
                 "cas9",
             ]);
             expect(values).to.deep.equal(annotationNames);
+        });
+
+        it("returns full dotted paths for available nested sub-fields", async () => {
+            // Arrange
+            const nestedSampleRow = { Well: "dummy value", Media: "dummy value" };
+            class NestedDatabaseService extends DatabaseService {
+                public query(sql: string): { promise: Promise<{ [key: string]: string }[]> } {
+                    if (sql.includes("SELECT *") && sql.includes("LIMIT 1")) {
+                        return { promise: Promise.resolve([nestedSampleRow]) };
+                    }
+                    const columnNameMatch = sql.match(/SELECT '(?<columnName>.*)' AS column_name/);
+                    if (columnNameMatch && columnNameMatch.groups) {
+                        return {
+                            promise: Promise.resolve([
+                                { column_name: columnNameMatch.groups.columnName },
+                            ]),
+                        };
+                    }
+                    return { promise: Promise.reject() };
+                }
+            }
+            class NestedAnnotationService extends DatabaseAnnotationService {
+                public async fetchAnnotations(): Promise<Annotation[]> {
+                    return [
+                        new Annotation({
+                            annotationName: ["Well", "Dose", "Unit"],
+                            description: "Well dose unit",
+                            type: AnnotationType.STRING,
+                        }),
+                        new Annotation({
+                            annotationName: ["Media", "Unit"],
+                            description: "Media unit",
+                            type: AnnotationType.STRING,
+                        }),
+                    ];
+                }
+            }
+            const annotationService = new NestedAnnotationService({
+                dataSourceNames: ["mock1"],
+                databaseService: new NestedDatabaseService(),
+            });
+
+            // Act
+            const values = await annotationService.fetchAvailableAnnotationsForHierarchy([]);
+
+            // Assert
+            expect(values).to.include("Well.Dose.Unit");
+            expect(values).to.include("Media.Unit");
+            expect(values).to.not.include("Unit");
         });
     });
 });

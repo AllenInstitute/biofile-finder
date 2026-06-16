@@ -67,47 +67,83 @@ function Header(
         dispatch(selection.actions.sortColumn(column.name));
     };
 
-    const headerCells: CellConfig[] = map(columns, (column) => ({
-        className: classNames(styles.headerCell, {
-            [styles.dragOver]: dragOverItem === column.name && draggedItem !== column.name,
-            [styles.dragging]: draggedItem === column.name,
-        }),
-        // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
-        columnKey: column.name,
-        displayValue: (
-            <div
-                draggable
-                aria-label={`${
-                    annotationNameToAnnotationMap[column.name]?.displayName
-                } column, draggable`}
-                className={styles.headerDragArea}
-                role="button"
-                tabIndex={0}
-                onDragStart={() => onDragStart(column.name)}
-                onDragOver={(e) => onDragOver(e, column.name)}
-                onDrop={() => onDrop(column.name)}
-                onDragEnd={onDragEnd}
-            >
-                <span
-                    onClick={(evt) => onHeaderColumnClick(evt, column)}
-                    className={styles.headerClickTarget}
+    // Identify leaf names that appear on more than one column so we can
+    // show the parent path prefix to disambiguate them in the header.
+    const duplicateLeafNames = React.useMemo(() => {
+        const leafCounts = new Map<string, number>();
+        for (const colName of columnNames) {
+            const parts = colName.split(".");
+            const leaf = parts[parts.length - 1];
+            leafCounts.set(leaf, (leafCounts.get(leaf) || 0) + 1);
+        }
+        const dupes = new Set<string>();
+        for (const [leaf, count] of leafCounts) {
+            if (count > 1) dupes.add(leaf);
+        }
+        return dupes;
+    }, [columnNames]);
+
+    const headerCells: CellConfig[] = map(columns, (column) => {
+        return {
+            className: classNames(styles.headerCell, {
+                [styles.dragOver]: dragOverItem === column.name && draggedItem !== column.name,
+                [styles.dragging]: draggedItem === column.name,
+            }),
+            // needs to match the value used to produce `column`s passed to the `useResizableColumns` hook
+            columnKey: column.name,
+            displayValue: (
+                <div
+                    draggable
+                    aria-label={`${
+                        annotationNameToAnnotationMap.get(column.name)?.displayName ?? column.name
+                    } column, draggable`}
+                    className={styles.headerDragArea}
+                    role="button"
+                    tabIndex={0}
+                    onDragStart={() => onDragStart(column.name)}
+                    onDragOver={(e) => onDragOver(e, column.name)}
+                    onDrop={() => onDrop(column.name)}
+                    onDragEnd={onDragEnd}
                 >
-                    <Tooltip content={annotationNameToAnnotationMap[column.name]?.description}>
-                        <span className={styles.headerTitle}>
-                            {annotationNameToAnnotationMap[column.name]?.displayName}
-                        </span>
-                    </Tooltip>
-                    {sortColumn?.annotationName === column.name &&
-                        (sortColumn?.order === SortOrder.DESC ? (
-                            <Icon className={styles.sortIcon} iconName="ChevronDown" />
-                        ) : (
-                            <Icon className={styles.sortIcon} iconName="ChevronUp" />
-                        ))}
-                </span>
-            </div>
-        ),
-        width: column.width,
-    }));
+                    <div
+                        onClick={(evt) => onHeaderColumnClick(evt, column)}
+                        className={styles.headerClickTarget}
+                    >
+                        {(() => {
+                            const annotation = annotationNameToAnnotationMap.get(column.name);
+                            const path = column.name.split(".");
+                            const leafName = path[path.length - 1];
+                            const leafLabel =
+                                annotation?.displayName.split(".").slice(-1)[0] ?? leafName;
+                            const prefix =
+                                path.length > 1 ? path.slice(0, -1).join(" / ") + " / " : undefined;
+                            const fullLabel = path.join(" / ");
+                            const isDuplicateLeafName = duplicateLeafNames.has(leafName);
+                            return (
+                                <Tooltip content={`${fullLabel}\n${annotation?.description ?? ""}`}>
+                                    <span className={styles.headerTitle}>
+                                        {prefix && isDuplicateLeafName && (
+                                            <span className={styles.headerTitlePrefix}>
+                                                {prefix}
+                                            </span>
+                                        )}
+                                        {leafLabel}
+                                    </span>
+                                </Tooltip>
+                            );
+                        })()}
+                        {sortColumn?.annotationName === column.name &&
+                            (sortColumn?.order === SortOrder.DESC ? (
+                                <Icon className={styles.sortIcon} iconName="ChevronDown" />
+                            ) : (
+                                <Icon className={styles.sortIcon} iconName="ChevronUp" />
+                            ))}
+                    </div>
+                </div>
+            ),
+            width: column.width,
+        };
+    });
 
     const onHeaderClick = (evt: React.MouseEvent) => {
         evt.preventDefault();

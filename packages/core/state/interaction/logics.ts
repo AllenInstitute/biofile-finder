@@ -422,9 +422,7 @@ const promptForNewExecutable = createLogic({
             const selectedFilesDetails = await fileSelection.fetchAllDetails();
             const fileKinds = uniq(
                 selectedFilesDetails.flatMap(
-                    (file) =>
-                        file.annotations.find((a) => a.name === AnnotationName.KIND)
-                            ?.values as string[]
+                    (file) => (file.getAnnotation(AnnotationName.KIND) ?? []) as string[]
                 )
             );
 
@@ -505,9 +503,7 @@ const openWithDefault = createLogic({
 
         // Map apps to the files they are meant to open
         const appToFiles = filesToOpen.reduce((appToFilesMap, file) => {
-            const kinds =
-                (file.annotations.find((a) => a.name === AnnotationName.KIND)
-                    ?.values as string[]) || [];
+            const kinds = (file.getAnnotation(AnnotationName.KIND) ?? []) as string[];
             const kind = kinds.length ? kinds[0] : "SYSTEM_DEFAULT";
             const app = kindToApp[kind] || SYSTEM_DEFAULT_APP;
             return {
@@ -876,10 +872,8 @@ const copyFilesLogic = createLogic({
                     status === "DOWNLOAD_STARTED"
                 ) {
                     const file = fileDetails.find((f) => f.id === fileId);
-                    const isAlreadyCached = file?.annotations.some(
-                        ({ name, values }) =>
-                            name === "Should Be in Local Cache" && values[0] === true
-                    );
+                    const isAlreadyCached =
+                        file?.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL) === true;
                     (isAlreadyCached ? extendedExpirationFiles : newlyCachedFiles).push(fileId);
                 } else {
                     failedFiles.push(fileId);

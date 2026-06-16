@@ -6,7 +6,7 @@ import FileFilter, { FilterType } from "../FileFilter";
  * e.g., return files that have any non-null value for this annnotation.
  */
 export default class IncludeFilter extends FileFilter {
-    constructor(annotationName: string) {
-        super(annotationName, "", FilterType.ANY);
+    constructor(annotationName: string, pathIsArray?: boolean[]) {
+        super(annotationName, "", FilterType.ANY, undefined, pathIsArray);
     }
 }

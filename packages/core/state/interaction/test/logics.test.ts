@@ -1117,7 +1117,7 @@ describe("Interaction logics", () => {
             {
                 when: `${fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}`,
                 respondWith: {
-                    data: { data: annotations },
+                    data: { data: annotationsJson },
                 },
             },
             {

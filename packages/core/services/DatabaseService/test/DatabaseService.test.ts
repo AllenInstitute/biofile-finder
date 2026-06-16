@@ -17,7 +17,8 @@ import DatabaseService, { getParquetFileNameSelectPart } from "..";
 describe("DatabaseService", () => {
     describe("fetchAnnotations", () => {
         const annotations = ["A", "B", "Cc", "dD"].map((name) => ({
-            name,
+            column_name: name,
+            data_type: "VARCHAR",
         }));
 
         // DatabaseService is abstract so we need a dummy impl to test
@@ -422,6 +423,52 @@ describe("DatabaseService", () => {
         it("maps TEXT to STRING", () => expect(map("TEXT")).to.equal(AnnotationType.STRING));
         it("maps unknown types to STRING", () =>
             expect(map("SOMEUNKNOWNTYPE")).to.equal(AnnotationType.STRING));
+    });
+
+    describe("parseStructFields", () => {
+        it("returns top-level fields with empty intermediateIsArray for a flat STRUCT", () => {
+            expect(
+                DatabaseService.parseStructFields("STRUCT(Gene VARCHAR, Score DOUBLE)")
+            ).to.deep.equal([
+                { name: "Gene", type: "VARCHAR", intermediateIsArray: [] },
+                { name: "Score", type: "DOUBLE", intermediateIsArray: [] },
+            ]);
+        });
+
+        // Mixed leaf + nested STRUCT[] — the canonical example from the docstring.
+        it("flattens nested STRUCT[] fields with dotted names and array flags", () => {
+            expect(
+                DatabaseService.parseStructFields(
+                    "STRUCT(Gene VARCHAR, Dose STRUCT(Unit VARCHAR, Value DOUBLE)[])[]"
+                )
+            ).to.deep.equal([
+                { name: "Gene", type: "VARCHAR", intermediateIsArray: [] },
+                { name: "Dose.Unit", type: "VARCHAR", intermediateIsArray: [true] },
+                { name: "Dose.Value", type: "DOUBLE", intermediateIsArray: [true] },
+            ]);
+        });
+
+        // A scalar (non-array) intermediate struct yields a false flag.
+        it("marks a scalar intermediate struct with a false flag", () => {
+            expect(
+                DatabaseService.parseStructFields("STRUCT(Dose STRUCT(Unit VARCHAR))")
+            ).to.deep.equal([{ name: "Dose.Unit", type: "VARCHAR", intermediateIsArray: [false] }]);
+        });
+
+        // Each array boundary contributes one flag in order, deepest path supported.
+        it("accumulates an array flag per intermediate for deeply nested STRUCT[]", () => {
+            expect(
+                DatabaseService.parseStructFields(
+                    "STRUCT(Dose STRUCT(Solution STRUCT(Name VARCHAR)[])[])[]"
+                )
+            ).to.deep.equal([
+                { name: "Dose.Solution.Name", type: "VARCHAR", intermediateIsArray: [true, true] },
+            ]);
+        });
+
+        it("returns an empty array for a non-STRUCT type", () => {
+            expect(DatabaseService.parseStructFields("VARCHAR")).to.deep.equal([]);
+        });
     });
 
     describe("getParquetFileNameSelectPart", () => {

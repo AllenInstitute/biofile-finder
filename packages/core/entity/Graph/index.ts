@@ -158,11 +158,11 @@ function createAnnotationEdge(
     file: FileDetail
 ): AnnotationEdge | undefined {
     if (edgeDefinition.relationshipType === "pointer") {
-        const annotation = file.getAnnotation(edgeDefinition.relationship);
-        if (!annotation) return undefined;
+        const values = file.getAnnotation(edgeDefinition.relationship);
+        if (!values) return undefined;
         return {
-            name: annotation.name,
-            value: `${annotation.values[0]}`,
+            name: edgeDefinition.relationship,
+            value: String(values[0]),
             parent: edgeDefinition.parent.name,
             child: edgeDefinition.child.name,
         };
@@ -484,8 +484,8 @@ export default class Graph {
         // Annotation may not exist on this file, this could happen
         // for some files for which there shouldn't be an edge connecting
         // to this file for that annotation
-        const annotation = thisNode.data.file.getAnnotation(edgeNode.name);
-        if (!annotation) {
+        const annotationValues = thisNode.data.file.getAnnotation(edgeNode.name);
+        if (!annotationValues) {
             return [];
         }
         // The Node could be a file such as when an annotation points to another
@@ -494,11 +494,16 @@ export default class Graph {
         // model that generated the current node ("thisNode")
         const isNodeAFile = edgeNode.type === "file";
         if (!isNodeAFile) {
-            return [this.createMetadataNode(thisNode.data.file, annotation)];
+            return [
+                this.createMetadataNode(thisNode.data.file, {
+                    name: edgeNode.name,
+                    values: annotationValues,
+                }),
+            ];
         }
 
         return Promise.all(
-            (annotation.values as string[]).map(async (fileId) => {
+            (annotationValues as string[]).map(async (fileId) => {
                 // Avoid re-requesting the file when possible
                 const node = this.graph.node(fileId);
                 if (node) return node;
@@ -600,7 +605,7 @@ export default class Graph {
         const id = [...(this.childToAncestorsMap[annotation.name] || []), annotation.name]
             .map(
                 (annotationName) =>
-                    `${annotationName}: ${file.getAnnotation(annotationName)?.values?.join(", ")}`
+                    `${annotationName}: ${file.getAnnotation(annotationName)?.join(", ")}`
             )
             .join("-");
         return {

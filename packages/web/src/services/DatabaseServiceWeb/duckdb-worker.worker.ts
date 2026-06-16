@@ -127,9 +127,8 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                 (row): AnnotationResponse => {
                     return {
                         annotationName: row.name,
-                        annotationDisplayName: row.displayName,
                         description: row.description,
-                        type: row.type as AnnotationType,
+                        type: row.type,
                     };
                 }
             );
@@ -384,17 +383,49 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                 this.fetchAnnotationTypes(),
             ]);
 
-            const annotations = rows.map(
-                (row) =>
-                    new Annotation({
-                        annotationName: row["column_name"],
-                        annotationDisplayName: row["column_name"],
-                        description: annotationNameToDescriptionMap[row["column_name"]] || "",
-                        type:
-                            (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
-                            DatabaseServiceWebWorker.columnTypeToAnnotationType(row["data_type"]),
-                    })
-            );
+            const annotations: Annotation[] = [];
+            for (const row of rows) {
+                const columnName = row["column_name"] as string;
+                const dataType = row["data_type"] as string;
+                const explicitType = annotationNameToTypeMap[columnName];
+                const resolvedType =
+                    explicitType || DatabaseServiceWebWorker.columnTypeToAnnotationType(dataType);
+
+                if (resolvedType === AnnotationType.NESTED) {
+                    annotations.push(
+                        new Annotation({
+                            annotationName: [columnName],
+                            description: annotationNameToDescriptionMap[columnName] || "",
+                            type: AnnotationType.NESTED,
+                        })
+                    );
+                    const rootIsArray = dataType.trimEnd().endsWith("[]");
+                    const subFields = DatabaseServiceWebWorker.parseStructFields(dataType);
+                    for (const field of subFields) {
+                        const fieldParts = field.name.split(".");
+                        const pathIsArray = [rootIsArray, ...field.intermediateIsArray];
+                        annotations.push(
+                            new Annotation({
+                                annotationName: [columnName, ...fieldParts],
+                                // TODO: No way to provide descriptions for these YET
+                                description: "",
+                                type: DatabaseServiceWebWorker.columnTypeToAnnotationType(
+                                    field.type
+                                ),
+                                pathIsArray,
+                            })
+                        );
+                    }
+                } else {
+                    annotations.push(
+                        new Annotation({
+                            annotationName: [columnName],
+                            description: annotationNameToDescriptionMap[columnName] || "",
+                            type: resolvedType,
+                        })
+                    );
+                }
+            }
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);
         }
         return this.dataSourceToAnnotationsMap.get(aggregateDataSourceName) || [];

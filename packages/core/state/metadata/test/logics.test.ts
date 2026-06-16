@@ -113,13 +113,15 @@ describe("Metadata logics", () => {
         });
 
         it("skips dispatching filters if annotation types already match", async () => {
-            // arrange
+            // arrange — filter is already enriched with the correct valueType and pathIsArray,
+            // so the enrichment logic should detect no change and skip the dispatch.
             const mockFilters: FileFilter[] = [
                 new FileFilter(
                     mockAnnotations[2].name,
                     "test value",
                     FilterType.DEFAULT,
-                    AnnotationType.STRING
+                    mockAnnotations[2].type,
+                    mockAnnotations[2].pathIsArray
                 ),
             ];
             const state = mergeState(initialState, {

@@ -1,8 +1,6 @@
-import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
+import Annotation, { AnnotationResponseMms, AnnotationValue } from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
-
-export type AnnotationValue = string | number | boolean | Date;
 
 export interface AnnotationDetails {
     type: AnnotationType;

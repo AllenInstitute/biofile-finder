@@ -51,7 +51,7 @@ export default function QueryFilter(props: Props) {
             )}
             onRenderEditMenuList={(item) => (
                 <AnnotationFilterForm
-                    annotation={annotationNameToAnnotationMap[item.id] as Annotation}
+                    annotation={annotationNameToAnnotationMap.get(item.id) as Annotation}
                 />
             )}
             rows={Object.entries(filtersGroupedByName).map(([annotationName, filters]) => {
@@ -61,11 +61,21 @@ export default function QueryFilter(props: Props) {
                 else if (filters[0].type === FilterType.EXCLUDE) operator = "NO VALUE";
                 else if (filters[0].type === FilterType.FUZZY) operator = "CONTAINS";
 
+                const annotation = annotationNameToAnnotationMap.get(annotationName);
+                // TODO: Fix once avoiding dot notation
+                const path = annotation?.path ?? annotationName.split(".");
+                const parents = path.slice(0, -1);
+                // Prefer annotation.displayName so FMS top-level fields show "File Name"
+                // rather than the raw key "file_name".
+                const leafLabel = (annotation?.displayName ?? annotationName)
+                    .split(".")
+                    .slice(-1)[0];
                 const valueDisplay = map(filters, (filter) => filter.displayValue).join(", ");
                 return {
-                    id: filters[0].name,
-                    title: `${annotationName} ${operator} ${valueDisplay}`,
-                    description: annotationNameToAnnotationMap[annotationName]?.description,
+                    id: annotationName,
+                    title: `${leafLabel} ${operator} ${valueDisplay}`,
+                    titlePrefixParts: parents,
+                    description: annotation?.description,
                 };
             })}
         />
