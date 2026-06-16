@@ -78,7 +78,7 @@
     "@tippyjs/react": "4.2.x",
     "@xyflow/react": "^12.8.5",
     "amazon-s3-url": "^1.0.3",
-    "axios": "0.21.x",
+    "axios": "0.32.x",
     "classnames": "2.2.x",
     "cockatiel": "2.0.x",
     "debounce-promise": "3.1.x",
