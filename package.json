@@ -86,7 +86,7 @@
     "filesize": "5.0.x",
     "fuse.js": "3.4.x",
     "interactjs": "1.6.x",
-    "lodash": "4.17.x",
+    "lodash": "4.18.x",
     "lru-cache": "5.1.x",
     "markdown-to-jsx": "^8.0.0",
     "normalize.css": "8.0.x",
