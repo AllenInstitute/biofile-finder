@@ -1,13 +1,14 @@
 import { isNil, uniq } from "lodash";
 
 import AnnotationService, { AnnotationDetails } from "..";
-import DatabaseService from "../../DatabaseService";
+import DatabaseService, { CancellablePromise } from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
+import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import Annotation, { AnnotationValue } from "../../../entity/Annotation";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
-import { Source } from "../../../entity/SearchParams";
+import { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH, Source } from "../../../entity/SearchParams";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
 interface Config {
@@ -27,6 +28,29 @@ export default class DatabaseAnnotationService implements AnnotationService {
     private readonly databaseService: DatabaseService;
     private readonly dataSourceNames: string[];
     private readonly metadataSource: Source | undefined;
+    // Get sample character width for computing column widths based on content length.
+    // This is a bit hacky but it's nontrivial to get character width without rendering text
+    // into the DOM, and we need it to compute column widths before rendering.
+    // Grab this one at import to avoid having to re-measure it every time we want
+    // to compute optimal column widths for annotations
+    private readonly sampleCharWidthInPx = DatabaseAnnotationService.measureTextWidth(
+        "S",
+        "16px Open Sans"
+    );
+
+    /**
+     * Measures the width in pixels of the given text rendered with the specified
+     * CSS font shorthand (e.g. "14px Arial", "bold 12px sans-serif").
+     */
+    private static measureTextWidth(text: string, font: string): number {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        if (!context) {
+            return 1; // Fallback width if canvas context can't be created
+        }
+        context.font = font;
+        return context.measureText(text).width;
+    }
 
     constructor(
         config: Config = { dataSourceNames: [], databaseService: new DatabaseServiceNoop() }
@@ -249,6 +273,100 @@ export default class DatabaseAnnotationService implements AnnotationService {
             }
         }
         return uniq(availableAnnotations);
+    }
+
+    /**
+     * Fetch the optimal width in pixels for a set of annotations based on the length of their longest value
+     * and the annotation name, to help compute column widths in the UI.
+     */
+    public async fetchOptimalWidthForAnnotations(
+        annotationNames: string[],
+        ignoreWidthLimit = false
+    ): Promise<Map<string, number>> {
+        // Try to fetch values for new annotations to compute optimal column widths
+        const widthByAnnotation: Map<string, number> = new Map();
+        try {
+            const fetchQuery = this.fetchLengthiestValues(annotationNames);
+            // Set a timeout on this query in case it takes too long to return,
+            // since it could potentially be slow for annotations with very long values
+            // which is fine and we will just cancel it and fall back to default column widths in that case
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(() => {
+                    fetchQuery.cancel?.();
+                    reject(new Error("Timeout fetching annotation values"));
+                }, 1000)
+            );
+            const annotationToLength = await Promise.race([fetchQuery.promise, timeoutPromise]);
+            for (const [annotation, length] of Object.entries(annotationToLength)) {
+                // Grab whichever is longer, the longest value or the header
+                // to compute the column width needed to fit this column without truncation
+                const maxLengthOfColumn = Math.max(length, annotation.length);
+                // Convert this length to a pixel width using our sample character width
+                // + some extra pixels for padding
+                const maxLengthOfColumnInPx =
+                    Math.ceil(maxLengthOfColumn * this.sampleCharWidthInPx) + 8;
+                // Avoid letting width get too large for extremely long values by capping it
+                const minOptimalWidth = ignoreWidthLimit
+                    ? maxLengthOfColumnInPx
+                    : Math.min(maxLengthOfColumnInPx, DEFAULT_COLUMN_WIDTH * 3);
+                // Avoid letting width get too small by setting a minimum width
+                // like in the case of canvas measurement failing
+                const width = Math.max(minOptimalWidth, MINIMUM_COLUMN_WIDTH);
+                widthByAnnotation.set(annotation, width);
+            }
+        } catch {
+            // If fetching values fails entirely, fall through to default widths
+        }
+        for (const annotationName of annotationNames) {
+            if (!widthByAnnotation.has(annotationName)) {
+                widthByAnnotation.set(annotationName, DEFAULT_COLUMN_WIDTH);
+            }
+        }
+        for (const annotation of TOP_LEVEL_FILE_ANNOTATIONS) {
+            if (!widthByAnnotation.has(annotation.name)) {
+                widthByAnnotation.set(annotation.name, DEFAULT_COLUMN_WIDTH);
+            }
+        }
+        return widthByAnnotation;
+    }
+
+    /**
+     * Fetch the length of the longest value for each annotation, which can be used to compute optimal column widths in the UI.
+     * This is a bit of a hack, but it allows us to avoid fetching all values for an annotation just to compute column widths.
+     */
+    private fetchLengthiestValues(
+        annotationNames: string[]
+    ): CancellablePromise<{ [annotation: string]: number }> {
+        if (!this.dataSourceNames.length || annotationNames.length === 0) {
+            return { promise: Promise.resolve({}) };
+        }
+
+        const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
+        const sql = new SQLBuilder()
+            .select(
+                annotationNames
+                    .map(
+                        (annotation) =>
+                            `MAX(LENGTH(CAST("${annotation}" AS VARCHAR))) AS "${annotation}"`
+                    )
+                    .join(", ")
+            )
+            .from(aggregateDataSourceName)
+            .toSQL();
+
+        const query = this.databaseService.query<{ [annotation: string]: number }>(sql);
+        return {
+            promise: query.promise.then((results): { [annotation: string]: number } => {
+                const annotationToLength: { [annotation: string]: number } = {};
+                for (const row of results) {
+                    for (const [annotation, length] of Object.entries(row)) {
+                        annotationToLength[annotation] = length;
+                    }
+                }
+                return annotationToLength;
+            }),
+            cancel: query.cancel,
+        };
     }
 
     /**

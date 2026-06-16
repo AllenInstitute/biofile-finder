@@ -15,7 +15,7 @@ import Tutorial from "../../entity/Tutorial";
 import useDownloadFiles from "../../hooks/useDownloadFiles";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../hooks/useTruncatedString";
-import { interaction, selection } from "../../state";
+import { selection } from "../../state";
 
 import styles from "./FileDetails.module.css";
 
@@ -112,13 +112,13 @@ export default function FileDetails(props: Props) {
                             <div className={styles.gutter}></div>
                             <div className={styles.buttonRow}>
                                 <div>
-                                    {hasProvenanceSource && !props.onClose && (
+                                    {hasProvenanceSource && (
                                         <DefaultButton
                                             className={styles.simpleButton}
                                             onClick={() =>
                                                 dispatch(
-                                                    interaction.actions.setOriginForProvenance(
-                                                        props.fileDetails
+                                                    selection.actions.changeProvenanceOriginId(
+                                                        props.fileDetails?.uid
                                                     )
                                                 )
                                             }

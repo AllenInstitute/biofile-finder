@@ -220,7 +220,7 @@ export default function Query(props: QueryProps) {
             <QueryDataSource
                 dataSources={queryComponents.sources}
                 sourceMetadata={queryComponents.sourceMetadata}
-                sourceProvenance={queryComponents.prov}
+                sourceProvenance={queryComponents.provenanceSource}
             />
             <QueryGroup disabled={!hasDataSource} groups={queryComponents.hierarchy} />
             <QueryFilter disabled={!hasDataSource} filters={queryComponents.filters} />

@@ -10,6 +10,8 @@ import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import HttpServiceBase, { ConnectionConfig } from "../../HttpServiceBase";
 import Annotation from "../../../entity/Annotation";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
+import FileFilter from "../../../entity/FileFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
@@ -164,6 +166,34 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         const response = await this.get<FmsFile>(requestUrl);
         const env = this.getEnvironmentFromUrl();
         return response.data.map((file) => new FileDetail(file, env));
+    }
+
+    /**
+     * Get a single file that has a unique ID matching uid.
+     * For FMS files, we use the File ID annotation as the unique id
+     * instead of HIDDEN_UID_ANNOTATION
+     */
+    public async getFileByUid(uid: string): Promise<FileDetail | undefined> {
+        let files;
+        try {
+            files = await this.getFiles({
+                from: 0,
+                limit: 1,
+                fileSet: new FileSet({
+                    fileService: this,
+                    filters: [new FileFilter(AnnotationName.FILE_ID, uid)],
+                }),
+            });
+        } catch (err) {
+            console.error(`Failed to find file ${uid}. Error: ${(err as Error).message}`);
+            return undefined;
+        }
+        if (files.length !== 1) {
+            throw new Error(
+                `Failed to fetch 1 file for File ID ${uid}. Found ${files.length} instead.`
+            );
+        }
+        return files[0];
     }
 
     private async getSelectionsCsv(

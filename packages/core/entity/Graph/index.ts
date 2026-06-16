@@ -24,7 +24,7 @@ export enum NodeType {
 
 interface EdgeNode {
     name: string;
-    type: "file" | "metadata";
+    type: "file" | "metadata" | "self";
 }
 
 export interface EdgeDefinition {
@@ -132,7 +132,7 @@ export function getGridPosition(
  */
 function createFileNode(file: FileDetail, isSelected = false): FileNode {
     return {
-        id: file.id, // TODO: This doesn't have to be tied to FMS's ID system, we could be more generic here
+        id: file.path,
         data: {
             annotation: undefined,
             file,
@@ -237,6 +237,10 @@ export default class Graph {
             }),
             {} as { [child: string]: string[] }
         );
+    }
+
+    private static isNodeAFile(node: EdgeNode): boolean {
+        return node.type === "file" || node.type === "self"; // self refers to the file, so is technically also a file type
     }
 
     constructor(fileService: FileService, edgeDefinitions: EdgeDefinition[]) {
@@ -477,7 +481,7 @@ export default class Graph {
         edgeNode: EdgeNode
     ): Promise<(FileNode | MetadataNode)[]> {
         // The node might just be the current node!
-        const isEdgeNodeThisNode = edgeNode.name === "File ID"; // TODO: Expand this... should there be type of "ID" or "Self" or smthn..?
+        const isEdgeNodeThisNode = edgeNode.type === "self";
         if (isEdgeNodeThisNode) {
             return [thisNode];
         }
@@ -492,8 +496,7 @@ export default class Graph {
         // file via an annotation; an example of this is the "Input File" metadata key
         // we have seen users use to note the ID of a file used as input to the segmentation
         // model that generated the current node ("thisNode")
-        const isNodeAFile = edgeNode.type === "file";
-        if (!isNodeAFile) {
+        if (!Graph.isNodeAFile(edgeNode)) {
             return [
                 this.createMetadataNode(thisNode.data.file, {
                     name: edgeNode.name,
@@ -503,13 +506,21 @@ export default class Graph {
         }
 
         return Promise.all(
-            (annotationValues as string[]).map(async (fileId) => {
+            (annotationValues as string[]).map(async (value) => {
                 // Avoid re-requesting the file when possible
-                const node = this.graph.node(fileId);
+                const node = this.graph.node(value); // the value should be a file path
                 if (node) return node;
-                const file = await this.getFileById(fileId);
-                if (file) return createFileNode(file);
-                throw new Error(`Unable to find file ${fileId}`);
+                try {
+                    const file = await this.getFileBy("File Path", [value]);
+                    if (file) {
+                        return createFileNode(file);
+                    }
+                } catch {
+                    // Backup while moving between provenance versions: Try looking by "File ID", this should be removed in the future
+                    const fileById = await this.getFileBy("File ID", [value]);
+                    if (fileById) return createFileNode(fileById);
+                }
+                throw new Error(`Unable to find file with value ${value}`);
             })
         );
     }
@@ -532,7 +543,7 @@ export default class Graph {
         // and edges that aren't relevant to this annotation
         const annotationName = thisNode.data.annotation.name;
         const isFileToFileEdge =
-            edgeDefinition.parent.type === "file" && edgeDefinition.child.type === "file";
+            Graph.isNodeAFile(edgeDefinition.parent) && Graph.isNodeAFile(edgeDefinition.child);
         const hasConnectionToThisNode =
             annotationName === edgeDefinition.parent.name ||
             annotationName === edgeDefinition.child.name;
@@ -552,30 +563,6 @@ export default class Graph {
     }
 
     /**
-     * Retrieve the one file that is identified by this ID
-     */
-    private async getFileById(id: string): Promise<FileDetail | undefined> {
-        let files;
-        try {
-            files = await this.fileService.getFiles({
-                from: 0,
-                limit: 1,
-                fileSet: new FileSet({
-                    fileService: this.fileService,
-                    filters: [new FileFilter("File ID", id)],
-                }),
-            });
-        } catch (err) {
-            console.error(`Failed to find file ${id}. Error: ${(err as Error).message}`);
-            return undefined;
-        }
-        if (files.length !== 1) {
-            throw new Error(`Failed to fetch 1 file for ID ${id}. Found ${files.length} instead.`);
-        }
-        return files[0];
-    }
-
-    /**
      * Retrieve all the files that have any of the metadata values given as input
      */
     private getFilesByAnnotation(annotation: FmsFileAnnotation): Promise<FileDetail[]> {
@@ -587,6 +574,39 @@ export default class Graph {
                 filters: [new FileFilter(annotation.name, annotation.values)],
             }),
         });
+    }
+
+    /**
+     * Get a single file that matches a column/value pair
+     */
+    private async getFileBy(
+        column: string,
+        value: (string | number | boolean)[]
+    ): Promise<FileDetail | undefined> {
+        let files;
+        try {
+            files = await this.fileService.getFiles({
+                from: 0,
+                limit: 2, // We only want one result, so if there are >=2 it's not a unique identifier
+                fileSet: new FileSet({
+                    fileService: this.fileService,
+                    filters: [new FileFilter(column, value)],
+                }),
+            });
+        } catch (err) {
+            console.error(
+                `Failed to find file with value ${column} for annotation ${value}. Error: ${
+                    (err as Error).message
+                }`
+            );
+            return undefined;
+        }
+        if (files.length !== 1) {
+            throw new Error(
+                `Failed to fetch 1 file with value ${column} for annotation ${value}. Found ${files.length} instead.`
+            );
+        }
+        return files[0];
     }
 
     /**

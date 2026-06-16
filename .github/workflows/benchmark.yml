@@ -22,6 +22,11 @@ on:
         required: false
         type: string
         default: "1"
+      skip_large:
+        description: "Skip 10m+10m, 20m test cases and the large sort task"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -40,7 +45,7 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.compare_branch }}
 
@@ -48,7 +53,7 @@ jobs:
       # Must come after checkout so git clean -ffdx does not wipe them.
       - name: Cache benchmark fixtures
         id: fixture-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: packages/web/fixtures
           key: benchmark-fixtures-v1.2
@@ -61,12 +66,14 @@ jobs:
           curl -fL "$BASE/synthetic-100k.parquet" -o packages/web/fixtures/synthetic-100k.parquet
           curl -fL "$BASE/synthetic-1m.parquet"   -o packages/web/fixtures/synthetic-1m.parquet
           curl -fL "$BASE/synthetic-10m.parquet"  -o packages/web/fixtures/synthetic-10m.parquet
-          curl -fL "$BASE/synthetic-10m-copy.parquet"  -o packages/web/fixtures/synthetic-10m-copy.parquet
-          curl -fL "$BASE/synthetic-20m.parquet"  -o packages/web/fixtures/synthetic-20m.parquet
+          if [ "${{ github.event.inputs.skip_large }}" != "true" ]; then
+            curl -fL "$BASE/synthetic-10m-copy.parquet"  -o packages/web/fixtures/synthetic-10m-copy.parquet
+            curl -fL "$BASE/synthetic-20m.parquet"  -o packages/web/fixtures/synthetic-20m.parquet
+          fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "24"
           cache: "npm"
 
       - name: Install dependencies
@@ -75,9 +82,10 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
         working-directory: packages/web
+        timeout-minutes: 60 
 
       - name: Run benchmark (${{ github.event.inputs.compare_branch }})
-        run: npm run benchmark:regression -- --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
+        run: npm run benchmark:regression -- --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }} ${{ github.event.inputs.skip_large == 'true' && '--skip-large' || '' }}
         working-directory: packages/web
         env:
           BENCHMARK_BRANCH: ${{ github.event.inputs.compare_branch }}
@@ -85,7 +93,7 @@ jobs:
       - name: Save compare branch results
         run: mv packages/web/benchmark-results-*.json /tmp/benchmark-compare.json
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.base_branch }}
           clean: false
@@ -94,7 +102,7 @@ jobs:
         run: npm ci
 
       - name: Run benchmark (${{ github.event.inputs.base_branch }})
-        run: npm run benchmark:regression -- --skip-build --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }}
+        run: npm run benchmark:regression -- --skip-build --iterations ${{ github.event.inputs.iterations }} --warmup ${{ github.event.inputs.warmup }} ${{ github.event.inputs.skip_large == 'true' && '--skip-large' || '' }}
         working-directory: packages/web
         env:
           BENCHMARK_BRANCH: ${{ github.event.inputs.base_branch }}
@@ -107,7 +115,7 @@ jobs:
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-results
           path: |

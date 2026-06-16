@@ -41,7 +41,7 @@ describe("Graph", () => {
             // Assert
             expect(graph.edges).to.empty;
             expect(graph.nodes).to.be.lengthOf(1);
-            expect(graph.nodes[0].id).to.deep.equal(origin.id);
+            expect(graph.nodes[0].id).to.deep.equal(origin.path);
         });
 
         it("creates singular origin node", async () => {
@@ -51,7 +51,7 @@ describe("Graph", () => {
 
             // Assert
             expect(graph.nodes).to.be.lengthOf(1);
-            expect(graph.nodes[0].id).to.deep.equal(origin.id);
+            expect(graph.nodes[0].id).to.deep.equal(origin.path);
         });
     });
 
@@ -61,7 +61,7 @@ describe("Graph", () => {
         const edgeDefinitions: EdgeDefinition[] = [
             {
                 parent: { name: "Well", type: "metadata" },
-                child: { name: "File ID", type: "file" },
+                child: { name: "File ID", type: "self" },
                 relationship: expectedWellFileLabel,
             },
         ];
@@ -75,7 +75,7 @@ describe("Graph", () => {
             // Assert
             expect(graph.edges).to.be.lengthOf(1);
             expect(graph.edges[0].source).to.equal("Well: A4");
-            expect(graph.edges[0].target).to.equal(origin.id);
+            expect(graph.edges[0].target).to.equal(origin.path);
             expect(graph.edges[0].data?.value).to.equal(expectedWellFileLabel);
         });
 
@@ -86,7 +86,7 @@ describe("Graph", () => {
 
             // Assert
             expect(graph.nodes).to.be.lengthOf(2);
-            expect(graph.nodes.some((node) => node.id === origin.id)).to.be.true;
+            expect(graph.nodes.some((node) => node.id === origin.path)).to.be.true;
             expect(graph.nodes.some((node) => node.id === "Well: A4")).to.be.true;
         });
     });
@@ -103,7 +103,7 @@ describe("Graph", () => {
             },
             {
                 parent: { name: "Well", type: "metadata" },
-                child: { name: "File ID", type: "file" },
+                child: { name: "File ID", type: "self" },
                 relationship: expectedWellFileLabel,
             },
         ];
@@ -131,7 +131,7 @@ describe("Graph", () => {
                 graph.edges.some(
                     (edge) =>
                         edge.source === "Plate Barcode: 1234-Well: A4" &&
-                        edge.target === origin.id &&
+                        edge.target === origin.path &&
                         edge.data?.value === expectedWellFileLabel
                 )
             ).to.be.true;
@@ -144,7 +144,7 @@ describe("Graph", () => {
 
             // Assert
             expect(graph.nodes).to.be.lengthOf(3);
-            expect(graph.nodes.some((node) => node.id === origin.id)).to.be.true;
+            expect(graph.nodes.some((node) => node.id === origin.path)).to.be.true;
             expect(graph.nodes.some((node) => node.id === "Plate Barcode: 1234")).to.be.true;
             expect(graph.nodes.some((node) => node.id === "Plate Barcode: 1234-Well: A4")).to.be
                 .true;
@@ -163,19 +163,22 @@ describe("Graph", () => {
                 }
                 throw new Error("Too many calls!");
             }
+            public async getFileByUid(): Promise<FileDetail | undefined> {
+                return Promise.resolve(sourceFile);
+            }
         }
         const expectedPointer = "Algorithm";
         const expectedAlgorithm = "v1.2.0";
         const edgeDefinitions: EdgeDefinition[] = [
             {
                 parent: { name: "Segmentation ID", type: "file" },
-                child: { name: "File ID", type: "file" },
+                child: { name: "File ID", type: "self" },
                 relationship: expectedPointer,
                 relationshipType: "pointer",
             },
         ];
         const origin = mockFileDetail([
-            { name: edgeDefinitions[0].parent.name, values: [sourceFile.id] },
+            { name: edgeDefinitions[0].parent.name, values: [sourceFile.path] },
             { name: expectedPointer, values: [expectedAlgorithm] },
         ]);
 
@@ -186,8 +189,8 @@ describe("Graph", () => {
 
             // Assert
             expect(graph.edges).to.be.lengthOf(1);
-            expect(graph.edges[0].source).to.equal(sourceFile.id);
-            expect(graph.edges[0].target).to.equal(origin.id);
+            expect(graph.edges[0].source).to.equal(sourceFile.path);
+            expect(graph.edges[0].target).to.equal(origin.path);
             expect(graph.edges[0].data?.name).to.equal(expectedPointer);
             expect(graph.edges[0].data?.value).to.equal(expectedAlgorithm);
         });
@@ -199,8 +202,8 @@ describe("Graph", () => {
 
             // Assert
             expect(graph.nodes).to.be.lengthOf(2);
-            expect(graph.nodes.some((node) => node.id === origin.id)).to.be.true;
-            expect(graph.nodes.some((node) => node.id === sourceFile.id)).to.be.true;
+            expect(graph.nodes.some((node) => node.id === origin.path)).to.be.true;
+            expect(graph.nodes.some((node) => node.id === sourceFile.path)).to.be.true;
         });
     });
 
@@ -211,7 +214,7 @@ describe("Graph", () => {
             const edgeDefinitions: EdgeDefinition[] = [
                 {
                     parent: { name: "Well", type: "metadata" },
-                    child: { name: "File ID", type: "file" },
+                    child: { name: "File ID", type: "self" },
                     relationship: expectedWellFileLabel,
                 },
             ];

@@ -34,12 +34,20 @@
 }
 
 .header-click-target {
-  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  max-height: 21.5px;
   min-width: 0;
+  overflow: hidden;
+}
+
+.header-tooltip-wrapper {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .header-title {
-  display: inline-block;
+  display: block;
   max-width: 100%;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -97,7 +105,7 @@
 .sort-icon {
   font-size: 12px;
   font-weight: bold;
-  margin-left: 0.5em;
+  margin: auto 0.25em;
 }
 
 .list-parent {
@@ -106,6 +114,4 @@
   margin-top: 5px; /* small space between header and first item of list */
 }
 
-.list-parent > div > div:nth-child(even) > div {
-  background-color: var(--primary-background-color);
-}
+

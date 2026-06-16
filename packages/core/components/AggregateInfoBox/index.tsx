@@ -46,11 +46,24 @@ export default function AggregateInfoBox() {
                         setLoading(false);
                         setError(undefined);
                     }
-                } catch (requestError) {
+                } catch (err) {
                     if (!ignoreResponse) {
-                        setError(
-                            `Whoops! Couldn't get aggregate information for some reason. ${requestError}`
-                        );
+                        // If the selection was large and the server had an internal failure
+                        // we likely just can't compile the data
+                        if (
+                            (err as Error).message?.includes("Internal Server Error") &&
+                            fileSelection.count() > 10_000
+                        ) {
+                            setAggregateData(undefined);
+                            setLoading(false);
+                            setError(undefined);
+                        } else {
+                            setError(
+                                `Whoops! Couldn't get aggregate information for some reason. ${
+                                    (err as Error).message
+                                }`
+                            );
+                        }
                     }
                 }
             };
@@ -80,19 +93,21 @@ export default function AggregateInfoBox() {
                         Total Files <br /> Selected
                     </h6>
                 </div>
-                <div className={styles.column}>
-                    <div className={styles.columnData}>
-                        {!isLoading && aggregateData ? (
-                            aggregateData.count
-                        ) : (
-                            <LoadingIcon data-testid="aggregate-info-box-spinner" />
-                        )}
+                {(isLoading || aggregateData?.count) && (
+                    <div className={styles.column}>
+                        <div className={styles.columnData}>
+                            {!isLoading && aggregateData ? (
+                                aggregateData.count
+                            ) : (
+                                <LoadingIcon data-testid="aggregate-info-box-spinner" />
+                            )}
+                        </div>
+                        <h6 className={styles.label}>
+                            Unique Files <br /> Selected
+                        </h6>
                     </div>
-                    <h6 className={styles.label}>
-                        Unique Files <br /> Selected
-                    </h6>
-                </div>
-                {aggregateData?.size && (
+                )}
+                {(isLoading || aggregateData?.size) && (
                     <div className={styles.column}>
                         <div className={styles.columnData}>
                             {!isLoading && aggregateData ? (

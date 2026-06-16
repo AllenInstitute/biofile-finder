@@ -7,7 +7,7 @@ import interaction from "../../interaction";
 import { Environment } from "../../../constants";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileDetail from "../../../entity/FileDetail";
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import FileFolder from "../../../entity/FileFolder";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
@@ -92,7 +92,7 @@ describe("Selection reducer", () => {
             const state = {
                 ...selection.initialState,
                 annotationHierarchy: ["Cell Line"],
-                columns: [{ name: "file_id", width: 0.5 }],
+                columns: [{ name: "file_id", width: 200 }],
                 filters: [new FileFilter("file_id", "1238401234")],
                 fileView: FileView.LIST,
                 openFileFolders: [new FileFolder(["AICS-11"])],
@@ -112,7 +112,8 @@ describe("Selection reducer", () => {
                 fileView: "fileView",
                 sources: "dataSources",
                 sourceMetadata: "sourceMetadata",
-                prov: "sourceProvenance",
+                provenanceSource: "sourceProvenance",
+                provOriginId: "provenanceOriginId",
                 filters: "filters",
                 openFolders: "openFileFolders",
                 sortColumn: "sortColumn",
@@ -193,11 +194,11 @@ describe("Selection reducer", () => {
             // arrange
             const initialSelectionState = {
                 ...selection.initialState,
-                columns: [{ name: "Green", width: 0.11 }],
+                columns: [{ name: "Green", width: 110 }],
             };
             const columns = [
-                { name: "Orange", width: 0.42 },
-                { name: "Red", width: 0.47 },
+                { name: "Orange", width: 250 },
+                { name: "Red", width: 180 },
             ];
 
             const action = selection.actions.setColumns(columns);
@@ -212,6 +213,115 @@ describe("Selection reducer", () => {
                     selection: nextSelectionState,
                 })
             ).to.deep.equal(columns);
+        });
+    });
+
+    describe("REORDER_COLUMNS", () => {
+        it("moves a single column to a new index", () => {
+            // arrange
+            const state = {
+                ...selection.initialState,
+                columns: [
+                    { name: "A", width: 100 },
+                    { name: "B", width: 100 },
+                    { name: "C", width: 100 },
+                    { name: "D", width: 100 },
+                ],
+            };
+            const action = selection.actions.reorderColumns([{ name: "C", moveTo: 0 }]);
+
+            // act
+            const nextState = selection.reducer(state, action);
+
+            // assert
+            expect(
+                selection.selectors.getColumns({ ...initialState, selection: nextState })
+            ).to.deep.equal([
+                { name: "C", width: 100 },
+                { name: "A", width: 100 },
+                { name: "B", width: 100 },
+                { name: "D", width: 100 },
+            ]);
+        });
+
+        it("applies multiple reorder operations sequentially", () => {
+            // arrange
+            const state = {
+                ...selection.initialState,
+                columns: [
+                    { name: "A", width: 100 },
+                    { name: "B", width: 100 },
+                    { name: "C", width: 100 },
+                    { name: "D", width: 100 },
+                ],
+            };
+            const action = selection.actions.reorderColumns([
+                { name: "D", moveTo: 0 },
+                { name: "B", moveTo: 3 },
+            ]);
+
+            // act
+            const nextState = selection.reducer(state, action);
+
+            // assert
+            expect(
+                selection.selectors.getColumns({ ...initialState, selection: nextState })
+            ).to.deep.equal([
+                { name: "D", width: 100 },
+                { name: "A", width: 100 },
+                { name: "C", width: 100 },
+                { name: "B", width: 100 },
+            ]);
+        });
+
+        it("clamps moveTo to the end of the list when out of bounds", () => {
+            // arrange
+            const state = {
+                ...selection.initialState,
+                columns: [
+                    { name: "A", width: 100 },
+                    { name: "B", width: 100 },
+                    { name: "C", width: 100 },
+                ],
+            };
+            const action = selection.actions.reorderColumns([{ name: "A", moveTo: 99 }]);
+
+            // act
+            const nextState = selection.reducer(state, action);
+
+            // assert
+            expect(
+                selection.selectors.getColumns({ ...initialState, selection: nextState })
+            ).to.deep.equal([
+                { name: "B", width: 100 },
+                { name: "C", width: 100 },
+                { name: "A", width: 100 },
+            ]);
+        });
+
+        it("optionally updates width of moved column", () => {
+            // arrange
+            const state = {
+                ...selection.initialState,
+                columns: [
+                    { name: "A", width: 100 },
+                    { name: "B", width: 100 },
+                    { name: "C", width: 100 },
+                ],
+            };
+            const action = selection.actions.reorderColumns([{ name: "A", moveTo: 2, width: 200 }]);
+
+            // act
+            const nextState = selection.reducer(state, action);
+
+            // assert
+            expect(
+                selection.selectors.getColumns({ ...initialState, selection: nextState })
+            ).to.deep.equal([
+                { name: "B", width: 100 },
+                { name: "C", width: 100 },
+                { name: "A", width: 200 },
+            ]);
         });
     });
 
@@ -412,6 +522,205 @@ describe("Selection reducer", () => {
                     })
                     .count()
             ).to.be.equal(0);
+        });
+    });
+
+    describe("SET_FILE_SELECTION", () => {
+        it("sets lastTouchedFolder from hierarchy filters only, excluding global filters", () => {
+            // Arrange
+            const hierarchy = ["Cell Line", "Workflow"];
+            const globalFilter = new FileFilter("Scientist", "Jane", FilterType.DEFAULT);
+            const fileSet = new FileSet({
+                filters: [
+                    new FileFilter("Cell Line", "AICS-11"),
+                    new FileFilter("Workflow", "Pipeline 4"),
+                    globalFilter,
+                ],
+            });
+            const fileSelection = new FileSelection().select({
+                fileSet,
+                index: new NumericRange(0, 5),
+                sortOrder: 0,
+            });
+            const state = {
+                ...selection.initialState,
+                annotationHierarchy: hierarchy,
+                filters: [globalFilter],
+            };
+
+            // Act
+            const nextState = selection.reducer(
+                state,
+                selection.actions.setFileSelection(fileSelection)
+            );
+
+            // Assert
+            expect(nextState.lastTouchedFolder).to.not.be.undefined;
+            expect(nextState.lastTouchedFolder?.fileFolder).to.deep.equal([
+                "AICS-11",
+                "Pipeline 4",
+            ]);
+        });
+
+        it("preserves existing lastTouchedFolder when selection has no hierarchy filters (root level)", () => {
+            // Arrange
+            const existingFolder = new FileFolder(["AICS-11"]);
+            const fileSet = new FileSet({
+                filters: [new FileFilter("Scientist", "Jane", FilterType.FUZZY)],
+            });
+            const fileSelection = new FileSelection().select({
+                fileSet,
+                index: 0,
+                sortOrder: 0,
+            });
+            const state = {
+                ...selection.initialState,
+                annotationHierarchy: ["Cell Line"],
+                lastTouchedFolder: existingFolder,
+            };
+
+            // Act
+            const nextState = selection.reducer(
+                state,
+                selection.actions.setFileSelection(fileSelection)
+            );
+
+            // Assert
+            expect(nextState.lastTouchedFolder).to.equal(existingFolder);
+        });
+
+        it("sets lastTouchedFolder when no global filters are present", () => {
+            // Arrange
+            const hierarchy = ["Cell Line"];
+            const fileSet = new FileSet({
+                filters: [new FileFilter("Cell Line", "AICS-24")],
+            });
+            const fileSelection = new FileSelection().select({
+                fileSet,
+                index: new NumericRange(0, 2),
+                sortOrder: 0,
+            });
+            const state = {
+                ...selection.initialState,
+                annotationHierarchy: hierarchy,
+            };
+
+            // Act
+            const nextState = selection.reducer(
+                state,
+                selection.actions.setFileSelection(fileSelection)
+            );
+
+            // Assert
+            expect(nextState.lastTouchedFolder).to.not.be.undefined;
+            expect(nextState.lastTouchedFolder?.fileFolder).to.deep.equal(["AICS-24"]);
+        });
+
+        it("preserves existing lastTouchedFolder when selection has no focused item", () => {
+            // Arrange
+            const existingFolder = new FileFolder(["AICS-11"]);
+            const emptySelection = new FileSelection();
+            const state = {
+                ...selection.initialState,
+                annotationHierarchy: ["Cell Line"],
+                lastTouchedFolder: existingFolder,
+            };
+
+            // Act
+            const nextState = selection.reducer(
+                state,
+                selection.actions.setFileSelection(emptySelection)
+            );
+
+            // Assert
+            expect(nextState.lastTouchedFolder).to.equal(existingFolder);
+        });
+    });
+
+    describe("SET_OPEN_FILE_FOLDERS", () => {
+        it("preserves lastTouchedFolder when a new folder is opened", () => {
+            // Arrange
+            const existingFolder = new FileFolder(["AICS-11"]);
+            const newFolder = new FileFolder(["AICS-11", "Pipeline 4"]);
+            const state = {
+                ...selection.initialState,
+                openFileFolders: [existingFolder],
+                lastTouchedFolder: existingFolder,
+            };
+
+            // Act
+            const nextState = selection.reducer(
+                state,
+                selection.actions.setOpenFileFolders([existingFolder, newFolder])
+            );
+
+            // Assert
+            expect(nextState.lastTouchedFolder).to.not.be.undefined;
+            expect(nextState.lastTouchedFolder?.fileFolder).to.deep.equal(["AICS-11"]);
+        });
+
+        it("keeps lastTouchedFolder when it is still open after a folder is closed", () => {
+            // Arrange
+            const folder1 = new FileFolder(["AICS-11"]);
+            const folder2 = new FileFolder(["AICS-24"]);
+            const leafFolder = new FileFolder(["AICS-11", "Pipeline 4"]);
+            const state = {
+                ...selection.initialState,
+                openFileFolders: [folder1, folder2, leafFolder],
+                lastTouchedFolder: leafFolder,
+            };
+
+            // Act — close folder2, but leafFolder is still open
+            const nextState = selection.reducer(
+                state,
+                selection.actions.setOpenFileFolders([folder1, leafFolder])
+            );
+
+            // Assert
+            expect(nextState.lastTouchedFolder).to.not.be.undefined;
+            expect(nextState.lastTouchedFolder?.fileFolder).to.deep.equal([
+                "AICS-11",
+                "Pipeline 4",
+            ]);
+        });
+
+        it("clears lastTouchedFolder when it is no longer open", () => {
+            // Arrange
+            const folder1 = new FileFolder(["AICS-11"]);
+            const folder2 = new FileFolder(["AICS-24"]);
+            const state = {
+                ...selection.initialState,
+                openFileFolders: [folder1, folder2],
+                lastTouchedFolder: folder2,
+            };
+
+            // Act — close folder2
+            const nextState = selection.reducer(
+                state,
+                selection.actions.setOpenFileFolders([folder1])
+            );
+
+            // Assert
+            expect(nextState.lastTouchedFolder).to.be.undefined;
+        });
+
+        it("updates openFileFolders to the provided list", () => {
+            // Arrange
+            const folder1 = new FileFolder(["AICS-11"]);
+            const folder2 = new FileFolder(["AICS-24"]);
+            const state = {
+                ...selection.initialState,
+                openFileFolders: [folder1],
+            };
+
+            // Act
+            const nextState = selection.reducer(
+                state,
+                selection.actions.setOpenFileFolders([folder1, folder2])
+            );
+
+            // Assert
+            expect(nextState.openFileFolders).to.have.length(2);
         });
     });
 });

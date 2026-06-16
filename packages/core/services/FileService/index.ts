@@ -69,4 +69,5 @@ export default interface FileService {
     getAggregateInformation(fileSelection: FileSelection): Promise<SelectionAggregationResult>;
     getCountOfMatchingFiles(fileSet: FileSet): Promise<number>;
     getFiles(request: GetFilesRequest): Promise<FileDetail[]>;
+    getFileByUid(uid: string): Promise<FileDetail | undefined>;
 }
