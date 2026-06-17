@@ -17,6 +17,15 @@ const BASE_PLUGINS = [
             configFile: path.resolve(__dirname, "..", "..", "..", "tsconfig.json"),
         },
     }),
+    // Workaround for `Uncaught ReferenceError: Buffer is not defined`
+    // https://github.com/webpack/changelog-v5/issues/10
+    new webpack.ProvidePlugin({
+        Buffer: ["buffer", "Buffer"],
+    }),
+    // Workaround for `Uncaught ReferenceError: process is not defined`
+    new webpack.ProvidePlugin({
+        process: "process/browser",
+    }),
     new CleanWebpackPlugin(),
     new MiniCssExtractPlugin({ filename: "[name].[contenthash].css" }),
     new HtmlWebpackPlugin({
