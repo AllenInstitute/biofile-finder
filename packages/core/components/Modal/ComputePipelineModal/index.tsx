@@ -250,8 +250,13 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
         try {
             const details = await fileSelection.fetchAllDetails();
             const filePaths = details
-                .map((d) => d.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH))
-                .filter((p): p is string => typeof p === "string");
+                .map((d) => {
+                    // Prefer the local VAST path when present; otherwise fall back to the
+                    // cloud path so the file gets downloaded and processed.
+                    const localPath = d.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH);
+                    return typeof localPath === "string" && localPath !== "" ? localPath : d.path;
+                })
+                .filter((p): p is string => typeof p === "string" && p !== "");
 
             const result = await pipelineService.submitComputeTask({
                 pipeline: selectedPipeline.id,
