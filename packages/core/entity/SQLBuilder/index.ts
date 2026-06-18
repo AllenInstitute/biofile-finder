@@ -196,18 +196,7 @@ export default class SQLBuilder {
      * Build a DuckDB expression that extracts a nested sub-field from a STRUCT[] column,
      * correctly handling intermediate arrays at any depth.
      *
-     * @param path       Full annotation path, e.g. ["Well", "Dose", "Unit"]
-     * @param pathIsArray Boolean array (length = path.length - 1) indicating which non-leaf
-     *                    segments are arrays (STRUCT[]). E.g. [true, true] means both "Well"
-     *                    and "Dose" are STRUCT[] columns.
-     * @param leafTransform Optional function to transform the leaf expression inside the
-     *                    innermost lambda (e.g. `leaf => 'LENGTH(CAST(' + leaf + ' AS VARCHAR))'`).
-     *                    Use this to inline a computation at the leaf level and avoid generating
-     *                    a second list_transform on the result, which DuckDB does not support.
-     * @returns A SQL expression that produces a flat list of (possibly transformed) leaf values, e.g.:
-     *   flatten(list_transform("Well", x -> list_transform(x."Dose", y -> y."Unit")))
-     *
-     * When only the root is an array (common case):
+     * Ex. When only the root is an array (common case):
      *   list_transform("Well", x -> x."Dose"."Unit")
      */
     public static buildNestedAccessExpression(
@@ -215,49 +204,56 @@ export default class SQLBuilder {
         pathIsArray: boolean[],
         leafTransform?: (leafExpr: string) => string
     ): string {
-        const VAR_NAMES = ["x", "y", "z", "w", "v", "u", "t", "s"];
-        let varIdx = 0;
-        let flattenCount = 0;
+        // Keep lambda variable names deterministic so generated SQL strings remain stable in tests.
+        const lambdaVars = ["x", "y", "z", "w", "v", "u", "t", "s"];
+        let nextLambdaVarIdx = 0;
+        let flattenLayers = 0;
+        const rootColumnExpr = `"${path[0]}"`;
+        const isRootArray = pathIsArray[0];
 
-        // Recursive builder: at each array boundary, introduce a list_transform;
-        // at each scalar struct boundary, continue with dot access.
-        function buildInner(segmentIdx: number, currentExpr: string): string {
-            if (segmentIdx === 0) {
-                // Root column
-                if (pathIsArray[0]) {
-                    const v = VAR_NAMES[varIdx++];
-                    const inner = buildInner(1, v);
-                    return `list_transform("${path[0]}", ${v} -> ${inner})`;
-                } else {
-                    // Singular struct at root (rare) — just dot access
-                    return buildInner(1, `"${path[0]}"`);
+        const nextLambdaVar = () => lambdaVars[nextLambdaVarIdx++];
+        const transformLeaf = (leafExpr: string) =>
+            leafTransform ? leafTransform(leafExpr) : leafExpr;
+        const accessSegment = (baseExpr: string, pathIndex: number) =>
+            `${baseExpr}."${path[pathIndex]}"`;
+
+        // Recursive builder: each array boundary introduces a list_transform lambda;
+        // scalar struct segments continue via dot-access on the current expression.
+        function buildFrom(pathIndex: number, currentExpr: string): string {
+            if (pathIndex === 0) {
+                // Root column: either list_transform("Root", var -> ...) for STRUCT[]
+                // or plain dot access for a scalar root struct.
+                if (isRootArray) {
+                    const lambdaVar = nextLambdaVar();
+                    const innerExpr = buildFrom(1, lambdaVar);
+                    return `list_transform(${rootColumnExpr}, ${lambdaVar} -> ${innerExpr})`;
                 }
+                return buildFrom(1, rootColumnExpr);
             }
 
-            const isLeaf = segmentIdx === path.length - 1;
-            const access = `${currentExpr}."${path[segmentIdx]}"`;
-
+            const isLeaf = pathIndex === path.length - 1;
+            const segmentExpr = accessSegment(currentExpr, pathIndex);
             if (isLeaf) {
-                return leafTransform ? leafTransform(access) : access;
+                return transformLeaf(segmentExpr);
             }
 
-            // Intermediate segment
-            if (pathIsArray[segmentIdx]) {
-                // This intermediate is an array — need another list_transform
-                flattenCount++;
-                const v = VAR_NAMES[varIdx++];
-                const inner = buildInner(segmentIdx + 1, v);
-                return `list_transform(${access}, ${v} -> ${inner})`;
-            } else {
-                // Scalar struct — continue dot access
-                return buildInner(segmentIdx + 1, access);
+            // Intermediate array segment: add another transform layer and remember to
+            // flatten once after the recursive expression is built.
+            if (pathIsArray[pathIndex]) {
+                flattenLayers++;
+                const lambdaVar = nextLambdaVar();
+                const innerExpr = buildFrom(pathIndex + 1, lambdaVar);
+                return `list_transform(${segmentExpr}, ${lambdaVar} -> ${innerExpr})`;
             }
+
+            // Intermediate scalar struct segment: continue dot access in the same scope.
+            return buildFrom(pathIndex + 1, segmentExpr);
         }
 
-        let expr = buildInner(0, "");
+        let expr = buildFrom(0, "");
 
-        // Each intermediate array adds one level of list nesting that must be flattened
-        for (let i = 0; i < flattenCount; i++) {
+        // Each intermediate array boundary adds one nested list layer to flatten.
+        for (let i = 0; i < flattenLayers; i++) {
             expr = `flatten(${expr})`;
         }
 
