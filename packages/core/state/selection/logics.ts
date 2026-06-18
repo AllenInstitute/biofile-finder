@@ -283,8 +283,7 @@ const modifyFileFilters = createLogic({
                         payload.annotationName,
                         "",
                         payload.type,
-                        annotationByName.get(payload.annotationName)?.type,
-                        annotationByName.get(payload.annotationName)?.pathIsArray
+                        annotationByName.get(payload.annotationName)?.type
                     );
                     nextFilters = [
                         ...previousFilters.filter(
@@ -313,8 +312,7 @@ const modifyFileFilters = createLogic({
                                       filter.name,
                                       filter.value,
                                       payload.type,
-                                      filter.valueType,
-                                      filter.pathIsArray
+                                      filter.valueType
                                   )
                         );
             }
@@ -449,16 +447,27 @@ const expandAllFileFolders = createLogic({
 const resizeColumnLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: column } = deps.action as ResizeColumnAction;
+        const nameToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
+            deps.getState()
+        );
         const annotationService = interaction.selectors.getAnnotationService(deps.getState());
         const columns = selectionSelectors.getColumns(deps.getState());
 
         let width = column.width;
         if (!width) {
-            const autoSizedWidth = await annotationService.fetchOptimalWidthForAnnotations(
-                [column.name],
-                true
-            );
-            width = autoSizedWidth.get(column.name) ?? DEFAULT_COLUMN_WIDTH;
+            const annotation = nameToAnnotationMap.get(column.name);
+            if (!annotation) {
+                console.warn(
+                    `Could not find annotation for column ${column.name}, defaulting to default column width`
+                );
+                width = DEFAULT_COLUMN_WIDTH;
+            } else {
+                const autoSizedWidth = await annotationService.fetchOptimalWidthForAnnotations(
+                    [annotation],
+                    true
+                );
+                width = autoSizedWidth.get(column.name) ?? DEFAULT_COLUMN_WIDTH;
+            }
         }
 
         dispatch(
@@ -582,8 +591,7 @@ const selectNearbyFile = createLogic({
                                 hierarchy[index],
                                 filterValue,
                                 FilterType.DEFAULT,
-                                annotationByName.get(hierarchy[index])?.type,
-                                annotationByName.get(hierarchy[index])?.pathIsArray
+                                annotationByName.get(hierarchy[index])?.type
                             )
                     ),
                     sort: sortColumn,
@@ -626,8 +634,7 @@ const selectNearbyFile = createLogic({
                                 hierarchy[index],
                                 filterValue,
                                 FilterType.DEFAULT,
-                                annotationByName.get(hierarchy[index])?.type,
-                                annotationByName.get(hierarchy[index])?.pathIsArray
+                                annotationByName.get(hierarchy[index])?.type
                             )
                     ),
                     sort: sortColumn,

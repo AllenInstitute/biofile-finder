@@ -3,7 +3,6 @@ import { isEmpty, isNil, isObject, sortBy } from "lodash";
 import AnnotationName from "./AnnotationName";
 import getFormatter, { AnnotationFormatter, AnnotationType } from "../AnnotationFormatter";
 import FileDetail from "../FileDetail";
-import defaultPathIsArray from "../pathIsArray";
 
 export type AnnotationValue = string | number | boolean | Date;
 
@@ -24,11 +23,14 @@ export interface AnnotationResponse {
     units?: string;
 
     /**
-     * For sub-field annotations, indicates which non-leaf path segments are arrays (STRUCT[]).
-     * Length equals path.length - 1. For example, for path ["Well", "Dose", "Unit"]:
-     *   pathIsArray[0] = true means "Well" is STRUCT[] (root array)
-     *   pathIsArray[1] = true means "Dose" is STRUCT[] (intermediate array)
-     * If undefined, defaults to [true, false, false, ...] (root is array, rest are scalars).
+     * For sub-field annotations, one flag per path segment (length === path.length):
+     * pathIsArray[i] is true when path[i] is a list. For path ["Well", "Dose", "Unit"]:
+     *   pathIsArray[0] = true  → "Well" is STRUCT[] (root array)
+     *   pathIsArray[1] = true  → "Dose" is STRUCT[] (intermediate array)
+     *   pathIsArray[2] = true  → "Unit" is itself a list (e.g. VARCHAR[]) — a list leaf
+     * REQUIRED for nested annotations (path.length > 1) — the constructor throws if absent,
+     * since guessing a sub-field's array-ness produces silently-wrong SQL. May be omitted for
+     * flat annotations, where array-ness is never consulted during SQL generation.
      */
     pathIsArray?: boolean[];
 
@@ -68,8 +70,7 @@ export default class Annotation {
     public readonly units: string | undefined;
     public readonly id: number | undefined;
     /**
-     * Which non-leaf path segments are arrays (STRUCT[]). Length = path.length - 1.
-     * Defaults to [true, false, ...] if not provided (root is array, rest are scalar structs).
+     * Which non-leaf path segments are arrays (STRUCT[]). Length = path.length - 1
      */
     public readonly pathIsArray: boolean[];
 
@@ -80,6 +81,16 @@ export default class Annotation {
      * change over time. Examples include Gene, Cell Line, Program, etc.
      */
     public readonly isImmutable: boolean;
+
+    /**
+     * Build the `name -> pathIsArray` lookup that SQL builders consume at generation time
+     * (see resolvePathIsArray). Keyed by dotted annotation name. This is how the
+     * authoritative, schema-derived nesting flags reach FileFilter/FileSort without those
+     * entities storing (and having to keep in sync) their own copy.
+     */
+    public static pathIsArrayByName(annotations: Annotation[]): Map<string, boolean[]> {
+        return new Map(annotations.map((annotation) => [annotation.name, annotation.pathIsArray]));
+    }
 
     public static sort(annotations: Annotation[]): Annotation[] {
         // start by putting in alpha order
@@ -105,9 +116,23 @@ export default class Annotation {
         this.units = annotation.units;
         this.isImmutable = annotation.isImmutable || false;
         this.id = annotation.annotationId;
-        // `annotation.pathIsArray` is the authoritative, schema-derived value
-        // (DatabaseService.parseStructFields). defaultPathIsArray is only a fallback.
-        this.pathIsArray = annotation.pathIsArray ?? defaultPathIsArray(this.path);
+        // pathIsArray (one boolean per path segment) is authoritative schema state from
+        // DatabaseService.parseStructFields. A NESTED annotation MUST supply it: guessing a
+        // sub-field's per-segment array-ness yields silently-wrong SQL (list ops against a
+        // scalar struct, or scalar matching against a list), so refuse rather than default.
+        // For a flat annotation array-ness is never consulted during SQL generation, so an
+        // all-false placeholder is safe.
+        if (this.path.length > 1 && annotation.pathIsArray === undefined) {
+            throw new Error(
+                `Annotation "${this.name}" is nested but was created without pathIsArray. ` +
+                    `Provide one boolean per path segment (see DatabaseService.parseStructFields).`
+            );
+        }
+        this.pathIsArray = annotation.pathIsArray ?? this.path.map(() => false);
+    }
+
+    public get leafDisplayName(): string {
+        return this.displayName.split(".").slice(-1)[0];
     }
 
     public get formatter(): AnnotationFormatter {
@@ -138,6 +163,11 @@ export default class Annotation {
     public get parents(): string[] | undefined {
         if (this.path.length <= 1) return undefined;
         return this.path.slice(0, -1);
+    }
+
+    // Whether this annotation has any nested array (STRUCT[]) segments in its path. For example, for path ["Well", "Dose", "Unit"]:
+    public get hasNestedArray(): boolean {
+        return this.pathIsArray.some(Boolean);
     }
 
     /**

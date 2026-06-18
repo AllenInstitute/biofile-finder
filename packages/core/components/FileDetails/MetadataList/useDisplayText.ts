@@ -18,9 +18,8 @@ import { interaction } from "../../../state";
  */
 export default function useDisplayText(
     file: FileDetail,
-    key: string,
+    column: Annotation | undefined,
     value: MetadataValue,
-    annotation: Annotation | undefined,
     childRows: NestedMetadataValue[]
 ): { text: string | null; emphasize: boolean } {
     const { executionEnvService } = useSelector(interaction.selectors.getPlatformDependentServices);
@@ -30,7 +29,7 @@ export default function useDisplayText(
     // Determine this local path.
     const [localPath, setLocalPath] = React.useState<string | null>(null);
     React.useEffect(() => {
-        if (key !== AnnotationName.LOCAL_FILE_PATH) return;
+        if (!column || column.name !== AnnotationName.LOCAL_FILE_PATH) return;
 
         let active = true;
         const pathAsIs = value[0] as string | undefined;
@@ -43,12 +42,13 @@ export default function useDisplayText(
         return () => {
             active = false;
         };
-    }, [key, value, executionEnvService]);
+    }, [column, value, executionEnvService]);
 
     return React.useMemo(() => {
+        if (!column) return { text: null, emphasize: false };
         // Handle special cases for certain annotation keys (e.g., file paths)
         // where we want to display something other than the default text
-        if (key === AnnotationName.LOCAL_FILE_PATH) {
+        if (column.name === AnnotationName.LOCAL_FILE_PATH) {
             // Show a special message to indicate the path is
             // being prepared still
             if (!!file?.downloadInProgress) {
@@ -64,7 +64,7 @@ export default function useDisplayText(
 
         // Cloud file path: render the canonical S3 URL rather than the raw stored path
         // (FileDetail.path performs the S3-bucket → https URL conversion).
-        if (key === AnnotationName.FILE_PATH) {
+        if (column.name === AnnotationName.FILE_PATH) {
             return { text: file.path, emphasize: false };
         }
 
@@ -78,19 +78,9 @@ export default function useDisplayText(
             };
         }
 
-        // If for some reason we don't have the annotation handy (which would be an error case)
-        // lets at least try to display the value in a reasonable way instead of crashing out
-        if (!annotation) {
-            console.error(`Unexpected scenario: No annotation found for metadata key: ${key}`);
-            return {
-                text: (value as PrimitiveMetadataValue[]).join(Annotation.SEPARATOR),
-                emphasize: false,
-            };
-        }
-
         return {
-            text: annotation.joinValuesForDisplay(value as PrimitiveMetadataValue[]),
+            text: column.joinValuesForDisplay(value as PrimitiveMetadataValue[]),
             emphasize: false,
         };
-    }, [file, key, value, annotation, childRows, localPath]);
+    }, [file, column, value, childRows, localPath]);
 }

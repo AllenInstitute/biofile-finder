@@ -139,8 +139,8 @@ function Header(
                             const leafLabel =
                                 annotation?.displayName.split(".").slice(-1)[0] ?? leafName;
                             const prefix =
-                                path.length > 1 ? path.slice(0, -1).join(" / ") + " / " : undefined;
-                            const fullLabel = path.join(" / ");
+                                path.length > 1 ? path.slice(0, -1).join(" : ") + " : " : undefined;
+                            const fullLabel = path.join(" : ");
                             const isDuplicateLeafName = duplicateLeafNames.has(leafName);
                             return (
                                 <Tooltip content={`${fullLabel}\n${annotation?.description ?? ""}`}>

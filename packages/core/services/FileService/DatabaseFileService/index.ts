@@ -15,10 +15,12 @@ import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import { Environment, HIDDEN_UID_ANNOTATION } from "../../../constants";
+import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
+import resolvePathIsArray from "../../../entity/resolvePathIsArray";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
 // Helper function to determine if a value is a nested metadata object
@@ -260,7 +262,7 @@ export default class DatabaseFileService implements FileService {
 
         const select_key = "num_files";
         const sql = fileSet
-            .toQuerySQLBuilder()
+            .toQuerySQLBuilder(await this.fetchPathIsArrayByName())
             .select(`COUNT(*) AS ${select_key}`)
             .from(this.dataSourceNames)
             // Remove sort if present
@@ -292,7 +294,7 @@ export default class DatabaseFileService implements FileService {
             return [];
         }
         const sql = request.fileSet
-            .toQuerySQLBuilder()
+            .toQuerySQLBuilder(await this.fetchPathIsArrayByName())
             .from(this.dataSourceNames)
             .offset(request.from * request.limit)
             .limit(request.limit)
@@ -329,16 +331,43 @@ export default class DatabaseFileService implements FileService {
         return files[0];
     }
 
-    private getSelectionSql(
+    public static getSelectionSql(
         annotations: string[],
         selections: Selection[],
-        format: "csv" | "json" | "parquet" = "csv"
+        format: "csv" | "json" | "parquet",
+        dataSourceNames: string[],
+        pathIsArrayByName: Map<string, boolean[]>
     ): string {
-        const sqlBuilder = new SQLBuilder()
+        const subQueries: string[] = [];
+        selections.forEach((selection) => {
+            selection.indexRanges.forEach((indexRange) => {
+                const subQuery = new SQLBuilder()
+                    .select(HIDDEN_UID_ANNOTATION)
+                    .from(dataSourceNames)
+                    .where(FileFilter.toListOfWhereClauses(selection.filters, pathIsArrayByName))
+                    .offset(indexRange.start)
+                    .limit(indexRange.end - indexRange.start + 1);
+
+                if (selection.sort) {
+                    subQuery.orderBy(
+                        selection.sort.toOrderByClause(
+                            resolvePathIsArray(
+                                selection.sort.annotationName,
+                                selection.sort.path.length,
+                                pathIsArrayByName
+                            )
+                        )
+                    );
+                }
+                subQueries.push(`${HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`);
+            });
+        });
+
+        return new SQLBuilder()
             .select(DatabaseFileService.buildManifestSelectColumns(annotations, format))
-            .from(this.dataSourceNames);
-        DatabaseFileService.applySelectionFilters(sqlBuilder, selections, this.dataSourceNames);
-        return sqlBuilder.toSQL();
+            .from(dataSourceNames)
+            .where(subQueries.join(" OR "))
+            .toSQL();
     }
 
     public async getManifest(
@@ -351,7 +380,13 @@ export default class DatabaseFileService implements FileService {
                 "Only CSV manifest is supported at this time for downloading from Database"
             );
         }
-        const sql = this.getSelectionSql(annotations, selections, format);
+        const sql = DatabaseFileService.getSelectionSql(
+            annotations,
+            selections,
+            format,
+            this.dataSourceNames,
+            await this.fetchPathIsArrayByName()
+        );
         const buffer = await this.databaseService.saveQuery(uniqueId(), sql, format);
         // ISOString is `YYYY-MM-DDTHH:mm:ss.sssZ`
         const dateTime = new Date().toISOString().replaceAll(":", "-");
@@ -367,53 +402,14 @@ export default class DatabaseFileService implements FileService {
         selections: Selection[],
         format: "csv" | "json" | "parquet"
     ): Promise<DownloadResult> {
-        return this.handleFileDownload(
-            this.getSelectionSql(annotations, selections, format),
-            format
+        const sql = DatabaseFileService.getSelectionSql(
+            annotations,
+            selections,
+            format,
+            this.dataSourceNames,
+            await this.fetchPathIsArrayByName()
         );
-    }
-
-    /**
-     * Processes selections and applies WHERE clause directly to the SQLBuilder.
-     */
-    public static applySelectionFilters(
-        sqlBuilder: SQLBuilder,
-        selections: Selection[],
-        dataSourceNames: string[]
-    ): void {
-        const subQueries: string[] = [];
-
-        selections.forEach((selection) => {
-            selection.indexRanges.forEach((indexRange) => {
-                const subQuery = new SQLBuilder()
-                    .select(HIDDEN_UID_ANNOTATION)
-                    .from(dataSourceNames)
-                    .offset(indexRange.start)
-                    .limit(indexRange.end - indexRange.start + 1);
-
-                DatabaseFileService.applyFiltersAndSorting(subQuery, selection);
-                subQueries.push(`${HIDDEN_UID_ANNOTATION} IN (${subQuery.toSQL()})`);
-            });
-        });
-        // sqlBuilder whereOr isnt implemented, so we add our own "OR"
-        sqlBuilder.where(subQueries.join(" OR "));
-    }
-
-    /**
-     * Applies filters and sorting to a query. ie Column names, if none then use annotationName
-     */
-    public static applyFiltersAndSorting(subQuery: SQLBuilder, selection: Selection): void {
-        // Group by annotation name: same-name filters are OR'd, different names are AND'd
-        const grouped = selection.filters.reduce((acc, f) => {
-            acc[f.name] = [...(acc[f.name] || []), f];
-            return acc;
-        }, {} as { [key: string]: FileFilter[] });
-        Object.values(grouped).forEach((filters) => {
-            subQuery.where(filters.map((f) => f.toSQLWhereString()).join(" OR "));
-        });
-        if (selection.sort) {
-            subQuery.orderBy(selection.sort.toOrderByClause());
-        }
+        return this.handleFileDownload(sql, format);
     }
 
     /**
@@ -459,5 +455,15 @@ export default class DatabaseFileService implements FileService {
             WHERE ${HIDDEN_UID_ANNOTATION} = '${fileId}'; \
         `;
         return this.databaseService.execute(sql);
+    }
+
+    /**
+     * Build the `name -> pathIsArray` map.
+     *
+     * Fetching the annotations should be O(1) since it is cached
+     */
+    private async fetchPathIsArrayByName(): Promise<Map<string, boolean[]>> {
+        const annotations = await this.databaseService.fetchAnnotations(this.dataSourceNames);
+        return Annotation.pathIsArrayByName(annotations);
     }
 }

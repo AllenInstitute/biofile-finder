@@ -45,11 +45,11 @@ export default function ListRow(props: Props) {
         return null;
     }
 
-    const breadcrumbs = item.breadcrumbs ? `${item.breadcrumbs.join(" / ")} / ` : undefined;
+    const breadcrumbs = item.breadcrumbs ? `${item.breadcrumbs.join(" : ")} : ` : undefined;
     let tooltip: string | undefined;
     if (item.breadcrumbs && item.description)
-        tooltip = `${breadcrumbs}${item.value}: ${item.description}`;
-    else if (item.breadcrumbs) tooltip = `${breadcrumbs}${item.value}`;
+        tooltip = `${breadcrumbs}${item.displayValue}: ${item.description}`;
+    else if (item.breadcrumbs) tooltip = `${breadcrumbs}${item.displayValue}`;
     else if (item.description) tooltip = item.description;
 
     return (

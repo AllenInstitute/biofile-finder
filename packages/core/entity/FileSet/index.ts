@@ -7,6 +7,7 @@ import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
 import SQLBuilder from "../SQLBuilder";
 import FileDetail from "../FileDetail";
+import resolvePathIsArray from "../resolvePathIsArray";
 
 interface Opts {
     fileService: FileService;
@@ -183,53 +184,25 @@ export default class FileSet {
     /**
      * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses.
      *
-     * Nested sub-field filters sharing the same root parent column are automatically
-     * correlated: they use list_filter to ensure all conditions match the SAME array
-     * element (rather than checking each sub-field independently across the whole array).
+     * `pathIsArrayByName` supplies the schema-derived STRUCT[] flags (keyed by dotted
+     * annotation name) that nested filters and sorts need at SQL-generation time; see
+     * resolvePathIsArray. Callers build it from the active data source's annotations.
      */
-    public toQuerySQLBuilder(): SQLBuilder {
-        // Separate flat (path.length === 1) filters from nested sub-field filters
-        const flatFilters: FileFilter[] = [];
-        const nestedByParent = new Map<string, FileFilter[]>();
-
-        for (const filter of this.filters) {
-            if (filter.path.length <= 1) {
-                flatFilters.push(filter);
-            } else {
-                const parent = filter.path[0];
-                const group = nestedByParent.get(parent) ?? [];
-                group.push(filter);
-                nestedByParent.set(parent, group);
-            }
-        }
-
-        // Group flat filters by annotation name (same name = OR'd, different names = AND'd)
-        const flatGrouped = flatFilters.reduce((map, filter) => {
-            const key = filter.name;
-            return {
-                ...map,
-                [key]: key in map ? [...map[key], filter] : [filter],
-            };
-        }, {} as { [key: string]: FileFilter[] });
-
-        const sqlBuilder = new SQLBuilder();
-
-        // Apply sort
-        if (this.sort) sqlBuilder.orderBy(this.sort.toOrderByClause());
-
-        // Flat filters: each annotation group is one WHERE clause
-        Object.entries(flatGrouped).forEach(([_, appliedFilters]) => {
-            sqlBuilder.where(
-                appliedFilters.map((filter) => filter.toSQLWhereString()).join(" OR ")
+    public toQuerySQLBuilder(pathIsArrayByName: Map<string, boolean[]>): SQLBuilder {
+        const sqlBuilder = new SQLBuilder().where(
+            FileFilter.toListOfWhereClauses(this.filters, pathIsArrayByName)
+        );
+        if (this.sort) {
+            sqlBuilder.orderBy(
+                this.sort.toOrderByClause(
+                    resolvePathIsArray(
+                        this.sort.annotationName,
+                        this.sort.path.length,
+                        pathIsArrayByName
+                    )
+                )
             );
-        });
-
-        // Nested filters: correlate all sub-field filters sharing the same parent
-        // so that conditions are tested against the same array element
-        for (const [_, parentFilters] of nestedByParent) {
-            sqlBuilder.where(FileFilter.toSQLWhereStringForNestedSiblings(parentFilters));
         }
-
         return sqlBuilder;
     }
 

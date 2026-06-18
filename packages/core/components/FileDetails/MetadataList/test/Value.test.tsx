@@ -22,8 +22,8 @@ describe("<Value />", () => {
                 annotation={makeAnnotation()}
                 value="hello world"
                 isLongValue={false}
-                isExpanded={false}
-                setIsExpanded={sinon.stub()}
+                isCollapsed={true}
+                setIsCollapsed={sinon.stub()}
                 onContextMenu={() => sinon.stub()}
             />
         );
@@ -41,8 +41,8 @@ describe("<Value />", () => {
                 annotation={annotation}
                 value="https://example.com"
                 isLongValue={false}
-                isExpanded={false}
-                setIsExpanded={sinon.stub()}
+                isCollapsed={true}
+                setIsCollapsed={sinon.stub()}
                 onContextMenu={() => sinon.stub()}
             />
         );
@@ -57,8 +57,8 @@ describe("<Value />", () => {
                 annotation={makeAnnotation()}
                 value="long text"
                 isLongValue={true}
-                isExpanded={false}
-                setIsExpanded={sinon.stub()}
+                isCollapsed={true}
+                setIsCollapsed={sinon.stub()}
                 onContextMenu={() => sinon.stub()}
             />
         );
@@ -71,8 +71,8 @@ describe("<Value />", () => {
                 annotation={makeAnnotation()}
                 value="short"
                 isLongValue={false}
-                isExpanded={false}
-                setIsExpanded={sinon.stub()}
+                isCollapsed={true}
+                setIsCollapsed={sinon.stub()}
                 onContextMenu={() => sinon.stub()}
             />
         );

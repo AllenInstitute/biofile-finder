@@ -14,6 +14,7 @@ describe("Metadata selectors", () => {
                 annotationName: ["Well", "Dose", "Unit"],
                 description: "Dose unit",
                 type: AnnotationType.STRING,
+                pathIsArray: [true, false, false],
             });
             const state = mergeState(initialState, {
                 metadata: { annotations: [nested] },

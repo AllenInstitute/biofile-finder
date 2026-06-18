@@ -49,7 +49,7 @@ export default function QueryGroupRow(props: Props) {
     const baseMargin = isInteractive ? 8 : 0;
     const marginLeft = props.item.disabled ? baseMargin : props.index * 16 + baseMargin;
 
-    const prefixText = prefixParts.length ? `${prefixParts.join(" / ")} / ` : "";
+    const prefixText = prefixParts.length ? `${prefixParts.join(" : ")} : ` : "";
     const tooltip = `${prefixText}${props.item.title}\n${props.item.description ?? ""}`;
 
     return (

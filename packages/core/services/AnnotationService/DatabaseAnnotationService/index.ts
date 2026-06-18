@@ -1,7 +1,7 @@
 import { isNil, uniq } from "lodash";
 
 import AnnotationService, { AnnotationDetails } from "..";
-import DatabaseService, { CancellablePromise } from "../../DatabaseService";
+import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
@@ -9,6 +9,7 @@ import Annotation, { AnnotationValue } from "../../../entity/Annotation";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH, Source } from "../../../entity/SearchParams";
+import { hasArrayBeforeLeaf } from "../../../entity/resolvePathIsArray";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
 interface Config {
@@ -106,45 +107,33 @@ export default class DatabaseAnnotationService implements AnnotationService {
         path: string[],
         filters: FileFilter[]
     ): Promise<string[]> {
-        const filtersByAnnotation = filters.reduce(
-            (map, filter) => ({
-                ...map,
-                [filter.name]: map[filter.name] ? [...map[filter.name], filter] : [filter],
-            }),
-            {} as { [name: string]: FileFilter[] }
-        );
-
         const nameToAnnotationMap = await this.fetchNameToAnnotationMap();
-        hierarchy
-            // Map before filter because index is important to map to the path
-            .forEach((annotation, index) => {
-                if (!filtersByAnnotation[annotation]) {
-                    filtersByAnnotation[annotation] = [
-                        index < path.length
-                            ? new FileFilter(
-                                  annotation,
-                                  path[index],
-                                  FilterType.DEFAULT,
-                                  nameToAnnotationMap.get(annotation)?.type,
-                                  nameToAnnotationMap.get(annotation)?.pathIsArray
-                              )
-                            : new IncludeFilter(
-                                  annotation,
-                                  nameToAnnotationMap.get(annotation)?.pathIsArray
-                              ), // If no value provided in hierarchy, equivalent to Include filter
-                    ];
-                }
-            });
+        const annotationNamesInFilters = new Set(filters.map((f) => f.name));
+        const hierarchyAsFilters = hierarchy
+            // Map hierarchy annotations to filters
+            .map((annotation, index) =>
+                index < path.length
+                    ? new FileFilter(
+                          annotation,
+                          path[index],
+                          FilterType.DEFAULT,
+                          nameToAnnotationMap.get(annotation)?.type
+                      )
+                    : new IncludeFilter(annotation)
+            )
+            // Exclude any filters that already exist for these hierarchy annotations
+            .filter((filter) => !annotationNamesInFilters.has(filter.name));
 
-        return this.fetchFilteredValuesForAnnotation(hierarchy[path.length], filtersByAnnotation);
+        return this.fetchFilteredValuesForAnnotation(hierarchy[path.length], [
+            ...filters,
+            ...hierarchyAsFilters,
+        ]);
     }
 
     // Given a particular annotation in the hierarchy list, apply filters to the files in that category
     private async fetchFilteredValuesForAnnotation(
         annotation: string,
-        filtersByAnnotation: {
-            [name: string]: FileFilter[];
-        } = {}
+        filters: FileFilter[] = []
     ): Promise<string[]> {
         if (!this.dataSourceNames.length) {
             return [];
@@ -156,46 +145,28 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         let selectExpr: string;
         if (annotationMeta?.isSubField && annotationMeta.path.length > 1) {
-            // For nested sub-fields, unnest the list_transform expression and alias it.
-            // DISTINCT is intentionally omitted here: DuckDB does not support
-            // "SELECT DISTINCT unnest(...)" — JS-side uniq() deduplicates instead.
-            selectExpr = `unnest(${SQLBuilder.buildNestedAccessExpression(
+            const accessExpr = SQLBuilder.buildNestedAccessExpression(
                 annotationMeta.path,
                 annotationMeta.pathIsArray
-            )}) AS "${annotation}"`;
+            );
+            if (annotationMeta.hasNestedArray) {
+                selectExpr = `unnest(${accessExpr}) AS "${annotation}"`;
+            } else {
+                selectExpr = `DISTINCT ${accessExpr} AS "${annotation}"`;
+            }
         } else {
             selectExpr = `DISTINCT "${annotation}"`;
         }
 
-        const sqlBuilder = new SQLBuilder().select(selectExpr).from(this.dataSourceNames);
-
-        // Separate flat vs nested filters, correlating nested sub-field filters
-        // that share the same root parent (ensures same-element matching)
-        const flatGroups: { [key: string]: FileFilter[] } = {};
-        const nestedByParent = new Map<string, FileFilter[]>();
-
-        Object.keys(filtersByAnnotation).forEach((annotationToFilter) => {
-            const appliedFilters = filtersByAnnotation[annotationToFilter];
-            const sample = appliedFilters[0];
-            if (sample && sample.path.length > 1) {
-                const parent = sample.path[0];
-                const group = nestedByParent.get(parent) ?? [];
-                group.push(...appliedFilters);
-                nestedByParent.set(parent, group);
-            } else {
-                flatGroups[annotationToFilter] = appliedFilters;
-            }
-        });
-
-        Object.values(flatGroups).forEach((appliedFilters) => {
-            sqlBuilder.where(
-                appliedFilters.map((filter) => filter.toSQLWhereString()).join(" OR ")
+        const sqlBuilder = new SQLBuilder()
+            .select(selectExpr)
+            .from(this.dataSourceNames)
+            .where(
+                FileFilter.toListOfWhereClauses(
+                    filters,
+                    Annotation.pathIsArrayByName([...nameToAnnotationMap.values()])
+                )
             );
-        });
-
-        for (const [_, parentFilters] of nestedByParent) {
-            sqlBuilder.where(FileFilter.toSQLWhereStringForNestedSiblings(parentFilters));
-        }
 
         const rows = await this.databaseService.query(sqlBuilder.toSQL()).promise;
         const rowsSplitByDelimiter = rows
@@ -229,10 +200,11 @@ export default class DatabaseAnnotationService implements AnnotationService {
         const hierarchyNotNullExprs = annotations.map((annotation) => {
             const meta = nameToAnnotationMap.get(annotation);
             if (meta?.isSubField && meta.path.length > 1) {
-                return `len(${SQLBuilder.buildNestedAccessExpression(
+                const accessExpr = SQLBuilder.buildNestedAccessExpression(
                     meta.path,
                     meta.pathIsArray
-                )}) > 0`;
+                );
+                return meta.hasNestedArray ? `len(${accessExpr}) > 0` : `${accessExpr} IS NOT NULL`;
             }
             return `"${annotation}" IS NOT NULL`;
         });
@@ -280,24 +252,14 @@ export default class DatabaseAnnotationService implements AnnotationService {
      * and the annotation name, to help compute column widths in the UI.
      */
     public async fetchOptimalWidthForAnnotations(
-        annotationNames: string[],
+        annotations: Annotation[],
         ignoreWidthLimit = false
     ): Promise<Map<string, number>> {
         // Try to fetch values for new annotations to compute optimal column widths
         const widthByAnnotation: Map<string, number> = new Map();
         try {
-            const fetchQuery = this.fetchLengthiestValues(annotationNames);
-            // Set a timeout on this query in case it takes too long to return,
-            // since it could potentially be slow for annotations with very long values
-            // which is fine and we will just cancel it and fall back to default column widths in that case
-            const timeoutPromise = new Promise<never>((_, reject) =>
-                setTimeout(() => {
-                    fetchQuery.cancel?.();
-                    reject(new Error("Timeout fetching annotation values"));
-                }, 1000)
-            );
-            const annotationToLength = await Promise.race([fetchQuery.promise, timeoutPromise]);
-            for (const [annotation, length] of Object.entries(annotationToLength)) {
+            const annotationToLength = await this.fetchLengthiestValues(annotations);
+            for (const [annotation, length] of annotationToLength.entries()) {
                 // Grab whichever is longer, the longest value or the header
                 // to compute the column width needed to fit this column without truncation
                 const maxLengthOfColumn = Math.max(length, annotation.length);
@@ -317,14 +279,14 @@ export default class DatabaseAnnotationService implements AnnotationService {
         } catch {
             // If fetching values fails entirely, fall through to default widths
         }
-        for (const annotationName of annotationNames) {
-            if (!widthByAnnotation.has(annotationName)) {
-                widthByAnnotation.set(annotationName, DEFAULT_COLUMN_WIDTH);
+        for (const annotation of annotations) {
+            if (!widthByAnnotation.has(annotation.displayName)) {
+                widthByAnnotation.set(annotation.displayName, DEFAULT_COLUMN_WIDTH);
             }
         }
         for (const annotation of TOP_LEVEL_FILE_ANNOTATIONS) {
-            if (!widthByAnnotation.has(annotation.name)) {
-                widthByAnnotation.set(annotation.name, DEFAULT_COLUMN_WIDTH);
+            if (!widthByAnnotation.has(annotation.displayName)) {
+                widthByAnnotation.set(annotation.displayName, DEFAULT_COLUMN_WIDTH);
             }
         }
         return widthByAnnotation;
@@ -334,39 +296,60 @@ export default class DatabaseAnnotationService implements AnnotationService {
      * Fetch the length of the longest value for each annotation, which can be used to compute optimal column widths in the UI.
      * This is a bit of a hack, but it allows us to avoid fetching all values for an annotation just to compute column widths.
      */
-    private fetchLengthiestValues(
-        annotationNames: string[]
-    ): CancellablePromise<{ [annotation: string]: number }> {
-        if (!this.dataSourceNames.length || annotationNames.length === 0) {
-            return { promise: Promise.resolve({}) };
+    private async fetchLengthiestValues(annotations: Annotation[]): Promise<Map<string, number>> {
+        if (!this.dataSourceNames.length || annotations.length === 0) {
+            return new Map();
         }
+
+        // Sub-field annotations (e.g. "Well.Column"): use list_max over the
+        // extracted element list rather than casting the whole column.
+        // Flat annotations: (e.g. "Color"): uses a direct CAST
+        const selectExprs = annotations.map((annotation) => {
+            const escapedName = annotation.displayName.replaceAll("'", "''");
+            if (!annotation.isSubField) {
+                return `MAX(LENGTH(CAST("${escapedName}" AS VARCHAR))) AS "${escapedName}"`;
+            }
+
+            if (hasArrayBeforeLeaf(annotation.pathIsArray)) {
+                const listExpr = SQLBuilder.buildNestedAccessExpression(
+                    annotation.path,
+                    annotation.pathIsArray,
+                    (leaf) => `LENGTH(CAST(${leaf} AS VARCHAR))`
+                );
+                return `MAX(list_max(${listExpr})) AS "${escapedName}"`;
+            }
+
+            const accessExpr = SQLBuilder.buildNestedAccessExpression(
+                annotation.path,
+                annotation.pathIsArray
+            );
+            return `MAX(LENGTH(CAST(${accessExpr} AS VARCHAR))) AS "${escapedName}"`;
+        });
 
         const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
         const sql = new SQLBuilder()
-            .select(
-                annotationNames
-                    .map(
-                        (annotation) =>
-                            `MAX(LENGTH(CAST("${annotation}" AS VARCHAR))) AS "${annotation}"`
-                    )
-                    .join(", ")
-            )
+            .select(selectExprs.join(", "))
             .from(aggregateDataSourceName)
             .toSQL();
+        let results = await this.queryWithTimeout<{ [annotation: string]: number }>(sql);
 
-        const query = this.databaseService.query<{ [annotation: string]: number }>(sql);
-        return {
-            promise: query.promise.then((results): { [annotation: string]: number } => {
-                const annotationToLength: { [annotation: string]: number } = {};
-                for (const row of results) {
-                    for (const [annotation, length] of Object.entries(row)) {
-                        annotationToLength[annotation] = length;
-                    }
-                }
-                return annotationToLength;
-            }),
-            cancel: query.cancel,
-        };
+        // Try smaller set for a "good-enough" estimate
+        if (!results) {
+            const sampleSetSql = `SELECT ${selectExprs.join(
+                ", "
+            )} FROM (SELECT * FROM "${aggregateDataSourceName}" LIMIT 5000)`;
+            results = await this.queryWithTimeout<{ [annotation: string]: number }>(sampleSetSql);
+            // Fall-back to empty map if still timing out
+            if (!results) return new Map();
+        }
+
+        const annotationToLength: Map<string, number> = new Map();
+        for (const row of results) {
+            for (const [annotation, length] of Object.entries(row)) {
+                annotationToLength.set(annotation, length);
+            }
+        }
+        return annotationToLength;
     }
 
     /**
@@ -385,6 +368,20 @@ export default class DatabaseAnnotationService implements AnnotationService {
             annotation.name,
             annotation.description
         );
+    }
+
+    // Query with a timeout, cancelling the query and returning undefined
+    // if the query fails to complete within the specified time limit
+    private queryWithTimeout<T>(sql: string, timeoutMs = 1000): Promise<T[] | undefined> {
+        const query = this.databaseService.query<T>(sql);
+        const timeoutPromise = new Promise<undefined>((resolve) =>
+            setTimeout(() => {
+                query.cancel?.();
+                // Failed to fetch within time
+                resolve(undefined);
+            }, timeoutMs)
+        );
+        return Promise.race([query.promise, timeoutPromise]);
     }
 
     private async fetchNameToAnnotationMap(): Promise<Map<string, Annotation>> {

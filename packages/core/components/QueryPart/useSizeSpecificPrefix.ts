@@ -1,13 +1,13 @@
 import * as React from "react";
 
-const VISUAL_SEPARATOR = " / ";
+const VISUAL_SEPARATOR = " : ";
 const ELLIPSIS = "…";
 
 /**
  * Build the breadcrumb prefix string that keeps the last `keptTrailing` whole parent segments.
- * - keptTrailing === parents.length -> the full prefix, no ellipsis ("A / B / ").
- * - 0 < keptTrailing < length      -> "… / B / " (oldest parents dropped, never the middle).
- * - keptTrailing === 0             -> "… / ".
+ * - keptTrailing === parents.length -> the full prefix, no ellipsis ("A : B : ").
+ * - 0 < keptTrailing < length      -> "… : B : " (oldest parents dropped, never the middle).
+ * - keptTrailing === 0             -> "… : ".
  */
 export function buildPrefix(parents: string[], keptTrailing: number): string {
     if (keptTrailing >= parents.length) {
@@ -19,8 +19,8 @@ export function buildPrefix(parents: string[], keptTrailing: number): string {
 
 /**
  * Choose how much of the prefix to show based on the available width, keeping as many WHOLE
- * trailing parents as fit (e.g. "… / Parent / Column"); parents are only ever dropped from the
- * front, never the middle. Returns the prefix string to render, or null when not even "… / " fits
+ * trailing parents as fit (e.g. "… : Parent : Column"); parents are only ever dropped from the
+ * front, never the middle. Returns the prefix string to render, or null when not even "… : " fits
  * alongside the leaf (in which case the leaf is shown alone and truncates from its start).
  */
 export default function useSizeSpecificPrefix(
@@ -59,9 +59,6 @@ export default function useSizeSpecificPrefix(
         leafElement.current = el;
     }, []);
 
-    // Stable dependency for the effect (array identity changes every render).
-    const parentsKey = parents.join(" / ");
-
     React.useLayoutEffect(() => {
         const rowTitle = rowTitleRef.current;
         if (!parents.length || !rowTitle) {
@@ -80,7 +77,7 @@ export default function useSizeSpecificPrefix(
                     return;
                 }
             }
-            // if not even "… / " + leaf fits -> show leaf only
+            // if not even "… : " + leaf fits -> show leaf only
             setPrefix(null);
         };
         measure();
@@ -98,7 +95,7 @@ export default function useSizeSpecificPrefix(
             observer.disconnect();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [parentsKey, leaf]);
+    }, [parents.join("."), leaf]);
 
     return { prefix, rowTitleRef, iconRef, probeRef, leafProbeRef };
 }

@@ -78,7 +78,7 @@ describe("<MetadataList />", () => {
             );
 
             // Act
-            const { findByText } = render(
+            const { findAllByText } = render(
                 <Provider store={store}>
                     <MetadataList isLoading={false} file={file} />
                 </Provider>
@@ -86,10 +86,10 @@ describe("<MetadataList />", () => {
 
             // Assert
             await Promise.all([
-                findByText("File Path (Cloud)"),
-                findByText(`https://s3.us-west-2.amazonaws.com/${filePath}`),
-                findByText("File Path (Local VAST)"),
-                findByText(`${hostMountPoint}/${fileName}`),
+                findAllByText("File Path (Cloud)"),
+                findAllByText(`https://s3.us-west-2.amazonaws.com/${filePath}`),
+                findAllByText("File Path (Local VAST)"),
+                findAllByText(`${hostMountPoint}/${fileName}`),
             ]);
         });
 
@@ -129,7 +129,7 @@ describe("<MetadataList />", () => {
             );
 
             // Act
-            const { getByText } = render(
+            const { getByText, getAllByText } = render(
                 <Provider store={store}>
                     <MetadataList isLoading={false} file={file} />
                 </Provider>
@@ -139,7 +139,7 @@ describe("<MetadataList />", () => {
             expect(() => getByText("File Path (Local VAST)")).to.throw();
             ["File Path (Cloud)", `https://s3.us-west-2.amazonaws.com/${filePath}`].forEach(
                 (cellText) => {
-                    expect(getByText(cellText)).to.not.be.undefined;
+                    expect(getAllByText(cellText).length).to.be.greaterThan(0);
                 }
             );
         });
@@ -177,15 +177,15 @@ describe("<MetadataList />", () => {
             );
 
             // Act
-            const { findByText } = render(
+            const { findAllByText } = render(
                 <Provider store={store}>
                     <MetadataList isLoading={false} file={file} />
                 </Provider>
             );
 
             // Assert
-            expect(await findByText("File Path (Local VAST)")).to.not.be.undefined;
-            expect(await findByText("Copying to VAST in progress…")).to.not.be.undefined;
+            expect(await findAllByText("File Path (Local VAST)")).to.not.be.empty;
+            expect(await findAllByText("Copying to VAST in progress…")).to.not.be.empty;
         });
     });
 });

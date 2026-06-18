@@ -16,9 +16,3 @@
     width: var(--toggle-button-size);
     height: var(--toggle-button-size);
 }
-
-/* TODO: Improve this separator (visually) */
-.separator {
-    padding: 16px 0;
-    width: 100%;
-}

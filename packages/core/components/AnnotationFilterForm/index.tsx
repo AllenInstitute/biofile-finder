@@ -94,13 +94,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         const formattedValue = props.annotation.formatter.valueOf(item.value);
         const value = isNil(formattedValue) ? item.value : formattedValue;
 
-        return new FileFilter(
-            props.annotation.name,
-            value,
-            filterType,
-            props.annotation.type,
-            props.annotation.pathIsArray
-        );
+        return new FileFilter(props.annotation.name, value, filterType, props.annotation.type);
     };
 
     const onFilterTypeOptionChange = (option: IChoiceGroupOption | undefined) => {
@@ -131,13 +125,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             dispatch(
                 selection.actions.setFileFilters([
                     ...allFilters.filter((filter) => filter.name !== props.annotation.name),
-                    new FileFilter(
-                        props.annotation.name,
-                        filterValue,
-                        type,
-                        props.annotation.type,
-                        props.annotation.pathIsArray
-                    ),
+                    new FileFilter(props.annotation.name, filterValue, type, props.annotation.type),
                 ])
             );
         }

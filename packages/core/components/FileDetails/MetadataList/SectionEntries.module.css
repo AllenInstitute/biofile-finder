@@ -1,0 +1,7 @@
+/* Label for a single entry within a multi-entry section (e.g. "Treatment entry 1"). */
+.entry-title {
+    padding: 8px 0;
+    font-weight: 600;
+    font-style: italic;
+    opacity: 0.8;
+}

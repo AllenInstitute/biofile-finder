@@ -7,8 +7,9 @@ import { useDispatch, useSelector } from "react-redux";
 import Section from "./Section";
 import Value from "./Value";
 import useDisplayText from "./useDisplayText";
-import FileDetail from "../../../entity/FileDetail";
 import Cell from "../../FileRow/Cell";
+import Tooltip from "../../Tooltip";
+import FileDetail from "../../../entity/FileDetail";
 import { MetadataValue, NestedMetadataValue } from "../../../services/FileService";
 import { interaction, metadata, selection } from "../../../state";
 
@@ -20,6 +21,9 @@ interface Props {
     file: FileDetail;
     /** Current nesting depth, used to drive left-padding on children. */
     depth: number;
+    parents: string[]; // Used to track the path of parent keys for this row
+    isSectionCollapsed: (key: string) => boolean;
+    toggleSection: (key: string) => void;
 }
 
 /**
@@ -36,11 +40,7 @@ export default function Row(props: Props) {
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
 
-    // For groups, represents whether this metadata field is currently
-    // expanded to show its children or collapsed to hide them.
-    // For individual rows, represents whether the value is expanded to show
-    // the full string or collapsed to show a truncated summary.
-    const [isTextValueExpanded, setIsTextValueExpanded] = React.useState(false);
+    const [isTextValueCollapsed, setIsTextValueCollapsed] = React.useState(true);
 
     // TODO: Change this data model to avoid explicit isObject check
     // If the value is an array of objects, treat it as nested metadata and
@@ -50,14 +50,27 @@ export default function Row(props: Props) {
             ? (props.value as NestedMetadataValue[])
             : [];
 
-    const annotation = annotationNameToAnnotationMap.get(props.name);
+    const path = [...props.parents, props.name];
+    const annotation = annotationNameToAnnotationMap.get(path.join("."));
     const { text, emphasize: emphasizeText } = useDisplayText(
         props.file,
-        props.name,
-        props.value,
         annotation,
+        props.value,
         childRows
     );
+
+    if (!annotation) {
+        dispatch(
+            interaction.actions.processError(
+                `<Row />-${props.name}`,
+                `Unexpected internal error. Unable to find column metadata for field "${path.join(
+                    " : "
+                )}". Omitting this field from display.`
+            )
+        );
+        return null;
+    }
+
     if (text === null) {
         // Don't render anything for this metadata field (e.g. if it's still loading or if there is no value to show)
         return null;
@@ -87,24 +100,24 @@ export default function Row(props: Props) {
 
             // If rendering a long value, show expand/collapse options for the value.
             if (isLongValue) {
-                if (isTextValueExpanded) {
-                    contextMenuItems.push({
-                        key: "collapse",
-                        text: "Collapse",
-                        title: "Collapse metadata field",
-                        iconProps: { iconName: "CollapseContent" },
-                        onClick: () => {
-                            setIsTextValueExpanded(false);
-                        },
-                    });
-                } else {
+                if (isTextValueCollapsed) {
                     contextMenuItems.push({
                         key: "expand",
                         text: "Expand",
                         title: "Expand metadata field",
                         iconProps: { iconName: "ExploreContent" },
                         onClick: () => {
-                            setIsTextValueExpanded(true);
+                            setIsTextValueCollapsed(false);
+                        },
+                    });
+                } else {
+                    contextMenuItems.push({
+                        key: "collapse",
+                        text: "Collapse",
+                        title: "Collapse metadata field",
+                        iconProps: { iconName: "CollapseContent" },
+                        onClick: () => {
+                            setIsTextValueCollapsed(true);
                         },
                     });
                 }
@@ -122,15 +135,17 @@ export default function Row(props: Props) {
                 })}
                 columnKey="key"
                 width={1}
-                title={annotation?.description}
+                title={annotation.description}
             >
-                <span
-                    className={styles.keyValue}
-                    onContextMenu={onContextMenuHandlerFactory(props.name)}
-                    style={{ paddingLeft: `calc(${props.depth} * 18px)` }}
-                >
-                    {annotation?.displayName ?? props.name}
-                </span>
+                <Tooltip content={annotation.leafDisplayName} hostClassName={styles.keyTooltipHost}>
+                    <span
+                        className={styles.keyValue}
+                        onContextMenu={onContextMenuHandlerFactory(annotation.leafDisplayName)}
+                        style={{ paddingLeft: `calc(${props.depth} * 18px)` }}
+                    >
+                        {annotation.leafDisplayName}
+                    </span>
+                </Tooltip>
             </Cell>
             <Cell
                 className={classNames(styles.cell, styles.value, {
@@ -143,18 +158,36 @@ export default function Row(props: Props) {
                     annotation={annotation}
                     value={text}
                     emphasize={emphasizeText}
-                    isExpanded={isTextValueExpanded}
+                    isCollapsed={isTextValueCollapsed}
                     isLongValue={isLongValue}
-                    setIsExpanded={setIsTextValueExpanded}
+                    setIsCollapsed={setIsTextValueCollapsed}
                     onContextMenu={onContextMenuHandlerFactory(text)}
                 />
             </Cell>
         </div>
     );
 
+    const sectionParents = [...props.parents, props.name];
+    const sectionKey = sectionParents.join(".");
     return (
-        <Section row={thisRow} childRows={childRows} rowClassName={styles.rowContainer}>
-            {(rowProps) => <Row {...rowProps} file={props.file} depth={props.depth + 1} />}
+        <Section
+            row={thisRow}
+            childRows={childRows}
+            rowClassName={styles.rowContainer}
+            isCollapsed={props.isSectionCollapsed(sectionKey)}
+            onToggle={() => props.toggleSection(sectionKey)}
+            entryLabel={annotation.leafDisplayName}
+        >
+            {(rowProps) => (
+                <Row
+                    {...rowProps}
+                    file={props.file}
+                    depth={props.depth + 1}
+                    parents={sectionParents}
+                    isSectionCollapsed={props.isSectionCollapsed}
+                    toggleSection={props.toggleSection}
+                />
+            )}
         </Section>
     );
 }

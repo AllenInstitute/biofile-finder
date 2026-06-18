@@ -6,7 +6,6 @@ import FileFilter from "../../../../entity/FileFilter";
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
-import SQLBuilder from "../../../../entity/SQLBuilder";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
 import { HIDDEN_UID_ANNOTATION } from "../../../../constants";
@@ -28,6 +27,9 @@ describe("DatabaseFileService", () => {
         protected readonly existingDataSources = new Set(["MockDataSource"]);
         public query(): { promise: Promise<any> } {
             return { promise: Promise.resolve(files) };
+        }
+        public async fetchAnnotations(): Promise<[]> {
+            return [];
         }
     }
     const databaseService = new MockDatabaseService();
@@ -73,6 +75,9 @@ describe("DatabaseFileService", () => {
                 protected readonly existingDataSources = new Set(["parquet_source"]);
                 public query(_sql?: string): { promise: Promise<any> } {
                     return { promise: Promise.resolve(parquetFiles) };
+                }
+                public async fetchAnnotations(): Promise<[]> {
+                    return [];
                 }
             }
             const mockDbService = new MockParquetDatabaseService();
@@ -129,103 +134,6 @@ describe("DatabaseFileService", () => {
             const fileSet = new FileSet();
             const count = await fileService.getCountOfMatchingFiles(fileSet);
             expect(count).to.equal(6);
-        });
-    });
-
-    describe("applySelectionFilters", () => {
-        // Setup
-        let sqlBuilder: SQLBuilder;
-
-        beforeEach(() => {
-            sqlBuilder = new SQLBuilder().select("*").from("mock_source");
-        });
-
-        // the sql we produce has new lines that mess up comparison
-        function normalizeSQL(sql: string): string {
-            return sql.replace(/\s+/g, " ").trim();
-        }
-
-        it("correctly modifies SQLBuilder for single index selections (CTRL selection)", () => {
-            // Arrange
-            const selections = [
-                {
-                    indexRanges: [
-                        { start: 0, end: 0 },
-                        { start: 2, end: 2 },
-                    ], // Two unique files
-                    filters: [],
-                    sort: undefined,
-                },
-            ];
-
-            // Act
-            DatabaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
-            const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
-
-            // Assert
-            expect(modifiedSQL).to.include("LIMIT 1 OFFSET 0");
-            expect(modifiedSQL).to.include("LIMIT 1 OFFSET 2");
-        });
-
-        it("correctly modifies SQLBuilder for contiguous range selections (Shift selection)", () => {
-            // Arrange
-            const selections = [
-                {
-                    indexRanges: [{ start: 0, end: 2 }], // File range
-                    filters: [],
-                    sort: undefined,
-                },
-            ];
-
-            // Act
-            DatabaseFileService.applySelectionFilters(sqlBuilder, selections, ["mock_source"]);
-            const modifiedSQL = normalizeSQL(sqlBuilder.toSQL());
-
-            // Assert
-            expect(modifiedSQL).to.include("LIMIT 3 OFFSET 0");
-        });
-
-        it("correctly applies AND vs OR clauses", () => {
-            const selectionsWithOR = [
-                {
-                    indexRanges: [{ start: 0, end: 2 }], // File range
-                    // Two filters on the SAME annotation are OR'd together
-                    filters: [
-                        new FileFilter("Structure", "structure1"),
-                        new FileFilter("Structure", "structure2"),
-                    ],
-                },
-            ];
-            const selectionsWithAND = [
-                {
-                    indexRanges: [{ start: 0, end: 2 }], // File range
-                    // Filters on DIFFERENT annotations are AND'd together
-                    filters: [
-                        new FileFilter("Cell Line", "AICS-01"),
-                        new FileFilter("Structure", "structure1"),
-                    ],
-                },
-            ];
-            // Make a separate SQLBuilder for comparison
-            const sqlBuilderAND = new SQLBuilder().select("*").from("mock_source");
-
-            // Act
-            DatabaseFileService.applySelectionFilters(sqlBuilder, selectionsWithOR, [
-                "mock_source",
-            ]);
-            const modifiedSQLWithOR = normalizeSQL(sqlBuilder.toSQL());
-            DatabaseFileService.applySelectionFilters(sqlBuilderAND, selectionsWithAND, [
-                "mock_source",
-            ]);
-            const modifiedSQLWithAND = normalizeSQL(sqlBuilderAND.toSQL());
-
-            // Assert
-            // Uses OR within single filter type
-            expect(modifiedSQLWithOR).to.include(" OR ");
-            expect(modifiedSQLWithOR).not.to.include(" AND ");
-            // Uses AND between different filter types
-            expect(modifiedSQLWithAND).to.include(" AND ");
-            expect(modifiedSQLWithAND).not.to.include(" OR ");
         });
     });
 
@@ -355,6 +263,9 @@ describe("DatabaseFileService", () => {
                 ): Promise<Uint8Array> {
                     return Promise.resolve(new Uint8Array());
                 }
+                public async fetchAnnotations(): Promise<[]> {
+                    return [];
+                }
             }
             const mockDbService = new MockParquetManifestService();
             const saveQuerySpy = sandbox.spy(mockDbService, "saveQuery");
@@ -393,6 +304,9 @@ describe("DatabaseFileService", () => {
                 ): Promise<Uint8Array> {
                     return Promise.resolve(new Uint8Array());
                 }
+                public async fetchAnnotations(): Promise<[]> {
+                    return [];
+                }
             }
             const mockDbService = new MockParquetManifestService();
             const databaseFileService = new DatabaseFileService({
@@ -430,6 +344,9 @@ describe("DatabaseFileService", () => {
                 ): Promise<Uint8Array> {
                     return Promise.resolve(new Uint8Array());
                 }
+                public async fetchAnnotations(): Promise<[]> {
+                    return [];
+                }
             }
             const mockDbService = new MockParquetManifestService();
             const saveQuerySpy = sandbox.spy(mockDbService, "saveQuery");
@@ -466,6 +383,9 @@ describe("DatabaseFileService", () => {
                     _format?: string
                 ): Promise<Uint8Array> {
                     return Promise.resolve(new Uint8Array());
+                }
+                public async fetchAnnotations(): Promise<[]> {
+                    return [];
                 }
             }
             const mockDbService = new MockParquetManifestService();
@@ -505,6 +425,9 @@ describe("DatabaseFileService", () => {
                 ): Promise<Uint8Array> {
                     return Promise.resolve(new Uint8Array());
                 }
+                public async fetchAnnotations(): Promise<[]> {
+                    return [];
+                }
             }
             const mockDbService = new MockJsonManifestService();
             const saveQuerySpy = sandbox.spy(mockDbService, "saveQuery");
@@ -525,6 +448,96 @@ describe("DatabaseFileService", () => {
                 `list_transform("Well", __e -> {'Color': __e."Color"}) AS "Well"`
             );
             expect(sql).to.not.include("array_to_string");
+        });
+    });
+
+    describe("getSelectionSql", () => {
+        it("selects the requested annotations from the given data sources", () => {
+            const sql = DatabaseFileService.getSelectionSql(
+                ["File Name", "Cell Line"],
+                [{ indexRanges: [{ start: 0, end: 2 }], filters: [], sort: undefined }],
+                "csv",
+                ["my_source"],
+                new Map()
+            );
+            expect(sql).to.include('SELECT "File Name", "Cell Line"');
+            expect(sql).to.include('"my_source"');
+        });
+
+        it("uses hidden_bff_uid IN (subquery) to scope rows to the selection", () => {
+            const sql = DatabaseFileService.getSelectionSql(
+                ["File ID"],
+                [{ indexRanges: [{ start: 5, end: 7 }], filters: [], sort: undefined }],
+                "csv",
+                ["my_source"],
+                new Map()
+            );
+            expect(sql).to.match(/hidden_bff_uid\s+IN\s*\(/i);
+            expect(sql).to.include("LIMIT 3");
+            expect(sql).to.include("OFFSET 5");
+        });
+
+        it("ORs together multiple index ranges from one selection", () => {
+            const sql = DatabaseFileService.getSelectionSql(
+                ["File ID"],
+                [
+                    {
+                        indexRanges: [
+                            { start: 0, end: 0 },
+                            { start: 4, end: 4 },
+                        ],
+                        filters: [],
+                        sort: undefined,
+                    },
+                ],
+                "csv",
+                ["my_source"],
+                new Map()
+            );
+            // Two separate subqueries joined with OR
+            expect((sql.match(/hidden_bff_uid\s+IN\s*\(/gi) || []).length).to.equal(2);
+            expect(sql).to.include(" OR ");
+        });
+
+        it("ORs together index ranges across multiple selections", () => {
+            const sql = DatabaseFileService.getSelectionSql(
+                ["File ID"],
+                [
+                    {
+                        indexRanges: [{ start: 0, end: 1 }],
+                        filters: [],
+                        sort: undefined,
+                    },
+                    {
+                        indexRanges: [{ start: 10, end: 12 }],
+                        filters: [],
+                        sort: undefined,
+                    },
+                ],
+                "csv",
+                ["my_source"],
+                new Map()
+            );
+            expect((sql.match(/hidden_bff_uid\s+IN\s*\(/gi) || []).length).to.equal(2);
+            expect(sql).to.include(" OR ");
+        });
+
+        it("includes filter WHERE clauses inside each subquery", () => {
+            const sql = DatabaseFileService.getSelectionSql(
+                ["File ID"],
+                [
+                    {
+                        indexRanges: [{ start: 0, end: 1 }],
+                        filters: [new FileFilter("Color", "Orange")],
+                        sort: undefined,
+                    },
+                ],
+                "csv",
+                ["my_source"],
+                new Map()
+            );
+            expect(sql).to.include("Color");
+            expect(sql).to.include("Orange");
         });
     });
 });

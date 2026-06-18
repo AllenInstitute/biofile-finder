@@ -6,7 +6,7 @@ import FileFilter, { FilterType } from "../FileFilter";
  * e.g., only return files that have null/blank values for this annotation.
  */
 export default class ExcludeFilter extends FileFilter {
-    constructor(annotationName: string, pathIsArray?: boolean[]) {
-        super(annotationName, "", FilterType.EXCLUDE, undefined, pathIsArray);
+    constructor(annotationName: string) {
+        super(annotationName, "", FilterType.EXCLUDE);
     }
 }

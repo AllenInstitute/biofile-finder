@@ -17,11 +17,13 @@ describe("<AnnotationPicker />", () => {
             annotationName: ["Well", "Dose", "Unit"],
             description: "Well dose unit",
             type: AnnotationType.STRING,
+            pathIsArray: [true, false, false],
         });
         const mediaUnit = new Annotation({
             annotationName: ["Media", "Unit"],
             description: "Media unit",
             type: AnnotationType.STRING,
+            pathIsArray: [true, false],
         });
         const state = mergeState(initialState, {
             metadata: {

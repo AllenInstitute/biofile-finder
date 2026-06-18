@@ -24,6 +24,23 @@ interface Props {
 export default function MetadataList(props: Props) {
     const { file, isLoading } = props;
 
+    const [collapsedSections, setCollapsedSections] = React.useState<Map<string, boolean>>(
+        new Map()
+    );
+
+    const isSectionCollapsed = React.useCallback(
+        (key: string) => collapsedSections.get(key) ?? false,
+        [collapsedSections]
+    );
+
+    const toggleSection = React.useCallback((key: string) => {
+        setCollapsedSections((prev) => {
+            const next = new Map(prev);
+            next.set(key, !(prev.get(key) ?? false));
+            return next;
+        });
+    }, []);
+
     // Group metadata fields into sections based on their annotation names. If a field's annotation name
     // doesn't fall into any predefined section, put it in an "uncategorized" section at the top.
     const content: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
@@ -55,8 +72,20 @@ export default function MetadataList(props: Props) {
                     key={sectionName}
                     row={<h3 className={styles.sectionTitle}>{sectionName}</h3>}
                     childRows={keyToSectionMap[sectionName]}
+                    isCollapsed={isSectionCollapsed(sectionName)}
+                    onToggle={() => toggleSection(sectionName)}
+                    entryLabel={sectionName}
                 >
-                    {(rowProps) => <Row {...rowProps} file={file} depth={0} />}
+                    {(rowProps) => (
+                        <Row
+                            {...rowProps}
+                            file={file}
+                            depth={0}
+                            parents={[sectionName]}
+                            isSectionCollapsed={isSectionCollapsed}
+                            toggleSection={toggleSection}
+                        />
+                    )}
                 </Section>
             ));
 
@@ -68,14 +97,25 @@ export default function MetadataList(props: Props) {
                     key="uncategorized-metadata"
                     row={<h3 className={styles.sectionTitle}>Metadata</h3>}
                     childRows={[uncategorizedSection]}
+                    isCollapsed={isSectionCollapsed("uncategorized-metadata")}
+                    onToggle={() => toggleSection("uncategorized-metadata")}
                 >
-                    {(rowProps) => <Row {...rowProps} file={file} depth={0} />}
+                    {(rowProps) => (
+                        <Row
+                            {...rowProps}
+                            file={file}
+                            depth={0}
+                            parents={[]}
+                            isSectionCollapsed={isSectionCollapsed}
+                            toggleSection={toggleSection}
+                        />
+                    )}
                 </Section>
             );
         }
 
         return sections;
-    }, [file, isLoading]);
+    }, [file, isLoading, isSectionCollapsed, toggleSection]);
 
     return <div className={styles.list}>{content}</div>;
 }

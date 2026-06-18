@@ -2,7 +2,7 @@ import { isEqual } from "lodash";
 
 import SQLBuilder from "../SQLBuilder";
 import { AnnotationType } from "../AnnotationFormatter";
-import defaultPathIsArray from "../pathIsArray";
+import resolvePathIsArray, { isLeafAnArray, hasArrayBeforeLeaf } from "../resolvePathIsArray";
 import { NO_VALUE_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 
 export interface FileFilterJson {
@@ -28,11 +28,6 @@ export default class FileFilter {
     public readonly value: any;
     public type: FilterType;
     public readonly valueType?: AnnotationType;
-    /**
-     * Which non-leaf path segments are arrays (STRUCT[]). Length = path.length - 1.
-     * Defaults to [true, false, ...] (root is array, rest are scalar structs).
-     */
-    public readonly pathIsArray: boolean[];
     public static readonly FILTER_PATH_SEPARATOR = ",";
 
     public static isFileFilter(candidate: any): candidate is FileFilter {
@@ -40,51 +35,58 @@ export default class FileFilter {
     }
 
     /**
-     * Generate a correlated WHERE clause for multiple sub-field filters that share the
-     * same nested parent. Ensures ALL conditions are satisfied within the SAME array element,
-     * handling arbitrary nesting depth including intermediate STRUCT[] segments.
-     *
-     * Single-array example — ["Items","Color"]="blue" and ["Items","Size"]="Large":
-     *   len(list_filter("Items", __e0 -> CAST(__e0."Color" AS VARCHAR) = 'blue'
-     *       AND CAST(__e0."Size" AS VARCHAR) = 'Large')) > 0
-     *
-     * Double-array example — ["Well","Dose","Unit"]="uM" and ["Well","Color"]="blue"
-     * where both Well and Dose are STRUCT[]:
-     *   len(list_filter("Well", __e0 ->
-     *       len(list_filter(__e0."Dose", __e1 -> CAST(__e1."Unit" AS VARCHAR) = 'uM')) > 0
-     *       AND CAST(__e0."Color" AS VARCHAR) = 'blue')) > 0
-     *
-     * Filters that use ANY/EXCLUDE/FUZZY or target different root parents should NOT be
-     * passed here — they should continue using independent toSQLWhereString() calls.
+     * Convert any mix of filters into SQL WHERE clause strings, one per root column.
+     * Returns a `string[]` so callers can pass the result directly to `SQLBuilder.where()`,
+     * which AND-joins each element as its own clause.
      */
-    public static toSQLWhereStringForNestedSiblings(filters: FileFilter[]): string {
-        if (filters.length === 0) return "1=1";
-
-        // Separate filters into those that can be correlated and those that can't
-        const correlatable: FileFilter[] = [];
-        const independent: FileFilter[] = [];
+    public static toListOfWhereClauses(
+        filters: FileFilter[],
+        pathIsArrayByName: Map<string, boolean[]>
+    ): string[] {
+        const byRoot = new Map<string, FileFilter[]>();
         for (const f of filters) {
-            if (f.path.length > 1 && f.type === FilterType.DEFAULT) {
-                correlatable.push(f);
-            } else {
-                independent.push(f);
-            }
+            const bucket = byRoot.get(f.path[0]) ?? [];
+            bucket.push(f);
+            byRoot.set(f.path[0], bucket);
         }
 
         const clauses: string[] = [];
-
-        // Independent filters emit normally (OR'd within their own group if same name)
-        if (independent.length > 0) {
-            clauses.push(independent.map((f) => f.toSQLWhereString()).join(" OR "));
+        for (const [root, group] of byRoot) {
+            const correlatable: FileFilter[] = [];
+            const independent: FileFilter[] = [];
+            for (const f of group) {
+                const pathIsArray = resolvePathIsArray(f.name, f.path.length, pathIsArrayByName);
+                const isNested = f.path.length > 1;
+                const hasArray = hasArrayBeforeLeaf(pathIsArray);
+                const hasValueAwareFilter = f.type === FilterType.DEFAULT;
+                if (isNested && hasValueAwareFilter && hasArray) {
+                    correlatable.push(f);
+                } else {
+                    independent.push(f);
+                }
+            }
+            if (independent.length > 0) {
+                clauses.push(
+                    independent
+                        .map((f) =>
+                            f.toSimpleWhereClause(
+                                resolvePathIsArray(f.name, f.path.length, pathIsArrayByName)
+                            )
+                        )
+                        .join(" OR ")
+                );
+            }
+            if (correlatable.length > 0) {
+                const inner = FileFilter.buildNestedConditions(
+                    correlatable,
+                    "__e0",
+                    0,
+                    pathIsArrayByName
+                );
+                clauses.push(SQLBuilder.listFilter(`"${root}"`, "__e0", inner));
+            }
         }
-
-        if (correlatable.length > 0) {
-            const parent = correlatable[0].path[0];
-            const innerConditions = FileFilter.buildSiblingConditions(correlatable, "__e0", 0);
-            clauses.push(SQLBuilder.listFilter(`"${parent}"`, "__e0", innerConditions));
-        }
-
-        return clauses.join(" AND ");
+        return clauses;
     }
 
     constructor(
@@ -92,16 +94,12 @@ export default class FileFilter {
         // TODO: Narrow this type to PrimitiveMetadataValue
         value: any,
         type: FilterType = FilterType.DEFAULT,
-        valueType?: AnnotationType,
-        pathIsArray?: boolean[]
+        valueType?: AnnotationType
     ) {
         this.path = Array.isArray(annotationName) ? annotationName : annotationName.split(".");
         this.value = value;
         this.type = value === NO_VALUE_NODE ? FilterType.EXCLUDE : type;
         this.valueType = valueType;
-        // See defaultPathIsArray: schema-derived flags (Annotation.pathIsArray) are authoritative;
-        // this default is only a fallback for paths lacking schema metadata.
-        this.pathIsArray = pathIsArray ?? defaultPathIsArray(this.path);
     }
 
     public get name(): string {
@@ -125,104 +123,67 @@ export default class FileFilter {
         return `${name}=${this.value}`;
     }
 
-    /** Unlike with FileSort, we shouldn't construct a new SQLBuilder since these will
-     * be applied to a pre-existing SQLBuilder.
-     * Instead, generate the string that can be passed into the .where() clause.
+    /**
+     * Generate the SQL condition string for this filter.
+     *
+     * For nested filters: generates conditions on the leaf field and correlates them with an EXISTS or list_filter over the root array, depending on the filter type.
+     * For flat filters: generates a simple condition on the column, or an IS NULL / IS NOT NULL check for ANY/EXCLUDE.
      */
-    public toSQLWhereString(): string {
-        // --- Nested sub-field: derive list expression from path ---
-        if (this.path.length > 1) {
-            const targetColumnExpr = SQLBuilder.buildNestedAccessExpression(
-                this.path,
-                this.pathIsArray
-            );
-            switch (this.type) {
-                case FilterType.ANY:
-                    return `len(${targetColumnExpr}) > 0`;
-                case FilterType.EXCLUDE:
-                    return `("${this.path[0]}" IS NULL OR len(${targetColumnExpr}) = 0)`;
-                case FilterType.FUZZY:
-                    return SQLBuilder.listContains(targetColumnExpr, this.value);
-                default: {
-                    // Type-aware nested filtering: check if any element in the list matches
-                    const range = FileFilter.parseRangeBounds(this.value);
-                    switch (this.valueType) {
-                        case AnnotationType.BOOLEAN:
-                            return `list_has(${targetColumnExpr}, ${this.value})`;
-                        case AnnotationType.NUMBER:
-                            if (range) {
-                                const { min, max } = range;
-                                if (this.valueType === AnnotationType.NUMBER) {
-                                    return SQLBuilder.listFilter(
-                                        targetColumnExpr,
-                                        "__el",
-                                        SQLBuilder.doubleRange("__el", min, max)
-                                    );
-                                }
-                            }
-                            return `list_has(${targetColumnExpr}, TRY_CAST('${this.value}' AS DOUBLE))`;
-                        // }
-                        case AnnotationType.DURATION:
-                            return SQLBuilder.listFilter(
-                                targetColumnExpr,
-                                "__el",
-                                SQLBuilder.durationEquals("__el", this.value)
-                            );
-                        case AnnotationType.DATE:
-                        case AnnotationType.DATETIME:
-                            if (range) {
-                                const { min, max } = range;
-                                return SQLBuilder.listFilter(
-                                    targetColumnExpr,
-                                    "__el",
-                                    SQLBuilder.timestampRange("__el", min, max)
-                                );
-                            }
-                        // Intentionally fall-through if no range
-                        default:
-                            return SQLBuilder.listContains(targetColumnExpr, this.value);
-                    }
-                }
+    public toSimpleWhereClause(pathIsArray: boolean[]): string {
+        const isNested = this.path.length > 1;
+
+        // If nested and an intermediate segment is an array, match by correlating with an inner query that filters the unnested root.
+        if (isNested && hasArrayBeforeLeaf(pathIsArray)) {
+            const targetColumnExpr = SQLBuilder.buildNestedAccessExpression(this.path, pathIsArray);
+            if (this.type === FilterType.ANY) return `len(${targetColumnExpr}) > 0`;
+            if (this.type === FilterType.EXCLUDE)
+                return `("${this.path[0]}" IS NULL OR len(${targetColumnExpr}) = 0)`;
+            if (this.type === FilterType.FUZZY) {
+                const boolList = SQLBuilder.buildNestedAccessExpression(
+                    this.path,
+                    pathIsArray,
+                    (leaf) =>
+                        isLeafAnArray(pathIsArray)
+                            ? SQLBuilder.listRegexContains(leaf, this.value)
+                            : SQLBuilder.regexContains(leaf, this.value)
+                );
+                return `list_has(${boolList}, true)`;
             }
+            // Use the same list_filter approach as the correlated path so that the
+            // condition is tested inside a single lambda, avoiding double list_transform.
+            const inner = FileFilter.buildNestedConditions(
+                [this],
+                "__e0",
+                0,
+                new Map([[this.name, pathIsArray]])
+            );
+            return SQLBuilder.listFilter(`"${this.path[0]}"`, "__e0", inner);
         }
 
-        // --- Flat (whole-column) filter ---
-        const columnName = this.path[0];
-        switch (this.type) {
-            case FilterType.ANY:
-                return `"${columnName}" IS NOT NULL`;
-            case FilterType.EXCLUDE:
-                return `"${columnName}" IS NULL`;
-            case FilterType.FUZZY:
-                return SQLBuilder.regexMatchValueInList(columnName, this.value);
-            default:
-                // TODO: De-duplicate this code
-                const range = FileFilter.parseRangeBounds(this.value);
-                switch (this.valueType) {
-                    case AnnotationType.BOOLEAN:
-                        return `"${columnName}" = ${this.value}`;
-                    case AnnotationType.NUMBER:
-                        if (range) {
-                            const { min, max } = range;
-                            return SQLBuilder.doubleRange(`"${columnName}"`, min, max);
-                        }
-                        // Compare numerically to avoid float/string mismatch: DuckDB stores
-                        // numbers as DOUBLE (e.g. 1.0) but folder paths use string values
-                        // (e.g. "1"), so a regex match on "1" would never match "1.0".
-                        return `CAST("${columnName}" AS DOUBLE) = TRY_CAST('${this.value}' AS DOUBLE)`;
-                    case AnnotationType.DURATION:
-                        return SQLBuilder.durationEquals(`"${columnName}"`, this.value);
-                    case AnnotationType.DATE:
-                    case AnnotationType.DATETIME:
-                        if (range) {
-                            const { min, max } = range;
-                            return SQLBuilder.timestampRange(`"${columnName}"`, min, max);
-                        }
-                    // Intentionally fall-through if no range
-                    default:
-                        return SQLBuilder.regexMatchValueInList(columnName, this.value);
-                }
+        // If nested and leaf is an array match by nested list filtering
+        if (isNested && isLeafAnArray(pathIsArray)) {
+            const listExpr = SQLBuilder.buildNestedAccessExpression(this.path, pathIsArray);
+            if (this.type === FilterType.ANY) return `len(${listExpr}) > 0`;
+            if (this.type === FilterType.EXCLUDE)
+                return `("${this.path[0]}" IS NULL OR len(${listExpr}) = 0)`;
+            if (this.type === FilterType.FUZZY)
+                return SQLBuilder.listRegexContains(listExpr, this.value);
+            return SQLBuilder.listContains(listExpr, this.value);
         }
+
+        // Otherwise, simplest case, match by a scalar condition on the column (or an IS NULL / IS NOT NULL check for ANY/EXCLUDE)
+        const columnExpr = isNested
+            ? SQLBuilder.buildNestedAccessExpression(this.path, pathIsArray)
+            : `"${this.path[0]}"`;
+        if (this.type === FilterType.ANY) return `${columnExpr} IS NOT NULL`;
+        if (this.type === FilterType.EXCLUDE) return `${columnExpr} IS NULL`;
+        if (this.type === FilterType.FUZZY) return SQLBuilder.regexContains(columnExpr, this.value);
+        return SQLBuilder.matchByType(
+            columnExpr,
+            this.value,
+            this.valueType ?? AnnotationType.STRING,
+            isNested
+        );
     }
 
     public toJSON(): FileFilterJson {
@@ -246,135 +207,75 @@ export default class FileFilter {
     }
 
     /**
-     * Recursively build the condition expression for a correlated list_filter lambda.
+     * Recursively builds the condition body for a list_filter lambda over a nested STRUCT[].
      *
-     * `depth` tracks how many path segments have already been consumed by outer list_filter
-     * expressions (depth 0 = inside the root list_filter). `elemVar` is the lambda variable
-     * for the current array level (e.g. "__e0", "__e1").
+     * `accessPrefix` is the DuckDB expression for the current element in the lambda scope:
+     *   - At the root level it is the lambda variable, e.g. `__e0`.
+     *   - After descending through a scalar-STRUCT segment it grows, e.g. `__e0."Dose"`.
+     * `depth` is how many path segments outer list_filter lambdas have already consumed.
      *
-     * At each level:
-     * - Leaf fields (next segment is the last): emit scalar conditions, OR same-field values.
-     * - Intermediate scalar struct fields: continue dot-access in the condition expression.
-     * - Intermediate STRUCT[] fields: emit a nested list_filter and recurse with depth+1.
+     * Three cases per next segment:
+     *   - Leaf        → emit a condition per filter, OR'd together.
+     *   - STRUCT[]    → wrap in a new list_filter with a fresh lambda variable and recurse.
+     *   - Scalar STRUCT → extend the dot-access prefix and recurse in the same lambda scope.
      */
-    private static buildSiblingConditions(
+    private static buildNestedConditions(
         filters: FileFilter[],
-        elemVar: string,
-        depth: number
+        accessPrefix: string,
+        depth: number,
+        pathIsArrayByName: Map<string, boolean[]>
     ): string {
-        // Group filters by their next path segment (path[depth + 1])
-        const byNextSegment = new Map<string, FileFilter[]>();
+        const bySegment = new Map<string, FileFilter[]>();
         for (const f of filters) {
-            const nextSeg = f.path[depth + 1];
-            const group = byNextSegment.get(nextSeg) ?? [];
-            group.push(f);
-            byNextSegment.set(nextSeg, group);
+            const seg = f.path[depth + 1];
+            const bucket = bySegment.get(seg) ?? [];
+            bucket.push(f);
+            bySegment.set(seg, bucket);
         }
 
         const conditions: string[] = [];
-        for (const [segment, group] of byNextSegment) {
-            const fieldAccess = `${elemVar}."${segment}"`;
-            const atLeafLevel = group[0].path.length === depth + 2;
+        for (const [segment, group] of bySegment) {
+            const access = `${accessPrefix}."${segment}"`;
+            const atLeaf = group[0].path.length === depth + 2;
+            // Filters in a correlated group share the same root STRUCT schema, so the
+            // array-ness at this depth is the same for all of them; read it off the first.
+            const groupPathIsArray = resolvePathIsArray(
+                group[0].name,
+                group[0].path.length,
+                pathIsArrayByName
+            );
 
-            if (atLeafLevel) {
-                // Leaf: OR multiple values for the same field
+            if (atLeaf) {
                 const leafConds = group.map((f) =>
-                    FileFilter.buildElementCondition(fieldAccess, f)
+                    isLeafAnArray(groupPathIsArray)
+                        ? SQLBuilder.listContains(access, f.value)
+                        : SQLBuilder.matchByType(
+                              access,
+                              f.value,
+                              f.valueType ?? AnnotationType.STRING,
+                              true
+                          )
                 );
                 conditions.push(`(${leafConds.join(" OR ")})`);
+            } else if (groupPathIsArray[depth + 1]) {
+                // STRUCT[]: open a new list_filter scope with a fresh lambda variable
+                // representing the next segment (depth)
+                const nextVar = `__e${depth + 1}`;
+                const inner = FileFilter.buildNestedConditions(
+                    group,
+                    nextVar,
+                    depth + 1,
+                    pathIsArrayByName
+                );
+                conditions.push(SQLBuilder.listFilter(access, nextVar, inner));
             } else {
-                // Intermediate segment — is it itself a STRUCT[]?
-                const segIsArray = group[0].pathIsArray[depth + 1] === true;
-
-                if (segIsArray) {
-                    // Nested array: introduce another list_filter and recurse
-                    const nextVar = `__e${depth + 1}`;
-                    const innerCond = FileFilter.buildSiblingConditions(group, nextVar, depth + 1);
-                    conditions.push(SQLBuilder.listFilter(fieldAccess, nextVar, innerCond));
-                } else {
-                    // Scalar struct: continue dot-access, group same final leaf for OR
-                    const byLeafPath = new Map<string, FileFilter[]>();
-                    for (const f of group) {
-                        const leafKey = f.path.slice(depth + 2).join(".");
-                        const g = byLeafPath.get(leafKey) ?? [];
-                        g.push(f);
-                        byLeafPath.set(leafKey, g);
-                    }
-                    for (const [, leafGroup] of byLeafPath) {
-                        const leafParts = leafGroup[0].path.slice(depth + 1);
-                        const fullElemPath = `${elemVar}.${leafParts
-                            .map((p) => `"${p}"`)
-                            .join(".")}`;
-                        const leafConds = leafGroup.map((f) =>
-                            FileFilter.buildElementCondition(fullElemPath, f)
-                        );
-                        conditions.push(`(${leafConds.join(" OR ")})`);
-                    }
-                }
+                // Scalar STRUCT: extend the dot-access prefix, stay in the same lambda scope
+                conditions.push(
+                    FileFilter.buildNestedConditions(group, access, depth + 1, pathIsArrayByName)
+                );
             }
         }
 
         return conditions.join(" AND ");
-    }
-
-    /**
-     * Build a single condition expression for testing one filter against an element variable
-     * inside a list_filter lambda. Handles type-aware comparisons.
-     */
-    private static buildElementCondition(fieldAccess: string, filter: FileFilter): string {
-        const escaped = `${filter.value}`.replaceAll("'", "''");
-
-        // Use the shared parseRangeBounds which validates min/max against an allowlist.
-        const range = FileFilter.parseRangeBounds(filter.value);
-        if (range) {
-            const { min, max } = range;
-            if (filter.valueType === AnnotationType.NUMBER) {
-                return SQLBuilder.doubleRange(fieldAccess, min, max);
-            }
-            if (
-                filter.valueType === AnnotationType.DATETIME ||
-                filter.valueType === AnnotationType.DATE
-            ) {
-                return SQLBuilder.timestampRange(fieldAccess, min, max);
-            }
-        }
-        if (filter.valueType === AnnotationType.BOOLEAN) {
-            return `${fieldAccess} = ${filter.value}`;
-        }
-        if (filter.valueType === AnnotationType.NUMBER) {
-            // Compare numerically to avoid CAST(2.0 AS VARCHAR)='2.0' vs '2' mismatch
-            return `CAST(${fieldAccess} AS DOUBLE) = TRY_CAST('${escaped}' AS DOUBLE)`;
-        }
-        if (filter.valueType === AnnotationType.DURATION) {
-            return SQLBuilder.durationEquals(fieldAccess, filter.value);
-        }
-        // If no explicit type but value is numeric, compare as DOUBLE to avoid float/string mismatch
-        // (e.g. CAST(2.0 AS VARCHAR) = '2.0' ≠ '2' but CAST(2.0 AS DOUBLE) = 2.0 = TRY_CAST('2' AS DOUBLE))
-        const asNum = Number(filter.value);
-        if (!isNaN(asNum) && String(filter.value).trim() !== "") {
-            return `CAST(${fieldAccess} AS DOUBLE) = TRY_CAST('${escaped}' AS DOUBLE)`;
-        }
-        // Default: cast to VARCHAR and compare
-        return `CAST(${fieldAccess} AS VARCHAR) = '${escaped}'`;
-    }
-
-    /**
-     * Parse the RANGE(min, max) encoding produced by the number/date range pickers.
-     * Returns sanitized min/max strings, or undefined when the value is not a range.
-     * Centralized so the flat-column and nested-sub-field branches share one definition.
-     *
-     * Both min and max are validated to contain only characters safe for SQL literals
-     * (digits, letters, hyphens, colons, dots, plus, T, Z — covering ISO-8601 dates and
-     * numeric values). Any value that doesn't match is rejected (returns undefined) to
-     * prevent SQL injection through crafted RANGE strings.
-     */
-    private static parseRangeBounds(value: any): { min: string; max: string } | undefined {
-        const match = String(value).match(/^RANGE\((.+),\s*(.+)\)$/);
-        if (!match) return undefined;
-        const [, min, max] = match;
-        // Allow only characters that appear in ISO-8601 timestamps and numeric values.
-        const safe = /^[\w.+\-:TZ]+$/;
-        if (!safe.test(min.trim()) || !safe.test(max.trim())) return undefined;
-        return { min: min.trim(), max: max.trim() };
     }
 }

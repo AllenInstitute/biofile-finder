@@ -8,12 +8,12 @@ import Annotation from "../../../entity/Annotation";
 import styles from "./Value.module.css";
 
 interface Props {
-    annotation: Annotation | undefined;
+    annotation: Annotation;
     value: string;
     emphasize?: boolean;
-    isExpanded: boolean;
+    isCollapsed: boolean;
     isLongValue: boolean;
-    setIsExpanded: (isExpanded: boolean) => void;
+    setIsCollapsed: (isCollapsed: boolean) => void;
     onContextMenu: (evt: React.MouseEvent) => void;
 }
 
@@ -25,17 +25,17 @@ interface Props {
  */
 export default function Value(props: Props) {
     let content: React.ReactNode;
-    if (props.annotation?.isOpenFileLink) {
+    if (props.annotation.isOpenFileLink) {
         content = (
             <a className={styles.link} href={props.value} rel="noreferrer" target="_blank">
                 View link
             </a>
         );
-    } else if (props.annotation?.isMarkdown) {
+    } else if (props.annotation.isMarkdown) {
         content = (
             <MarkdownText
                 className={classNames({
-                    [styles.valueTruncated]: !props.isExpanded && props.isLongValue,
+                    [styles.valueTruncated]: props.isCollapsed && props.isLongValue,
                 })}
                 text={props.value}
             />
@@ -44,7 +44,7 @@ export default function Value(props: Props) {
         content = (
             <div
                 className={classNames({
-                    [styles.valueTruncated]: !props.isExpanded && props.isLongValue,
+                    [styles.valueTruncated]: props.isCollapsed && props.isLongValue,
                 })}
             >
                 {props.emphasize ? <i>{props.value}</i> : props.value}
@@ -57,9 +57,9 @@ export default function Value(props: Props) {
             {content}
             {props.isLongValue && (
                 <ContentLengthToggle
-                    isExpanded={props.isExpanded}
-                    setIsExpanded={props.setIsExpanded}
-                    tooltip={props.isExpanded ? "Collapse text" : "Expand text"}
+                    isCollapsed={props.isCollapsed}
+                    setIsCollapsed={props.setIsCollapsed}
+                    tooltip={props.isCollapsed ? "Expand text" : "Collapse text"}
                 />
             )}
         </span>

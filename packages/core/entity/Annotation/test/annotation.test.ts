@@ -19,6 +19,7 @@ describe("Annotation", () => {
         annotationName: ["Well", "Dose", "Unit"],
         description: "Dose unit",
         type: AnnotationType.STRING,
+        pathIsArray: [true, false, false],
     });
     const flat = new Annotation({
         annotationName: ["Gene"],
@@ -106,22 +107,6 @@ describe("Annotation", () => {
         });
     });
 
-    describe("pathIsArray", () => {
-        it("defaults pathIsArray to root-only-array when not provided", () => {
-            expect(nested.pathIsArray).to.deep.equal([true, false]);
-        });
-
-        it("honors an explicitly provided pathIsArray", () => {
-            const doubleArray = new Annotation({
-                annotationName: ["Well", "Dose", "Unit"],
-                description: "Dose unit",
-                type: AnnotationType.STRING,
-                pathIsArray: [true, true],
-            });
-            expect(doubleArray.pathIsArray).to.deep.equal([true, true]);
-        });
-    });
-
     describe("extractFromFile", () => {
         it("gets the display value for a top-level annotation it represents from a given FmsFile", () => {
             const uploaded = new Date().toISOString();
@@ -203,6 +188,7 @@ describe("Annotation", () => {
                 annotationName: ["Well", "Dose", "Unit"],
                 description: "Dose unit",
                 type: AnnotationType.STRING,
+                pathIsArray: [true, false, false],
             });
             expect(annotation.extractFromFile(fmsFile)).to.equal(`mg${Annotation.SEPARATOR}mL`);
         });

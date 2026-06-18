@@ -1,5 +1,6 @@
 import { castArray } from "lodash";
 
+import { AnnotationType } from "../AnnotationFormatter";
 import { HIDDEN_UID_ANNOTATION } from "../../constants";
 
 /**
@@ -22,14 +23,23 @@ export default class SQLBuilder {
      * of values (,\s*Position,)|(^\s*Position\s*,)|(,\s*Position\s*$)|(^\s*Position\s*$)
      */
     public static regexMatchValueInList(
-        columnOrExpr: string,
-        value: string | boolean | number | null,
-        isExpression = false
+        expr: string,
+        value: string | boolean | number | null
     ): string {
         // Escape special characters for regex
         const escapedValue = `${value}`.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-        const castExpr = isExpression ? columnOrExpr : `CAST("${columnOrExpr}" AS VARCHAR)`;
-        return `REGEXP_MATCHES(${castExpr}, '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
+        return `REGEXP_MATCHES(CAST(${expr} AS VARCHAR), '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
+    }
+
+    /**
+     * Build a case-insensitive substring (contains) match condition:
+     * `REGEXP_MATCHES(CAST(expr AS VARCHAR), '(?i)pattern') = true`.
+     */
+    public static regexContains(expr: string, value: string | boolean | number | null): string {
+        const regexEscaped = `${value}`
+            .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
+            .replaceAll("'", "''");
+        return `REGEXP_MATCHES(CAST(${expr} AS VARCHAR), '(?i)${regexEscaped}') = true`;
     }
 
     /**
@@ -148,6 +158,41 @@ export default class SQLBuilder {
     }
 
     /**
+     * Build a WHERE-clause expression testing whether ANY element of a DuckDB list matches a
+     * case-insensitive substring — the list analog of `regexContains`. Used for FUZZY matching
+     * a leaf that is itself a list (e.g. VARCHAR[]): each element is tested and `list_has`
+     * checks whether any produced a match.
+     *
+     * @param listExpression  A SQL expression producing a DuckDB LIST.
+     * @param value           The substring to search for in each element.
+     */
+    public static listRegexContains(
+        listExpression: string,
+        value: string | boolean | number | null
+    ): string {
+        const perElement = SQLBuilder.listTransform(
+            listExpression,
+            "__el",
+            SQLBuilder.regexContains("__el", value)
+        );
+        return `list_has(${perElement}, true)`;
+    }
+
+    /**
+     * Parse the RANGE(min, max) encoding produced by the number/date range pickers.
+     * Returns sanitized min/max strings, or undefined when the value is not a range.
+     */
+    public static parseRangeBounds(value: any): { min: string; max: string } | undefined {
+        const match = String(value).match(/^RANGE\((.+),\s*(.+)\)$/);
+        if (!match) return undefined;
+        const [, min, max] = match;
+        // Allow only characters that appear in ISO-8601 timestamps and numeric values.
+        const safe = /^[\w.+\-:TZ]+$/;
+        if (!safe.test(min.trim()) || !safe.test(max.trim())) return undefined;
+        return { min: min.trim(), max: max.trim() };
+    }
+
+    /**
      * Build a DuckDB expression that extracts a nested sub-field from a STRUCT[] column,
      * correctly handling intermediate arrays at any depth.
      *
@@ -155,13 +200,21 @@ export default class SQLBuilder {
      * @param pathIsArray Boolean array (length = path.length - 1) indicating which non-leaf
      *                    segments are arrays (STRUCT[]). E.g. [true, true] means both "Well"
      *                    and "Dose" are STRUCT[] columns.
-     * @returns A SQL expression that produces a flat list of leaf values, e.g.:
+     * @param leafTransform Optional function to transform the leaf expression inside the
+     *                    innermost lambda (e.g. `leaf => 'LENGTH(CAST(' + leaf + ' AS VARCHAR))'`).
+     *                    Use this to inline a computation at the leaf level and avoid generating
+     *                    a second list_transform on the result, which DuckDB does not support.
+     * @returns A SQL expression that produces a flat list of (possibly transformed) leaf values, e.g.:
      *   flatten(list_transform("Well", x -> list_transform(x."Dose", y -> y."Unit")))
      *
      * When only the root is an array (common case):
      *   list_transform("Well", x -> x."Dose"."Unit")
      */
-    public static buildNestedAccessExpression(path: string[], pathIsArray: boolean[]): string {
+    public static buildNestedAccessExpression(
+        path: string[],
+        pathIsArray: boolean[],
+        leafTransform?: (leafExpr: string) => string
+    ): string {
         const VAR_NAMES = ["x", "y", "z", "w", "v", "u", "t", "s"];
         let varIdx = 0;
         let flattenCount = 0;
@@ -185,7 +238,7 @@ export default class SQLBuilder {
             const access = `${currentExpr}."${path[segmentIdx]}"`;
 
             if (isLeaf) {
-                return access;
+                return leafTransform ? leafTransform(access) : access;
             }
 
             // Intermediate segment
@@ -209,6 +262,45 @@ export default class SQLBuilder {
         }
 
         return expr;
+    }
+
+    /**
+     * Build a type-aware SQL equality condition for a pre-formatted field expression.
+     *
+     * @param columnExpr  Pre-formatted SQL expression (e.g. `"Color"` or `__e0."Color"`).
+     * @param value       The value to compare against.
+     * @param columnType  The column type.
+     * @param exactMatchStrings
+     *                    When false (default): regex match for strings (flat-column context).
+     *                    When true: exact CAST-to-VARCHAR equality with numeric heuristic
+     *                    (lambda-body context where regex multi-value matching is wrong).
+     */
+    public static matchByType(
+        columnExpr: string,
+        value: any,
+        columnType: AnnotationType,
+        exactMatchStrings = false
+    ): string {
+        const range = SQLBuilder.parseRangeBounds(value);
+        if (range) {
+            const { min, max } = range;
+            if (columnType === AnnotationType.DATETIME || columnType === AnnotationType.DATE)
+                return SQLBuilder.timestampRange(columnExpr, min, max);
+            if (columnType === AnnotationType.NUMBER)
+                return SQLBuilder.doubleRange(columnExpr, min, max);
+        }
+
+        if (columnType === AnnotationType.BOOLEAN) return `${columnExpr} = ${value}`;
+        if (columnType === AnnotationType.DURATION)
+            return SQLBuilder.durationEquals(columnExpr, value);
+        if (columnType === AnnotationType.NUMBER)
+            return `CAST(${columnExpr} AS DOUBLE) = TRY_CAST('${value}' AS DOUBLE)`;
+
+        // Escape single-quotes in the SQL string literal ex. O'Reilly -> O''Reilly
+        const escaped = `${value}`.replaceAll("'", "''");
+        return exactMatchStrings
+            ? `CAST(${columnExpr} AS VARCHAR) = '${escaped}'`
+            : SQLBuilder.regexMatchValueInList(columnExpr, value);
     }
 
     public describe(): SQLBuilder {

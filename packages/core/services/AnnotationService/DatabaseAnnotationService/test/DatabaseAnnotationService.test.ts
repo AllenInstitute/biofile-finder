@@ -5,12 +5,12 @@ import DatabaseService from "../../../DatabaseService";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
+import { AnnotationType } from "../../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../../entity/FileFilter";
 import { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH } from "../../../../entity/SearchParams";
 import SQLBuilder from "../../../../entity/SQLBuilder";
 
 import DatabaseAnnotationService from "..";
-import { AnnotationType } from "../../../../entity/AnnotationFormatter";
 
 describe("DatabaseAnnotationService", () => {
     describe("fetchAnnotationValues", () => {
@@ -47,6 +47,9 @@ describe("DatabaseAnnotationService", () => {
         class MockDatabaseService extends DatabaseServiceNoop {
             public query(): { promise: Promise<any> } {
                 return { promise: Promise.resolve(annotations) };
+            }
+            public async fetchAnnotations(): Promise<[]> {
+                return [];
             }
         }
         const databaseService = new MockDatabaseService();
@@ -174,7 +177,7 @@ describe("DatabaseAnnotationService", () => {
         }
         const databaseService = new MockDatabaseService();
         const filterToRegex = (filter: FileFilter) => {
-            return SQLBuilder.regexMatchValueInList(filter.name, filter.value);
+            return SQLBuilder.regexMatchValueInList(`"${filter.name}"`, filter.value);
         };
 
         it("uses ANDs and ORs correctly in sql with multiple filters and values", async () => {
@@ -320,11 +323,13 @@ describe("DatabaseAnnotationService", () => {
                             annotationName: ["Well", "Dose", "Unit"],
                             description: "Well dose unit",
                             type: AnnotationType.STRING,
+                            pathIsArray: [true, false, false],
                         }),
                         new Annotation({
                             annotationName: ["Media", "Unit"],
                             description: "Media unit",
                             type: AnnotationType.STRING,
+                            pathIsArray: [true, false],
                         }),
                     ];
                 }
@@ -360,8 +365,16 @@ describe("DatabaseAnnotationService", () => {
             });
 
             const result = await annotationService.fetchOptimalWidthForAnnotations([
-                "Cell Line",
-                "Gene",
+                new Annotation({
+                    annotationName: "Cell Line",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+                new Annotation({
+                    annotationName: "Gene",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
             ]);
 
             // Both annotations should have computed widths (not just DEFAULT_COLUMN_WIDTH)
@@ -389,7 +402,11 @@ describe("DatabaseAnnotationService", () => {
             });
 
             const result = await annotationService.fetchOptimalWidthForAnnotations([
-                "LongAnnotation",
+                new Annotation({
+                    annotationName: "LongAnnotation",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
             ]);
 
             expect(result.get("LongAnnotation")).to.equal(DEFAULT_COLUMN_WIDTH * 3);
@@ -411,7 +428,13 @@ describe("DatabaseAnnotationService", () => {
             });
 
             const result = await annotationService.fetchOptimalWidthForAnnotations(
-                ["LongAnnotation"],
+                [
+                    new Annotation({
+                        annotationName: "LongAnnotation",
+                        description: "",
+                        type: AnnotationType.STRING,
+                    }),
+                ],
                 true
             );
 
@@ -432,7 +455,13 @@ describe("DatabaseAnnotationService", () => {
                 databaseService: new MockDatabaseService(),
             });
 
-            const result = await annotationService.fetchOptimalWidthForAnnotations(["SomeColumn"]);
+            const result = await annotationService.fetchOptimalWidthForAnnotations([
+                new Annotation({
+                    annotationName: "SomeColumn",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+            ]);
 
             expect(result.get("SomeColumn")).to.equal(DEFAULT_COLUMN_WIDTH);
         });
@@ -451,13 +480,17 @@ describe("DatabaseAnnotationService", () => {
             });
 
             const result = await annotationService.fetchOptimalWidthForAnnotations([
-                "CustomAnnotation",
+                new Annotation({
+                    annotationName: "CustomAnnotation",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
             ]);
 
             // All top-level file annotations should be present with default widths
             for (const annotation of TOP_LEVEL_FILE_ANNOTATIONS) {
-                expect(result.has(annotation.name)).to.be.true;
-                expect(result.get(annotation.name)).to.equal(DEFAULT_COLUMN_WIDTH);
+                expect(result.has(annotation.displayName)).to.be.true;
+                expect(result.get(annotation.displayName)).to.equal(DEFAULT_COLUMN_WIDTH);
             }
         });
 
@@ -467,7 +500,13 @@ describe("DatabaseAnnotationService", () => {
                 databaseService: new DatabaseServiceNoop(),
             });
 
-            const result = await annotationService.fetchOptimalWidthForAnnotations(["SomeColumn"]);
+            const result = await annotationService.fetchOptimalWidthForAnnotations([
+                new Annotation({
+                    annotationName: "SomeColumn",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+            ]);
 
             // fetchLengthiestValues returns {} for empty data sources, so all should be default
             expect(result.get("SomeColumn")).to.equal(DEFAULT_COLUMN_WIDTH);
@@ -489,7 +528,11 @@ describe("DatabaseAnnotationService", () => {
             });
 
             const resultShortValue = await annotationService.fetchOptimalWidthForAnnotations([
-                veryLongAnnotationName,
+                new Annotation({
+                    annotationName: veryLongAnnotationName,
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
             ]);
 
             // Now test with a short annotation name but long value
@@ -504,7 +547,13 @@ describe("DatabaseAnnotationService", () => {
                 dataSourceNames: ["source1"],
                 databaseService: new MockDatabaseService2(),
             });
-            const resultShortName = await annotationService2.fetchOptimalWidthForAnnotations(["X"]);
+            const resultShortName = await annotationService2.fetchOptimalWidthForAnnotations([
+                new Annotation({
+                    annotationName: "X",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+            ]);
 
             // The width for "VeryLongAnnotationName" should be wider because
             // the annotation name is longer than the value

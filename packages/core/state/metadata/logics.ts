@@ -1,4 +1,4 @@
-import { isEqual, uniqBy } from "lodash";
+import { uniqBy } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { interaction, metadata, ReduxLogicDeps, selection } from "..";
@@ -89,29 +89,26 @@ const receiveAnnotationsLogic = createLogic({
             (annotation) => !columnNamesThatStillExist.includes(annotation.name)
         );
 
-        // Try to fetch values for new annotations to compute optimal column widths
-        const widthByAnnotation = await annotationService.fetchOptimalWidthForAnnotations(
-            newAnnotations.map((annotation) => annotation.name)
-        );
-
         let columns: Column[] = [
             ...columnsThatStillExist,
-            ...newAnnotations.map((annotation) => ({
-                name: annotation.name,
-                width: widthByAnnotation.get(annotation.name) ?? DEFAULT_COLUMN_WIDTH,
-            })),
+            ...newAnnotations
+                .filter((annotation) => !annotation.isParent)
+                .map((annotation) => ({
+                    name: annotation.name,
+                    width: DEFAULT_COLUMN_WIDTH,
+                })),
         ];
 
         // If there were no columns selected, default to displaying
         // "File Name" first for any data source
         if (!columnsThatStillExist.length) {
             // Remove filename annotations from columns before re-adding it at the front,
-            columns = columns.filter((column) => column.name !== AnnotationName.FILE_NAME);
+            columns = columns.filter((column) => column.name !== "File Name");
 
             // Add "File Name" back to the front of the columns array
             columns.unshift({
-                name: AnnotationName.FILE_NAME,
-                width: widthByAnnotation.get(AnnotationName.FILE_NAME) ?? DEFAULT_COLUMN_WIDTH,
+                name: "File Name",
+                width: DEFAULT_COLUMN_WIDTH,
             });
         }
 
@@ -129,14 +126,19 @@ const receiveAnnotationsLogic = createLogic({
             }
         }
 
-        // Enrich active filters with annotationType, correct path, and pathIsArray from the loaded
-        // annotations. Keyed by full dotted path (e.g. "Well.Column") so that:
-        //   (a) filters decoded from legacy URLs with path=["Well.Column"] get their path corrected
-        //       to the multi-element form ["Well","Column"], and
-        //   (b) valueType / pathIsArray are backfilled for any filter missing them.
+        // Index annotations by full dotted path (e.g. "Well.Column") for enriching active
+        // filters below with schema-derived metadata. pathIsArray no longer needs enriching
+        // here: it is the authoritative schema state on Annotation, looked up at SQL-generation
+        // time (see resolvePathIsArray), not copied onto filters/sorts.
         const annotationByFullPath = new Map(
             annotations.map((annotation) => [annotation.name, annotation])
         );
+
+        // Enrich active filters with annotationType and the correct path from the loaded
+        // annotations (using annotationByFullPath defined above). This:
+        //   (a) corrects filters decoded from legacy URLs with path=["Well.Column"] to the
+        //       multi-element form ["Well","Column"], and
+        //   (b) backfills valueType for any filter missing it.
         const enrichedFilters = currentFilters.map((filter) => {
             const annotation = annotationByFullPath.get(filter.name);
             // TODO: We should migrate annotation info out of filter so that
@@ -144,20 +146,14 @@ const receiveAnnotationsLogic = createLogic({
             if (!annotation) return filter; // no matching annotation — leave as-is
 
             const newType = annotation.type;
-            const newPathIsArray = annotation.pathIsArray?.length
-                ? annotation.pathIsArray
-                : filter.pathIsArray.length
-                ? filter.pathIsArray
-                : undefined;
 
             // Return the same object if nothing would change, so the reference-equality
             // check below can correctly detect a no-op and skip the dispatch.
             const isPathUnchanged = annotation.name === filter.name;
             const isTypeUnchanged = newType === filter.valueType;
-            const isPathIsArrayUnchanged = isEqual(newPathIsArray ?? [], filter.pathIsArray);
-            if (isPathUnchanged && isTypeUnchanged && isPathIsArrayUnchanged) return filter;
+            if (isPathUnchanged && isTypeUnchanged) return filter;
 
-            return new FileFilter(filter.name, filter.value, filter.type, newType, newPathIsArray);
+            return new FileFilter(filter.name, filter.value, filter.type, newType);
         });
 
         // Only dispatch if at least one filter actually changed
@@ -165,6 +161,18 @@ const receiveAnnotationsLogic = createLogic({
         if (hasChanges) {
             dispatch(selection.actions.setFileFilters(enrichedFilters));
         }
+
+        // Asynchronously compute optimal column widths and apply them to the (already-rendered)
+        // columns once available. This intentionally does not block the dispatches above so the
+        // file list renders immediately at the default width.
+        const widthByAnnotation = await annotationService.fetchOptimalWidthForAnnotations(
+            annotations
+        );
+        const resizedColumns = columns.map((column) => {
+            const width = widthByAnnotation.get(column.name);
+            return width === undefined ? column : { ...column, width };
+        });
+        dispatch(selection.actions.setColumns(resizedColumns));
 
         done();
     },
@@ -311,6 +319,7 @@ const storeNewAnnotationLogic = createLogic({
             annotationDisplayName: annotation.name,
             annotationId: annotation.annotationId,
             description: annotation.description,
+            pathIsArray: [false],
         });
         dispatch(receiveAnnotations([...annotations, newMmsAnnotation]));
         done();

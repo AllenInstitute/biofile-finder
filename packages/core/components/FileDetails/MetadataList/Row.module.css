@@ -33,14 +33,21 @@
     padding-right: var(--margin);
 }
 
-.key > span:last-child {
+.key-value {
+    user-select: text;
+
+    /* Apply truncation on the actual text node rendered inside TooltipHost. */
+    display: block;
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.key-value {
-    user-select: text;
+.key-tooltip-host {
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
 }
 
 .small-font {

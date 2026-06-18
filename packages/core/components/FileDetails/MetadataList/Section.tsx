@@ -1,22 +1,31 @@
 import { IContextualMenuItem } from "@fluentui/react";
 import classNames from "classnames";
-import { isNil, isObject } from "lodash";
+import { noop } from "lodash";
 import * as React from "react";
 
 import ContentLengthToggle from "./ContentLengthToggle";
+import SectionEntries from "./SectionEntries";
 import { MetadataValue } from "../../../services/FileService";
 
 import styles from "./Section.module.css";
 
+/** Renders one metadata field (key/value) within a section. */
+export type SectionRowRenderer = React.ComponentType<{
+    name: string;
+    value: MetadataValue;
+}>;
+
 interface Props {
-    rowClassName?: string;
-    row: React.ReactNode;
     childRows: Record<string, MetadataValue>[];
-    children: React.ComponentType<{
-        name: string;
-        value: MetadataValue;
-    }>;
+    children: SectionRowRenderer;
     contextMenuItems?: IContextualMenuItem[];
+    /** Controlled collapsed state. Defaults to false when not provided. */
+    isCollapsed?: boolean;
+    /** Called when the user toggles the expand/collapse button. */
+    onToggle?: () => void;
+    row: React.ReactNode;
+    rowClassName?: string;
+    entryLabel?: string;
 }
 
 /**
@@ -24,55 +33,30 @@ interface Props {
  * Supports label, expand/collapse functionality, and custom row components.
  */
 export default function Section(props: Props) {
-    const [isExpanded, setIsExpanded] = React.useState(true);
+    const isCollapsed = props.isCollapsed ?? false;
+    const onToggle = props.onToggle ?? noop;
 
     return (
         <div className={styles.container}>
             <div className={classNames(styles.labelWithToggle, props.rowClassName)}>
                 {props.childRows.length > 0 ? (
-                    <ContentLengthToggle isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
+                    <ContentLengthToggle
+                        isCollapsed={isCollapsed}
+                        setIsCollapsed={() => onToggle()}
+                    />
                 ) : (
                     <span className={styles.placeholderToggle} />
                 )}
                 {props.row}
             </div>
 
-            {isExpanded &&
-                props.childRows.map((row, idx) => (
-                    <React.Fragment key={idx}>
-                        {idx > 0 && <div className={styles.separator} />}
-                        <SortedSectionEntry row={row} renderer={props.children} />
-                    </React.Fragment>
-                ))}
+            {!isCollapsed && (
+                <SectionEntries
+                    childRows={props.childRows}
+                    entryLabel={props.entryLabel}
+                    renderer={props.children}
+                />
+            )}
         </div>
-    );
-}
-
-/**
- * Helper component to render section entries sorted by:
- * 1) If the key represents primitive values vs nested values (primitive values first, then nested values)
- * 2) Alphabetical order of the keys
- */
-const collator = new Intl.Collator("en");
-function SortedSectionEntry(props: {
-    row: Record<string, MetadataValue>;
-    renderer: Props["children"];
-}) {
-    return (
-        <>
-            {Object.entries(props.row)
-                .sort(([keyA, arrayA], [keyB, arrayB]) => {
-                    const valueA = arrayA.length > 0 ? arrayA[0] : undefined;
-                    const valueB = arrayB.length > 0 ? arrayB[0] : undefined;
-                    const isGroupA = !isNil(valueA) && isObject(valueA);
-                    const isGroupB = !isNil(valueB) && isObject(valueB);
-                    if (!isGroupA && isGroupB) return -1;
-                    if (isGroupA && !isGroupB) return 1;
-                    return collator.compare(keyA, keyB);
-                })
-                .map(([key, value]) => (
-                    <props.renderer key={key} name={key} value={value} />
-                ))}
-        </>
     );
 }

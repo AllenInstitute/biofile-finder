@@ -291,8 +291,7 @@ export default class SearchParams {
                         parsedFilter.path ?? parsedFilter.name,
                         parsedFilter.value,
                         parsedFilter.type,
-                        parsedFilter.valueType,
-                        parsedFilter.pathIsArray
+                        parsedFilter.valueType
                     );
                 }),
             openFolders: unparsedOpenFolders

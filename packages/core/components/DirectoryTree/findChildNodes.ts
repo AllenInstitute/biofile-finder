@@ -45,19 +45,11 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     const annotationNameAtDepth = hierarchy[depth];
     let noValueFileCount = 0;
     if (shouldShowNullGroups) {
-        // Look up annotation metadata for nested sub-field support
-        const annotation = (await annotationService.fetchAnnotations()).find(
-            (annotation) => annotation.name === annotationNameAtDepth
-        );
-
         // Check whether we should include the 'no value' folder by getting a count
         noValueFileCount = await fileService.getCountOfMatchingFiles(
             new FileSet({
                 fileService,
-                filters: [
-                    ...fileSet.filters,
-                    new ExcludeFilter(annotationNameAtDepth, annotation?.pathIsArray),
-                ],
+                filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
             })
         );
     }

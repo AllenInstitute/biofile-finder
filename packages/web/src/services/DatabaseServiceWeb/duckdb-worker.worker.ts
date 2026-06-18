@@ -3,7 +3,6 @@ import { isEmpty } from "lodash";
 
 import { QueryRow, WorkerMsgType, WorkerReqPayload, WorkerRequest, WorkerResType } from "./types";
 import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
-import { AnnotationType } from "../../../../core/entity/AnnotationFormatter";
 import { Source } from "../../../../core/entity/SearchParams";
 import SQLBuilder from "../../../../core/entity/SQLBuilder";
 import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
@@ -129,6 +128,7 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                         annotationName: row.name,
                         description: row.description,
                         type: row.type,
+                        pathIsArray: row.pathIsArray,
                     };
                 }
             );
@@ -381,49 +381,11 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                 this.fetchAnnotationTypes(),
             ]);
 
-            const annotations: Annotation[] = [];
-            for (const row of rows) {
-                const columnName = row["column_name"] as string;
-                const dataType = row["data_type"] as string;
-                const explicitType = annotationNameToTypeMap[columnName];
-                const resolvedType =
-                    explicitType || DatabaseServiceWebWorker.columnTypeToAnnotationType(dataType);
-
-                if (resolvedType === AnnotationType.NESTED) {
-                    annotations.push(
-                        new Annotation({
-                            annotationName: [columnName],
-                            description: annotationNameToDescriptionMap[columnName] || "",
-                            type: AnnotationType.NESTED,
-                        })
-                    );
-                    const rootIsArray = dataType.trimEnd().endsWith("[]");
-                    const subFields = DatabaseServiceWebWorker.parseStructFields(dataType);
-                    for (const field of subFields) {
-                        const fieldParts = field.name.split(".");
-                        const pathIsArray = [rootIsArray, ...field.intermediateIsArray];
-                        annotations.push(
-                            new Annotation({
-                                annotationName: [columnName, ...fieldParts],
-                                // TODO: No way to provide descriptions for these YET
-                                description: "",
-                                type: DatabaseServiceWebWorker.columnTypeToAnnotationType(
-                                    field.type
-                                ),
-                                pathIsArray,
-                            })
-                        );
-                    }
-                } else {
-                    annotations.push(
-                        new Annotation({
-                            annotationName: [columnName],
-                            description: annotationNameToDescriptionMap[columnName] || "",
-                            type: resolvedType,
-                        })
-                    );
-                }
-            }
+            const annotations = DatabaseServiceWebWorker.buildAnnotationsFromRows(
+                rows,
+                annotationNameToDescriptionMap,
+                annotationNameToTypeMap
+            );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);
         }
         return this.dataSourceToAnnotationsMap.get(aggregateDataSourceName) || [];

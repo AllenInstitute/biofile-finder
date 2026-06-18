@@ -187,8 +187,7 @@ const useDirectoryHierarchy = (
                                 name,
                                 value,
                                 FilterType.DEFAULT,
-                                annotationMeta?.type,
-                                annotationMeta?.pathIsArray
+                                annotationMeta?.type
                             );
                         });
                         // If we are grouping by a field (e.g., barcode)

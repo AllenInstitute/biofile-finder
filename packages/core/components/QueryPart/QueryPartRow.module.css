@@ -66,21 +66,22 @@
 }
 
 .row-title > div {
-    width: 100%;
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 .row-title > p, .row-title > div > p {
     font-size: var(--s-paragraph-size);
     margin: 0;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     position: relative; /* anchor the hidden measurement probes */
     min-width: 0;
     padding: 0;
     overflow: hidden;
     white-space: nowrap;
-    padding-top: 1px;
-    height: calc(var(--s-paragraph-size) + 4px);
+    line-height: calc(var(--s-paragraph-size) + 8px);
+    height: calc(var(--s-paragraph-size) + 8px);
 }
 
 .dynamic-row-title {
@@ -106,8 +107,7 @@
 }
 
 .title-leaf {
-    /* Avoid letting the leaf ever shrink when the prefix is shown */
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     max-width: 100%;
     min-width: 0;
     overflow: hidden;

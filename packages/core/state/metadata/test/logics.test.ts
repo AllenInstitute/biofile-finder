@@ -113,15 +113,14 @@ describe("Metadata logics", () => {
         });
 
         it("skips dispatching filters if annotation types already match", async () => {
-            // arrange — filter is already enriched with the correct valueType and pathIsArray,
-            // so the enrichment logic should detect no change and skip the dispatch.
+            // arrange — filter is already enriched with the correct valueType, so the
+            // enrichment logic should detect no change and skip the dispatch.
             const mockFilters: FileFilter[] = [
                 new FileFilter(
                     mockAnnotations[2].name,
                     "test value",
                     FilterType.DEFAULT,
-                    mockAnnotations[2].type,
-                    mockAnnotations[2].pathIsArray
+                    mockAnnotations[2].type
                 ),
             ];
             const state = mergeState(initialState, {
@@ -190,9 +189,9 @@ describe("Metadata logics", () => {
             const matchingAction = actions.list
                 .filter((action) => action.type === SET_COLUMNS)
                 .at(0);
-            // 3 mock annotations + 1 prepended "file_name" column
+            // 3 mock annotations + 1 prepended "File Name" column
             expect(matchingAction?.payload.length).to.equal(mockAnnotations.length + 1);
-            expect(matchingAction?.payload[0].name).to.equal("file_name");
+            expect(matchingAction?.payload[0].name).to.equal("File Name");
         });
 
         it("adds all new annotations as columns to existing ones", async () => {

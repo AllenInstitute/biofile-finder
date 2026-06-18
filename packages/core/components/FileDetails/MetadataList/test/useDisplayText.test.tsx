@@ -17,16 +17,14 @@ import { initialState } from "../../../../state";
 // Helper component that exercises the hook and renders the result
 function TestComponent(props: {
     file: FileDetail;
-    metadataKey: string;
+    column: Annotation;
     value: MetadataValue;
-    annotation: Annotation | undefined;
     childRows: NestedMetadataValue[];
 }) {
     const { text, emphasize } = useDisplayText(
         props.file,
-        props.metadataKey,
+        props.column,
         props.value,
-        props.annotation,
         props.childRows
     );
     return (
@@ -57,269 +55,227 @@ describe("useDisplayText", () => {
         annotations: [],
     };
 
-    describe("default value display", () => {
-        it("joins values using annotation formatter", () => {
-            // Arrange
-            const file = new FileDetail(emptyFile, Environment.TEST);
-            const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    interaction: {
-                        platformDependentServices: {
-                            executionEnvService: new ExecutionEnvServiceNoop(),
-                        },
+    it("joins values using annotation formatter", () => {
+        // Arrange
+        const file = new FileDetail(emptyFile, Environment.TEST);
+        const { store } = configureMockStore({
+            state: mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        executionEnvService: new ExecutionEnvServiceNoop(),
                     },
-                }),
-            });
-
-            // Act
-            const { getByTestId } = render(
-                <Provider store={store}>
-                    <TestComponent
-                        file={file}
-                        metadataKey="test"
-                        value={["hello", "world"]}
-                        annotation={testAnnotation}
-                        childRows={[]}
-                    />
-                </Provider>
-            );
-
-            // Assert
-            expect(getByTestId("text").textContent).to.equal("hello, world");
-            expect(getByTestId("emphasize").textContent).to.equal("false");
+                },
+            }),
         });
 
-        it("falls back to comma-separated join when annotation is undefined", () => {
-            // Arrange
-            const file = new FileDetail(emptyFile, Environment.TEST);
-            const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    interaction: {
-                        platformDependentServices: {
-                            executionEnvService: new ExecutionEnvServiceNoop(),
-                        },
-                    },
-                }),
-            });
+        // Act
+        const { getByTestId } = render(
+            <Provider store={store}>
+                <TestComponent
+                    file={file}
+                    column={testAnnotation}
+                    value={["hello", "world"]}
+                    childRows={[]}
+                />
+            </Provider>
+        );
 
-            // Act
-            const { getByTestId } = render(
-                <Provider store={store}>
-                    <TestComponent
-                        file={file}
-                        metadataKey="unknown"
-                        value={["a", "b", "c"]}
-                        annotation={undefined}
-                        childRows={[]}
-                    />
-                </Provider>
-            );
-
-            // Assert
-            expect(getByTestId("text").textContent).to.equal("a, b, c");
-        });
+        // Assert
+        expect(getByTestId("text").textContent).to.equal("hello, world");
+        expect(getByTestId("emphasize").textContent).to.equal("false");
     });
 
-    describe("nested metadata (childRows)", () => {
-        it("displays singular 'entry' when there is 1 child row", () => {
-            // Arrange
-            const file = new FileDetail(emptyFile, Environment.TEST);
-            const childRows: NestedMetadataValue[] = [{ Dose: ["10mg"] }];
-            const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    interaction: {
-                        platformDependentServices: {
-                            executionEnvService: new ExecutionEnvServiceNoop(),
-                        },
+    it("displays singular 'entry' when there is 1 child row", () => {
+        // Arrange
+        const file = new FileDetail(emptyFile, Environment.TEST);
+        const childRows: NestedMetadataValue[] = [{ Dose: ["10mg"] }];
+        const { store } = configureMockStore({
+            state: mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        executionEnvService: new ExecutionEnvServiceNoop(),
                     },
-                }),
-            });
-
-            // Act
-            const { getByTestId } = render(
-                <Provider store={store}>
-                    <TestComponent
-                        file={file}
-                        metadataKey="test"
-                        value={[]}
-                        annotation={testAnnotation}
-                        childRows={childRows}
-                    />
-                </Provider>
-            );
-
-            // Assert
-            expect(getByTestId("text").textContent).to.equal("1 entry");
+                },
+            }),
         });
 
-        it("displays plural 'entries' when there are multiple child rows", () => {
-            // Arrange
-            const file = new FileDetail(emptyFile, Environment.TEST);
-            const childRows: NestedMetadataValue[] = [
-                { Dose: ["10mg"] },
-                { Dose: ["20mg"] },
-                { Dose: ["30mg"] },
-            ];
-            const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    interaction: {
-                        platformDependentServices: {
-                            executionEnvService: new ExecutionEnvServiceNoop(),
-                        },
-                    },
-                }),
-            });
+        // Act
+        const { getByTestId } = render(
+            <Provider store={store}>
+                <TestComponent
+                    file={file}
+                    column={testAnnotation}
+                    value={[]}
+                    childRows={childRows}
+                />
+            </Provider>
+        );
 
-            // Act
-            const { getByTestId } = render(
-                <Provider store={store}>
-                    <TestComponent
-                        file={file}
-                        metadataKey="test"
-                        value={[]}
-                        annotation={testAnnotation}
-                        childRows={childRows}
-                    />
-                </Provider>
-            );
-
-            // Assert
-            expect(getByTestId("text").textContent).to.equal("3 entries");
-        });
+        // Assert
+        expect(getByTestId("text").textContent).to.equal("1 entry");
     });
 
-    describe("local file path handling", () => {
-        it("shows download in progress message when file is being downloaded", () => {
-            // Arrange
-            const file = new FileDetail(
-                {
-                    ...emptyFile,
-                    annotations: [{ name: AnnotationName.SHOULD_BE_IN_LOCAL, values: [true] }],
-                },
-                Environment.TEST
-            );
-            const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    interaction: {
-                        platformDependentServices: {
-                            executionEnvService: new ExecutionEnvServiceNoop(),
-                        },
+    it("displays plural 'entries' when there are multiple child rows", () => {
+        // Arrange
+        const file = new FileDetail(emptyFile, Environment.TEST);
+        const childRows: NestedMetadataValue[] = [
+            { Dose: ["10mg"] },
+            { Dose: ["20mg"] },
+            { Dose: ["30mg"] },
+        ];
+        const { store } = configureMockStore({
+            state: mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        executionEnvService: new ExecutionEnvServiceNoop(),
                     },
-                }),
-            });
-
-            // Act
-            const { getByTestId } = render(
-                <Provider store={store}>
-                    <TestComponent
-                        file={file}
-                        metadataKey={AnnotationName.LOCAL_FILE_PATH}
-                        value={["/some/path"]}
-                        annotation={localFilePathAnnotation}
-                        childRows={[]}
-                    />
-                </Provider>
-            );
-
-            // Assert
-            expect(getByTestId("text").textContent).to.equal("Copying to VAST in progress…");
-            expect(getByTestId("emphasize").textContent).to.equal("true");
+                },
+            }),
         });
 
-        it("displays formatted local path once resolved", async () => {
-            // Arrange
-            class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
-                public formatPathForHost(posixPath: string): Promise<string> {
-                    return Promise.resolve(posixPath.replace("/test", "/mounted"));
-                }
+        // Act
+        const { getByTestId } = render(
+            <Provider store={store}>
+                <TestComponent
+                    file={file}
+                    column={testAnnotation}
+                    value={[]}
+                    childRows={childRows}
+                />
+            </Provider>
+        );
+
+        // Assert
+        expect(getByTestId("text").textContent).to.equal("3 entries");
+    });
+
+    it("shows download in progress message when file is being downloaded", () => {
+        // Arrange
+        const file = new FileDetail(
+            {
+                ...emptyFile,
+                annotations: [{ name: AnnotationName.SHOULD_BE_IN_LOCAL, values: [true] }],
+            },
+            Environment.TEST
+        );
+        const { store } = configureMockStore({
+            state: mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        executionEnvService: new ExecutionEnvServiceNoop(),
+                    },
+                },
+            }),
+        });
+
+        // Act
+        const { getByTestId } = render(
+            <Provider store={store}>
+                <TestComponent
+                    file={file}
+                    column={localFilePathAnnotation}
+                    value={["/some/path"]}
+                    childRows={[]}
+                />
+            </Provider>
+        );
+
+        // Assert
+        expect(getByTestId("text").textContent).to.equal("Copying to VAST in progress…");
+        expect(getByTestId("emphasize").textContent).to.equal("true");
+    });
+
+    it("displays formatted local path once resolved", async () => {
+        // Arrange
+        class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
+            public formatPathForHost(posixPath: string): Promise<string> {
+                return Promise.resolve(posixPath.replace("/test", "/mounted"));
             }
+        }
 
-            const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    interaction: {
-                        platformDependentServices: {
-                            executionEnvService: new FakeExecutionEnvService(),
-                        },
+        const { store } = configureMockStore({
+            state: mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        executionEnvService: new FakeExecutionEnvService(),
                     },
-                }),
-            });
-
-            const file = new FileDetail(
-                {
-                    ...emptyFile,
-                    annotations: [
-                        { name: AnnotationName.SHOULD_BE_IN_LOCAL, values: [true] },
-                        { name: AnnotationName.CACHE_EVICTION_DATE, values: ["2026-01-01"] },
-                        { name: AnnotationName.LOCAL_FILE_PATH, values: ["/test/my_file.czi"] },
-                    ],
                 },
-                Environment.TEST
-            );
-
-            const { getByTestId } = render(
-                <Provider store={store}>
-                    <TestComponent
-                        file={file}
-                        metadataKey={AnnotationName.LOCAL_FILE_PATH}
-                        value={["/test/my_file.czi"]}
-                        annotation={localFilePathAnnotation}
-                        childRows={[]}
-                    />
-                </Provider>
-            );
-
-            await waitFor(() => {
-                expect(getByTestId("text").textContent).to.equal("/mounted/my_file.czi");
-            });
-            expect(getByTestId("emphasize").textContent).to.equal("false");
+            }),
         });
 
-        it("returns null text when local path has not yet resolved", () => {
-            // Using a service that never resolves to simulate loading state
-            class NeverResolveService extends ExecutionEnvServiceNoop {
-                public formatPathForHost(): Promise<string> {
-                    // Intentionally never resolves, to simulate the loading state
-                    return new Promise<string>(() => undefined);
-                }
+        const file = new FileDetail(
+            {
+                ...emptyFile,
+                annotations: [
+                    { name: AnnotationName.SHOULD_BE_IN_LOCAL, values: [true] },
+                    { name: AnnotationName.CACHE_EVICTION_DATE, values: ["2026-01-01"] },
+                    { name: AnnotationName.LOCAL_FILE_PATH, values: ["/test/my_file.czi"] },
+                ],
+            },
+            Environment.TEST
+        );
+
+        const { getByTestId } = render(
+            <Provider store={store}>
+                <TestComponent
+                    file={file}
+                    column={localFilePathAnnotation}
+                    value={["/test/my_file.czi"]}
+                    childRows={[]}
+                />
+            </Provider>
+        );
+
+        await waitFor(() => {
+            expect(getByTestId("text").textContent).to.equal("/mounted/my_file.czi");
+        });
+        expect(getByTestId("emphasize").textContent).to.equal("false");
+    });
+
+    it("returns null text when local path has not yet resolved", () => {
+        // Using a service that never resolves to simulate loading state
+        class NeverResolveService extends ExecutionEnvServiceNoop {
+            public formatPathForHost(): Promise<string> {
+                // Intentionally never resolves, to simulate the loading state
+                return new Promise<string>(() => undefined);
             }
+        }
 
-            const { store } = configureMockStore({
-                state: mergeState(initialState, {
-                    interaction: {
-                        platformDependentServices: {
-                            executionEnvService: new NeverResolveService(),
-                        },
+        const { store } = configureMockStore({
+            state: mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        executionEnvService: new NeverResolveService(),
                     },
-                }),
-            });
-
-            const file = new FileDetail(
-                {
-                    ...emptyFile,
-                    annotations: [
-                        { name: AnnotationName.SHOULD_BE_IN_LOCAL, values: [true] },
-                        { name: AnnotationName.CACHE_EVICTION_DATE, values: ["2026-01-01"] },
-                        { name: AnnotationName.LOCAL_FILE_PATH, values: ["/test/my_file.czi"] },
-                    ],
                 },
-                Environment.TEST
-            );
-
-            const { getByTestId } = render(
-                <Provider store={store}>
-                    <TestComponent
-                        file={file}
-                        metadataKey={AnnotationName.LOCAL_FILE_PATH}
-                        value={["/test/my_file.czi"]}
-                        annotation={localFilePathAnnotation}
-                        childRows={[]}
-                    />
-                </Provider>
-            );
-
-            // Initially null since the async call hasn't resolved
-            expect(getByTestId("text").textContent).to.equal("");
-            expect(getByTestId("emphasize").textContent).to.equal("false");
+            }),
         });
+
+        const file = new FileDetail(
+            {
+                ...emptyFile,
+                annotations: [
+                    { name: AnnotationName.SHOULD_BE_IN_LOCAL, values: [true] },
+                    { name: AnnotationName.CACHE_EVICTION_DATE, values: ["2026-01-01"] },
+                    { name: AnnotationName.LOCAL_FILE_PATH, values: ["/test/my_file.czi"] },
+                ],
+            },
+            Environment.TEST
+        );
+
+        const { getByTestId } = render(
+            <Provider store={store}>
+                <TestComponent
+                    file={file}
+                    column={localFilePathAnnotation}
+                    value={["/test/my_file.czi"]}
+                    childRows={[]}
+                />
+            </Provider>
+        );
+
+        // Initially null since the async call hasn't resolved
+        expect(getByTestId("text").textContent).to.equal("");
+        expect(getByTestId("emphasize").textContent).to.equal("false");
     });
 });

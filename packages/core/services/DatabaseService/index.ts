@@ -326,37 +326,40 @@ export default abstract class DatabaseService {
 
     /**
      * Parse all leaf fields from a DuckDB STRUCT type string, recursing into nested STRUCTs.
-     * Returns a flat list with dot-separated paths for nested fields, including which
-     * intermediate path segments are arrays.
+     * Returns a flat list with dot-separated paths for nested fields.
      *
-     * e.g. "STRUCT(Gene VARCHAR, Dose STRUCT(Unit VARCHAR, Value DOUBLE)[])[]"
+     * `isArray` carries one boolean per segment of `name` (relative to this STRUCT): true where that segment is a
+     * list — a STRUCT[] for an intermediate, or a list-typed leaf such as VARCHAR[].
+     *
+     * e.g. "STRUCT(Tags VARCHAR[], Dose STRUCT(Unit VARCHAR, Value DOUBLE)[])[]"
      *   → [
-     *       {name: "Gene", type: "VARCHAR", intermediateIsArray: []},
-     *       {name: "Dose.Unit", type: "VARCHAR", intermediateIsArray: [true]},
-     *       {name: "Dose.Value", type: "DOUBLE", intermediateIsArray: [true]}
+     *       {name: "Tags",       type: "VARCHAR[]", isArray: [true]},        // list leaf
+     *       {name: "Dose.Unit",  type: "VARCHAR",   isArray: [true, false]}, // Dose[], Unit scalar
+     *       {name: "Dose.Value", type: "DOUBLE",    isArray: [true, false]},
      *     ]
-     * The intermediateIsArray tracks whether each non-leaf intermediate (excluding the final
-     * leaf itself) was an array type. This is combined with the root's array-ness by the caller.
      */
     public static parseStructFields(
         dataType: string
-    ): { name: string; type: string; intermediateIsArray: boolean[] }[] {
+    ): { name: string; type: string; isArray: boolean[] }[] {
+        const isListType = (type: string) => type.trimEnd().endsWith("[]");
         const topLevel = DatabaseService.parseStructFieldsShallow(dataType);
-        const result: { name: string; type: string; intermediateIsArray: boolean[] }[] = [];
+        const result: { name: string; type: string; isArray: boolean[] }[] = [];
         for (const field of topLevel) {
             if (DatabaseService.isStructType(field.type)) {
-                const isArray = field.type.trimEnd().endsWith("[]");
-                // Recurse into nested STRUCT
-                const nested = DatabaseService.parseStructFields(field.type);
-                for (const sub of nested) {
+                // Recurse, prefixing this segment's name and array-ness onto each descendant.
+                for (const sub of DatabaseService.parseStructFields(field.type)) {
                     result.push({
                         name: `${field.name}.${sub.name}`,
                         type: sub.type,
-                        intermediateIsArray: [isArray, ...sub.intermediateIsArray],
+                        isArray: [isListType(field.type), ...sub.isArray],
                     });
                 }
             } else {
-                result.push({ name: field.name, type: field.type, intermediateIsArray: [] });
+                result.push({
+                    name: field.name,
+                    type: field.type,
+                    isArray: [isListType(field.type)],
+                });
             }
         }
         return result;
@@ -1272,57 +1275,87 @@ export default abstract class DatabaseService {
                 this.fetchAnnotationDescriptions(),
                 this.fetchAnnotationTypes(),
             ]);
-
-            const annotations: Annotation[] = [];
-            for (const row of rows) {
-                const columnName = row["column_name"] as string;
-                const dataType = row["data_type"] as string;
-                const explicitType = annotationNameToTypeMap[columnName];
-                const resolvedType =
-                    explicitType || DatabaseService.columnTypeToAnnotationType(dataType);
-
-                if (resolvedType === AnnotationType.NESTED) {
-                    // Mark parent as nested
-                    annotations.push(
-                        new Annotation({
-                            annotationName: columnName,
-                            annotationDisplayName: columnName,
-                            description: annotationNameToDescriptionMap[columnName] || "",
-                            type: AnnotationType.NESTED,
-                        })
-                    );
-                    // The root column itself is an array (STRUCT[])
-                    const rootIsArray = dataType.trimEnd().endsWith("[]");
-                    // Parse STRUCT fields recursively and create sub-field annotations
-                    const subFields = DatabaseService.parseStructFields(dataType);
-                    for (const field of subFields) {
-                        const fieldParts = field.name.split(".");
-                        // pathIsArray: [rootIsArray, ...intermediate array flags]
-                        const pathIsArray = [rootIsArray, ...field.intermediateIsArray];
-                        annotations.push(
-                            new Annotation({
-                                annotationName: [columnName, ...fieldParts],
-                                description: "",
-                                type: DatabaseService.columnTypeToAnnotationType(field.type),
-                                pathIsArray,
-                            })
-                        );
-                    }
-                } else {
-                    annotations.push(
-                        new Annotation({
-                            annotationName: columnName,
-                            annotationDisplayName: columnName,
-                            description: annotationNameToDescriptionMap[columnName] || "",
-                            type: resolvedType,
-                        })
-                    );
-                }
-            }
+            const annotations = DatabaseService.buildAnnotationsFromRows(
+                rows,
+                annotationNameToDescriptionMap,
+                annotationNameToTypeMap
+            );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);
         }
 
         return this.dataSourceToAnnotationsMap.get(aggregateDataSourceName) || [];
+    }
+
+    protected static buildAnnotationsFromRows(
+        rows: { [key: string]: any }[],
+        annotationNameToDescriptionMap: Record<string, string>,
+        annotationNameToTypeMap: Record<string, AnnotationType>
+    ): Annotation[] {
+        const annotations: Annotation[] = [];
+        for (const row of rows) {
+            const columnName = row["column_name"] as string;
+            const dataType = row["data_type"] as string;
+            const explicitType = annotationNameToTypeMap[columnName];
+            const resolvedType =
+                explicitType || DatabaseService.columnTypeToAnnotationType(dataType);
+
+            if (resolvedType === AnnotationType.NESTED) {
+                const rootIsArray = dataType.trimEnd().endsWith("[]");
+                // Track which nested (parent/intermediate) annotations have been created so
+                // each intermediate struct level is only added once.
+                const createdNestedNames = new Set<string>();
+                annotations.push(
+                    new Annotation({
+                        annotationName: [columnName],
+                        description: annotationNameToDescriptionMap[columnName] || "",
+                        type: AnnotationType.NESTED,
+                        pathIsArray: [rootIsArray],
+                    })
+                );
+                createdNestedNames.add(columnName);
+                // Parse STRUCT fields recursively and create sub-field annotations.
+                const subFields = DatabaseService.parseStructFields(dataType);
+                for (const field of subFields) {
+                    const fieldParts = field.name.split(".");
+                    // One flag per path segment (length === path.length)
+                    const pathIsArray = [rootIsArray, ...field.isArray];
+                    const fullPath = [columnName, ...fieldParts];
+                    // Create a NESTED (parent) annotation for each intermediate struct level
+                    for (let depth = 1; depth < fullPath.length - 1; depth++) {
+                        const ancestorPath = fullPath.slice(0, depth + 1);
+                        const ancestorName = ancestorPath.join(".");
+                        if (!createdNestedNames.has(ancestorName)) {
+                            createdNestedNames.add(ancestorName);
+                            annotations.push(
+                                new Annotation({
+                                    annotationName: ancestorPath,
+                                    description: annotationNameToDescriptionMap[columnName] || "",
+                                    type: AnnotationType.NESTED,
+                                    pathIsArray: pathIsArray.slice(0, depth + 1),
+                                })
+                            );
+                        }
+                    }
+                    annotations.push(
+                        new Annotation({
+                            annotationName: fullPath,
+                            description: annotationNameToDescriptionMap[columnName] || "",
+                            type: DatabaseService.columnTypeToAnnotationType(field.type),
+                            pathIsArray,
+                        })
+                    );
+                }
+            } else {
+                annotations.push(
+                    new Annotation({
+                        annotationName: [columnName],
+                        description: annotationNameToDescriptionMap[columnName] || "",
+                        type: resolvedType,
+                    })
+                );
+            }
+        }
+        return annotations;
     }
 
     // Similar to getColumnsOnDataSource below, but suitable for use during the

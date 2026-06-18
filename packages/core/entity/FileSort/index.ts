@@ -1,7 +1,6 @@
 import { isEqual } from "lodash";
 
 import SQLBuilder from "../SQLBuilder";
-import defaultPathIsArray from "../pathIsArray";
 
 export enum SortOrder {
     ASC = "ASC",
@@ -15,17 +14,10 @@ export enum SortOrder {
 export default class FileSort {
     public readonly path: string[];
     public readonly order: SortOrder;
-    /**
-     * Which non-leaf path segments are arrays (STRUCT[]). Length = path.length - 1.
-     * Defaults to [true, false, ...] (root is array, rest are scalar structs).
-     */
-    public readonly pathIsArray: boolean[];
 
-    constructor(annotationName: string | string[], order: SortOrder, pathIsArray?: boolean[]) {
+    constructor(annotationName: string | string[], order: SortOrder) {
         this.path = Array.isArray(annotationName) ? annotationName : annotationName.split(".");
         this.order = order;
-        // Schema-derived flags (Annotation.pathIsArray) are authoritative; this is a fallback.
-        this.pathIsArray = pathIsArray ?? defaultPathIsArray(this.path);
     }
 
     // TODO: This is a misnomer since it may not be display-friendly, should be "key" or something
@@ -44,14 +36,18 @@ export default class FileSort {
      * Build the ORDER BY clause body (without the "ORDER BY" keyword) for this sort, so callers
      * that already have a SQLBuilder can append it via `.orderBy(...)`. Centralizes the nested
      * sub-field sort logic so the file-list query and the manifest/download query stay in sync.
+     *
+     * `pathIsArray` is the schema-derived STRUCT[] flags for this sort's annotation (see
+     * resolvePathIsArray); for a flat (single-segment) sort it is ignored.
      */
-    public toOrderByClause(): string {
+    public toOrderByClause(pathIsArray: boolean[]): string {
         if (this.path.length > 1) {
-            // For nested sub-fields, sort by the min (ASC) or max (DESC) value in the
-            // extracted list. list_sort ensures deterministic results regardless of the
-            // original element order in the array.
-            const listExpr = SQLBuilder.buildNestedAccessExpression(this.path, this.pathIsArray);
-            return SQLBuilder.listSortOrderBy(listExpr, this.order);
+            const accessExpr = SQLBuilder.buildNestedAccessExpression(this.path, pathIsArray);
+            // Array-bearing path: the expression is a LIST; sort by its min/max element.
+            // Scalar-struct path: the expression is a single dot-access value; sort directly.
+            return pathIsArray.some(Boolean)
+                ? SQLBuilder.listSortOrderBy(accessExpr, this.order)
+                : `${accessExpr} ${this.order}`;
         }
         return `"${this.path[0]}" ${this.order}`;
     }

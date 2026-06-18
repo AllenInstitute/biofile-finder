@@ -5,40 +5,41 @@ import FileSort, { SortOrder } from "../";
 describe("FileSort", () => {
     describe("toOrderByClause", () => {
         it("emits a simple quoted column clause for a flat (single-segment) sort", () => {
-            expect(new FileSort(["Cell Line"], SortOrder.ASC).toOrderByClause()).to.equal(
+            expect(new FileSort(["Cell Line"], SortOrder.ASC).toOrderByClause([])).to.equal(
                 `"Cell Line" ASC`
             );
-            expect(new FileSort(["Cell Line"], SortOrder.DESC).toOrderByClause()).to.equal(
+            expect(new FileSort(["Cell Line"], SortOrder.DESC).toOrderByClause([])).to.equal(
                 `"Cell Line" DESC`
             );
         });
 
-        // Nested sub-fields sort by the min element ([1]) when ascending. list_sort makes the
-        // result deterministic regardless of the original element order in the array.
         it("sorts a nested sub-field by the minimum (index 1) when ascending", () => {
             expect(
-                new FileSort(["Well", "Dose", "Unit"], SortOrder.ASC, [
+                new FileSort(["Well", "Dose", "Unit"], SortOrder.ASC).toOrderByClause([
                     true,
                     false,
-                ]).toOrderByClause()
+                    false,
+                ])
             ).to.equal(`list_sort(list_transform("Well", x -> x."Dose"."Unit"))[1] ASC`);
         });
 
-        // Nested sub-fields sort by the max element ([-1]) when descending.
         it("sorts a nested sub-field by the maximum (index -1) when descending", () => {
             expect(
-                new FileSort(["Well", "Dose", "Unit"], SortOrder.DESC, [
+                new FileSort(["Well", "Dose", "Unit"], SortOrder.DESC).toOrderByClause([
                     true,
                     false,
-                ]).toOrderByClause()
+                    false,
+                ])
             ).to.equal(`list_sort(list_transform("Well", x -> x."Dose"."Unit"))[-1] DESC`);
         });
 
-        // pathIsArray defaults to [true, false, ...] when not supplied (see defaultPathIsArray).
-        it("falls back to the default pathIsArray when none is provided", () => {
+        it("sorts a scalar-struct sub-field by plain dot access (no list_sort)", () => {
             expect(
-                new FileSort(["Well", "Dose", "Unit"], SortOrder.ASC).toOrderByClause()
-            ).to.equal(`list_sort(list_transform("Well", x -> x."Dose"."Unit"))[1] ASC`);
+                new FileSort(["Image QC", "Focus Score"], SortOrder.ASC).toOrderByClause([false])
+            ).to.equal(`"Image QC"."Focus Score" ASC`);
+            expect(
+                new FileSort(["Image QC", "Focus Score"], SortOrder.DESC).toOrderByClause([false])
+            ).to.equal(`"Image QC"."Focus Score" DESC`);
         });
     });
 

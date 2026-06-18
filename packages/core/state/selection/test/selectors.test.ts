@@ -56,6 +56,7 @@ describe("Selection selectors", () => {
                     annotationName: ["Well", "Dose", "Unit"],
                     description: "Dose unit",
                     type: AnnotationType.STRING,
+                    pathIsArray: [true, false, false],
                 }),
             ];
             const filters = [new FileFilter(["Well", "Dose", "Unit"], "mg", FilterType.DEFAULT)];

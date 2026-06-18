@@ -6,8 +6,8 @@ import Tooltip from "../../Tooltip";
 import styles from "./ContentLengthToggle.module.css";
 
 interface Props {
-    isExpanded: boolean;
-    setIsExpanded: (isExpanded: boolean) => void;
+    isCollapsed: boolean;
+    setIsCollapsed: (isCollapsed: boolean) => void;
     tooltip?: string;
 }
 
@@ -19,9 +19,9 @@ export default function ContentLengthToggle(props: Props) {
         <Tooltip content={props.tooltip}>
             <Icon
                 className={styles.icon}
-                iconName={props.isExpanded ? "ChevronUpSmall" : "ChevronDownSmall"}
-                data-testid={props.isExpanded ? "collapse-nested-fields" : "expand-nested-fields"}
-                onClick={() => props.setIsExpanded(!props.isExpanded)}
+                iconName={props.isCollapsed ? "ChevronDownSmall" : "ChevronUpSmall"}
+                data-testid={props.isCollapsed ? "expand-nested-fields" : "collapse-nested-fields"}
+                onClick={() => props.setIsCollapsed(!props.isCollapsed)}
             />
         </Tooltip>
     );

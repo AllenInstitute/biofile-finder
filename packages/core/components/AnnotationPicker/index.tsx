@@ -39,7 +39,7 @@ interface Props {
  *
  * Nested sub-field annotations (e.g. "Well.Gene", "Well.Dose.Unit") are listed under their
  * top-level parent, with each leaf showing its full ancestry as breadcrumbs (e.g.
- * "Well / Dose / Unit"). Leaves are grouped by root parent and ordered so that sub-fields
+ * "Well / Dose / Unit"). Leaves are grouped by segment parents and ordered so that sub-fields
  * sharing an intermediate parent stay adjacent.
  */
 export default function AnnotationPicker(props: Props) {
@@ -80,14 +80,27 @@ export default function AnnotationPicker(props: Props) {
         .filter((a) => isSelectable(a) && !a.isParent)
         // Sort recent annotations to the top then sort by alphabetically
         .sort((a, b) => {
+            // Check if annotation is more or less recent than the other
             const aIsRecent = recentAnnotationNames.includes(a.name);
             const bIsRecent = recentAnnotationNames.includes(b.name);
             const isUsedMoreRecent = aIsRecent && !bIsRecent;
             const isUsedLessRecent = bIsRecent && !aIsRecent;
             if (isUsedMoreRecent) return -1;
             if (isUsedLessRecent) return 1;
-            // If both annotations are recent or both are not recent, sort alphabetically
-            return a.name.localeCompare(b.name);
+            // Check if annotations are same level of nesting
+            const aIsLessNested = a.path.length < b.path.length;
+            if (aIsLessNested) return -1;
+            const bIsLessNested = b.path.length < a.path.length;
+            if (bIsLessNested) return 1;
+            // Check for first instance of divergence in path
+            // then sort alphabetically by that segment
+            for (let index = 0; index < a.path.length; index++) {
+                if (a.path[index] !== b.path[index]) {
+                    // If they diverge at this segment, sort by this segment's name alphabetically
+                    return a.path[index].localeCompare(b.path[index]);
+                }
+            }
+            return 0;
         })
         .map(annotationToListItem);
     const items = uniqBy(nonUniqueItems, (item) => item.data?.name ?? item.value);

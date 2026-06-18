@@ -447,43 +447,53 @@ describe("DatabaseService", () => {
     });
 
     describe("parseStructFields", () => {
-        it("returns top-level fields with empty intermediateIsArray for a flat STRUCT", () => {
+        it("returns top-level scalar fields with a single false flag", () => {
             expect(
                 DatabaseService.parseStructFields("STRUCT(Gene VARCHAR, Score DOUBLE)")
             ).to.deep.equal([
-                { name: "Gene", type: "VARCHAR", intermediateIsArray: [] },
-                { name: "Score", type: "DOUBLE", intermediateIsArray: [] },
+                { name: "Gene", type: "VARCHAR", isArray: [false] },
+                { name: "Score", type: "DOUBLE", isArray: [false] },
             ]);
         });
 
         // Mixed leaf + nested STRUCT[] — the canonical example from the docstring.
-        it("flattens nested STRUCT[] fields with dotted names and array flags", () => {
+        it("flattens nested STRUCT[] fields with dotted names and per-segment flags", () => {
             expect(
                 DatabaseService.parseStructFields(
                     "STRUCT(Gene VARCHAR, Dose STRUCT(Unit VARCHAR, Value DOUBLE)[])[]"
                 )
             ).to.deep.equal([
-                { name: "Gene", type: "VARCHAR", intermediateIsArray: [] },
-                { name: "Dose.Unit", type: "VARCHAR", intermediateIsArray: [true] },
-                { name: "Dose.Value", type: "DOUBLE", intermediateIsArray: [true] },
+                { name: "Gene", type: "VARCHAR", isArray: [false] },
+                { name: "Dose.Unit", type: "VARCHAR", isArray: [true, false] },
+                { name: "Dose.Value", type: "DOUBLE", isArray: [true, false] },
             ]);
         });
 
-        // A scalar (non-array) intermediate struct yields a false flag.
         it("marks a scalar intermediate struct with a false flag", () => {
             expect(
                 DatabaseService.parseStructFields("STRUCT(Dose STRUCT(Unit VARCHAR))")
-            ).to.deep.equal([{ name: "Dose.Unit", type: "VARCHAR", intermediateIsArray: [false] }]);
+            ).to.deep.equal([{ name: "Dose.Unit", type: "VARCHAR", isArray: [false, false] }]);
+        });
+
+        it("flags a list-typed leaf field as array", () => {
+            expect(
+                DatabaseService.parseStructFields(
+                    "STRUCT(Tags VARCHAR[], Dose STRUCT(Names VARCHAR[])[])[]"
+                )
+            ).to.deep.equal([
+                { name: "Tags", type: "VARCHAR[]", isArray: [true] },
+                { name: "Dose.Names", type: "VARCHAR[]", isArray: [true, true] },
+            ]);
         });
 
         // Each array boundary contributes one flag in order, deepest path supported.
-        it("accumulates an array flag per intermediate for deeply nested STRUCT[]", () => {
+        it("accumulates an array flag per segment for deeply nested STRUCT[]", () => {
             expect(
                 DatabaseService.parseStructFields(
                     "STRUCT(Dose STRUCT(Solution STRUCT(Name VARCHAR)[])[])[]"
                 )
             ).to.deep.equal([
-                { name: "Dose.Solution.Name", type: "VARCHAR", intermediateIsArray: [true, true] },
+                { name: "Dose.Solution.Name", type: "VARCHAR", isArray: [true, true, false] },
             ]);
         });
 

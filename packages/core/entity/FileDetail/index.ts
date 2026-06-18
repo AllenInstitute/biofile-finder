@@ -148,7 +148,14 @@ export default class FileDetail {
             // to annotations-like structure so that we can treat all metadata as
             // annotations in the frontend and avoid having some weird special cases
             .flatMap(([key, value]) => {
-                if (key === "annotations") return value as FmsFileAnnotation[]; // Pass through the actual annotations array without modification since it's already in the format we want
+                if (key === "annotations") {
+                    // Filter out any annotations with empty or whitespace-only
+                    // values since they aren't useful to show in the UI and just add noise
+                    // and often appear as bugs to the user
+                    return (value as FmsFileAnnotation[]).filter(
+                        ({ values }) => values.length > 0 && String(values[0]).trim() !== ""
+                    );
+                }
                 // Skip any fields that have unexpected types to avoid runtime errors.
                 if (
                     typeof value !== "string" &&

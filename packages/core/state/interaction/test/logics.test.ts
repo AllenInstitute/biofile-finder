@@ -72,6 +72,9 @@ describe("Interaction logics", () => {
         saveQuery() {
             return Promise.resolve(new Uint8Array());
         }
+        async fetchAnnotations(): Promise<[]> {
+            return [];
+        }
     }
 
     describe("downloadManifest", () => {

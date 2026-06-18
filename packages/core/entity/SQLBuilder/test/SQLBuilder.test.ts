@@ -1,6 +1,7 @@
 import { expect } from "chai";
 
 import SQLBuilder from "../";
+import { AnnotationType } from "../../AnnotationFormatter";
 
 describe("SQLBuilder", () => {
     describe("buildNestedAccessExpression", () => {
@@ -35,6 +36,29 @@ describe("SQLBuilder", () => {
                     [true, false, false]
                 )
             ).to.equal(`list_transform("Well", x -> x."Dose"."Solution"."Name")`);
+        });
+    });
+
+    describe("regexContains", () => {
+        it("builds a case-insensitive substring match", () => {
+            expect(SQLBuilder.regexContains(`"Color"`, "red")).to.equal(
+                `REGEXP_MATCHES(CAST("Color" AS VARCHAR), '(?i)red') = true`
+            );
+        });
+
+        it("escapes regex special characters then SQL single quotes", () => {
+            expect(SQLBuilder.regexContains(`x."Dose"."Unit"`, "1.5mg")).to.equal(
+                `REGEXP_MATCHES(CAST(x."Dose"."Unit" AS VARCHAR), '(?i)1\\.5mg') = true`
+            );
+        });
+    });
+
+    describe("listRegexContains", () => {
+        // The list analog of regexContains: substring-matches each element, then list_has(true).
+        it("tests a case-insensitive substring against every list element", () => {
+            expect(SQLBuilder.listRegexContains(`"Image QC"."Tags"`, "re")).to.equal(
+                `list_has(list_transform("Image QC"."Tags", __el -> REGEXP_MATCHES(CAST(__el AS VARCHAR), '(?i)re') = true), true)`
+            );
         });
     });
 
@@ -107,6 +131,90 @@ describe("SQLBuilder", () => {
             expect(
                 SQLBuilder.listSortOrderBy(`list_transform("Well", x -> x."Dose")`, "DESC")
             ).to.equal(`list_sort(list_transform("Well", x -> x."Dose"))[-1] DESC`);
+        });
+    });
+
+    describe("parseRangeBounds", () => {
+        it("parses a numeric range", () => {
+            expect(SQLBuilder.parseRangeBounds("RANGE(1, 50)")).to.deep.equal({
+                min: "1",
+                max: "50",
+            });
+        });
+
+        it("parses an ISO-8601 timestamp range", () => {
+            expect(
+                SQLBuilder.parseRangeBounds(
+                    "RANGE(2022-01-01T00:00:00.000Z, 2022-01-31T00:00:00.000Z)"
+                )
+            ).to.deep.equal({
+                min: "2022-01-01T00:00:00.000Z",
+                max: "2022-01-31T00:00:00.000Z",
+            });
+        });
+
+        it("returns undefined for a plain (non-RANGE) value", () => {
+            expect(SQLBuilder.parseRangeBounds("42")).to.be.undefined;
+        });
+
+        it("returns undefined when min or max contains unsafe characters", () => {
+            expect(SQLBuilder.parseRangeBounds("RANGE(1; DROP TABLE files--, 50)")).to.be.undefined;
+        });
+    });
+
+    describe("matchByType", () => {
+        it("builds a regex multi-value match for strings by default", () => {
+            const result = SQLBuilder.matchByType(`"Color"`, "Red", AnnotationType.STRING);
+            expect(result).to.include("REGEXP_MATCHES");
+            expect(result).to.include("Red");
+        });
+
+        it("builds an exact VARCHAR equality when exactMatchStrings is true", () => {
+            expect(SQLBuilder.matchByType(`"Color"`, "Red", AnnotationType.STRING, true)).to.equal(
+                `CAST("Color" AS VARCHAR) = 'Red'`
+            );
+        });
+
+        it("escapes single quotes in string values", () => {
+            expect(
+                SQLBuilder.matchByType(`"Name"`, "O'Brien", AnnotationType.STRING, true)
+            ).to.equal(`CAST("Name" AS VARCHAR) = 'O''Brien'`);
+        });
+
+        it("builds a boolean equality", () => {
+            expect(SQLBuilder.matchByType(`"Flag"`, true, AnnotationType.BOOLEAN)).to.equal(
+                `"Flag" = true`
+            );
+        });
+
+        it("builds a DOUBLE equality for numbers", () => {
+            expect(SQLBuilder.matchByType(`"Cell Count"`, "42", AnnotationType.NUMBER)).to.equal(
+                `CAST("Cell Count" AS DOUBLE) = TRY_CAST('42' AS DOUBLE)`
+            );
+        });
+
+        it("builds a duration equals condition", () => {
+            expect(SQLBuilder.matchByType(`"Duration"`, 60000, AnnotationType.DURATION)).to.equal(
+                `EXTRACT(epoch FROM "Duration")::BIGINT * 1000 = 60000`
+            );
+        });
+
+        it("builds a doubleRange condition for a numeric RANGE value", () => {
+            expect(
+                SQLBuilder.matchByType(`"Cell Count"`, "RANGE(1, 50)", AnnotationType.NUMBER)
+            ).to.equal(`CAST("Cell Count" AS DOUBLE) >= 1 AND CAST("Cell Count" AS DOUBLE) < 50`);
+        });
+
+        it("builds a timestampRange condition for a DATETIME RANGE value", () => {
+            expect(
+                SQLBuilder.matchByType(
+                    `"Date Created"`,
+                    "RANGE(2022-01-01T00:00:00.000Z, 2022-01-31T00:00:00.000Z)",
+                    AnnotationType.DATETIME
+                )
+            ).to.equal(
+                `CAST("Date Created" AS TIMESTAMPTZ) >= CAST('2022-01-01T00:00:00.000Z' AS TIMESTAMPTZ) AND CAST("Date Created" AS TIMESTAMPTZ) < CAST('2022-01-31T00:00:00.000Z' AS TIMESTAMPTZ)`
+            );
         });
     });
 });
