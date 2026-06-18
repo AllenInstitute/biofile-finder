@@ -103,7 +103,7 @@ export default function AnnotationPicker(props: Props) {
             return 0;
         })
         .map(annotationToListItem);
-    const items = uniqBy(nonUniqueItems, (item) => item.data?.name ?? item.value);
+    const items = uniqBy(nonUniqueItems, "value");
 
     // If there are any recent annotations add a divider between them
     // and the rest of the annotations (assuming any left)
