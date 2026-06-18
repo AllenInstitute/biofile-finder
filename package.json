@@ -3,8 +3,8 @@
   "version": "8.5.1",
   "license": "2-clause BSD license plus a third clause that prohibits redistribution and use for commercial purposes without further permission.",
   "engines": {
-    "node": "20.x",
-    "npm": "10.x"
+    "node": "24.x",
+    "npm": "11.x"
   },
   "workspaces": [
     "packages/desktop",
@@ -66,7 +66,7 @@
     "resize-observer": "1.0.x",
     "rimraf": "3.0.x",
     "sinon": "12.x",
-    "tsx": "4.21.x",
+    "tsx": "4.22.x",
     "typescript": "4.9.x"
   },
   "dependencies": {
@@ -86,7 +86,7 @@
     "filesize": "5.0.x",
     "fuse.js": "3.4.x",
     "interactjs": "1.6.x",
-    "lodash": "4.17.x",
+    "lodash": "4.18.x",
     "lru-cache": "5.1.x",
     "markdown-to-jsx": "^8.0.0",
     "normalize.css": "8.0.x",
