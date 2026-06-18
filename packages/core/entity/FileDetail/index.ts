@@ -1,3 +1,5 @@
+import { isEmpty, isNil, isObject, uniq } from "lodash";
+
 import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 import AnnotationName from "../Annotation/AnnotationName";
 import { Environment } from "../../constants";
@@ -7,7 +9,6 @@ import {
     NestedMetadataValue,
     PrimitiveMetadataValue,
 } from "../../services/FileService";
-import { isNil, isObject, uniq } from "lodash";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
 const AICS_FMS_S3_URL_PREFIX = "https://s3.us-west-2.amazonaws.com/";
@@ -280,9 +281,10 @@ export default class FileDetail {
         if (!rootValue) return undefined;
 
         const values = FileDetail.extractNestedValues(rootValue, path.slice(1));
-        return isObject(values) && !isNil(values)
-            ? uniq(values as PrimitiveMetadataValue[])
-            : (values as NestedMetadataValue[] | undefined);
+        if (isNil(values) || isEmpty(values)) return undefined;
+        return isObject(values[0])
+            ? (values as NestedMetadataValue[])
+            : uniq(values as PrimitiveMetadataValue[]);
     }
 
     public getFirstAnnotationValue(

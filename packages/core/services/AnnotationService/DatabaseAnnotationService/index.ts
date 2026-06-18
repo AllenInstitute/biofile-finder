@@ -258,11 +258,11 @@ export default class DatabaseAnnotationService implements AnnotationService {
         // Try to fetch values for new annotations to compute optimal column widths
         const widthByAnnotation: Map<string, number> = new Map();
         try {
-            const annotationToLength = await this.fetchLengthiestValues(annotations);
-            for (const [annotation, length] of annotationToLength.entries()) {
+            const annotationNameToLength = await this.fetchLengthiestValues(annotations);
+            for (const [name, length] of annotationNameToLength.entries()) {
                 // Grab whichever is longer, the longest value or the header
                 // to compute the column width needed to fit this column without truncation
-                const maxLengthOfColumn = Math.max(length, annotation.length);
+                const maxLengthOfColumn = Math.max(length, name.length);
                 // Convert this length to a pixel width using our sample character width
                 // + some extra pixels for padding
                 const maxLengthOfColumnInPx =
@@ -274,19 +274,14 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 // Avoid letting width get too small by setting a minimum width
                 // like in the case of canvas measurement failing
                 const width = Math.max(minOptimalWidth, MINIMUM_COLUMN_WIDTH);
-                widthByAnnotation.set(annotation, width);
+                widthByAnnotation.set(name, width);
             }
         } catch {
             // If fetching values fails entirely, fall through to default widths
         }
-        for (const annotation of annotations) {
-            if (!widthByAnnotation.has(annotation.displayName)) {
-                widthByAnnotation.set(annotation.displayName, DEFAULT_COLUMN_WIDTH);
-            }
-        }
-        for (const annotation of TOP_LEVEL_FILE_ANNOTATIONS) {
-            if (!widthByAnnotation.has(annotation.displayName)) {
-                widthByAnnotation.set(annotation.displayName, DEFAULT_COLUMN_WIDTH);
+        for (const annotation of [...annotations, ...TOP_LEVEL_FILE_ANNOTATIONS]) {
+            if (!widthByAnnotation.has(annotation.name)) {
+                widthByAnnotation.set(annotation.name, DEFAULT_COLUMN_WIDTH);
             }
         }
         return widthByAnnotation;
@@ -305,7 +300,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
         // extracted element list rather than casting the whole column.
         // Flat annotations: (e.g. "Color"): uses a direct CAST
         const selectExprs = annotations.map((annotation) => {
-            const escapedName = annotation.displayName.replaceAll("'", "''");
+            const escapedName = annotation.name.replaceAll("'", "''");
             if (!annotation.isSubField) {
                 return `MAX(LENGTH(CAST("${escapedName}" AS VARCHAR))) AS "${escapedName}"`;
             }

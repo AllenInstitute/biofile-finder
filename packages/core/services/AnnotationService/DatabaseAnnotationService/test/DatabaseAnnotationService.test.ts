@@ -489,8 +489,8 @@ describe("DatabaseAnnotationService", () => {
 
             // All top-level file annotations should be present with default widths
             for (const annotation of TOP_LEVEL_FILE_ANNOTATIONS) {
-                expect(result.has(annotation.displayName)).to.be.true;
-                expect(result.get(annotation.displayName)).to.equal(DEFAULT_COLUMN_WIDTH);
+                expect(result.has(annotation.name)).to.be.true;
+                expect(result.get(annotation.name)).to.equal(DEFAULT_COLUMN_WIDTH);
             }
         });
 

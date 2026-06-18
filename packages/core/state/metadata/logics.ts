@@ -1,4 +1,4 @@
-import { uniqBy } from "lodash";
+import { isEqual, uniqBy } from "lodash";
 import { createLogic } from "redux-logic";
 
 import { interaction, metadata, ReduxLogicDeps, selection } from "..";
@@ -54,11 +54,13 @@ const requestAnnotations = createLogic({
         } finally {
             done();
         }
-        done();
     },
     type: REQUEST_ANNOTATIONS,
 });
 
+// TODO: This logic is getting triggered twice unnecessarily:
+// reproduce by starting with AICS FMS query (or probably any other)
+// then adding a new query with new data source
 /**
  * Interceptor responsible for turning REQUEST_DATA_SOURCES action into selecting default
  * display annotations
@@ -66,56 +68,17 @@ const requestAnnotations = createLogic({
 const receiveAnnotationsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: annotations } = deps.action as ReceiveAnnotationAction;
+        const annotationByName = new Map(
+            annotations.map((annotation) => [annotation.name, annotation])
+        );
         const annotationService = interaction.selectors.getAnnotationService(deps.getState());
         const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
         const currentColumns = selection.selectors.getColumns(deps.getState());
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
         const currentFilters = selection.selectors.getFileFilters(deps.getState());
 
-        const annotationNamesInDataSource = annotations.reduce(
-            (set, annotation) => set.add(annotation.name),
-            new Set<string>()
-        );
-        // Filter out any columns that were selected for display that no longer
-        // exist as annotations in the data source (or are nested parent columns)
-        const columnsThatStillExist = currentColumns.filter(
-            (column) =>
-                annotationNamesInDataSource.has(column.name) &&
-                !annotations.find((a) => a.name === column.name)?.isParent
-        );
-        const columnNamesThatStillExist = columnsThatStillExist.map((column) => column.name);
-
-        const newAnnotations = annotations.filter(
-            (annotation) => !columnNamesThatStillExist.includes(annotation.name)
-        );
-
-        let columns: Column[] = [
-            ...columnsThatStillExist,
-            ...newAnnotations
-                .filter((annotation) => !annotation.isParent)
-                .map((annotation) => ({
-                    name: annotation.name,
-                    width: DEFAULT_COLUMN_WIDTH,
-                })),
-        ];
-
-        // If there were no columns selected, default to displaying
-        // "File Name" first for any data source
-        if (!columnsThatStillExist.length) {
-            // Remove filename annotations from columns before re-adding it at the front,
-            columns = columns.filter((column) => column.name !== "File Name");
-
-            // Add "File Name" back to the front of the columns array
-            columns.unshift({
-                name: "File Name",
-                width: DEFAULT_COLUMN_WIDTH,
-            });
-        }
-
-        dispatch(selection.actions.setColumns(columns));
-
         const isCurrentSortColumnValid =
-            currentSortColumn && annotationNamesInDataSource.has(currentSortColumn.annotationName);
+            currentSortColumn && annotationByName.has(currentSortColumn.annotationName);
         if (!isCurrentSortColumnValid) {
             // Default to sorting by "Uploaded" for AICS FMS queries
             if (isQueryingAicsFms) {
@@ -126,34 +89,19 @@ const receiveAnnotationsLogic = createLogic({
             }
         }
 
-        // Index annotations by full dotted path (e.g. "Well.Column") for enriching active
-        // filters below with schema-derived metadata. pathIsArray no longer needs enriching
-        // here: it is the authoritative schema state on Annotation, looked up at SQL-generation
-        // time (see resolvePathIsArray), not copied onto filters/sorts.
-        const annotationByFullPath = new Map(
-            annotations.map((annotation) => [annotation.name, annotation])
-        );
-
-        // Enrich active filters with annotationType and the correct path from the loaded
-        // annotations (using annotationByFullPath defined above). This:
-        //   (a) corrects filters decoded from legacy URLs with path=["Well.Column"] to the
-        //       multi-element form ["Well","Column"], and
-        //   (b) backfills valueType for any filter missing it.
+        // Enrich active filters with annotationType
         const enrichedFilters = currentFilters.map((filter) => {
-            const annotation = annotationByFullPath.get(filter.name);
+            const annotation = annotationByName.get(filter.name);
             // TODO: We should migrate annotation info out of filter so that
             // things like this are unnecessary - avoiding for now to conserve line changes
             if (!annotation) return filter; // no matching annotation — leave as-is
 
-            const newType = annotation.type;
-
             // Return the same object if nothing would change, so the reference-equality
             // check below can correctly detect a no-op and skip the dispatch.
-            const isPathUnchanged = annotation.name === filter.name;
-            const isTypeUnchanged = newType === filter.valueType;
-            if (isPathUnchanged && isTypeUnchanged) return filter;
+            const isTypeUnchanged = annotation.type === filter.valueType;
+            if (isTypeUnchanged) return filter;
 
-            return new FileFilter(filter.name, filter.value, filter.type, newType);
+            return new FileFilter(filter.name, filter.value, filter.type, annotation.type);
         });
 
         // Only dispatch if at least one filter actually changed
@@ -162,17 +110,50 @@ const receiveAnnotationsLogic = createLogic({
             dispatch(selection.actions.setFileFilters(enrichedFilters));
         }
 
-        // Asynchronously compute optimal column widths and apply them to the (already-rendered)
-        // columns once available. This intentionally does not block the dispatches above so the
-        // file list renders immediately at the default width.
+        // This request should be unable to take longer than 2 seconds
         const widthByAnnotation = await annotationService.fetchOptimalWidthForAnnotations(
             annotations
         );
-        const resizedColumns = columns.map((column) => {
-            const width = widthByAnnotation.get(column.name);
-            return width === undefined ? column : { ...column, width };
-        });
-        dispatch(selection.actions.setColumns(resizedColumns));
+
+        const columns: Column[] = annotations
+            // Exclude parents of nested fields since they don't have their own values to display
+            .filter((annotation) => !annotationByName.get(annotation.name)?.isParent)
+            .map((annotation) => ({
+                annotation: annotation,
+                currentColumnIndex: currentColumns.findIndex(
+                    (column) => column.name === annotation.name
+                ),
+            }))
+            .sort((a, b) => {
+                const { annotation: annotationA, currentColumnIndex: indexA } = a;
+                const { annotation: annotationB, currentColumnIndex: indexB } = b;
+                // Move columns that were already selected for display to the front, in their existing order
+                if (indexA !== -1 && indexB !== -1) {
+                    return indexA - indexB;
+                }
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+
+                // Move "File Name" to the front then sort alphabetically
+                if (annotationA.displayName === "File Name") return -1;
+                if (annotationB.displayName === "File Name") return 1;
+                return annotationA.name.localeCompare(annotationB.name);
+            })
+            .map(({ annotation, currentColumnIndex }) => {
+                // If the column for this annotation already exists, keep its current width
+                if (currentColumnIndex !== -1) {
+                    return currentColumns[currentColumnIndex];
+                }
+                return {
+                    name: annotation.name,
+                    width: widthByAnnotation.get(annotation.name) ?? DEFAULT_COLUMN_WIDTH,
+                };
+            });
+
+        // Only dispatch if at least one column actually changed
+        if (!isEqual(columns, currentColumns)) {
+            dispatch(selection.actions.setColumns(columns));
+        }
 
         done();
     },

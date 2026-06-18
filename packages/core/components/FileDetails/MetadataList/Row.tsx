@@ -8,7 +8,6 @@ import Section from "./Section";
 import Value from "./Value";
 import useDisplayText from "./useDisplayText";
 import Cell from "../../FileRow/Cell";
-import Tooltip from "../../Tooltip";
 import FileDetail from "../../../entity/FileDetail";
 import { MetadataValue, NestedMetadataValue } from "../../../services/FileService";
 import { interaction, metadata, selection } from "../../../state";
@@ -59,19 +58,19 @@ export default function Row(props: Props) {
         childRows
     );
 
-    if (!annotation) {
-        dispatch(
-            interaction.actions.processError(
-                `<Row />-${props.name}`,
-                `Unexpected internal error. Unable to find column metadata for field "${path.join(
-                    " : "
-                )}". Omitting this field from display.`
-            )
-        );
-        return null;
-    }
+    const pathLabel = path.join(" : ");
+    React.useEffect(() => {
+        if (!annotation) {
+            dispatch(
+                interaction.actions.processError(
+                    `<Row />-${pathLabel}`,
+                    `Unexpected internal error. Unable to find column metadata for field "${pathLabel}". Omitting this field from display.`
+                )
+            );
+        }
+    }, [annotation, pathLabel, dispatch]);
 
-    if (text === null) {
+    if (!annotation || text === null) {
         // Don't render anything for this metadata field (e.g. if it's still loading or if there is no value to show)
         return null;
     }
@@ -135,17 +134,19 @@ export default function Row(props: Props) {
                 })}
                 columnKey="key"
                 width={1}
-                title={annotation.description}
+                title={
+                    annotation.description
+                        ? `${annotation.leafDisplayName}: ${annotation.description}`
+                        : annotation.leafDisplayName
+                }
             >
-                <Tooltip content={annotation.leafDisplayName} hostClassName={styles.keyTooltipHost}>
-                    <span
-                        className={styles.keyValue}
-                        onContextMenu={onContextMenuHandlerFactory(annotation.leafDisplayName)}
-                        style={{ paddingLeft: `calc(${props.depth} * 18px)` }}
-                    >
-                        {annotation.leafDisplayName}
-                    </span>
-                </Tooltip>
+                <span
+                    className={styles.keyValue}
+                    onContextMenu={onContextMenuHandlerFactory(annotation.leafDisplayName)}
+                    style={{ paddingLeft: `calc(${props.depth} * 18px)` }}
+                >
+                    {annotation.leafDisplayName}
+                </span>
             </Cell>
             <Cell
                 className={classNames(styles.cell, styles.value, {

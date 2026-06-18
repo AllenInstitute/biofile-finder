@@ -104,7 +104,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 }}
             >
                 <div className={styles.cellContent}>
-                    <Tooltip content={this.props.title}>
+                    <Tooltip content={this.props.title} hostClassName={styles.tooltipHost}>
                         <>{this.props.children}</>
                     </Tooltip>
                 </div>
@@ -127,7 +127,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 style={{ width: `${this.props.width}px`, minWidth: MINIMUM_COLUMN_WIDTH }}
                 data-testid={NON_RESIZEABLE_CELL_TEST_ID}
             >
-                <Tooltip content={this.props.title}>
+                <Tooltip content={this.props.title} hostClassName={styles.tooltipHost}>
                     <>{this.props.children}</>
                 </Tooltip>
             </div>

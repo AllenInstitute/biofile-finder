@@ -36,18 +36,11 @@
 .key-value {
     user-select: text;
 
-    /* Apply truncation on the actual text node rendered inside TooltipHost. */
     display: block;
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.key-tooltip-host {
-    min-width: 0;
-    overflow: hidden;
-    display: flex;
 }
 
 .small-font {
