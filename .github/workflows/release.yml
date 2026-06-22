@@ -15,17 +15,17 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@main
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.client_payload.ref }}
 
       - name: Install Node.js
-        uses: actions/setup-node@main
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Build/release Electron app
-        uses: AllenCellSoftware/action-electron-builder@fms-file-explorer
+        uses: AllenCell/action-electron-builder@4a8da00f5301a1f70ad0d2224b23bf5dc8a6c671
         env:
           AMPLITUDE_API_KEY: ${{ secrets.AMPLITUDE_API_KEY }}
         with:

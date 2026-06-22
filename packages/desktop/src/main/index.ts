@@ -1,5 +1,5 @@
 import * as path from "path";
-import { app, BrowserWindow, dialog, Menu } from "electron";
+import { app, BrowserWindow, dialog, Menu, MessageBoxSyncOptions } from "electron";
 
 import getMenuTemplate from "./menu";
 import ExecutionEnvServicElectron from "../services/ExecutionEnvServiceElectron";
@@ -54,7 +54,7 @@ const createMainWindow = () => {
     });
 
     // Listen for renderer crashes and attempt a single reload
-    mainWindow.webContents.on("render-process-gone", (event, killed) => {
+    mainWindow.webContents.on("render-process-gone", (_event, killed) => {
         console.error("Renderer process crashed. Killed:", killed);
 
         if (!hasReloaded) {
@@ -91,19 +91,22 @@ const createMainWindow = () => {
         const childWindow = new BrowserWindow({ parent: mainWindow });
         childWindow.loadURL(url);
         // Catch 'beforeunload' events from web page since Electron handles these differently from browser
-        childWindow.webContents.on("will-prevent-unload", (ev: Event) => {
-            const options = {
-                type: "question",
-                buttons: ["Leave", "Cancel"],
-                message: "Leave site?",
-                detail: "Changes you made may not be saved.",
-            };
-            const shouldLeave = dialog.showMessageBoxSync(childWindow, options) === 0;
-            if (shouldLeave) {
-                ev.preventDefault();
-                childWindow.destroy();
+        childWindow.webContents.on(
+            "will-prevent-unload",
+            (ev: { preventDefault: () => void; readonly defaultPrevented: boolean }) => {
+                const options: MessageBoxSyncOptions = {
+                    type: "question",
+                    buttons: ["Leave", "Cancel"],
+                    message: "Leave site?",
+                    detail: "Changes you made may not be saved.",
+                };
+                const shouldLeave = dialog.showMessageBoxSync(childWindow, options) === 0;
+                if (shouldLeave) {
+                    ev.preventDefault();
+                    childWindow.destroy();
+                }
             }
-        });
+        );
         // Prevent default behavior, avoid duplicate windows
         return { action: "deny" };
     });
@@ -112,18 +115,21 @@ const createMainWindow = () => {
      * Catch 'beforeunload' events since Electron handles these differently from browser
      * Similar to above, but for main window instead of child window
      */
-    mainWindow.webContents.on("will-prevent-unload", (ev: Event) => {
-        const options = {
-            type: "question",
-            buttons: ["Leave", "Cancel"],
-            message: "Leave site?",
-            detail: UNSAVED_DATA_WARNING,
-        };
-        if (mainWindow) {
-            const shouldLeave = dialog.showMessageBoxSync(mainWindow, options) === 0;
-            if (shouldLeave) ev.preventDefault(); // Unblock & perform the blocked action (e.g., leave, reload)
+    mainWindow.webContents.on(
+        "will-prevent-unload",
+        (ev: { preventDefault: () => void; readonly defaultPrevented: boolean }) => {
+            const options: MessageBoxSyncOptions = {
+                type: "question",
+                buttons: ["Leave", "Cancel"],
+                message: "Leave site?",
+                detail: UNSAVED_DATA_WARNING,
+            };
+            if (mainWindow) {
+                const shouldLeave = dialog.showMessageBoxSync(mainWindow, options) === 0;
+                if (shouldLeave) ev.preventDefault(); // Unblock & perform the blocked action (e.g., leave, reload)
+            }
         }
-    });
+    );
 
     if (isDevelopment) {
         mainWindow
