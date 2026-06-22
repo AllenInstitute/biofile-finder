@@ -14,15 +14,23 @@ import DatabaseAnnotationService from "..";
 
 describe("DatabaseAnnotationService", () => {
     describe("fetchAnnotationValues", () => {
-        const annotations = ["A", "B", "Cc", "dD"].map((name, index) => ({
-            select_key: name.toLowerCase() + index,
+        const annotationName = "foo";
+        const values = ["A", "B", "Cc", "dD"].map((name, index) => ({
+            [annotationName]: name.toLowerCase() + index,
         }));
         class MockDatabaseService extends DatabaseServiceNoop {
             public query(): { promise: Promise<any> } {
-                return { promise: Promise.resolve(annotations) };
+                return { promise: Promise.resolve(values) };
             }
             public async fetchAnnotations(): Promise<Annotation[]> {
-                return [];
+                return [annotationName].map(
+                    (name) =>
+                        new Annotation({
+                            annotationName: name,
+                            description: `${name} description`,
+                            type: AnnotationType.STRING,
+                        })
+                );
             }
         }
         const databaseService = new MockDatabaseService();
@@ -32,7 +40,7 @@ describe("DatabaseAnnotationService", () => {
                 dataSourceNames: ["a", "b or c"],
                 databaseService,
             });
-            const actualValues = await annotationService.fetchValues("select_key");
+            const actualValues = await annotationService.fetchValues(annotationName);
             expect(actualValues).to.be.deep.equal(["a0", "b1", "cc2", "dd3"]);
         });
     });
@@ -44,17 +52,24 @@ describe("DatabaseAnnotationService", () => {
             column_name: name,
             column_type: "VARCHAR",
         }));
+        const mockAnnotationName = "mock_annotation"; // snake case to match annotation properties in annotation map
         class MockDatabaseService extends DatabaseServiceNoop {
             public query(): { promise: Promise<any> } {
                 return { promise: Promise.resolve(annotations) };
             }
-            public async fetchAnnotations(): Promise<[]> {
-                return [];
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return [mockAnnotationName, ...annotationNames].map(
+                    (name) =>
+                        new Annotation({
+                            annotationName: name,
+                            description: `${name} description`,
+                            type: AnnotationType.STRING,
+                        })
+                );
             }
         }
         const databaseService = new MockDatabaseService();
         const mockDataSourceName = "mockDataSourceName";
-        const mockAnnotationName = "mock_annotation"; // snake case to match annotation properties in annotation map
 
         // This test suite does not test the implementation or return values of fetchRootHierarchyValues
         // It simply checks that a DatabaseService query is successfully issued
@@ -100,16 +115,23 @@ describe("DatabaseAnnotationService", () => {
     // This test suite does not test the implementation or return values of fetchHierarchyValuesUnderPath
     // It simply checks that a DatabaseService query is successfully issued
     describe("fetchHierarchyValuesUnderPath", () => {
-        const annotations = ["A", "B", "Cc", "dD"].map((name, index) => ({
+        const valuesByAnnotation = ["A", "B", "Cc", "dD"].map((name, index) => ({
             foo: name + index,
             bar: name + index,
         }));
         class MockDatabaseService extends DatabaseServiceNoop {
             public query(): { promise: Promise<any> } {
-                return { promise: Promise.resolve(annotations) };
+                return { promise: Promise.resolve(valuesByAnnotation) };
             }
             public async fetchAnnotations(): Promise<Annotation[]> {
-                return [];
+                return ["foo", "bar"].map(
+                    (name) =>
+                        new Annotation({
+                            annotationName: name,
+                            description: `${name} description`,
+                            type: AnnotationType.STRING,
+                        })
+                );
             }
         }
         const databaseService = new MockDatabaseService();
@@ -172,7 +194,14 @@ describe("DatabaseAnnotationService", () => {
                 return { promise: Promise.resolve([]) };
             }
             public async fetchAnnotations(): Promise<Annotation[]> {
-                return [];
+                return ["foo", "bar", "zip"].map(
+                    (name) =>
+                        new Annotation({
+                            annotationName: name,
+                            description: `${name} description`,
+                            type: AnnotationType.STRING,
+                        })
+                );
             }
         }
         const databaseService = new MockDatabaseService();
@@ -198,7 +227,7 @@ describe("DatabaseAnnotationService", () => {
             const filter3 = new FileFilter("filter3", "value3");
 
             await annotationService.fetchHierarchyValuesUnderPath(
-                [], // hierarchy; skipping to simplify test
+                ["foo"],
                 [], // path so far; skipping to simplify test
                 [filter1a, filter1b, filter1c, filter2a, filter2b, filter3] // user-applied filters
             );
@@ -235,13 +264,13 @@ describe("DatabaseAnnotationService", () => {
             const filter1b = new FileFilter("filter1", "value1b");
 
             await annotationService.fetchHierarchyValuesUnderPath(
-                ["group1", "group2", "group3", "group4"], // annotations to group by
+                ["foo", "bar", "zip"], // annotations to group by
                 ["value1", "value2"], // path so far
                 [filter1a, filter1b] // user-applied filters
             );
 
             // Find potential values for the current level of the grouping hierarchy (group3, not group4)
-            expect(querySpy.calledWithMatch(/SELECT DISTINCT "group3"/)).to.be.true;
+            expect(querySpy.calledWithMatch(/SELECT DISTINCT "zip"/)).to.be.true;
 
             // Consistency check: still formats "OR" statement correctly
             expect(
@@ -251,9 +280,9 @@ describe("DatabaseAnnotationService", () => {
             ).to.be.true;
 
             // Includes a filter for each group in the hierarchy path so far
-            const hierarchyPath1 = filterToRegex(new FileFilter("group1", "value1"));
+            const hierarchyPath1 = filterToRegex(new FileFilter("foo", "value1"));
             expect(querySpy.calledWithMatch(hierarchyPath1)).to.be.true;
-            const hierarchyPath2 = filterToRegex(new FileFilter("group2", "value2"));
+            const hierarchyPath2 = filterToRegex(new FileFilter("bar", "value2"));
             expect(querySpy.calledWithMatch(hierarchyPath2)).to.be.true;
         });
     });

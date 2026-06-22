@@ -107,6 +107,10 @@ export default class DatabaseAnnotationService implements AnnotationService {
         path: string[],
         filters: FileFilter[]
     ): Promise<string[]> {
+        if (hierarchy.length <= 0) {
+            throw new Error("Hierarchy must contain at least one annotation to fetch values for.");
+        }
+
         const nameToAnnotationMap = await this.fetchNameToAnnotationMap();
         const annotationNamesInFilters = new Set(filters.map((f) => f.name));
         const hierarchyAsFilters = hierarchy
