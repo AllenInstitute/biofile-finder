@@ -43,41 +43,6 @@ export default class SQLBuilder {
     }
 
     /**
-     * Build a WHERE-clause expression that tests whether a DuckDB JSON array expression
-     * contains a specific value.
-     *
-     * `json_extract("Well"::JSON, '$[*].Gene')` returns a JSON array like `["Chroma4","Chroma5"]`.
-     * This helper generates a `json_contains` call to check membership.
-     */
-    public static jsonArrayContains(
-        arrayExpression: string,
-        value: string | boolean | number | null
-    ): string {
-        // Escape single-quotes in the SQL string literal.
-        const escaped = `${value}`.replaceAll("'", "''");
-        const castExpr = `CAST(${arrayExpression} AS VARCHAR)::JSON`;
-
-        // TODO: This could be simplified by the data automatically detecting numbers vs strings
-        if (typeof value === "string") {
-            // Values are always stringified by fetchValues (String(v).trim()), but the
-            // underlying JSON may store the value as a number.  When the string looks like
-            // a finite number, check both the JSON-string form ("5589") and the JSON-number
-            // form (5589) so that numeric values stored in JSON are matched.
-            const asNum = Number(value);
-            const looksNumeric =
-                value.trim() !== "" && isFinite(asNum) && String(asNum) === value.trim();
-            const strCheck = `json_contains(${castExpr}, '"${escaped}"'::JSON) = true`;
-            if (looksNumeric) {
-                return `(${strCheck} OR json_contains(${castExpr}, '${asNum}'::JSON) = true)`;
-            }
-            return strCheck;
-        }
-
-        // Non-string primitives (number, boolean, null): pass the value as-is in JSON form.
-        return `json_contains(${castExpr}, '${escaped}'::JSON) = true`;
-    }
-
-    /**
      * Build a DuckDB `list_transform` expression:
      * `list_transform(listExpr, varName -> body)`
      *
