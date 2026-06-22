@@ -179,7 +179,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 // For array columns (e.g. VARCHAR[]), DuckDB returns JS arrays after
                 // the JSON round-trip. Flatten them so each element is treated individually.
                 if (Array.isArray(row[annotation])) {
-                    return row[annotation].map((v) => String(v));
+                    return row[annotation].map((v: unknown) => String(v));
                 }
                 return String(row[annotation]).split(DatabaseService.LIST_DELIMITER);
             })
