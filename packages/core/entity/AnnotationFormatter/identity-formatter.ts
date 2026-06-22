@@ -1,9 +1,11 @@
+import { PrimitiveMetadataValue } from "../../services/FileService";
+
 export default {
-    displayValue(value: any): string {
+    displayValue(value: PrimitiveMetadataValue): string {
         return String(value);
     },
 
-    valueOf(value: any) {
+    valueOf(value: PrimitiveMetadataValue): PrimitiveMetadataValue {
         return value;
     },
 };

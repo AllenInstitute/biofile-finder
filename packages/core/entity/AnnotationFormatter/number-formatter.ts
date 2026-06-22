@@ -1,23 +1,27 @@
 import filesize from "filesize";
 
+import { PrimitiveMetadataValue } from "../../services/FileService";
+
+function formatNumber(val: PrimitiveMetadataValue, units?: string): string {
+    if (units === "bytes") {
+        const num = Number(val);
+        if (isNaN(num)) return String(val);
+        return filesize(num);
+    }
+    return `${val}${units ? " " + units : ""}`;
+};
+
 export default {
-    displayValue(value: string | number, units?: string): string {
-        const { minValue, maxValue } = extractValuesFromRangeOperatorFilterString(value.toString());
-        const formatNumber = (val: string | number) => {
-            if (units === "bytes") {
-                const num = Number(val);
-                if (isNaN(num)) return String(val);
-                return filesize(num);
-            }
-            return `${val}${units ? " " + units : ""}`;
-        };
+    displayValue(value: PrimitiveMetadataValue, units?: string): string {
+        const { minValue, maxValue } = extractValuesFromRangeOperatorFilterString(String(value));
         if (minValue && maxValue) {
-            return `[${formatNumber(minValue)},${formatNumber(maxValue)})`;
+            return `[${formatNumber(minValue, units)},${formatNumber(maxValue, units)})`;
         }
-        return formatNumber(value);
+
+        return formatNumber(value, units);
     },
 
-    valueOf(value: any) {
+    valueOf(value: PrimitiveMetadataValue): number {
         return Number(value);
     },
 };

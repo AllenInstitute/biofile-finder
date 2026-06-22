@@ -36,13 +36,13 @@ export const AnnotationTypeIdMap: Partial<Record<AnnotationType, number>> = {
 };
 
 export interface AnnotationFormatter {
-    displayValue(value: any, unit?: string): string;
+    displayValue(value: PrimitiveMetadataValue, unit?: string): string;
 
     /**
      * Given a value expected to belong to this annotation, return the result of coercing, if necessary,
      * that value to accord with this annotation's type.
      */
-    valueOf(value: any): PrimitiveMetadataValue;
+    valueOf(value: PrimitiveMetadataValue): PrimitiveMetadataValue | undefined;
 }
 
 /**

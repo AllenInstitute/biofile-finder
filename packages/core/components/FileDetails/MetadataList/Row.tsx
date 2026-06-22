@@ -29,8 +29,6 @@ interface Props {
  * Renders a primitive or nested column (array-of-objects column value) as a
  * collapsible group.
  * Supports any depth of nesting.
- *
- * Combined within this file for circular dependency reasons since Row needs to use Section
  */
 export default function Row(props: Props) {
     const dispatch = useDispatch();
