@@ -1,4 +1,4 @@
-import { Menu, MenuItemConstructorOptions } from "electron";
+import { Menu, MenuItemConstructorOptions, webContents } from "electron";
 
 import getMenuTemplate from "../menu";
 import { GlobalVariableChannels, Environment } from "../../util/constants";
@@ -25,14 +25,13 @@ export function getDataSourceMenu(): MenuItemConstructorOptions {
                         );
                         const newMenu = Menu.buildFromTemplate(getMenuTemplate());
                         Menu.setApplicationMenu(newMenu);
-                        focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
+                        webContents.getFocusedWebContents()?.send(GlobalVariableChannels.BaseUrl, {
                             environment: Environment.LOCALHOST,
                         });
                         // Notify the renderer of the change.
-                        focusedWindow.webContents.send(
-                            "environment-changed",
-                            Environment.LOCALHOST
-                        );
+                        webContents
+                            .getFocusedWebContents()
+                            ?.send("environment-changed", Environment.LOCALHOST);
                     }
                 },
             },
@@ -50,10 +49,13 @@ export function getDataSourceMenu(): MenuItemConstructorOptions {
                         );
                         const newMenu = Menu.buildFromTemplate(getMenuTemplate());
                         Menu.setApplicationMenu(newMenu);
-                        focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
+                        webContents.getFocusedWebContents()?.send(GlobalVariableChannels.BaseUrl, {
                             environment: Environment.STAGING,
                         });
-                        focusedWindow.webContents.send("environment-changed", Environment.STAGING);
+                        // Notify the renderer of the change
+                        webContents
+                            .getFocusedWebContents()
+                            ?.send("environment-changed", Environment.STAGING);
                     }
                 },
             },
@@ -71,13 +73,13 @@ export function getDataSourceMenu(): MenuItemConstructorOptions {
                         );
                         const newMenu = Menu.buildFromTemplate(getMenuTemplate());
                         Menu.setApplicationMenu(newMenu);
-                        focusedWindow.webContents.send(GlobalVariableChannels.BaseUrl, {
+                        webContents.getFocusedWebContents()?.send(GlobalVariableChannels.BaseUrl, {
                             environment: Environment.PRODUCTION,
                         });
-                        focusedWindow.webContents.send(
-                            "environment-changed",
-                            Environment.PRODUCTION
-                        );
+                        // Notify the renderer of the change
+                        webContents
+                            .getFocusedWebContents()
+                            ?.send("environment-changed", Environment.PRODUCTION);
                     }
                 },
             },

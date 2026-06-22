@@ -58,12 +58,14 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
                         ...currentQuery,
                         hierarchy: [],
                         filters: [new FileFilter(data.name, annotationValue)],
+                        provOriginId: undefined,
                     });
                 } else {
                     newUrl = SearchParams.encode({
                         ...currentQuery,
                         hierarchy: [],
                         filters: [new IncludeFilter(data.parent), new IncludeFilter(data.child)],
+                        provOriginId: undefined,
                     });
                 }
                 window.open(`/app?${newUrl}`, "_blank");
