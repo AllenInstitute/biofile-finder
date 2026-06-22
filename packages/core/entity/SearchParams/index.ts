@@ -286,14 +286,14 @@ export default class SearchParams {
             columns: ColumnCoder.decode(unparsedColumns),
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
-                .map((parsedFilter) => {
-                    return new FileFilter(
-                        parsedFilter.path ?? parsedFilter.name,
-                        parsedFilter.value,
-                        parsedFilter.type,
-                        parsedFilter.valueType
-                    );
-                }),
+                .map(
+                    (parsedFilter) =>
+                        new FileFilter(
+                            parsedFilter.path ?? parsedFilter.name,
+                            parsedFilter.value,
+                            parsedFilter.type
+                        )
+                ),
             openFolders: unparsedOpenFolders
                 .map((unparsedFolder) => JSON.parse(unparsedFolder))
                 .filter((parsedFolder) => parsedFolder.length <= hierarchyDepth)
