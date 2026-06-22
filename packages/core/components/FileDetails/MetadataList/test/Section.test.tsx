@@ -6,6 +6,8 @@ import Section from "../Section";
 import { MetadataValue } from "../../../../services/FileService";
 import sinon from "sinon";
 
+// Helper component that renders a child row for testing purposes
+// necessary because Section expects a renderer component as a child
 const ChildRow = ({ name, value }: { name: string; value: MetadataValue }) => (
     <div data-testid="child-row">
         {name}: {String(value)}
