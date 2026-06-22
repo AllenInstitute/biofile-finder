@@ -299,10 +299,6 @@ export default class DatabaseAnnotationService implements AnnotationService {
         // Flat annotations: (e.g. "Color"): uses a direct CAST
         const selectExprs = annotations.map((annotation) => {
             const escapedName = annotation.name.replaceAll("'", "''");
-            if (!annotation.isSubField) {
-                return `MAX(LENGTH(CAST("${escapedName}" AS VARCHAR))) AS "${escapedName}"`;
-            }
-
             if (hasArrayBeforeLeaf(annotation.pathIsArray)) {
                 const listExpr = SQLBuilder.buildNestedAccessExpression(
                     annotation.path,
