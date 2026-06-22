@@ -83,10 +83,10 @@ export default function AnnotationPicker(props: Props) {
             // Check if annotation is more or less recent than the other
             const aIsRecent = recentAnnotationNames.includes(a.name);
             const bIsRecent = recentAnnotationNames.includes(b.name);
-            const isUsedMoreRecent = aIsRecent && !bIsRecent;
-            const isUsedLessRecent = bIsRecent && !aIsRecent;
-            if (isUsedMoreRecent) return -1;
-            if (isUsedLessRecent) return 1;
+            const isMostRecentlyUsed = aIsRecent && !bIsRecent;
+            const isLeastRecentlyUsed = bIsRecent && !aIsRecent;
+            if (isMostRecentlyUsed) return -1;
+            if (isLeastRecentlyUsed) return 1;
             // Check if annotations are same level of nesting
             const aIsLessNested = a.path.length < b.path.length;
             if (aIsLessNested) return -1;
