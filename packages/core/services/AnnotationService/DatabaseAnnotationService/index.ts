@@ -142,21 +142,21 @@ export default class DatabaseAnnotationService implements AnnotationService {
         // Look up annotation metadata to determine if this is a nested sub-field.
         const nameToAnnotationMap = await this.fetchNameToAnnotationMap();
         const annotationMeta = nameToAnnotationMap.get(annotation);
-
-        let selectExpr: string;
-        if (annotationMeta?.isSubField && annotationMeta.path.length > 1) {
-            const accessExpr = SQLBuilder.buildNestedAccessExpression(
-                annotationMeta.path,
-                annotationMeta.pathIsArray
-            );
-            if (annotationMeta.hasNestedArray) {
-                selectExpr = `unnest(${accessExpr}) AS "${annotation}"`;
-            } else {
-                selectExpr = `DISTINCT ${accessExpr} AS "${annotation}"`;
-            }
-        } else {
-            selectExpr = `DISTINCT "${annotation}"`;
+        if (!annotationMeta) {
+            console.error("Annotation metadata not found for annotation:", annotation);
+            return [];
         }
+
+        // Get expression for accessing the (potentially) nested annotation value
+        const accessExpr = SQLBuilder.buildNestedAccessExpression(
+            annotationMeta.path,
+            annotationMeta.pathIsArray
+        );
+        // If the (potentially) nested column is an array, unnest it to get individual values.
+        // Otherwise, use built-in DISTINCT
+        const selectExpr = annotationMeta.hasNestedArray
+            ? `unnest(${accessExpr}) AS "${annotation}"`
+            : `DISTINCT ${accessExpr} AS "${annotation}"`;
 
         const sqlBuilder = new SQLBuilder()
             .select(selectExpr)
@@ -175,7 +175,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 // For array columns (e.g. VARCHAR[]), DuckDB returns JS arrays after
                 // the JSON round-trip. Flatten them so each element is treated individually.
                 if (Array.isArray(row[annotation])) {
-                    return row[annotation].map((v: unknown) => String(v).trim());
+                    return row[annotation].map((v) => String(v));
                 }
                 return String(row[annotation]).split(DatabaseService.LIST_DELIMITER);
             })
@@ -199,14 +199,12 @@ export default class DatabaseAnnotationService implements AnnotationService {
         // For nested sub-fields, use len(list_transform(...)) > 0 instead of "name" IS NOT NULL
         const hierarchyNotNullExprs = annotations.map((annotation) => {
             const meta = nameToAnnotationMap.get(annotation);
-            if (meta?.isSubField && meta.path.length > 1) {
-                const accessExpr = SQLBuilder.buildNestedAccessExpression(
-                    meta.path,
-                    meta.pathIsArray
-                );
-                return meta.hasNestedArray ? `len(${accessExpr}) > 0` : `${accessExpr} IS NOT NULL`;
+            if (!meta) {
+                console.error("Annotation metadata not found for annotation:", annotation);
+                return `"${annotation}" IS NOT NULL`;
             }
-            return `"${annotation}" IS NOT NULL`;
+            const accessExpr = SQLBuilder.buildNestedAccessExpression(meta.path, meta.pathIsArray);
+            return meta?.hasNestedArray ? `len(${accessExpr}) > 0` : `${accessExpr} IS NOT NULL`;
         });
 
         // Subquery 1

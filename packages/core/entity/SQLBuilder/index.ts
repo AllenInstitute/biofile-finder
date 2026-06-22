@@ -167,8 +167,13 @@ export default class SQLBuilder {
     public static buildNestedAccessExpression(
         path: string[],
         pathIsArray: boolean[],
-        leafTransform?: (leafExpr: string) => string
+        leafTransform = (leafExpr: string) => leafExpr
     ): string {
+        // Single-segment paths (no nesting) are just a column reference, no transforms needed.
+        if (path.length === 1) {
+            return leafTransform(`"${path[0]}"`);
+        }
+
         // Keep lambda variable names deterministic so generated SQL strings remain stable in tests.
         const lambdaVars = ["x", "y", "z", "w", "v", "u", "t", "s"];
         let nextLambdaVarIdx = 0;
@@ -177,8 +182,6 @@ export default class SQLBuilder {
         const isRootArray = pathIsArray[0];
 
         const nextLambdaVar = () => lambdaVars[nextLambdaVarIdx++];
-        const transformLeaf = (leafExpr: string) =>
-            leafTransform ? leafTransform(leafExpr) : leafExpr;
         const accessSegment = (baseExpr: string, pathIndex: number) =>
             `${baseExpr}."${path[pathIndex]}"`;
 
@@ -199,7 +202,7 @@ export default class SQLBuilder {
             const isLeaf = pathIndex === path.length - 1;
             const segmentExpr = accessSegment(currentExpr, pathIndex);
             if (isLeaf) {
-                return transformLeaf(segmentExpr);
+                return leafTransform(segmentExpr);
             }
 
             // Intermediate array segment: add another transform layer and remember to
