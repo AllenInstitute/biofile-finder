@@ -41,15 +41,12 @@ export default class FileSort {
      * resolvePathIsArray); for a flat (single-segment) sort it is ignored.
      */
     public toOrderByClause(pathIsArray: boolean[]): string {
-        if (this.path.length > 1) {
-            const accessExpr = SQLBuilder.buildNestedAccessExpression(this.path, pathIsArray);
-            // Array-bearing path: the expression is a LIST; sort by its min/max element.
-            // Scalar-struct path: the expression is a single dot-access value; sort directly.
-            return pathIsArray.some(Boolean)
-                ? SQLBuilder.listSortOrderBy(accessExpr, this.order)
-                : `${accessExpr} ${this.order}`;
-        }
-        return `"${this.path[0]}" ${this.order}`;
+        const accessExpr = SQLBuilder.buildNestedAccessExpression(this.path, pathIsArray);
+        // Array-bearing path: the expression is a LIST; sort by its min/max element.
+        // Scalar-struct path: the expression is a single dot-access value; sort directly.
+        return pathIsArray.some(Boolean)
+            ? SQLBuilder.listSortOrderBy(accessExpr, this.order)
+            : `${accessExpr} ${this.order}`;
     }
 
     public toJSON(): Record<string, string> {
