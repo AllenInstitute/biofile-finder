@@ -12,7 +12,6 @@ export type PrimitiveMetadataValue = string | number | boolean;
  * A value within a nested annotation entry. Can be a primitive, a nested object,
  * or an array of nested entries — supporting arrays-of-objects at any depth.
  */
-// export type NestedAnnotationValue = FmsFileAnnotationValue | NestedAnnotation | NestedAnnotation[];
 export type MetadataValue = PrimitiveMetadataValue[] | NestedMetadataValue[];
 export interface NestedMetadataValue {
     [metadataKey: string]: MetadataValue;
