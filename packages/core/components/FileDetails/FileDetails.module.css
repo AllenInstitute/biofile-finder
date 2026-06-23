@@ -64,11 +64,12 @@
     justify-content: space-between;
 }
 
-.button-row > div:last-child {
+.button-row > div {
+    align-items: center;
     display: flex;
 }
 
-.simple-button button {
+.simple-button {
     background: none;
     border: none;
     color: var(--highlight-background-color);
@@ -76,12 +77,12 @@
     padding: 0;
 }
 
-.simple-button button:hover {
+.simple-button:hover {
     background: none;
     color: var(--highlight-hover-background-color);
 }
 
-.simple-button button span {
+.simple-button span {
     font-weight: normal;
 }
 
