@@ -354,7 +354,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
 
     const fileSelection = useSelector(selection.selectors.getFileSelection);
     const annotationNames = React.useMemo(
-        () => Array.from(Object.keys(annotationNameToAnnotationMap)).sort(),
+        () => Array.from(annotationNameToAnnotationMap.keys()).sort(),
         [annotationNameToAnnotationMap]
     );
     const [isSmallFile, setIsSmallFile] = React.useState(false);
