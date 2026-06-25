@@ -30,6 +30,7 @@ import styles from "./src.module.css";
 
 const APP_ID = "biofile-finder";
 
+const userGuideHome = `/user-guide/${CONTENT[0].slug}/${CONTENT[0].pages[0].slug}`;
 const router = createBrowserRouter(
     [
         {
@@ -39,6 +40,12 @@ const router = createBrowserRouter(
                 {
                     path: "/",
                     element: <Home />, // Splash page
+                },
+                // deprecated in favor of /user-guide
+                // but kept for backward compatibility with old links
+                {
+                    path: "learn",
+                    element: <Navigate to={userGuideHome} replace />,
                 },
                 {
                     path: "app",
@@ -50,12 +57,7 @@ const router = createBrowserRouter(
                 },
                 {
                     path: "user-guide",
-                    element: (
-                        <Navigate
-                            to={`/user-guide/${CONTENT[0].slug}/${CONTENT[0].pages[0].slug}`}
-                            replace
-                        />
-                    ),
+                    element: <Navigate to={userGuideHome} replace />,
                 },
                 {
                     path: "user-guide/:groupSlug/:pageSlug",
