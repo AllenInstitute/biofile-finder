@@ -131,13 +131,13 @@ export default class FileFilter {
      */
     public toSimpleWhereClause(pathIsArray: boolean[]): string {
         const isNested = this.path.length > 1;
+        const columnExpr = SQLBuilder.buildNestedAccessExpression(this.path, pathIsArray);
 
         // If nested and an intermediate segment is an array, match by correlating with an inner query that filters the unnested root.
         if (isNested && hasArrayBeforeLeaf(pathIsArray)) {
-            const targetColumnExpr = SQLBuilder.buildNestedAccessExpression(this.path, pathIsArray);
-            if (this.type === FilterType.ANY) return `len(${targetColumnExpr}) > 0`;
+            if (this.type === FilterType.ANY) return `len(${columnExpr}) > 0`;
             if (this.type === FilterType.EXCLUDE)
-                return `("${this.path[0]}" IS NULL OR len(${targetColumnExpr}) = 0)`;
+                return `("${this.path[0]}" IS NULL OR len(${columnExpr}) = 0)`;
             if (this.type === FilterType.FUZZY) {
                 const boolList = SQLBuilder.buildNestedAccessExpression(
                     this.path,
@@ -162,19 +162,16 @@ export default class FileFilter {
 
         // If nested and leaf is an array match by nested list filtering
         if (isNested && isLeafAnArray(pathIsArray)) {
-            const listExpr = SQLBuilder.buildNestedAccessExpression(this.path, pathIsArray);
-            if (this.type === FilterType.ANY) return `len(${listExpr}) > 0`;
+            if (this.type === FilterType.ANY) return `len(${columnExpr}) > 0`;
             if (this.type === FilterType.EXCLUDE)
-                return `("${this.path[0]}" IS NULL OR len(${listExpr}) = 0)`;
+                return `("${this.path[0]}" IS NULL OR len(${columnExpr}) = 0)`;
             if (this.type === FilterType.FUZZY)
-                return SQLBuilder.listRegexContains(listExpr, this.value);
-            return SQLBuilder.listContains(listExpr, this.value);
+                return SQLBuilder.listRegexContains(columnExpr, this.value);
+            return SQLBuilder.listContains(columnExpr, this.value);
         }
 
-        // Otherwise, simplest case, match by a scalar condition on the column (or an IS NULL / IS NOT NULL check for ANY/EXCLUDE)
-        const columnExpr = isNested
-            ? SQLBuilder.buildNestedAccessExpression(this.path, pathIsArray)
-            : `"${this.path[0]}"`;
+        // Otherwise, simplest case, match by a scalar condition on the column
+        // (or an IS NULL / IS NOT NULL check for ANY/EXCLUDE)
         if (this.type === FilterType.ANY) return `${columnExpr} IS NOT NULL`;
         if (this.type === FilterType.EXCLUDE) return `${columnExpr} IS NULL`;
         if (this.type === FilterType.FUZZY) return SQLBuilder.regexContains(columnExpr, this.value);
