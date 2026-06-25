@@ -27,11 +27,6 @@
     font-weight: 400;
 }
 
-.notFound {
-    padding: 40px;
-    color: var(--light-grey);
-}
-
 .breadcrumb {
     display: flex;
     align-items: center;
@@ -41,12 +36,12 @@
     margin-bottom: 20px;
 }
 
-.breadcrumbSeparator {
+.breadcrumb-separator {
     font-size: 10px;
     color: var(--light-grey);
 }
 
-.breadcrumbPage {
+.breadcrumb-page {
     color: var(--primary-text-color);
 }
 
@@ -74,55 +69,55 @@
     margin-bottom: 20px;
 }
 
-.sectionBody {
+.section-body {
     line-height: 1.6;
     color: var(--primary-text-color);
 }
 
-.sectionBody p {
+.section-body p {
     margin: 0 0 12px;
 }
 
-.sectionBody p:last-child {
+.section-body p:last-child {
     margin-bottom: 0;
 }
 
-.sectionBody ul,
-.sectionBody ol {
+.section-body ul,
+.section-body ol {
     margin: 10px 0 20px 20px;
     padding: 0;
 }
 
-.sectionBody li {
+.section-body li {
     margin-bottom: 6px;
     line-height: 1.6;
 }
 
-.sectionBody li span,
-.sectionBody :global(.ug-feature-card) span {
+.section-body li span,
+.section-body :global(.ug-feature-card) span {
     font-weight: 600;
 }
 
-.sectionBody a {
+.section-body a {
     color: var(--aqua);
     text-decoration: none;
 }
 
-.sectionBody a:hover {
+.section-body a:hover {
     color: var(--bright-aqua);
     text-decoration: underline;
 }
 
-.sectionBody h3 {
+.section-body h3 {
     margin: 20px 0 10px 0;
 }
 
 /* Inline table styles for HTML tables in content */
-.sectionBody :global(.ug-scroll-container) {
+.section-body :global(.ug-scroll-container) {
     position: relative;
 }
 
-.sectionBody :global(.ug-scroll-container)::after {
+.section-body :global(.ug-scroll-container)::after {
     content: "";
     position: absolute;
     top: 0;
@@ -134,23 +129,23 @@
     z-index: 1;
 }
 
-.sectionBody :global(.ug-scroll-table) {
+.section-body :global(.ug-scroll-table) {
     overflow-x: auto;
     cursor: ew-resize;
 }
 
-.sectionBody :global(.ug-scroll-table) table {
+.section-body :global(.ug-scroll-table) table {
     min-width: 1140px;
 }
 
-.sectionBody table {
+.section-body table {
     width: 100%;
     border-collapse: collapse;
     font-size: 12px;
     margin-bottom:20px;
 }
 
-.sectionBody th {
+.section-body th {
     background-color: var(--aqua);
     color: var(--white);
     font-weight: 600;
@@ -159,23 +154,23 @@
     border: 1px solid var(--border-color);
 }
 
-.sectionBody td {
+.section-body td {
     padding: 8px 12px;
     border: 1px solid var(--border-color);
     vertical-align: top;
     line-height: 1.3;
 }
 
-.sectionBody tr:nth-child(odd) td {
+.section-body tr:nth-child(odd) td {
     background-color: var(--primary-dark);
 }
 
-.sectionBody tr:nth-child(even) td {
+.section-body tr:nth-child(even) td {
     background-color: var(--secondary-dark);
 }
 
 /* 2x2 feature grid */
-.sectionBody :global(.ug-feature-grid) {
+.section-body :global(.ug-feature-grid) {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap:22px;
@@ -183,62 +178,49 @@
 }
 
 /* Asymmetric 1:2 grid layout — used when pairing a narrow panel with a wide screenshot */
-.sectionBody :global(.ug-feature-grid--wide) {
+.section-body :global(.ug-feature-grid--wide) {
     grid-template-columns: 1fr 2fr;
 }
 
-.sectionBody :global(.ug-feature-card) {
+.section-body :global(.ug-feature-card) {
     font-weight: 300;
     line-height: 1.6;
 }
 
 @media (max-width: 769px) {
-    .sectionBody :global(.ug-feature-grid),
-    .sectionBody :global(.ug-feature-grid--wide) {
+    .section-body :global(.ug-feature-grid),
+    .section-body :global(.ug-feature-grid--wide) {
         grid-template-columns: 1fr;
     }
 }
 
 /* Content images */
-.sectionBody :global(.ug-image) {
+.section-body :global(.ug-image) {
     width: 100%;
     border-radius: 4px;
 }
 
-.sectionBody :global(.ug-image-mt) {
+.section-body :global(.ug-image-mt) {
     width: 100%;
     border-radius: 4px;
     margin-top: 8px;
 }
 
 /* Inline icons within body text */
-.sectionBody :global(.ug-icon-sm) {
+.section-body :global(.ug-icon-sm) {
     font-size: 11px;
     vertical-align: middle;
 }
 
-.sectionBody :global(.ug-icon-md) {
+.section-body :global(.ug-icon-md) {
     font-size: 16px;
     vertical-align: middle;
 }
 
 /* "Open in new window" external-link icons (targeted by Fluent's icon name so
    other small icons sharing .ug-icon-sm are unaffected). */
-.sectionBody :global([data-icon-name="OpenInNewWindow"]) {
+.section-body :global([data-icon-name="OpenInNewWindow"]) {
     font-weight: 600;
-}
-
-/* Placeholder box (for diagrams/future content) */
-.sectionBody :global(.ug-placeholder) {
-    background-color: var(--accent-dark);
-    border: 1px dashed var(--border-color);
-    border-radius: var(--small-border-radius);
-    color: var(--light-grey);
-    font-size: 14px;
-    font-style: italic;
-    padding: 24px;
-    text-align: center;
-    margin: 16px 0;
 }
 
 /* Pagination row */
@@ -251,7 +233,7 @@
     border-top: 1px solid var(--border-color);
 }
 
-.pageNav {
+.page-nav {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -265,29 +247,29 @@
     transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
-.pageNav:hover {
+.page-nav:hover {
     border-color: var(--aqua);
     background-color: var(--aqua-secondary-hover);
     color: var(--white);
 }
 
-.pageNavPrev {
+.page-nav-prev {
     justify-content: flex-start;
 }
 
-.pageNavNext {
+.page-nav-next {
     justify-content: flex-end;
     margin-left: auto;
 }
 
-.pageNavIcon {
+.page-nav-icon {
     font-size: 12px;
     font-weight: 600;
     color: var(--aqua);
     flex-shrink: 0;
 }
 
-.pageNavLabel {
+.page-nav-label {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -295,12 +277,12 @@
     margin-bottom: 2px;
 }
 
-.pageNavTitle {
+.page-nav-title {
     font-size: 14px;
     font-weight: 600;
     color: var(--primary-text-color);
 }
 
-.pageNav:hover .pageNavTitle {
+.page-nav:hover .page-nav-title {
     color: var(--white);
 }

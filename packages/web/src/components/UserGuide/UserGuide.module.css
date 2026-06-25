@@ -24,7 +24,7 @@
     overflow-y: auto;
 }
 
-.mobilNav {
+.mobile-nav {
     display: none;
     position: relative;
     padding: 12px 16px;
@@ -32,24 +32,24 @@
     background-color: var(--secondary-dark);
 }
 
-.mobileMenuTrigger {
+.mobile-menu-trigger {
     width: 200px;
 }
 
-.mobileMenuTrigger button {
+.mobile-menu-trigger button {
     width: auto;
 }
 
 
-.mobileMenuTrigger [class*="button-content"] {
+.mobile-menu-trigger [class*="button-content"] {
     flex-direction: row-reverse;
 }
 
-.mobileMenuTrigger [class*="button-content"] i {
+.mobile-menu-trigger [class*="button-content"] i {
     padding: 0 0 0 6px;
 }
 
-.mobileMenuBackdrop {
+.mobile-menu-backdrop {
     position: absolute;
     top: 100%;
     left: 0;
@@ -59,7 +59,7 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-.mobileMenu {
+.mobile-menu {
     position: absolute;
     top: 100%;
     left: 0;
@@ -82,7 +82,7 @@
         display: none;
     }
 
-    .mobilNav {
+    .mobile-nav {
         display: flex;
     }
 

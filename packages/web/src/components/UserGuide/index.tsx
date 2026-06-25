@@ -71,7 +71,7 @@ export default function UserGuide() {
     return (
         <div className={styles.root}>
             {/* Mobile page picker */}
-            <div className={styles.mobilNav}>
+            <div className={styles.mobileNav}>
                 <div className={styles.mobileMenuTrigger}>
                     <PrimaryButton
                         text="USER GUIDE MENU"

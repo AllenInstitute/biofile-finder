@@ -15,7 +15,7 @@
     margin-bottom: 2px;
 }
 
-.sectionTitle {
+.section-title {
     width: 100%;
     display: flex;
     align-items: center;
@@ -31,7 +31,7 @@
     transition: background-color 0.15s ease;
 }
 
-.sectionTitle:hover {
+.section-title:hover {
     background-color: var(--accent-dark);
 }
 
@@ -43,18 +43,18 @@
     flex-shrink: 0;
 }
 
-.chevronOpen {
+.chevron-open {
     transform: rotate(0deg);
 }
 
-.pageList {
+.page-list {
     list-style: none;
     margin: 0;
     padding: 0;
     padding-bottom: 4px;
 }
 
-.pageLink {
+.page-link {
     display: block;
     padding: 6px 16px 6px 24px;
     font-size: 14px;
@@ -65,19 +65,19 @@
     border-left: 3px solid transparent;
 }
 
-.pageLink:hover {
+.page-link:hover {
     background-color: var(--accent-dark);
     color: var(--white);
 }
 
-.activePage {
+.active-page {
     background-color: var(--aqua-secondary-hover);
     border-left-color: var(--aqua);
     color: var(--bright-aqua);
     padding-left: 21px;
 }
 
-.activePage:hover {
+.active-page:hover {
     background-color: var(--aqua-secondary-hover);
     color: var(--bright-aqua);
 }
