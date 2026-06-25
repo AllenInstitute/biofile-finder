@@ -34,12 +34,20 @@ export const ABOUT_CONTENT: Page[] = [
                             the companion web-based 3D volume viewer, Vol-E.
                         </p>
                         <a
-                            href="https://www.nature.com/articles/s41592-024-02099-0"
+                            href="https://doi.org/10.1038/s41592-026-03130-w"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            Read the BFF publication in Nature Methods
+                            Read the BFF publication in Nature Methods.
                         </a>
+                        <h3>How to cite BFF</h3>
+                        <p>
+                            Meharry, S.L., Borensztejn, A., Gaudreault, N. et al. Search, organize,
+                            aggregate and share image data with BioFile Finder (BFF). Nat Methods
+                            (2026).
+                            <br />
+                            https://doi.org/10.1038/s41592-026-03130-w
+                        </p>
                     </>
                 ),
             },
