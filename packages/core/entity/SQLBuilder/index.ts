@@ -98,6 +98,7 @@ export default class SQLBuilder {
      * Used by FileSort to sort files by a nested STRUCT[] sub-field.
      */
     public static listSortOrderBy(listExpr: string, order: string): string {
+        // In DuckDB ASC is 1 and DESC is -1 for list_sort indexing
         const idx = order === "ASC" ? 1 : -1;
         return `list_sort(${listExpr})[${idx}] ${order}`;
     }
