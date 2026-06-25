@@ -1,11 +1,10 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
+import type { UserGuidePageKey } from "../nav";
 
 import type { PageContent } from "./types";
 
-// Note: "real-world-use-cases/other-examples" exists in this file but has no
-// corresponding nav entry. It is unreachable unless added to nav.ts.
-export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
+export const REAL_WORLD_USE_CASES_CONTENT: Partial<Record<UserGuidePageKey, PageContent>>    = {
     "real-world-use-cases/use-cases": {
         title: "Use cases & scenarios",
         intro:
@@ -540,10 +539,5 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                 ),
             },
         ],
-    },
-
-    "real-world-use-cases/other-examples": {
-        title: "Other examples",
-        sections: [],
     },
 };

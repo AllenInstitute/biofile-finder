@@ -4,19 +4,21 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import { PAGE_CONTENT } from "./content/index";
-import { NAV, getAdjacentPages } from "./nav";
+import {
+    NavSection,
+    getAdjacentPages,
+    type UserGuidePageKey,
+} from "./nav";
 import styles from "./DocPage.module.css";
 
 interface DocPageProps {
-    sectionSlug: string;
-    pageSlug: string;
+    section: NavSection;
+    pageKey: UserGuidePageKey;
 }
 
-export default function DocPage({ sectionSlug, pageSlug }: DocPageProps) {
-    const key = `${sectionSlug}/${pageSlug}`;
-    const content = PAGE_CONTENT[key];
-    const section = NAV.find((s) => s.slug === sectionSlug);
-    const { prev, next } = getAdjacentPages(sectionSlug, pageSlug);
+export default function DocPage({ section, pageKey }: DocPageProps) {
+    const content = PAGE_CONTENT[pageKey];
+    const { prev, next } = getAdjacentPages(pageKey);
 
     if (!content) {
         return (
@@ -29,7 +31,7 @@ export default function DocPage({ sectionSlug, pageSlug }: DocPageProps) {
     return (
         <article className={styles.root}>
             <nav className={styles.breadcrumb} aria-label="breadcrumb">
-                <span className={styles.breadcrumbSection}>{section?.title}</span>
+                <span className={styles.breadcrumbSection}>{section.title}</span>
                 <Icon iconName="ChevronRight" className={styles.breadcrumbSeparator} />
                 <span className={styles.breadcrumbPage}>{content.title}</span>
             </nav>

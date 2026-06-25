@@ -1,9 +1,10 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
+import type { UserGuidePageKey } from "../nav";
 
 import type { PageContent } from "./types";
 
-export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
+export const APP_INFORMATION_CONTENT: Partial<Record<UserGuidePageKey, PageContent>> = {
     "app-information/specifications": {
         title: "Specifications",
         intro: "Technical specifications for BioFile Finder (BFF).",

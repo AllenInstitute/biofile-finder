@@ -5,7 +5,7 @@ import DateTimePicker from "./DateTimePicker";
 import { TertiaryButton } from "../Buttons";
 import FileFilter from "../../entity/FileFilter";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
-import { extractDatesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/date-time-formatter";
+import { extractDateRange } from "../../entity/AnnotationFormatter/date-time-formatter";
 
 import styles from "./DateRangePicker.module.css";
 
@@ -50,7 +50,7 @@ export default function DateRangePicker(props: DateRangePickerProps) {
         const {
             startDate: oldStartDate,
             endDate: oldEndDate,
-        } = extractDatesFromRangeOperatorFilterString(currentRange?.value);
+        } = extractDateRange(currentRange?.value);
         if (oldEndDate) {
             // The RANGE() filter uses an exclusive upper bound.
             // However, we want to present dates in the UI as if the upper bound was inclusive.
@@ -78,12 +78,12 @@ export default function DateRangePicker(props: DateRangePickerProps) {
             if (props?.type === AnnotationType.DATE) {
                 // AICS formats DATE types as yyyy-mm-dd with the time data zeroed out
                 const dateFormatter = annotationFormatterFactory(AnnotationType.DATE);
-                const startString = dateFormatter.displayValue(newStartDate);
-                const endString = dateFormatter.displayValue(newEndDate);
+                const startString = dateFormatter.displayValue(newStartDate.getTime());
+                const endString = dateFormatter.displayValue(newEndDate.getTime());
                 // Avoid re-triggering search if the formatted date string (ignoring time) hasn't changed
                 if (
-                    startString === dateFormatter.displayValue(oldStartDate) &&
-                    endString === dateFormatter.displayValue(oldEndDate)
+                    startString === dateFormatter.displayValue(oldStartDate?.getTime()) &&
+                    endString === dateFormatter.displayValue(oldEndDate?.getTime())
                 ) {
                     return;
                 }

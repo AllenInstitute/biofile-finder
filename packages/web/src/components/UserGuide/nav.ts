@@ -177,20 +177,59 @@ export const NAV: NavSection[] = [
     },
 ];
 
-export function getAdjacentPages(
-    sectionSlug: string,
+export type UserGuideSectionSlug = (typeof NAV)[number]["slug"];
+type UserGuideSection<S extends UserGuideSectionSlug> = Extract<
+    (typeof NAV)[number],
+    { slug: S }
+>;
+export type UserGuidePageSlug<S extends UserGuideSectionSlug = UserGuideSectionSlug> =
+    UserGuideSection<S>["pages"][number]["slug"];
+export type UserGuidePageKey = {
+    [S in UserGuideSectionSlug]: `${S}/${UserGuidePageSlug<S>}`;
+}[UserGuideSectionSlug];
+
+// const USER_GUIDE_SECTION_SLUG_SET = new Set<UserGuideSectionSlug>(
+//     NAV.map((section) => section.slug)
+// );
+const USER_GUIDE_PAGE_KEY_SET = new Set<UserGuidePageKey>(
+    NAV.flatMap((section) =>
+        section.pages.map(
+            (page) => `${section.slug}/${page.slug}` as UserGuidePageKey
+        )
+    )
+);
+
+// export function isUserGuideSectionSlug(value: string): value is UserGuideSectionSlug {
+//     return USER_GUIDE_SECTION_SLUG_SET.has(value as UserGuideSectionSlug);
+// }
+
+export function isUserGuidePageKey(value: string): value is UserGuidePageKey {
+    return USER_GUIDE_PAGE_KEY_SET.has(value as UserGuidePageKey);
+}
+
+export function isUserGuidePageSlugForSection<S extends UserGuideSectionSlug>(
+    sectionSlug: S,
     pageSlug: string
+): pageSlug is UserGuidePageSlug<S> {
+    return USER_GUIDE_PAGE_KEY_SET.has(
+        `${sectionSlug}/${pageSlug}` as UserGuidePageKey
+    );
+}
+
+const ALL_PAGES = NAV.flatMap((section) => section.pages.map((page) => ({ section, page })));
+const PAGE_KEY_TO_INDEX = Object.fromEntries(
+    ALL_PAGES.map(({ section, page }, index) => [`${section.slug}/${page.slug}`, index])
+) as Record<UserGuidePageKey, number>;
+
+export function getAdjacentPages(
+    pageKey: UserGuidePageKey
 ): {
     prev: { section: NavSection; page: NavPage } | null;
     next: { section: NavSection; page: NavPage } | null;
 } {
-    const allPages: { section: NavSection; page: NavPage }[] = [];
-    NAV.forEach((section) => section.pages.forEach((page) => allPages.push({ section, page })));
-    const idx = allPages.findIndex(
-        (p) => p.section.slug === sectionSlug && p.page.slug === pageSlug
-    );
+    const idx = PAGE_KEY_TO_INDEX[pageKey];
     return {
-        prev: idx > 0 ? allPages[idx - 1] : null,
-        next: idx < allPages.length - 1 ? allPages[idx + 1] : null,
+        prev: idx > 0 ? ALL_PAGES[idx - 1] : null,
+        next: idx < ALL_PAGES.length - 1 ? ALL_PAGES[idx + 1] : null,
     };
 }

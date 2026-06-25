@@ -3,6 +3,8 @@
 // Note: PAGE_CONTENT keys must match the sectionSlug/pageSlug pattern used in nav.ts.
 
 export type { PageContent, PageSection } from "./types";
+import type { UserGuidePageKey } from "../nav";
+import type { PageContent } from "./types";
 
 import { ABOUT_CONTENT } from "./about";
 import { APP_INFORMATION_CONTENT } from "./app-information";
@@ -10,7 +12,7 @@ import { GETTING_STARTED_CONTENT } from "./getting-started";
 import { OTHER_RESOURCES_CONTENT } from "./other-resources";
 import { REAL_WORLD_USE_CASES_CONTENT } from "./real-world-use-cases";
 
-export const PAGE_CONTENT = {
+export const PAGE_CONTENT: Record<UserGuidePageKey, PageContent> = {
     ...ABOUT_CONTENT,
     ...APP_INFORMATION_CONTENT,
     ...REAL_WORLD_USE_CASES_CONTENT,

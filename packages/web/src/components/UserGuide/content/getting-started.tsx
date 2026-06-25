@@ -1,9 +1,10 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
+import type { UserGuidePageKey } from "../nav";
 
 import type { PageContent } from "./types";
 
-export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
+export const GETTING_STARTED_CONTENT: Partial<Record<UserGuidePageKey, PageContent>> = {
     "getting-started/setup-overview": {
         title: "Setup overview",
         intro:

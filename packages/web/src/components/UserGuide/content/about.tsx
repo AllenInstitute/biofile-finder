@@ -6,10 +6,11 @@ import QueryingFilters from "../assets/querying-filters.png";
 import QueryingResults from "../assets/querying-results.png";
 import SharingUrl from "../assets/sharing-url.png";
 import Thumbnails from "../assets/thumbnails.png";
+import type { UserGuidePageKey } from "../nav";
 
 import type { PageContent } from "./types";
 
-export const ABOUT_CONTENT: Record<string, PageContent> = {
+export const ABOUT_CONTENT: Partial<Record<UserGuidePageKey, PageContent>> = {
     "about/overview": {
         title: "Overview",
         sections: [

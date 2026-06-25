@@ -1,9 +1,10 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
+import type { UserGuidePageKey } from "../nav";
 
 import type { PageContent } from "./types";
 
-export const OTHER_RESOURCES_CONTENT: Record<string, PageContent> = {
+export const OTHER_RESOURCES_CONTENT: Partial<Record<UserGuidePageKey, PageContent>> = {
     "other-resources/storage-options": {
         title: "Storage options",
         intro:

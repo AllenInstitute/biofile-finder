@@ -4,6 +4,7 @@ import { Navigate, useLocation, useParams } from "react-router-dom";
 import { PrimaryButton } from "../../../../core/components/Buttons";
 import DocPage from "./DocPage";
 import Sidebar from "./Sidebar";
+import { isUserGuidePageKey, NAV } from "./nav";
 import styles from "./UserGuide.module.css";
 
 export default function UserGuide() {
@@ -41,7 +42,14 @@ export default function UserGuide() {
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [menuOpen]);
 
-    if (!sectionSlug || !pageSlug) {
+    const section = NAV.find((s) => s.slug === sectionSlug);
+    const pageKey = `${sectionSlug}/${pageSlug}`;
+    if (
+        !section ||
+        !pageSlug || 
+        !sectionSlug ||
+        !isUserGuidePageKey(pageKey)
+    ) {
         return <Navigate to="/user-guide/about/overview" replace />;
     }
 
@@ -77,7 +85,7 @@ export default function UserGuide() {
 
             {/* Main content */}
             <div ref={contentRef} className={styles.content}>
-                <DocPage sectionSlug={sectionSlug} pageSlug={pageSlug} />
+                <DocPage pageKey={pageKey} section={section} />
             </div>
         </div>
     );
