@@ -22,6 +22,8 @@ export default function UserGuide() {
     const [menuOpen, setMenuOpen] = React.useState(false);
     const contentRef = React.useRef<HTMLDivElement>(null);
 
+    // Enables single-page navigation to specific sections
+    // of the user guide via URL hash (e.g. /user-guide/section/page#heading)
     React.useEffect(() => {
         setMenuOpen(false);
         const container = contentRef.current;

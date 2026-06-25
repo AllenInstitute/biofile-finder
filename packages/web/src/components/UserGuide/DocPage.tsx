@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 
 import { NavigationGroup, Page } from "./content";
 import { getAdjacentPages } from "./nav";
+import slugify from "./slugify";
 
 import styles from "./DocPage.module.css";
 
@@ -29,7 +30,11 @@ export default function DocPage({ group, page }: DocPageProps) {
                 {page.sections.map((sec, idx) => {
                     const HeadingTag = `h${sec.level ?? 2}` as "h2" | "h3" | "h4";
                     return (
-                        <section key={`${sec.heading}${idx}`} className={styles.section}>
+                        <section
+                            key={`${sec.heading}${idx}`}
+                            id={slugify(sec.heading ?? "")}
+                            className={styles.section}
+                        >
                             {sec.heading && (
                                 <HeadingTag className={styles.sectionHeading}>
                                     {sec.heading}

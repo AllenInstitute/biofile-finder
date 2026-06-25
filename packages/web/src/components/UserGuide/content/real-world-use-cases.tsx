@@ -2,6 +2,16 @@ import { Icon } from "@fluentui/react";
 import * as React from "react";
 
 import type { Page } from "./types";
+import slugify from "../slugify";
+
+// Create enum to avoid breaking links between sections in table of contents
+enum UseCase {
+    ExploreScreeningResults = "Explore Screening Results",
+    ValidateMetadata = "Validate Metadata",
+    InspectSubsetsOfImages = "Inspect Subsets of Images",
+    PerformQCOnDatasets = "Perform QC on Datasets",
+    ManageImageInventory = "Manage Image Inventory",
+}
 
 // Note: "real-world-use-cases/other-examples" exists in this file but has no
 // corresponding nav entry. It is unreachable unless added to nav.ts.
@@ -28,8 +38,8 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             <tbody>
                                 <tr>
                                     <td>
-                                        <a href="#explore-screening">
-                                            <strong>Explore screening results</strong>
+                                        <a href={`#${slugify(UseCase.ExploreScreeningResults)}`}>
+                                            <strong>{UseCase.ExploreScreeningResults}</strong>
                                         </a>
                                     </td>
                                     <td>
@@ -39,8 +49,8 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="#validate-metadata">
-                                            <strong>Validate metadata</strong>
+                                        <a href={`#${slugify(UseCase.ValidateMetadata)}`}>
+                                            <strong>{UseCase.ValidateMetadata}</strong>
                                         </a>
                                     </td>
                                     <td>
@@ -51,8 +61,8 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="#inspect-subsets">
-                                            <strong>Inspect image subsets</strong>
+                                        <a href={`#${slugify(UseCase.InspectSubsetsOfImages)}`}>
+                                            <strong>{UseCase.InspectSubsetsOfImages}</strong>
                                         </a>
                                     </td>
                                     <td>
@@ -63,8 +73,8 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="#perform-qc">
-                                            <strong>Perform QC on datasets</strong>
+                                        <a href={`#${slugify(UseCase.PerformQCOnDatasets)}`}>
+                                            <strong>{UseCase.PerformQCOnDatasets}</strong>
                                         </a>
                                     </td>
                                     <td>
@@ -75,8 +85,8 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href="#manage-inventory">
-                                            <strong>Manage image inventory</strong>
+                                        <a href={`#${slugify(UseCase.ManageImageInventory)}`}>
+                                            <strong>{UseCase.ManageImageInventory}</strong>
                                         </a>
                                     </td>
                                     <td>
@@ -121,7 +131,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "Explore screening results",
+                heading: UseCase.ExploreScreeningResults,
                 level: 3,
                 body: (
                     <>
@@ -153,7 +163,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "Validate metadata",
+                heading: UseCase.ValidateMetadata,
                 level: 3,
                 body: (
                     <>
@@ -185,7 +195,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "Inspect subsets of images",
+                heading: UseCase.InspectSubsetsOfImages,
                 level: 3,
                 body: (
                     <>
@@ -217,7 +227,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "Perform QC on datasets",
+                heading: UseCase.PerformQCOnDatasets,
                 level: 3,
                 body: (
                     <>
@@ -252,7 +262,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "Manage image inventory",
+                heading: UseCase.ManageImageInventory,
                 level: 3,
                 body: (
                     <>
