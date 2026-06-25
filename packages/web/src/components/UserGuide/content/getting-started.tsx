@@ -344,7 +344,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </tbody>
                         </table>
                         <p>
-                            {/* TODO: ??? */}
+                            {/* TODO: CSV */}
                             <a href="#">
                                 Download this example as CSV{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
@@ -394,7 +394,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             long after their original publication.
                         </p>
                         <p>
-                            {/* TODO */}
+                            {/* TODO CSV */}
                             <a href="#">
                                 Download REMBI-based template{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
@@ -433,7 +433,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             Phenotype, Organ, Analyzed Data.
                         </p>
                         <p>
-                            {/* TODO */}
+                            {/* TODO CSV */}
                             <a href="#">
                                 Download FoundingGIDE template CSV{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
@@ -618,7 +618,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </tbody>
                         </table>
                         <p>
-                            {/* TODO */}
+                            {/* TODO CSV */}
                             <a href="#">
                                 Download this example as CSV{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
@@ -753,7 +753,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </li>
                         </ul>
                         <p>
-                            {/* TODO */}
+                            {/* TODO CSV */}
                             <a href="#">
                                 Download this example{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
@@ -785,7 +785,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             originated in.
                         </p>
                         <p>
-                            {/* TODO */}
+                            {/* TODO: CSV */}
                             <a href="#">
                                 Download example <Icon iconName="Download" className="ug-icon-sm" />{" "}
                                 <Icon iconName="Flag" className="ug-icon-md" />
@@ -809,7 +809,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             dataset.
                         </p>
                         <p>
-                            {/* TODO */}
+                            {/* TODO: CSV */}
                             <a href="#">
                                 Download example <Icon iconName="Download" className="ug-icon-sm" />{" "}
                                 <Icon iconName="Flag" className="ug-icon-md" />

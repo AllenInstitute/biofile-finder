@@ -527,7 +527,22 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
             },
             {
                 heading: "Video",
-                body: <>{/* TODO: Add link to video once it is made public */}</>,
+                body: (
+                    <>
+                        <p>
+                            Check out this&nbsp;
+                            <a
+                                href="https://youtu.be/RD2x4BFhWzY?si=7PMaycix8BrPdjPS"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                short video
+                            </a>
+                            &nbsp;from the Allen Institute on how they and ABIOM as ISAS used BFF to
+                            organize and share their datasets.
+                        </p>
+                    </>
+                ),
             },
         ],
     },
@@ -540,9 +555,28 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 heading: "Video",
                 body: (
                     <>
-                        {/* TODO: Add link to video once it is made public */}
                         <p>
-                            <i>Content coming soon.</i>
+                            {/* TODO: Talk with ISAS about some content here */}
+                            Coming soon!
+                        </p>
+                    </>
+                ),
+            },
+            {
+                heading: "Video",
+                body: (
+                    <>
+                        <p>
+                            Check out this&nbsp;
+                            <a
+                                href="https://youtu.be/RD2x4BFhWzY?si=7PMaycix8BrPdjPS"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                short video
+                            </a>
+                            &nbsp;from the Allen Institute on how they and ABIOM as ISAS used BFF to
+                            organize and share their datasets.
                         </p>
                     </>
                 ),
