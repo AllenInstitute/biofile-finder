@@ -1,19 +1,16 @@
 import * as React from "react";
-import { useDispatch } from "react-redux";
 import { useLocation, useParams } from "react-router-dom";
 
 import { CONTENT } from "./content";
 import DocPage from "./DocPage";
 import Sidebar from "./Sidebar";
 import NotFound from "../NotFound";
-import { interaction } from "../../../../core/state";
 import { PrimaryButton } from "../../../../core/components/Buttons";
 import StatusMessage from "../../../../core/components/StatusMessage";
 
 import styles from "./UserGuide.module.css";
 
 export default function UserGuide() {
-    const dispatch = useDispatch();
     const { groupSlug, pageSlug } = useParams<{
         groupSlug: string;
         pageSlug: string;
@@ -21,6 +18,9 @@ export default function UserGuide() {
     const location = useLocation();
     const [menuOpen, setMenuOpen] = React.useState(false);
     const contentRef = React.useRef<HTMLDivElement>(null);
+
+    const group = CONTENT.find((g) => g.slug === groupSlug);
+    const page = group?.pages.find((p) => p.slug === pageSlug);
 
     // Enables single-page navigation to specific sections
     // of the user guide via URL hash (e.g. /user-guide/section/page#heading)
@@ -49,26 +49,6 @@ export default function UserGuide() {
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [menuOpen]);
-
-    const group = CONTENT.find((g) => g.slug === groupSlug);
-    if (groupSlug && !group) {
-        dispatch(
-            interaction.actions.processInfo(
-                groupSlug,
-                `The user guide page "${groupSlug}" could not be found.`
-            )
-        );
-    }
-
-    const page = group?.pages.find((p) => p.slug === pageSlug);
-    if (group && pageSlug && !page) {
-        dispatch(
-            interaction.actions.processInfo(
-                pageSlug,
-                `The user guide page "${group.slug}/${pageSlug}" could not be found.`
-            )
-        );
-    }
 
     return (
         <div className={styles.root}>

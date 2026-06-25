@@ -17,9 +17,13 @@
 
 .container ul {
     margin: 0;
-    padding: 0
+    padding: 0;
 }
 
 .container ul li {
     margin: 0.25em 0 0.25em 1em;
+}
+
+.container p {
+    line-height: normal;
 }
