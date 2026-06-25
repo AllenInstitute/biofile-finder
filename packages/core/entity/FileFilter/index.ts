@@ -77,13 +77,16 @@ export default class FileFilter {
                 );
             }
             if (correlatable.length > 0) {
+                // Lambda variable name for the root array element in the correlated query
+                // does not need to match any other lambda variables outside this function
+                const nestedLambdaVar = `__e0`;
                 const inner = FileFilter.buildNestedConditions(
                     correlatable,
-                    "__e0",
+                    nestedLambdaVar,
                     0,
                     pathIsArrayByName
                 );
-                clauses.push(SQLBuilder.listFilter(`"${root}"`, "__e0", inner));
+                clauses.push(SQLBuilder.listFilter(`"${root}"`, nestedLambdaVar, inner));
             }
         }
         return clauses;
