@@ -1,11 +1,11 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
-import type { Page } from "./types";
+import { Page, PageSlug, SectionHeading } from "./types";
 
 export const APP_INFORMATION_CONTENT: Page[] = [
     {
-        slug: "specifications",
+        slug: PageSlug.Specifications,
         title: "Specifications",
         intro: "Technical specifications for BioFile Finder (BFF).",
         sections: [
@@ -83,7 +83,7 @@ export const APP_INFORMATION_CONTENT: Page[] = [
     },
 
     {
-        slug: "supported-viewers",
+        slug: PageSlug.SupportedViewers,
         title: "Supported viewers",
         intro:
             "BioFile Finder (BFF) links out to a variety of image viewers. Use the information below to choose the right one for your work.",
@@ -129,7 +129,7 @@ export const APP_INFORMATION_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "Image viewer comparison table",
+                heading: SectionHeading.ViewerTable,
                 body: (
                     <>
                         <p>

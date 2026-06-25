@@ -1,11 +1,11 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
-import type { Page } from "./types";
+import { GroupSlug, Page, PageSlug } from "./types";
 
 export const OTHER_RESOURCES_CONTENT: Page[] = [
     {
-        slug: "storage-options",
+        slug: PageSlug.StorageOptions,
         title: "Storage options",
         intro:
             "Whether cloud, local, or network storage, BioFile Finder (BFF) is agnostic of where your files live. The only requirement is that the metadata file is accessible to the browser running BFF.",
@@ -18,8 +18,12 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
                         <p>
                             BFF works with both private and public cloud storage. The only
                             requirement is that{" "}
-                            <a href="/user-guide/other-resources/cors">CORS permissions</a> are
-                            configured on the bucket so the browser can access the files.
+                            <a
+                                href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.AvoidingCORSErrors}`}
+                            >
+                                CORS permissions
+                            </a>{" "}
+                            are configured on the bucket so the browser can access the files.
                         </p>
                     </>
                 ),
@@ -168,7 +172,7 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
     },
 
     {
-        slug: "cors",
+        slug: PageSlug.AvoidingCORSErrors,
         title: "Avoiding CORS errors",
         intro:
             "You may need to set up CORS permissions on your cloud bucket to enable bff.allencell.org to access your files. The same will be true for any web-based image viewers — for example vole.allencell.org — that you want to use to view your data.",

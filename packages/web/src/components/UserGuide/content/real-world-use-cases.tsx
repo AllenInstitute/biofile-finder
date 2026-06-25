@@ -1,23 +1,14 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
-import type { Page } from "./types";
+import { Page, PageSlug, SectionHeading } from "./types";
 import slugify from "../slugify";
-
-// Create enum to avoid breaking links between sections in table of contents
-enum UseCase {
-    ExploreScreeningResults = "Explore Screening Results",
-    ValidateMetadata = "Validate Metadata",
-    InspectSubsetsOfImages = "Inspect Subsets of Images",
-    PerformQCOnDatasets = "Perform QC on Datasets",
-    ManageImageInventory = "Manage Image Inventory",
-}
 
 // Note: "real-world-use-cases/other-examples" exists in this file but has no
 // corresponding nav entry. It is unreachable unless added to nav.ts.
 export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
     {
-        slug: "use-cases",
+        slug: PageSlug.UseCasesAndScenarios,
         title: "Use cases & scenarios",
         intro:
             "BioFile Finder (BFF) is flexible enough to fit many different workflows and contexts. This page highlights common use cases observed across research labs, core facilities, and data teams — along with real-world scenarios showing how different types of users leverage BFF in their work.",
@@ -38,8 +29,14 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             <tbody>
                                 <tr>
                                     <td>
-                                        <a href={`#${slugify(UseCase.ExploreScreeningResults)}`}>
-                                            <strong>{UseCase.ExploreScreeningResults}</strong>
+                                        <a
+                                            href={`#${slugify(
+                                                SectionHeading.ExploreScreeningResults
+                                            )}`}
+                                        >
+                                            <strong>
+                                                {SectionHeading.ExploreScreeningResults}
+                                            </strong>
                                         </a>
                                     </td>
                                     <td>
@@ -49,8 +46,8 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href={`#${slugify(UseCase.ValidateMetadata)}`}>
-                                            <strong>{UseCase.ValidateMetadata}</strong>
+                                        <a href={`#${slugify(SectionHeading.ValidateMetadata)}`}>
+                                            <strong>{SectionHeading.ValidateMetadata}</strong>
                                         </a>
                                     </td>
                                     <td>
@@ -61,8 +58,12 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href={`#${slugify(UseCase.InspectSubsetsOfImages)}`}>
-                                            <strong>{UseCase.InspectSubsetsOfImages}</strong>
+                                        <a
+                                            href={`#${slugify(
+                                                SectionHeading.InspectSubsetsOfImages
+                                            )}`}
+                                        >
+                                            <strong>{SectionHeading.InspectSubsetsOfImages}</strong>
                                         </a>
                                     </td>
                                     <td>
@@ -73,8 +74,8 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href={`#${slugify(UseCase.PerformQCOnDatasets)}`}>
-                                            <strong>{UseCase.PerformQCOnDatasets}</strong>
+                                        <a href={`#${slugify(SectionHeading.PerformQCOnDatasets)}`}>
+                                            <strong>{SectionHeading.PerformQCOnDatasets}</strong>
                                         </a>
                                     </td>
                                     <td>
@@ -85,8 +86,12 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href={`#${slugify(UseCase.ManageImageInventory)}`}>
-                                            <strong>{UseCase.ManageImageInventory}</strong>
+                                        <a
+                                            href={`#${slugify(
+                                                SectionHeading.ManageImageInventory
+                                            )}`}
+                                        >
+                                            <strong>{SectionHeading.ManageImageInventory}</strong>
                                         </a>
                                     </td>
                                     <td>
@@ -131,7 +136,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: UseCase.ExploreScreeningResults,
+                heading: SectionHeading.ExploreScreeningResults,
                 level: 3,
                 body: (
                     <>
@@ -163,7 +168,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: UseCase.ValidateMetadata,
+                heading: SectionHeading.ValidateMetadata,
                 level: 3,
                 body: (
                     <>
@@ -195,7 +200,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: UseCase.InspectSubsetsOfImages,
+                heading: SectionHeading.InspectSubsetsOfImages,
                 level: 3,
                 body: (
                     <>
@@ -227,7 +232,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: UseCase.PerformQCOnDatasets,
+                heading: SectionHeading.PerformQCOnDatasets,
                 level: 3,
                 body: (
                     <>
@@ -262,7 +267,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: UseCase.ManageImageInventory,
+                heading: SectionHeading.ManageImageInventory,
                 level: 3,
                 body: (
                     <>
@@ -379,7 +384,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
     },
 
     {
-        slug: "example-aics",
+        slug: PageSlug.ExampleAICS,
         title: "The cell science accelerator at Allen Institute",
         intro:
             "BioFile Finder (BFF) was used in publication by the cell science accelerator at Allen Institute.",
@@ -450,7 +455,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
     },
 
     {
-        slug: "example-aibs",
+        slug: PageSlug.ExampleAIBS,
         title: "The brain science accelerator at Allen Institute",
         intro:
             "BioFile Finder (BFF) was used in publication by the brain science accelerator at Allen Institute.",
@@ -521,21 +526,21 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "TODO",
+                heading: "Video",
                 body: <>{/* TODO: Add link to video once it is made public */}</>,
             },
         ],
     },
 
     {
-        slug: "example-ambiom",
+        slug: PageSlug.ExampleAMBIOM,
         title: "AMBIOM at ISAS",
         sections: [
             {
-                heading: "TODO",
+                heading: "Video",
                 body: (
                     <>
-                        {/* TODO: Add publication link once available */}
+                        {/* TODO: Add link to video once it is made public */}
                         <p>
                             <i>Content coming soon.</i>
                         </p>

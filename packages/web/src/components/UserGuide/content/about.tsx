@@ -1,17 +1,17 @@
 import * as React from "react";
 
+import { GroupSlug, Page, PageSlug, SectionHeading } from "./types";
 import GroupingHierarchy from "../assets/grouping-hierarchy.png";
 import GroupingPanel from "../assets/grouping-panel.png";
 import QueryingFilters from "../assets/querying-filters.png";
 import QueryingResults from "../assets/querying-results.png";
 import SharingUrl from "../assets/sharing-url.png";
 import Thumbnails from "../assets/thumbnails.png";
-
-import type { Page } from "./types";
+import slugify from "../slugify";
 
 export const ABOUT_CONTENT: Page[] = [
     {
-        slug: "overview",
+        slug: PageSlug.Overview,
         title: "Overview",
         sections: [
             {
@@ -33,7 +33,6 @@ export const ABOUT_CONTENT: Page[] = [
                             thumbnails, open files in common industry tools, or visualize them in
                             the companion web-based 3D volume viewer, Vol-E.
                         </p>
-                        {/* TODO: Add publication link once paper is available in Nature Methods */}
                         <a
                             href="https://www.nature.com/articles/s41592-024-02099-0"
                             target="_blank"
@@ -71,7 +70,9 @@ export const ABOUT_CONTENT: Page[] = [
                             </li>
                         </ul>
                         <p>
-                            <a href="/user-guide/real-world-use-cases/use-cases">
+                            <a
+                                href={`/user-guide/${GroupSlug.RealWorldUseCases}/${PageSlug.UseCasesAndScenarios}`}
+                            >
                                 Read detailed scenarios and use cases
                             </a>
                         </p>
@@ -422,7 +423,7 @@ export const ABOUT_CONTENT: Page[] = [
     },
 
     {
-        slug: "feature-highlights",
+        slug: PageSlug.FeatureHighlights,
         title: "Feature highlights",
         intro:
             "BioFile Finder (BFF) packs a lot of capability into a serverless, browser-based tool. Here is an overview of its key features.",
@@ -596,7 +597,11 @@ export const ABOUT_CONTENT: Page[] = [
                             </li>
                         </ul>
                         <p>
-                            <a href="/user-guide/app-information/supported-viewers#viewer-table">
+                            <a
+                                href={`/user-guide/${GroupSlug.AppInformation}/${
+                                    PageSlug.SupportedViewers
+                                }#${slugify(SectionHeading.ViewerTable)}`}
+                            >
                                 See the image viewer comparison table
                             </a>
                         </p>

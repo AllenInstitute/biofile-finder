@@ -1,11 +1,12 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
-import type { Page } from "./types";
+import { GroupSlug, Page, PageSlug, SectionHeading } from "./types";
+import slugify from "../slugify";
 
 export const GETTING_STARTED_CONTENT: Page[] = [
     {
-        slug: "setup-overview",
+        slug: PageSlug.SetupOverview,
         title: "Setup overview",
         intro:
             "BioFile Finder (BFF) works by connecting a metadata file, which is a spreadsheet or table, to the files you want to explore. Rather than ingesting image data directly, BFF reads a metadata file (CSV, Parquet, or JSON) containing metadata and file references. Once loaded, BFF turns that metadata into an interactive interface for filtering, grouping, searching, previewing, and sharing files.",
@@ -31,11 +32,15 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         </ul>
                         <p>
                             See:{" "}
-                            <a href="/user-guide/getting-started/creating-a-metadata-file">
+                            <a
+                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.CreatingADatasetMetadataFile}`}
+                            >
                                 Creating a metadata file
                             </a>
                             ,{" "}
-                            <a href="/user-guide/getting-started/metadata-guidance">
+                            <a
+                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.MetadataGuidance}`}
+                            >
                                 Metadata guidance
                             </a>
                         </p>
@@ -57,11 +62,15 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         </p>
                         <p>
                             See:{" "}
-                            <a href="/user-guide/other-resources/storage-options">
+                            <a
+                                href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.StorageOptions}`}
+                            >
                                 Storage options
                             </a>
                             ,{" "}
-                            <a href="/user-guide/app-information/supported-viewers">
+                            <a
+                                href={`/user-guide/${GroupSlug.AppInformation}/${PageSlug.SupportedViewers}`}
+                            >
                                 Viewer compatibility
                             </a>
                         </p>
@@ -142,7 +151,11 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         <p>
                             If data is intended to be publicly shared — like in a publication —
                             store the dataset and files referenced in the dataset in{" "}
-                            <a href="/user-guide/other-resources/storage-options">cloud storage</a>{" "}
+                            <a
+                                href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.StorageOptions}`}
+                            >
+                                cloud storage
+                            </a>{" "}
                             to enable readers to explore the dataset and its files via a sharable
                             BFF link (URL).
                         </p>
@@ -160,7 +173,9 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         <ul>
                             <li>
                                 Use consistent metadata conventions —{" "}
-                                <a href="/user-guide/getting-started/metadata-guidance">
+                                <a
+                                    href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.MetadataGuidance}`}
+                                >
                                     see Metadata guidance
                                 </a>{" "}
                                 for detailed best practices.
@@ -182,7 +197,11 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </li>
                             <li>
                                 See{" "}
-                                <a href="/user-guide/getting-started/creating-a-metadata-file#spreadsheet-examples">
+                                <a
+                                    href={`/user-guide/${GroupSlug.GettingStarted}/${
+                                        PageSlug.CreatingADatasetMetadataFile
+                                    }#${slugify(SectionHeading.SpreadsheetExamples)}`}
+                                >
                                     Dataset examples
                                 </a>{" "}
                                 for examples to follow when creating a dataset.
@@ -195,7 +214,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
     },
 
     {
-        slug: "creating-a-metadata-file",
+        slug: PageSlug.CreatingADatasetMetadataFile,
         title: "Creating a dataset metadata file",
         intro:
             "BioFile Finder (BFF) works by referencing a spreadsheet you provide, populated by key-value pairs that are the metadata associated with your image files.",
@@ -211,7 +230,9 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             based on what matters to your workflow.
                         </p>
                         <p>
-                            <a href="/user-guide/app-information/specifications">
+                            <a
+                                href={`/user-guide/${GroupSlug.AppInformation}/${PageSlug.Specifications}`}
+                            >
                                 See App information
                             </a>{" "}
                             for accepted file types and size limitations.
@@ -242,7 +263,9 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                     <p>
                         <strong>File Path</strong> — A reference to the file that BFF will attempt
                         to open with relevant applications. This column does not have to be unique.{" "}
-                        <a href="/user-guide/other-resources/storage-options">
+                        <a
+                            href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.StorageOptions}`}
+                        >
                             Information about file storage options
                         </a>
                         .
@@ -261,7 +284,9 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             <li>
                                 <strong>Thumbnail</strong> — If provided, should contain the URL to
                                 a cloud-hosted image (see{" "}
-                                <a href="/user-guide/other-resources/storage-options">
+                                <a
+                                    href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.StorageOptions}`}
+                                >
                                     cloud storage options
                                 </a>
                                 ) and will override any thumbnail BFF will automatically try to
@@ -286,7 +311,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "Spreadsheet (dataset) examples",
+                heading: SectionHeading.SpreadsheetExamples,
                 body: (
                     <>
                         <h3>Basic example</h3>
@@ -319,6 +344,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </tbody>
                         </table>
                         <p>
+                            {/* TODO: ??? */}
                             <a href="#">
                                 Download this example as CSV{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
@@ -335,7 +361,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
     },
 
     {
-        slug: "metadata-guidance",
+        slug: PageSlug.MetadataGuidance,
         title: "Metadata guidance",
         intro:
             "Clear, consistent metadata is what turns microscopy data from a static file into something others can actually find, interpret, and reuse. This section outlines recommended metadata practices that support sharing datasets in a way that is both accessible and meaningful to a broad audience — from collaborators to future researchers. Rather than prescribing a rigid standard, the guidance focuses on capturing the essential context needed to understand how the data was generated, how it is structured, and how it can be used. Our hope is that by following these suggestions, you can make your data easier to explore, visualize, and integrate into downstream analyses, while reducing ambiguity and the need for follow-up clarification.",
@@ -368,6 +394,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             long after their original publication.
                         </p>
                         <p>
+                            {/* TODO */}
                             <a href="#">
                                 Download REMBI-based template{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
@@ -406,6 +433,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             Phenotype, Organ, Analyzed Data.
                         </p>
                         <p>
+                            {/* TODO */}
                             <a href="#">
                                 Download FoundingGIDE template CSV{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
@@ -590,6 +618,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </tbody>
                         </table>
                         <p>
+                            {/* TODO */}
                             <a href="#">
                                 Download this example as CSV{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
@@ -605,7 +634,9 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                     <p>
                         BFF supports describing relationships between files and metadata via a
                         provenance file.{" "}
-                        <a href="/user-guide/getting-started/provenance">
+                        <a
+                            href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.FileAndMetadataProvenance}`}
+                        >
                             See the full provenance guide
                         </a>
                         .
@@ -616,7 +647,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
     },
 
     {
-        slug: "provenance",
+        slug: PageSlug.FileAndMetadataProvenance,
         title: "File & metadata provenance",
         intro:
             'Information about how files relate to each other or to different pieces of metadata can be provided via an additional file called a "Provenance file". Provenance in BioFile Finder (BFF) can describe relationships between files, between a file and a piece of metadata, and between two pieces of metadata.',
@@ -722,6 +753,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </li>
                         </ul>
                         <p>
+                            {/* TODO */}
                             <a href="#">
                                 Download this example{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
@@ -753,6 +785,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             originated in.
                         </p>
                         <p>
+                            {/* TODO */}
                             <a href="#">
                                 Download example <Icon iconName="Download" className="ug-icon-sm" />{" "}
                                 <Icon iconName="Flag" className="ug-icon-md" />
@@ -776,6 +809,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             dataset.
                         </p>
                         <p>
+                            {/* TODO */}
                             <a href="#">
                                 Download example <Icon iconName="Download" className="ug-icon-sm" />{" "}
                                 <Icon iconName="Flag" className="ug-icon-md" />
