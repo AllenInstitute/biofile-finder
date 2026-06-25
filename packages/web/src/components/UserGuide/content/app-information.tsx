@@ -1,15 +1,15 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
-import type { PageContent } from "./types";
+import type { Page } from "./types";
 
-export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
-    "app-information/specifications": {
+export const APP_INFORMATION_CONTENT: Page[] = [
+    {
+        slug: "specifications",
         title: "Specifications",
         intro: "Technical specifications for BioFile Finder (BFF).",
         sections: [
             {
-                id: "file-size-limitations",
                 heading: "File size and format compatibility",
                 body: (
                     <>
@@ -43,7 +43,6 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "preferred-browsers",
                 heading: "Browser and device compatibility",
                 body: (
                     <>
@@ -64,7 +63,6 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "open-source",
                 heading: "Open source",
                 body: (
                     <p>
@@ -84,13 +82,13 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
         ],
     },
 
-    "app-information/supported-viewers": {
+    {
+        slug: "supported-viewers",
         title: "Supported viewers",
         intro:
             "BioFile Finder (BFF) links out to a variety of image viewers. Use the information below to choose the right one for your work.",
         sections: [
             {
-                id: "decision-guide",
                 heading: "Decision guide",
                 body: (
                     <>
@@ -131,7 +129,6 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "viewer-table",
                 heading: "Image viewer comparison table",
                 body: (
                     <>
@@ -391,4 +388,4 @@ export const APP_INFORMATION_CONTENT: Record<string, PageContent> = {
             },
         ],
     },
-};
+];

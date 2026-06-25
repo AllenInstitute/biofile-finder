@@ -3,17 +3,18 @@ import classNames from "classnames";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import { NAV } from "./nav";
+import { CONTENT } from "./content";
+
 import styles from "./Sidebar.module.css";
 
 interface SidebarProps {
-    activeSectionSlug: string;
+    activeGroupSlug: string;
     activePageSlug: string;
 }
 
-export default function Sidebar({ activeSectionSlug, activePageSlug }: SidebarProps) {
+export default function Sidebar({ activeGroupSlug, activePageSlug }: SidebarProps) {
     const [openSections, setOpenSections] = React.useState<Set<string>>(
-        () => new Set([activeSectionSlug])
+        () => new Set([activeGroupSlug])
     );
 
     const toggleSection = (slug: string) => {
@@ -28,27 +29,27 @@ export default function Sidebar({ activeSectionSlug, activePageSlug }: SidebarPr
         });
     };
 
-    // When active section changes (navigating), ensure it opens
+    // When active group changes (navigating), ensure it opens
     React.useEffect(() => {
         setOpenSections((prev) => {
-            if (prev.has(activeSectionSlug)) return prev;
-            return new Set([...prev, activeSectionSlug]);
+            if (prev.has(activeGroupSlug)) return prev;
+            return new Set([...prev, activeGroupSlug]);
         });
-    }, [activeSectionSlug]);
+    }, [activeGroupSlug]);
 
     return (
         <nav className={styles.root} aria-label="User guide navigation">
             <h3 className={styles.label}>User guide</h3>
-            {NAV.map((section) => {
-                const isOpen = openSections.has(section.slug);
+            {CONTENT.map((group) => {
+                const isOpen = openSections.has(group.slug);
                 return (
-                    <div key={section.slug} className={styles.section}>
+                    <div key={group.slug} className={styles.section}>
                         <button
                             className={styles.sectionTitle}
-                            onClick={() => toggleSection(section.slug)}
+                            onClick={() => toggleSection(group.slug)}
                             aria-expanded={isOpen}
                         >
-                            <span>{section.title}</span>
+                            <span>{group.title}</span>
                             <Icon
                                 iconName="ChevronDown"
                                 className={classNames(styles.chevron, {
@@ -58,14 +59,14 @@ export default function Sidebar({ activeSectionSlug, activePageSlug }: SidebarPr
                         </button>
                         {isOpen && (
                             <ul className={styles.pageList}>
-                                {section.pages.map((page) => {
+                                {group.pages.map((page) => {
                                     const isActive =
-                                        section.slug === activeSectionSlug &&
+                                        group.slug === activeGroupSlug &&
                                         page.slug === activePageSlug;
                                     return (
                                         <li key={page.slug}>
                                             <Link
-                                                to={`/user-guide/${section.slug}/${page.slug}`}
+                                                to={`/user-guide/${group.slug}/${page.slug}`}
                                                 className={classNames(styles.pageLink, {
                                                     [styles.activePage]: isActive,
                                                 })}

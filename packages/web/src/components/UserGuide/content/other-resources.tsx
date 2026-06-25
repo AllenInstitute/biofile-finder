@@ -1,16 +1,16 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
-import type { PageContent } from "./types";
+import type { Page } from "./types";
 
-export const OTHER_RESOURCES_CONTENT: Record<string, PageContent> = {
-    "other-resources/storage-options": {
+export const OTHER_RESOURCES_CONTENT: Page[] = [
+    {
+        slug: "storage-options",
         title: "Storage options",
         intro:
             "Whether cloud, local, or network storage, BioFile Finder (BFF) is agnostic of where your files live. The only requirement is that the metadata file is accessible to the browser running BFF.",
         sections: [
             {
-                id: "cloud-storage",
                 heading: "Cloud storage",
                 body: (
                     <>
@@ -25,28 +25,6 @@ export const OTHER_RESOURCES_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "hard-drive",
-                heading: "Local and network storage",
-                body: (
-                    <>
-                        <p>
-                            BFF can load a metadata file from a local hard drive or network-attached
-                            storage. However, because BFF runs in the browser, local paths are not
-                            persisted — if you refresh the page or share the link, you will be
-                            prompted to reload the metadata file.
-                        </p>
-                        <p>
-                            Files referenced in the dataset can also live locally or on a network
-                            drive, but they can only be opened in desktop applications (e.g. FIJI).
-                            Web-based viewers do not have access to the local file system. If the
-                            drive is disconnected, BFF will still display the metadata but the
-                            viewers will be unable to open the files.
-                        </p>
-                    </>
-                ),
-            },
-            {
-                id: "cloud-examples",
                 heading: "Cloud storage examples",
                 body: (
                     <>
@@ -166,16 +144,36 @@ export const OTHER_RESOURCES_CONTENT: Record<string, PageContent> = {
                     </>
                 ),
             },
+            {
+                heading: "Local and network storage",
+                body: (
+                    <>
+                        <p>
+                            BFF can load a metadata file from a local hard drive or network-attached
+                            storage. However, because BFF runs in the browser, local paths are not
+                            persisted — if you refresh the page or share the link, you will be
+                            prompted to reload the metadata file.
+                        </p>
+                        <p>
+                            Files referenced in the dataset can also live locally or on a network
+                            drive, but they can only be opened in desktop applications (e.g. FIJI).
+                            Web-based viewers do not have access to the local file system. If the
+                            drive is disconnected, BFF will still display the metadata but the
+                            viewers will be unable to open the files.
+                        </p>
+                    </>
+                ),
+            },
         ],
     },
 
-    "other-resources/cors": {
+    {
+        slug: "cors",
         title: "Avoiding CORS errors",
         intro:
             "You may need to set up CORS permissions on your cloud bucket to enable bff.allencell.org to access your files. The same will be true for any web-based image viewers — for example vole.allencell.org — that you want to use to view your data.",
         sections: [
             {
-                id: "cors-setup",
                 heading: "Setting up CORS permissions",
                 body: (
                     <>
@@ -201,4 +199,4 @@ export const OTHER_RESOURCES_CONTENT: Record<string, PageContent> = {
             },
         ],
     },
-};
+];

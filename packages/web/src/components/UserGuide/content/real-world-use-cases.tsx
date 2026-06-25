@@ -1,18 +1,18 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
-import type { PageContent } from "./types";
+import type { Page } from "./types";
 
 // Note: "real-world-use-cases/other-examples" exists in this file but has no
 // corresponding nav entry. It is unreachable unless added to nav.ts.
-export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
-    "real-world-use-cases/use-cases": {
+export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
+    {
+        slug: "use-cases",
         title: "Use cases & scenarios",
         intro:
             "BioFile Finder (BFF) is flexible enough to fit many different workflows and contexts. This page highlights common use cases observed across research labs, core facilities, and data teams — along with real-world scenarios showing how different types of users leverage BFF in their work.",
         sections: [
             {
-                id: "use-case-table",
                 heading: "How people use BFF",
                 body: (
                     <>
@@ -121,7 +121,6 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "explore-screening",
                 heading: "Explore screening results",
                 level: 3,
                 body: (
@@ -154,7 +153,6 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "validate-metadata",
                 heading: "Validate metadata",
                 level: 3,
                 body: (
@@ -187,7 +185,6 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "inspect-subsets",
                 heading: "Inspect subsets of images",
                 level: 3,
                 body: (
@@ -220,7 +217,6 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "perform-qc",
                 heading: "Perform QC on datasets",
                 level: 3,
                 body: (
@@ -256,7 +252,6 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "manage-inventory",
                 heading: "Manage image inventory",
                 level: 3,
                 body: (
@@ -294,7 +289,6 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "real-world-scenarios",
                 heading: "Real-world scenarios",
                 body: (
                     <>
@@ -374,13 +368,13 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
         ],
     },
 
-    "real-world-use-cases/example-aics": {
+    {
+        slug: "example-aics",
         title: "The cell science accelerator at Allen Institute",
         intro:
             "BioFile Finder (BFF) was used in publication by the cell science accelerator at Allen Institute.",
         sections: [
             {
-                id: "publication",
                 heading: "",
                 body: (
                     <>
@@ -445,13 +439,13 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
         ],
     },
 
-    "real-world-use-cases/example-aibs": {
+    {
+        slug: "example-aibs",
         title: "The brain science accelerator at Allen Institute",
         intro:
             "BioFile Finder (BFF) was used in publication by the brain science accelerator at Allen Institute.",
         sections: [
             {
-                id: "publication",
                 heading: "",
                 body: (
                     <>
@@ -517,19 +511,18 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "video",
-                heading: "",
+                heading: "TODO",
                 body: <>{/* TODO: Add link to video once it is made public */}</>,
             },
         ],
     },
 
-    "real-world-use-cases/example-isas": {
+    {
+        slug: "example-ambiom",
         title: "AMBIOM at ISAS",
         sections: [
             {
-                id: "publication",
-                heading: "",
+                heading: "TODO",
                 body: (
                     <>
                         {/* TODO: Add publication link once available */}
@@ -541,9 +534,4 @@ export const REAL_WORLD_USE_CASES_CONTENT: Record<string, PageContent> = {
             },
         ],
     },
-
-    "real-world-use-cases/other-examples": {
-        title: "Other examples",
-        sections: [],
-    },
-};
+];

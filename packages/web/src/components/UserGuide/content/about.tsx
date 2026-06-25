@@ -7,14 +7,14 @@ import QueryingResults from "../assets/querying-results.png";
 import SharingUrl from "../assets/sharing-url.png";
 import Thumbnails from "../assets/thumbnails.png";
 
-import type { PageContent } from "./types";
+import type { Page } from "./types";
 
-export const ABOUT_CONTENT: Record<string, PageContent> = {
-    "about/overview": {
+export const ABOUT_CONTENT: Page[] = [
+    {
+        slug: "overview",
         title: "Overview",
         sections: [
             {
-                id: "what-is-bff",
                 heading: "",
                 body: (
                     <>
@@ -34,11 +34,17 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
                             the companion web-based 3D volume viewer, Vol-E.
                         </p>
                         {/* TODO: Add publication link once paper is available in Nature Methods */}
+                        <a
+                            href="https://www.nature.com/articles/s41592-024-02099-0"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Read the BFF publication in Nature Methods
+                        </a>
                     </>
                 ),
             },
             {
-                id: "who-is-bff-for",
                 heading: "Who is BFF for?",
                 body: (
                     <>
@@ -73,7 +79,6 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "why-use-bff",
                 heading: "What makes BFF unique?",
                 body: (
                     <>
@@ -113,7 +118,6 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "bff-comparison-table",
                 heading: "BFF and Related Tool Capabilities",
                 body: (
                     <>
@@ -417,13 +421,13 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
         ],
     },
 
-    "about/feature-highlights": {
+    {
+        slug: "feature-highlights",
         title: "Feature highlights",
         intro:
             "BioFile Finder (BFF) packs a lot of capability into a serverless, browser-based tool. Here is an overview of its key features.",
         sections: [
             {
-                id: "in-browser-querying",
                 heading: "Powerful in-browser querying",
                 body: (
                     <>
@@ -455,7 +459,6 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "dynamic-grouping",
                 heading: "Dynamic grouping & hierarchy",
                 body: (
                     <>
@@ -490,7 +493,6 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "sharing",
                 heading: "Sharing",
                 body: (
                     <>
@@ -540,7 +542,6 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "thumbnails",
                 heading: "Thumbnail previews",
                 body: (
                     <>
@@ -573,16 +574,6 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "code-generation",
-                heading: "Code generation",
-                body: (
-                    <p>
-                        <i>Content coming soon.</i>
-                    </p>
-                ),
-            },
-            {
-                id: "viewer-integrations",
                 heading: "Viewer integrations",
                 body: (
                     <>
@@ -614,4 +605,4 @@ export const ABOUT_CONTENT: Record<string, PageContent> = {
             },
         ],
     },
-};
+];

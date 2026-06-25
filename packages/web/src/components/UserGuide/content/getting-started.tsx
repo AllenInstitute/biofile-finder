@@ -1,16 +1,16 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
-import type { PageContent } from "./types";
+import type { Page } from "./types";
 
-export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
-    "getting-started/setup-overview": {
+export const GETTING_STARTED_CONTENT: Page[] = [
+    {
+        slug: "setup-overview",
         title: "Setup overview",
         intro:
             "BioFile Finder (BFF) works by connecting a metadata file, which is a spreadsheet or table, to the files you want to explore. Rather than ingesting image data directly, BFF reads a metadata file (CSV, Parquet, or JSON) containing metadata and file references. Once loaded, BFF turns that metadata into an interactive interface for filtering, grouping, searching, previewing, and sharing files.",
         sections: [
             {
-                id: "basic-setup",
                 heading: "Basic setup",
                 body: (
                     <>
@@ -82,7 +82,6 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "minimum-requirements",
                 heading: "Minimum requirements",
                 body: (
                     <>
@@ -97,7 +96,6 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "common-workflows",
                 heading: "Common workflows",
                 body: (
                     <table className="ug-table">
@@ -137,7 +135,6 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "recommended-setup",
                 heading: "Recommended setup",
                 body: (
                     <>
@@ -197,13 +194,13 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
         ],
     },
 
-    "getting-started/creating-a-metadata-file": {
+    {
+        slug: "creating-a-metadata-file",
         title: "Creating a dataset metadata file",
         intro:
             "BioFile Finder (BFF) works by referencing a spreadsheet you provide, populated by key-value pairs that are the metadata associated with your image files.",
         sections: [
             {
-                id: "creating-spreadsheet",
                 heading: "What is a dataset?",
                 body: (
                     <>
@@ -223,7 +220,6 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "rows-columns",
                 heading: "Rows and columns",
                 body: (
                     <>
@@ -241,7 +237,6 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "required-columns",
                 heading: "Required columns",
                 body: (
                     <p>
@@ -255,7 +250,6 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "optional-columns",
                 heading: "Optional special columns",
                 body: (
                     <>
@@ -292,7 +286,6 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "spreadsheet-examples",
                 heading: "Spreadsheet (dataset) examples",
                 body: (
                     <>
@@ -341,13 +334,13 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
         ],
     },
 
-    "getting-started/metadata-guidance": {
+    {
+        slug: "metadata-guidance",
         title: "Metadata guidance",
         intro:
             "Clear, consistent metadata is what turns microscopy data from a static file into something others can actually find, interpret, and reuse. This section outlines recommended metadata practices that support sharing datasets in a way that is both accessible and meaningful to a broad audience — from collaborators to future researchers. Rather than prescribing a rigid standard, the guidance focuses on capturing the essential context needed to understand how the data was generated, how it is structured, and how it can be used. Our hope is that by following these suggestions, you can make your data easier to explore, visualize, and integrate into downstream analyses, while reducing ambiguity and the need for follow-up clarification.",
         sections: [
             {
-                id: "recommendations",
                 heading: "Recommendations",
                 body: (
                     <>
@@ -424,7 +417,6 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "column-descriptions",
                 heading: "Providing column descriptions",
                 body: (
                     <>
@@ -608,7 +600,6 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "provenance",
                 heading: "File & metadata provenance",
                 body: (
                     <p>
@@ -624,13 +615,13 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
         ],
     },
 
-    "getting-started/provenance": {
+    {
+        slug: "provenance",
         title: "File & metadata provenance",
         intro:
             'Information about how files relate to each other or to different pieces of metadata can be provided via an additional file called a "Provenance file". Provenance in BioFile Finder (BFF) can describe relationships between files, between a file and a piece of metadata, and between two pieces of metadata.',
         sections: [
             {
-                id: "provenance-where",
                 heading: "Where to provide the provenance file",
                 body: (
                     <p>
@@ -642,7 +633,6 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "provenance-format",
                 heading: "Provenance file format",
                 body: (
                     <>
@@ -742,7 +732,6 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
                 ),
             },
             {
-                id: "provenance-workflows",
                 heading: "Why provenance matters",
                 body: (
                     <>
@@ -797,4 +786,4 @@ export const GETTING_STARTED_CONTENT: Record<string, PageContent> = {
             },
         ],
     },
-};
+];

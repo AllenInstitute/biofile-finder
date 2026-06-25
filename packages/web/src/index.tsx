@@ -18,13 +18,14 @@ import Home from "./components/Home";
 import Layout from "./components/Layout";
 import OpenSourceDatasets from "./components/OpenSourceDatasets";
 import UserGuide from "./components/UserGuide";
+import { CONTENT } from "./components/UserGuide/content";
 import SiteLogo from "../assets/site-logo.png";
 import FmsFileExplorer from "../../core/App";
+import S3StorageService from "../../core/services/S3StorageService";
 import { createReduxStore } from "../../core/state";
 
 import "../../core/styles/global.css";
 import styles from "./src.module.css";
-import S3StorageService from "../../core/services/S3StorageService";
 
 const APP_ID = "biofile-finder";
 
@@ -48,10 +49,15 @@ const router = createBrowserRouter(
                 },
                 {
                     path: "user-guide",
-                    element: <Navigate to="/user-guide/about/overview" replace />,
+                    element: (
+                        <Navigate
+                            to={`/user-guide/${CONTENT[0].slug}/${CONTENT[0].pages[0].slug}`}
+                            replace
+                        />
+                    ),
                 },
                 {
-                    path: "user-guide/:sectionSlug/:pageSlug",
+                    path: "user-guide/:groupSlug/:pageSlug",
                     element: <UserGuide />,
                 },
             ],

@@ -3,43 +3,33 @@ import classNames from "classnames";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import { PAGE_CONTENT } from "./content/index";
-import { NAV, getAdjacentPages } from "./nav";
+import { NavigationGroup, Page } from "./content";
+import { getAdjacentPages } from "./nav";
+
 import styles from "./DocPage.module.css";
 
 interface DocPageProps {
-    sectionSlug: string;
-    pageSlug: string;
+    group: NavigationGroup;
+    page: Page;
 }
 
-export default function DocPage({ sectionSlug, pageSlug }: DocPageProps) {
-    const key = `${sectionSlug}/${pageSlug}`;
-    const content = PAGE_CONTENT[key];
-    const section = NAV.find((s) => s.slug === sectionSlug);
-    const { prev, next } = getAdjacentPages(sectionSlug, pageSlug);
-
-    if (!content) {
-        return (
-            <div className={styles.notFound}>
-                <p>Page not found.</p>
-            </div>
-        );
-    }
+export default function DocPage({ group, page }: DocPageProps) {
+    const { prev, next } = getAdjacentPages(group, page);
 
     return (
         <article className={styles.root}>
             <nav className={styles.breadcrumb} aria-label="breadcrumb">
-                <span className={styles.breadcrumbSection}>{section?.title}</span>
+                <span className={styles.breadcrumbSection}>{group.title}</span>
                 <Icon iconName="ChevronRight" className={styles.breadcrumbSeparator} />
-                <span className={styles.breadcrumbPage}>{content.title}</span>
+                <span className={styles.breadcrumbPage}>{page.title}</span>
             </nav>
-            <h1 className={styles.title}>{content.title}</h1>
-            {content.intro && <p className={styles.intro}>{content.intro}</p>}
+            <h1 className={styles.title}>{page.title}</h1>
+            {page.intro && <p className={styles.intro}>{page.intro}</p>}
             <div className={styles.sections}>
-                {content.sections.map((sec) => {
+                {page.sections.map((sec, idx) => {
                     const HeadingTag = `h${sec.level ?? 2}` as "h2" | "h3" | "h4";
                     return (
-                        <section key={sec.id} id={sec.id} className={styles.section}>
+                        <section key={`${sec.heading}${idx}`} className={styles.section}>
                             {sec.heading && (
                                 <HeadingTag className={styles.sectionHeading}>
                                     {sec.heading}
@@ -53,7 +43,7 @@ export default function DocPage({ sectionSlug, pageSlug }: DocPageProps) {
             <div className={styles.pagination}>
                 {prev ? (
                     <Link
-                        to={`/user-guide/${prev.section.slug}/${prev.page.slug}`}
+                        to={`/user-guide/${prev.group.slug}/${prev.page.slug}`}
                         className={classNames(styles.pageNav, styles.pageNavPrev)}
                     >
                         <Icon iconName="ChevronLeft" className={styles.pageNavIcon} />
@@ -67,7 +57,7 @@ export default function DocPage({ sectionSlug, pageSlug }: DocPageProps) {
                 )}
                 {next ? (
                     <Link
-                        to={`/user-guide/${next.section.slug}/${next.page.slug}`}
+                        to={`/user-guide/${next.group.slug}/${next.page.slug}`}
                         className={classNames(styles.pageNav, styles.pageNavNext)}
                     >
                         <div>

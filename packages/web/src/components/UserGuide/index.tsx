@@ -1,14 +1,20 @@
 import * as React from "react";
+import { useDispatch } from "react-redux";
 import { Navigate, useLocation, useParams } from "react-router-dom";
 
-import { PrimaryButton } from "../../../../core/components/Buttons";
+import { CONTENT } from "./content";
 import DocPage from "./DocPage";
 import Sidebar from "./Sidebar";
+import { interaction } from "../../../../core/state";
+import { PrimaryButton } from "../../../../core/components/Buttons";
+import StatusMessage from "../../../../core/components/StatusMessage";
+
 import styles from "./UserGuide.module.css";
 
 export default function UserGuide() {
-    const { sectionSlug, pageSlug } = useParams<{
-        sectionSlug: string;
+    const dispatch = useDispatch();
+    const { groupSlug, pageSlug } = useParams<{
+        groupSlug: string;
         pageSlug: string;
     }>();
     const location = useLocation();
@@ -41,8 +47,35 @@ export default function UserGuide() {
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [menuOpen]);
 
-    if (!sectionSlug || !pageSlug) {
-        return <Navigate to="/user-guide/about/overview" replace />;
+    const group = CONTENT.find((g) => g.slug === groupSlug);
+    if (!groupSlug || !group) {
+        // If the user was trying to navigate to a group but we can't find it, show a message and redirect to the first page in the first group.
+        const firstGroup = CONTENT[0];
+        if (groupSlug) {
+            dispatch(
+                interaction.actions.processInfo(
+                    groupSlug,
+                    `The user guide page "${groupSlug}" could not be found. Redirecting to the "${firstGroup.title}" page.`
+                )
+            );
+        }
+        return (
+            <Navigate to={`/user-guide/${firstGroup.slug}/${firstGroup.pages[0].slug}`} replace />
+        );
+    }
+
+    const page = group.pages.find((p) => p.slug === pageSlug);
+    if (!pageSlug || !page) {
+        // If the user was trying to navigate to a page but we can't find it, show a message and redirect to the first page in the group.
+        if (pageSlug) {
+            dispatch(
+                interaction.actions.processInfo(
+                    pageSlug,
+                    `The user guide page "${pageSlug}" could not be found. Redirecting to the first page in the "${group.title}".`
+                )
+            );
+        }
+        return <Navigate to={`/user-guide/${groupSlug}/${group.pages[0].slug}`} replace />;
     }
 
     return (
@@ -64,7 +97,7 @@ export default function UserGuide() {
                             onClick={() => setMenuOpen(false)}
                         />
                         <div className={styles.mobileMenu}>
-                            <Sidebar activeSectionSlug={sectionSlug} activePageSlug={pageSlug} />
+                            <Sidebar activeGroupSlug={groupSlug} activePageSlug={pageSlug} />
                         </div>
                     </>
                 )}
@@ -72,13 +105,15 @@ export default function UserGuide() {
 
             {/* Desktop sidebar */}
             <aside className={styles.sidebar}>
-                <Sidebar activeSectionSlug={sectionSlug} activePageSlug={pageSlug} />
+                <Sidebar activeGroupSlug={groupSlug} activePageSlug={pageSlug} />
             </aside>
 
             {/* Main content */}
             <div ref={contentRef} className={styles.content}>
-                <DocPage sectionSlug={sectionSlug} pageSlug={pageSlug} />
+                <DocPage group={group} page={page} />
             </div>
+
+            <StatusMessage />
         </div>
     );
 }

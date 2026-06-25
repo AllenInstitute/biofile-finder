@@ -1,7 +1,6 @@
 import * as React from "react";
 
-export interface PageSection {
-    id: string;
+interface Section {
     heading?: string;
     /**
      * Heading level rendered for this section (h2, h3, or h4).
@@ -11,8 +10,9 @@ export interface PageSection {
     body: React.ReactNode;
 }
 
-export interface PageContent {
+export interface Page {
+    slug: string;
     title: string;
     intro?: string;
-    sections: PageSection[];
+    sections: Section[];
 }
