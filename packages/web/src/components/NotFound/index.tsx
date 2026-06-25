@@ -3,31 +3,26 @@ import { Link } from "react-router-dom";
 
 import styles from "./NotFound.module.css";
 
-interface Props {
-    isUserGuide?: boolean;
-}
-
-export default function NotFound({ isUserGuide }: Props) {
+export default function NotFound() {
     return (
         <div className={styles.container}>
-            <h2>Oops! We could not find the page you were looking for.</h2>
-            <p>The page may have been moved, deleted, or the URL may be incorrect.</p>
-            {isUserGuide ? (
-                <p>
-                    It looks like you were trying to navigate to a user-guide page.
-                    <Link to="/user-guide" style={{ textDecoration: "underline", color: "blue" }}>
-                        Click here to go back to the user guide home.
-                    </Link>
-                </p>
-            ) : (
-                <p>
-                    Try out the&nbsp;
-                    <Link to="/" style={{ textDecoration: "underline", color: "blue" }}>
-                        home page
-                    </Link>
-                    .
-                </p>
-            )}
+            <h1>Looking for something?</h1>
+            <p>
+                Sorry, we could not find the page you are looking for. One of the following BioFile
+                Finder (BFF) related pages may help you get back on track:
+            </p>
+            <ul>
+                <li>
+                    <Link to="/">Home</Link>
+                </li>
+                <li>
+                    <Link to="/user-guide">User Guide</Link>
+                </li>
+            </ul>
+            <p>
+                <a href="mailto:aics_software_support@alleninstitute.org">Email us</a> if you have
+                any questions or issues.
+            </p>
         </div>
     );
 }

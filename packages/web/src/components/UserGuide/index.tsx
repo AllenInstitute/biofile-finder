@@ -102,7 +102,7 @@ export default function UserGuide() {
 
             {/* Main content */}
             <div ref={contentRef} className={styles.content}>
-                {group && page ? <DocPage group={group} page={page} /> : <NotFound isUserGuide />}
+                {group && page ? <DocPage group={group} page={page} /> : <NotFound />}
             </div>
 
             <StatusMessage />
