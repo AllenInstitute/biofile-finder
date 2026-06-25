@@ -8,13 +8,13 @@ import { CONTENT } from "./content";
 import styles from "./Sidebar.module.css";
 
 interface SidebarProps {
-    activeGroupSlug: string;
-    activePageSlug: string;
+    activeGroupSlug?: string;
+    activePageSlug?: string;
 }
 
 export default function Sidebar({ activeGroupSlug, activePageSlug }: SidebarProps) {
-    const [openSections, setOpenSections] = React.useState<Set<string>>(
-        () => new Set([activeGroupSlug])
+    const [openSections, setOpenSections] = React.useState<Set<string>>(() =>
+        activeGroupSlug ? new Set([activeGroupSlug]) : new Set()
     );
 
     const toggleSection = (slug: string) => {
@@ -32,6 +32,7 @@ export default function Sidebar({ activeGroupSlug, activePageSlug }: SidebarProp
     // When active group changes (navigating), ensure it opens
     React.useEffect(() => {
         setOpenSections((prev) => {
+            if (!activeGroupSlug) return prev;
             if (prev.has(activeGroupSlug)) return prev;
             return new Set([...prev, activeGroupSlug]);
         });

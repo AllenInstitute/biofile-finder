@@ -16,6 +16,7 @@ import PersistentConfigServiceWeb from "./services/PersistentConfigServiceWeb";
 import ErrorPage from "./components/ErrorPage";
 import Home from "./components/Home";
 import Layout from "./components/Layout";
+import NotFound from "./components/NotFound";
 import OpenSourceDatasets from "./components/OpenSourceDatasets";
 import UserGuide from "./components/UserGuide";
 import { CONTENT } from "./components/UserGuide/content";
@@ -59,6 +60,10 @@ const router = createBrowserRouter(
                 {
                     path: "user-guide/:groupSlug/:pageSlug",
                     element: <UserGuide />,
+                },
+                {
+                    path: "*", // Catches all URLs that do not match the above paths
+                    element: <NotFound />,
                 },
             ],
         },

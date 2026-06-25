@@ -1,0 +1,25 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    margin: 0 20%;
+}
+
+.container a {
+    color: var(--aqua) !important;
+}
+
+.container a:hover {
+    color: var(--bright-aqua) !important;
+}
+
+.container p {
+    margin: 0.5em 0;
+}
+
+.container h2 {
+    margin-bottom: 0.5em;
+}

@@ -1,10 +1,11 @@
 import * as React from "react";
 import { useDispatch } from "react-redux";
-import { Navigate, useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 import { CONTENT } from "./content";
 import DocPage from "./DocPage";
 import Sidebar from "./Sidebar";
+import NotFound from "../NotFound";
 import { interaction } from "../../../../core/state";
 import { PrimaryButton } from "../../../../core/components/Buttons";
 import StatusMessage from "../../../../core/components/StatusMessage";
@@ -48,34 +49,23 @@ export default function UserGuide() {
     }, [menuOpen]);
 
     const group = CONTENT.find((g) => g.slug === groupSlug);
-    if (!groupSlug || !group) {
-        // If the user was trying to navigate to a group but we can't find it, show a message and redirect to the first page in the first group.
-        const firstGroup = CONTENT[0];
-        if (groupSlug) {
-            dispatch(
-                interaction.actions.processInfo(
-                    groupSlug,
-                    `The user guide page "${groupSlug}" could not be found. Redirecting to the "${firstGroup.title}" page.`
-                )
-            );
-        }
-        return (
-            <Navigate to={`/user-guide/${firstGroup.slug}/${firstGroup.pages[0].slug}`} replace />
+    if (groupSlug && !group) {
+        dispatch(
+            interaction.actions.processInfo(
+                groupSlug,
+                `The user guide page "${groupSlug}" could not be found.`
+            )
         );
     }
 
-    const page = group.pages.find((p) => p.slug === pageSlug);
-    if (!pageSlug || !page) {
-        // If the user was trying to navigate to a page but we can't find it, show a message and redirect to the first page in the group.
-        if (pageSlug) {
-            dispatch(
-                interaction.actions.processInfo(
-                    pageSlug,
-                    `The user guide page "${pageSlug}" could not be found. Redirecting to the first page in the "${group.title}".`
-                )
-            );
-        }
-        return <Navigate to={`/user-guide/${groupSlug}/${group.pages[0].slug}`} replace />;
+    const page = group?.pages.find((p) => p.slug === pageSlug);
+    if (group && pageSlug && !page) {
+        dispatch(
+            interaction.actions.processInfo(
+                pageSlug,
+                `The user guide page "${group.slug}/${pageSlug}" could not be found.`
+            )
+        );
     }
 
     return (
@@ -110,7 +100,7 @@ export default function UserGuide() {
 
             {/* Main content */}
             <div ref={contentRef} className={styles.content}>
-                <DocPage group={group} page={page} />
+                {group && page ? <DocPage group={group} page={page} /> : <NotFound isUserGuide />}
             </div>
 
             <StatusMessage />
