@@ -1,4 +1,4 @@
-import { castArray, isNil, isObject, uniqueId } from "lodash";
+import { castArray, isEmpty, isNil, isObject, uniqueId } from "lodash";
 
 import FileService, {
     GetFilesRequest,
@@ -23,17 +23,63 @@ import FileDetail from "../../../entity/FileDetail";
 import resolvePathIsArray from "../../../entity/resolvePathIsArray";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
-// Helper function to determine if a value is a nested metadata object
-// (i.e., an array of objects) vs a primitive or array of primitives
-function isNestedMetadata(value: MetadataValue): NestedMetadataValue[] | null {
+type UnwrappedMetadataValue =
+    | PrimitiveMetadataValue[]
+    | PrimitiveMetadataValue
+    | NestedMetadataValue[]
+    | NestedMetadataValue
+    | null
+    | undefined;
+type FileRow = {
+    [HIDDEN_UID_ANNOTATION]?: string;
+    [key: string]: UnwrappedMetadataValue;
+};
+
+/**
+ * Helper function to parse values found in database into either a list of primitive values or a list of nested objects, or an empty array if no valid values are found.
+ * Filters out any null/undefined values, empty objects, and empty strings (or whitespace-only strings) from the results.
+ * Also, trims whitespace start/end of string values.
+ */
+function parseMetadata(
+    unwrappedMetadata: UnwrappedMetadataValue
+): { nested: NestedMetadataValue[]; primitives: PrimitiveMetadataValue[] } {
     // Is a single object that isn't null/undefined
     // || is array of objects that isn't empty and whose first element is an object that isn't null/undefined
-    const isNestedMetadata =
-        (!Array.isArray(value) && isObject(value) && !isNil(value)) ||
-        (Array.isArray(value) && value.length > 0 && isObject(value[0]) && !isNil(value[0]));
-    if (isNestedMetadata)
-        return castArray<NestedMetadataValue>(value as NestedMetadataValue | NestedMetadataValue[]);
-    return null;
+    const valueAsArray = castArray<PrimitiveMetadataValue | NestedMetadataValue | null>(
+        unwrappedMetadata
+    );
+
+    // Iterate over values in array to grab any actual non-nil non-empty objects
+    // also, while iterating check for presence of primitive values
+    const primitives: PrimitiveMetadataValue[] = [];
+    const nested: NestedMetadataValue[] = [];
+    for (const value of valueAsArray) {
+        if (isNil(value)) continue;
+        if (isObject(value)) {
+            if (isEmpty(value)) continue;
+            nested.push(value as NestedMetadataValue);
+        } else {
+            const trimmedValue = typeof value === "string" ? value.trim() : value;
+            if (isEmpty(String(trimmedValue))) continue;
+            primitives.push(trimmedValue as PrimitiveMetadataValue);
+        }
+    }
+
+    if (primitives.length === 0 && nested.length === 0) {
+        return { primitives: [], nested: [] };
+    }
+
+    // If the value is sometimes an object but not always, we have a mixed array of primitives and objects,
+    // which is unexpected for nested metadata. Log an error and return an empty array.
+    // May even want to throw an error here, but for now just log and return empty arrays to avoid crashing the app.
+    if (primitives.length > 0 && nested.length > 0) {
+        console.error(
+            "Unexpected mixed primitive and object values in nested metadata:",
+            unwrappedMetadata
+        );
+        return { primitives: [], nested: [] };
+    }
+    return { primitives, nested };
 }
 
 /**
@@ -55,28 +101,33 @@ function isNestedMetadata(value: MetadataValue): NestedMetadataValue[] | null {
  *   }
  * ]
  */
-function unwrapNestedMetadata(values: MetadataValue | undefined | null): MetadataValue {
-    // Guard: null/undefined field values inside a nested struct show as empty rather than
-    // the string "null" or "undefined" that String() would produce.
-    if (isNil(values)) return [];
+function unwrapNestedMetadata(values: UnwrappedMetadataValue | undefined | null): MetadataValue {
+    // Either nested or primitives will have values, but not both.
+    // If both are empty, return an empty array.
+    const { nested, primitives } = parseMetadata(values);
 
     // Recursive case: values is an array of nested metadata objects
-    const nested = isNestedMetadata(values);
-    if (nested) {
+    if (!isEmpty(nested)) {
         return nested.map((nestedValue) =>
-            Object.entries(nestedValue).reduce(
-                (acc, [key, value]) => ({
-                    ...acc,
-                    [key]: unwrapNestedMetadata(value),
-                }),
-                {} as NestedMetadataValue
-            )
+            Object.entries(nestedValue).reduce((acc, [key, value]) => {
+                const unwrappedValue = unwrapNestedMetadata(value);
+                if (isEmpty(unwrappedValue)) return acc;
+                return { ...acc, [key]: unwrappedValue };
+            }, {} as NestedMetadataValue)
         );
     }
-    // Base case: values is a primitive or an array of primitives
-    return String(values as PrimitiveMetadataValue[])
-        .split(DatabaseService.LIST_DELIMITER)
-        .map((value) => value.trim());
+
+    // Base case: values is an array of primitives
+    if (!isEmpty(primitives)) {
+        // TODO: Because everything is always a string
+        // we can narrow the returned type
+        return String(primitives)
+            .split(DatabaseService.LIST_DELIMITER)
+            .map((value) => value.trim());
+    }
+
+    // If there were no nested or primitive values, return an empty array
+    return [];
 }
 
 interface Config {
@@ -93,37 +144,40 @@ export default class DatabaseFileService implements FileService {
     private readonly downloadService: FileDownloadService;
     private readonly dataSourceNames: string[];
 
-    private static convertDatabaseRowToFileDetail(
-        row: { [key: string]: any },
-        env: Environment
-    ): FileDetail {
-        const uniqueId: string | undefined = row[HIDDEN_UID_ANNOTATION];
+    private static convertDatabaseRowToFileDetail(row: FileRow, env: Environment): FileDetail {
+        const uniqueId = row[HIDDEN_UID_ANNOTATION];
         if (!uniqueId) {
             throw new Error("Missing auto-generated unique ID");
         }
 
-        const annotations = Object.entries(row)
-            // Filter out null/undefined values and the unique ID annotation used for selection logic
-            .filter(([name, values]) => !isNil(values) && name !== HIDDEN_UID_ANNOTATION)
-            .flatMap(([name, values]): FmsFileAnnotation[] => {
-                // It is possible the column is formatted as a JSON string
-                // representing a nested annotation or array of annotations,
-                // so we attempt to parse that if the value is a string
-                if (typeof values === "string") {
-                    try {
-                        const parsed = JSON.parse(values);
-                        if (isNestedMetadata(parsed)) {
-                            return [{ name, values: unwrapNestedMetadata(parsed) }];
-                        }
-                    } catch {
-                        // Not JSON — fall through to plain string handling
-                    }
-                }
+        const annotations = Object.entries(row).flatMap(([name, values]): FmsFileAnnotation[] => {
+            // Filter out UID annotation used for selection logic
+            if (name === HIDDEN_UID_ANNOTATION) return [];
 
-                // Default case: primitive value or array of primitives,
-                // potentially delimited by DatabaseService.LIST_DELIMITER
-                return [{ name, values: unwrapNestedMetadata(values) }];
-            });
+            // It is possible the column is formatted as a JSON string
+            // representing a nested annotation or array of annotations,
+            // so we attempt to parse that if the value is a string
+            if (typeof values === "string") {
+                try {
+                    const parsed = JSON.parse(values);
+                    const metadata = unwrapNestedMetadata(parsed);
+                    if (metadata.length) {
+                        return [{ name, values: metadata }];
+                    }
+                } catch {
+                    // Not unparsed JSON — fall through to plain string handling
+                }
+            }
+
+            const unwrappedValues = unwrapNestedMetadata(values);
+
+            // Skip any annotations that have no values after unwrapping, since they are effectively empty
+            if (unwrappedValues.length === 0) return [];
+
+            // Default case: primitive value or array of primitives,
+            // potentially delimited by DatabaseService.LIST_DELIMITER
+            return [{ name, values: unwrappedValues }];
+        });
 
         return new FileDetail({ annotations }, env, uniqueId);
     }
@@ -300,7 +354,7 @@ export default class DatabaseFileService implements FileService {
             .limit(request.limit)
             .toSQL();
 
-        const rows = await this.databaseService.query(sql).promise;
+        const rows = await this.databaseService.query<FileRow>(sql).promise;
         const env = this.downloadService.getEnvironmentFromUrl();
         return rows.map((row) => DatabaseFileService.convertDatabaseRowToFileDetail(row, env));
     }
