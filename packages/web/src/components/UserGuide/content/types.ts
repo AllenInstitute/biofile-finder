@@ -23,6 +23,7 @@ export enum PageSlug {
     SetupOverview = "setup-overview",
     CreatingADatasetMetadataFile = "creating-a-metadata-file",
     MetadataGuidance = "metadata-guidance",
+    DescribingColumns = "columns-descriptions",
     FileAndMetadataProvenance = "provenance",
 
     // Group.OtherResources

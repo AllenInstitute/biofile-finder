@@ -314,6 +314,17 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 heading: SectionHeading.SpreadsheetExamples,
                 body: (
                     <>
+                        <h3>Full metadata guidance</h3>
+                        <p>
+                            Check out the{" "}
+                            <a
+                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.MetadataGuidance}`}
+                            >
+                                metadata guidance page
+                            </a>{" "}
+                            for a full description of recommended metadata practices, including more
+                            CSV examples and templates.
+                        </p>
                         <h3>Basic example</h3>
                         <p>
                             Each row is a file. Columns can be anything meaningful to your workflow
@@ -355,6 +366,35 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             <a href="/datasets">Browse open-source datasets</a>
                         </p>
                     </>
+                ),
+            },
+            {
+                heading: "(Optional) Describing columns",
+                body: (
+                    <p>
+                        BFF supports describing the columns themselves.{" "}
+                        <a
+                            href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.DescribingColumns}`}
+                        >
+                            See the page on describing columns for more info
+                        </a>
+                        .
+                    </p>
+                ),
+            },
+            {
+                heading: "(Optional) Describing file relationships",
+                body: (
+                    <p>
+                        BFF supports describing relationships between files and metadata via a
+                        provenance file.{" "}
+                        <a
+                            href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.FileAndMetadataProvenance}`}
+                        >
+                            See the full provenance guide for more info
+                        </a>
+                        .
+                    </p>
                 ),
             },
         ],
@@ -440,10 +480,27 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 <Icon iconName="Flag" className="ug-icon-md" />
                             </a>
                         </p>
-                        <p>Example descriptions for these fields are provided below.</p>
+                        <p>
+                            See example descriptions for these fields in{" "}
+                            <a
+                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.DescribingColumns}`}
+                            >
+                                providing column descriptions
+                            </a>
+                            .
+                        </p>
                     </>
                 ),
             },
+        ],
+    },
+
+    {
+        slug: PageSlug.DescribingColumns,
+        title: "Describing columns in your dataset",
+        intro:
+            "Providing descriptions for columns in your datasets helps collaborators and readers understand the meaning of each column, especially when column names are abbreviated or use internal lab terminology.",
+        sections: [
             {
                 heading: "Providing column descriptions",
                 body: (
@@ -628,27 +685,12 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                     </>
                 ),
             },
-            {
-                heading: "File & metadata provenance",
-                body: (
-                    <p>
-                        BFF supports describing relationships between files and metadata via a
-                        provenance file.{" "}
-                        <a
-                            href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.FileAndMetadataProvenance}`}
-                        >
-                            See the full provenance guide
-                        </a>
-                        .
-                    </p>
-                ),
-            },
         ],
     },
 
     {
         slug: PageSlug.FileAndMetadataProvenance,
-        title: "File & metadata provenance",
+        title: "Describing file and metadata relationships",
         intro:
             'Information about how files relate to each other or to different pieces of metadata can be provided via an additional file called a "Provenance file". Provenance in BioFile Finder (BFF) can describe relationships between files, between a file and a piece of metadata, and between two pieces of metadata.',
         sections: [
