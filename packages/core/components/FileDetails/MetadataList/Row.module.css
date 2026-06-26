@@ -36,11 +36,14 @@
 .key-value {
     user-select: text;
 
-    display: block;
-    min-width: 0;
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 4 !important; /* number of lines to show */
+            line-clamp: 4; 
+    -webkit-box-orient: vertical !important;
+    word-wrap: break-word !important;
 }
 
 .small-font {
@@ -55,7 +58,7 @@
     white-space: pre-wrap; 
 
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     min-height: 18px;
 }
 
