@@ -401,7 +401,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             <a
                                 href={`/user-guide/${GroupSlug.AppInformation}/${PageSlug.Specifications}`}
                             >
-                                See App information
+                                See Specifications
                             </a>{" "}
                             for accepted file types and size limitations.
                         </p>
@@ -451,15 +451,17 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         <ul>
                             <li>
                                 <strong>Thumbnail</strong> — If provided, should contain the URL to
-                                a cloud-hosted image (see{" "}
+                                a cloud-hosted image and will override any thumbnail BFF will
+                                automatically try to generate. Note: BFF cannot automatically
+                                generate a thumbnail for all file types and storage locations.{" "}
                                 <a
-                                    href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.StorageOptions}`}
+                                    href={`/user-guide/${GroupSlug.OtherResources}/${
+                                        PageSlug.StorageOptions
+                                    }#${slugify(SectionHeading.CloudStorage)}`}
                                 >
-                                    cloud storage options
+                                    See cloud storage options
                                 </a>
-                                ) and will override any thumbnail BFF will automatically try to
-                                generate. Note: BFF cannot automatically generate a thumbnail for
-                                all file types and storage locations.
+                                .
                             </li>
                             <li>
                                 <strong>File Name</strong> — BFF will automatically parse the file
@@ -484,11 +486,11 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                     <>
                         <h3>Full metadata guidance</h3>
                         <p>
-                            Check out the{" "}
+                            Check out{" "}
                             <a
                                 href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.MetadataGuidance}`}
                             >
-                                metadata guidance page
+                                Metadata guidance
                             </a>{" "}
                             for a full description of recommended metadata practices, including more
                             CSV examples and templates.
@@ -515,7 +517,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "(Optional) Describing columns",
+                heading: "Describing columns (optional)",
                 body: (
                     <p>
                         BFF supports describing the columns themselves.{" "}
@@ -529,7 +531,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "(Optional) Describing file relationships",
+                heading: "Describing file relationships (optional)",
                 body: (
                     <p>
                         BFF supports describing relationships between files and metadata via a

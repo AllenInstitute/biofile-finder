@@ -43,6 +43,7 @@ export enum PageSlug {
 // from the heading itself since sections within pages are less important
 // to link to and are more likely to change over time.
 export enum SectionHeading {
+    CloudStorage = "Cloud storage",
     SpreadsheetExamples = "Spreadsheet (dataset) examples",
     ViewerTable = "Image viewer comparison table",
     ExploreScreeningResults = "Explore Screening Results",

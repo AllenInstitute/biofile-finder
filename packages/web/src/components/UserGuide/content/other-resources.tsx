@@ -1,7 +1,7 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
-import { GroupSlug, Page, PageSlug } from "./types";
+import { GroupSlug, Page, PageSlug, SectionHeading } from "./types";
 
 export const OTHER_RESOURCES_CONTENT: Page[] = [
     {
@@ -11,7 +11,7 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
             "Whether cloud, local, or network storage, BioFile Finder (BFF) is agnostic of where your files live. The only requirement is that the metadata file is accessible to the browser running BFF.",
         sections: [
             {
-                heading: "Cloud storage",
+                heading: SectionHeading.CloudStorage,
                 body: (
                     <>
                         <h3>Public vs private</h3>
