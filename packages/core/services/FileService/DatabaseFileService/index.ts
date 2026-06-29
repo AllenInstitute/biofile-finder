@@ -101,7 +101,7 @@ function parseMetadata(
  *   }
  * ]
  */
-function unwrapNestedMetadata(values: UnwrappedMetadataValue | undefined | null): MetadataValue {
+function unwrapNestedMetadata(values: UnwrappedMetadataValue): MetadataValue {
     // Either nested or primitives will have values, but not both.
     // If both are empty, return an empty array.
     const { nested, primitives } = parseMetadata(values);
