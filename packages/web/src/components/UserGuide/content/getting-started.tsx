@@ -444,10 +444,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 heading: "Optional special columns",
                 body: (
                     <>
-                        <p>
-                            These columns are optional but enable specific features in BFF when
-                            provided.
-                        </p>
+                        <p>These optional columns enable specific features in BFF when provided.</p>
                         <ul>
                             <li>
                                 <strong>Thumbnail</strong> — If provided, should contain the URL to
@@ -484,17 +481,6 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 heading: SectionHeading.SpreadsheetExamples,
                 body: (
                     <>
-                        <h3>Full metadata guidance</h3>
-                        <p>
-                            Check out{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.MetadataGuidance}`}
-                            >
-                                Metadata guidance
-                            </a>{" "}
-                            for a full description of recommended metadata practices, including more
-                            CSV examples and templates.
-                        </p>
                         <h3>Basic example</h3>
                         <p>
                             Each row is a file. Columns can be anything meaningful to your workflow
@@ -513,36 +499,44 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         <p>
                             <a href="/datasets">Browse open-source datasets</a>
                         </p>
+                        <h3>Full metadata guidance</h3>
+                        <p>
+                            Visit{" "}
+                            <a
+                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.MetadataGuidance}`}
+                            >
+                                Metadata guidance
+                            </a>{" "}
+                            for a full description of recommended metadata practices, including more
+                            CSV examples and templates.
+                        </p>
                     </>
                 ),
             },
             {
-                heading: "Describing columns (optional)",
+                heading: "Describing columns and file relationships (optional)",
                 body: (
-                    <p>
-                        BFF supports describing the columns themselves.{" "}
-                        <a
-                            href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.DescribingColumns}`}
-                        >
-                            See the page on describing columns for more info
-                        </a>
-                        .
-                    </p>
-                ),
-            },
-            {
-                heading: "Describing file relationships (optional)",
-                body: (
-                    <p>
-                        BFF supports describing relationships between files and metadata via a
-                        provenance file.{" "}
-                        <a
-                            href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.FileAndMetadataProvenance}`}
-                        >
-                            See the full provenance guide for more info
-                        </a>
-                        .
-                    </p>
+                    <>
+                        <p>
+                            BFF lets you describe the columns themselves. For more information visit{" "}
+                            <a
+                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.DescribingColumns}`}
+                            >
+                                Describing columns in your dataset
+                            </a>
+                            .
+                        </p>
+                        <p>
+                            BFF lets you describe relationships between files and metadata using a
+                            provenance file. See{" "}
+                            <a
+                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.FileAndMetadataProvenance}`}
+                            >
+                                Describing file and metadata relationships
+                            </a>{" "}
+                            for more information.
+                        </p>
+                    </>
                 ),
             },
         ],
