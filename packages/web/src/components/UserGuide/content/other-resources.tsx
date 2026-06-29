@@ -16,8 +16,11 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
                     <>
                         <h3>Public vs private</h3>
                         <p>
-                            BFF works with both private and public cloud storage. The only
-                            requirement is that{" "}
+                            BFF works with both public and private data by using the access that
+                            already exists. Whether access is granted through a private network,
+                            VPN, cloud IAM roles, or storage credentials, BFF operates within those
+                            permissions rather than introducing a separate authentication or
+                            authorization layer. The only requirement is that{" "}
                             <a
                                 href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.AvoidingCORSErrors}`}
                             >
