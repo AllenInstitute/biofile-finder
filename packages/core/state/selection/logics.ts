@@ -69,7 +69,7 @@ import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
-import Annotation, { AnnotationValue } from "../../entity/Annotation";
+import { AnnotationValue } from "../../entity/Annotation";
 import SearchParams, { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -240,7 +240,7 @@ const setAvailableAnnotationsLogic = createLogic({
                     await annotationService.fetchAvailableAnnotationsForHierarchy(
                         annotationHierarchy
                     )
-                )
+                ) as AnyAction
             );
         } catch (err) {
             console.error(
@@ -248,7 +248,7 @@ const setAvailableAnnotationsLogic = createLogic({
                 err
             );
             const annotations = metadata.selectors.getAnnotations(getState());
-            dispatch(setAvailableAnnotations(annotations.map((a: Annotation) => a.name)));
+            dispatch(setAvailableAnnotations(annotations.map((a) => a.name)) as AnyAction);
         } finally {
             done();
         }

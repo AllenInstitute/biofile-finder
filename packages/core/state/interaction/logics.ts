@@ -734,11 +734,15 @@ const refresh = createLogic({
                 annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy),
             ]);
             dispatch(metadata.actions.receiveAnnotations(annotations));
-            dispatch(selection.actions.setAvailableAnnotations(availableAnnotations));
+            dispatch(selection.actions.setAvailableAnnotations(availableAnnotations) as AnyAction);
         } catch (err) {
             console.error(`Error encountered while refreshing: ${err}`);
             const annotations = metadata.selectors.getAnnotations(deps.getState());
-            dispatch(selection.actions.setAvailableAnnotations(annotations.map((a) => a.name)));
+            dispatch(
+                selection.actions.setAvailableAnnotations(
+                    annotations.map((a) => a.name)
+                ) as AnyAction
+            );
         } finally {
             done();
         }

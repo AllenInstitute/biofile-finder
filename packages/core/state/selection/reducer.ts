@@ -44,6 +44,7 @@ import {
     SetFileSelection,
     REORDER_COLUMNS,
     ReorderColumnsAction,
+    SetAvailableAnnotationsAction,
 } from "./actions";
 import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
@@ -59,7 +60,7 @@ import Tutorials from "../../hooks/useHelpOptions/Tutorials";
 // to store annotation paths (string[][]) instead of concatenated dotted strings.
 export interface SelectionStateBranch {
     annotationHierarchy: string[];
-    availableAnnotationsForHierarchy: string[];
+    availableAnnotationsForHierarchy: string[] | null;
     availableAnnotationsForHierarchyLoading: boolean;
     columns: Column[];
     dataSources: Source[];
@@ -287,7 +288,7 @@ export default makeReducer<SelectionStateBranch>(
             // Reset file selections when annotation hierarchy changes
             fileSelection: new FileSelection(),
         }),
-        [SET_AVAILABLE_ANNOTATIONS]: (state, action) => ({
+        [SET_AVAILABLE_ANNOTATIONS]: (state, action: SetAvailableAnnotationsAction) => ({
             ...state,
             availableAnnotationsForHierarchy: action.payload,
             availableAnnotationsForHierarchyLoading: false,

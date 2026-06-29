@@ -178,10 +178,16 @@ export const getGroupedByFilterName = createSelector(
     }
 );
 
+// Returns `null` if available annotations is `null` which occurs
+// when the database was unable to determine available annotations
 export const getUnavailableAnnotationsForHierarchy = createSelector(
     [getAnnotations, getAvailableAnnotationsForHierarchy],
-    (allAnnotations, availableAnnotations) =>
-        Annotation.sort(
-            allAnnotations.filter((annotation) => !availableAnnotations.includes(annotation.name))
-        )
+    (allAnnotations, availableAnnotations): Set<string> | null =>
+        availableAnnotations
+            ? new Set(
+                  allAnnotations
+                      .map((annotation) => annotation.name)
+                      .filter((name) => !availableAnnotations.includes(name))
+              )
+            : null
 );

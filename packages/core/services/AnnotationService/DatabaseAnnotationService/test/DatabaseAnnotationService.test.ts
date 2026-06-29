@@ -288,28 +288,23 @@ describe("DatabaseAnnotationService", () => {
     });
 
     describe("fetchAvailableAnnotationsForHierarchy", () => {
-        const annotationNames = ["Cell Line", "Is Split Scene", "Whatever"];
-        const sampleRow = Object.fromEntries(annotationNames.map((name) => [name, "dummy value"]));
+        const annotationNames = ["Cell Line", "Is Split Scene", "Well.Dose"];
         class MockDatabaseService extends DatabaseService {
-            public query(sql: string): { promise: Promise<any> } {
-                if (sql.includes("SELECT *") && sql.includes("LIMIT 1")) {
-                    // First query for fetchAvailableAnnotationsForHierarchy gets the available
-                    // column names with a SELECT * FROM ... LIMIT 1
-                    return { promise: Promise.resolve([sampleRow]) };
-                }
-                // The remaining queries (one per column) check if each column has non-null values.
-                const columnNameMatch = sql.match(/SELECT '(?<columnName>.*)' AS column_name/);
-                if (columnNameMatch && columnNameMatch.groups) {
-                    return {
-                        promise: Promise.resolve([
-                            { column_name: columnNameMatch.groups.columnName },
-                        ]),
-                    };
-                }
-                return { promise: Promise.reject() };
+            public query(_sql: string): { promise: Promise<any> } {
+                return {
+                    promise: Promise.resolve([{ "1": 1 }]),
+                };
             }
             public async fetchAnnotations(): Promise<Annotation[]> {
-                return [];
+                return annotationNames.map(
+                    (a) =>
+                        new Annotation({
+                            annotationName: a,
+                            description: `${a} description`,
+                            type: AnnotationType.STRING,
+                            pathIsArray: a.split(".").map(() => false),
+                        })
+                );
             }
         }
         const databaseService = new MockDatabaseService();
@@ -326,55 +321,50 @@ describe("DatabaseAnnotationService", () => {
             expect(values).to.deep.equal(annotationNames);
         });
 
-        it("returns full dotted paths for available nested sub-fields", async () => {
-            // Arrange
-            const nestedSampleRow = { Well: "dummy value", Media: "dummy value" };
-            class NestedDatabaseService extends DatabaseService {
-                public query(sql: string): { promise: Promise<any> } {
-                    if (sql.includes("SELECT *") && sql.includes("LIMIT 1")) {
-                        return { promise: Promise.resolve([nestedSampleRow]) };
-                    }
-                    const columnNameMatch = sql.match(/SELECT '(?<columnName>.*)' AS column_name/);
-                    if (columnNameMatch && columnNameMatch.groups) {
-                        return {
-                            promise: Promise.resolve([
-                                { column_name: columnNameMatch.groups.columnName },
-                            ]),
-                        };
-                    }
-                    return { promise: Promise.reject() };
+        it("returns null after 30s and cancels all in-flight hierarchy queries", async () => {
+            const clock = sinon.useFakeTimers();
+            let cancelledCount = 0;
+
+            class HangingDatabaseService extends DatabaseServiceNoop {
+                public query(): { promise: Promise<any>; cancel: () => void } {
+                    return {
+                        promise: new Promise(() => {
+                            // Intentionally never resolves to force the global timeout path.
+                        }),
+                        cancel: () => {
+                            cancelledCount += 1;
+                        },
+                    };
                 }
             }
-            class NestedAnnotationService extends DatabaseAnnotationService {
+
+            class TimeoutAnnotationService extends DatabaseAnnotationService {
                 public async fetchAnnotations(): Promise<Annotation[]> {
-                    return [
-                        new Annotation({
-                            annotationName: ["Well", "Dose", "Unit"],
-                            description: "Well dose unit",
-                            type: AnnotationType.STRING,
-                            pathIsArray: [true, false, false],
-                        }),
-                        new Annotation({
-                            annotationName: ["Media", "Unit"],
-                            description: "Media unit",
-                            type: AnnotationType.STRING,
-                            pathIsArray: [true, false],
-                        }),
-                    ];
+                    return ["A", "B", "C"].map(
+                        (name) =>
+                            new Annotation({
+                                annotationName: name,
+                                description: "",
+                                type: AnnotationType.STRING,
+                            })
+                    );
                 }
             }
-            const annotationService = new NestedAnnotationService({
+
+            const annotationService = new TimeoutAnnotationService({
                 dataSourceNames: ["mock1"],
-                databaseService: new NestedDatabaseService(),
+                databaseService: new HangingDatabaseService(),
             });
 
-            // Act
-            const values = await annotationService.fetchAvailableAnnotationsForHierarchy([]);
+            const valuesPromise = annotationService.fetchAvailableAnnotationsForHierarchy([]);
+            await clock.tickAsync(30_001);
 
-            // Assert
-            expect(values).to.include("Well.Dose.Unit");
-            expect(values).to.include("Media.Unit");
-            expect(values).to.not.include("Unit");
+            try {
+                expect(await valuesPromise).to.be.null;
+                expect(cancelledCount).to.equal(3);
+            } finally {
+                clock.restore();
+            }
         });
     });
 

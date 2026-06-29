@@ -22,7 +22,7 @@ export default interface AnnotationService {
         path: string[],
         filters: FileFilter[]
     ): Promise<string[]>;
-    fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]>;
+    fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[] | null>;
     fetchOptimalWidthForAnnotations(
         annotations: Annotation[],
         ignoreWidthLimit?: boolean

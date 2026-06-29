@@ -1,7 +1,7 @@
 import { isNil, uniq } from "lodash";
 
 import AnnotationService, { AnnotationDetails } from "..";
-import DatabaseService from "../../DatabaseService";
+import DatabaseService, { CancellablePromise } from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
@@ -187,10 +187,17 @@ export default class DatabaseAnnotationService implements AnnotationService {
      * Fetchs annotations that can be combined with current hierarchy while still producing a non-empty
      * file set
      */
-    public async fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]> {
+    public async fetchAvailableAnnotationsForHierarchy(
+        annotations: string[]
+    ): Promise<string[] | null> {
         if (!this.dataSourceNames.length) {
             return [];
         }
+
+        // Arbitrary number, though some DuckDB docs suggest that many small concurrent queries is not
+        // ideal, so we batch them to avoid overwhelming the database with too many concurrent queries.
+        const MAX_CONCURRENT_QUERIES = 25;
+        const TOTAL_TIMEOUT_MS = 30_000; // 30 seconds
 
         // Look up annotation metadata for nested sub-field handling.
         const nameToAnnotationMap = await this.fetchNameToAnnotationMap();
@@ -208,27 +215,75 @@ export default class DatabaseAnnotationService implements AnnotationService {
         });
 
         const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
-        const queries = Array.from(nameToAnnotationMap.values()).map(async (annotation) => {
-            const columnAccessExpr = SQLBuilder.buildNestedAccessExpression(annotation.path, annotation.pathIsArray);
-            const sql = new SQLBuilder()
-                .select("1")
-                .from(aggregateDataSourceName)
-                .where(annotation.hasNestedArray ? `len(${columnAccessExpr}) > 0` : `${columnAccessExpr} IS NOT NULL`)
-                .where(hierarchyNotNullExprs)
-                // This limit is non-deterministic, but we just want to know if
-                // any rows are non-null for this column, and a
-                // non-deterministic query will be faster.
-                .limit(1)
-                .toSQL();
-            const result = await this.databaseService.query(sql).promise;
-            // If the query returns no rows, it means that this annotation is not compatible with the current hierarchy
-            if (result.length === 0) return null;
-            return result.length === 0
-                ? null
-                : annotation.name;
+        const annotationsToCheck = Array.from(nameToAnnotationMap.values());
+        const compatibleAnnotations: string[] = [];
+        const inFlightQueries = new Set<CancellablePromise<{ [key: string]: any }[]>>();
+        let timedOut = false;
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+        const timedQueryPromise = new Promise<null>((resolve) => {
+            timeoutId = setTimeout(() => {
+                timedOut = true;
+                for (const query of inFlightQueries) {
+                    query.cancel?.("Timed out while fetching available annotations for hierarchy");
+                }
+                console.log("Timed out while fetching available annotations for hierarchy");
+                resolve(null);
+            }, TOTAL_TIMEOUT_MS);
         });
-        const columns = await Promise.all(queries);
-        return columns.filter((result) => result !== null) as string[];
+
+        const batchedQueriesPromise = (async () => {
+            for (let i = 0; i < annotationsToCheck.length; i += MAX_CONCURRENT_QUERIES) {
+                if (timedOut) return null;
+
+                const batch = annotationsToCheck.slice(i, i + MAX_CONCURRENT_QUERIES);
+                const batchResults = await Promise.all(
+                    batch.map(async (annotation) => {
+                        const columnAccessExpr = SQLBuilder.buildNestedAccessExpression(
+                            annotation.path,
+                            annotation.pathIsArray
+                        );
+                        const sql = new SQLBuilder()
+                            .select("1")
+                            .from(aggregateDataSourceName)
+                            .where(
+                                annotation.hasNestedArray
+                                    ? `len(${columnAccessExpr}) > 0`
+                                    : `${columnAccessExpr} IS NOT NULL`
+                            )
+                            .where(hierarchyNotNullExprs)
+                            // This limit is non-deterministic, but we just want to know if
+                            // any rows are non-null for this column, and a
+                            // non-deterministic query will be faster.
+                            .limit(1)
+                            .toSQL();
+
+                        const query = this.databaseService.query(sql);
+                        inFlightQueries.add(query);
+                        try {
+                            const result = await query.promise;
+                            return result.length === 0 ? null : annotation.name;
+                        } finally {
+                            inFlightQueries.delete(query);
+                        }
+                    })
+                );
+
+                compatibleAnnotations.push(
+                    ...batchResults.filter((result): result is string => result !== null)
+                );
+            }
+
+            return compatibleAnnotations;
+        })();
+
+        try {
+            return await Promise.race([batchedQueriesPromise, timedQueryPromise]);
+        } finally {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        }
     }
 
     /**
