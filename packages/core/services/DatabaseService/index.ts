@@ -286,11 +286,16 @@ export default abstract class DatabaseService {
 
     protected static columnTypeToAnnotationType(columnType: string): AnnotationType {
         // DECIMAL types include precision/scale info, e.g. "DECIMAL(18,3)"
-        if (columnType?.startsWith("DECIMAL")) {
+        if (columnType.startsWith("DECIMAL")) {
             return AnnotationType.NUMBER;
         }
         // STRUCT types (including STRUCT[]) represent nested/object metadata
-        if (columnType?.startsWith("STRUCT") || columnType?.includes("STRUCT")) {
+        // MAP types represent key-value pairs, typically we only see this for empty JSON objects
+        if (
+            columnType.startsWith("STRUCT") ||
+            columnType.includes("STRUCT") ||
+            columnType.startsWith("MAP")
+        ) {
             return AnnotationType.NESTED;
         }
         switch (columnType) {
