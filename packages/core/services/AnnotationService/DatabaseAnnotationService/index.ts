@@ -18,10 +18,6 @@ interface Config {
     metadataSource?: Source;
 }
 
-interface QueryResult {
-    column_name: string;
-}
-
 /**
  * Service responsible for fetching annotation related metadata directly from a database
  */
@@ -211,42 +207,28 @@ export default class DatabaseAnnotationService implements AnnotationService {
             return meta?.hasNestedArray ? `len(${accessExpr}) > 0` : `${accessExpr} IS NOT NULL`;
         });
 
-        // Subquery 1
         const aggregateDataSourceName = this.dataSourceNames.sort().join(", ");
-        const columnNamesSql = new SQLBuilder().from(aggregateDataSourceName).limit(1).toSQL();
-        const queryResult = await this.databaseService.query(columnNamesSql).promise;
-        const columnNames = Object.keys(queryResult[0]);
-
-        const queries = columnNames.map((columnName) => {
+        const queries = Array.from(nameToAnnotationMap.values()).map(async (annotation) => {
+            const columnAccessExpr = SQLBuilder.buildNestedAccessExpression(annotation.path, annotation.pathIsArray);
             const sql = new SQLBuilder()
-                .select(`'${columnName.replace(/'/g, "''")}' AS column_name`)
+                .select("1")
                 .from(aggregateDataSourceName)
-                .where(`"${columnName}" IS NOT NULL`)
+                .where(annotation.hasNestedArray ? `len(${columnAccessExpr}) > 0` : `${columnAccessExpr} IS NOT NULL`)
                 .where(hierarchyNotNullExprs)
                 // This limit is non-deterministic, but we just want to know if
                 // any rows are non-null for this column, and a
                 // non-deterministic query will be faster.
                 .limit(1)
                 .toSQL();
-            return this.databaseService.query(sql).promise;
+            const result = await this.databaseService.query(sql).promise;
+            // If the query returns no rows, it means that this annotation is not compatible with the current hierarchy
+            if (result.length === 0) return null;
+            return result.length === 0
+                ? null
+                : annotation.name;
         });
-        const results = (await Promise.all(queries)) as QueryResult[][];
-        const availablePhysicalColumns = new Set(
-            results.filter((result) => result.length > 0).map((result) => result[0].column_name)
-        );
-
-        // Include virtual sub-field annotations for any available parent STRUCT columns
-        const availableAnnotations = [...availablePhysicalColumns];
-        for (const ann of nameToAnnotationMap.values()) {
-            if (
-                ann.isSubField &&
-                ann.parents?.[0] &&
-                availablePhysicalColumns.has(ann.parents[0])
-            ) {
-                availableAnnotations.push(ann.path.join("."));
-            }
-        }
-        return uniq(availableAnnotations);
+        const columns = await Promise.all(queries);
+        return columns.filter((result) => result !== null) as string[];
     }
 
     /**
