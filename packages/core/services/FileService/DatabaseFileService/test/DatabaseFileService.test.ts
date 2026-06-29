@@ -292,46 +292,18 @@ describe("DatabaseFileService", () => {
             expect(saveQuerySpy.calledWith(any, match(/hidden_bff_uid\s+IN\s*\(/i), any)).to.be
                 .true;
         });
+    });
 
-        it("fails on nested annotation paths for CSV format", async () => {
-            // Arrange
-            class MockParquetManifestService extends DatabaseServiceNoop {
-                protected readonly existingDataSources = new Set(["parquet_source"]);
-                public saveQuery(
-                    _destination?: string,
-                    _sql?: string,
-                    _format?: string
-                ): Promise<Uint8Array> {
-                    return Promise.resolve(new Uint8Array());
-                }
-                public async fetchAnnotations(): Promise<[]> {
-                    return [];
-                }
-            }
-            const mockDbService = new MockParquetManifestService();
-            const databaseFileService = new DatabaseFileService({
-                dataSourceNames: ["parquet_source"],
-                databaseService: mockDbService,
-                downloadService: new FileDownloadServiceNoop(),
-            });
-            const selections = [
-                { indexRanges: [{ start: 0, end: 1 }], filters: [], sort: undefined },
-            ];
+    describe("download", () => {
+        const sandbox = createSandbox();
+        const nestedPathIsArrayAnnotations = [
+            { name: "Well.Color", pathIsArray: [true, false] },
+            { name: "Well.Dose.Unit", pathIsArray: [true, false, false] },
+            { name: "Well.Dose.Value", pathIsArray: [true, false, false] },
+        ];
 
-            try {
-                // Act
-                await databaseFileService.getManifest(
-                    ["File Name", "Well.Dose.Unit"],
-                    selections,
-                    "csv"
-                );
-                expect.fail("Expected error was not thrown");
-            } catch (error) {
-                // Assert: CSV format — nested column extracted and stringified with array_to_string
-                expect((error as Error).message).to.equal(
-                    "CSV manifest does not support nested annotation paths"
-                );
-            }
+        afterEach(() => {
+            sandbox.restore();
         });
 
         it("reconstructs a partial struct for parquet to include only selected sub-fields", async () => {
@@ -344,8 +316,8 @@ describe("DatabaseFileService", () => {
                 ): Promise<Uint8Array> {
                     return Promise.resolve(new Uint8Array());
                 }
-                public async fetchAnnotations(): Promise<[]> {
-                    return [];
+                public async fetchAnnotations(): Promise<any[]> {
+                    return nestedPathIsArrayAnnotations;
                 }
             }
             const mockDbService = new MockParquetManifestService();
@@ -384,8 +356,8 @@ describe("DatabaseFileService", () => {
                 ): Promise<Uint8Array> {
                     return Promise.resolve(new Uint8Array());
                 }
-                public async fetchAnnotations(): Promise<[]> {
-                    return [];
+                public async fetchAnnotations(): Promise<any[]> {
+                    return nestedPathIsArrayAnnotations;
                 }
             }
             const mockDbService = new MockParquetManifestService();
@@ -415,6 +387,27 @@ describe("DatabaseFileService", () => {
             expect((sql.match(/list_transform\("Well"/g) || []).length).to.equal(1);
         });
 
+        it("uses nested list_transform for intermediate STRUCT[] fields (doubly-nested array)", () => {
+            // Reproduces: "Cannot extract field 'FP' from struct_extract(__e, 'CLD') because it is not a struct"
+            // CLD (Cell Line Definitions) is itself a STRUCT[] inside the root array, not a plain struct.
+            // pathIsArray[1] = true means CLD needs its own list_transform, not a plain dot-access.
+            const pathIsArrayByName = new Map([
+                ["Well.Cell Line Definitions.Fluorescent Protein", [true, true, false]],
+            ]);
+            const sql = DatabaseFileService.getSelectionSql(
+                ["Well.Cell Line Definitions.Fluorescent Protein"],
+                [{ indexRanges: [{ start: 0, end: 1 }], filters: [], sort: undefined }],
+                ["parquet_source"],
+                pathIsArrayByName
+            );
+            // Outer list_transform iterates Well; inner iterates Cell Line Definitions
+            expect(sql).to.include(
+                `list_transform("Well", __e -> {'Cell Line Definitions': list_transform(__e."Cell Line Definitions", __f -> {'Fluorescent Protein': __f."Fluorescent Protein"})}) AS "Well"`
+            );
+            // No bare dot-access through a list (that would cause the Binder Error)
+            expect(sql).to.not.include(`__e."Cell Line Definitions"."Fluorescent Protein"`);
+        });
+
         it("uses partial struct for JSON (not array_to_string) so the output stays nested", async () => {
             class MockJsonManifestService extends DatabaseServiceNoop {
                 protected readonly existingDataSources = new Set(["parquet_source"]);
@@ -425,8 +418,8 @@ describe("DatabaseFileService", () => {
                 ): Promise<Uint8Array> {
                     return Promise.resolve(new Uint8Array());
                 }
-                public async fetchAnnotations(): Promise<[]> {
-                    return [];
+                public async fetchAnnotations(): Promise<any[]> {
+                    return nestedPathIsArrayAnnotations;
                 }
             }
             const mockDbService = new MockJsonManifestService();
@@ -452,11 +445,51 @@ describe("DatabaseFileService", () => {
     });
 
     describe("getSelectionSql", () => {
+        it("throws when pathIsArray metadata is missing for nested annotations", () => {
+            expect(() =>
+                DatabaseFileService.getSelectionSql(
+                    ["Well.Color"],
+                    [{ indexRanges: [{ start: 0, end: 0 }], filters: [], sort: undefined }],
+                    ["parquet_source"],
+                    new Map()
+                )
+            ).to.throw('Cannot generate SQL for nested annotation "Well.Color"');
+        });
+
+        it("uses direct struct access for non-array STRUCT nested columns", () => {
+            // When Well is a plain STRUCT (not STRUCT[]), list_transform must NOT be used.
+            // buildManifestSelectColumns should emit {'Color': "Well"."Color"} AS "Well".
+            const pathIsArrayByName = new Map([["Well.Color", [false, false]]]);
+            const sql = DatabaseFileService.getSelectionSql(
+                ["File Name", "Well.Color"],
+                [{ indexRanges: [{ start: 0, end: 1 }], filters: [], sort: undefined }],
+                ["parquet_source"],
+                pathIsArrayByName
+            );
+            expect(sql).to.include(`"File Name"`);
+            // No list_transform — the root is a plain STRUCT, not a list
+            expect(sql).to.not.include("list_transform");
+            // Partial struct with direct field access
+            expect(sql).to.include(`{'Color': "Well"."Color"} AS "Well"`);
+        });
+
+        it("uses direct struct access for deeply nested non-array structs", () => {
+            // Well.Dose.Unit where Well and Dose are both plain STRUCTs
+            const pathIsArrayByName = new Map([["Well.Dose.Unit", [false, false, false]]]);
+            const sql = DatabaseFileService.getSelectionSql(
+                ["Well.Dose.Unit"],
+                [{ indexRanges: [{ start: 0, end: 0 }], filters: [], sort: undefined }],
+                ["parquet_source"],
+                pathIsArrayByName
+            );
+            expect(sql).to.include(`{'Dose': {'Unit': "Well"."Dose"."Unit"}} AS "Well"`);
+            expect(sql).to.not.include("list_transform");
+        });
+
         it("selects the requested annotations from the given data sources", () => {
             const sql = DatabaseFileService.getSelectionSql(
                 ["File Name", "Cell Line"],
                 [{ indexRanges: [{ start: 0, end: 2 }], filters: [], sort: undefined }],
-                "csv",
                 ["my_source"],
                 new Map()
             );
@@ -468,7 +501,6 @@ describe("DatabaseFileService", () => {
             const sql = DatabaseFileService.getSelectionSql(
                 ["File ID"],
                 [{ indexRanges: [{ start: 5, end: 7 }], filters: [], sort: undefined }],
-                "csv",
                 ["my_source"],
                 new Map()
             );
@@ -490,7 +522,6 @@ describe("DatabaseFileService", () => {
                         sort: undefined,
                     },
                 ],
-                "csv",
                 ["my_source"],
                 new Map()
             );
@@ -514,7 +545,6 @@ describe("DatabaseFileService", () => {
                         sort: undefined,
                     },
                 ],
-                "csv",
                 ["my_source"],
                 new Map()
             );
@@ -532,7 +562,6 @@ describe("DatabaseFileService", () => {
                         sort: undefined,
                     },
                 ],
-                "csv",
                 ["my_source"],
                 new Map()
             );

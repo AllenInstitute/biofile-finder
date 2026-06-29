@@ -188,10 +188,6 @@ export default class DatabaseFileService implements FileService {
      * Selecting a nested sub-field column (dotted name like "Well.Dose.Unit") directly would
      * cause a DuckDB Binder Error since no such column exists at the top level.
      *
-     * For CSV, nested sub-fields are extracted and joined into a readable comma-separated
-     * VARCHAR cell per row (e.g. "uM, mM"), which is the most human-readable form for a
-     * flat text format.
-     *
      * For JSON and Parquet we preserve nested structure so the output file round-trips back
      * into BFF with the same annotation columns. We reconstruct a *partial* STRUCT containing
      * only the user-selected sub-fields:
@@ -203,46 +199,63 @@ export default class DatabaseFileService implements FileService {
      * Multiple sub-fields sharing the same root are grouped into one expression so the root
      * column appears only once in the SELECT list.
      */
+    // Lambda variable names for nested list_transform levels.
+    // Outer lambdas use earlier entries; "__e" is reserved for the root list_transform.
+    private static readonly LAMBDA_VARS = ["__e", "__f", "__g", "__h", "__i"];
+
     private static buildManifestSelectColumns(
         annotations: string[],
-        format: "csv" | "json" | "parquet"
+        pathIsArrayByName: Map<string, boolean[]>
     ): string {
-        if (format === "csv") {
-            return annotations
-                .map((annotation) => {
-                    const path = annotation.split(".");
-                    if (path.length > 1)
-                        throw new Error("CSV manifest does not support nested annotation paths");
-                    return `"${annotation}"`;
-                })
-                .join(", ");
-        }
-
-        // JSON / Parquet: reconstruct a partial STRUCT[] for each root column containing only
-        // the selected sub-fields, preserving the nested structure without sibling fields.
+        // Reconstruct a partial struct for each root column containing only the selected
+        // sub-fields. For STRUCT[] (array) roots, wrap in list_transform. For plain STRUCT
+        // roots, use direct field-path access so list_transform is never called on a non-list.
+        //
+        // Intermediate array segments (STRUCT[] inside a STRUCT[]) get their own nested
+        // list_transform with a fresh lambda variable rather than a plain dot-access, because
+        // DuckDB cannot extract struct fields from a list expression.
         const flatCols: string[] = [];
-        const rootGroups = new Map<string, string[][]>(); // root → [relative sub-paths]
+        const rootGroups = new Map<
+            string,
+            { subPaths: Array<{ segments: string[]; isArray: boolean[] }>; isRootArray: boolean }
+        >();
 
         for (const annotation of annotations) {
-            // TODO: dotted-name => nested is the same heuristic used elsewhere; once
-            // pathIsArray is sourced from Redux/schema state, pass it through here.
             const path = annotation.split(".");
             if (path.length === 1) {
                 flatCols.push(`"${path[0]}"`);
             } else {
-                const [root, ...subPath] = path;
-                const group = rootGroups.get(root) ?? [];
-                group.push(subPath);
-                rootGroups.set(root, group);
+                const [root, ...subSegments] = path;
+                const pathIsArray = resolvePathIsArray(annotation, path.length, pathIsArrayByName);
+                const [isRootArray, ...subIsArray] = pathIsArray;
+                if (!rootGroups.has(root)) {
+                    rootGroups.set(root, { subPaths: [], isRootArray: isRootArray === true });
+                }
+                rootGroups.get(root)?.subPaths.push({ segments: subSegments, isArray: subIsArray });
             }
         }
 
         const nestedCols: string[] = [];
-        for (const [root, subPaths] of rootGroups) {
-            const structExpr = DatabaseFileService.buildPartialStructExpr(subPaths, "__e");
-            nestedCols.push(
-                `${SQLBuilder.listTransform(`"${root}"`, "__e", structExpr)} AS "${root}"`
-            );
+        for (const [root, { subPaths, isRootArray }] of rootGroups) {
+            if (isRootArray) {
+                const lambdaVar = DatabaseFileService.LAMBDA_VARS[0];
+                const structExpr = DatabaseFileService.buildPartialStructExpr(
+                    subPaths,
+                    lambdaVar,
+                    1
+                );
+                nestedCols.push(
+                    `${SQLBuilder.listTransform(`"${root}"`, lambdaVar, structExpr)} AS "${root}"`
+                );
+            } else {
+                // Plain STRUCT: rebuild partial struct with direct field-path access.
+                const structExpr = DatabaseFileService.buildPartialStructExpr(
+                    subPaths,
+                    `"${root}"`,
+                    1
+                );
+                nestedCols.push(`${structExpr} AS "${root}"`);
+            }
         }
 
         return [...flatCols, ...nestedCols].join(", ");
@@ -252,33 +265,59 @@ export default class DatabaseFileService implements FileService {
      * Recursively build a DuckDB struct literal `{field: expr, ...}` containing only the
      * given sub-paths, accessed relative to `elemVar`.
      *
-     * Examples (elemVar = "__e"):
-     *   paths [["Color"]]              →  {'Color': __e."Color"}
-     *   paths [["Dose","Unit"]]         →  {'Dose': {'Unit': __e."Dose"."Unit"}}
-     *   paths [["Color"],["Dose","Unit"]]→  {'Color': __e."Color", 'Dose': {'Unit': __e."Dose"."Unit"}}
+     * When an intermediate field is itself a list (STRUCT[]), a nested list_transform is
+     * emitted with the next available lambda variable so DuckDB can iterate it correctly.
+     *
+     * `lambdaDepth` tracks how many levels of list_transform have been opened so far, used
+     * to pick a fresh lambda variable for each nested list_transform.
      */
-    private static buildPartialStructExpr(paths: string[][], elemVar: string): string {
-        // Group paths by their first segment so shared intermediates are collapsed.
-        // This happens because STRUCTS are all contained as a single column in the file
-        const grouped = new Map<string, string[][]>();
-        for (const path of paths) {
-            const [head, ...tail] = path;
-            const group = grouped.get(head) ?? [];
-            grouped.set(head, group);
-            if (tail.length > 0) group.push(tail);
+    private static buildPartialStructExpr(
+        paths: Array<{ segments: string[]; isArray: boolean[] }>,
+        elemVar: string,
+        lambdaDepth: number
+    ): string {
+        // Group by the first segment so shared intermediates collapse into one entry.
+        const grouped = new Map<
+            string,
+            { isArray: boolean; subPaths: Array<{ segments: string[]; isArray: boolean[] }> }
+        >();
+        for (const { segments, isArray } of paths) {
+            const [head, ...tailSegments] = segments;
+            const [headIsArray = false, ...tailIsArray] = isArray;
+            if (!grouped.has(head)) {
+                grouped.set(head, { isArray: headIsArray, subPaths: [] });
+            }
+            if (tailSegments.length > 0) {
+                grouped.get(head)!.subPaths.push({ segments: tailSegments, isArray: tailIsArray });
+            }
         }
 
         const entries: string[] = [];
-        for (const [field, subPaths] of grouped) {
+        for (const [field, { isArray: fieldIsArray, subPaths }] of grouped) {
             const access = `${elemVar}."${field}"`;
             if (subPaths.length === 0) {
                 // Leaf field — plain scalar access
                 entries.push(`'${field}': ${access}`);
-            } else {
-                // Intermediate struct — recurse to build nested struct literal
-                entries.push(
-                    `'${field}': ${DatabaseFileService.buildPartialStructExpr(subPaths, access)}`
+            } else if (fieldIsArray) {
+                // Intermediate STRUCT[]: introduce a nested list_transform with a fresh variable.
+                const innerVar =
+                    DatabaseFileService.LAMBDA_VARS[lambdaDepth] ?? `__e${lambdaDepth}`;
+                const innerExpr = DatabaseFileService.buildPartialStructExpr(
+                    subPaths,
+                    innerVar,
+                    lambdaDepth + 1
                 );
+                entries.push(
+                    `'${field}': ${SQLBuilder.listTransform(access, innerVar, innerExpr)}`
+                );
+            } else {
+                // Intermediate plain STRUCT: continue dot-access in the same scope.
+                const innerExpr = DatabaseFileService.buildPartialStructExpr(
+                    subPaths,
+                    access,
+                    lambdaDepth
+                );
+                entries.push(`'${field}': ${innerExpr}`);
             }
         }
         return `{${entries.join(", ")}}`;
@@ -388,7 +427,6 @@ export default class DatabaseFileService implements FileService {
     public static getSelectionSql(
         annotations: string[],
         selections: Selection[],
-        format: "csv" | "json" | "parquet",
         dataSourceNames: string[],
         pathIsArrayByName: Map<string, boolean[]>
     ): string {
@@ -418,7 +456,7 @@ export default class DatabaseFileService implements FileService {
         });
 
         return new SQLBuilder()
-            .select(DatabaseFileService.buildManifestSelectColumns(annotations, format))
+            .select(DatabaseFileService.buildManifestSelectColumns(annotations, pathIsArrayByName))
             .from(dataSourceNames)
             .where(subQueries.join(" OR "))
             .toSQL();
@@ -429,15 +467,9 @@ export default class DatabaseFileService implements FileService {
         selections: Selection[],
         format: "csv" | "json" | "parquet"
     ): Promise<File> {
-        if (format !== "csv") {
-            throw new Error(
-                "Only CSV manifest is supported at this time for downloading from Database"
-            );
-        }
         const sql = DatabaseFileService.getSelectionSql(
             annotations,
             selections,
-            format,
             this.dataSourceNames,
             await this.fetchPathIsArrayByName()
         );
@@ -459,7 +491,6 @@ export default class DatabaseFileService implements FileService {
         const sql = DatabaseFileService.getSelectionSql(
             annotations,
             selections,
-            format,
             this.dataSourceNames,
             await this.fetchPathIsArrayByName()
         );
