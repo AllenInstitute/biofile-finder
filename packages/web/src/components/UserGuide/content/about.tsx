@@ -33,14 +33,22 @@ export const ABOUT_CONTENT: Page[] = [
                             thumbnails, open files in common industry tools, or visualize them in
                             the companion web-based 3D volume viewer, Vol-E.
                         </p>
-                        <a
-                            href="https://doi.org/10.1038/s41592-026-03130-w"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Read the BFF publication in Nature Methods.
-                        </a>
-                        <h3>How to cite BFF</h3>
+                    </>
+                ),
+            },
+            {
+                heading: "Publication & citation",
+                body: (
+                    <>
+                        <p>
+                            <a
+                                href="https://doi.org/10.1038/s41592-026-03130-w"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Read the BFF publication in Nature Methods.
+                            </a>
+                        </p>
                         <p>
                             Meharry, S.L., Borensztejn, A., Gaudreault, N. et al. Search, organize,
                             aggregate and share image data with BioFile Finder (BFF). Nat Methods

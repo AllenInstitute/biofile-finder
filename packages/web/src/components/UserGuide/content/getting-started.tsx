@@ -505,8 +505,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 download="bff-basic-metadata-example.csv"
                             >
                                 Download this example as CSV{" "}
-                                <Icon iconName="Download" className="ug-icon-sm" />{" "}
-                                <Icon iconName="Flag" className="ug-icon-md" />
+                                <Icon iconName="Download" className="ug-icon-sm" />
                             </a>
                         </p>
                         <p>
@@ -586,8 +585,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 download="bff-rembi-template.csv"
                             >
                                 Download REMBI-based template{" "}
-                                <Icon iconName="Download" className="ug-icon-sm" />{" "}
-                                <Icon iconName="Flag" className="ug-icon-md" />
+                                <Icon iconName="Download" className="ug-icon-sm" />
                             </a>
                         </p>
                         <h3>FoundingGIDE</h3>
@@ -627,8 +625,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 download="bff-foundinggide-template.csv"
                             >
                                 Download FoundingGIDE template CSV{" "}
-                                <Icon iconName="Download" className="ug-icon-sm" />{" "}
-                                <Icon iconName="Flag" className="ug-icon-md" />
+                                <Icon iconName="Download" className="ug-icon-sm" />
                             </a>
                         </p>
                         <p>
@@ -636,7 +633,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             <a
                                 href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.DescribingColumns}`}
                             >
-                                providing column descriptions
+                                Describing columns in your dataset
                             </a>
                             .
                         </p>
@@ -687,8 +684,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 download="bff-column-descriptions-example.csv"
                             >
                                 Download this example as CSV{" "}
-                                <Icon iconName="Download" className="ug-icon-sm" />{" "}
-                                <Icon iconName="Flag" className="ug-icon-md" />
+                                <Icon iconName="Download" className="ug-icon-sm" />
                             </a>
                         </p>
                     </>
@@ -772,8 +768,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 download="bff-provenance-simple-example.csv"
                             >
                                 Download this example{" "}
-                                <Icon iconName="Download" className="ug-icon-sm" />{" "}
-                                <Icon iconName="Flag" className="ug-icon-md" />
+                                <Icon iconName="Download" className="ug-icon-sm" />
                             </a>
                         </p>
                     </>
