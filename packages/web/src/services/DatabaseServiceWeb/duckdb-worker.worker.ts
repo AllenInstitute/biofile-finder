@@ -372,7 +372,10 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                 .where(`table_name = '${aggregateDataSourceName}'`)
                 .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
                 .toSQL();
-            const rows = await this.queryWorker(sql, id);
+            const rows = await this.queryWorker<{ column_name: string; data_type: string }>(
+                sql,
+                id
+            );
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
             }

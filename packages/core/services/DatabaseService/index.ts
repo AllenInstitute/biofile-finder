@@ -1267,7 +1267,7 @@ export default abstract class DatabaseService {
                 .where(`table_name = '${aggregateDataSourceName}'`)
                 .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
                 .toSQL();
-            const rows = await this.query(sql).promise;
+            const rows = await this.query<{ column_name: string; data_type: string }>(sql).promise;
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
             }
@@ -1287,14 +1287,13 @@ export default abstract class DatabaseService {
     }
 
     protected static buildAnnotationsFromRows(
-        rows: { [key: string]: any }[],
+        rows: { column_name: string; data_type: string }[],
         annotationNameToDescriptionMap: Record<string, string>,
         annotationNameToTypeMap: Record<string, AnnotationType>
     ): Annotation[] {
         const annotations: Annotation[] = [];
         for (const row of rows) {
-            const columnName = row["column_name"] as string;
-            const dataType = row["data_type"] as string;
+            const { column_name: columnName, data_type: dataType } = row;
             const explicitType = annotationNameToTypeMap[columnName];
             const resolvedType =
                 explicitType || DatabaseService.columnTypeToAnnotationType(dataType);
