@@ -216,5 +216,20 @@ describe("SQLBuilder", () => {
                 `CAST("Date Created" AS TIMESTAMPTZ) >= CAST('2022-01-01T00:00:00.000Z' AS TIMESTAMPTZ) AND CAST("Date Created" AS TIMESTAMPTZ) < CAST('2022-01-31T00:00:00.000Z' AS TIMESTAMPTZ)`
             );
         });
+
+        it("builds an epoch-ms equality for an exact DATETIME value", () => {
+            // The UI passes dates as epoch-ms integers. CAST(date_col AS VARCHAR) produces
+            // a human-readable string like '2025-01-10' — never matching the number string.
+            // The correct comparison extracts epoch seconds and multiplies by 1000.
+            expect(
+                SQLBuilder.matchByType(`"Date Created"`, 1736467200000, AnnotationType.DATETIME)
+            ).to.equal(`EXTRACT(epoch FROM "Date Created")::BIGINT * 1000 = 1736467200000`);
+        });
+
+        it("builds an epoch-ms equality for an exact DATE value", () => {
+            expect(
+                SQLBuilder.matchByType(`"Date Frozen"`, "1736467200000", AnnotationType.DATE)
+            ).to.equal(`EXTRACT(epoch FROM "Date Frozen")::BIGINT * 1000 = 1736467200000`);
+        });
     });
 });

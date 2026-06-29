@@ -256,7 +256,11 @@ export default class SQLBuilder {
         }
 
         if (columnType === AnnotationType.BOOLEAN) return `${columnExpr} = ${value}`;
-        if (columnType === AnnotationType.DURATION)
+        if (
+            columnType === AnnotationType.DATE ||
+            columnType === AnnotationType.DATETIME ||
+            columnType === AnnotationType.DURATION
+        )
             return SQLBuilder.durationEquals(columnExpr, value);
         if (columnType === AnnotationType.NUMBER)
             return `CAST(${columnExpr} AS DOUBLE) = TRY_CAST('${value}' AS DOUBLE)`;
