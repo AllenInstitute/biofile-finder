@@ -17,7 +17,7 @@ export interface CellProps {
     onContextMenu?: (evt: React.MouseEvent) => void;
     onResize?: (columnKey: string, nextWidth?: number) => void; // nextWidth is in pixels
     title?: string;
-    width: number; // width in pixels
+    width?: number; // width in pixels
 }
 
 interface CellState {
@@ -99,7 +99,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
                 onContextMenu={this.props.onContextMenu}
                 onDoubleClick={this.onDoubleClick}
                 style={{
-                    width: `${provisionalWidth || width}px`,
+                    width: provisionalWidth || width ? `${provisionalWidth || width}px` : "100%",
                     minWidth: MINIMUM_COLUMN_WIDTH,
                 }}
             >
@@ -124,7 +124,10 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
             <div
                 className={classNames(styles.cell, this.props.className)}
                 onContextMenu={this.props.onContextMenu}
-                style={{ width: `${this.props.width}px`, minWidth: MINIMUM_COLUMN_WIDTH }}
+                style={{
+                    width: this.props.width ? `${this.props.width}px` : "100%",
+                    minWidth: MINIMUM_COLUMN_WIDTH,
+                }}
                 data-testid={NON_RESIZEABLE_CELL_TEST_ID}
             >
                 <Tooltip content={this.props.title} hostClassName={styles.tooltipHost}>
@@ -149,7 +152,7 @@ export default class Cell extends React.Component<React.PropsWithChildren<CellPr
      * On start of resize, set expectations for what the user can do.
      */
     private onResizeStart(e: InteractEvent): void {
-        const { width } = this.props;
+        const { width = 0 } = this.props;
         const allowedResizeDirection = this.getAllowedResizeDirection(width, e.target);
 
         this.setState({

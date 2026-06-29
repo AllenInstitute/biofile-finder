@@ -131,7 +131,6 @@ export default function Row(props: Props) {
                     [styles.smallFont]: shouldDisplaySmallFont,
                 })}
                 columnKey="key"
-                width={1}
                 title={
                     annotation.description
                         ? `${annotation.leafDisplayName}: ${annotation.description}`
@@ -151,7 +150,6 @@ export default function Row(props: Props) {
                     [styles.smallFont]: shouldDisplaySmallFont,
                 })}
                 columnKey="value"
-                width={1}
             >
                 <Value
                     annotation={annotation}

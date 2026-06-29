@@ -53,15 +53,17 @@ export default function Value(props: Props) {
     }
 
     return (
-        <span onContextMenu={props.onContextMenu}>
+        <div className={styles.container} onContextMenu={props.onContextMenu}>
             {content}
             {props.isLongValue && (
-                <ContentLengthToggle
-                    isCollapsed={props.isCollapsed}
-                    setIsCollapsed={props.setIsCollapsed}
-                    tooltip={props.isCollapsed ? "Expand text" : "Collapse text"}
-                />
+                <div className={styles.toggleContainer}>
+                    <ContentLengthToggle
+                        isCollapsed={props.isCollapsed}
+                        setIsCollapsed={props.setIsCollapsed}
+                        tooltip={props.isCollapsed ? "Expand text" : "Collapse text"}
+                    />
+                </div>
             )}
-        </span>
+        </div>
     );
 }

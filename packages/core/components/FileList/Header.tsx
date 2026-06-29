@@ -143,7 +143,10 @@ function Header(
                             const fullLabel = path.join(" : ");
                             const isDuplicateLeafName = duplicateLeafNames.has(leafName);
                             return (
-                                <Tooltip content={`${fullLabel}\n${annotation?.description ?? ""}`}>
+                                <Tooltip
+                                    content={`${fullLabel}\n${annotation?.description ?? ""}`}
+                                    hostClassName={styles.headerTooltipWrapper}
+                                >
                                     <span className={styles.headerTitle}>
                                         {prefix && isDuplicateLeafName && (
                                             <span className={styles.headerTitlePrefix}>
