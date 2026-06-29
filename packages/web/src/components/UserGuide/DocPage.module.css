@@ -206,6 +206,12 @@
     margin-top: 8px;
 }
 
+/* Embedded videos (e.g. YouTube) — replace the browser default border with a
+   slightly softer, medium-weight one. */
+.section-body iframe {
+    border: 1px solid var(--border-secondary-color);
+}
+
 /* Inline icons within body text */
 .section-body :global(.ug-icon-sm) {
     font-size: 11px;

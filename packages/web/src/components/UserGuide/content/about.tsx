@@ -135,7 +135,7 @@ export const ABOUT_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "BFF and Related Tool Capabilities",
+                heading: "BFF and related tool capabilities",
                 body: (
                     <>
                         <p>
