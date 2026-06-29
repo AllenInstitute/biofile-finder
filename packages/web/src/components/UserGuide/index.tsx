@@ -58,7 +58,6 @@ export default function UserGuide() {
                     <PrimaryButton
                         text="USER GUIDE MENU"
                         iconName={menuOpen ? "ChevronUp" : "ChevronDown"}
-                        title="Open user guide navigation"
                         onClick={() => setMenuOpen((prev) => !prev)}
                     />
                 </div>
