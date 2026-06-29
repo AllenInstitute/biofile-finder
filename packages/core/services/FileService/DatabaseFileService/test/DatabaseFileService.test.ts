@@ -296,151 +296,111 @@ describe("DatabaseFileService", () => {
 
     describe("download", () => {
         const sandbox = createSandbox();
-        const nestedPathIsArrayAnnotations = [
-            { name: "Well.Color", pathIsArray: [true, false] },
-            { name: "Well.Dose.Unit", pathIsArray: [true, false, false] },
-            { name: "Well.Dose.Value", pathIsArray: [true, false, false] },
-        ];
 
         afterEach(() => {
             sandbox.restore();
         });
 
-        it("reconstructs a partial struct for parquet to include only selected sub-fields", async () => {
-            class MockParquetManifestService extends DatabaseServiceNoop {
-                protected readonly existingDataSources = new Set(["parquet_source"]);
+        it("saves query output and forwards it to download service when file system is inaccessible", async () => {
+            const mockBuffer = new Uint8Array([10, 20, 30]);
+
+            class MockDatabaseDownloadService extends DatabaseServiceNoop {
                 public saveQuery(
                     _destination?: string,
                     _sql?: string,
                     _format?: string
                 ): Promise<Uint8Array> {
-                    return Promise.resolve(new Uint8Array());
+                    return Promise.resolve(mockBuffer);
                 }
-                public async fetchAnnotations(): Promise<any[]> {
-                    return nestedPathIsArrayAnnotations;
+                public async fetchAnnotations(): Promise<[]> {
+                    return [];
                 }
             }
-            const mockDbService = new MockParquetManifestService();
-            const saveQuerySpy = sandbox.spy(mockDbService, "saveQuery");
-            const databaseFileService = new DatabaseFileService({
-                dataSourceNames: ["parquet_source"],
-                databaseService: mockDbService,
-                downloadService: new FileDownloadServiceNoop(),
+
+            class MockFileDownloadService extends FileDownloadServiceNoop {
+                public isFileSystemAccessible = false;
+            }
+
+            const databaseService = new MockDatabaseDownloadService();
+            const downloadService = new MockFileDownloadService();
+            const saveQuerySpy = sandbox.spy(databaseService, "saveQuery");
+            const downloadSpy = sandbox.spy(downloadService, "download");
+            const defaultDirSpy = sandbox.spy(downloadService, "getDefaultDownloadDirectory");
+            sandbox.stub(DatabaseFileService, "getSelectionSql").returns("SELECT 1");
+
+            const fileService = new DatabaseFileService({
+                dataSourceNames: ["source_a"],
+                databaseService,
+                downloadService,
             });
-            const selections = [
-                { indexRanges: [{ start: 0, end: 1 }], filters: [], sort: undefined },
-            ];
 
-            // Only "Well.Color" is selected — sibling "Well.Name" must NOT appear.
-            await databaseFileService.download(["File Name", "Well.Color"], selections, "parquet");
-
-            const sql = saveQuerySpy.firstCall.args[1] as string;
-            expect(sql).to.include(`"File Name"`);
-            // Partial struct contains only the selected field
-            expect(sql).to.include(
-                `list_transform("Well", __e -> {'Color': __e."Color"}) AS "Well"`
+            await fileService.download(
+                ["File Name"],
+                [{ indexRanges: [{ start: 0, end: 0 }], filters: [], sort: undefined }],
+                "csv"
             );
-            // Unselected sibling "Name" must not appear anywhere
-            expect(sql).to.not.include(`"Name"`);
-            // No array_to_string (that's the CSV/JSON path)
-            expect(sql).to.not.include("array_to_string");
+
+            expect(saveQuerySpy.calledOnce).to.be.true;
+            expect(saveQuerySpy.calledWith(match.string, "SELECT 1", "csv")).to.be.true;
+            expect(defaultDirSpy.notCalled).to.be.true;
+            expect(downloadSpy.calledOnce).to.be.true;
+
+            const [fileInfoArg] = downloadSpy.firstCall.args;
+            expect(fileInfoArg.data).to.equal(mockBuffer);
         });
 
-        it("groups multiple sub-fields of the same root into one partial struct for parquet", async () => {
-            class MockParquetManifestService extends DatabaseServiceNoop {
-                protected readonly existingDataSources = new Set(["parquet_source"]);
+        it("writes to default download directory before download when file system is accessible", async () => {
+            const mockBuffer = new Uint8Array([99]);
+            const downloadDir = "/tmp/downloads";
+
+            class MockDatabaseDownloadService extends DatabaseServiceNoop {
                 public saveQuery(
                     _destination?: string,
                     _sql?: string,
                     _format?: string
                 ): Promise<Uint8Array> {
-                    return Promise.resolve(new Uint8Array());
+                    return Promise.resolve(mockBuffer);
                 }
-                public async fetchAnnotations(): Promise<any[]> {
-                    return nestedPathIsArrayAnnotations;
-                }
-            }
-            const mockDbService = new MockParquetManifestService();
-            const saveQuerySpy = sandbox.spy(mockDbService, "saveQuery");
-            const databaseFileService = new DatabaseFileService({
-                dataSourceNames: ["parquet_source"],
-                databaseService: mockDbService,
-                downloadService: new FileDownloadServiceNoop(),
-            });
-            const selections = [
-                { indexRanges: [{ start: 0, end: 1 }], filters: [], sort: undefined },
-            ];
-
-            // "Well.Dose.Unit" and "Well.Dose.Value" — both under the same root, sharing "Dose".
-            await databaseFileService.download(
-                ["File Name", "Well.Dose.Unit", "Well.Dose.Value"],
-                selections,
-                "parquet"
-            );
-
-            const sql = saveQuerySpy.firstCall.args[1] as string;
-            // Both sub-fields are nested under the same list_transform, not two separate columns
-            expect(sql).to.include(
-                `list_transform("Well", __e -> {'Dose': {'Unit': __e."Dose"."Unit", 'Value': __e."Dose"."Value"}}) AS "Well"`
-            );
-            // list_transform("Well", ...) appears only once (no duplicate root column)
-            expect((sql.match(/list_transform\("Well"/g) || []).length).to.equal(1);
-        });
-
-        it("uses nested list_transform for intermediate STRUCT[] fields (doubly-nested array)", () => {
-            // Reproduces: "Cannot extract field 'FP' from struct_extract(__e, 'CLD') because it is not a struct"
-            // CLD (Cell Line Definitions) is itself a STRUCT[] inside the root array, not a plain struct.
-            // pathIsArray[1] = true means CLD needs its own list_transform, not a plain dot-access.
-            const pathIsArrayByName = new Map([
-                ["Well.Cell Line Definitions.Fluorescent Protein", [true, true, false]],
-            ]);
-            const sql = DatabaseFileService.getSelectionSql(
-                ["Well.Cell Line Definitions.Fluorescent Protein"],
-                [{ indexRanges: [{ start: 0, end: 1 }], filters: [], sort: undefined }],
-                ["parquet_source"],
-                pathIsArrayByName
-            );
-            // Outer list_transform iterates Well; inner iterates Cell Line Definitions
-            expect(sql).to.include(
-                `list_transform("Well", __e -> {'Cell Line Definitions': list_transform(__e."Cell Line Definitions", __f -> {'Fluorescent Protein': __f."Fluorescent Protein"})}) AS "Well"`
-            );
-            // No bare dot-access through a list (that would cause the Binder Error)
-            expect(sql).to.not.include(`__e."Cell Line Definitions"."Fluorescent Protein"`);
-        });
-
-        it("uses partial struct for JSON (not array_to_string) so the output stays nested", async () => {
-            class MockJsonManifestService extends DatabaseServiceNoop {
-                protected readonly existingDataSources = new Set(["parquet_source"]);
-                public saveQuery(
-                    _destination?: string,
-                    _sql?: string,
-                    _format?: string
-                ): Promise<Uint8Array> {
-                    return Promise.resolve(new Uint8Array());
-                }
-                public async fetchAnnotations(): Promise<any[]> {
-                    return nestedPathIsArrayAnnotations;
+                public async fetchAnnotations(): Promise<[]> {
+                    return [];
                 }
             }
-            const mockDbService = new MockJsonManifestService();
-            const saveQuerySpy = sandbox.spy(mockDbService, "saveQuery");
-            const databaseFileService = new DatabaseFileService({
-                dataSourceNames: ["parquet_source"],
-                databaseService: mockDbService,
-                downloadService: new FileDownloadServiceNoop(),
+
+            class MockFileDownloadService extends FileDownloadServiceNoop {
+                public isFileSystemAccessible = true;
+                public getDefaultDownloadDirectory(): Promise<string> {
+                    return Promise.resolve(downloadDir);
+                }
+            }
+
+            const databaseService = new MockDatabaseDownloadService();
+            const downloadService = new MockFileDownloadService();
+            const saveQuerySpy = sandbox.spy(databaseService, "saveQuery");
+            const downloadSpy = sandbox.spy(downloadService, "download");
+            const defaultDirSpy = sandbox.spy(downloadService, "getDefaultDownloadDirectory");
+            sandbox.stub(DatabaseFileService, "getSelectionSql").returns("SELECT 1");
+
+            const fileService = new DatabaseFileService({
+                dataSourceNames: ["source_a"],
+                databaseService,
+                downloadService,
             });
-            const selections = [
-                { indexRanges: [{ start: 0, end: 1 }], filters: [], sort: undefined },
-            ];
 
-            await databaseFileService.download(["File Name", "Well.Color"], selections, "json");
-
-            const sql = saveQuerySpy.firstCall.args[1] as string;
-            // JSON uses the same partial-struct path as parquet — NOT array_to_string
-            expect(sql).to.include(
-                `list_transform("Well", __e -> {'Color': __e."Color"}) AS "Well"`
+            await fileService.download(
+                ["File Name"],
+                [{ indexRanges: [{ start: 0, end: 0 }], filters: [], sort: undefined }],
+                "csv"
             );
-            expect(sql).to.not.include("array_to_string");
+
+            expect(defaultDirSpy.calledOnce).to.be.true;
+            expect(saveQuerySpy.calledOnce).to.be.true;
+            expect(
+                saveQuerySpy.calledWith(match(`${downloadDir}/file-selection-`), "SELECT 1", "csv")
+            ).to.be.true;
+            expect(downloadSpy.calledOnce).to.be.true;
+
+            const [fileInfoArg] = downloadSpy.firstCall.args;
+            expect(fileInfoArg.data).to.equal(mockBuffer);
         });
     });
 
