@@ -9,6 +9,13 @@ import { AnnotationValue } from "../../entity/Annotation";
 
 import styles from "./ListRow.module.css";
 
+function firstAndLastItems(items: string[], filler = "..."): string[] {
+    if (items.length <= 2) {
+        return items;
+    }
+    return [items[0], filler, items[items.length - 1]];
+}
+
 export interface ListItem<T = any> {
     disabled?: boolean;
     loading?: boolean;
@@ -45,11 +52,14 @@ export default function ListRow(props: Props) {
         return null;
     }
 
-    const breadcrumbs = item.breadcrumbs ? `${item.breadcrumbs.join(" : ")} : ` : undefined;
+    const fullBreadcrumbs = item.breadcrumbs?.join(" : ");
+    const partialBreadcrumbs = item.breadcrumbs
+        ? `${firstAndLastItems(item.breadcrumbs).join(" : ")} : `
+        : undefined;
     let tooltip: string | undefined;
     if (item.breadcrumbs && item.description)
-        tooltip = `${breadcrumbs}${item.displayValue} - ${item.description}`;
-    else if (item.breadcrumbs) tooltip = `${breadcrumbs}${item.displayValue}`;
+        tooltip = `${fullBreadcrumbs} : ${item.displayValue} - ${item.description}`;
+    else if (item.breadcrumbs) tooltip = `${fullBreadcrumbs} : ${item.displayValue}`;
     else if (item.description) tooltip = item.description;
 
     return (
@@ -70,9 +80,11 @@ export default function ListRow(props: Props) {
             >
                 <label className={styles.item}>
                     <div>{item.selected && <Icon iconName="CheckMark" />}</div>
-                    <p>
-                        {!!breadcrumbs && <span className={styles.breadcrumbs}>{breadcrumbs}</span>}
-                        {item.displayValue ?? item.value}
+                    <p className={styles.itemText}>
+                        {!!partialBreadcrumbs && (
+                            <span className={styles.breadcrumbs}>{partialBreadcrumbs}</span>
+                        )}
+                        <span>{item.displayValue ?? item.value}</span>
                     </p>
                 </label>
                 {item.recent && <Icon iconName="Recent" />}
