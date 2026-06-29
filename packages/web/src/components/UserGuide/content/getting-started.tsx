@@ -4,6 +4,174 @@ import * as React from "react";
 import { GroupSlug, Page, PageSlug, SectionHeading } from "./types";
 import slugify from "../slugify";
 
+type CsvValue = string | number | boolean | null | undefined;
+
+const quoteCsvValue = (value: CsvValue): string => {
+    const normalized = value == null ? "" : String(value);
+    const escaped = normalized.replace(/"/g, '""');
+    return /[",\n\r]/.test(escaped) ? `"${escaped}"` : escaped;
+};
+
+const createCsvDataUri = (rows: CsvValue[][]): string => {
+    const csv = rows.map((row) => row.map(quoteCsvValue).join(",")).join("\n");
+    return `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
+};
+
+const renderUgTable = (rows: CsvValue[][]): React.ReactElement | null => {
+    if (rows.length === 0) {
+        return null;
+    }
+
+    const [headerRow, ...bodyRows] = rows;
+
+    return (
+        <table className="ug-table">
+            <thead>
+                <tr>
+                    {headerRow.map((headerCell, index) => (
+                        <th key={`header-${index}`}>
+                            {headerCell == null ? "" : String(headerCell)}
+                        </th>
+                    ))}
+                </tr>
+            </thead>
+            <tbody>
+                {bodyRows.map((row, rowIndex) => (
+                    <tr key={`row-${rowIndex}`}>
+                        {row.map((cell, cellIndex) => (
+                            <td key={`cell-${rowIndex}-${cellIndex}`}>
+                                {cell == null ? "" : String(cell)}
+                            </td>
+                        ))}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+};
+
+const BASIC_METADATA_EXAMPLE_ROWS: CsvValue[][] = [
+    ["File Path", "Well", "Gene", "Fluorophore"],
+    ["Abc123.txt", "B3", "CDH2", "EGFP"],
+    ["Def456.txt", "G9", "VIM", "Alexa Fluor 405"],
+];
+
+const REMBI_TEMPLATE_ROWS: CsvValue[][] = [
+    [
+        "Study type",
+        "Study description",
+        "General dataset info",
+        "Imaging method",
+        "Study component description",
+        "Identity",
+        "Biological entity",
+        "Organism",
+        "Intrinsic variable",
+        "Extrinsic variable",
+        "Experimental variables",
+        "Experimental status",
+        "Location within Biosample",
+        "Preparation method",
+        "Signal/contrast mechanism",
+        "Channel - content",
+        "Channel - biological entity",
+        "Instrument attributes",
+        "Image acquisition parameters",
+        "Type",
+        "Format & compression",
+        "Dimension extents",
+        "Size description",
+        "Pixel/voxel size description",
+        "Channel information",
+        "Image processing method",
+        "Contrast inversion to TEM",
+        "QC info",
+        "Spatial and temporal alignment",
+        "Fiducials used",
+        "Transformation matrix/other info",
+        "Related images and relationship",
+        "Analysis result type",
+        "Data used for analysis",
+        "Analysis method and details",
+    ],
+];
+
+const FOUNDING_GIDE_TEMPLATE_ROWS: CsvValue[][] = [
+    [
+        "Metadata Field",
+        "Study Description",
+        "Authors",
+        "Organization",
+        "Publication",
+        "License",
+        "Release Date",
+        "Imaging Method",
+        "Cell Line",
+        "Organism",
+        "Gene",
+        "Compound",
+        "Antibody",
+        "Channel - Content",
+        "Channel - Biological Entity",
+        "Instrument",
+        "Dimension",
+        "Pixel/Voxel Size / Time resolution",
+        "Study Unique ID",
+        "Dataset Unique ID",
+        "Pathology/Disease (Biological Entity)",
+        "Phenotype (Analysis Data)",
+        "Organ",
+        "Analyzed Data",
+    ],
+];
+
+const COLUMN_DESCRIPTIONS_EXAMPLE_ROWS: CsvValue[][] = [
+    ["Column Name", "Description", "Type"],
+    ["Metadata Field", "Name of the metadata attribute being described", ""],
+    ["Study Description", "Summary of the study's purpose, design, and scope", ""],
+    ["Publication", "Associated publication or DOI describing the dataset", "Open file link"],
+    [
+        "Analyzed Data",
+        "Link to derived or processed data (e.g., segmentation, features)",
+        "Open file link",
+    ],
+    ["Authors", "List of contributors to the dataset or study", ""],
+    ["Organization", "Institution or organization responsible for the dataset", ""],
+    ["License", "Usage license governing the dataset (e.g., CC-BY)", ""],
+    ["Release Date", "Date the dataset was made publicly available", ""],
+    ["Imaging Method", "Microscopy or imaging modality used (e.g., confocal, light-sheet)", ""],
+    ["Cell Line", "Cell line used in the experiment", ""],
+    ["Organism", "Species from which the sample was derived", ""],
+    ["Gene", "Gene(s) of interest or manipulated in the experiment", ""],
+    ["Compound", "Chemical compound or treatment applied", ""],
+    ["Antibody", "Antibody used for staining or detection", ""],
+    ["Channel - Content", "Imaging channel identifier or label (e.g., Channel 1, GFP)", ""],
+    [
+        "Channel - Biological Entity",
+        "Biological structure or molecule represented in the channel",
+        "",
+    ],
+    ["Instrument", "Microscope or imaging instrument used", ""],
+    ["Dimension", "Dimensionality of the dataset (e.g., 2D, 3D, time series)", ""],
+    [
+        "Pixel/Voxel Size / Time resolution",
+        "Spatial or temporal resolution of the imaging data",
+        "",
+    ],
+    ["Study Unique ID", "Unique identifier for the overall study", ""],
+    ["Dataset Unique ID", "Unique identifier for a specific dataset within the study", ""],
+    ["Pathology/Disease", "Disease or pathological condition represented", ""],
+    ["Phenotype", "Observed or computed phenotype from analysis", ""],
+    ["Organ", "Organ or tissue source of the sample", ""],
+];
+
+const PROVENANCE_SIMPLE_EXAMPLE_ROWS: CsvValue[][] = [
+    ["Child", "Relationship", "Parent", "Child Type", "Parent Type", "Relationship Type"],
+    ["WellID", "is well in", "PlateID", "entity", "entity", ""],
+    ["ColonyImage", "is image acquired from", "WellID", "file", "entity", ""],
+    ["SegmentationImage", "segmentation_algorithm_v1", "ColonyImage", "file", "file", "pointer"],
+];
+
 export const GETTING_STARTED_CONTENT: Page[] = [
     {
         slug: PageSlug.SetupOverview,
@@ -330,33 +498,12 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             Each row is a file. Columns can be anything meaningful to your workflow
                             — here a well position, gene target, and fluorophore.
                         </p>
-                        <table className="ug-table">
-                            <thead>
-                                <tr>
-                                    <th>File Path</th>
-                                    <th>Well</th>
-                                    <th>Gene</th>
-                                    <th>Fluorophore</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Abc123.txt</td>
-                                    <td>B3</td>
-                                    <td>CDH2</td>
-                                    <td>EGFP</td>
-                                </tr>
-                                <tr>
-                                    <td>Def456.txt</td>
-                                    <td>G9</td>
-                                    <td>VIM</td>
-                                    <td>Alexa Fluor 405</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        {renderUgTable(BASIC_METADATA_EXAMPLE_ROWS)}
                         <p>
-                            {/* TODO: CSV */}
-                            <a href="#">
+                            <a
+                                href={createCsvDataUri(BASIC_METADATA_EXAMPLE_ROWS)}
+                                download="bff-basic-metadata-example.csv"
+                            >
                                 Download this example as CSV{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
                                 <Icon iconName="Flag" className="ug-icon-md" />
@@ -434,8 +581,10 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             long after their original publication.
                         </p>
                         <p>
-                            {/* TODO CSV */}
-                            <a href="#">
+                            <a
+                                href={createCsvDataUri(REMBI_TEMPLATE_ROWS)}
+                                download="bff-rembi-template.csv"
+                            >
                                 Download REMBI-based template{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
                                 <Icon iconName="Flag" className="ug-icon-md" />
@@ -473,8 +622,10 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             Phenotype, Organ, Analyzed Data.
                         </p>
                         <p>
-                            {/* TODO CSV */}
-                            <a href="#">
+                            <a
+                                href={createCsvDataUri(FOUNDING_GIDE_TEMPLATE_ROWS)}
+                                download="bff-foundinggide-template.csv"
+                            >
                                 Download FoundingGIDE template CSV{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
                                 <Icon iconName="Flag" className="ug-icon-md" />
@@ -529,154 +680,12 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </li>
                         </ul>
                         <h3>Example</h3>
-                        <table className="ug-table">
-                            <thead>
-                                <tr>
-                                    <th>Column Name</th>
-                                    <th>Description</th>
-                                    <th>Type</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Metadata Field</td>
-                                    <td>Name of the metadata attribute being described</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Study Description</td>
-                                    <td>Summary of the study&apos;s purpose, design, and scope</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Authors</td>
-                                    <td>List of contributors to the dataset or study</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Organization</td>
-                                    <td>Institution or organization responsible for the dataset</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Publication</td>
-                                    <td>Associated publication or DOI describing the dataset</td>
-                                    <td>Open file link</td>
-                                </tr>
-                                <tr>
-                                    <td>License</td>
-                                    <td>Usage license governing the dataset (e.g., CC-BY)</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Release Date</td>
-                                    <td>Date the dataset was made publicly available</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Imaging Method</td>
-                                    <td>
-                                        Microscopy or imaging modality used (e.g., confocal,
-                                        light-sheet)
-                                    </td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Cell Line</td>
-                                    <td>Cell line used in the experiment</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Organism</td>
-                                    <td>Species from which the sample was derived</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Gene</td>
-                                    <td>Gene(s) of interest or manipulated in the experiment</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Compound</td>
-                                    <td>Chemical compound or treatment applied</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Antibody</td>
-                                    <td>Antibody used for staining or detection</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Channel — Content</td>
-                                    <td>
-                                        Imaging channel identifier or label (e.g., Channel 1, GFP)
-                                    </td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Channel — Biological Entity</td>
-                                    <td>
-                                        Biological structure or molecule represented in the channel
-                                    </td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Instrument</td>
-                                    <td>Microscope or imaging instrument used</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Dimension</td>
-                                    <td>
-                                        Dimensionality of the dataset (e.g., 2D, 3D, time series)
-                                    </td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Pixel/Voxel Size / Time resolution</td>
-                                    <td>Spatial or temporal resolution of the imaging data</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Study Unique ID</td>
-                                    <td>Unique identifier for the overall study</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Dataset Unique ID</td>
-                                    <td>
-                                        Unique identifier for a specific dataset within the study
-                                    </td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Pathology/Disease</td>
-                                    <td>Disease or pathological condition represented</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Phenotype</td>
-                                    <td>Observed or computed phenotype from analysis</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Organ</td>
-                                    <td>Organ or tissue source of the sample</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Analyzed Data</td>
-                                    <td>
-                                        Link to derived or processed data (e.g., segmentation,
-                                        features)
-                                    </td>
-                                    <td>Open file link</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        {renderUgTable(COLUMN_DESCRIPTIONS_EXAMPLE_ROWS)}
                         <p>
-                            {/* TODO CSV */}
-                            <a href="#">
+                            <a
+                                href={createCsvDataUri(COLUMN_DESCRIPTIONS_EXAMPLE_ROWS)}
+                                download="bff-column-descriptions-example.csv"
+                            >
                                 Download this example as CSV{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
                                 <Icon iconName="Flag" className="ug-icon-md" />
@@ -741,44 +750,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </li>
                         </ul>
                         <h3>Simple example</h3>
-                        <table className="ug-table">
-                            <thead>
-                                <tr>
-                                    <th>Child</th>
-                                    <th>Relationship</th>
-                                    <th>Parent</th>
-                                    <th>Child Type</th>
-                                    <th>Parent Type</th>
-                                    <th>Relationship Type</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>WellID</td>
-                                    <td>is well in</td>
-                                    <td>PlateID</td>
-                                    <td>entity</td>
-                                    <td>entity</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>ColonyImage</td>
-                                    <td>is image acquired from</td>
-                                    <td>WellID</td>
-                                    <td>file</td>
-                                    <td>entity</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>SegmentationImage</td>
-                                    <td>segmentation_algorithm_v1</td>
-                                    <td>ColonyImage</td>
-                                    <td>file</td>
-                                    <td>file</td>
-                                    <td>pointer</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        {renderUgTable(PROVENANCE_SIMPLE_EXAMPLE_ROWS)}
                         <ul>
                             <li>
                                 <strong>Plate → Well:</strong> Wells belong to a plate (simple
@@ -795,8 +767,10 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </li>
                         </ul>
                         <p>
-                            {/* TODO CSV */}
-                            <a href="#">
+                            <a
+                                href={createCsvDataUri(PROVENANCE_SIMPLE_EXAMPLE_ROWS)}
+                                download="bff-provenance-simple-example.csv"
+                            >
                                 Download this example{" "}
                                 <Icon iconName="Download" className="ug-icon-sm" />{" "}
                                 <Icon iconName="Flag" className="ug-icon-md" />
@@ -822,16 +796,9 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         <p>
                             In BFF, once a provenance file is loaded, each file row in the file list
                             will show a relationship indicator. Expanding a row reveals its linked
-                            parent or child entities — for example, clicking a segmentation image
-                            will show the colony image it was derived from and the well it
-                            originated in.
-                        </p>
-                        <p>
-                            {/* TODO: CSV */}
-                            <a href="#">
-                                Download example <Icon iconName="Download" className="ug-icon-sm" />{" "}
-                                <Icon iconName="Flag" className="ug-icon-md" />
-                            </a>
+                            parent or child entities — for example, given the provenance schema
+                            defined above, clicking a segmentation image will show the colony image
+                            it was derived from and the well it originated in.
                         </p>
                         <p>
                             Provenance is also critical when a single publication draws on images
@@ -842,20 +809,6 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             provenance across datasets, researchers can clearly communicate how
                             figures were constructed and allow others to navigate back to the full
                             underlying data for verification or reuse.
-                        </p>
-                        <p>
-                            When provenance spans multiple datasets, BFF displays the dataset origin
-                            of each file alongside its metadata. Filtering by dataset source allows
-                            you to isolate images from a specific experiment, verify that processing
-                            was applied consistently, and trace any figure back to its full source
-                            dataset.
-                        </p>
-                        <p>
-                            {/* TODO: CSV */}
-                            <a href="#">
-                                Download example <Icon iconName="Download" className="ug-icon-sm" />{" "}
-                                <Icon iconName="Flag" className="ug-icon-md" />
-                            </a>
                         </p>
                     </>
                 ),
