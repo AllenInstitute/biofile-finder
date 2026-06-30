@@ -1,7 +1,13 @@
 import { parseS3Url, isS3Url } from "amazon-s3-url";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
+import { isNil } from "lodash";
 
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
+
+interface HttpInfo {
+    type: "webpage" | "image" | "multi-object" | "unknown";
+    size?: number;
+}
 
 /**
  * Return true if the URL seems to point to a multi object file like Zarr
@@ -67,18 +73,29 @@ export default class S3StorageService extends HttpServiceBase {
     }
 
     /**
-     * Get file size for a file on the cloud
-     * Returns undefined if unable to determine size
+     * Return the interpreted type and size of the cloud object.
+     *
+     * Returns type = "multi-object" if the URL points to a multi-object file like Zarr
+     * Returns type = "webpage" if the URL points to a webpage (e.g. HTML)
+     * Returns type = "image" if the URL points to an image (e.g. PNG, JPEG)
+     * Returns type = "unknown" if the URL points to an unknown type of file
+     * Returns size = undefined if unable to determine size
+     *
+     * Throws an error if BFF seemingly should be able to determine size or type but fails
+     * to do so.
      */
-    public async getCloudObjectSize(url: string): Promise<number | undefined> {
+    public async getCloudObjectInfo(url: string): Promise<HttpInfo> {
         if (isMultiObjectFile(url)) {
             const cloudDirInfo = await this.getCloudDirectoryInfo(url);
-            if (!cloudDirInfo) return;
-            return cloudDirInfo.size;
-        } else if (url.includes("amazonaws.com")) {
-            // Handle individual S3 files if they are simple
-            return this.getHttpObjectSize(url);
+            const { size } = cloudDirInfo || {};
+            return { type: "multi-object", size };
         }
+        // Avoid trying to parse non-http URLs or non-simple S3 URLs
+        if (!url.startsWith("http") || !url.includes("amazonaws.com")) {
+            return { type: "unknown", size: undefined };
+        }
+
+        return this.getHttpObjectSize(url);
     }
 
     /**
@@ -174,18 +191,26 @@ export default class S3StorageService extends HttpServiceBase {
     }
 
     /**
-     * Attempt to retrieve file size from an http object using a HEAD request.
+     * Attempt to retrieve object content type and size from an http object using a HEAD request.
      *
-     * Returns bytes (octet)
+     * Returns size in bytes (octet) and type as one of "webpage", "image", or "unknown"
      */
-    private async getHttpObjectSize(url: string): Promise<number> {
+    private async getHttpObjectSize(url: string): Promise<HttpInfo> {
+        let response: AxiosResponse;
         try {
-            const response = await axios.head(url);
-            return parseInt(response.headers["content-length"] || "0", 10);
+            response = await axios.head(url);
         } catch (err) {
-            console.error(`Failed to get file size (content-length): ${err}`);
+            console.error(`Failed to get HEAD url. Unable to get content length or type: ${err}`);
             throw err;
         }
+
+        const contentLength = response.headers["content-length"];
+        const parsedLength = isNil(contentLength) ? undefined : parseInt(contentLength, 10);
+        const size = parsedLength && isNaN(parsedLength) ? undefined : parsedLength;
+        const contentType = response.headers["content-type"]?.toLowerCase() ?? "";
+        if (contentType.startsWith("image/")) return { type: "image", size };
+        if (contentType.includes("text/html")) return { type: "webpage", size };
+        return { type: "unknown", size };
     }
 
     /**
