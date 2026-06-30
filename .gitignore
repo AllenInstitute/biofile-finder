@@ -19,3 +19,6 @@ mise.toml
 packages/web/benchmark-results*.json
 # Generated parquet fixtures — produce with scripts/generate-fixtures.py
 packages/web/fixtures/
+
+# Workplace files that may not be useful for others (ex. test data for specific feature development)
+.other/

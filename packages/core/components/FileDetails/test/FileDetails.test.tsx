@@ -11,6 +11,51 @@ import { initialState } from "../../../state";
 import FileDetails from "..";
 
 describe("<FileDetails />", () => {
+    const makeStore = (overrides = {}) =>
+        configureMockStore({ state: mergeState(initialState, overrides) }).store;
+
+    const makeFile = (overrides: Record<string, unknown> = {}) =>
+        new FileDetail(
+            {
+                file_path: "path/to/testFile.zarr",
+                file_id: "abc123",
+                file_name: "testFile.zarr",
+                file_size: 0,
+                uploaded: "01/01/01",
+                annotations: [],
+                ...overrides,
+            },
+            Environment.TEST
+        );
+
+    it("renders the file name", async () => {
+        const { findByText } = render(
+            <Provider store={makeStore()}>
+                <FileDetails fileDetails={makeFile()} />
+            </Provider>
+        );
+        expect(await findByText("testFile.zarr")).to.exist;
+    });
+
+    it("renders a close button when onClose is provided", async () => {
+        const { findByRole } = render(
+            <Provider store={makeStore()}>
+                <FileDetails fileDetails={makeFile()} onClose={() => undefined} />
+            </Provider>
+        );
+        // TransparentIconButton(iconName="Clear") renders an IconButton with aria-label="Clear"
+        expect(await findByRole("button", { name: "Clear" })).to.exist;
+    });
+
+    it("renders nothing interactive when file is undefined", () => {
+        const { container } = render(
+            <Provider store={makeStore()}>
+                <FileDetails fileDetails={undefined} />
+            </Provider>
+        );
+        expect(container.querySelector("#download-file-button")).to.be.null;
+    });
+
     it("should allow zarr downloads even when size is unknown", async () => {
         // Arrange
         const { store } = configureMockStore({
@@ -55,21 +100,10 @@ describe("<FileDetails />", () => {
             }),
         });
 
-        const fileDetails = new FileDetail(
-            {
-                file_path: "path/to/testFile.zarr",
-                file_id: "abc123",
-                file_name: "testFile.zarr",
-                uploaded: "01/01/01",
-                annotations: [],
-            },
-            Environment.TEST
-        );
-
         // Act
         const { findByText, getByTestId, queryByText } = render(
             <Provider store={store}>
-                <FileDetails fileDetails={fileDetails} />
+                <FileDetails fileDetails={makeFile()} />
             </Provider>
         );
         // Assert
@@ -83,33 +117,23 @@ describe("<FileDetails />", () => {
         // Arrange
         const { store } = configureMockStore({ state: initialState });
         const thumbnailUrl = "https://example.com/thumbnail.png";
-        const fileDetails = new FileDetail(
-            {
-                file_path: "path/to/testFile.png",
-                file_id: "abc123",
-                file_name: "testFile.png",
-                uploaded: "01/01/01",
-                annotations: [{ name: "Thumbnail", values: [thumbnailUrl] }],
-            },
-            Environment.TEST
-        );
 
         // Act
         const { findByRole, queryByAltText } = render(
             <Provider store={store}>
-                <FileDetails fileDetails={fileDetails} />
+                <FileDetails fileDetails={makeFile({ thumbnail: thumbnailUrl })} />
             </Provider>
         );
 
         // The fullscreen image should not be visible initially
-        expect(queryByAltText("testFile.png")).to.not.exist;
+        expect(queryByAltText("testFile.zarr")).to.not.exist;
 
         // Click the thumbnail container button to enlarge
         const thumbnailButton = await findByRole("button", { name: /click to enlarge/i });
         fireEvent.click(thumbnailButton);
 
         // The fullscreen image should now be visible
-        const fullscreenImg = await findByRole("img", { name: "testFile.png" });
+        const fullscreenImg = await findByRole("img", { name: "testFile.zarr" });
         expect(fullscreenImg).to.exist;
         expect(fullscreenImg.getAttribute("src")).to.equal(thumbnailUrl);
     });

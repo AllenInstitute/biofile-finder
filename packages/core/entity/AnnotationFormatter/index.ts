@@ -4,6 +4,7 @@ import dateTimeFormatter from "./date-time-formatter";
 import identityFormatter from "./identity-formatter";
 import numberFormatter from "./number-formatter";
 import durationFormatter from "./duration-formatter";
+import { PrimitiveMetadataValue } from "../../services/FileService";
 
 export enum AnnotationType {
     DATE = "Date",
@@ -19,10 +20,11 @@ export enum AnnotationType {
     // without BREAKING visibility in the dataset released in 2024 as part
     // of the EMT Data Release paper
     OPEN_FILE_LINK = "Open file link",
+    NESTED = "Nested",
 }
 
 // ID table source via Labkey server: executeQuery.view?schemaName=filemetadata&query.queryName=AnnotationType
-export const AnnotationTypeIdMap = {
+export const AnnotationTypeIdMap: Partial<Record<AnnotationType, number>> = {
     [AnnotationType.STRING]: 1,
     [AnnotationType.NUMBER]: 2,
     [AnnotationType.BOOLEAN]: 3,
@@ -35,14 +37,19 @@ export const AnnotationTypeIdMap = {
 
 export interface AnnotationFormatter {
     displayValue(value: any, unit?: string): string;
-    valueOf(value: any): string | number | boolean;
+
+    /**
+     * Given a value expected to belong to this annotation, return the result of coercing, if necessary,
+     * that value to accord with this annotation's type.
+     */
+    valueOf(value: any): PrimitiveMetadataValue;
 }
 
 /**
  * Factory to return annotation formatter functions. Annotation formatters are responsible for accepting some value and
  * readying that value for presentation according to the values intended type.
  */
-export default function annotationFormatterFactory(type: string): AnnotationFormatter {
+export default function getFormatter(type: string): AnnotationFormatter {
     switch (type) {
         case AnnotationType.BOOLEAN:
             return booleanFormatter;
@@ -54,6 +61,7 @@ export default function annotationFormatterFactory(type: string): AnnotationForm
             return numberFormatter;
         case AnnotationType.DURATION:
             return durationFormatter;
+        case AnnotationType.NESTED:
         case AnnotationType.STRING:
         // prettier-ignore
         default: // FALL-THROUGH

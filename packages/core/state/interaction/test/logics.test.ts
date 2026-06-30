@@ -72,6 +72,9 @@ describe("Interaction logics", () => {
         saveQuery() {
             return Promise.resolve(new Uint8Array());
         }
+        async fetchAnnotations(): Promise<[]> {
+            return [];
+        }
     }
 
     describe("downloadManifest", () => {
@@ -1117,7 +1120,7 @@ describe("Interaction logics", () => {
             {
                 when: `${fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}`,
                 respondWith: {
-                    data: { data: annotations },
+                    data: { data: annotationsJson },
                 },
             },
             {
