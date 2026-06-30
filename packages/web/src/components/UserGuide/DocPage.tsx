@@ -32,7 +32,7 @@ export default function DocPage({ group, page }: DocPageProps) {
                     return (
                         <section
                             key={`${sec.heading}${idx}`}
-                            id={slugify(sec.heading ?? "")}
+                            id={sec.heading ? slugify(sec.heading) : undefined}
                             className={styles.section}
                         >
                             {sec.heading && (
