@@ -25,7 +25,10 @@ interface Props {
  */
 export default function Value(props: Props) {
     let content: React.ReactNode;
+    let { isLongValue } = props;
     if (props.annotation.isOpenFileLink) {
+        // Override long value truncation for open file links, since the link is rendered separately.
+        isLongValue = false;
         content = (
             <a className={styles.link} href={props.value} rel="noreferrer" target="_blank">
                 View link
@@ -35,7 +38,7 @@ export default function Value(props: Props) {
         content = (
             <MarkdownText
                 className={classNames({
-                    [styles.valueTruncated]: props.isCollapsed && props.isLongValue,
+                    [styles.valueTruncated]: props.isCollapsed && isLongValue,
                 })}
                 text={props.value}
             />
@@ -44,7 +47,7 @@ export default function Value(props: Props) {
         content = (
             <div
                 className={classNames({
-                    [styles.valueTruncated]: props.isCollapsed && props.isLongValue,
+                    [styles.valueTruncated]: props.isCollapsed && isLongValue,
                 })}
             >
                 {props.emphasize ? <i>{props.value}</i> : props.value}
@@ -55,7 +58,7 @@ export default function Value(props: Props) {
     return (
         <div className={styles.container} onContextMenu={props.onContextMenu}>
             {content}
-            {props.isLongValue && (
+            {isLongValue && (
                 <div className={styles.toggleContainer}>
                     <ContentLengthToggle
                         isCollapsed={props.isCollapsed}
