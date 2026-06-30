@@ -1,5 +1,6 @@
 import { parseS3Url, isS3Url } from "amazon-s3-url";
 import axios, { AxiosResponse } from "axios";
+import { isNil } from "lodash";
 
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
@@ -72,7 +73,7 @@ export default class S3StorageService extends HttpServiceBase {
     }
 
     /**
-     * Return the interpretted type and size of the cloud object.
+     * Return the interpreted type and size of the cloud object.
      *
      * Returns type = "multi-object" if the URL points to a multi-object file like Zarr
      * Returns type = "webpage" if the URL points to a webpage (e.g. HTML)
@@ -226,7 +227,9 @@ export default class S3StorageService extends HttpServiceBase {
             }
         }
 
-        const size = parseInt(response.headers["content-length"] || "0", 10);
+        const contentLength = response.headers["content-length"];
+        const parsedLength = isNil(contentLength) ? undefined : parseInt(contentLength, 10);
+        const size = parsedLength && isNaN(parsedLength) ? undefined : parsedLength;
         const contentType = response.headers["content-type"]?.toLowerCase() ?? "";
         if (contentType.startsWith("image/")) return { type: "image", size };
         if (contentType.includes("text/html")) return { type: "webpage", size };
