@@ -30,7 +30,7 @@ export default function Value(props: Props) {
         // Override long value truncation for open file links, since the link is rendered separately.
         isLongValue = false;
         content = (
-            <a className={styles.link} href={props.value} rel="noreferrer" target="_blank">
+            <a className={styles.link} href={props.value} rel="noopener noreferrer" target="_blank">
                 View link
             </a>
         );
