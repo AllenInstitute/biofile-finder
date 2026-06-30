@@ -177,7 +177,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
         slug: PageSlug.SetupOverview,
         title: "Setup overview",
         intro:
-            "BioFile Finder (BFF) works by connecting a metadata file that you provide, to the files you want to explore. Rather than ingesting image data directly, BFF reads this metadata file that describes your dataset and references the files you want to acces (image files, commonly). Once loaded, BFF turns that metadata into an interactive interface for filtering, grouping, searching, previewing, and sharing files.",
+            "BioFile Finder (BFF) works by connecting a metadata file that you provide, to the files you want to explore. Rather than ingesting image data directly, BFF reads this metadata file that describes your dataset and references the files you want to access (image files, commonly). Once loaded, BFF turns that metadata into an interactive interface for filtering, grouping, searching, previewing, and sharing files.",
         sections: [
             {
                 heading: "Basic setup",
@@ -388,7 +388,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
             "A metadata file is a structured file that describes your dataset and tells BioFile Finder where to find the files you want to explore. Metadata files can be provided in CSV, Parquet, or JSON format.",
         sections: [
             {
-                heading: "Structure of a meatadata file",
+                heading: "Structure of a metadata file",
                 body: (
                     <>
                         <p>
