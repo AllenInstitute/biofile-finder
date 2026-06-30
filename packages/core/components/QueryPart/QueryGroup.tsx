@@ -51,11 +51,19 @@ export default function QueryGroup(props: Props) {
                     shouldShowNullGroups={shouldShowNullGroups}
                 />
             )}
-            rows={props.groups.map((group) => ({
-                id: group,
-                title: group,
-                description: annotationNameToAnnotationMap[group]?.description,
-            }))}
+            rows={props.groups.map((group) => {
+                const annotation = annotationNameToAnnotationMap.get(group);
+                // TODO: Avoid this reliance on dot notation
+                const path = annotation?.path ?? group.split(".");
+                return {
+                    id: group,
+                    // Prefer annotation.displayName so FMS top-level fields show "File Name"
+                    // rather than the raw key "file_name".
+                    title: annotation?.displayName.split(".").slice(-1)[0] ?? path[path.length - 1],
+                    titlePrefixParts: path.slice(0, -1),
+                    description: annotation?.description,
+                };
+            })}
         />
     );
 }

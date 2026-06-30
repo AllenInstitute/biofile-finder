@@ -2,14 +2,14 @@ import { makeConstant } from "@aics/redux-utils";
 import { uniqueId } from "lodash";
 
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
-import FileFilter from "../../entity/FileFilter";
 import { DataSourceType } from "../../components/DataSourcePrompt";
 import { ModalType } from "../../components/Modal";
-import { AnnotationValue } from "../../services/AnnotationService";
-import { UserSelectedApplication } from "../../services/PersistentConfigService";
+import FileFilter from "../../entity/FileFilter";
+import { AnnotationValue } from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
 import { Source } from "../../entity/SearchParams";
 import { FileInfo } from "../../services";
+import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
 
 const STATE_BRANCH_NAME = "interaction";

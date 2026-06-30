@@ -53,7 +53,10 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
             })
         );
     }
-    if (fileSet.excludeFilters?.some((filter) => filter.name === annotationNameAtDepth)) {
+    const isExcludeFilterApplied = fileSet.filters.some(
+        (filter) => filter.name === annotationNameAtDepth && filter.type === FilterType.EXCLUDE
+    );
+    if (isExcludeFilterApplied) {
         // User does not want files with this annotation; don't return any non-null values.
         return shouldShowNullGroups && noValueFileCount > 0 ? [NO_VALUE_NODE] : [];
     }
@@ -88,7 +91,10 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     let filteredValues = values;
     // If specific value filter(s) are selected for this annotation, we should only use the selected values
     if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
-        if (fileSet.fuzzyFilters?.some((fuzzy) => fuzzy.name === annotationNameAtDepth)) {
+        const isFuzzyFilterApplied = fileSet.filters.some(
+            (filter) => filter.name === annotationNameAtDepth && filter.type === FilterType.FUZZY
+        );
+        if (isFuzzyFilterApplied) {
             filteredValues = values.filter((value) =>
                 // If a user applies a fuzzy filter to an annotation, they can't add any other filters for it
                 value.includes(userSelectedFiltersForCurrentAnnotation[0])

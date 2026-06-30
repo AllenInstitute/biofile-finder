@@ -1,8 +1,8 @@
+import { keyBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
-import AnnotationName from "../../entity/Annotation/AnnotationName";
 
 // BASIC SELECTORS
 export const getAnnotations = (state: State) => state.metadata.annotations;
@@ -18,32 +18,13 @@ export const areAnnotationsLoaded = createSelector(
     (annotations) => annotations.length > 0
 );
 
-export const getSortedAnnotations = createSelector(getAnnotations, (annotations: Annotation[]) => {
-    // Sort annotations by file name first then everything else alphabetically
-    const fileNameAnnotationIndex = annotations.findIndex(
-        (annotation) =>
-            annotation.name === AnnotationName.FILE_NAME || annotation.name === "File Name"
-    );
-    if (fileNameAnnotationIndex === -1) {
-        return Annotation.sort(annotations);
-    }
-    return [
-        annotations[fileNameAnnotationIndex],
-        ...Annotation.sort([
-            ...annotations.slice(0, fileNameAnnotationIndex),
-            ...annotations.slice(fileNameAnnotationIndex + 1),
-        ]),
-    ];
-});
+export const getSortedAnnotations = createSelector(getAnnotations, Annotation.sort);
 
+// Index by full dotted path
 export const getAnnotationNameToAnnotationMap = createSelector(
     getAnnotations,
-    (annotations): Record<string, Annotation> =>
-        annotations.reduce(
-            (map, annotation) => ({
-                ...map,
-                [annotation.name]: annotation,
-            }),
-            {} as Record<string, Annotation>
-        )
+    (annotations): Map<string, Annotation> => {
+        const byFullPath = keyBy(annotations, (annotation) => annotation.name);
+        return new Map(Object.entries({ ...byFullPath }));
+    }
 );

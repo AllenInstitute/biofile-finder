@@ -4,34 +4,34 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import FileAnnotationList from "../FileAnnotationList";
-import FileDetail from "../../../entity/FileDetail";
-import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
-import { initialState } from "../../../state";
-import { Environment, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
-import AnnotationName from "../../../entity/Annotation/AnnotationName";
-import Annotation from "../../../entity/Annotation";
-import { AnnotationType } from "../../../entity/AnnotationFormatter";
+import MetadataList from "..";
+import { Environment, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
+import AnnotationName from "../../../../entity/Annotation/AnnotationName";
+import Annotation from "../../../../entity/Annotation";
+import { AnnotationType } from "../../../../entity/AnnotationFormatter";
+import FileDetail from "../../../../entity/FileDetail";
+import ExecutionEnvServiceNoop from "../../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
+import { initialState } from "../../../../state";
 
-describe("<FileAnnotationList />", () => {
+describe("<MetadataList />", () => {
     describe("file path representation", () => {
         const annotations = [
             ...TOP_LEVEL_FILE_ANNOTATIONS,
             new Annotation({
-                annotationDisplayName: "Cache Eviction Date",
-                annotationName: AnnotationName.CACHE_EVICTION_DATE,
+                annotationDisplayName: AnnotationName.CACHE_EVICTION_DATE,
+                annotationName: [AnnotationName.CACHE_EVICTION_DATE],
                 description: "Indicates when the cache for this file should be evicted.",
                 type: AnnotationType.STRING,
             }),
             new Annotation({
-                annotationDisplayName: "File Path (Local VAST)",
-                annotationName: AnnotationName.LOCAL_FILE_PATH,
+                annotationDisplayName: AnnotationName.LOCAL_FILE_PATH,
+                annotationName: [AnnotationName.LOCAL_FILE_PATH],
                 description: "Local path for the file on the host machine.",
                 type: AnnotationType.STRING,
             }),
             new Annotation({
-                annotationDisplayName: "Should Be in Local Cache",
-                annotationName: AnnotationName.SHOULD_BE_IN_LOCAL,
+                annotationDisplayName: AnnotationName.SHOULD_BE_IN_LOCAL,
+                annotationName: [AnnotationName.SHOULD_BE_IN_LOCAL],
                 description: "Indicates if the file should be cached locally.",
                 type: AnnotationType.BOOLEAN,
             }),
@@ -61,7 +61,7 @@ describe("<FileAnnotationList />", () => {
             const fileName = "MyFile.txt";
             const relativePath = `/test/${fileName}`;
             const filePath = `test.files.allencell.org/${relativePath}`;
-            const fileDetails = new FileDetail(
+            const file = new FileDetail(
                 {
                     file_path: filePath,
                     file_id: "c32e3eed66e4416d9532d369ffe1636f",
@@ -78,18 +78,18 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Act
-            const { findByText } = render(
+            const { findAllByText } = render(
                 <Provider store={store}>
-                    <FileAnnotationList isLoading={false} fileDetails={fileDetails} />
+                    <MetadataList isLoading={false} file={file} />
                 </Provider>
             );
 
             // Assert
             await Promise.all([
-                findByText("File Path (Cloud)"),
-                findByText(`https://s3.us-west-2.amazonaws.com/${filePath}`),
-                findByText("File Path (Local VAST)"),
-                findByText(`${hostMountPoint}/${fileName}`),
+                findAllByText("File Path (Cloud)"),
+                findAllByText(`https://s3.us-west-2.amazonaws.com/${filePath}`),
+                findAllByText("File Path (Local VAST)"),
+                findAllByText(`${hostMountPoint}/${fileName}`),
             ]);
         });
 
@@ -116,7 +116,7 @@ describe("<FileAnnotationList />", () => {
 
             const filePathInsideAllenDrive = "path/to/MyFile.txt";
             const filePath = `test.files.allencell.org/${filePathInsideAllenDrive}`;
-            const fileDetails = new FileDetail(
+            const file = new FileDetail(
                 {
                     file_path: filePath,
                     file_id: "abc123",
@@ -129,9 +129,9 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Act
-            const { getByText } = render(
+            const { getByText, getAllByText } = render(
                 <Provider store={store}>
-                    <FileAnnotationList isLoading={false} fileDetails={fileDetails} />
+                    <MetadataList isLoading={false} file={file} />
                 </Provider>
             );
 
@@ -139,7 +139,7 @@ describe("<FileAnnotationList />", () => {
             expect(() => getByText("File Path (Local VAST)")).to.throw();
             ["File Path (Cloud)", `https://s3.us-west-2.amazonaws.com/${filePath}`].forEach(
                 (cellText) => {
-                    expect(getByText(cellText)).to.not.be.undefined;
+                    expect(getAllByText(cellText).length).to.be.greaterThan(0);
                 }
             );
         });
@@ -164,7 +164,7 @@ describe("<FileAnnotationList />", () => {
                 }),
             });
 
-            const fileDetails = new FileDetail(
+            const file = new FileDetail(
                 {
                     file_path: "path/to/file",
                     file_id: "abc123",
@@ -177,15 +177,15 @@ describe("<FileAnnotationList />", () => {
             );
 
             // Act
-            const { findByText } = render(
+            const { findAllByText } = render(
                 <Provider store={store}>
-                    <FileAnnotationList isLoading={false} fileDetails={fileDetails} />
+                    <MetadataList isLoading={false} file={file} />
                 </Provider>
             );
 
             // Assert
-            expect(await findByText("File Path (Local VAST)")).to.not.be.undefined;
-            expect(await findByText("Copying to VAST in progress…")).to.not.be.undefined;
+            expect(await findAllByText("File Path (Local VAST)")).to.not.be.empty;
+            expect(await findAllByText("Copying to VAST in progress…")).to.not.be.empty;
         });
     });
 });

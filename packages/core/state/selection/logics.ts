@@ -61,18 +61,20 @@ import {
     ResizeColumnAction,
     setColumns,
     Column,
+    ChangeFileFilterTypeAction,
+    AddFileFilterAction,
+    RemoveFileFilterAction,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
-import Annotation from "../../entity/Annotation";
+import { AnnotationValue } from "../../entity/Annotation";
 import SearchParams, { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
-import { AnnotationValue } from "../../services/AnnotationService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
@@ -238,7 +240,7 @@ const setAvailableAnnotationsLogic = createLogic({
                     await annotationService.fetchAvailableAnnotationsForHierarchy(
                         annotationHierarchy
                     )
-                )
+                ) as AnyAction
             );
         } catch (err) {
             console.error(
@@ -246,7 +248,7 @@ const setAvailableAnnotationsLogic = createLogic({
                 err
             );
             const annotations = metadata.selectors.getAnnotations(getState());
-            dispatch(setAvailableAnnotations(annotations.map((a: Annotation) => a.name)));
+            dispatch(setAvailableAnnotations(annotations.map((a) => a.name)) as AnyAction);
         } finally {
             done();
         }
@@ -261,25 +263,31 @@ const setAvailableAnnotationsLogic = createLogic({
  */
 const modifyFileFilters = createLogic({
     transform(deps: ReduxLogicDeps, next, reject) {
-        const { action, getState } = deps;
+        const {
+            action: { type: actionType },
+            getState,
+        } = deps;
 
         const previousFilters = selectionSelectors.getFileFilters(getState());
+        const annotationByName = metadata.selectors.getAnnotationNameToAnnotationMap(getState());
         let nextFilters: FileFilter[];
 
-        if (action.type === CHANGE_FILE_FILTER_TYPE) {
-            switch (action.payload.type) {
+        if (actionType === CHANGE_FILE_FILTER_TYPE) {
+            const { payload } = deps.action as ChangeFileFilterTypeAction;
+            switch (payload.type) {
                 // For include/exclude, remove all previous filters for this annotation
                 // and replace with a new single filter
                 case FilterType.ANY:
                 case FilterType.EXCLUDE:
                     const newFilter = new FileFilter(
-                        action.payload.annotationName,
+                        payload.annotationName,
                         "",
-                        action.payload.type
+                        payload.type,
+                        annotationByName.get(payload.annotationName)?.type
                     );
                     nextFilters = [
                         ...previousFilters.filter(
-                            (filter) => filter.name !== action.payload.annotationName
+                            (filter) => filter.name !== payload.annotationName
                         ),
                         newFilter,
                     ];
@@ -289,23 +297,29 @@ const modifyFileFilters = createLogic({
                 case FilterType.FUZZY:
                 default:
                     nextFilters = previousFilters
-                        .filter((filter) => {
-                            return !(
-                                filter.name === action.payload.annotationName &&
-                                (filter.type === FilterType.ANY ||
-                                    filter.type === FilterType.EXCLUDE)
-                            );
-                        })
-                        .map((filter) => {
-                            if (filter.name === action.payload.annotationName) {
-                                filter.type = action.payload.type;
-                            }
-                            return filter;
-                        });
+                        .filter(
+                            (filter) =>
+                                !(
+                                    filter.name === payload.annotationName &&
+                                    (filter.type === FilterType.ANY ||
+                                        filter.type === FilterType.EXCLUDE)
+                                )
+                        )
+                        .map((filter) =>
+                            filter.name !== payload.annotationName
+                                ? filter
+                                : new FileFilter(
+                                      filter.name,
+                                      filter.value,
+                                      payload.type,
+                                      filter.valueType
+                                  )
+                        );
             }
         } else {
-            const incomingFilters = castArray(action.payload);
-            if (action.type === ADD_FILE_FILTER) {
+            const { payload } = deps.action as AddFileFilterAction | RemoveFileFilterAction;
+            const incomingFilters = castArray(payload);
+            if (actionType === ADD_FILE_FILTER) {
                 nextFilters = uniqWith(
                     [...previousFilters, ...incomingFilters],
                     (existing, incoming) => {
@@ -328,7 +342,7 @@ const modifyFileFilters = createLogic({
             );
 
         if (filtersAreUnchanged) {
-            reject && reject(action);
+            reject && reject(deps.action);
             return;
         }
 
@@ -433,16 +447,27 @@ const expandAllFileFolders = createLogic({
 const resizeColumnLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: column } = deps.action as ResizeColumnAction;
+        const nameToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
+            deps.getState()
+        );
         const annotationService = interaction.selectors.getAnnotationService(deps.getState());
         const columns = selectionSelectors.getColumns(deps.getState());
 
         let width = column.width;
         if (!width) {
-            const autoSizedWidth = await annotationService.fetchOptimalWidthForAnnotations(
-                [column.name],
-                true
-            );
-            width = autoSizedWidth.get(column.name) ?? DEFAULT_COLUMN_WIDTH;
+            const annotation = nameToAnnotationMap.get(column.name);
+            if (!annotation) {
+                console.warn(
+                    `Could not find annotation for column ${column.name}, defaulting to default column width`
+                );
+                width = DEFAULT_COLUMN_WIDTH;
+            } else {
+                const autoSizedWidth = await annotationService.fetchOptimalWidthForAnnotations(
+                    [annotation],
+                    true
+                );
+                width = autoSizedWidth.get(column.name) ?? DEFAULT_COLUMN_WIDTH;
+            }
         }
 
         dispatch(
@@ -509,6 +534,9 @@ const selectNearbyFile = createLogic({
         const hierarchy = selectionSelectors.getAnnotationHierarchy(deps.getState());
         const openFileFolders = selectionSelectors.getOpenFileFolders(deps.getState());
         const sortColumn = selectionSelectors.getSortColumn(deps.getState());
+        const annotationByName = metadata.selectors.getAnnotationNameToAnnotationMap(
+            deps.getState()
+        );
 
         const openFileListPaths = openFileFolders.filter(
             (fileFolder) => fileFolder.size() === hierarchy.length
@@ -558,7 +586,13 @@ const selectNearbyFile = createLogic({
                     filters: sortedOpenFileListPaths[
                         fileListIndexAboveCurrentFileList
                     ].fileFolder.map(
-                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
+                        (filterValue, index) =>
+                            new FileFilter(
+                                hierarchy[index],
+                                filterValue,
+                                FilterType.DEFAULT,
+                                annotationByName.get(hierarchy[index])?.type
+                            )
                     ),
                     sort: sortColumn,
                 });
@@ -595,7 +629,13 @@ const selectNearbyFile = createLogic({
                     filters: sortedOpenFileListPaths[
                         fileListIndexBelowCurrentFileList
                     ].fileFolder.map(
-                        (filterValue, index) => new FileFilter(hierarchy[index], filterValue)
+                        (filterValue, index) =>
+                            new FileFilter(
+                                hierarchy[index],
+                                filterValue,
+                                FilterType.DEFAULT,
+                                annotationByName.get(hierarchy[index])?.type
+                            )
                     ),
                     sort: sortColumn,
                 });
