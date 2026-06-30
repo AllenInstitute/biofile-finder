@@ -14,6 +14,7 @@
     align-items: center;
     display: flex;
     font-size: smaller;
+    font-weight: 600;
     padding-right: 8px;
 }
 
@@ -61,16 +62,15 @@
     color: var(--highlight-text-color);
 }
 
-.row-title > i {
-    font-weight: 600;
-}
-
-.row-title > div {
+.row-tooltip {
+    align-items: center;
+    display: flex;
     flex: 1 1 0;
     min-width: 0;
+    padding-bottom: 1px;
 }
 
-.row-title > p, .row-title > div > p {
+.title-line {
     font-size: var(--s-paragraph-size);
     margin: 0;
     display: flex;
@@ -113,7 +113,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    height: 100%;
 }
 
 /* Nested leaf last-resort truncation happens from the START ("…umn"), never the end. */
