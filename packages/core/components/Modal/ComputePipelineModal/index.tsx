@@ -30,12 +30,21 @@ function validateParam(param: PipelineParameter, value: unknown): string {
     if (empty) return "";
 
     const { validation } = param;
-    const n = Number(value);
-    if (isNaN(n)) return "Must be a number.";
-    if (validation.min !== undefined && n < validation.min)
-        return `Must be at least ${validation.min}.`;
-    if (validation.max !== undefined && n > validation.max)
-        return `Must be no more than ${validation.max}.`;
+
+    if (param.type === "number") {
+        const n = Number(value);
+        if (isNaN(n)) return "Must be a number.";
+        if (validation.min !== undefined && n < validation.min)
+            return `Must be at least ${validation.min}.`;
+        if (validation.max !== undefined && n > validation.max)
+            return `Must be no more than ${validation.max}.`;
+        return "";
+    }
+
+    // string / select
+    if (validation.pattern !== undefined && !new RegExp(validation.pattern).test(String(value))) {
+        return "Invalid format.";
+    }
     return "";
 }
 
@@ -474,9 +483,10 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                                                                 text: p.label,
                                                             })
                                                         )}
-                                                        selectedKey={
-                                                            optionalSelectorKey ?? undefined
-                                                        }
+                                                        // null (not undefined) so the dropdown
+                                                        // clears its displayed selection when the
+                                                        // key resets after add/remove.
+                                                        selectedKey={optionalSelectorKey}
                                                         onChange={(opt) =>
                                                             opt &&
                                                             setOptionalSelectorKey(

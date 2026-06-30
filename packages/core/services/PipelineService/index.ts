@@ -35,11 +35,22 @@ export default class PipelineService extends HttpServiceBase {
         return Promise.resolve(params);
     }
 
+    // FSS curls these paths directly, so we need to encode.
+    private static encodeFilePath(filePath: unknown): unknown {
+        if (typeof filePath !== "string" || !/^[a-z][a-z0-9+.-]*:\/\//i.test(filePath)) {
+            return filePath;
+        }
+        return PipelineService.encodeURISection(filePath);
+    }
+
     async submitComputeTask(request: ComputeTaskRequest): Promise<ComputeTaskResponse> {
         const url = `${this.loadBalancerBaseUrl}/fss2/v4.0/compute/${request.pipeline}`;
 
         const { file_paths, ...rest } = request.parameters;
-        const body: Record<string, unknown> = { files: file_paths };
+        const files = Array.isArray(file_paths)
+            ? file_paths.map((p) => PipelineService.encodeFilePath(p))
+            : file_paths;
+        const body: Record<string, unknown> = { files };
         for (const [key, value] of Object.entries(rest)) {
             if (value !== null && value !== undefined && value !== "") {
                 body[key] = value;
