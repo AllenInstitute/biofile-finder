@@ -84,7 +84,7 @@ export default class S3StorageService extends HttpServiceBase {
      * Throws an error if BFF seemingly should be able to determine size or type but fails
      * to do so.
      */
-    public async getCloudObjectInfo(url: string, forceTypeDetection = false): Promise<HttpInfo> {
+    public async getCloudObjectInfo(url: string): Promise<HttpInfo> {
         if (isMultiObjectFile(url)) {
             const cloudDirInfo = await this.getCloudDirectoryInfo(url);
             const { size } = cloudDirInfo || {};
@@ -95,7 +95,7 @@ export default class S3StorageService extends HttpServiceBase {
             return { type: "unknown", size: undefined };
         }
 
-        return this.getHttpObjectSize(url, forceTypeDetection);
+        return this.getHttpObjectSize(url);
     }
 
     /**
@@ -192,39 +192,16 @@ export default class S3StorageService extends HttpServiceBase {
 
     /**
      * Attempt to retrieve object content type and size from an http object using a HEAD request.
-     * Will fall back to a GET request if the HEAD request fails and forceTypeDetection is true.
      *
      * Returns size in bytes (octet) and type as one of "webpage", "image", or "unknown"
      */
-    private async getHttpObjectSize(url: string, forceTypeDetection: boolean): Promise<HttpInfo> {
+    private async getHttpObjectSize(url: string): Promise<HttpInfo> {
         let response: AxiosResponse;
         try {
             response = await axios.head(url);
         } catch (err) {
-            console.warn(`Failed to get HEAD url. Will try via GET request.`);
-            if (!forceTypeDetection) {
-                console.error(
-                    `Failed to get HEAD url. Unable to get content length or type: ${err}`
-                );
-                throw err;
-            }
-
-            // Some servers (e.g. S3) do not support HEAD requests, so try a GET request instead
-            // Note: this can be slow for large files so only do this if forceTypeDetection is true
-            //       and the HEAD request already failed
-            try {
-                response = await axios.get(url, {
-                    responseType: "arraybuffer", // prevents parsing large HTML/images unnecessarily
-                    maxRedirects: 5,
-                    timeout: 3_000,
-                    validateStatus: () => true, // don’t throw on non-2xx
-                });
-            } catch (err) {
-                console.error(
-                    `Failed to get HEAD or GET url. Unable to get content length or type: ${err}`
-                );
-                throw err;
-            }
+            console.error(`Failed to get HEAD url. Unable to get content length or type: ${err}`);
+            throw err;
         }
 
         const contentLength = response.headers["content-length"];

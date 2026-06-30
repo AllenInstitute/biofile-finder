@@ -527,7 +527,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         // Trust the users size if it is defined, otherwise get the size from the cloud object info.
         // Also get the content type of the file, which may be used to determine the most suitable viewer.
         s3StorageService
-            .getCloudObjectInfo(path, true)
+            .getCloudObjectInfo(path)
             .then((info) => {
                 // Consider a "small" file to be <= 100Mb
                 if (size === undefined && info.size !== undefined)
