@@ -46,7 +46,7 @@ export enum PageSlug {
 export enum SectionHeading {
     CloudStorage = "Cloud storage",
     CloudStorageExamples = "Cloud storage examples",
-    SpreadsheetExamples = "Spreadsheet (dataset) examples",
+    MetadataFileExamples = "Metadata file (table) examples",
     ViewerTable = "Image viewer comparison table",
     ExploreScreeningResults = "Explore Screening Results",
     ValidateMetadata = "Validate Metadata",

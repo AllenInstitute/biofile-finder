@@ -368,9 +368,9 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 <a
                                     href={`/user-guide/${GroupSlug.GettingStarted}/${
                                         PageSlug.CreatingADatasetMetadataFile
-                                    }#${slugify(SectionHeading.SpreadsheetExamples)}`}
+                                    }#${slugify(SectionHeading.MetadataFileExamples)}`}
                                 >
-                                    Dataset examples
+                                    Metadata file examples
                                 </a>{" "}
                                 for examples to follow when creating a dataset.
                             </li>
@@ -493,7 +493,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: SectionHeading.SpreadsheetExamples,
+                heading: SectionHeading.MetadataFileExamples,
                 body: (
                     <>
                         <h3>Basic example</h3>
@@ -529,39 +529,39 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "Describing columns and file relationships (optional)",
+                heading: "Advanced capabilities (optional)",
                 body: (
                     <>
-                        <p>
-                            BFF supports <strong>nested metadata columns</strong> — columns that
-                            contain structured or repeated sub-fields within each row (for example,
-                            multiple wells or treatment conditions per file). See{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.NestingMetadataColumns}`}
-                            >
-                                Nesting metadata columns
-                            </a>{" "}
-                            for how to format these in Parquet and JSON.
-                        </p>
-                        <p>
-                            BFF lets you describe the columns themselves. For more information visit{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.DescribingColumns}`}
-                            >
-                                Describing columns in your dataset
-                            </a>
-                            .
-                        </p>
-                        <p>
-                            BFF lets you describe relationships between files and metadata using a
-                            provenance file. See{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.FileAndMetadataProvenance}`}
-                            >
-                                Describing file and metadata relationships
-                            </a>{" "}
-                            for more information.
-                        </p>
+                        <p>BFF supports:</p>
+                        <ul>
+                            <li>
+                                <a
+                                    href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.NestingMetadataColumns}`}
+                                >
+                                    Nesting metadata columns
+                                </a>{" "}
+                                — columns that contain structured or repeated sub-fields within each
+                                row (for example, multiple wells or treatment conditions per file),
+                                formatted in Parquet and JSON.
+                            </li>
+                            <li>
+                                <a
+                                    href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.DescribingColumns}`}
+                                >
+                                    Describing columns in your dataset
+                                </a>{" "}
+                                — human-readable descriptions of the columns themselves.
+                            </li>
+                            <li>
+                                <a
+                                    href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.FileAndMetadataProvenance}`}
+                                >
+                                    Describing file and metadata relationships
+                                </a>{" "}
+                                — relationships between files and metadata, defined using a
+                                provenance file.
+                            </li>
+                        </ul>
                     </>
                 ),
             },
