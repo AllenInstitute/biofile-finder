@@ -139,10 +139,11 @@ export const ABOUT_CONTENT: Page[] = [
                 body: (
                     <>
                         <p>
-                            The following table provides a feature overview of BFF alongside other
-                            similar tools. BFF is interoperable with many different tools and data
-                            repositories. For more on how BFF can be used with a data repository,
-                            see{" "}
+                            BioFile Finder is interoperable with many different tools and data
+                            repositories. The following table compares BFF amongst some data
+                            repositories, but is intended to be used as a companion to these rather
+                            than outright replacement. For more information on how BFF can be used
+                            with a data repository, see{" "}
                             <a
                                 href={`/user-guide/${GroupSlug.OtherResources}/${
                                     PageSlug.StorageOptions
