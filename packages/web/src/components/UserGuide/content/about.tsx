@@ -70,7 +70,7 @@ export const ABOUT_CONTENT: Page[] = [
                         </p>
                         <ul>
                             <li>
-                                <span>Wet-lab scientists</span>
+                                <span>Imaging scientists</span>
                             </li>
                             <li>
                                 <span>Computational biologists</span>
@@ -79,7 +79,7 @@ export const ABOUT_CONTENT: Page[] = [
                                 <span>Data engineers & platform teams</span>
                             </li>
                             <li>
-                                <span>Core facility managers & PIs</span>
+                                <span>Microscopy core facility managers & PIs</span>
                             </li>
                             <li>
                                 <span>GLAM & museum professionals</span>
