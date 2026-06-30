@@ -265,12 +265,19 @@ function getSupportedApps(
             // If the content of the file linked appears to be a webpage
             // then offer Browser as the only option
             if (fileContentType === "webpage") {
-                const hostname = new URL(fileDetails.path).hostname;
+                let hostname: string | undefined;
+                try {
+                    hostname = new URL(fileDetails.path).hostname;
+                } catch (_e) {
+                    // Somehow, not a valid URL; skip formatting hostname
+                }
                 return [
                     {
                         ...apps.browser,
-                        text: `Browser (${hostname})`,
-                        title: `Open ${hostname} in the current browser in a new tab`,
+                        text: hostname ? `Browser (${hostname})` : "Browser",
+                        title: hostname
+                            ? `Open ${hostname} in the current browser in a new tab`
+                            : "Open in the current browser in a new tab",
                     },
                 ];
             }
@@ -532,7 +539,9 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                     `Failed to get size or type of ${path}. Unable to determine most suitable viewer.`
                 );
             });
-    }, [path, size, s3StorageService, setFileContentType, setIsSmallFile]);
+        // We only want this to re-run when the path changes, not when the size changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [path, s3StorageService]);
 
     // Try to quickly check if user is on MacOS or not
     React.useEffect(() => {

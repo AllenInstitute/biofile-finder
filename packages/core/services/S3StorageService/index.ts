@@ -79,12 +79,19 @@ export default class S3StorageService extends HttpServiceBase {
      * Returns type = "image" if the URL points to an image (e.g. PNG, JPEG)
      * Returns type = "unknown" if the URL points to an unknown type of file
      * Returns size = undefined if unable to determine size
+     *
+     * Throws an error if BFF seemingly should be able to determine size or type but fails
+     * to do so.
      */
     public async getCloudObjectInfo(url: string, forceTypeDetection = false): Promise<HttpInfo> {
         if (isMultiObjectFile(url)) {
             const cloudDirInfo = await this.getCloudDirectoryInfo(url);
             const { size } = cloudDirInfo || {};
             return { type: "multi-object", size };
+        }
+        // Avoid trying to parse non-http URLs or non-simple S3 URLs
+        if (!url.startsWith("http") || !url.includes("amazonaws.com")) {
+            return { type: "unknown", size: undefined };
         }
 
         return this.getHttpObjectSize(url, forceTypeDetection);
@@ -183,9 +190,10 @@ export default class S3StorageService extends HttpServiceBase {
     }
 
     /**
-     * Attempt to retrieve file size from an http object using a HEAD request.
+     * Attempt to retrieve object content type and size from an http object using a HEAD request.
+     * Will fall back to a GET request if the HEAD request fails and forceTypeDetection is true.
      *
-     * Returns bytes (octet)
+     * Returns size in bytes (octet) and type as one of "webpage", "image", or "unknown"
      */
     private async getHttpObjectSize(url: string, forceTypeDetection: boolean): Promise<HttpInfo> {
         let response: AxiosResponse;
