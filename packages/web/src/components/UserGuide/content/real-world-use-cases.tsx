@@ -44,6 +44,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                     </td>
                                     <td>Hours of scripting per query</td>
                                 </tr>
+                                {/* "Validate metadata" row — temporarily hidden
                                 <tr>
                                     <td>
                                         <a href={`#${slugify(SectionHeading.ValidateMetadata)}`}>
@@ -56,6 +57,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                     </td>
                                     <td>Days of spreadsheet auditing</td>
                                 </tr>
+                                */}
                                 <tr>
                                     <td>
                                         <a
@@ -167,6 +169,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                     </>
                 ),
             },
+            /* "Validate metadata" section — temporarily hidden
             {
                 heading: SectionHeading.ValidateMetadata,
                 level: 3,
@@ -199,6 +202,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                     </>
                 ),
             },
+            */
             {
                 heading: SectionHeading.InspectSubsetsOfImages,
                 level: 3,
@@ -237,31 +241,35 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 body: (
                     <>
                         <p>
-                            Quality control means systematically checking that your data meets
-                            expectations — correct file counts, valid value ranges, no corrupted
-                            entries, consistent naming. Doing this manually in Excel breaks down
-                            past a few thousand rows.
+                            Quality control means checking that your data is complete and correct
+                            before you build on it — the right number of files, sensible values,
+                            nothing blank, corrupted, or mislabeled. If you&apos;ve tried to do this
+                            by scrolling through a huge spreadsheet, you know it gets unmanageable
+                            fast — and you shouldn&apos;t have to write code or formulas to catch
+                            these problems.
                         </p>
                         <h4>How BFF helps</h4>
                         <p>
-                            Load a 2-million-row Parquet manifest and immediately see the total file
-                            count in the aggregate info bar. Group by &quot;Experiment &gt; Plate
-                            &gt; Well&quot; and check that each well has the expected number of
-                            images — any well showing a lower count is a red flag. Filter for files
-                            where &quot;File Size&quot; is 0 to find corrupt or empty files. Sort by
-                            &quot;Date Acquired&quot; to verify temporal consistency. Group by
-                            &quot;Instrument&quot; to check that all files came from the expected
-                            microscope. Apply multiple filters simultaneously to cross-validate:
-                            &quot;If Plate = Control, then Treatment should be DMSO&quot; — filter
-                            for Control plates with non-DMSO treatments to find mislabeled rows.
+                            Drop your metadata file into BFF and let it do the checking for you — no
+                            scripts, no coding. The aggregate info bar shows your total file count
+                            at a glance. Group by &quot;Plate,&quot; then &quot;Well,&quot; to see
+                            how many images are in each — any group with fewer than expected jumps
+                            right out. Filter for files where &quot;File Size&quot; is 0 to find
+                            empty or broken files. Sort by &quot;Date Acquired&quot; to make sure
+                            nothing&apos;s out of sequence. Group by &quot;Instrument&quot; to
+                            confirm everything came from the microscope you expected. You can even
+                            stack filters to catch labeling mistakes — for example, show only
+                            &quot;Control&quot; plates that aren&apos;t labeled &quot;DMSO&quot; —
+                            all by pointing and clicking instead of programming.
                         </p>
                         <h4>Alternative use case</h4>
                         <p>
-                            A data engineer receives a new batch of sequencing metadata from a
-                            collaborator and loads it into BFF to check for duplicate sample IDs,
-                            verify that every file path resolves to an existing object in S3 (by
-                            sorting/filtering paths), and confirm that all expected runs are
-                            represented before ingesting into the pipeline.
+                            A lab manager preparing a dataset for publication receives images and a
+                            metadata spreadsheet from a student. Rather than asking a programmer to
+                            write a validation script, they open it in BFF to look for duplicate
+                            sample names, spot rows missing a file path or a label, and confirm
+                            every expected experiment is present — finding and fixing the mistakes
+                            themselves before the data goes out.
                         </p>
                     </>
                 ),
