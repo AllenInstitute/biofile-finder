@@ -177,13 +177,13 @@ export const GETTING_STARTED_CONTENT: Page[] = [
         slug: PageSlug.SetupOverview,
         title: "Setup overview",
         intro:
-            "BioFile Finder (BFF) works by connecting a metadata file, which is a spreadsheet or table, to the files you want to explore. Rather than ingesting image data directly, BFF reads a metadata file (CSV, Parquet, or JSON) containing metadata and file references. Once loaded, BFF turns that metadata into an interactive interface for filtering, grouping, searching, previewing, and sharing files.",
+            "BioFile Finder (BFF) works by connecting a metadata file that you provide, to the files you want to explore. Rather than ingesting image data directly, BFF reads this metadata file that describes your dataset and references the files you want to acces (image files, commonly). Once loaded, BFF turns that metadata into an interactive interface for filtering, grouping, searching, previewing, and sharing files.",
         sections: [
             {
                 heading: "Basic setup",
                 body: (
                     <>
-                        <h3>1. Create a metadata file describing your dataset</h3>
+                        <h3>1. Create a metadata file</h3>
                         <p>
                             Prepare a metadata file describing the files in your dataset. The
                             metadata file can be provided as CSV, Parquet, or JSON. Each row
@@ -383,19 +383,21 @@ export const GETTING_STARTED_CONTENT: Page[] = [
 
     {
         slug: PageSlug.CreatingADatasetMetadataFile,
-        title: "Creating a dataset metadata file",
+        title: "Creating a metadata file",
         intro:
-            "BioFile Finder (BFF) works by referencing a spreadsheet you provide, populated by key-value pairs that are the metadata associated with your image files.",
+            "A metadata file is a structured file that describes your dataset and tells BioFile Finder where to find the files you want to explore. Metadata files can be provided in CSV, Parquet, or JSON format.",
         sections: [
             {
-                heading: "What is a dataset?",
+                heading: "Structure of a meatadata file",
                 body: (
                     <>
                         <p>
-                            A BFF dataset is a tabular file where each row represents a file, and
-                            each column is a piece of metadata about that file. The format is
-                            flexible — any columns beyond the required ones are yours to define
-                            based on what matters to your workflow.
+                            A metadata file is organized as a table where each row typically
+                            represents a file in your dataset and each column represents a metadata
+                            field describing that file, such as a file path, experimental condition,
+                            sample identifier, or other annotation. The structure is flexible—aside
+                            from the required columns, you can define metadata fields that best
+                            support your workflow.
                         </p>
                         <p>
                             <a
@@ -403,7 +405,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             >
                                 See Specifications
                             </a>{" "}
-                            for accepted file types and size limitations.
+                            for more details.
                         </p>
                     </>
                 ),
@@ -412,15 +414,22 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 heading: "Rows and columns",
                 body: (
                     <>
+                        <h3>Rows</h3>
                         <p>
-                            <strong>Rows:</strong> Each row in the table should correspond with a
-                            file — either on the cloud, a hard drive, or network attached storage.
-                            However, you can have a row corresponding to multiple files, or
-                            different rows corresponding to the same file.
+                            Each row typically represents a file you want BioFile Finder to explore.
+                            Files can be stored locally, on network-attached storage, in cloud
+                            storage, or in public repositories.
                         </p>
                         <p>
-                            <strong>Columns:</strong> Columns can be anything, but there is one
-                            required column and a few special optional columns described below.
+                            Advanced workflows may reference multiple files from a single row or
+                            reference the same file across multiple rows.
+                        </p>
+                        <h3>Columns</h3>
+                        <p>
+                            Columns can be anything, but there is one required column and a few
+                            Columns represent metadata describing each file. Aside from the required
+                            column and a few special optional columns described below, you can
+                            define any metadata fields relevant to your workflow.
                         </p>
                     </>
                 ),
@@ -428,16 +437,22 @@ export const GETTING_STARTED_CONTENT: Page[] = [
             {
                 heading: "Required columns",
                 body: (
-                    <p>
-                        <strong>File Path</strong> — A reference to the file that BFF will attempt
-                        to open with relevant applications. This column does not have to be unique.{" "}
-                        <a
-                            href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.StorageOptions}`}
-                        >
-                            Information about file storage options
-                        </a>
-                        .
-                    </p>
+                    <>
+                        <p>This column is required for BFF to locate and open your files.</p>
+                        <ul>
+                            <li>
+                                <strong>File Path</strong> — A reference to the file that BFF will
+                                attempt to open with relevant applications. This column does not
+                                have to be unique.{" "}
+                                <a
+                                    href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.StorageOptions}`}
+                                >
+                                    Information about file storage options
+                                </a>
+                                .
+                            </li>
+                        </ul>
+                    </>
                 ),
             },
             {
@@ -651,8 +666,9 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                     <>
                         <p>
                             BFF can display tooltips that describe the columns in your dataset if
-                            provided an additional file (referenced as a &ldquo;metadata descriptor
-                            file&rdquo; in the app). This file must contain three columns:
+                            provided an additional file, referenced as a{" "}
+                            <strong>&ldquo;metadata descriptor file&rdquo;</strong> in the app. This
+                            file must contain three columns:
                         </p>
                         <ul>
                             <li>
@@ -701,8 +717,8 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                     <p>
                         In BFF, open the data source panel by clicking the dataset name at the top
                         of the app. At the bottom of that panel you will find an optional field
-                        labeled <strong>Provenance file</strong>. Paste the URL or drag in the file
-                        there to load it alongside your dataset.
+                        labeled <strong>&quot;Provenance file&quot;</strong>. Paste the URL or drag
+                        in the file there to load it alongside your dataset.
                     </p>
                 ),
             },
