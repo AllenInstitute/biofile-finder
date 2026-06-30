@@ -109,8 +109,8 @@ export default function DatasetTable(props: DatasetTableProps) {
 
     function onColumnClick(columnName: string) {
         let sortOrder = SortOrder.ASC;
-        if (sortColumn?.annotationName == columnName)
-            sortOrder = sortColumn.order == SortOrder.DESC ? SortOrder.ASC : SortOrder.DESC;
+        if (sortColumn?.annotationName === columnName)
+            sortOrder = sortColumn.order === SortOrder.DESC ? SortOrder.ASC : SortOrder.DESC;
         const newSortColumn = new FileSort(columnName, sortOrder);
         setSortColumn(newSortColumn);
     }

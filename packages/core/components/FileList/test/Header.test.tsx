@@ -5,8 +5,10 @@ import * as React from "react";
 import { Provider } from "react-redux";
 
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import { initialState, selection } from "../../../state";
+
 import Header from "../Header";
 
 describe("<Header />", () => {
@@ -24,6 +26,7 @@ describe("<Header />", () => {
                     name,
                     displayName: name,
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: {
@@ -63,6 +66,7 @@ describe("<Header />", () => {
                     name,
                     displayName: name,
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: {
@@ -102,6 +106,7 @@ describe("<Header />", () => {
                     name,
                     displayName: name,
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: {
@@ -145,6 +150,7 @@ describe("<Header />", () => {
                     name,
                     displayName: name,
                     description: name,
+                    type: AnnotationType.STRING,
                 })),
             },
             selection: { columns },

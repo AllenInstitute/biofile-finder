@@ -4,6 +4,8 @@ import sinon from "sinon";
 import DatabaseService from "../../../DatabaseService";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
+import Annotation from "../../../../entity/Annotation";
+import { AnnotationType } from "../../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../../entity/FileFilter";
 import { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH } from "../../../../entity/SearchParams";
 import SQLBuilder from "../../../../entity/SQLBuilder";
@@ -12,12 +14,23 @@ import DatabaseAnnotationService from "..";
 
 describe("DatabaseAnnotationService", () => {
     describe("fetchAnnotationValues", () => {
-        const annotations = ["A", "B", "Cc", "dD"].map((name, index) => ({
-            select_key: name.toLowerCase() + index,
+        const annotationName = "foo";
+        const values = ["A", "B", "Cc", "dD"].map((name, index) => ({
+            [annotationName]: name.toLowerCase() + index,
         }));
         class MockDatabaseService extends DatabaseServiceNoop {
             public query(): { promise: Promise<any> } {
-                return { promise: Promise.resolve(annotations) };
+                return { promise: Promise.resolve(values) };
+            }
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return [annotationName].map(
+                    (name) =>
+                        new Annotation({
+                            annotationName: name,
+                            description: `${name} description`,
+                            type: AnnotationType.STRING,
+                        })
+                );
             }
         }
         const databaseService = new MockDatabaseService();
@@ -27,7 +40,7 @@ describe("DatabaseAnnotationService", () => {
                 dataSourceNames: ["a", "b or c"],
                 databaseService,
             });
-            const actualValues = await annotationService.fetchValues("select_key");
+            const actualValues = await annotationService.fetchValues(annotationName);
             expect(actualValues).to.be.deep.equal(["a0", "b1", "cc2", "dd3"]);
         });
     });
@@ -39,14 +52,24 @@ describe("DatabaseAnnotationService", () => {
             column_name: name,
             column_type: "VARCHAR",
         }));
+        const mockAnnotationName = "mock_annotation"; // snake case to match annotation properties in annotation map
         class MockDatabaseService extends DatabaseServiceNoop {
             public query(): { promise: Promise<any> } {
                 return { promise: Promise.resolve(annotations) };
             }
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return [mockAnnotationName, ...annotationNames].map(
+                    (name) =>
+                        new Annotation({
+                            annotationName: name,
+                            description: `${name} description`,
+                            type: AnnotationType.STRING,
+                        })
+                );
+            }
         }
         const databaseService = new MockDatabaseService();
         const mockDataSourceName = "mockDataSourceName";
-        const mockAnnotationName = "mock_annotation"; // snake case to match annotation properties in annotation map
 
         // This test suite does not test the implementation or return values of fetchRootHierarchyValues
         // It simply checks that a DatabaseService query is successfully issued
@@ -92,13 +115,23 @@ describe("DatabaseAnnotationService", () => {
     // This test suite does not test the implementation or return values of fetchHierarchyValuesUnderPath
     // It simply checks that a DatabaseService query is successfully issued
     describe("fetchHierarchyValuesUnderPath", () => {
-        const annotations = ["A", "B", "Cc", "dD"].map((name, index) => ({
+        const valuesByAnnotation = ["A", "B", "Cc", "dD"].map((name, index) => ({
             foo: name + index,
             bar: name + index,
         }));
         class MockDatabaseService extends DatabaseServiceNoop {
             public query(): { promise: Promise<any> } {
-                return { promise: Promise.resolve(annotations) };
+                return { promise: Promise.resolve(valuesByAnnotation) };
+            }
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return ["foo", "bar"].map(
+                    (name) =>
+                        new Annotation({
+                            annotationName: name,
+                            description: `${name} description`,
+                            type: AnnotationType.STRING,
+                        })
+                );
             }
         }
         const databaseService = new MockDatabaseService();
@@ -160,10 +193,20 @@ describe("DatabaseAnnotationService", () => {
                 querySpy(sql); // pass SQL to the spy func
                 return { promise: Promise.resolve([]) };
             }
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return ["foo", "bar", "zip"].map(
+                    (name) =>
+                        new Annotation({
+                            annotationName: name,
+                            description: `${name} description`,
+                            type: AnnotationType.STRING,
+                        })
+                );
+            }
         }
         const databaseService = new MockDatabaseService();
         const filterToRegex = (filter: FileFilter) => {
-            return SQLBuilder.regexMatchValueInList(filter.name, filter.value);
+            return SQLBuilder.regexMatchValueInList(`"${filter.name}"`, filter.value);
         };
 
         it("uses ANDs and ORs correctly in sql with multiple filters and values", async () => {
@@ -184,7 +227,7 @@ describe("DatabaseAnnotationService", () => {
             const filter3 = new FileFilter("filter3", "value3");
 
             await annotationService.fetchHierarchyValuesUnderPath(
-                [], // hierarchy; skipping to simplify test
+                ["foo"],
                 [], // path so far; skipping to simplify test
                 [filter1a, filter1b, filter1c, filter2a, filter2b, filter3] // user-applied filters
             );
@@ -221,13 +264,13 @@ describe("DatabaseAnnotationService", () => {
             const filter1b = new FileFilter("filter1", "value1b");
 
             await annotationService.fetchHierarchyValuesUnderPath(
-                ["group1", "group2", "group3", "group4"], // annotations to group by
+                ["foo", "bar", "zip"], // annotations to group by
                 ["value1", "value2"], // path so far
                 [filter1a, filter1b] // user-applied filters
             );
 
             // Find potential values for the current level of the grouping hierarchy (group3, not group4)
-            expect(querySpy.calledWithMatch(/SELECT DISTINCT "group3"/)).to.be.true;
+            expect(querySpy.calledWithMatch(/SELECT DISTINCT "zip"/)).to.be.true;
 
             // Consistency check: still formats "OR" statement correctly
             expect(
@@ -237,33 +280,31 @@ describe("DatabaseAnnotationService", () => {
             ).to.be.true;
 
             // Includes a filter for each group in the hierarchy path so far
-            const hierarchyPath1 = filterToRegex(new FileFilter("group1", "value1"));
+            const hierarchyPath1 = filterToRegex(new FileFilter("foo", "value1"));
             expect(querySpy.calledWithMatch(hierarchyPath1)).to.be.true;
-            const hierarchyPath2 = filterToRegex(new FileFilter("group2", "value2"));
+            const hierarchyPath2 = filterToRegex(new FileFilter("bar", "value2"));
             expect(querySpy.calledWithMatch(hierarchyPath2)).to.be.true;
         });
     });
 
     describe("fetchAvailableAnnotationsForHierarchy", () => {
-        const annotationNames = ["Cell Line", "Is Split Scene", "Whatever"];
-        const sampleRow = Object.fromEntries(annotationNames.map((name) => [name, "dummy value"]));
+        const annotationNames = ["Cell Line", "Is Split Scene", "Well.Dose"];
         class MockDatabaseService extends DatabaseService {
-            public query(sql: string): { promise: Promise<any> } {
-                if (sql.includes("SELECT *") && sql.includes("LIMIT 1")) {
-                    // First query for fetchAvailableAnnotationsForHierarchy gets the available
-                    // column names with a SELECT * FROM ... LIMIT 1
-                    return { promise: Promise.resolve([sampleRow]) };
-                }
-                // The remaining queries (one per column) check if each column has non-null values.
-                const columnNameMatch = sql.match(/SELECT '(?<columnName>.*)' AS column_name/);
-                if (columnNameMatch && columnNameMatch.groups) {
-                    return {
-                        promise: Promise.resolve([
-                            { column_name: columnNameMatch.groups.columnName },
-                        ]),
-                    };
-                }
-                return { promise: Promise.reject() };
+            public query(_sql: string): { promise: Promise<any> } {
+                return {
+                    promise: Promise.resolve([{ "1": 1 }]),
+                };
+            }
+            public async fetchAnnotations(): Promise<Annotation[]> {
+                return annotationNames.map(
+                    (a) =>
+                        new Annotation({
+                            annotationName: a,
+                            description: `${a} description`,
+                            type: AnnotationType.STRING,
+                            pathIsArray: a.split(".").map(() => false),
+                        })
+                );
             }
         }
         const databaseService = new MockDatabaseService();
@@ -278,6 +319,52 @@ describe("DatabaseAnnotationService", () => {
                 "cas9",
             ]);
             expect(values).to.deep.equal(annotationNames);
+        });
+
+        it("returns null after 30s and cancels all in-flight hierarchy queries", async () => {
+            const clock = sinon.useFakeTimers();
+            let cancelledCount = 0;
+
+            class HangingDatabaseService extends DatabaseServiceNoop {
+                public query(): { promise: Promise<any>; cancel: () => void } {
+                    return {
+                        promise: new Promise(() => {
+                            // Intentionally never resolves to force the global timeout path.
+                        }),
+                        cancel: () => {
+                            cancelledCount += 1;
+                        },
+                    };
+                }
+            }
+
+            class TimeoutAnnotationService extends DatabaseAnnotationService {
+                public async fetchAnnotations(): Promise<Annotation[]> {
+                    return ["A", "B", "C"].map(
+                        (name) =>
+                            new Annotation({
+                                annotationName: name,
+                                description: "",
+                                type: AnnotationType.STRING,
+                            })
+                    );
+                }
+            }
+
+            const annotationService = new TimeoutAnnotationService({
+                dataSourceNames: ["mock1"],
+                databaseService: new HangingDatabaseService(),
+            });
+
+            const valuesPromise = annotationService.fetchAvailableAnnotationsForHierarchy([]);
+            await clock.tickAsync(30_001);
+
+            try {
+                expect(await valuesPromise).to.be.null;
+                expect(cancelledCount).to.equal(3);
+            } finally {
+                clock.restore();
+            }
         });
     });
 
@@ -297,8 +384,16 @@ describe("DatabaseAnnotationService", () => {
             });
 
             const result = await annotationService.fetchOptimalWidthForAnnotations([
-                "Cell Line",
-                "Gene",
+                new Annotation({
+                    annotationName: "Cell Line",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+                new Annotation({
+                    annotationName: "Gene",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
             ]);
 
             // Both annotations should have computed widths (not just DEFAULT_COLUMN_WIDTH)
@@ -326,7 +421,11 @@ describe("DatabaseAnnotationService", () => {
             });
 
             const result = await annotationService.fetchOptimalWidthForAnnotations([
-                "LongAnnotation",
+                new Annotation({
+                    annotationName: "LongAnnotation",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
             ]);
 
             expect(result.get("LongAnnotation")).to.equal(DEFAULT_COLUMN_WIDTH * 3);
@@ -348,7 +447,13 @@ describe("DatabaseAnnotationService", () => {
             });
 
             const result = await annotationService.fetchOptimalWidthForAnnotations(
-                ["LongAnnotation"],
+                [
+                    new Annotation({
+                        annotationName: "LongAnnotation",
+                        description: "",
+                        type: AnnotationType.STRING,
+                    }),
+                ],
                 true
             );
 
@@ -369,7 +474,13 @@ describe("DatabaseAnnotationService", () => {
                 databaseService: new MockDatabaseService(),
             });
 
-            const result = await annotationService.fetchOptimalWidthForAnnotations(["SomeColumn"]);
+            const result = await annotationService.fetchOptimalWidthForAnnotations([
+                new Annotation({
+                    annotationName: "SomeColumn",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+            ]);
 
             expect(result.get("SomeColumn")).to.equal(DEFAULT_COLUMN_WIDTH);
         });
@@ -388,7 +499,11 @@ describe("DatabaseAnnotationService", () => {
             });
 
             const result = await annotationService.fetchOptimalWidthForAnnotations([
-                "CustomAnnotation",
+                new Annotation({
+                    annotationName: "CustomAnnotation",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
             ]);
 
             // All top-level file annotations should be present with default widths
@@ -404,7 +519,13 @@ describe("DatabaseAnnotationService", () => {
                 databaseService: new DatabaseServiceNoop(),
             });
 
-            const result = await annotationService.fetchOptimalWidthForAnnotations(["SomeColumn"]);
+            const result = await annotationService.fetchOptimalWidthForAnnotations([
+                new Annotation({
+                    annotationName: "SomeColumn",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+            ]);
 
             // fetchLengthiestValues returns {} for empty data sources, so all should be default
             expect(result.get("SomeColumn")).to.equal(DEFAULT_COLUMN_WIDTH);
@@ -426,7 +547,11 @@ describe("DatabaseAnnotationService", () => {
             });
 
             const resultShortValue = await annotationService.fetchOptimalWidthForAnnotations([
-                veryLongAnnotationName,
+                new Annotation({
+                    annotationName: veryLongAnnotationName,
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
             ]);
 
             // Now test with a short annotation name but long value
@@ -441,7 +566,13 @@ describe("DatabaseAnnotationService", () => {
                 dataSourceNames: ["source1"],
                 databaseService: new MockDatabaseService2(),
             });
-            const resultShortName = await annotationService2.fetchOptimalWidthForAnnotations(["X"]);
+            const resultShortName = await annotationService2.fetchOptimalWidthForAnnotations([
+                new Annotation({
+                    annotationName: "X",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+            ]);
 
             // The width for "VeryLongAnnotationName" should be wider because
             // the annotation name is longer than the value
