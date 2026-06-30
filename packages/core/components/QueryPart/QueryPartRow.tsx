@@ -58,7 +58,10 @@ export default function QueryGroupRow(props: Props) {
                 [styles.grabbable]: !props.item.disabled,
                 [styles.interactive]: isInteractive,
             })}
-            style={{ marginLeft, maxWidth: `calc(100% - ${marginLeft + 8}px)` }}
+            style={{
+                marginLeft,
+                maxWidth: marginLeft ? `calc(100% - ${marginLeft + 8}px)` : undefined,
+            }}
         >
             <div
                 ref={rowTitleRef}
@@ -73,7 +76,7 @@ export default function QueryGroupRow(props: Props) {
                         <Icon className={styles.icon} iconName={props.item.titleIconName} />
                     </span>
                 )}
-                <Tooltip content={tooltip}>
+                <Tooltip content={tooltip} hostClassName={styles.rowTooltip}>
                     <p className={styles.titleLine}>
                         {hasPrefix && prefix !== null && (
                             <span className={styles.titlePrefix}>{prefix}</span>

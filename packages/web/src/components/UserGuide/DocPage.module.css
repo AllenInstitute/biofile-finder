@@ -206,6 +206,21 @@
     margin-top: 8px;
 }
 
+/* Code blocks in body content */
+.section-body :global(.ug-code-block) {
+    display: block;
+    background-color: var(--primary-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 14px 16px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 12px 0 16px 0;
+}
+
 /* Embedded videos (e.g. YouTube) — replace the browser default border with a
    slightly softer, medium-weight one. */
 .section-body iframe {

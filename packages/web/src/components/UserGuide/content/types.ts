@@ -25,6 +25,7 @@ export enum PageSlug {
     MetadataGuidance = "metadata-guidance",
     DescribingColumns = "columns-descriptions",
     FileAndMetadataProvenance = "provenance",
+    NestingMetadataColumns = "nesting-metadata",
 
     // Group.OtherResources
     StorageOptions = "storage-options",

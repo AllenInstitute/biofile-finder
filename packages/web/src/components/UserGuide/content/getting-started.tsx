@@ -533,6 +533,17 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 body: (
                     <>
                         <p>
+                            BFF supports <strong>nested metadata columns</strong> — columns that
+                            contain structured or repeated sub-fields within each row (for example,
+                            multiple wells or treatment conditions per file). See{" "}
+                            <a
+                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.NestingMetadataColumns}`}
+                            >
+                                Nesting metadata columns
+                            </a>{" "}
+                            for how to format these in Parquet and JSON.
+                        </p>
+                        <p>
                             BFF lets you describe the columns themselves. For more information visit{" "}
                             <a
                                 href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.DescribingColumns}`}
@@ -700,6 +711,243 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </a>
                         </p>
                     </>
+                ),
+            },
+        ],
+    },
+
+    {
+        slug: PageSlug.NestingMetadataColumns,
+        title: "Nesting metadata columns",
+        intro:
+            "BFF supports nested metadata columns — columns that contain structured or repeated sub-fields within each row. This is useful when a single file has multiple related attributes grouped together, such as multiple treatment conditions, multiple imaging channels, or multiple wells associated with one image.",
+        sections: [
+            {
+                heading: "Why use nested metadata?",
+                body: (
+                    <>
+                        <p>
+                            Traditional flat metadata tables work well when each file has a single
+                            value for each attribute. But many experiments produce files associated
+                            with several related values — for example, a plate image taken under
+                            multiple drug doses, or a segmentation file linked to multiple cell
+                            lines. Repeating those values across separate rows (one row per
+                            condition) means losing the file-level grouping. Putting all values in a
+                            single comma-separated string in one column makes filtering and sorting
+                            unreliable.
+                        </p>
+                        <p>Nested metadata columns solve both problems by letting you:</p>
+                        <ul>
+                            <li>Keep one row per file while storing multiple structured values.</li>
+                            <li>
+                                Filter and sort on individual sub-fields (e.g., filter by{" "}
+                                <code>Well.Dose</code> without losing the surrounding well context).
+                            </li>
+                            <li>
+                                Download selected metadata with full nested structure preserved.
+                            </li>
+                        </ul>
+                    </>
+                ),
+            },
+            {
+                heading: "Supported nesting types",
+                body: (
+                    <>
+                        <p>BFF supports two kinds of nested columns:</p>
+                        <ul>
+                            <li>
+                                <strong>STRUCT</strong> — A single structured value with named
+                                sub-fields. Use this when each file has exactly one value for each
+                                sub-field. Example: a <code>Microscope</code> column with sub-fields{" "}
+                                <code>Model</code> and <code>Objective</code>.
+                            </li>
+                            <li>
+                                <strong>STRUCT[] (array of structs)</strong> — A list of structured
+                                values, each with the same named sub-fields. Use this when a file
+                                can have multiple values for a group of related attributes. Example:
+                                a <code>Well</code> column where each file can be associated with
+                                several wells, each described by <code>Position</code>,{" "}
+                                <code>Dose</code>, and <code>Cell Line</code>.
+                            </li>
+                        </ul>
+                        <p>
+                            Sub-fields appear in BFF as dotted annotation names —{" "}
+                            <code>Well.Dose</code> or <code>Microscope.Objective</code>. You can
+                            filter, sort, and group on any sub-field, and the full nested structure
+                            is preserved when you download a metadata manifest.
+                        </p>
+                    </>
+                ),
+            },
+            {
+                heading: "Formatting nested metadata in Parquet",
+                body: (
+                    <>
+                        <p>
+                            Parquet is the recommended format for nested metadata because it
+                            natively stores STRUCT and STRUCT[] columns with full type information.
+                            No additional configuration is needed — BFF reads the schema
+                            automatically.
+                        </p>
+                        <p>
+                            The following Python example (using{" "}
+                            <a href="https://pandas.pydata.org/" target="_blank" rel="noreferrer">
+                                pandas
+                            </a>{" "}
+                            and{" "}
+                            <a
+                                href="https://arrow.apache.org/docs/python/"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                pyarrow
+                            </a>
+                            ) creates a dataset with a STRUCT column (<code>Microscope</code>) and a
+                            STRUCT[] column (<code>Well</code>):
+                        </p>
+                        <pre className="ug-code-block">
+                            {`import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
+
+# Each row is a file.
+# "Microscope" is a plain STRUCT (one value per row).
+# "Well" is a STRUCT[] (multiple wells per row).
+data = [
+    {
+        "File Path": "/data/img_001.tif",
+        "Microscope": {"Model": "Zeiss LSM 980", "Objective": "40x"},
+        "Well": [
+            {"Position": "B3", "Dose": 0.5, "Cell Line": "HeLa"},
+            {"Position": "B4", "Dose": 1.0, "Cell Line": "HeLa"},
+        ],
+    },
+    {
+        "File Path": "/data/img_002.tif",
+        "Microscope": {"Model": "Leica SP8", "Objective": "63x"},
+        "Well": [
+            {"Position": "G9", "Dose": 2.0, "Cell Line": "U2OS"},
+        ],
+    },
+]
+
+# Define the explicit Parquet schema
+schema = pa.schema([
+    pa.field("File Path", pa.string()),
+    pa.field("Microscope", pa.struct([
+        pa.field("Model", pa.string()),
+        pa.field("Objective", pa.string()),
+    ])),
+    pa.field("Well", pa.list_(pa.struct([
+        pa.field("Position", pa.string()),
+        pa.field("Dose", pa.float64()),
+        pa.field("Cell Line", pa.string()),
+    ]))),
+])
+
+table = pa.Table.from_pylist(data, schema=schema)
+pq.write_table(table, "dataset.parquet")`}
+                        </pre>
+                        <p>
+                            Once loaded into BFF, annotations like <code>Well.Position</code>,{" "}
+                            <code>Well.Dose</code>, and <code>Microscope.Objective</code> will
+                            appear in the annotation picker and can be used for filtering, grouping,
+                            and sorting.
+                        </p>
+                    </>
+                ),
+            },
+            {
+                heading: "Formatting nested metadata in JSON",
+                body: (
+                    <>
+                        <p>
+                            In JSON, nested columns are expressed as objects (for STRUCT) or arrays
+                            of objects (for STRUCT[]) within each row. The structure of the example
+                            above expressed in JSON:
+                        </p>
+                        <pre className="ug-code-block">
+                            {`[
+  {
+    "File Path": "/data/img_001.tif",
+    "Microscope": { "Model": "Zeiss LSM 980", "Objective": "40x" },
+    "Well": [
+      { "Position": "B3", "Dose": 0.5, "Cell Line": "HeLa" },
+      { "Position": "B4", "Dose": 1.0, "Cell Line": "HeLa" }
+    ]
+  },
+  {
+    "File Path": "/data/img_002.tif",
+    "Microscope": { "Model": "Leica SP8", "Objective": "63x" },
+    "Well": [
+      { "Position": "G9", "Dose": 2.0, "Cell Line": "U2OS" }
+    ]
+  }
+]`}
+                        </pre>
+                        <p>
+                            BFF infers the schema from the JSON structure. Rows where a nested field
+                            is absent or <code>null</code> will have no value for that annotation.
+                        </p>
+                    </>
+                ),
+            },
+            {
+                heading: "Nested metadata in CSV",
+                body: (
+                    <>
+                        <p>
+                            CSV does not natively support nested or repeated values. If your source
+                            data is in CSV and you need nested metadata, convert it to Parquet or
+                            JSON first (for example, using pandas as shown above).
+                        </p>
+                        <p>
+                            If you load a CSV that was originally exported from BFF with nested
+                            columns, the nested values will be serialized as strings. BFF will treat
+                            those as plain text and will not reconstruct the nested structure.
+                        </p>
+                    </>
+                ),
+            },
+            {
+                heading: "Date and datetime sub-fields",
+                body: (
+                    <p>
+                        Date and datetime values inside nested columns are fully supported. Store
+                        them as <code>pa.date32()</code> or{" "}
+                        <code>pa.timestamp(&quot;ms&quot;)</code> in Parquet, or as ISO 8601 strings
+                        (e.g., <code>&quot;2025-01-10&quot;</code>) in JSON. BFF will recognize the
+                        type from the schema and enable date-range filters on those sub-fields.
+                    </p>
+                ),
+            },
+            {
+                heading: "Tips",
+                body: (
+                    <ul>
+                        <li>
+                            Keep sub-field names consistent across rows — BFF derives the annotation
+                            list from the schema, so sub-fields that appear only in some rows may
+                            produce empty values for others.
+                        </li>
+                        <li>
+                            Avoid deeply nesting more than two or three levels. While BFF supports
+                            multiple levels of nesting (e.g., <code>Experiment.Run.Channel</code>),
+                            very deep hierarchies can make the annotation picker harder to navigate.
+                        </li>
+                        <li>
+                            If you need sub-fields from both an outer STRUCT[] and an inner STRUCT[]
+                            (doubly-nested arrays), the full path is still accessible in the
+                            annotation picker. The download will correctly reconstruct the nested
+                            structure when you save metadata as JSON, CSV, or Parquet.
+                        </li>
+                        <li>
+                            Use Parquet for large datasets with nested columns — Parquet&apos;s
+                            columnar encoding makes sub-field queries significantly faster than JSON
+                            for datasets over a few thousand rows.
+                        </li>
+                    </ul>
                 ),
             },
         ],
