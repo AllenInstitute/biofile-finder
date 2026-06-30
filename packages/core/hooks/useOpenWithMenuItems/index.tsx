@@ -520,8 +520,10 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     React.useEffect(() => {
         if (!path) return;
 
+        // Reset state between file changes
+        setFileContentType("unknown");
         // Consider a "small" file to be <= 100Mb
-        if (size !== undefined) setIsSmallFile(size <= 100 * ONE_MEGABYTE);
+        setIsSmallFile(size === undefined ? false : size <= 100 * ONE_MEGABYTE);
 
         // Grab object info.
         // Trust the users size if it is defined, otherwise get the size from the cloud object info.
