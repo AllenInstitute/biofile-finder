@@ -1,5 +1,10 @@
 import SearchParams, { SearchParamsComponents } from "../../../../core/entity/SearchParams";
-import { FmsFileAnnotation } from "../../../../core/services/FileService";
+import {
+    FmsFileAnnotation,
+    MetadataValue,
+    NestedMetadataValue,
+    PrimitiveMetadataValue,
+} from "../../../../core/services/FileService";
 
 /**
  * Represents an open-source dataset that will be publicly available on the BioFile Finder web version.
@@ -99,16 +104,21 @@ export default class PublicDataset {
     private datasetDetails: PublicDatasetProps;
     private annotations: FmsFileAnnotation[];
 
-    constructor(datasetDetails: PublicDatasetProps, annotations: FmsFileAnnotation[] = []) {
-        this.annotations = annotations;
-        if (!annotations?.length) {
+    constructor(
+        datasetDetails: PublicDatasetProps,
+        metadata: Map<string, MetadataValue> = new Map()
+    ) {
+        this.annotations = [...metadata.entries()].map(([name, values]) => ({ name, values }));
+        if (!this.annotations?.length) {
             this.datasetDetails = datasetDetails;
         } else {
             const mappedAnnotationsToProps: PublicDatasetProps = {
                 dataset_name: datasetDetails.dataset_name,
             };
             Object.values(DatasetAnnotations).forEach((value) => {
-                const equivalentAnnotation = annotations.find((e) => e.name === value.displayLabel);
+                const equivalentAnnotation = this.annotations.find(
+                    (e) => e.name === value.displayLabel
+                );
                 // csv may set empty fields to string of value 'null'
                 if (equivalentAnnotation && equivalentAnnotation.values[0] !== "null") {
                     this.setMetadata(
@@ -174,12 +184,16 @@ export default class PublicDataset {
         return this.datasetDetails.featured?.toLowerCase() === "true";
     }
 
-    public getFirstAnnotationValue(annotationName: string): string | number | boolean | undefined {
-        return this.getAnnotation(annotationName)?.values[0];
+    public getAnnotation(
+        annotationName: string
+    ): PrimitiveMetadataValue[] | NestedMetadataValue[] | undefined {
+        return this.annotations.find((annotation) => annotation.name === annotationName)?.values;
     }
 
-    public getAnnotation(annotationName: string): FmsFileAnnotation | undefined {
-        return this.annotations.find((annotation) => annotation.name === annotationName);
+    public getFirstAnnotationValue(
+        annotationName: string
+    ): PrimitiveMetadataValue | NestedMetadataValue | undefined {
+        return this.getAnnotation(annotationName)?.[0];
     }
 
     private setMetadata<K extends keyof PublicDatasetProps, V extends PublicDatasetProps[K]>(

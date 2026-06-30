@@ -47,7 +47,7 @@ export default function useDatasetDetails(
                                 (dataset) =>
                                     new PublicDataset(
                                         { dataset_name: dataset.name },
-                                        dataset.annotations
+                                        dataset.metadata
                                     )
                             )
                             .filter((dataset) => dataset?.featured === !!featured)
