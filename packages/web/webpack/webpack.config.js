@@ -95,6 +95,7 @@ module.exports = ({ analyze, production } = {}) => ({
     output: {
         path: path.resolve(__dirname, "../", "dist"),
         filename: "[name].[chunkhash].js",
+        publicPath: "/",
     },
     plugins: getPluginsByEnv(production, analyze),
     resolve: {
