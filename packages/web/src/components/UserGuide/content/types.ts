@@ -44,6 +44,7 @@ export enum PageSlug {
 // to link to and are more likely to change over time.
 export enum SectionHeading {
     CloudStorage = "Cloud storage",
+    CloudStorageExamples = "Cloud storage examples",
     SpreadsheetExamples = "Spreadsheet (dataset) examples",
     ViewerTable = "Image viewer comparison table",
     ExploreScreeningResults = "Explore Screening Results",

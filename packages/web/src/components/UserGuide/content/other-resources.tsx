@@ -32,7 +32,7 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "Cloud storage examples",
+                heading: SectionHeading.CloudStorageExamples,
                 body: (
                     <>
                         <h3>Open source image archives (IDR, BIA, SSBD)</h3>

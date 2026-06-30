@@ -135,12 +135,22 @@ export const ABOUT_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "BFF and related tool capabilities",
+                heading: "BFF and related tools",
                 body: (
                     <>
                         <p>
                             The following table provides a feature overview of BFF alongside other
-                            similar, tools.
+                            similar tools. BFF is interoperable with many different tools and data
+                            repositories. For more on how BFF can be used with a data repository,
+                            see{" "}
+                            <a
+                                href={`/user-guide/${GroupSlug.OtherResources}/${
+                                    PageSlug.StorageOptions
+                                }#${slugify(SectionHeading.CloudStorageExamples)}`}
+                            >
+                                Cloud storage examples
+                            </a>
+                            .
                         </p>
                         <div
                             className="ug-scroll-container"
@@ -166,48 +176,35 @@ export const ABOUT_CONTENT: Page[] = [
                                     <tbody>
                                         <tr>
                                             <td>
-                                                <strong>Type</strong>
-                                            </td>
-                                            <td>Desktop/web file browser</td>
-                                            <td>Client-server image management</td>
-                                            <td>Public image repository</td>
-                                            <td>Public dynamics database</td>
-                                            <td>OME-Zarr discovery tool</td>
-                                            <td>Public image archive</td>
-                                            <td>Data versioning platform</td>
-                                            <td>Web collaborative analysis</td>
-                                            <td>Web image management</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
                                                 <strong>Cost</strong>
                                             </td>
-                                            <td>Free/open-source</td>
-                                            <td>
-                                                Free / open-source (self-hosted infrastructure
-                                                costs)
-                                            </td>
-                                            <td>Free (public resource)</td>
-                                            <td>Free (public resource)</td>
-                                            <td>Free / open-source</td>
-                                            <td>Free (public resource)</td>
-                                            <td>Free tier; paid plans for teams</td>
-                                            <td>Free / open-source (self-hosted)</td>
-                                            <td>Free / open-source (self-hosted)</td>
+                                            <td>Free</td>
+                                            <td>Free, but deployment may cost</td>
+                                            <td>Free</td>
+                                            <td>Free</td>
+                                            <td>Free</td>
+                                            <td>Free</td>
+                                            <td>Free, but deployment may cost</td>
+                                            <td>Free</td>
+                                            <td>Free</td>
                                         </tr>
                                         <tr>
                                             <td>
                                                 <strong>Deployment</strong>
                                             </td>
-                                            <td>Local app or static web page</td>
-                                            <td>Requires server + PostgreSQL + storage</td>
-                                            <td>Hosted by EMBL-EBI</td>
-                                            <td>Hosted by RIKEN</td>
-                                            <td>Static web page</td>
-                                            <td>Hosted by EMBL-EBI</td>
-                                            <td>SaaS or self-hosted</td>
-                                            <td>Requires server + DB</td>
-                                            <td>Requires server + DB</td>
+                                            <td>
+                                                Available at bff.allencell.org or can be self-hosted
+                                            </td>
+                                            <td>Self-hosted</td>
+                                            <td>Available at idr.openmicroscopy.org</td>
+                                            <td>Available at ssbd.riken.jp</td>
+                                            <td>Self-hosted</td>
+                                            <td>Available at ebi.ac.uk/bioimage-archive</td>
+                                            <td>
+                                                Available at quiltdata.com or can be self-hosted
+                                            </td>
+                                            <td>Self-hosted</td>
+                                            <td>Self-hosted</td>
                                         </tr>
                                         <tr>
                                             <td>
@@ -227,15 +224,29 @@ export const ABOUT_CONTENT: Page[] = [
                                             <td>
                                                 <strong>Metadata Source</strong>
                                             </td>
-                                            <td>User-supplied files (Parquet/CSV) or URLs</td>
-                                            <td>Stored in PostgreSQL; key-value annotations</td>
-                                            <td>Curated study-level metadata</td>
-                                            <td>Curated per-study</td>
-                                            <td>Derived from Zarr metadata</td>
-                                            <td>Study-level submissions</td>
-                                            <td>Package-level metadata</td>
-                                            <td>Project/annotation-based</td>
-                                            <td>Tag/key-value on images</td>
+                                            <td>User-supplied files (Parquet/CSV)</td>
+                                            <td>Separately managed database</td>
+                                            <td>Separately managed database</td>
+                                            <td>Separately managed database</td>
+                                            <td>User-supplied files (Parquet/CSV)</td>
+                                            <td>Separately managed database</td>
+                                            <td>User-supplied files (Parquet/CSV)</td>
+                                            <td>Separately managed database</td>
+                                            <td>Separately managed database</td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>File Source</strong>
+                                            </td>
+                                            <td>Local, network, cloud, or public repositories</td>
+                                            <td>Internal data store</td>
+                                            <td>Internal data store</td>
+                                            <td>Internal data store</td>
+                                            <td>Internal data store</td>
+                                            <td>Internal data store</td>
+                                            <td>S3</td>
+                                            <td>Internal data store</td>
+                                            <td>Internal data store</td>
                                         </tr>
                                         <tr>
                                             <td>
