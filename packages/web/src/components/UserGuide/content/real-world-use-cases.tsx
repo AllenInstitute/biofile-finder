@@ -17,7 +17,10 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 heading: "How people use BFF",
                 body: (
                     <>
-                        <p>This table is a summary of the in-depth use cases described below.</p>
+                        <p>
+                            This table is a summary of known use cases. Read detailed descriptions
+                            below.
+                        </p>
                         <table className="ug-table">
                             <thead>
                                 <tr>
