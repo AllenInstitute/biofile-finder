@@ -1,6 +1,7 @@
 import { TextField } from "@fluentui/react";
 import * as React from "react";
 
+import BaseComboBox from "../../ComboBox";
 import { PipelineParameter } from "../../../entity/ComputePipeline";
 
 import styles from "./ComputePipelineModal.module.css";
@@ -20,6 +21,54 @@ export default function PipelineParameterInput({
     onChange,
     onBlur,
 }: PipelineParameterInputProps) {
+    const renderControl = () => {
+        switch (param.type) {
+            case "select":
+                return (
+                    <BaseComboBox
+                        label=""
+                        selectedKey={
+                            value !== null && value !== undefined && value !== ""
+                                ? String(value)
+                                : null
+                        }
+                        options={(param.options ?? []).map((o) => ({ key: o, text: o }))}
+                        placeholder={
+                            param.default !== null && param.default !== undefined
+                                ? String(param.default)
+                                : "Select an option"
+                        }
+                        onChange={(option) => onChange(option ? option.key : "")}
+                    />
+                );
+            case "string":
+                return (
+                    <TextField
+                        type="text"
+                        value={value !== null && value !== undefined ? String(value) : ""}
+                        onChange={(_, v) => onChange(v ?? "")}
+                        onBlur={onBlur}
+                        placeholder={param.default !== null ? String(param.default) : ""}
+                        borderless
+                        className={styles.textField}
+                    />
+                );
+            case "number":
+            default:
+                return (
+                    <TextField
+                        type="number"
+                        value={value !== null && value !== undefined ? String(value) : ""}
+                        onChange={(_, v) => onChange(v ?? "")}
+                        onBlur={onBlur}
+                        placeholder={param.default !== null ? String(param.default) : ""}
+                        borderless
+                        className={styles.textField}
+                    />
+                );
+        }
+    };
+
     return (
         <div className={styles.paramField}>
             <div className={styles.paramLabel}>
@@ -27,15 +76,7 @@ export default function PipelineParameterInput({
                 {param.required && " *"}
             </div>
             <div className={styles.paramDesc}>{param.description}</div>
-            <TextField
-                type="number"
-                value={value !== null && value !== undefined ? String(value) : ""}
-                onChange={(_, v) => onChange(v ?? "")}
-                onBlur={onBlur}
-                placeholder={param.default !== null ? String(param.default) : ""}
-                borderless
-                className={styles.textField}
-            />
+            {renderControl()}
             {error && <div className={styles.paramError}>{error}</div>}
         </div>
     );
