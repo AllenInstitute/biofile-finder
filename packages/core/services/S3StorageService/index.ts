@@ -1,7 +1,12 @@
 import { parseS3Url, isS3Url } from "amazon-s3-url";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
+
+interface HttpInfo {
+    type: "webpage" | "image" | "multi-object" | "unknown";
+    size?: number;
+}
 
 /**
  * Return true if the URL seems to point to a multi object file like Zarr
@@ -67,18 +72,22 @@ export default class S3StorageService extends HttpServiceBase {
     }
 
     /**
-     * Get file size for a file on the cloud
-     * Returns undefined if unable to determine size
+     * Return the interpretted type and size of the cloud object.
+     *
+     * Returns type = "multi-object" if the URL points to a multi-object file like Zarr
+     * Returns type = "webpage" if the URL points to a webpage (e.g. HTML)
+     * Returns type = "image" if the URL points to an image (e.g. PNG, JPEG)
+     * Returns type = "unknown" if the URL points to an unknown type of file
+     * Returns size = undefined if unable to determine size
      */
-    public async getCloudObjectSize(url: string): Promise<number | undefined> {
+    public async getCloudObjectInfo(url: string, forceTypeDetection = false): Promise<HttpInfo> {
         if (isMultiObjectFile(url)) {
             const cloudDirInfo = await this.getCloudDirectoryInfo(url);
-            if (!cloudDirInfo) return;
-            return cloudDirInfo.size;
-        } else if (url.includes("amazonaws.com")) {
-            // Handle individual S3 files if they are simple
-            return this.getHttpObjectSize(url);
+            const { size } = cloudDirInfo || {};
+            return { type: "multi-object", size };
         }
+
+        return this.getHttpObjectSize(url, forceTypeDetection);
     }
 
     /**
@@ -178,14 +187,42 @@ export default class S3StorageService extends HttpServiceBase {
      *
      * Returns bytes (octet)
      */
-    private async getHttpObjectSize(url: string): Promise<number> {
+    private async getHttpObjectSize(url: string, forceTypeDetection: boolean): Promise<HttpInfo> {
+        let response: AxiosResponse;
         try {
-            const response = await axios.head(url);
-            return parseInt(response.headers["content-length"] || "0", 10);
+            response = await axios.head(url);
         } catch (err) {
-            console.error(`Failed to get file size (content-length): ${err}`);
-            throw err;
+            console.warn(`Failed to get HEAD url. Will try via GET request.`);
+            if (!forceTypeDetection) {
+                console.error(
+                    `Failed to get HEAD url. Unable to get content length or type: ${err}`
+                );
+                throw err;
+            }
+
+            // Some servers (e.g. S3) do not support HEAD requests, so try a GET request instead
+            // Note: this can be slow for large files so only do this if forceTypeDetection is true
+            //       and the HEAD request already failed
+            try {
+                response = await axios.get(url, {
+                    responseType: "arraybuffer", // prevents parsing large HTML/images unnecessarily
+                    maxRedirects: 5,
+                    timeout: 3_000,
+                    validateStatus: () => true, // don’t throw on non-2xx
+                });
+            } catch (err) {
+                console.error(
+                    `Failed to get HEAD or GET url. Unable to get content length or type: ${err}`
+                );
+                throw err;
+            }
         }
+
+        const size = parseInt(response.headers["content-length"] || "0", 10);
+        const contentType = response.headers["content-type"]?.toLowerCase() ?? "";
+        if (contentType.startsWith("image/")) return { type: "image", size };
+        if (contentType.includes("text/html")) return { type: "webpage", size };
+        return { type: "unknown", size };
     }
 
     /**

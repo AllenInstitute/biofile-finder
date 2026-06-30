@@ -213,6 +213,7 @@ type VolEMessage = {
 function getSupportedApps(
     apps: Apps,
     isSmallFile: boolean,
+    fileContentType: "webpage" | "image" | "multi-object" | "unknown",
     fileDetails?: FileDetail
 ): IContextualMenuItem[] {
     if (!fileDetails) {
@@ -259,6 +260,19 @@ function getSupportedApps(
                 }
             } catch (_e) {
                 // Not a valid URL; skip IDR check
+            }
+
+            // If the content of the file linked appears to be a webpage
+            // then offer Browser as the only option
+            if (fileContentType === "webpage") {
+                const hostname = new URL(fileDetails.path).hostname;
+                return [
+                    {
+                        ...apps.browser,
+                        text: `Browser (${hostname})`,
+                        title: `Open ${hostname} in the current browser in a new tab`,
+                    },
+                ];
             }
 
             return isLikelyLocalFile
@@ -359,6 +373,9 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     );
     const [isSmallFile, setIsSmallFile] = React.useState(false);
     const [isMacOS, setIsMacOS] = React.useState(false);
+    const [fileContentType, setFileContentType] = React.useState<
+        "webpage" | "image" | "multi-object" | "unknown"
+    >("unknown");
 
     const openInCfe = useOpenInCfe(fileSelection, annotationNames, fileService);
 
@@ -494,25 +511,28 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
 
     // Determine is the file is small or not asynchronously
     React.useEffect(() => {
-        async function determineFileSize() {
-            if (path) {
-                let fileSize = size;
-                if (!fileSize) {
-                    try {
-                        fileSize = await s3StorageService.getCloudObjectSize(path);
-                    } catch (_err) {
-                        console.debug(
-                            `Failed to get size of ${path}. Unable to determine if Vol-E is suitable viewer.`
-                        );
-                    }
-                }
+        if (!path) return;
 
+        // Consider a "small" file to be <= 100Mb
+        if (size !== undefined) setIsSmallFile(size <= 100 * ONE_MEGABYTE);
+
+        // Grab object info.
+        // Trust the users size if it is defined, otherwise get the size from the cloud object info.
+        // Also get the content type of the file, which may be used to determine the most suitable viewer.
+        s3StorageService
+            .getCloudObjectInfo(path, true)
+            .then((info) => {
                 // Consider a "small" file to be <= 100Mb
-                setIsSmallFile(!!fileSize && fileSize <= 100 * ONE_MEGABYTE);
-            }
-        }
-        determineFileSize();
-    }, [path, size, s3StorageService, setIsSmallFile]);
+                if (size === undefined && info.size !== undefined)
+                    setIsSmallFile(info.size <= 100 * ONE_MEGABYTE);
+                setFileContentType(info.type);
+            })
+            .catch((_err) => {
+                console.debug(
+                    `Failed to get size or type of ${path}. Unable to determine most suitable viewer.`
+                );
+            });
+    }, [path, size, s3StorageService, setFileContentType, setIsSmallFile]);
 
     // Try to quickly check if user is on MacOS or not
     React.useEffect(() => {
@@ -537,7 +557,10 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         getIsMacOS().then(setIsMacOS);
     }, []);
 
-    const supportedApps = [...getSupportedApps(apps, isSmallFile, fileDetails), ...userApps]
+    const supportedApps = [
+        ...getSupportedApps(apps, isSmallFile, fileContentType, fileDetails),
+        ...userApps,
+    ]
         // TODO: This is a placeholder until FIJI finishes rolling out FIJI support across all
         // platforms
         .filter((app) => isMacOS || app.key !== AppKeys.FIJI);
