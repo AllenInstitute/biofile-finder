@@ -29,7 +29,7 @@ export default function Hero() {
                         className={styles.ctaButton}
                         iconName="Forward"
                         iconPosition="after"
-                        text="Try BioFile Finder now"
+                        text="Open live example"
                         title="Launch BioFile Finder with an example dataset"
                         onClick={() => window.open(LINKS.tryNow, "_blank", "noopener,noreferrer")}
                     />
