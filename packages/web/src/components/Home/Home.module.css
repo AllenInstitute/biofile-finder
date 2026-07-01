@@ -73,21 +73,23 @@
 /* ---------- Intro band ---------- */
 
 .intro-container {
-    /* max-width comes from the shared .container; logo stays left, text flows
-       to its right and wraps without stacking. */
-    align-items: flex-start;
+    /* max-width comes from the shared .container. Items stretch so the logo
+       matches the height of the copy column on its right; the text flows
+       beside it and wraps without stacking. */
+    align-items: stretch;
     display: flex;
     gap: calc(2 * var(--margin));
 }
 
 .intro-logo {
-    /* Scales gently with the viewport, bounded so it stays balanced next to
-       the text. NOTE: the source asset is only 128px, so it is crisp up to
-       ~64px on Retina; replace site-logo.png with a higher-res file to keep
-       these larger sizes sharp. */
+    /* Match the height of the adjacent copy; width follows the aspect ratio.
+       max-height caps it because the source asset is only 128px — it stays
+       crisp up to ~64px on Retina, so replace site-logo.png with a higher-res
+       file before relying on the larger sizes here. */
     flex: none;
-    height: auto;
-    width: clamp(80px, 6vw, 96px);
+    height: 100%;
+    max-height: 110px;
+    width: auto;
 }
 
 .intro-body {
