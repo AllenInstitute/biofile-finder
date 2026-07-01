@@ -6,7 +6,6 @@ import GetStarted from "./sections/GetStarted";
 import Hero from "./sections/Hero";
 import HowItWorks from "./sections/HowItWorks";
 import Intro from "./sections/Intro";
-import PublicationCallout from "./sections/PublicationCallout";
 import WhatNext from "./sections/WhatNext";
 import WhyBioFileFinder from "./sections/WhyBioFileFinder";
 
@@ -24,7 +23,6 @@ export default function Home() {
             <Hero />
             <Intro />
             <WhyBioFileFinder />
-            <PublicationCallout />
             <HowItWorks />
             <GetStarted />
             <WhatNext />

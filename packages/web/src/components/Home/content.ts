@@ -13,6 +13,7 @@ export const LINKS = {
     datasets: "/datasets",
     tryNow: EXAMPLE_DATASET_URL,
     userGuide: "/user-guide",
+    userGuideSetupOverview: "/user-guide/getting-started/setup-overview",
     userGuideUseCases: "/user-guide/real-world-use-cases/use-cases",
     // External resources (open in a new tab).
     publication: "https://www.nature.com/articles/s41592-026-03130-w",

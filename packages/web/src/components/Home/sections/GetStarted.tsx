@@ -13,14 +13,14 @@ export default function GetStarted() {
     return (
         <Section id="get-started" title="How do I get started?" alt className={styles.centeredText}>
             <p className={styles.lead}>
-                Provide a data source by uploading a BioFile Finder compatible spreadsheet (CSV,
-                Parquet, or JSON) containing metadata annotations associated with your image files.
-                The only required key-value pair is &ldquo;File Path&rdquo; and URLs pointing to
-                dataset location(s).
+                A metadata file is a structured file (CSV, Parquet, or JSON) that describes your
+                dataset and tells BioFile Finder where to find the files you want to explore. To get
+                started, prepare a metadata file describing your files and load it into the app —
+                BioFile Finder turns that metadata into an interactive interface for filtering,
+                grouping, searching, previewing, and sharing.
             </p>
             <div className={styles.buttonRow}>
-                {/* TODO(user-guide): repoint to the user guide once that branch merges. */}
-                <Link to={LINKS.userGuide}>
+                <Link to={LINKS.userGuideSetupOverview}>
                     <SecondaryButton className={styles.ctaButton} text="Read guidance" />
                 </Link>
                 <LaunchAppMenu className={styles.ctaButton} />

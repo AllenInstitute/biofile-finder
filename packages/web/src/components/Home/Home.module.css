@@ -117,7 +117,7 @@
     }
 }
 
-/* ---------- Shared image + caption ---------- */
+/* ---------- Shared image ---------- */
 
 .wide-image {
     margin: 0 auto;
@@ -127,12 +127,6 @@
 /* Spacing when an image follows a card grid (How it works). */
 .image-after-grid {
     margin-top: calc(3 * var(--margin));
-}
-
-.caption {
-    font-size: var(--l-paragraph-size);
-    margin: calc(2 * var(--margin)) 0;
-    text-align: center;
 }
 
 /* ---------- Buttons / CTAs ---------- */
@@ -151,6 +145,11 @@
     display: inline-flex;
 }
 
+/* Intro CTAs align left under the left-aligned intro copy (not centered). */
+.intro-buttons {
+    justify-content: flex-start;
+}
+
 /* Override BaseButton's full-width default for inline CTAs. */
 .cta-button {
     width: fit-content;
@@ -163,15 +162,28 @@
     max-width: 720px;
 }
 
-/* Inline text link in body copy (e.g. "Visit the user guide to learn more"). */
-.text-link {
+/* ---------- Inline links ---------- */
+
+/*
+ * Inline links share one color treatment — aqua at rest, bright-aqua on
+ * hover/focus — so the intro text link and the "Engage with us" external
+ * links stay in sync. Single source of truth for the pairing; edit here.
+ */
+.text-link,
+.external-link {
     color: var(--aqua);
-    font-weight: 600;
 }
 
 .text-link:hover,
-.text-link:focus {
+.text-link:focus,
+.external-link:hover,
+.external-link:focus {
     color: var(--bright-aqua);
+}
+
+/* The intro text link underlines the whole link on hover/focus. */
+.text-link:hover,
+.text-link:focus {
     text-decoration: underline;
 }
 
@@ -185,18 +197,12 @@
     justify-content: center;
 }
 
+/* Color/hover come from the shared inline-link rules above. */
 .external-link {
     align-items: center;
-    color: var(--aqua);
     display: inline-flex;
     font-size: var(--l-paragraph-size);
     gap: 6px;
-}
-
-/* Brighten the whole link (text + icon) on hover/focus. */
-.external-link:hover,
-.external-link:focus {
-    color: var(--bright-aqua);
 }
 
 /* Underline only the text (not the icon or the gap between them) on hover. */
