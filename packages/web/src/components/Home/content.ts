@@ -4,23 +4,18 @@
  * Keeping content here (rather than inline in JSX) keeps the section
  * components small and declarative, and makes future copy edits a
  * one-file change with no markup risk.
- *
- * TODO(user-guide): the links pointing at `/learn` below are placeholders.
- * Repoint them to the new user guide routes once that branch is merged.
- * Search this file for `USER_GUIDE_PLACEHOLDER` to find every occurrence.
  */
 import { EXAMPLE_DATASET_URL } from "../../constants";
-
-const USER_GUIDE_PLACEHOLDER = "/learn";
 
 /** Route/URL targets used across the page. */
 export const LINKS = {
     app: "/app",
     datasets: "/datasets",
     tryNow: EXAMPLE_DATASET_URL,
-    userGuide: USER_GUIDE_PLACEHOLDER,
+    userGuide: "/user-guide",
+    userGuideUseCases: "/user-guide/real-world-use-cases/use-cases",
     // External resources (open in a new tab).
-    publication: "#", // TODO: Nature Methods article URL
+    publication: "https://www.nature.com/articles/s41592-026-03130-w",
     supportForum: "https://github.com/AllenInstitute/biofile-finder/discussions/categories/q-a",
     github: "https://github.com/AllenInstitute/biofile-finder",
     email: "mailto:aics_software_support@alleninstitute.org",
@@ -101,15 +96,13 @@ export const NEXT_CARDS: ActionCard[] = [
         title: "See how scientists use BFF",
         body:
             "BioFile Finder has been used across many dataset types to support the release of published datasets and ongoing work.",
-        // TODO(user-guide): repoint to use-cases page when available.
-        cta: { text: "Explore use cases", href: USER_GUIDE_PLACEHOLDER },
+        cta: { text: "Explore use cases", href: LINKS.userGuideUseCases },
     },
     {
         title: "Learn more",
         body:
             "Visit our user guide for guidance on how to get started with your own data and other helpful resources.",
-        // TODO(user-guide): repoint to user guide when available.
-        cta: { text: "Visit user guide", href: USER_GUIDE_PLACEHOLDER },
+        cta: { text: "Visit user guide", href: LINKS.userGuide },
     },
     {
         title: "Browse dataset collections",

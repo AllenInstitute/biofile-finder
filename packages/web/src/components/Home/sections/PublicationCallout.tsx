@@ -20,7 +20,6 @@ export default function PublicationCallout() {
                 See how BioFile Finder supports scientific workflows in Nature Methods
             </p>
             <div className={styles.buttonRow}>
-                {/* TODO: replace with the Nature Methods article URL. */}
                 <a
                     href={LINKS.publication}
                     target="_blank"
