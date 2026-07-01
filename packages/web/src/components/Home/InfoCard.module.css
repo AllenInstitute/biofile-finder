@@ -1,0 +1,35 @@
+.card {
+    background-color: var(--primary-dark);
+    border: 1px solid var(--border-color);
+    border-radius: var(--small-border-radius);
+    display: flex;
+    flex-direction: column;
+    gap: var(--margin);
+    height: 100%;
+    padding: calc(2 * var(--margin));
+}
+
+.heading {
+    /* Lighter than the global h3 weight to match the marketing layout. */
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.accent {
+    color: var(--bright-aqua);
+    font-weight: 600;
+}
+
+.body {
+    /* Color is inherited from the app layout (--secondary-text-color). */
+    flex: 1 1 auto;
+    font-size: var(--l-paragraph-size);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Push the CTA to the bottom edge so cards in a row align. */
+.action {
+    margin-top: var(--margin);
+}
