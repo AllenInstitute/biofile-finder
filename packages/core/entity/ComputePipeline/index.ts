@@ -25,7 +25,8 @@ export interface ComputeTaskRequest {
     pipeline: string;
     cluster: string;
     user: string | null;
-    parameters: Record<string, unknown>;
+    filePaths: string[];
+    parameters: Record<string, string>;
 }
 
 export interface ComputeTaskResponse {

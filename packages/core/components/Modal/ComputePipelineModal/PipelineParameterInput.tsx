@@ -31,9 +31,7 @@ export default function PipelineParameterInput({
                         selectedKey={!isEmpty(value) ? value : null}
                         options={(param.options ?? []).map((o) => ({ key: o, text: o }))}
                         placeholder={
-                            param.default !== null && param.default !== undefined
-                                ? String(param.default)
-                                : "Select an option"
+                            param.default !== null ? String(param.default) : "Select an option"
                         }
                         onChange={(option) => onChange(option ? String(option.key) : "")}
                     />

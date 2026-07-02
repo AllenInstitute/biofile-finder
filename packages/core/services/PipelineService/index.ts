@@ -46,13 +46,10 @@ export default class PipelineService extends HttpServiceBase {
     async submitComputeTask(request: ComputeTaskRequest): Promise<ComputeTaskResponse> {
         const url = `${this.loadBalancerBaseUrl}/fss2/v4.0/compute/${request.pipeline}`;
 
-        const { file_paths, ...rest } = request.parameters;
-        const files = Array.isArray(file_paths)
-            ? file_paths.map((p) => (typeof p === "string" ? PipelineService.encodeFilePath(p) : p))
-            : file_paths;
-        const body: Record<string, unknown> = { files };
-        for (const [key, value] of Object.entries(rest)) {
-            if (value !== null && value !== undefined && value !== "") {
+        const files = request.filePaths.map((p) => PipelineService.encodeFilePath(p));
+        const body: Record<string, string | string[]> = { files };
+        for (const [key, value] of Object.entries(request.parameters)) {
+            if (value !== "") {
                 body[key] = value;
             }
         }

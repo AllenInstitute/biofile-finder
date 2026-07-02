@@ -21,7 +21,7 @@ const FILE_PATHS_PARAM = "file_paths";
 type ModalPhase = "loading" | "selecting" | "configuring" | "submitting" | "submitted" | "error";
 
 function getInitialValue(param: PipelineParameter): string {
-    return param.default !== null && param.default !== undefined ? String(param.default) : "";
+    return param.default !== null ? String(param.default) : "";
 }
 
 function validateParam(param: PipelineParameter, value: string | undefined): string {
@@ -271,8 +271,8 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                 pipeline: selectedPipeline.id,
                 cluster: selectedCluster,
                 user: userId || null,
+                filePaths,
                 parameters: {
-                    [FILE_PATHS_PARAM]: filePaths,
                     ...requiredValues,
                     ...addedOptVals,
                 },
