@@ -483,9 +483,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                                                                 text: p.label,
                                                             })
                                                         )}
-                                                        // null (not undefined) so the dropdown
-                                                        // clears its displayed selection when the
-                                                        // key resets after add/remove.
+                                                        // null clears the displayed selection on reset
                                                         selectedKey={optionalSelectorKey}
                                                         onChange={(opt) =>
                                                             opt &&

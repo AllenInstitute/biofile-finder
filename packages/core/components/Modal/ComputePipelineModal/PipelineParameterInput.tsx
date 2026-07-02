@@ -1,4 +1,5 @@
 import { TextField } from "@fluentui/react";
+import { isNil, isEmpty } from "lodash";
 import * as React from "react";
 
 import BaseComboBox from "../../ComboBox";
@@ -27,11 +28,7 @@ export default function PipelineParameterInput({
                 return (
                     <BaseComboBox
                         label=""
-                        selectedKey={
-                            value !== null && value !== undefined && value !== ""
-                                ? String(value)
-                                : null
-                        }
+                        selectedKey={!isNil(value) && !isEmpty(value) ? String(value) : null}
                         options={(param.options ?? []).map((o) => ({ key: o, text: o }))}
                         placeholder={
                             param.default !== null && param.default !== undefined
@@ -45,7 +42,7 @@ export default function PipelineParameterInput({
                 return (
                     <TextField
                         type="text"
-                        value={value !== null && value !== undefined ? String(value) : ""}
+                        value={!isNil(value) ? String(value) : ""}
                         onChange={(_, v) => onChange(v ?? "")}
                         onBlur={onBlur}
                         placeholder={param.default !== null ? String(param.default) : ""}
@@ -58,7 +55,7 @@ export default function PipelineParameterInput({
                 return (
                     <TextField
                         type="number"
-                        value={value !== null && value !== undefined ? String(value) : ""}
+                        value={!isNil(value) ? String(value) : ""}
                         onChange={(_, v) => onChange(v ?? "")}
                         onBlur={onBlur}
                         placeholder={param.default !== null ? String(param.default) : ""}

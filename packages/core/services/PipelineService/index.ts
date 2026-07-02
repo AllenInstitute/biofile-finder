@@ -36,8 +36,8 @@ export default class PipelineService extends HttpServiceBase {
     }
 
     // FSS curls these paths directly, so we need to encode.
-    private static encodeFilePath(filePath: unknown): unknown {
-        if (typeof filePath !== "string" || !/^[a-z][a-z0-9+.-]*:\/\//i.test(filePath)) {
+    private static encodeFilePath(filePath: string): string {
+        if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(filePath)) {
             return filePath;
         }
         return PipelineService.encodeURISection(filePath);
@@ -48,7 +48,7 @@ export default class PipelineService extends HttpServiceBase {
 
         const { file_paths, ...rest } = request.parameters;
         const files = Array.isArray(file_paths)
-            ? file_paths.map((p) => PipelineService.encodeFilePath(p))
+            ? file_paths.map((p) => (typeof p === "string" ? PipelineService.encodeFilePath(p) : p))
             : file_paths;
         const body: Record<string, unknown> = { files };
         for (const [key, value] of Object.entries(rest)) {
