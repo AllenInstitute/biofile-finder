@@ -1,5 +1,5 @@
 import { TextField } from "@fluentui/react";
-import { isNil, isEmpty } from "lodash";
+import { isEmpty } from "lodash";
 import * as React from "react";
 
 import BaseComboBox from "../../ComboBox";
@@ -9,9 +9,9 @@ import styles from "./ComputePipelineModal.module.css";
 
 interface PipelineParameterInputProps {
     param: PipelineParameter;
-    value: unknown;
+    value: string;
     error: string;
-    onChange: (value: unknown) => void;
+    onChange: (value: string) => void;
     onBlur: () => void;
 }
 
@@ -28,21 +28,21 @@ export default function PipelineParameterInput({
                 return (
                     <BaseComboBox
                         label=""
-                        selectedKey={!isNil(value) && !isEmpty(value) ? String(value) : null}
+                        selectedKey={!isEmpty(value) ? value : null}
                         options={(param.options ?? []).map((o) => ({ key: o, text: o }))}
                         placeholder={
                             param.default !== null && param.default !== undefined
                                 ? String(param.default)
                                 : "Select an option"
                         }
-                        onChange={(option) => onChange(option ? option.key : "")}
+                        onChange={(option) => onChange(option ? String(option.key) : "")}
                     />
                 );
             case "string":
                 return (
                     <TextField
                         type="text"
-                        value={!isNil(value) ? String(value) : ""}
+                        value={value}
                         onChange={(_, v) => onChange(v ?? "")}
                         onBlur={onBlur}
                         placeholder={param.default !== null ? String(param.default) : ""}
@@ -55,7 +55,7 @@ export default function PipelineParameterInput({
                 return (
                     <TextField
                         type="number"
-                        value={!isNil(value) ? String(value) : ""}
+                        value={value}
                         onChange={(_, v) => onChange(v ?? "")}
                         onBlur={onBlur}
                         placeholder={param.default !== null ? String(param.default) : ""}
