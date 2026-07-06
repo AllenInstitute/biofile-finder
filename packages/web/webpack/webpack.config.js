@@ -87,7 +87,7 @@ module.exports = ({ analyze, production } = {}) => ({
                 ],
             },
             {
-                test: /\.png/,
+                test: /\.(png|jpe?g)/,
                 type: "asset/resource",
             },
         ],
