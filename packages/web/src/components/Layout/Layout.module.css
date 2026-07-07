@@ -14,6 +14,13 @@
   overflow-y: auto;
 }
 
+/* Reserve space so flowing page content clears the fixed footer (~45px tall)
+   instead of sitting underneath. Not applied to the user guide, which runs its
+   own full-height scroll panels and handles footer clearance internally. */
+.footer-clearance {
+  padding-bottom: calc(5 * var(--margin));
+}
+
 /* App. -15 so row count is included */
 .fill-screen {
   height: calc(100% - 15px); 
