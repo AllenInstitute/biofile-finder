@@ -1,8 +1,8 @@
 import { Icon } from "@fluentui/react";
+import { kebabCase } from "lodash";
 import * as React from "react";
 
 import { Page, PageSlug, SectionHeading } from "./types";
-import slugify from "../slugify";
 
 // Note: "real-world-use-cases/other-examples" exists in this file but has no
 // corresponding nav entry. It is unreachable unless added to nav.ts.
@@ -33,7 +33,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 <tr>
                                     <td>
                                         <a
-                                            href={`#${slugify(
+                                            href={`#${kebabCase(
                                                 SectionHeading.ExploreScreeningResults
                                             )}`}
                                         >
@@ -50,7 +50,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 {/* "Validate metadata" row — temporarily hidden
                                 <tr>
                                     <td>
-                                        <a href={`#${slugify(SectionHeading.ValidateMetadata)}`}>
+                                        <a href={`#${kebabCase(SectionHeading.ValidateMetadata)}`}>
                                             <strong>{SectionHeading.ValidateMetadata}</strong>
                                         </a>
                                     </td>
@@ -64,7 +64,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 <tr>
                                     <td>
                                         <a
-                                            href={`#${slugify(
+                                            href={`#${kebabCase(
                                                 SectionHeading.InspectSubsetsOfImages
                                             )}`}
                                         >
@@ -79,7 +79,11 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 </tr>
                                 <tr>
                                     <td>
-                                        <a href={`#${slugify(SectionHeading.PerformQCOnDatasets)}`}>
+                                        <a
+                                            href={`#${kebabCase(
+                                                SectionHeading.PerformQCOnDatasets
+                                            )}`}
+                                        >
                                             <strong>{SectionHeading.PerformQCOnDatasets}</strong>
                                         </a>
                                     </td>
@@ -92,7 +96,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 <tr>
                                     <td>
                                         <a
-                                            href={`#${slugify(
+                                            href={`#${kebabCase(
                                                 SectionHeading.ManageImageInventory
                                             )}`}
                                         >

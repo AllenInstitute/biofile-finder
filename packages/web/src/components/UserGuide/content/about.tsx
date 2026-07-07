@@ -1,3 +1,4 @@
+import { kebabCase } from "lodash";
 import * as React from "react";
 
 import { GroupSlug, Page, PageSlug, SectionHeading } from "./types";
@@ -7,7 +8,6 @@ import QueryingFilters from "../assets/querying-filters.png";
 import QueryingResults from "../assets/querying-results.png";
 import SharingUrl from "../assets/sharing-url.png";
 import Thumbnails from "../assets/thumbnails.jpg";
-import slugify from "../slugify";
 
 export const ABOUT_CONTENT: Page[] = [
     {
@@ -147,7 +147,7 @@ export const ABOUT_CONTENT: Page[] = [
                             <a
                                 href={`/user-guide/${GroupSlug.OtherResources}/${
                                     PageSlug.StorageOptions
-                                }#${slugify(SectionHeading.CloudStorageExamples)}`}
+                                }#${kebabCase(SectionHeading.CloudStorageExamples)}`}
                             >
                                 Cloud storage examples
                             </a>
@@ -628,7 +628,7 @@ export const ABOUT_CONTENT: Page[] = [
                             <a
                                 href={`/user-guide/${GroupSlug.AppInformation}/${
                                     PageSlug.SupportedViewers
-                                }#${slugify(SectionHeading.ViewerTable)}`}
+                                }#${kebabCase(SectionHeading.ViewerTable)}`}
                             >
                                 See the image viewer comparison table
                             </a>

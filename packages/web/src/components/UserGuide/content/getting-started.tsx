@@ -1,8 +1,8 @@
 import { Icon } from "@fluentui/react";
+import { kebabCase } from "lodash";
 import * as React from "react";
 
 import { GroupSlug, Page, PageSlug, SectionHeading } from "./types";
-import slugify from "../slugify";
 
 type CsvValue = string | number | boolean | null | undefined;
 
@@ -368,7 +368,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 <a
                                     href={`/user-guide/${GroupSlug.GettingStarted}/${
                                         PageSlug.CreatingADatasetMetadataFile
-                                    }#${slugify(SectionHeading.MetadataFileExamples)}`}
+                                    }#${kebabCase(SectionHeading.MetadataFileExamples)}`}
                                 >
                                     Metadata file examples
                                 </a>{" "}
@@ -469,7 +469,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 <a
                                     href={`/user-guide/${GroupSlug.OtherResources}/${
                                         PageSlug.StorageOptions
-                                    }#${slugify(SectionHeading.CloudStorage)}`}
+                                    }#${kebabCase(SectionHeading.CloudStorage)}`}
                                 >
                                     See cloud storage options
                                 </a>
