@@ -1,11 +1,15 @@
-import { groupBy, keyBy, map } from "lodash";
+import { groupBy, map } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
 import SearchParams, { SearchParamsComponents, FileView } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
-import { getAnnotations, getEdgeDefinitions } from "../metadata/selectors";
+import {
+    getAnnotations,
+    getEdgeDefinitions,
+    getAnnotationNameToAnnotationMap,
+} from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 // BASIC SELECTORS
@@ -165,31 +169,31 @@ export const getPythonConversion = createSelector(
 );
 
 export const getGroupedByFilterName = createSelector(
-    [getFileFilters, getAnnotations],
-    (globalFilters: FileFilter[], annotations: Annotation[]) => {
-        const annotationNameToInstanceMap = keyBy(annotations, "name");
-        const filters = map(globalFilters, (filter: FileFilter) => {
-            const annotation = annotationNameToInstanceMap[filter.name];
-            const displayValue =
+    [getFileFilters, getAnnotationNameToAnnotationMap],
+    (globalFilters: FileFilter[], nameToAnnotationMap: Map<string, Annotation>) => {
+        const filters = map(globalFilters, (filter: FileFilter) => ({
+            name: filter.name,
+            value: filter.value,
+            displayValue:
                 filter.type === FilterType.ANY || filter.type === FilterType.EXCLUDE
                     ? ""
-                    : annotation?.getDisplayValue(filter.value);
-            return {
-                displayName: annotation?.displayName,
-                name: filter.name,
-                value: filter.value,
-                displayValue,
-                type: filter?.type || FilterType.DEFAULT,
-            };
-        }).filter((filter) => filter.displayValue !== undefined);
-        return groupBy(filters, (filter) => filter.displayName);
+                    : nameToAnnotationMap.get(filter.name)?.getDisplayValue(filter.value),
+            type: filter?.type || FilterType.DEFAULT,
+        })).filter((filter) => filter.displayValue !== undefined);
+        return groupBy(filters, (filter) => filter.name);
     }
 );
 
+// Returns `null` if available annotations is `null` which occurs
+// when the database was unable to determine available annotations
 export const getUnavailableAnnotationsForHierarchy = createSelector(
     [getAnnotations, getAvailableAnnotationsForHierarchy],
-    (allAnnotations, availableAnnotations) =>
-        Annotation.sort(
-            allAnnotations.filter((annotation) => !availableAnnotations.includes(annotation.name))
-        )
+    (allAnnotations, availableAnnotations): Set<string> | null =>
+        availableAnnotations
+            ? new Set(
+                  allAnnotations
+                      .map((annotation) => annotation.name)
+                      .filter((name) => !availableAnnotations.includes(name))
+              )
+            : null
 );

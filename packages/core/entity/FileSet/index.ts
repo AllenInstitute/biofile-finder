@@ -1,15 +1,13 @@
 import { defaults, find, join, map, uniqueId } from "lodash";
 import LRUCache from "lru-cache";
 
-import FileFilter, { FilterType } from "../FileFilter";
+import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
-import FuzzyFilter from "../FileFilter/FuzzyFilter";
-import ExcludeFilter from "../FileFilter/ExcludeFilter";
-import IncludeFilter from "../FileFilter/IncludeFilter";
 import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
 import SQLBuilder from "../SQLBuilder";
 import FileDetail from "../FileDetail";
+import resolvePathIsArray from "../resolvePathIsArray";
 
 interface Opts {
     fileService: FileService;
@@ -38,10 +36,7 @@ export default class FileSet {
 
     private cache: LRUCache<number, FileDetail>;
     private readonly fileService: FileService;
-    private readonly _filters: FileFilter[];
-    public readonly fuzzyFilters?: FuzzyFilter[];
-    public readonly excludeFilters?: ExcludeFilter[];
-    public readonly includeFilters?: IncludeFilter[];
+    public readonly filters: FileFilter[];
     public readonly sort?: FileSort;
     private totalFileCount: number | undefined;
     private indexesForFilesCurrentlyLoading: Set<number> = new Set();
@@ -54,10 +49,7 @@ export default class FileSet {
         const { fileService, filters, maxCacheSize, sort } = defaults({}, opts, DEFAULT_OPTS);
 
         this.cache = new LRUCache<number, FileDetail>({ max: maxCacheSize });
-        this._filters = filters;
-        this.fuzzyFilters = filters.filter((f) => f.type === FilterType.FUZZY);
-        this.excludeFilters = filters.filter((f) => f.type === FilterType.EXCLUDE);
-        this.includeFilters = filters.filter((f) => f.type === FilterType.ANY);
+        this.filters = filters;
         this.sort = sort;
         this.fileService = fileService;
 
@@ -68,10 +60,6 @@ export default class FileSet {
 
     public get files() {
         return this.cache;
-    }
-
-    public get filters() {
-        return this._filters;
     }
 
     /**
@@ -194,27 +182,27 @@ export default class FileSet {
     }
 
     /**
-     * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses
+     * Combine filters and sort into standard SQL "WHERE", "AND", "OR", and "ORDER BY" clauses.
+     *
+     * `pathIsArrayByName` supplies the schema-derived STRUCT[] flags (keyed by dotted
+     * annotation name) that nested filters and sorts need at SQL-generation time; see
+     * resolvePathIsArray. Callers build it from the active data source's annotations.
      */
-    public toQuerySQLBuilder(): SQLBuilder {
-        // Map the filter values to the annotation names they filter
-        const filtersGroupedByAnnotation = this.filters.reduce(
-            (map, filter) => ({
-                ...map,
-                [filter.name]: filter.name in map ? [...map[filter.name], filter] : [filter],
-            }),
-            {} as { [name: string]: FileFilter[] }
+    public toQuerySQLBuilder(pathIsArrayByName: Map<string, boolean[]>): SQLBuilder {
+        const sqlBuilder = new SQLBuilder().where(
+            FileFilter.toListOfWhereClauses(this.filters, pathIsArrayByName)
         );
-
-        // Transform the map above into SQL comparison clauses
-        const sqlBuilder = this.sort ? this.sort.toQuerySQLBuilder() : new SQLBuilder();
-
-        Object.entries(filtersGroupedByAnnotation).forEach(([_, appliedFilters]) => {
-            sqlBuilder.where(
-                appliedFilters.map((filter) => filter.toSQLWhereString()).join(" OR ")
+        if (this.sort) {
+            sqlBuilder.orderBy(
+                this.sort.toOrderByClause(
+                    resolvePathIsArray(
+                        this.sort.annotationName,
+                        this.sort.path.length,
+                        pathIsArrayByName
+                    )
+                )
             );
-        });
-
+        }
         return sqlBuilder;
     }
 

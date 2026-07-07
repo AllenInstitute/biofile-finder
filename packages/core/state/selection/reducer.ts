@@ -44,6 +44,7 @@ import {
     SetFileSelection,
     REORDER_COLUMNS,
     ReorderColumnsAction,
+    SetAvailableAnnotationsAction,
 } from "./actions";
 import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
@@ -55,9 +56,11 @@ import { DEFAULT_COLUMN_WIDTH, FileView, Source } from "../../entity/SearchParam
 import Tutorial from "../../entity/Tutorial";
 import Tutorials from "../../hooks/useHelpOptions/Tutorials";
 
+// TODO: Restructure annotationHierarchy, availableAnnotationsForHierarchy, and recentAnnotations
+// to store annotation paths (string[][]) instead of concatenated dotted strings.
 export interface SelectionStateBranch {
     annotationHierarchy: string[];
-    availableAnnotationsForHierarchy: string[];
+    availableAnnotationsForHierarchy: string[] | null;
     availableAnnotationsForHierarchyLoading: boolean;
     columns: Column[];
     dataSources: Source[];
@@ -285,7 +288,7 @@ export default makeReducer<SelectionStateBranch>(
             // Reset file selections when annotation hierarchy changes
             fileSelection: new FileSelection(),
         }),
-        [SET_AVAILABLE_ANNOTATIONS]: (state, action) => ({
+        [SET_AVAILABLE_ANNOTATIONS]: (state, action: SetAvailableAnnotationsAction) => ({
             ...state,
             availableAnnotationsForHierarchy: action.payload,
             availableAnnotationsForHierarchyLoading: false,

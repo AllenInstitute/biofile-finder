@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { compact, find } from "lodash";
 
-import Annotation from "../";
+import Annotation from "..";
 import AnnotationName from "../AnnotationName";
 import { AnnotationType } from "../../AnnotationFormatter";
 import dateTimeFormatter from "../../AnnotationFormatter/date-time-formatter";
@@ -14,6 +14,17 @@ describe("Annotation", () => {
         annotationName: AnnotationName.UPLOADED,
         description: "Date the file was uploaded",
         type: AnnotationType.DATETIME,
+    });
+    const nested = new Annotation({
+        annotationName: ["Well", "Dose", "Unit"],
+        description: "Dose unit",
+        type: AnnotationType.STRING,
+        pathIsArray: [true, false, false],
+    });
+    const flat = new Annotation({
+        annotationName: ["Gene"],
+        description: "Gene",
+        type: AnnotationType.STRING,
     });
 
     describe("sort", () => {
@@ -60,6 +71,39 @@ describe("Annotation", () => {
 
             // assert
             expect(sorted).to.deep.equal([fileType, cellLine, gene]);
+        });
+    });
+
+    describe("name", () => {
+        it("derives name from combined path", () => {
+            expect(nested.name).to.equal("Well.Dose.Unit");
+            expect(flat.name).to.equal("Gene");
+        });
+    });
+
+    describe("isSubField", () => {
+        it("isSubField is true only for multi-segment paths", () => {
+            expect(nested.isSubField).to.equal(true);
+            expect(flat.isSubField).to.equal(false);
+        });
+    });
+
+    describe("parents", () => {
+        it("parents returns the leading path segments (or undefined when flat)", () => {
+            expect(nested.parents).to.deep.equal(["Well", "Dose"]);
+            expect(flat.parents).to.be.undefined;
+        });
+    });
+
+    describe("isParent", () => {
+        it("isParent is true for NESTED-type (STRUCT column) annotations", () => {
+            const parent = new Annotation({
+                annotationName: ["Well"],
+                description: "Well",
+                type: AnnotationType.NESTED,
+            });
+            expect(parent.isParent).to.equal(true);
+            expect(flat.isParent).to.equal(false);
         });
     });
 
@@ -120,6 +164,59 @@ describe("Annotation", () => {
 
             const annotation = new Annotation(someDateAnnotation);
             expect(annotation.extractFromFile(fmsFile)).to.equal("5/17/2019, 12:43:55 AM");
+        });
+
+        it("extracts and joins leaf values from a nested sub-field annotation", () => {
+            const fmsFile = new FileDetail(
+                {
+                    annotations: [
+                        {
+                            name: "Well",
+                            values: [{ Dose: [{ Unit: ["mg"] }] }, { Dose: [{ Unit: ["mL"] }] }],
+                        },
+                    ],
+                    file_id: "abc123",
+                    file_name: "mockfile.png",
+                    file_path: "some/path/to/mockfile.png",
+                    file_size: 1,
+                    uploaded: new Date().toISOString(),
+                },
+                Environment.TEST
+            );
+
+            const annotation = new Annotation({
+                annotationName: ["Well", "Dose", "Unit"],
+                description: "Dose unit",
+                type: AnnotationType.STRING,
+                pathIsArray: [true, false, false],
+            });
+            expect(annotation.extractFromFile(fmsFile)).to.equal(`mg${Annotation.SEPARATOR}mL`);
+        });
+
+        it("shows an entry count for a nested parent annotation rather than stringifying objects", () => {
+            const fmsFile = new FileDetail(
+                {
+                    annotations: [
+                        {
+                            name: "Well",
+                            values: [{ Dose: [{ Unit: ["mg"] }] }, { Dose: [{ Unit: ["mL"] }] }],
+                        },
+                    ],
+                    file_id: "abc123",
+                    file_name: "mockfile.png",
+                    file_path: "some/path/to/mockfile.png",
+                    file_size: 1,
+                    uploaded: new Date().toISOString(),
+                },
+                Environment.TEST
+            );
+
+            const parent = new Annotation({
+                annotationName: ["Well"],
+                description: "Well",
+                type: AnnotationType.NESTED,
+            });
+            expect(parent.extractFromFile(fmsFile)).to.equal("2 entries");
         });
 
         it("returns a MISSING_VALUE sentinel if the given FmsFile does not have the annotation", () => {
