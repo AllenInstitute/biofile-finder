@@ -24,6 +24,9 @@ export default function PipelineParameterInput({
 }: PipelineParameterInputProps) {
     const renderControl = () => {
         switch (param.type) {
+            case "file_paths":
+                // File paths come from the file selection
+                return null;
             case "select":
                 return (
                     <BaseComboBox
