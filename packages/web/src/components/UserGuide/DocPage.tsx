@@ -54,7 +54,7 @@ export default function DocPage({ group, page }: DocPageProps) {
                 })}
             </div>
             <div className={styles.pagination}>
-                {prev ? (
+                {prev && (
                     <Link
                         to={userGuidePath(prev.group.slug, prev.page.slug)}
                         className={classNames(styles.pageNav, styles.pageNavPrev)}
@@ -65,10 +65,8 @@ export default function DocPage({ group, page }: DocPageProps) {
                             <div className={styles.pageNavTitle}>{prev.page.title}</div>
                         </div>
                     </Link>
-                ) : (
-                    <div />
                 )}
-                {next ? (
+                {next && (
                     <Link
                         to={userGuidePath(next.group.slug, next.page.slug)}
                         className={classNames(styles.pageNav, styles.pageNavNext)}
@@ -79,8 +77,6 @@ export default function DocPage({ group, page }: DocPageProps) {
                         </div>
                         <Icon iconName="ChevronRight" className={styles.pageNavIcon} />
                     </Link>
-                ) : (
-                    <div />
                 )}
             </div>
         </article>
