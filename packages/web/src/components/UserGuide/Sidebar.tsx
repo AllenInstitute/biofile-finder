@@ -4,6 +4,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import { CONTENT } from "./content";
+import { userGuidePath } from "./paths";
 
 import styles from "./Sidebar.module.css";
 
@@ -67,7 +68,7 @@ export default function Sidebar({ activeGroupSlug, activePageSlug }: SidebarProp
                                     return (
                                         <li key={page.slug}>
                                             <Link
-                                                to={`/user-guide/${group.slug}/${page.slug}`}
+                                                to={userGuidePath(group.slug, page.slug)}
                                                 className={classNames(styles.pageLink, {
                                                     [styles.activePage]: isActive,
                                                 })}
