@@ -19,7 +19,7 @@ export const MOCK_PIPELINES: Pipeline[] = [
         id: "zarr-conversion",
         name: "BioIO OME Zarr Conversion",
         description: "Converts microscopy images to OME-Zarr format.",
-        restrictions: null,
+        restrictions: "Does not support mosaic images at this time.",
         clusters: ["slurm-prod"],
         acceptedExtensions: ["czi", "tif", "tiff", "nd2"],
         maxFileSizeBytes: null,
