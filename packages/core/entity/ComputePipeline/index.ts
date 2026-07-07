@@ -8,21 +8,25 @@ export interface Pipeline {
     maxFileSizeBytes: number | null;
 }
 
+export type PipelineParameterType = "file_paths" | "string" | "number" | "select";
+
 export interface PipelineParameter {
     name: string;
     label: string;
     description: string;
-    type: "file_paths" | "number";
+    type: PipelineParameterType;
     required: boolean;
-    default: number | null;
-    validation: { min?: number; max?: number };
+    default: number | string | null;
+    options?: string[];
+    validation: { min?: number; max?: number; pattern?: string };
 }
 
 export interface ComputeTaskRequest {
     pipeline: string;
     cluster: string;
     user: string | null;
-    parameters: Record<string, unknown>;
+    filePaths: string[];
+    parameters: Record<string, string>;
 }
 
 export interface ComputeTaskResponse {

@@ -21,21 +21,30 @@ const FILE_PATHS_PARAM = "file_paths";
 type ModalPhase = "loading" | "selecting" | "configuring" | "submitting" | "submitted" | "error";
 
 function getInitialValue(param: PipelineParameter): string {
-    return param.default !== null && param.default !== undefined ? String(param.default) : "";
+    return param.default !== null ? String(param.default) : "";
 }
 
-function validateParam(param: PipelineParameter, value: unknown): string {
-    const empty = value === null || value === undefined || value === "";
+function validateParam(param: PipelineParameter, value: string | undefined): string {
+    const empty = !value;
     if (param.required && empty) return "This field is required.";
     if (empty) return "";
 
     const { validation } = param;
-    const n = Number(value);
-    if (isNaN(n)) return "Must be a number.";
-    if (validation.min !== undefined && n < validation.min)
-        return `Must be at least ${validation.min}.`;
-    if (validation.max !== undefined && n > validation.max)
-        return `Must be no more than ${validation.max}.`;
+
+    if (param.type === "number") {
+        const n = Number(value);
+        if (isNaN(n)) return "Must be a number.";
+        if (validation.min !== undefined && n < validation.min)
+            return `Must be at least ${validation.min}.`;
+        if (validation.max !== undefined && n > validation.max)
+            return `Must be no more than ${validation.max}.`;
+        return "";
+    }
+
+    // string / select
+    if (validation.pattern !== undefined && !new RegExp(validation.pattern).test(String(value))) {
+        return "Invalid format.";
+    }
     return "";
 }
 
@@ -60,12 +69,12 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
     const fileCount = fileSelection.count();
 
     // Form state
-    const [requiredValues, setRequiredValues] = React.useState<Record<string, unknown>>({});
+    const [requiredValues, setRequiredValues] = React.useState<Record<string, string>>({});
     const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
     // Optional params: add-one-at-a-time
     const [addedOptionalNames, setAddedOptionalNames] = React.useState<string[]>([]);
-    const [optionalValues, setOptionalValues] = React.useState<Record<string, unknown>>({});
+    const [optionalValues, setOptionalValues] = React.useState<Record<string, string>>({});
     const [optionalSelectorKey, setOptionalSelectorKey] = React.useState<string | null>(null);
     const [advancedExpanded, setAdvancedExpanded] = React.useState(false);
 
@@ -123,10 +132,10 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                 );
 
                 setParameters(params);
-                const defaults: Record<string, unknown> = {};
+                const defaults: Record<string, string> = {};
                 for (const p of params) {
                     if (p.required && p.type !== FILE_PATHS_PARAM && p.default !== null) {
-                        defaults[p.name] = p.default;
+                        defaults[p.name] = String(p.default);
                     }
                 }
                 setRequiredValues(defaults);
@@ -202,17 +211,17 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
         });
     };
 
-    const onRequiredChange = (name: string, value: unknown) => {
+    const onRequiredChange = (name: string, value: string) => {
         setRequiredValues((prev) => ({ ...prev, [name]: value }));
         if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
-    const onOptionalChange = (name: string, value: unknown) => {
+    const onOptionalChange = (name: string, value: string) => {
         setOptionalValues((prev) => ({ ...prev, [name]: value }));
         if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
-    const onBlur = (param: PipelineParameter, value: unknown) => {
+    const onBlur = (param: PipelineParameter, value: string | undefined) => {
         const err = validateParam(param, value);
         setFieldErrors((prev) => ({ ...prev, [param.name]: err }));
     };
@@ -242,7 +251,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
         setPhase("submitting");
         setErrorMessage(null);
 
-        const addedOptVals: Record<string, unknown> = {};
+        const addedOptVals: Record<string, string> = {};
         for (const name of addedOptionalNames) {
             addedOptVals[name] = optionalValues[name];
         }
@@ -262,8 +271,8 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                 pipeline: selectedPipeline.id,
                 cluster: selectedCluster,
                 user: userId || null,
+                filePaths,
                 parameters: {
-                    [FILE_PATHS_PARAM]: filePaths,
                     ...requiredValues,
                     ...addedOptVals,
                 },
@@ -474,9 +483,8 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                                                                 text: p.label,
                                                             })
                                                         )}
-                                                        selectedKey={
-                                                            optionalSelectorKey ?? undefined
-                                                        }
+                                                        // null clears the displayed selection on reset
+                                                        selectedKey={optionalSelectorKey}
                                                         onChange={(opt) =>
                                                             opt &&
                                                             setOptionalSelectorKey(
