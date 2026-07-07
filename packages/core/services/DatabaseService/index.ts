@@ -130,7 +130,6 @@ export async function initializeDuckDB(logLevel: duckdb.LogLevel): Promise<duckd
  */
 export default abstract class DatabaseService {
     public static readonly LIST_DELIMITER = ",";
-    protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
     private static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));
     protected sourceMetadataName?: string;
     public sourceProvenanceName?: string;
@@ -479,23 +478,30 @@ export default abstract class DatabaseService {
 
     private async prepareSourceProvenance(sourceProvenance: Source): Promise<void> {
         const isPreviousSource = sourceProvenance.name === this.sourceProvenanceName;
-        if (isPreviousSource) {
+        if (isPreviousSource && this.hasDataSource(sourceProvenance.name)) {
             return;
         }
-        await this.deleteSourceProvenance();
-        await this.prepareDataSourceWrapper(
-            {
-                ...sourceProvenance,
-                name: this.SOURCE_PROVENANCE_TABLE,
-            },
-            true
-        );
+        // If the provenance source is being replaced, delete the old instance before preparing the new one
+        if (sourceProvenance.uri) {
+            await this.deleteSourceProvenance();
+            // Make sure we don't still have a cached version of the provenance source
+            if (!this.hasDataSource(sourceProvenance.name)) {
+                await this.prepareDataSourceWrapper(
+                    {
+                        ...sourceProvenance,
+                        name: sourceProvenance.name,
+                    },
+                    true
+                );
+            }
+        }
+        // If the source doesn't have a uri, we should instead try to use the cached table
         this.sourceProvenanceName = sourceProvenance.name;
     }
 
     public async deleteSourceProvenance(): Promise<void> {
         if (this.sourceProvenanceName) {
-            await this.deleteDataSource(this.SOURCE_PROVENANCE_TABLE);
+            await this.deleteDataSource(this.sourceProvenanceName);
             this.dataSourceToProvenanceMap.clear();
             this.sourceProvenanceName = undefined;
         }
@@ -1094,7 +1100,7 @@ export default abstract class DatabaseService {
     public async processProvenance(provenanceSource: Source): Promise<EdgeDefinition[]> {
         await this.prepareSourceProvenance(provenanceSource);
 
-        const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
+        const sql = new SQLBuilder().select("*").from(`${this.sourceProvenanceName}`).toSQL();
         try {
             const rows = await this.query(sql).promise;
             const parentsAndChildren = new Set<string>();
