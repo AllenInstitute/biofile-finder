@@ -14,9 +14,10 @@
 }
 
 /*
- * TODO: The User Guide uses larger, lighter heading sizes than the global design system defaults
+ * The User Guide uses larger, lighter heading sizes than the global design system defaults
  * (global: h2 24px, h3 18px/600). These are scoped here intentionally to avoid affecting the
- * rest of the app. If heading sizes are ever updated globally to match, these overrides can be removed.
+ * rest of the app. If heading sizes are ever updated globally to match, these overrides can be
+ * removed. Tracked in https://github.com/AllenInstitute/biofile-finder/issues/868
  */
 .root h2 {
     font-size: 28px;
@@ -65,7 +66,7 @@
     scroll-margin-top: 80px;
 }
 
-.sectionHeading {
+.section-heading {
     margin-bottom: 20px;
 }
 

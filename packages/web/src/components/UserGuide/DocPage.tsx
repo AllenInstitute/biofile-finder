@@ -1,13 +1,17 @@
 import { Icon } from "@fluentui/react";
 import classNames from "classnames";
+import { kebabCase } from "lodash";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import { NavigationGroup, Page } from "./content";
-import { getAdjacentPages } from "./nav";
-import slugify from "./slugify";
+import { CONTENT, NavigationGroup, Page } from "./content";
+import { userGuidePath } from "./paths";
 
 import styles from "./DocPage.module.css";
+
+// Flattened, in-order list of every page across all groups, used to find the
+// previous/next page for pagination.
+const ALL_PAGES = CONTENT.flatMap((group) => group.pages.map((page) => ({ group, page })));
 
 interface DocPageProps {
     group: NavigationGroup;
@@ -15,7 +19,11 @@ interface DocPageProps {
 }
 
 export default function DocPage({ group, page }: DocPageProps) {
-    const { prev, next } = getAdjacentPages(group, page);
+    const idx = ALL_PAGES.findIndex(
+        (p) => p.group.slug === group.slug && p.page.slug === page.slug
+    );
+    const prev = idx > 0 ? ALL_PAGES[idx - 1] : null;
+    const next = idx >= 0 && idx < ALL_PAGES.length - 1 ? ALL_PAGES[idx + 1] : null;
 
     return (
         <article className={styles.root}>
@@ -32,7 +40,7 @@ export default function DocPage({ group, page }: DocPageProps) {
                     return (
                         <section
                             key={`${sec.heading}${idx}`}
-                            id={sec.heading ? slugify(sec.heading) : undefined}
+                            id={sec.heading ? kebabCase(sec.heading) : undefined}
                             className={styles.section}
                         >
                             {sec.heading && (
@@ -48,7 +56,7 @@ export default function DocPage({ group, page }: DocPageProps) {
             <div className={styles.pagination}>
                 {prev ? (
                     <Link
-                        to={`/user-guide/${prev.group.slug}/${prev.page.slug}`}
+                        to={userGuidePath(prev.group.slug, prev.page.slug)}
                         className={classNames(styles.pageNav, styles.pageNavPrev)}
                     >
                         <Icon iconName="ChevronLeft" className={styles.pageNavIcon} />
@@ -62,7 +70,7 @@ export default function DocPage({ group, page }: DocPageProps) {
                 )}
                 {next ? (
                     <Link
-                        to={`/user-guide/${next.group.slug}/${next.page.slug}`}
+                        to={userGuidePath(next.group.slug, next.page.slug)}
                         className={classNames(styles.pageNav, styles.pageNavNext)}
                     >
                         <div>
