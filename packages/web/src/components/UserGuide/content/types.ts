@@ -48,11 +48,11 @@ export enum SectionHeading {
     CloudStorageExamples = "Cloud storage examples",
     MetadataFileExamples = "Metadata file (table) examples",
     ViewerTable = "Image viewer comparison table",
-    ExploreScreeningResults = "Explore Screening Results",
-    ValidateMetadata = "Validate Metadata",
-    InspectSubsetsOfImages = "Inspect Subsets of Images",
-    PerformQCOnDatasets = "Perform QC on Datasets",
-    ManageImageInventory = "Manage Image Inventory",
+    ExploreScreeningResults = "Explore screening results",
+    ValidateMetadata = "Validate metadata",
+    InspectSubsetsOfImages = "Inspect subsets of images",
+    PerformQCOnDatasets = "Perform QC on datasets",
+    ManageImageInventory = "Manage image inventory",
 }
 
 interface Section {
