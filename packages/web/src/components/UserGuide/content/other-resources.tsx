@@ -1,6 +1,8 @@
 import { Icon } from "@fluentui/react";
 import * as React from "react";
+import { Link } from "react-router-dom";
 
+import { userGuidePath } from "../paths";
 import { GroupSlug, Page, PageSlug, SectionHeading } from "./types";
 
 export const OTHER_RESOURCES_CONTENT: Page[] = [
@@ -18,14 +20,17 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
                         <p>
                             BFF works with both public and private data by using the access that
                             already exists. Whether access is granted through a private network,
-                            VPN, cloud IAM roles, or storage credentials, BFF operates within those
-                            permissions rather than introducing a separate authentication or
-                            authorization layer. The only requirement is that{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.AvoidingCORSErrors}`}
+                            VPN, or storage credentials, BFF operates within those permissions
+                            rather than introducing a separate authentication or authorization
+                            layer. The only requirement is that{" "}
+                            <Link
+                                to={userGuidePath(
+                                    GroupSlug.OtherResources,
+                                    PageSlug.AvoidingCORSErrors
+                                )}
                             >
                                 CORS permissions
-                            </a>{" "}
+                            </Link>{" "}
                             are configured on the bucket so the browser can access the files.
                         </p>
                     </>
@@ -39,8 +44,8 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
                         <p>
                             A useful way to think about integrating the Image Data Resource (IDR),
                             BioImage Archive (BIA), and SSBD with BFF is that they occupy different
-                            layers of the bioimaging data stack, and BFF can sit above them as a
-                            unified discovery and navigation interface.
+                            layers of the bioimaging data stack, and BFF can act as a unified
+                            discovery and navigation layer on top of them.
                         </p>
                         <h4>How each resource differs</h4>
                         <ul>
@@ -66,23 +71,25 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
                         </ul>
                         <h4>How BFF can use them together</h4>
                         <p>
-                            BFF can sit above all three as a unified metadata and exploration layer:
+                            BFF can act as a unified metadata and exploration layer across all
+                            three:
                         </p>
                         <ul>
                             <li>
                                 From <strong>IDR</strong>, BFF can link directly to structured
                                 experimental datasets with rich biological context (e.g., plate →
-                                well → image relationships already well-defined).
+                                well → image relationships that are already well-defined).
                             </li>
                             <li>
                                 From <strong>BioImage Archive</strong>, BFF can expose raw datasets
-                                by indexing deposited image files and attaching lightweight
-                                metadata.
+                                by indexing the deposited image files and attaching whatever
+                                metadata the dataset provides.
                             </li>
                             <li>
-                                From <strong>SSBD</strong>, BFF can surface derived quantitative
-                                datasets alongside images, enabling links between raw imaging and
-                                downstream measurements or models.
+                                From <strong>SSBD</strong>, where quantitative measurements and
+                                computational models are organized per dataset rather than per
+                                image, BFF can surface the individual images as rows — making them
+                                browsable alongside that dataset-level data.
                             </li>
                         </ul>
                         <p>
@@ -99,7 +106,7 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
                                 Click <strong>File</strong> in the toolbar
                             </li>
                             <li>
-                                Choose <strong>Share</strong> then <strong>Publish to web</strong>
+                                Choose <strong>Share</strong>, then <strong>Publish to web</strong>
                             </li>
                             <li>
                                 Select the sheet you want to publish and select{" "}
