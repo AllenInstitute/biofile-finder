@@ -1,3 +1,4 @@
+import { DefaultButton, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
@@ -6,7 +7,6 @@ import { PrimaryButton } from "../Buttons";
 import { Source } from "../../entity/SearchParams";
 
 import styles from "./DataSourcePrompt.module.css";
-import { DefaultButton, Icon } from "@fluentui/react";
 
 const ADDITIONAL_COLUMN_DETAILS = [
     'If a "Thumbnail" column is present, it should contain a web URL to a thumbnail image for the file. ',

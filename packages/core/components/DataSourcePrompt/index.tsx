@@ -30,18 +30,6 @@ export enum DataSourceType {
     provenance = 2,
 }
 
-export const DataSourceTypeToString = (sourceType: DataSourceType) => {
-    switch (sourceType) {
-        case DataSourceType.metadata:
-            return "metadata source";
-        case DataSourceType.provenance:
-            return "provenance source";
-        case DataSourceType.default:
-        default:
-            return "data source";
-    }
-};
-
 /**
  * Dialog meant to prompt user to select a data source option
  */
