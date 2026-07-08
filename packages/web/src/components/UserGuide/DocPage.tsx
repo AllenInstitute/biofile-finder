@@ -5,7 +5,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import { CONTENT, NavigationGroup, Page } from "./content";
-import { userGuidePath } from "./paths";
+import { userGuidePath } from "./content/types";
 
 import styles from "./DocPage.module.css";
 
