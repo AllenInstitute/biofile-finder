@@ -66,7 +66,7 @@ function NetworkGraph(props: NetworkGraphProps) {
     // Once the graph has finished building, pan so the origin (selected) node
     // is centered in the viewport. The origin is the sole node flagged as
     // selected (see Graph.originate -> createFileNode(origin, true)).
-    const lastCenteredRefreshKeyRef = React.useRef<number | undefined>(undefined);
+    const lastCenteredRefreshKeyRef = React.useRef<string | undefined>(undefined);
     React.useEffect(() => {
         if (isLoading) return;
         if (lastCenteredRefreshKeyRef.current === refreshKey) return;
