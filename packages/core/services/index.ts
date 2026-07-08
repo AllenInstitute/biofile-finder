@@ -29,6 +29,8 @@ export type {
 } from "./PersistentConfigService";
 export { PersistedConfigKeys } from "./PersistentConfigService";
 export { default as PipelineService } from "./PipelineService";
+export { default as RoCrateService } from "./RoCrateService";
+export type { RoCrateFileRow } from "./RoCrateService";
 
 export interface PlatformDependentServices {
     applicationInfoService: ApplicationInfoService;

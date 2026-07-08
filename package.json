@@ -72,6 +72,8 @@
   "dependencies": {
     "@aics/frontend-insights": "0.2.x",
     "@aics/redux-utils": "0.6.0",
+    "@comunica/query-sparql": "^5.0.0",
+    "@comunica/types": "^5.0.0",
     "@dagrejs/dagre": "^1.1.5",
     "@duckdb/duckdb-wasm": "^1.30",
     "@fluentui/react": "8.67",

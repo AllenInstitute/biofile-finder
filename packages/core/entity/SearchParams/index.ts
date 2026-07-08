@@ -19,7 +19,7 @@ export enum FileView {
     LARGE_THUMBNAIL = "3",
 }
 
-export const ACCEPTED_SOURCE_TYPES = ["csv", "json", "parquet"] as const;
+export const ACCEPTED_SOURCE_TYPES = ["csv", "json", "parquet", "ro-crate"] as const;
 
 export interface Source {
     name: string;
@@ -83,6 +83,17 @@ export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
 export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
     const uriResource = dataSourceURL.substring(dataSourceURL.lastIndexOf("/") + 1).split("?")[0];
     const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
+
+    // Detect RO-Crate sources automatically:
+    //   • a URL whose path ends with `ro-crate-metadata.json`
+    //   • a URL whose last path segment is a directory (trailing slash), which
+    //     by convention contains an RO-Crate (more advanced detection, e.g. a
+    //     HEAD request to check for the metadata file, would be added here in
+    //     a future pass)
+    if (uriResource === "ro-crate-metadata.json") {
+        return { name, type: "ro-crate" as typeof ACCEPTED_SOURCE_TYPES[number] };
+    }
+
     // Returns undefined if can't find a match
     let extensionGuess = ACCEPTED_SOURCE_TYPES.find(
         (validSourcetype) => validSourcetype === uriResource.split(".").pop()
