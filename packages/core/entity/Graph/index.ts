@@ -526,16 +526,8 @@ export default class Graph {
                 // Avoid re-requesting the file when possible
                 const node = this.graph.node(value); // the value should be a file path
                 if (node) return node;
-                try {
-                    const file = await this.getFileByProvenanceId(value);
-                    if (file) {
-                        return createFileNode(file);
-                    }
-                } catch {
-                    // Backup while moving between provenance versions: Try looking by "File ID", this should be removed in the future
-                    const fileById = await this.getFileByProvenanceId(value);
-                    if (fileById) return createFileNode(fileById);
-                }
+                const file = await this.getFileByProvenanceId(value);
+                if (file) return createFileNode(file);
                 throw new Error(`Unable to find file with value ${value}`);
             })
         );
