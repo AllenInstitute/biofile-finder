@@ -78,7 +78,7 @@ export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
     sources: [{ name: AICS_FMS_DATA_SOURCE_NAME }],
     filters: [PAST_YEAR_FILTER],
     provenanceSource: {
-        name: "Provenance",
+        name: "AICS",
         type: "csv",
         uri:
             "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/FMS.provenance.csv",
