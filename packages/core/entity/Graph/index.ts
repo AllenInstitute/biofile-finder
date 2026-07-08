@@ -465,6 +465,22 @@ export default class Graph {
                     // add an edge
                     parentNodes.forEach((parentNode) => {
                         childNodes.forEach((childNode) => {
+                            // Ensure both endpoints exist in the graph with their
+                            // real labels before connecting them. Recursive
+                            // expansion above may have skipped adding a node once
+                            // the node affordance limit was reached (especially
+                            // under the concurrent edge-definition traversal). If
+                            // we called setEdge for a missing endpoint, graphlib
+                            // would auto-create a labelless placeholder node, which
+                            // later breaks the `nodes` getter. Adding the node
+                            // objects we already hold here keeps the graph
+                            // connected without introducing phantom nodes.
+                            if (!this.graph.hasNode(parentNode.id)) {
+                                this.graph.setNode(parentNode.id, parentNode);
+                            }
+                            if (!this.graph.hasNode(childNode.id)) {
+                                this.graph.setNode(childNode.id, childNode);
+                            }
                             this.graph.setEdge(parentNode.id, childNode.id, annotationEdge);
                         });
                     });
@@ -511,13 +527,13 @@ export default class Graph {
                 const node = this.graph.node(value); // the value should be a file path
                 if (node) return node;
                 try {
-                    const file = await this.getFileBy("File Path", [value]);
+                    const file = await this.getFileByProvenanceId(value);
                     if (file) {
                         return createFileNode(file);
                     }
                 } catch {
                     // Backup while moving between provenance versions: Try looking by "File ID", this should be removed in the future
-                    const fileById = await this.getFileBy("File ID", [value]);
+                    const fileById = await this.getFileByProvenanceId(value);
                     if (fileById) return createFileNode(fileById);
                 }
                 throw new Error(`Unable to find file with value ${value}`);
@@ -577,11 +593,10 @@ export default class Graph {
     }
 
     /**
-     * Get a single file that matches a column/value pair
+     * Get a single file that matches a provenance ID
      */
-    private async getFileBy(
-        column: string,
-        value: (string | number | boolean)[]
+    private async getFileByProvenanceId(
+        value: string | number | boolean
     ): Promise<FileDetail | undefined> {
         let files;
         try {
@@ -590,20 +605,20 @@ export default class Graph {
                 limit: 2, // We only want one result, so if there are >=2 it's not a unique identifier
                 fileSet: new FileSet({
                     fileService: this.fileService,
-                    filters: [new FileFilter(column, value)],
+                    filters: [new FileFilter(this.fileService.provenanceIdColumn, [value])],
                 }),
             });
         } catch (err) {
             console.error(
-                `Failed to find file with value ${column} for annotation ${value}. Error: ${
-                    (err as Error).message
-                }`
+                `Failed to find file at column ${
+                    this.fileService.provenanceIdColumn
+                } with value ${value}. Error: ${(err as Error).message}`
             );
             return undefined;
         }
         if (files.length !== 1) {
             throw new Error(
-                `Failed to fetch 1 file with value ${column} for annotation ${value}. Found ${files.length} instead.`
+                `Failed to fetch 1 file at column ${this.fileService.provenanceIdColumn} with value ${value}. Found ${files.length} instead.`
             );
         }
         return files[0];
