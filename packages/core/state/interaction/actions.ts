@@ -467,13 +467,15 @@ export function processStart(
     processId: string,
     msg: string,
     onCancel?: () => void,
-    fileId?: string[]
+    fileId?: string[],
+    fullMsg?: string
 ): ProcessStartAction {
     return {
         type: SET_STATUS,
         payload: {
             data: {
                 fileId,
+                fullMsg,
                 msg,
                 status: ProcessStatus.STARTED,
             },
@@ -498,13 +500,15 @@ export function processProgress(
     progress: number,
     msg: string,
     onCancel: () => void,
-    fileId?: string[]
+    fileId?: string[],
+    fullMsg?: string
 ): ProcessProgressAction {
     return {
         type: SET_STATUS,
         payload: {
             data: {
                 fileId,
+                fullMsg,
                 msg,
                 status: ProcessStatus.PROGRESS,
                 progress,

@@ -69,6 +69,8 @@ import { fetchWithTimeout } from "../../hooks/useRemoteFileUpload";
 
 export const DEFAULT_QUERY_NAME = "New Query";
 
+const MAX_FILES_IN_MSG = 3;
+
 /**
  * Function for creating a message to display representing the total bytes to download
  */
@@ -322,80 +324,149 @@ const downloadFilesLogic = createLogic({
         const totalBytesToDownload = sumBy(filesToDownload, "size") || 0;
         const totalBytesDisplay = getBytesDisplay(totalBytesToDownload, someFilesHaveUnknownSize);
 
-        // TODO: Download these into a zip using new streamsaver zipped code
-        await Promise.allSettled(
-            filesToDownload.map(async (file) => {
-                let isCancelled = false;
-                const downloadRequestId = uniqueId();
+        const allFileIds = filesToDownload.map((f) => f.id);
+        const allFileNames = filesToDownload.map((f) => f.name);
+        const fileWord = filesToDownload.length === 1 ? "file" : "files";
 
-                const onCancel = () => {
-                    isCancelled = true;
-                    dispatch(cancelFileDownload(downloadRequestId));
-                };
+        /**
+         * Build a file list HTML snippet, showing up to `limit` names.
+         * Returns undefined when there is only one file (name is already in the header).
+         */
+        const buildFileListHtml = (names: string[]) => {
+            if (names.length <= 1) return undefined;
+            return names.map((n) => `• ${n}`).join("<br/>");
+        };
 
-                // A function that dispatches progress events, throttled
-                // to only be invokable at most once/second
-                let totalBytesDownloaded = 0;
-                const throttledProgressDispatcher = throttle((progressMsg: string) => {
-                    if (isCancelled) return;
-                    dispatch(
-                        processProgress(
-                            downloadRequestId,
-                            totalBytesToDownload ? totalBytesDownloaded / totalBytesToDownload : 0,
-                            progressMsg,
-                            onCancel,
-                            [file.id]
-                        )
-                    );
-                }, 1000);
+        const truncatedFileListHtml =
+            allFileNames.length > 1
+                ? buildFileListHtml(allFileNames.slice(0, MAX_FILES_IN_MSG))
+                : undefined;
+        const fullFileListHtml =
+            allFileNames.length > MAX_FILES_IN_MSG ? buildFileListHtml(allFileNames) : undefined;
+
+        // Use a single process ID for the entire batch of downloads
+        const groupProcessId = uniqueId();
+        // Map each file to its own download request ID (used by the download service)
+        const downloadRequestIds = filesToDownload.map(() => uniqueId());
+
+        let groupCancelled = false;
+        const onGroupCancel = () => {
+            groupCancelled = true;
+            downloadRequestIds.forEach((id) => dispatch(cancelFileDownload(id)));
+        };
+
+        // Track overall bytes downloaded across all files
+        let groupTotalBytesDownloaded = 0;
+        const throttledGroupProgressDispatcher = throttle(() => {
+            if (groupCancelled) return;
+            const updatedBytesDisplay = numberFormatter.displayValue(
+                groupTotalBytesDownloaded,
+                "bytes"
+            );
+            const header = `Downloading ${filesToDownload.length} ${fileWord}.<br/>${updatedBytesDisplay} out of ${totalBytesDisplay} set to download`;
+            const msg = truncatedFileListHtml ? `${header}<br/>${truncatedFileListHtml}` : header;
+            const fullMsg = fullFileListHtml ? `${header}<br/>${fullFileListHtml}` : undefined;
+            dispatch(
+                processProgress(
+                    groupProcessId,
+                    totalBytesToDownload ? groupTotalBytesDownloaded / totalBytesToDownload : 0,
+                    msg,
+                    onGroupCancel,
+                    allFileIds,
+                    fullMsg
+                )
+            );
+        }, 1000);
+
+        if (!someFilesHaveUnknownSize) {
+            const header =
+                filesToDownload.length === 1
+                    ? `Downloading ${allFileNames[0]}.<br/>${totalBytesDisplay} set to download`
+                    : `Downloading ${filesToDownload.length} ${fileWord}.<br/>${totalBytesDisplay} set to download`;
+            const msg = truncatedFileListHtml ? `${header}<br/>${truncatedFileListHtml}` : header;
+            const fullMsg = fullFileListHtml ? `${header}<br/>${fullFileListHtml}` : undefined;
+            dispatch(processStart(groupProcessId, msg, onGroupCancel, allFileIds, fullMsg));
+        }
+
+        const settledResults = await Promise.allSettled(
+            filesToDownload.map(async (file, index) => {
+                const downloadRequestId = downloadRequestIds[index];
 
                 const onProgress = (transferredBytes: number) => {
-                    totalBytesDownloaded += transferredBytes;
-
-                    // Generate new message
-                    const updatedBytesDisplay = numberFormatter.displayValue(
-                        totalBytesDownloaded,
-                        "bytes"
-                    );
-                    const progressMsg = `Downloading ${file.name}. <br/> ${updatedBytesDisplay} out of ${totalBytesDisplay} set to download`;
-                    throttledProgressDispatcher(progressMsg);
+                    groupTotalBytesDownloaded += transferredBytes;
+                    throttledGroupProgressDispatcher();
                 };
 
-                try {
-                    // Start the download and handle progress reporting
-                    if (!someFilesHaveUnknownSize) {
-                        const fileByteDisplay = getBytesDisplay(file.size || 0);
-                        const msg = `Downloading ${file.name}. <br/> ${fileByteDisplay} out of ${totalBytesDisplay} set to download`;
-                        dispatch(processStart(downloadRequestId, msg, onCancel, [file.id]));
-                    }
+                const result = await fileDownloadService.download(
+                    file,
+                    downloadRequestId,
+                    onProgress
+                );
 
-                    const result = await fileDownloadService.download(
-                        file,
-                        downloadRequestId,
-                        onProgress
-                    );
-
-                    if (!someFilesHaveUnknownSize) {
-                        if (result.resolution === DownloadResolution.CANCELLED) {
-                            onCancel();
-                        } else {
-                            // This gets sent before some large files are complete
-                            dispatch(
-                                processSuccess(
-                                    downloadRequestId,
-                                    result.msg || "Download started successfully."
-                                )
-                            );
-                        }
-                    }
-                } catch (err) {
-                    const errorMsg = `File download failed for file ${file.name}. Details:<br/>${
-                        err instanceof Error ? err.message : err
-                    }`;
-                    dispatch(processError(downloadRequestId, errorMsg));
-                }
+                return { file, result };
             })
         );
+
+        if (!someFilesHaveUnknownSize) {
+            if (groupCancelled) {
+                dispatch(removeStatus(groupProcessId));
+            } else {
+                const failed = settledResults.filter(
+                    (r) =>
+                        r.status === "rejected" ||
+                        (r.status === "fulfilled" &&
+                            r.value.result.resolution !== DownloadResolution.SUCCESS &&
+                            r.value.result.resolution !== DownloadResolution.CANCELLED)
+                );
+                const cancelled = settledResults.filter(
+                    (r) =>
+                        r.status === "fulfilled" &&
+                        r.value.result.resolution === DownloadResolution.CANCELLED
+                );
+
+                if (failed.length > 0) {
+                    const failedNames = failed.map((r) =>
+                        r.status === "fulfilled" ? r.value.file.name : "unknown"
+                    );
+                    const errorMsg =
+                        filesToDownload.length === 1
+                            ? `File download failed for file ${allFileNames[0]}. Details:<br/>${
+                                  failed[0].status === "rejected"
+                                      ? failed[0].reason instanceof Error
+                                          ? failed[0].reason.message
+                                          : failed[0].reason
+                                      : "Unknown error"
+                              }`
+                            : `Download failed for ${failed.length} of ${
+                                  filesToDownload.length
+                              } ${fileWord}:<br/>${failedNames
+                                  .slice(0, MAX_FILES_IN_MSG)
+                                  .join(", ")}`;
+                    const errorFullMsg =
+                        failedNames.length > MAX_FILES_IN_MSG
+                            ? `Download failed for ${failed.length} of ${
+                                  filesToDownload.length
+                              } ${fileWord}:<br/>${failedNames.join(", ")}`
+                            : undefined;
+                    dispatch(processError(groupProcessId, errorMsg, errorFullMsg));
+                } else if (cancelled.length === filesToDownload.length) {
+                    // All cancelled
+                    dispatch(removeStatus(groupProcessId));
+                } else {
+                    const succeededCount = filesToDownload.length - cancelled.length;
+                    const successWord = succeededCount === 1 ? "file" : "files";
+                    const firstResult =
+                        settledResults[0].status === "fulfilled"
+                            ? settledResults[0].value.result
+                            : undefined;
+                    const msg =
+                        filesToDownload.length === 1
+                            ? firstResult?.msg || "Download started successfully."
+                            : `Successfully downloaded ${succeededCount} ${successWord}.`;
+                    dispatch(processSuccess(groupProcessId, msg));
+                }
+            }
+        }
 
         done();
     },

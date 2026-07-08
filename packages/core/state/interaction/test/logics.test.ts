@@ -324,7 +324,7 @@ describe("Interaction logics", () => {
             ).to.equal(true);
         });
 
-        it("downloads multiple files", async () => {
+        it("downloads multiple files grouped into one status notification", async () => {
             // Arrange
             const state = mergeState(initialState, {
                 interaction: {
@@ -364,25 +364,21 @@ describe("Interaction logics", () => {
             store.dispatch(downloadFiles([file1, file2]));
             await logicMiddleware.whenComplete();
 
-            // Assert
+            // Assert: only one STARTED status for the entire batch (not one per file)
+            const startedActions = actions.list.filter(
+                (a: { type: string; payload?: { data?: { status?: ProcessStatus } } }) =>
+                    a.type === SET_STATUS && a.payload?.data?.status === ProcessStatus.STARTED
+            );
+            expect(startedActions).to.have.length(1);
+
+            // The single status update should reference both files
             expect(
                 actions.includesMatch({
                     type: SET_STATUS,
                     payload: {
                         data: {
                             status: ProcessStatus.STARTED,
-                            fileId: [file1.id],
-                        },
-                    },
-                })
-            ).to.be.true;
-            expect(
-                actions.includesMatch({
-                    type: SET_STATUS,
-                    payload: {
-                        data: {
-                            status: ProcessStatus.STARTED,
-                            fileId: [file2.id],
+                            fileId: [file1.id, file2.id],
                         },
                     },
                 })
