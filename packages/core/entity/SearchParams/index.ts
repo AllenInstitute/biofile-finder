@@ -80,8 +80,7 @@ export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
     provenanceSource: {
         name: "AICS",
         type: "csv",
-        uri:
-            "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/FMS.provenance.csv",
+        uri: "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com/FMS.provenance.csv",
     },
     sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
 };
