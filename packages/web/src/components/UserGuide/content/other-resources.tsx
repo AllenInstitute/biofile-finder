@@ -77,7 +77,7 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
                             <li>
                                 From <strong>IDR</strong>, BFF can link directly to structured
                                 experimental datasets with rich biological context (e.g., plate →
-                                well → image relationships that are already well-defined).
+                                well → image relationships are already well-defined).
                             </li>
                             <li>
                                 From <strong>BioImage Archive</strong>, BFF can expose raw datasets
