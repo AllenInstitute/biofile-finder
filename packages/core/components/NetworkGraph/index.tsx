@@ -66,16 +66,19 @@ function NetworkGraph(props: NetworkGraphProps) {
     // Once the graph has finished building, pan so the origin (selected) node
     // is centered in the viewport. The origin is the sole node flagged as
     // selected (see Graph.originate -> createFileNode(origin, true)).
+    const lastCenteredRefreshKeyRef = React.useRef<number | undefined>(undefined);
     React.useEffect(() => {
         if (isLoading) return;
+        if (lastCenteredRefreshKeyRef.current === refreshKey) return;
 
         const originNode = nodes.find((node) => node.data.isSelected);
         if (!originNode) return;
 
+        lastCenteredRefreshKeyRef.current = refreshKey;
         const centerX = originNode.position.x + (originNode.width ?? 0) / 2;
         const centerY = originNode.position.y + (originNode.height ?? 0) / 2;
         setCenter(centerX, centerY, { zoom: getZoom(), duration: 800 });
-    }, [isLoading, nodes, setCenter, getZoom]);
+    }, [isLoading, nodes, refreshKey, setCenter, getZoom]);
 
     // The option to open this graph shouldn't even appear when a
     // source isn't available so this shouldn't ever happen
