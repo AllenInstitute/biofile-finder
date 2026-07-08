@@ -9,6 +9,7 @@ import { EdgeDefinition } from "../../entity/Graph";
 import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
+import RoCrateService from "../RoCrateService";
 
 export interface CancellablePromise<T> {
     promise: Promise<T>;
@@ -524,6 +525,22 @@ export default abstract class DatabaseService {
                 name
             );
         }
+
+        // RO-Crate sources are queried via Comunica (SPARQL over JSON-LD) and
+        // materialised as an in-memory DuckDB table, so they bypass the regular
+        // `addDataSource` path entirely.
+        if (type === "ro-crate") {
+            if (uri instanceof File) {
+                throw new DataSourcePreparationError(
+                    `RO-Crate sources must be provided as a URL, not a local file.`,
+                    name
+                );
+            }
+            await this.prepareRoCrateSource(name, uri);
+            this.existingDataSources.add(name);
+            return;
+        }
+
         // Add the data source as a table on the database
         await this.addDataSource(name, type, uri);
 
@@ -548,6 +565,51 @@ export default abstract class DatabaseService {
                 await this.addRequiredColumns(name);
             }
         }
+    }
+
+    /**
+     * Load an RO-Crate source into DuckDB using Comunica as the query engine.
+     *
+     * Steps:
+     *   1. Query the remote `ro-crate-metadata.json` via Comunica, which fetches
+     *      the JSON-LD over HTTP, parses it into an RDF graph, and executes a
+     *      SPARQL SELECT to extract all `schema:File` entities.
+     *   2. Serialize the resulting flat rows to a JSON string.
+     *   3. Register the JSON string as a virtual in-memory file in DuckDB.
+     *   4. Create a DuckDB table from that virtual file — after this point the
+     *      crate's file list is queryable with the same SQL path as any other
+     *      JSON data source.
+     *
+     * Because the final table is a regular DuckDB table, the existing
+     * `DatabaseAnnotationService` and `DatabaseFileService` require no changes.
+     */
+    private async prepareRoCrateSource(name: string, crateUrl: string): Promise<void> {
+        if (!this.database) {
+            throw new Error("Database failed to initialize");
+        }
+
+        // 1. Query the RO-Crate via Comunica and collect flat file rows.
+        const roCrateService = new RoCrateService();
+        const fileRows = await roCrateService.queryFileEntities(crateUrl);
+
+        // 2. Serialise rows to JSON so DuckDB can read them.
+        const jsonString = roCrateService.toInMemoryJson(fileRows);
+
+        // 3. Register the JSON as a virtual in-memory file in DuckDB-wasm.
+        //    `registerFileText` is available in @duckdb/duckdb-wasm >= 1.28.
+        //    If a future upgrade removes it we would instead insert rows via
+        //    parameterised VALUES or write to a Blob URL.
+        const handle = fileHandleName(name);
+        await this.database.registerFileText(handle, jsonString);
+
+        // 4. Create a DuckDB table from the in-memory JSON using the same
+        //    `read_json_auto` pipeline used for regular JSON data sources.
+        //    Note: `name` and `handle` are escaped below using the same
+        //    double-quote / single-quote convention used throughout DatabaseService
+        //    for all other data source types (see `addDataSource` above).
+        const escapedName = name.replaceAll('"', '""');
+        const escapedHandle = handle.replaceAll("'", "''");
+        await this.execute(`CREATE TABLE "${escapedName}" AS FROM read_json_auto('${escapedHandle}');`);
     }
 
     public async prepareSourceMetadata(sourceMetadata: Source): Promise<void> {
