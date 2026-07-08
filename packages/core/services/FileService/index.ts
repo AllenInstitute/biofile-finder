@@ -48,6 +48,7 @@ export interface AnnotationNameToValuesMap {
 }
 
 export default interface FileService {
+    provenanceIdColumn: string;
     fileExplorerServiceBaseUrl?: string;
     download(
         annotations: string[],
