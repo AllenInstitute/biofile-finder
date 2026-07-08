@@ -54,7 +54,7 @@ function NetworkGraph(props: NetworkGraphProps) {
     const provenanceSource = useSelector(selection.selectors.getSelectedSourceProvenance);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<AnnotationEdge>>([]);
     const [nodes, setNodes, onNodesChange] = useNodesState<FileNodeType | MetadataNodeType>([]);
-    const { fitView } = useReactFlow();
+    const { fitView, setCenter, getZoom } = useReactFlow();
 
     // Unfortunately we have to have some notion of state at a high level for control from the components
     // and at the dagre level for when the user does a drag action causing this duplication of efforts
@@ -62,6 +62,20 @@ function NetworkGraph(props: NetworkGraphProps) {
         setEdges(graph.edges);
         setNodes(graph.nodes);
     }, [graph, setEdges, setNodes, refreshKey]);
+
+    // Once the graph has finished building, pan so the origin (selected) node
+    // is centered in the viewport. The origin is the sole node flagged as
+    // selected (see Graph.originate -> createFileNode(origin, true)).
+    React.useEffect(() => {
+        if (isLoading) return;
+
+        const originNode = nodes.find((node) => node.data.isSelected);
+        if (!originNode) return;
+
+        const centerX = originNode.position.x + (originNode.width ?? 0) / 2;
+        const centerY = originNode.position.y + (originNode.height ?? 0) / 2;
+        setCenter(centerX, centerY, { zoom: getZoom(), duration: 800 });
+    }, [isLoading, nodes, setCenter, getZoom]);
 
     // The option to open this graph shouldn't even appear when a
     // source isn't available so this shouldn't ever happen
