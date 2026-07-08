@@ -2,8 +2,7 @@ import { Icon } from "@fluentui/react";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import { userGuidePath } from "../paths";
-import { GroupSlug, Page, PageSlug, SectionHeading } from "./types";
+import { GroupSlug, Page, PageSlug, SectionHeading, userGuidePath } from "./types";
 
 export const OTHER_RESOURCES_CONTENT: Page[] = [
     {

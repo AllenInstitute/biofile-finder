@@ -4,7 +4,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import { CONTENT } from "./content";
-import { userGuidePath } from "./paths";
+import { userGuidePath } from "./content/types";
 
 import styles from "./Sidebar.module.css";
 

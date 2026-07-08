@@ -38,6 +38,14 @@ export enum PageSlug {
     ExampleAMBIOM = "example-ambiom",
 }
 
+/** Base route for the in-app user guide. */
+export const USER_GUIDE_BASE = "/user-guide";
+
+/** Build the route to a user guide page from its group and page slugs. */
+export function userGuidePath(groupSlug: string, pageSlug: string): string {
+    return `${USER_GUIDE_BASE}/${groupSlug}/${pageSlug}`;
+}
+
 // Specific section headings used for both displaying the
 // actual heading and for linking to the section via anchor links
 // These are not given explicit slugs and instead have them generated
