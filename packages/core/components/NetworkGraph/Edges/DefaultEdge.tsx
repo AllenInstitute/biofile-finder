@@ -1,5 +1,6 @@
 import { DefaultButton, IContextualMenuItem } from "@fluentui/react";
 import { getBezierPath, EdgeLabelRenderer, BaseEdge, EdgeProps, Edge } from "@xyflow/react";
+import { isEmpty } from "lodash";
 import React, { FC } from "react";
 import { useSelector } from "react-redux";
 
@@ -61,10 +62,16 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
                         provOriginId: undefined,
                     });
                 } else {
+                    const filters = [data.parent, data.child]
+                        // Filter empty filters out
+                        // this would be the case for any "self" type edges
+                        .filter((value) => !isEmpty(value))
+                        .map((value) => new IncludeFilter(value));
+                    console.log("filters", filters);
                     newUrl = SearchParams.encode({
                         ...currentQuery,
+                        filters,
                         hierarchy: [],
-                        filters: [new IncludeFilter(data.parent), new IncludeFilter(data.child)],
                         provOriginId: undefined,
                     });
                 }

@@ -1,11 +1,11 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
-import { isEmpty, mapKeys, uniq } from "lodash";
+import { isEmpty, isNil, mapKeys, uniq } from "lodash";
 
 import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
-import { EdgeDefinition } from "../../entity/Graph";
+import { EdgeDefinition, EdgeNodeType, RelationshipType } from "../../entity/Graph";
 import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
@@ -14,6 +14,26 @@ export interface CancellablePromise<T> {
     promise: Promise<T>;
     cancel?: (reason?: string) => void;
 }
+
+interface ProvenanceRow {
+    child: string;
+    childtype: EdgeNodeType;
+    parent: string;
+    parenttype: EdgeNodeType;
+    relationship: string;
+    relationshiptype?: RelationshipType;
+}
+
+// Runtime-checkable lists of the valid values for the union types used by a
+// provenance row. Kept in sync with the EdgeNodeType/RelationshipType unions.
+const VALID_EDGE_NODE_TYPES: readonly EdgeNodeType[] = ["self", "file", "metadata"];
+const VALID_RELATIONSHIP_TYPES: readonly RelationshipType[] = ["pointer"];
+// Fields that must be present and non-empty on every provenance row.
+const REQUIRED_PROVENANCE_FIELDS: readonly (keyof ProvenanceRow)[] = [
+    "parenttype",
+    "childtype",
+    "relationship",
+];
 
 enum PreDefinedColumn {
     FILE_ID = "File ID",
@@ -38,6 +58,11 @@ const DATA_SOURCE_COLUMN = "Data source";
 const FILE_HANDLE_SUFFIX = "-bff-filehandle";
 function fileHandleName(name: string): string {
     return name + FILE_HANDLE_SUFFIX;
+}
+
+// Check if a value is a non-empty string. Returns true for any string with at least one non-whitespace character.
+function isValidString(value: unknown): value is string {
+    return typeof value === "string" && !isEmpty(value.trim());
 }
 
 // Map each actual column name to the predefined column name when they fuzzy-match.
@@ -420,6 +445,54 @@ export default abstract class DatabaseService {
         return str.length > length
             ? `${str.slice(0, length / 2)}...${str.slice(str.length - length / 2)}`
             : str;
+    }
+
+    // Checks to see if the row is compatible with ProvenanceRow interface and returns a string describing
+    // the issue if not compatible
+    private static checkProvenanceRowForIssues(row: Record<string, unknown>): string | undefined {
+        // Determine which fields should be required
+        // "child" and "parent" are only required if the corresponding type is not "self"
+        // if "self" the "child" and "parent" are implicitly the row itself and do not
+        // need a column value
+        const requiredFields = [...REQUIRED_PROVENANCE_FIELDS];
+        if (isValidString(row.childtype) && row.childtype !== "self") {
+            requiredFields.push("child");
+        }
+        if (isValidString(row.parenttype) && row.parenttype !== "self") {
+            requiredFields.push("parent");
+        }
+
+        // Every required field must be a present, non-empty string
+        const missingField = requiredFields.find((field) => !isValidString(row[field]));
+        if (missingField) {
+            return (
+                `Skipping provenance row missing required "${missingField}" value in row: ` +
+                JSON.stringify(row)
+            );
+        }
+
+        // Node type fields must be one of the recognized EdgeNodeType values
+        const invalidTypeField = ["parenttype", "childtype"].find(
+            (field) => !VALID_EDGE_NODE_TYPES.includes(row[field] as EdgeNodeType)
+        );
+        if (invalidTypeField) {
+            return (
+                `Skipping provenance row with invalid "${invalidTypeField}" value "${row[invalidTypeField]}".` +
+                ` Expected one of: ${VALID_EDGE_NODE_TYPES.join(", ")}.`
+            );
+        }
+
+        // relationshiptype is optional, but if provided it must be recognized
+        if (
+            !isNil(row.relationshiptype) &&
+            !isEmpty(row.relationshiptype) &&
+            !VALID_RELATIONSHIP_TYPES.includes(row.relationshiptype as RelationshipType)
+        ) {
+            return (
+                `Skipping provenance row with invalid "relationshiptype" value "${row.relationshiptype}". ` +
+                `Expected one of: ${VALID_RELATIONSHIP_TYPES.join(", ")} or none (default).`
+            );
+        }
     }
 
     public hasDataSource(dataSourceName: string): boolean {
@@ -1187,69 +1260,62 @@ export default abstract class DatabaseService {
         await this.execute(this.getUpdateHiddenUIDSQL(viewName));
     }
 
-    public async processProvenance(provenanceSource: Source): Promise<EdgeDefinition[]> {
+    public async processProvenance(
+        provenanceSource: Source
+    ): Promise<{ edgeDefinitions: EdgeDefinition[]; warnings: string[] }> {
         await this.prepareSourceProvenance(provenanceSource);
 
         const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
         try {
             const rows = await this.query(sql).promise;
+            const warnings: string[] = [];
             const parentsAndChildren = new Set<string>();
-            return rows
-                .map((row) =>
-                    Object.keys(row).reduce(
-                        (mapSoFar, key) => ({
-                            ...mapSoFar,
-                            [key.toLowerCase().trim()]:
-                                typeof row[key] !== "object"
-                                    ? row[key]
-                                    : mapKeys(row[key], (_value, innerKey) =>
-                                          innerKey.toLowerCase().trim()
-                                      ),
-                        }),
-                        {} as Record<string, any>
-                    )
-                )
-                .map((row) => {
-                    try {
-                        const parentAndChildKey = `${row["parent"]}-${row["child"]}`;
-                        if (parentsAndChildren.has(parentAndChildKey)) {
-                            throw new Error(
-                                `Parent (${row["parent"]}) and Child (${row["child"]}) combination found multiple times`
-                            );
-                        }
-
-                        parentsAndChildren.add(parentAndChildKey);
-                        return {
-                            relationship: row["relationship"],
-                            relationshipType: row["relationship type"],
-                            parent: {
-                                name: row["parent"],
-                                type: row["parent type"],
-                            },
-                            child: {
-                                name: row["child"],
-                                type: row["child type"],
-                            },
-                        };
-                    } catch (err) {
-                        if ((err as Error).message.includes("key")) {
-                            throw new Error(
-                                `Unexpected format for provenance data. Check the documentation
-                                for what BFF expects provenance data to look like.
-                                Error: ${(err as Error).message}`
-                            );
-                        }
-                        throw err;
+            const edgeDefinitions = rows
+                // Lowercase keys and remove whitespace to help avoid issues with inconsistent formatting
+                .map((row) => mapKeys(row, (_, key) => key.toLowerCase().replace(/\s+/g, "")))
+                // Filter out any rows that don't align with expected shape or values in format
+                .filter((row): row is ProvenanceRow => {
+                    const warning = DatabaseService.checkProvenanceRowForIssues(row);
+                    if (warning) {
+                        warnings.push(warning);
+                        return false;
                     }
-                });
+                    // Lastly, filter out any rows that have duplicate parent/child combinations
+                    const parentAndChildKey = `${row.parent}-${row.child}`;
+                    if (parentsAndChildren.has(parentAndChildKey)) {
+                        warnings.push(
+                            `Skipping provenance row with duplicate parent (${row.parent}) and child (${row.child}) combination.`
+                        );
+                        return false;
+                    }
+                    parentsAndChildren.add(parentAndChildKey);
+                    console.log(row.parent, row.child);
+                    return true;
+                })
+                .map((row) => ({
+                    relationship: row.relationship,
+                    relationshipType: row.relationshiptype,
+                    parent: {
+                        name: row.parent || "", // Prefer empty string over nil
+                        type: row.parenttype,
+                    },
+                    child: {
+                        name: row.child || "", // Prefer empty string over nil
+                        type: row.childtype,
+                    },
+                }));
+            return { edgeDefinitions, warnings };
         } catch (err) {
             // Source provenance file may not have been supplied
             // and/or the columns may not exist
             const errMsg = typeof err === "string" ? err : err instanceof Error ? err.message : "";
             if (errMsg.includes("does not exist") || errMsg.includes("not found in FROM clause")) {
-                return [];
+                return { edgeDefinitions: [], warnings: [] };
             }
             throw err;
+        } finally {
+            // The definitions will already be in the state memory, no need to keep this in the database
+            await this.deleteSourceProvenance();
         }
     }
 

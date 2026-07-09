@@ -12,6 +12,7 @@ import {
     RECEIVE_PASSWORD_MAPPING,
     ReceiveEdgeDefinitions,
 } from "./actions";
+import { CHANGE_PROVENANCE_SOURCE } from "../selection/actions";
 
 export interface MetadataStateBranch {
     annotations: Annotation[];
@@ -49,6 +50,13 @@ export default makeReducer<MetadataStateBranch>(
         [RECEIVE_PASSWORD_MAPPING]: (state, action) => ({
             ...state,
             passwordToProgramMap: action.payload,
+        }),
+
+        // selection.actions
+        [CHANGE_PROVENANCE_SOURCE]: (state) => ({
+            ...state,
+            // Clear any previous edge definitions
+            edgeDefinitions: [],
         }),
     },
     initialState

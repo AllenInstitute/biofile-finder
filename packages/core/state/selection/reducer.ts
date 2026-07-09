@@ -172,6 +172,7 @@ export default makeReducer<SelectionStateBranch>(
         [CHANGE_PROVENANCE_SOURCE]: (state, action: ChangeProvenanceSource) => ({
             ...state,
             sourceProvenance: action.payload,
+            provenanceOriginId: undefined, // Clear the previous provenance origin ID when the source changes
         }),
         [CHANGE_SOURCE_METADATA]: (state, action) => ({
             ...state,

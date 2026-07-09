@@ -781,18 +781,26 @@ const changeProvenanceSourceLogic = createLogic({
 
         try {
             if (selectedSourceProvenance) {
-                const edgeDefinitions = await databaseService.processProvenance(
+                const { edgeDefinitions, warnings } = await databaseService.processProvenance(
                     selectedSourceProvenance
                 );
-                dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
-                // provenance definitions may finish loading after we've already processed url query args.
-                // If we do have a graph origin, this ensures the graph actually starts rendering
-                dispatch(changeProvenanceOriginId(origin) as AnyAction);
-            } else {
-                await databaseService.deleteSourceProvenance();
-                dispatch(metadata.actions.receiveEdgeDefinitions([]));
-                // if we no longer have provenance definitions, we need to clear the graph origin
-                dispatch(changeProvenanceOriginId() as AnyAction);
+                if (warnings.length > 0) {
+                    const fullWarning = warnings.join("\n");
+                    dispatch(
+                        interaction.actions.processWarning(
+                            "processProvenanceWarning",
+                            fullWarning.substring(0, 150),
+                            fullWarning
+                        )
+                    );
+                }
+                // Single success case: processed provenance source into edge definitions
+                if (edgeDefinitions.length > 0) {
+                    dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
+                    // provenance definitions may finish loading after we've already processed url query args.
+                    // If we do have a graph origin, this ensures the graph actually starts rendering
+                    dispatch(changeProvenanceOriginId(origin) as AnyAction);
+                }
             }
         } catch (err) {
             const msg = `Failed processing provenance. Error: ${(err as Error).message}`;
