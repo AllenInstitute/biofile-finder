@@ -7,6 +7,7 @@ import {
     useEdgesState,
     Controls,
     useReactFlow,
+    useNodesInitialized,
     ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -55,6 +56,7 @@ function NetworkGraph(props: NetworkGraphProps) {
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<AnnotationEdge>>([]);
     const [nodes, setNodes, onNodesChange] = useNodesState<FileNodeType | MetadataNodeType>([]);
     const { fitView, setCenter, getZoom } = useReactFlow();
+    const nodesInitialized = useNodesInitialized();
 
     // Unfortunately we have to have some notion of state at a high level for control from the components
     // and at the dagre level for when the user does a drag action causing this duplication of efforts
@@ -68,7 +70,7 @@ function NetworkGraph(props: NetworkGraphProps) {
     // selected (see Graph.originate -> createFileNode(origin, true)).
     const lastCenteredRefreshKeyRef = React.useRef<string | undefined>(undefined);
     React.useEffect(() => {
-        if (isLoading) return;
+        if (isLoading || !nodesInitialized) return;
         if (lastCenteredRefreshKeyRef.current === refreshKey) return;
 
         const originNode = nodes.find((node) => node.data.isSelected);
@@ -78,7 +80,7 @@ function NetworkGraph(props: NetworkGraphProps) {
         const centerX = originNode.position.x + (originNode.width ?? 0) / 2;
         const centerY = originNode.position.y + (originNode.height ?? 0) / 2;
         setCenter(centerX, centerY, { zoom: getZoom(), duration: 800 });
-    }, [isLoading, nodes, refreshKey, setCenter, getZoom]);
+    }, [isLoading, nodesInitialized, nodes, refreshKey, setCenter, getZoom]);
 
     // The option to open this graph shouldn't even appear when a
     // source isn't available so this shouldn't ever happen
@@ -110,7 +112,6 @@ function NetworkGraph(props: NetworkGraphProps) {
                 onClick={onClickReset}
             />
             <ReactFlow
-                fitView
                 onlyRenderVisibleElements
                 className={styles.graph}
                 edgesFocusable={false}
