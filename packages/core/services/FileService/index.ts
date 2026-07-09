@@ -49,7 +49,7 @@ export interface AnnotationNameToValuesMap {
 
 export default interface FileService {
     // Ordered list of column names that can be used to uniquely identify a file in the system
-    //  Used for provenance lookups.
+    // Used for provenance lookups.
     provenanceIdColumns: string[];
     fileExplorerServiceBaseUrl?: string;
     download(
