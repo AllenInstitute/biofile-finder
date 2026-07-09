@@ -25,7 +25,7 @@ const FILE_TO_BASENAME: Record<FileIdentifier, string> = {
     "20m": "synthetic-20m",
 };
 
-const FILE_TO_ENV: Record<FileIdentifier, string> = {
+const FILE_TO_ENV = {
     "100k": "BENCHMARK_REAL_100K_URL",
     "1m": "BENCHMARK_REAL_1M_URL",
     "10m": "BENCHMARK_REAL_10M_URL",
@@ -34,13 +34,12 @@ const FILE_TO_ENV: Record<FileIdentifier, string> = {
 };
 
 type ScaleIdentifier = "100k" | "1m" | "10m" | "10m+10m" | "20m";
-
-const TEST_CASES_MAP: Record<ScaleIdentifier, FileIdentifier[]> = {
-    "100k": ["100k"],
-    "1m": ["1m"],
-    "10m": ["10m"],
-    "10m+10m": ["10m", "10m-copy"],
-    "20m": ["20m"],
+const TEST_CASES_MAP = {
+    "100k": ["100k"] as FileIdentifier[],
+    "1m": ["1m"] as FileIdentifier[],
+    "10m": ["10m"] as FileIdentifier[],
+    "10m+10m": ["10m", "10m-copy"] as FileIdentifier[],
+    "20m": ["20m"] as FileIdentifier[],
 };
 
 function validateScaleArg(scale: string): asserts scale is ScaleIdentifier {
