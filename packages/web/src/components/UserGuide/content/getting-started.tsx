@@ -177,7 +177,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
         slug: PageSlug.SetupOverview,
         title: "Setup overview",
         intro:
-            "BioFile Finder (BFF) works by connecting a metadata file that you provide, to the files you want to explore. Rather than ingesting image data directly, BFF reads this metadata file that describes your dataset and references the files you want to access (image files, commonly). Once loaded, BFF turns that metadata into an interactive interface for filtering, grouping, searching, previewing, and sharing files.",
+            "BioFile Finder (BFF) works by connecting a metadata file that you provide to the files you want to explore. Rather than ingesting image data directly, BFF reads this metadata file that describes your dataset and references the files you want to access (image files, commonly). Once loaded, BFF turns that metadata into an interactive interface for filtering, grouping, searching, previewing, and sharing files.",
         sections: [
             {
                 heading: "Basic setup",
@@ -426,10 +426,10 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         </p>
                         <h3>Columns</h3>
                         <p>
-                            Columns can be anything, but there is one required column and a few
-                            Columns represent metadata describing each file. Aside from the required
-                            column and a few special optional columns described below, you can
-                            define any metadata fields relevant to your workflow.
+                            Columns can be anything that describes metadata fields relevant to your
+                            workflow. The only exceptions are the required column described below,
+                            and a few special optional columns that, if provided, enable special
+                            features in BFF.
                         </p>
                     </>
                 ),
@@ -1040,7 +1040,7 @@ pq.write_table(table, "dataset.parquet")`}
                     <>
                         <p>
                             Provenance is especially important in microscopy workflows that span
-                            multiple levels of biological organization — such as plates, wells, and
+                            multiple levels of biological organization, such as plates, wells, and
                             individual image files. Without clear provenance linking each
                             segmentation file back to its original image, well, and plate context,
                             it becomes difficult to trace results back to the experimental setup.

@@ -113,8 +113,8 @@ export const ABOUT_CONTENT: Page[] = [
                             <div className="ug-feature-card">
                                 <span>Querying power</span>
                                 <br /> BFF&apos;s in-browser query system gives full SQL control
-                                over arbitrary user metadata. No other tool in this space does that
-                                client-side, without a backend.
+                                over arbitrary user-supplied metadata. No other tool in this space
+                                does that client-side, without a backend.
                             </div>
                             <div className="ug-feature-card">
                                 <span>Format agnostic</span>
