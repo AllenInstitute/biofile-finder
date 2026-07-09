@@ -1289,7 +1289,6 @@ export default abstract class DatabaseService {
                         return false;
                     }
                     parentsAndChildren.add(parentAndChildKey);
-                    console.log(row.parent, row.child);
                     return true;
                 })
                 .map((row) => ({

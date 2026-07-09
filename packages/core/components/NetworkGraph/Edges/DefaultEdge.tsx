@@ -67,7 +67,6 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
                         // this would be the case for any "self" type edges
                         .filter((value) => !isEmpty(value))
                         .map((value) => new IncludeFilter(value));
-                    console.log("filters", filters);
                     newUrl = SearchParams.encode({
                         ...currentQuery,
                         filters,

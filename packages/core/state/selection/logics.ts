@@ -801,6 +801,8 @@ const changeProvenanceSourceLogic = createLogic({
                     // If we do have a graph origin, this ensures the graph actually starts rendering
                     dispatch(changeProvenanceOriginId(origin) as AnyAction);
                 }
+            } else {
+                await databaseService.deleteSourceProvenance();
             }
         } catch (err) {
             const msg = `Failed processing provenance. Error: ${(err as Error).message}`;
