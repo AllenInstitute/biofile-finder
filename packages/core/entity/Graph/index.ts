@@ -611,7 +611,7 @@ export default class Graph {
             }
         }
         console.error(
-            `Failed to match file by value ${value} on any of the columns ${this.fileService.provenanceIdColumns}.`
+            `Failed to match file by value ${value} on any of the usual referential columns ${this.fileService.provenanceIdColumns}.`
         );
         return undefined;
     }
