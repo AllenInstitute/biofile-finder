@@ -90,7 +90,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     private static readonly CSV_ENDPOINT_VERSION = "2.0";
     public static readonly BASE_CSV_DOWNLOAD_URL = `file-explorer-service/${HttpFileService.CSV_ENDPOINT_VERSION}/files/selection/manifest`;
     private readonly downloadService: FileDownloadService;
-    public readonly provenanceIdColumn = AnnotationName.FILE_ID;
+    public readonly provenanceIdColumns = [AnnotationName.FILE_ID];
 
     constructor(config: Config = { downloadService: new FileDownloadServiceNoop() }) {
         super(config);

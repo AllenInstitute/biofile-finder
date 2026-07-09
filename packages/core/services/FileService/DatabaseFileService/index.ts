@@ -143,7 +143,7 @@ export default class DatabaseFileService implements FileService {
     private readonly databaseService: DatabaseService;
     private readonly downloadService: FileDownloadService;
     private readonly dataSourceNames: string[];
-    public readonly provenanceIdColumn = "File Path";
+    public readonly provenanceIdColumns = ["File Path", "File ID"];
 
     private static convertDatabaseRowToFileDetail(row: FileRow, env: Environment): FileDetail {
         const uniqueId = row[HIDDEN_UID_ANNOTATION];

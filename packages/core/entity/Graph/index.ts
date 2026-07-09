@@ -590,30 +590,30 @@ export default class Graph {
     private async getFileByProvenanceId(
         value: string | number | boolean
     ): Promise<FileDetail | undefined> {
-        let files;
-        try {
-            files = await this.fileService.getFiles({
-                from: 0,
-                limit: 2, // We only want one result, so if there are >=2 it's not a unique identifier
-                fileSet: new FileSet({
-                    fileService: this.fileService,
-                    filters: [new FileFilter(this.fileService.provenanceIdColumn, [value])],
-                }),
-            });
-        } catch (err) {
-            console.error(
-                `Failed to find file at column ${
-                    this.fileService.provenanceIdColumn
-                } with value ${value}. Error: ${(err as Error).message}`
-            );
-            return undefined;
+        let files: FileDetail[] = [];
+        for (const column of this.fileService.provenanceIdColumns) {
+            try {
+                files = await this.fileService.getFiles({
+                    from: 0,
+                    limit: 2, // We only want one result, so if there are >=2 it's not a unique identifier
+                    fileSet: new FileSet({
+                        fileService: this.fileService,
+                        filters: [new FileFilter(column, [value])],
+                    }),
+                });
+                if (files.length === 1) return files[0];
+            } catch (err) {
+                console.debug(
+                    `Error in getFileByProvenanceId(${value}) for ${column}. Details: ${
+                        (err as Error).message
+                    }`
+                );
+            }
         }
-        if (files.length !== 1) {
-            throw new Error(
-                `Failed to fetch 1 file at column ${this.fileService.provenanceIdColumn} with value ${value}. Found ${files.length} instead.`
-            );
-        }
-        return files[0];
+        console.error(
+            `Failed to match file by value ${value} on any of the columns ${this.fileService.provenanceIdColumns}.`
+        );
+        return undefined;
     }
 
     /**
