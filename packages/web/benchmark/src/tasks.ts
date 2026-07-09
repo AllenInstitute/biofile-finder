@@ -19,7 +19,8 @@
  * or drop the task so the list stays an accurate reflection of what users wait on.
  *
  * Fixture columns referenced by name (e.g. "cell_line", "focus_score") must exist in the
- * generated fixture — see packages/web/benchmark/src/fixture-generator.ts.
+ * generated fixture. Nested tasks additionally require the "Well" STRUCT[] column — see
+ * scripts/generate_nested_parquet.py and the requiresAnnotation field below.
  */
 import DatabaseAnnotationService from "../../../core/services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../../core/services/FileService/DatabaseFileService";
@@ -157,6 +158,74 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
                 from: 0,
                 limit: 100,
             }),
+    },
+
+    // ----------------------------------------------------------------------------------
+    // Nested metadata (STRUCT[] columns). These only run against fixtures that contain the
+    // "Well" nested column (see requiresAnnotation + benchmarkSource's task filtering). The
+    // benchmark fixture generator emits:
+    //   Well  STRUCT(Gene VARCHAR, Dose STRUCT(Unit VARCHAR, Value DOUBLE))[]
+    // with sub-fields addressed by dotted path: Well.Gene (medium cardinality), Well.Dose.Unit
+    // (low), Well.Dose.Value (high). "TP53" and "uM" are guaranteed to appear so filter tasks
+    // match real rows. See scripts/generate_nested_parquet.py.
+    // ----------------------------------------------------------------------------------
+
+    // Opening a filter picker on a nested sub-field: fetchValues unnests the STRUCT[] and
+    // collects distinct leaf values. Three cardinality tiers, mirroring the flat pickers.
+    {
+        name: "nested_filter_picker_low_cardinality",
+        run: (a) => a.fetchValues("Well.Dose.Unit"),
+    },
+    {
+        name: "nested_filter_picker_medium_cardinality",
+        run: (a) => a.fetchValues("Well.Gene"),
+    },
+    {
+        name: "nested_filter_picker_high_cardinality",
+        run: (a) => a.fetchValues("Well.Dose.Value"),
+    },
+
+    // Applying a filter on a nested sub-field: count then browse (fires together when the
+    // user selects a value). Exercises the list_transform/list_has predicate path.
+    {
+        name: "nested_filter_count",
+        run: (_, f) =>
+            f.getCountOfMatchingFiles(
+                new FileSet({ filters: [new FileFilter("Well.Gene", "TP53")] })
+            ),
+    },
+    {
+        name: "nested_filter_browse",
+        run: (_, f) =>
+            f.getFiles({
+                fileSet: new FileSet({ filters: [new FileFilter("Well.Gene", "TP53")] }),
+                from: 0,
+                limit: 100,
+            }),
+    },
+
+    // Combination filter on two sub-fields of the same nested column. Both conditions must
+    // hold within the *same* array element, so this correlates into a single list_filter
+    // lambda (the most expensive nested query shape). See FileFilter.toListOfWhereClauses.
+    {
+        name: "nested_combination_filter_count",
+        run: (_, f) =>
+            f.getCountOfMatchingFiles(
+                new FileSet({
+                    filters: [
+                        new FileFilter("Well.Gene", "TP53"),
+                        new FileFilter("Well.Dose.Unit", "uM"),
+                    ],
+                })
+            ),
+    },
+
+    // Changing the grouping annotation to a nested sub-field — fires parallel len(...) > 0
+    // availability checks, one per schema column. Wall-clock timed like flat change_grouping.
+    {
+        name: "nested_change_grouping",
+        timing: "wall-clock",
+        run: (a) => a.fetchAvailableAnnotationsForHierarchy(["Well.Gene"]),
     },
 ];
 

@@ -29,13 +29,45 @@ cp packages/web/fixtures/synthetic-10m.parquet packages/web/fixtures/synthetic-1
 curl -fL "$BASE/synthetic-20m.parquet"  -o packages/web/fixtures/synthetic-20m.parquet
 ```
 
+**Nested-metadata column** (for the `nested_*` tasks)
+
+The `synthetic-*` fixtures carry a nested `Well` STRUCT[] column alongside the flat scalar
+columns, so the same fixtures drive both the flat and the nested tasks:
+
+```
+Well  STRUCT(Gene VARCHAR, Dose STRUCT(Unit VARCHAR, Value DOUBLE))[]
+```
+
+Sub-fields are addressed by dotted path — `Well.Gene`, `Well.Dose.Unit`, `Well.Dose.Value`.
+The column is baked into the hosted fixtures, so the download above is all you need. If you
+ever need to (re)generate it — e.g. after refreshing the flat fixtures in S3 — run the
+one-time augment script, which grabs each hosted `synthetic-*.parquet`, appends the `Well`
+column deterministically, and writes the result to `./augmented-fixtures/` for re-upload:
+
+```bash
+# One scale
+python scripts/augment_parquet_with_nested.py --scale 100k
+
+# All benchmark scales (100k, 1m, 10m, 20m)
+python scripts/augment_parquet_with_nested.py --all-scales
+
+# A local file already on disk (no download)
+python scripts/augment_parquet_with_nested.py \
+    --input packages/web/fixtures/synthetic-100k.parquet \
+    --output packages/web/fixtures/synthetic-100k.parquet
+```
+
+The `nested_*` tasks are skipped automatically for any source that lacks the `Well` column
+(see `requiresAnnotation` in [tasks.ts](../packages/web/benchmark/src/tasks.ts)), so a fixture
+without it is a no-op rather than an error.
+
 **Run against local fixtures**
 
 ```bash
 # All scales
 npm run benchmark --prefix packages/web -- --local
 
-# Single scale
+# A single scale (flat + nested tasks both run)
 npm run benchmark --prefix packages/web -- --local --scale 100k
 
 # Override iteration/warmup counts
@@ -64,7 +96,7 @@ This prints a Markdown table with p50 deltas and regression/improvement badges (
 | Flag | Description |
 |---|---|
 | `--local` | Use fixtures from `packages/web/fixtures/` instead of S3 URLs |
-| `--scale 100k\|1m\|10m\|10m+10m\|20m` | Run a single fixture size |
+| `--scale 100k\|1m\|10m\|10m+10m\|20m` | Run a single fixture size. Every scale runs both the flat and nested-metadata tasks (the `Well` column is baked into the fixtures) |
 | `--full` | Run all scales with both cloud and local sources side-by-side |
 | `--iterations N` | Timed iterations per task (default 5) |
 | `--warmup N` | Warmup rounds before timing (default 1) |

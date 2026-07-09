@@ -8,12 +8,24 @@ import fs from "fs";
 import { execSync } from "child_process";
 import { runBenchmarkPage } from "./lib/run-benchmark-page";
 
-const LOCAL_BASE = "http://localhost:18765/fixtures/synthetic";
+const LOCAL_BASE = "http://localhost:18765/fixtures";
 const REMOTE_BASE =
-    "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1/synthetic";
+    "https://staging-biofile-finder-datasets.s3.us-west-2.amazonaws.com/benchmark-fixtures/v1";
 
 type FileIdentifier = "100k" | "1m" | "10m" | "10m-copy" | "20m";
-const FILE_TO_ENV = {
+
+// Fixture basename (no extension) for each identifier. The synthetic-* fixtures now carry
+// both the flat scalar columns and the nested "Well" STRUCT[] column (added in place by
+// scripts/augment_parquet_with_nested.py), so the nested_* tasks run against them directly.
+const FILE_TO_BASENAME: Record<FileIdentifier, string> = {
+    "100k": "synthetic-100k",
+    "1m": "synthetic-1m",
+    "10m": "synthetic-10m",
+    "10m-copy": "synthetic-10m-copy",
+    "20m": "synthetic-20m",
+};
+
+const FILE_TO_ENV: Record<FileIdentifier, string> = {
     "100k": "BENCHMARK_REAL_100K_URL",
     "1m": "BENCHMARK_REAL_1M_URL",
     "10m": "BENCHMARK_REAL_10M_URL",
@@ -22,32 +34,32 @@ const FILE_TO_ENV = {
 };
 
 type ScaleIdentifier = "100k" | "1m" | "10m" | "10m+10m" | "20m";
-const TEST_CASES_MAP = {
-    "100k": ["100k"] as FileIdentifier[],
-    "1m": ["1m"] as FileIdentifier[],
-    "10m": ["10m"] as FileIdentifier[],
-    "10m+10m": ["10m", "10m-copy"] as FileIdentifier[],
-    "20m": ["20m"] as FileIdentifier[],
+
+const TEST_CASES_MAP: Record<ScaleIdentifier, FileIdentifier[]> = {
+    "100k": ["100k"],
+    "1m": ["1m"],
+    "10m": ["10m"],
+    "10m+10m": ["10m", "10m-copy"],
+    "20m": ["20m"],
 };
 
 function validateScaleArg(scale: string): asserts scale is ScaleIdentifier {
     if (!(Object.keys(TEST_CASES_MAP).indexOf(scale) !== -1)) {
-        throw new Error();
+        throw new Error(`${scale} not recognized. Choose from ${Object.keys(TEST_CASES_MAP)}`);
     }
 }
 
 function getURL(partialFileName: FileIdentifier, useLocal: boolean) {
-    if (!(partialFileName in FILE_TO_ENV)) {
+    if (!(partialFileName in FILE_TO_BASENAME)) {
         throw new Error(
-            `${partialFileName} not recognized. Choose from ${Object.keys(FILE_TO_ENV)}`
+            `${partialFileName} not recognized. Choose from ${Object.keys(FILE_TO_BASENAME)}`
         );
     }
+    const basename = FILE_TO_BASENAME[partialFileName];
     if (useLocal) {
-        return `${LOCAL_BASE}-${partialFileName}.parquet`;
+        return `${LOCAL_BASE}/${basename}.parquet`;
     } else {
-        return (
-            process.env[FILE_TO_ENV[partialFileName]] ?? `${REMOTE_BASE}-${partialFileName}.parquet`
-        );
+        return process.env[FILE_TO_ENV[partialFileName]] ?? `${REMOTE_BASE}/${basename}.parquet`;
     }
 }
 
