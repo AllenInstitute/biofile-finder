@@ -1,3 +1,4 @@
+import { Icon } from "@fluentui/react";
 import { kebabCase } from "lodash";
 import * as React from "react";
 
@@ -461,10 +462,13 @@ export const ABOUT_CONTENT: Page[] = [
                 body: (
                     <>
                         <p>
-                            BFF uses <strong>DuckDB</strong> — a high-performance analytical SQL
-                            engine — to run queries entirely in your browser. No server, no backend,
-                            no credentials required. Filter, sort, and search across millions of
-                            rows of metadata instantly.
+                            BFF uses{" "}
+                            <a href="https://duckdb.org/" target="_blank" rel="noreferrer">
+                                DuckDB <Icon iconName="OpenInNewWindow" className="ug-icon-sm" />
+                            </a>{" "}
+                            — a high-performance analytical SQL engine — to run queries entirely in
+                            your browser. No server, no backend, no credentials required. Filter,
+                            sort, and search across millions of rows of metadata instantly.
                         </p>
                         <ul>
                             <li>Filter by one or more metadata columns simultaneously</li>
