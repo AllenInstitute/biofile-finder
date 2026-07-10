@@ -24,7 +24,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 <tr>
                                     <th>Use case</th>
                                     <th>Key BFF actions</th>
-                                    <th>Time saved vs. manual</th>
+                                    <th>Problem BFF solves</th>
                                 </tr>
                             </thead>
                             <tbody>
