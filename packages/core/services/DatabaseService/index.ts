@@ -526,8 +526,11 @@ export default abstract class DatabaseService {
             relationshipType: edge.relationshiptype as RelationshipType | undefined,
         };
 
-        if (isEdgeDuplicateCallback?.(edge)) {
-            return `duplicate parent (${edge.parent}) and child (${edge.child}) combination.`;
+        if (isEdgeDuplicateCallback?.(edgeDefinition)) {
+            return (
+                `duplicate parent (${edgeDefinition.parent.name}) and child` +
+                `(${edgeDefinition.child.name}) combination.`
+            );
         }
 
         return edgeDefinition;
@@ -1306,16 +1309,17 @@ export default abstract class DatabaseService {
         const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
         try {
             const rows = await this.query(sql).promise;
-            const warnings: string[] = [];
+
             const parentsAndChildren = new Set<string>();
-            const edgeDefinitions: EdgeDefinition[] = [];
             const isEdgeDuplicateCallback = (edgeDefinition: EdgeDefinition) => {
-                const parentAndChildKey = `${edgeDefinition.parent}-${edgeDefinition.child}`;
+                const parentAndChildKey = `${edgeDefinition.parent.name}-${edgeDefinition.child.name}`;
                 const isEdgeDuplicate = parentsAndChildren.has(parentAndChildKey);
                 parentsAndChildren.add(parentAndChildKey);
                 return isEdgeDuplicate;
             };
 
+            const warnings: string[] = [];
+            const edgeDefinitions: EdgeDefinition[] = [];
             for (const [idx, row] of rows.entries()) {
                 // Format the row and check for any warnings (e.g., missing required fields, invalid relationship types, etc.)
                 const edgeDefinitionOrWarning = DatabaseService.formatEdgeDefinition(
