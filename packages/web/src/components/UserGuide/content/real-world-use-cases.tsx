@@ -4,8 +4,6 @@ import * as React from "react";
 
 import { Page, PageSlug, SectionHeading } from "./types";
 
-// Note: "real-world-use-cases/other-examples" exists in this file but has no
-// corresponding nav entry. It is unreachable unless added to nav.ts.
 export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
     {
         slug: PageSlug.UseCasesAndScenarios,
