@@ -1,6 +1,6 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
-import { isEmpty, isNil, mapKeys, uniq } from "lodash";
+import { isEmpty, isNil, mapKeys, mapValues, uniq } from "lodash";
 
 import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
@@ -447,49 +447,90 @@ export default abstract class DatabaseService {
             : str;
     }
 
-    // Checks to see if the row is compatible with ProvenanceRow interface and returns a string describing
+    // Checks to see if the row is compatible with EdgeDefinition interface and returns a string describing
     // the issue if not compatible
-    private static checkProvenanceRowForIssues(row: Record<string, unknown>): string | undefined {
-        // Determine which fields should be required
+    private static formatEdgeDefinition(
+        potentialEdge: Record<string, any>,
+        isEdgeDuplicateCallback?: (edge: EdgeDefinition) => boolean
+    ): EdgeDefinition | string {
+        // Lowercase keys and remove whitespace to help avoid issues with inconsistent formatting
+        const lowercaseEdge = mapKeys(potentialEdge, (_, key) =>
+            key.toLowerCase().replace(/\s+/g, "")
+        );
+
+        // Make sure values of object are all strings and trim whitespace
+        // if not a string will be converted to empty string which will be caught by the required field check below
+        const edge: Record<string, string> = mapValues(lowercaseEdge, (value) =>
+            isValidString(value) ? value.trim() : ""
+        );
+
+        // Determine which extra fields should be required below
+        const requiredFields = [...REQUIRED_PROVENANCE_FIELDS];
+
         // "child" and "parent" are only required if the corresponding type is not "self"
         // if "self" the "child" and "parent" are implicitly the row itself and do not
         // need a column value
-        const requiredFields = [...REQUIRED_PROVENANCE_FIELDS];
-        if (isValidString(row.childtype) && row.childtype !== "self") {
-            requiredFields.push("child");
-        }
-        if (isValidString(row.parenttype) && row.parenttype !== "self") {
-            requiredFields.push("parent");
+        const columnAndTypes: { type: keyof ProvenanceRow; field: keyof ProvenanceRow }[] = [
+            { type: "childtype", field: "child" },
+            { type: "parenttype", field: "parent" },
+        ];
+        for (const { type, field } of columnAndTypes) {
+            if (edge[type] === "self") {
+                // This field is unnecessary when the type is "self", remove it to simplify the row
+                edge[field] = "";
+            } else {
+                // This field is required when the type is not "self"
+                requiredFields.push(field);
+            }
         }
 
         // Every required field must be a present, non-empty string
-        const missingField = requiredFields.find((field) => !isValidString(row[field]));
+        const missingField = requiredFields.find((field) => !isValidString(edge[field]));
         if (missingField) {
-            return `missing required "${missingField}" value in row: ` + JSON.stringify(row);
+            return `missing required "${missingField}" value in row: ` + JSON.stringify(edge);
         }
 
         // Node type fields must be one of the recognized EdgeNodeType values
         const invalidTypeField = ["parenttype", "childtype"].find(
-            (field) => !VALID_EDGE_NODE_TYPES.includes(row[field] as EdgeNodeType)
+            (field) => !VALID_EDGE_NODE_TYPES.includes(edge[field] as EdgeNodeType)
         );
         if (invalidTypeField) {
             return (
-                `invalid "${invalidTypeField}" value "${row[invalidTypeField]}".` +
+                `invalid "${invalidTypeField}" value "${edge[invalidTypeField]}".` +
                 ` Expected one of: ${VALID_EDGE_NODE_TYPES.join(", ")}.`
             );
         }
 
         // relationshiptype is optional, but if provided it must be recognized
         if (
-            !isNil(row.relationshiptype) &&
-            !isEmpty(row.relationshiptype) &&
-            !VALID_RELATIONSHIP_TYPES.includes(row.relationshiptype as RelationshipType)
+            !isNil(edge.relationshiptype) &&
+            !isEmpty(edge.relationshiptype) &&
+            !VALID_RELATIONSHIP_TYPES.includes(edge.relationshiptype as RelationshipType)
         ) {
             return (
-                `invalid "relationshiptype" value "${row.relationshiptype}". ` +
+                `invalid "Relationship Type" value "${edge.relationshiptype}". ` +
                 `Expected one of: ${VALID_RELATIONSHIP_TYPES.join(", ")} or none (default).`
             );
         }
+
+        const edgeDefinition: EdgeDefinition = {
+            child: {
+                name: edge.child,
+                type: edge.childtype as EdgeNodeType,
+            },
+            parent: {
+                name: edge.parent,
+                type: edge.parenttype as EdgeNodeType,
+            },
+            relationship: edge.relationship,
+            relationshipType: edge.relationshiptype as RelationshipType | undefined,
+        };
+
+        if (isEdgeDuplicateCallback?.(edge)) {
+            return `duplicate parent (${edge.parent}) and child (${edge.child}) combination.`;
+        }
+
+        return edgeDefinition;
     }
 
     public hasDataSource(dataSourceName: string): boolean {
@@ -1267,40 +1308,29 @@ export default abstract class DatabaseService {
             const rows = await this.query(sql).promise;
             const warnings: string[] = [];
             const parentsAndChildren = new Set<string>();
-            const edgeDefinitions = rows
-                // Lowercase keys and remove whitespace to help avoid issues with inconsistent formatting
-                .map((row) => mapKeys(row, (_, key) => key.toLowerCase().replace(/\s+/g, "")))
-                // Filter out any rows that don't align with expected shape or values in format
-                .filter((row, idx): row is ProvenanceRow => {
-                    const approxRowNumber = idx + 2; // +2 to account for header row and 0-indexing
-                    const warning = DatabaseService.checkProvenanceRowForIssues(row);
-                    if (warning) {
-                        warnings.push(`(Row #${approxRowNumber}) ${warning}`);
-                        return false;
-                    }
-                    // Lastly, filter out any rows that have duplicate parent/child combinations
-                    const parentAndChildKey = `${row.parent}-${row.child}`;
-                    if (parentsAndChildren.has(parentAndChildKey)) {
-                        warnings.push(
-                            `(Row #${approxRowNumber}) duplicate parent (${row.parent}) and child (${row.child}) combination.`
-                        );
-                        return false;
-                    }
-                    parentsAndChildren.add(parentAndChildKey);
-                    return true;
-                })
-                .map((row) => ({
-                    relationship: row.relationship,
-                    relationshipType: row.relationshiptype,
-                    parent: {
-                        name: row.parent || "", // Prefer empty string over nil
-                        type: row.parenttype,
-                    },
-                    child: {
-                        name: row.child || "", // Prefer empty string over nil
-                        type: row.childtype,
-                    },
-                }));
+            const edgeDefinitions: EdgeDefinition[] = [];
+            const isEdgeDuplicateCallback = (edgeDefinition: EdgeDefinition) => {
+                const parentAndChildKey = `${edgeDefinition.parent}-${edgeDefinition.child}`;
+                const isEdgeDuplicate = parentsAndChildren.has(parentAndChildKey);
+                parentsAndChildren.add(parentAndChildKey);
+                return isEdgeDuplicate;
+            };
+
+            for (const [idx, row] of rows.entries()) {
+                // Format the row and check for any warnings (e.g., missing required fields, invalid relationship types, etc.)
+                const edgeDefinitionOrWarning = DatabaseService.formatEdgeDefinition(
+                    row,
+                    isEdgeDuplicateCallback
+                );
+
+                if (typeof edgeDefinitionOrWarning === "string") {
+                    // Add 2 to index to account for header row and 0-indexing
+                    warnings.push(`(Row #${idx + 2}) ${edgeDefinitionOrWarning}`);
+                } else {
+                    edgeDefinitions.push(edgeDefinitionOrWarning);
+                }
+            }
+
             return { edgeDefinitions, warnings };
         } catch (err) {
             // Source provenance file may not have been supplied

@@ -606,7 +606,7 @@ describe("DatabaseService", () => {
             expect(warnings).to.have.lengthOf(3);
             expect(warnings.some((w) => w.includes("relationship"))).to.be.true;
             expect(warnings.some((w) => w.includes("parenttype"))).to.be.true;
-            expect(warnings.some((w) => w.includes("relationshiptype"))).to.be.true;
+            expect(warnings.some((w) => w.includes("Relationship Type"))).to.be.true;
         });
 
         it("emits a warning and drops duplicate parent/child combinations", async () => {
