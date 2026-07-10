@@ -785,11 +785,13 @@ const changeProvenanceSourceLogic = createLogic({
                     selectedSourceProvenance
                 );
                 if (warnings.length > 0) {
-                    const fullWarning = warnings.join("\n");
+                    const intro =
+                        "Skipped processing 1 or more relationship edges due to missing or invalid data";
+                    const fullWarning = `${intro}:<br /> - ${warnings.join("<br /> - ")}`;
                     dispatch(
                         interaction.actions.processWarning(
                             "processProvenanceWarning",
-                            fullWarning.substring(0, 150),
+                            `${intro}...`,
                             fullWarning
                         )
                     );

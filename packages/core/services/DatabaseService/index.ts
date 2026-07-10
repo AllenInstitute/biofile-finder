@@ -465,10 +465,7 @@ export default abstract class DatabaseService {
         // Every required field must be a present, non-empty string
         const missingField = requiredFields.find((field) => !isValidString(row[field]));
         if (missingField) {
-            return (
-                `Skipping provenance row missing required "${missingField}" value in row: ` +
-                JSON.stringify(row)
-            );
+            return `missing required "${missingField}" value in row: ` + JSON.stringify(row);
         }
 
         // Node type fields must be one of the recognized EdgeNodeType values
@@ -477,7 +474,7 @@ export default abstract class DatabaseService {
         );
         if (invalidTypeField) {
             return (
-                `Skipping provenance row with invalid "${invalidTypeField}" value "${row[invalidTypeField]}".` +
+                `invalid "${invalidTypeField}" value "${row[invalidTypeField]}".` +
                 ` Expected one of: ${VALID_EDGE_NODE_TYPES.join(", ")}.`
             );
         }
@@ -489,7 +486,7 @@ export default abstract class DatabaseService {
             !VALID_RELATIONSHIP_TYPES.includes(row.relationshiptype as RelationshipType)
         ) {
             return (
-                `Skipping provenance row with invalid "relationshiptype" value "${row.relationshiptype}". ` +
+                `invalid "relationshiptype" value "${row.relationshiptype}". ` +
                 `Expected one of: ${VALID_RELATIONSHIP_TYPES.join(", ")} or none (default).`
             );
         }
@@ -1274,17 +1271,18 @@ export default abstract class DatabaseService {
                 // Lowercase keys and remove whitespace to help avoid issues with inconsistent formatting
                 .map((row) => mapKeys(row, (_, key) => key.toLowerCase().replace(/\s+/g, "")))
                 // Filter out any rows that don't align with expected shape or values in format
-                .filter((row): row is ProvenanceRow => {
+                .filter((row, idx): row is ProvenanceRow => {
+                    const approxRowNumber = idx + 2; // +2 to account for header row and 0-indexing
                     const warning = DatabaseService.checkProvenanceRowForIssues(row);
                     if (warning) {
-                        warnings.push(warning);
+                        warnings.push(`(Row #${approxRowNumber}) ${warning}`);
                         return false;
                     }
                     // Lastly, filter out any rows that have duplicate parent/child combinations
                     const parentAndChildKey = `${row.parent}-${row.child}`;
                     if (parentsAndChildren.has(parentAndChildKey)) {
                         warnings.push(
-                            `Skipping provenance row with duplicate parent (${row.parent}) and child (${row.child}) combination.`
+                            `(Row #${approxRowNumber}) duplicate parent (${row.parent}) and child (${row.child}) combination.`
                         );
                         return false;
                     }
