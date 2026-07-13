@@ -3,7 +3,7 @@ import { DownloadResolution, DownloadResult } from "../FileDownloadService";
 import FileDetail from "../../entity/FileDetail";
 
 export default class FileServiceNoop implements FileService {
-    public readonly provenanceIdColumn = "";
+    public readonly provenanceIdColumns = [""];
     public getCountOfMatchingFiles(): Promise<number> {
         return Promise.resolve(0);
     }
