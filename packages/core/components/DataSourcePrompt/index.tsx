@@ -1,10 +1,10 @@
-import { DefaultButton, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+import DataSourcePromptTemplate from "./DataSourcePromptTemplate";
 import FilePrompt from "./FilePrompt";
-import { LinkLikeButton, PrimaryButton, TransparentIconButton } from "../Buttons";
+import { LinkLikeButton, TransparentIconButton } from "../Buttons";
 import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
@@ -16,12 +16,13 @@ interface Props {
     isModal?: boolean;
 }
 
-const ADDITIONAL_COLUMN_DETAILS = [
-    'If a "Thumbnail" column is present, it should contain a web URL to a thumbnail image for the file. ',
-    'If a "File Name" column is present, it should be the file\'s name, which will replace the "File Name" created by default from the path. ',
-    'If a "File Size" column is present, it should contain the size of the file in bytes, providing feedback to the user during downloads. ',
-    'If an "Uploaded" column is present, it should contain the date the file was uploaded to the storage and be formatted as YYYY-MM-DD HH:MM:SS.Z where Z is a timezone offset. ',
-];
+interface PropsDefaultType extends Props {
+    metadataSource?: Source;
+    provenanceSource?: Source;
+    setMetadataSource: (file?: Source) => void;
+    setProvenanceSource: (file?: Source) => void;
+    onDismiss: () => void;
+}
 
 export enum DataSourceType {
     default = 0,
@@ -34,27 +35,88 @@ export enum DataSourceType {
  */
 export default function DataSourcePrompt(props: Props) {
     const dispatch = useDispatch();
-
-    const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
     const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
-    const { query, sourceType = DataSourceType.default } =
+    const { source, sourceType = DataSourceType.default } =
         dataSourceInfo || ({} as DataSourcePromptInfo);
-    const requiresDataSourceReload = useSelector(selection.selectors.getRequiresDataSourceReload);
-
-    const [dataSource, setDataSource] = React.useState<Source>();
     const [metadataSource, setMetadataSource] = React.useState<Source>();
     const [provenanceSource, setProvenanceSource] = React.useState<Source>();
-    const [showMetadataPrompt, setShowMetadataPrompt] = React.useState(false);
-    const [showProvenancePrompt, setShowProvenancePrompt] = React.useState(false);
-    const [isDataSourceDetailExpanded, setIsDataSourceDetailExpanded] = React.useState(false);
 
     const onDismiss = () => {
         dispatch(interaction.actions.hideVisibleModal());
     };
 
+    if (sourceType === DataSourceType.metadata) {
+        let description =
+            "Load a CSV, Parquet, or JSON file containing metadata descriptors associated with the columns in your data source.\n";
+        if (source) {
+            description = description.concat(
+                `\nUploading a new file will replace the current metadata source (${source.name}).`
+            );
+        }
+        return (
+            <DataSourcePromptTemplate
+                className={props.className}
+                description={description}
+                isModal={props.isModal}
+                onSubmit={() => {
+                    if (!metadataSource) return;
+                    dispatch(selection.actions.changeSourceMetadata(metadataSource));
+                    onDismiss();
+                }}
+                onSelectFile={setMetadataSource}
+                selectedFile={metadataSource}
+                submitDisabled={!metadataSource}
+            />
+        );
+    } else if (sourceType === DataSourceType.provenance) {
+        let description =
+            "Load a CSV, Parquet, or JSON file describing provenance relationships associated with the columns in your data source.\n";
+        if (source) {
+            description = description.concat(
+                `\nUploading a new file will replace the current provenance source (${source.name}).`
+            );
+        }
+        return (
+            <DataSourcePromptTemplate
+                className={props.className}
+                description={description}
+                isModal={props.isModal}
+                onSubmit={() => {
+                    if (!provenanceSource) return;
+                    dispatch(selection.actions.changeProvenanceSource(provenanceSource));
+                    onDismiss();
+                }}
+                onSelectFile={setProvenanceSource}
+                selectedFile={provenanceSource}
+                submitDisabled={!provenanceSource}
+            />
+        );
+    }
+    return (
+        <DataSourcePromptDefault
+            className={props.className}
+            isModal={props.isModal}
+            metadataSource={metadataSource}
+            setMetadataSource={setMetadataSource}
+            provenanceSource={provenanceSource}
+            setProvenanceSource={setProvenanceSource}
+            onDismiss={onDismiss}
+        />
+    );
+}
+
+function DataSourcePromptDefault(props: PropsDefaultType) {
+    const dispatch = useDispatch();
+    const { metadataSource, setMetadataSource, provenanceSource, setProvenanceSource } = props;
+    const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
+    const { query } = dataSourceInfo || ({} as DataSourcePromptInfo);
+    const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
+    const requiresDataSourceReload = useSelector(selection.selectors.getRequiresDataSourceReload);
+    const [dataSource, setDataSource] = React.useState<Source>();
+    const [showMetadataPrompt, setShowMetadataPrompt] = React.useState(false);
+    const [showProvenancePrompt, setShowProvenancePrompt] = React.useState(false);
+
     const onSubmit = () => {
-        // TO DO: https://github.com/AllenInstitute/biofile-finder/issues/742
-        // Allow users to add just prov/metadata descriptor files without adding a dataSource
         if (!dataSource) return;
         if (requiresDataSourceReload || query) {
             if (metadataSource) {
@@ -84,7 +146,7 @@ export default function DataSourcePrompt(props: Props) {
             );
         }
 
-        onDismiss();
+        props.onDismiss();
     };
 
     const metadataDescriptorPrompt = (
@@ -154,24 +216,18 @@ export default function DataSourcePrompt(props: Props) {
     );
 
     return (
-        <div className={classNames(props.className, styles.root)}>
-            {!props.isModal && <h2 className={styles.title}>Choose a data source</h2>}
-            <p
-                className={classNames(styles.text, {
-                    [styles.datasourceSubhead]: !props?.isModal,
-                })}
-            >
-                Load a CSV, Parquet, or JSON file containing the metadata key-value pairs
-                (annotations) associated with your files.
-            </p>
-            <div className={styles.filePromptOuterWrapper}>
-                <FilePrompt
-                    className={styles.filePrompt}
-                    onSelectFile={setDataSource}
-                    selectedFile={dataSource}
-                    parentId={`file-prompt-${props.isModal ? "modal" : "main"}`}
-                    lightBackground={props.isModal}
-                />
+        <DataSourcePromptTemplate
+            className={props.className}
+            description="Load a CSV, Parquet, or JSON file containing the metadata key-value pairs (annotations) associated with your files."
+            isModal={props.isModal}
+            onSubmit={onSubmit}
+            onSelectFile={setDataSource}
+            selectedFile={dataSource}
+            submitDisabled={!dataSource}
+            showAdvancedOptions
+            title="Choose a data source"
+        >
+            <>
                 <div className={styles.advancedOptionsButtons}>
                     {!(showMetadataPrompt && showProvenancePrompt) && <p>Optional includes: </p>}
                     {!showMetadataPrompt && (
@@ -194,124 +250,7 @@ export default function DataSourcePrompt(props: Props) {
                 </div>
                 {showMetadataPrompt && metadataDescriptorPrompt}
                 {showProvenancePrompt && provenanceFilePrompt}
-                <div className={styles.loadButtonContainer}>
-                    <PrimaryButton
-                        className={classNames(styles.loadButton)}
-                        // TO DO: https://github.com/AllenInstitute/biofile-finder/issues/742 Allow users to upload just metadata/prov files
-                        disabled={!dataSource}
-                        text="LOAD"
-                        onClick={onSubmit}
-                    />
-                </div>
-            </div>
-            {sourceType === DataSourceType.default && (
-                <div className={styles.guidance}>
-                    <hr className={styles.divider} />
-                    <h4 className={styles.subheader}>Getting started guidance and example CSV</h4>
-                    <table
-                        className={classNames(
-                            styles.tableExample,
-                            props?.isModal ? styles.darkHeader : styles.lightBorder
-                        )}
-                    >
-                        <thead>
-                            <tr>
-                                <th>
-                                    File Path <i>(required metadata key)</i>
-                                </th>
-                                <th>
-                                    Gene <i>(example metadata key)</i>
-                                </th>
-                                <th>
-                                    Color <i>(example metadata key)</i>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>/folder/folder/my_storage/filename.zarr</td>
-                                <td>CDH2</td>
-                                <td>Blue</td>
-                            </tr>
-                            <tr>
-                                <td>/folder/my_storage/filename.txt</td>
-                                <td>VIM</td>
-                                <td>Green</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <h4 className={styles.subheader}>Minimum requirements</h4>
-                    <ul className={styles.detailsList}>
-                        <li>
-                            The first row should contain metadata keys (i.e., column headers), with
-                            &quot;File Path&quot; being the only required key.
-                        </li>
-                        <li>
-                            Each subsequent row should contain the values of corresponding keys for
-                            each file.
-                        </li>
-                    </ul>
-
-                    {isDataSourceDetailExpanded ? (
-                        <>
-                            <h4 className={styles.subheader}>Advanced:</h4>
-                            <ul className={styles.detailsList}>
-                                <li>
-                                    Data source files can be generated by this application by
-                                    selecting some files, right-clicking, and selecting one of the
-                                    &quot;Save metadata as&quot; options.
-                                </li>
-                                <li>
-                                    The following are optional pre-defined columns that are handled
-                                    as special cases:
-                                </li>
-                                <ul className={styles.detailsList}>
-                                    {ADDITIONAL_COLUMN_DETAILS.map((text) => (
-                                        <li key={text} className={styles.details}>
-                                            {text}
-                                        </li>
-                                    ))}
-                                </ul>
-                                <li className={styles.details}>
-                                    Optionally, you can supply an additional metadata descriptor
-                                    file to add more information about the data source. This file
-                                    should have a header row column named &quot;Column Name&quot;
-                                    and another column named &quot;Description&quot;. Each
-                                    subsequent row should contain the details for any columns
-                                    present in the actual data source you would like to describe.
-                                </li>
-                            </ul>
-                            <div
-                                className={classNames(styles.subtitleButtonContainer, {
-                                    [styles.leftAlign]: props.isModal,
-                                })}
-                            >
-                                <DefaultButton
-                                    className={styles.linkLikeButton}
-                                    onClick={() => setIsDataSourceDetailExpanded(false)}
-                                >
-                                    Show less&nbsp;&nbsp;
-                                    <Icon iconName="ChevronUp" />
-                                </DefaultButton>
-                            </div>
-                        </>
-                    ) : (
-                        <div
-                            className={classNames(styles.subtitleButtonContainer, {
-                                [styles.leftAlign]: props.isModal,
-                            })}
-                        >
-                            <DefaultButton
-                                className={styles.linkLikeButton}
-                                onClick={() => setIsDataSourceDetailExpanded(true)}
-                            >
-                                Show more&nbsp;&nbsp;
-                                <Icon iconName="ChevronDown" />
-                            </DefaultButton>
-                        </div>
-                    )}
-                </div>
-            )}
-        </div>
+            </>
+        </DataSourcePromptTemplate>
     );
 }

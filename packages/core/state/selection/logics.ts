@@ -796,7 +796,11 @@ const changeProvenanceSourceLogic = createLogic({
             }
         } catch (err) {
             const msg = `Failed processing provenance. Error: ${(err as Error).message}`;
-            dispatch(interaction.actions.processError("provenanceIngestionError", msg));
+            if (err instanceof DataSourcePreparationError) {
+                dispatch(addDataSourceReloadError(err.sourceName, msg) as AnyAction);
+            } else {
+                dispatch(interaction.actions.processError("provenanceIngestionError", msg));
+            }
         }
 
         done();
@@ -820,6 +824,11 @@ const addQueryLogic = createLogic({
                 await databaseService.prepareSourceMetadata(newQuery.parts.sourceMetadata);
             } else {
                 await databaseService.deleteSourceMetadata();
+            }
+            if (newQuery.parts.provenanceSource) {
+                await databaseService.processProvenance(newQuery.parts.provenanceSource);
+            } else {
+                await databaseService.deleteSourceProvenance();
             }
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());

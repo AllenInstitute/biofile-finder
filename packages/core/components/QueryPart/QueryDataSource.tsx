@@ -3,6 +3,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
+import { DataSourceType } from "../DataSourcePrompt";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Source } from "../../entity/SearchParams";
 import { interaction, metadata, selection } from "../../state";
@@ -83,6 +84,49 @@ export default function QueryDataSource(props: Props) {
                         );
                     },
                 },
+                ...(selectedDataSources.length > 0
+                    ? [
+                          {
+                              key: "Optional descriptor file",
+                              text: "Optional descriptor file",
+                              iconProps: { iconName: "NewFolder" },
+                              title:
+                                  "Add a file that describes data source metadata or provenance relationships",
+                              subMenuProps: {
+                                  items: [
+                                      {
+                                          key: "Metadata descriptor source",
+                                          text: "Add metadata descriptor source",
+                                          onClick: () => {
+                                              dispatch(
+                                                  interaction.actions.promptForDataSource({
+                                                      query: selectedQuery,
+                                                      // Current metadata file, if there is one
+                                                      source: props.sourceMetadata,
+                                                      sourceType: DataSourceType.metadata,
+                                                  })
+                                              );
+                                          },
+                                      },
+                                      {
+                                          key: "Provenance descriptor source",
+                                          text: "Add provenance descriptor source",
+                                          onClick: () => {
+                                              dispatch(
+                                                  interaction.actions.promptForDataSource({
+                                                      query: selectedQuery,
+                                                      // Current provenance file, if there is one
+                                                      source: props.sourceProvenance,
+                                                      sourceType: DataSourceType.provenance,
+                                                  })
+                                              );
+                                          },
+                                      },
+                                  ],
+                              },
+                          },
+                      ]
+                    : []),
             ]}
             rows={[
                 ...props.dataSources.map((dataSource) => ({
