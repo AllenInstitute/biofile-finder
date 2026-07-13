@@ -9,7 +9,7 @@ import nodeMenuItems from "./nodeMenuItems";
 import { useButtonMenu } from "../../Buttons";
 import FileThumbnail from "../../FileThumbnail";
 import Tooltip from "../../Tooltip";
-import { FileNode as FileNodeType, MetadataNode as MetadataNodeType } from "../../../entity/Graph";
+import { FileNode as FileNodeType } from "../../../entity/Graph";
 import useOpenWithMenuItems from "../../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../../hooks/useTruncatedString";
 import { interaction } from "../../../state";
@@ -20,10 +20,12 @@ import styles from "./FileNode.module.css";
  * Custom node element for displaying a File and providing interaction
  * options related to a file
  */
-export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeType>) {
+export default function FileNode(props: NodeProps<FileNodeType>) {
     const file = props.data.file;
     const dispatch = useDispatch();
     const graph = useSelector(interaction.selectors.getGraph);
+
+    const [thumbnail, setThumbnail] = React.useState<string | undefined>(file.thumbnail);
 
     const openWithSubMenuItems = useOpenWithMenuItems(file);
     const buttonMenu = useButtonMenu({
@@ -53,10 +55,14 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
         ],
     });
 
-    if (!file) {
-        console.error("This should never happen, a <FileNode /> was rendered without a file");
-        throw new Error(JSON.stringify(props));
-    }
+    // Attempt to get the path to the advanced thumbnail rendering for this file.
+    // Ex. if the file is a .zarr will attempt to create a thumbnail for that.
+    // If it is not available or does not work, will default to the basic thumbnail
+    React.useEffect(() => {
+        file.getPathToThumbnail().then((thumbnail) => {
+            setThumbnail(thumbnail);
+        });
+    }, [file]);
 
     return (
         <Tooltip content={file.name}>
@@ -73,7 +79,7 @@ export default function FileNode(props: NodeProps<FileNodeType | MetadataNodeTyp
                     position={Position.Top}
                 />
                 <div className={styles.contentContainer}>
-                    <FileThumbnail uri={file.thumbnail} height={100} width={100} />
+                    <FileThumbnail uri={thumbnail} height={100} width={100} />
                     <div className={styles.fileNodeLabel}>{useTruncatedString(file.name, 10)}</div>
                 </div>
                 <Handle
