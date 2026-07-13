@@ -449,23 +449,40 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             </a>
                         </p>
                         <p>
-                            Yoav Ben-Simon from the Allen Institute for Brain Science describes
-                            using BioFile Finder (BFF) as a flexible data management and sharing
-                            platform for imaging datasets related to viral vector targeting in the
-                            brain. BFF was used to organize datasets in a spreadsheet-like
-                            interface, enabling intuitive querying, filtering, and restructuring of
-                            data without requiring custom software development. The tool allowed
-                            users to quickly create and curate datasets, organize them
-                            hierarchically based on relevant features, and visualize grouped image
-                            sets with thumbnails. This significantly lowered the barrier to entry
-                            for data management and sharing, enabling non-engineers to deploy and
-                            share datasets via simple links rather than building dedicated web
-                            interfaces. Additionally, BFF facilitated collaboration by allowing
-                            teams to interact with shared datasets dynamically and supported reuse
-                            across different domains, extending from cell imaging to brain section
-                            and genomic data visualization.
+                            Yoav Ben-Simon from the brain science accelerator at Allen Institute
+                            describes using BioFile Finder (BFF) as a flexible data management and
+                            sharing platform for imaging datasets related to viral vector targeting
+                            in the brain. BFF was used to organize these imaging datasets in its
+                            spreadsheet-like interface, enabling intuitive querying, filtering, and
+                            restructuring of the data without requiring any custom software
+                            development. This significantly lowered the barrier to entry for data
+                            management within the brain science accelerator, and allowed the team to
+                            share a direct link to their metadata alongside their publication
+                            without needing to build their own dedicated web interface. This
+                            collaboration demonstrated how BFF can facilitate dynamic data
+                            interaction across different domains, extending from cell imaging to
+                            brain section and genomic data visualization.
                         </p>
-                        <h4>Key takeaways</h4>
+                        <p>
+                            Watch this short video from the Allen Institute on how they and AMBIOM
+                            at ISAS used BFF to organize and share their datasets.
+                        </p>
+                        <iframe
+                            width="560"
+                            height="315"
+                            src="https://www.youtube.com/embed/RD2x4BFhWzY?si=a1ZPYrq-k2VVhCCc"
+                            title="YouTube video player"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            allowFullScreen
+                        ></iframe>
+                    </>
+                ),
+            },
+            {
+                heading: "Key takeaways",
+                body: (
+                    <>
                         <blockquote>
                             <p>
                                 &ldquo;BioFile Finder is a data management tool&hellip; like a fancy
@@ -487,26 +504,6 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 and genomic data.&rdquo; &mdash; Yoav Ben-Simon, <i>author</i>
                             </p>
                         </blockquote>
-                    </>
-                ),
-            },
-            {
-                heading: "Video",
-                body: (
-                    <>
-                        <p>
-                            Check out this short video from the Allen Institute on how they and
-                            AMBIOM at ISAS used BFF to organize and share their datasets.
-                        </p>
-                        <iframe
-                            width="560"
-                            height="315"
-                            src="https://www.youtube.com/embed/RD2x4BFhWzY?si=a1ZPYrq-k2VVhCCc"
-                            title="YouTube video player"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            referrerPolicy="strict-origin-when-cross-origin"
-                            allowFullScreen
-                        ></iframe>
                     </>
                 ),
             },
