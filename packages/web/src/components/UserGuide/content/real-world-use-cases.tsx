@@ -464,8 +464,10 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             brain section and genomic data visualization.
                         </p>
                         <p>
-                            Watch this short video from the Allen Institute on how they and AMBIOM
-                            at ISAS used BFF to organize and share their datasets.
+                            Watch this short video from the Allen Institute on how the brain science
+                            accelerator and Analysis of Microscopic BIOMedical Images (AMBIOM) at
+                            Leibniz Institute for Analytical Sciences (ISAS) used BFF to organize
+                            and share their datasets.
                         </p>
                         <iframe
                             width="560"
@@ -519,13 +521,14 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 body: (
                     <>
                         <p>
-                            AMBIOM develops AI methods for very large microscopy datasets. Copying
-                            petabyte-scale image collections into another repository is often
-                            impractical. BioFile Finder (BFF) instead indexes metadata while leaving
-                            pixel data where it already resides on institutional servers, cloud
-                            object storage, or local storage. Researchers continue using their
-                            existing storage infrastructure and permissions while gaining a unified
-                            interface for discovery and curation.
+                            Analysis of Microscopic BIOMedical Images (AMBIOM) develops AI methods
+                            for very large microscopy datasets. Copying petabyte-scale image
+                            collections into another repository is often impractical. BioFile Finder
+                            (BFF) instead indexes metadata while leaving pixel data where it already
+                            resides on institutional servers, cloud object storage, or local
+                            storage. Researchers continue using their existing storage
+                            infrastructure and permissions while gaining a unified interface for
+                            discovery and curation.
                         </p>
                     </>
                 ),
@@ -538,33 +541,30 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             AMBIOM developed an &quot;Uploader&quot; tool that is compatible with
                             BFF. The BFF Uploader demonstrates the extensibility of the BFF
                             ecosystem. Rather than modifying BFF&apos;s core approach of operating
-                            on metadata catalogs, ISAS built an external ingestion layer that
-                            automates metadata generation and standardization. This extension
-                            enables researchers to move from raw microscopy files to searchable BFF
-                            datasets with minimal manual effort while preserving BFF&apos;s
-                            decentralized architecture, where image data remains in its original
-                            storage locations and only metadata is indexed for discovery and reuse.
+                            on metadata catalogs, Leibniz Institute for Analytical Sciences (ISAS)
+                            built an external ingestion layer that automates metadata generation and
+                            standardization. This extension enables researchers to move from raw
+                            microscopy files to searchable BFF datasets with minimal manual effort
+                            while preserving BFF&apos;s decentralized architecture, where image data
+                            remains in its original storage locations and only metadata is indexed
+                            for discovery and reuse.
                         </p>
                         <p>
+                            Watch a video about the ISAS BFF Uploader.{" "}
                             <a
                                 href="https://www.isas.de/en/en-kompakt/isas-bff-uploader/"
                                 target="_blank"
                                 rel="noreferrer"
                             >
-                                Watch a video about the ISAS BFF Uploader{" "}
+                                Launch video{" "}
                                 <Icon iconName="OpenInNewWindow" className="ug-icon-sm" />
                             </a>
                         </p>
-                    </>
-                ),
-            },
-            {
-                heading: "Video",
-                body: (
-                    <>
                         <p>
-                            Check out this short video from the Allen Institute on how they and
-                            AMBIOM at ISAS used BFF to organize and share their datasets.
+                            Watch this short video from the Allen Institute on how the brain science
+                            accelerator and Analysis of Microscopic BIOMedical Images (AMBIOM) at
+                            Leibniz Institute for Analytical Sciences (ISAS) used BFF to organize
+                            and share their datasets.
                         </p>
                         <iframe
                             width="560"
