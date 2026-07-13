@@ -784,6 +784,11 @@ const changeProvenanceSourceLogic = createLogic({
                 const { edgeDefinitions, warnings } = await databaseService.processProvenance(
                     selectedSourceProvenance
                 );
+                dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
+                // provenance definitions may finish loading after we've already processed url query args.
+                // If we do have a graph origin, this ensures the graph actually starts rendering
+                dispatch(changeProvenanceOriginId(origin) as AnyAction);
+
                 if (warnings.length > 0) {
                     const intro =
                         "Skipped processing 1 or more relationship edges due to missing or invalid data";
@@ -796,15 +801,11 @@ const changeProvenanceSourceLogic = createLogic({
                         )
                     );
                 }
-                // Single success case: processed provenance source into edge definitions
-                if (edgeDefinitions.length > 0) {
-                    dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
-                    // provenance definitions may finish loading after we've already processed url query args.
-                    // If we do have a graph origin, this ensures the graph actually starts rendering
-                    dispatch(changeProvenanceOriginId(origin) as AnyAction);
-                }
             } else {
                 await databaseService.deleteSourceProvenance();
+                dispatch(metadata.actions.receiveEdgeDefinitions([]));
+                // if we no longer have provenance definitions, we need to clear the graph origin
+                dispatch(changeProvenanceOriginId() as AnyAction);
             }
         } catch (err) {
             const msg = `Failed processing provenance. Error: ${(err as Error).message}`;
