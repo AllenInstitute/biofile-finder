@@ -464,10 +464,10 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             brain section and genomic data visualization.
                         </p>
                         <p>
-                            Watch this short video from the Allen Institute on how the brain science
-                            accelerator and Analysis of Microscopic BIOMedical Images (AMBIOM) at
-                            Leibniz Institute for Analytical Sciences (ISAS) used BFF to organize
-                            and share their datasets.
+                            Check out this short video from the Allen Institute on how the brain
+                            science accelerator and Analysis of Microscopic BIOMedical Images
+                            (AMBIOM) at Leibniz Institute for Analytical Sciences (ISAS) used BFF to
+                            organize and share their datasets.
                         </p>
                         <iframe
                             width="560"
@@ -560,11 +560,11 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 <Icon iconName="OpenInNewWindow" className="ug-icon-sm" />
                             </a>
                         </p>
+                        <br />
                         <p>
-                            Watch this short video from the Allen Institute on how the brain science
-                            accelerator and Analysis of Microscopic BIOMedical Images (AMBIOM) at
-                            Leibniz Institute for Analytical Sciences (ISAS) used BFF to organize
-                            and share their datasets.
+                            Check out this short video from the Allen Institute on how the brain
+                            science accelerator and AMBIOM at ISAS used BFF to organize and share
+                            their datasets.
                         </p>
                         <iframe
                             width="560"
