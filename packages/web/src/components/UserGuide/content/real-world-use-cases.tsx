@@ -283,10 +283,9 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             You ran a plate screen last week and now need to find every image from
                             Well A3 treated with Drug X. Your files are scattered across folders,
                             drives, or cloud storage, with no easy way to search by experimental
-                            conditions. Without requiring any coding, BFF lets you drag and drop a
+                            conditions. Without requiring any code, BFF lets you drag and drop a
                             spreadsheet of your file metadata and instantly filter, sort, and group
-                            by any column, saving you from having to dig through files to find what
-                            you&apos;re looking for.
+                            by any column, saving you time digging through files.
                         </p>
                         <h3>Computational biologists</h3>
                         <p>
@@ -298,8 +297,8 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                         <p>
                             You have a Parquet manifest with 10 million rows of imaging metadata.
                             You need to pull a specific subset for your next analysis run. BFF runs
-                            full SQL queries in your browser via DuckDB. No server, no cluster, no
-                            credentials. Filter by any combination of annotations, copy out the file
+                            full SQL queries in your browser via DuckDB with no infrastructure setup
+                            required. Filter by any combination of annotations, copy out the file
                             paths you need, and get back to your actual work. Share your exact query
                             with a collaborator by copying the URL.
                         </p>
@@ -315,8 +314,8 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             &quot;just pull all the files where...&quot; and it turns into a JIRA
                             ticket every time. BFF is a zero-infrastructure frontend: point it at a
                             Parquet file on S3 or a CSV on a web server and your users can explore,
-                            filter, and export on their own. No backend to deploy, no API to
-                            maintain, no accounts to manage. Host a static web page and you&apos;re
+                            filter, and export on their own. No need to deploy a backend, maintain
+                            an API or manage accounts. Store your metadata file and you&apos;re
                             done.
                         </p>
                         <h3>Academic facility managers &amp; PIs</h3>
