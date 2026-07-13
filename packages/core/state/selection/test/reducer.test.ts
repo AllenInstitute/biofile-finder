@@ -113,7 +113,7 @@ describe("Selection reducer", () => {
                 sources: "dataSources",
                 sourceMetadata: "sourceMetadata",
                 provenanceSource: "sourceProvenance",
-                provOriginId: "provenanceOriginId",
+                provOriginId: "originForProvenance",
                 filters: "filters",
                 openFolders: "openFileFolders",
                 sortColumn: "sortColumn",

@@ -16,6 +16,8 @@ import {
     changeDataSources,
     changeSourceMetadata,
     changeProvenanceSource,
+    changeProvenanceOriginId,
+    setOriginForProvenance,
     decodeSearchParams,
     expandAllFileFolders,
     reorderAnnotationHierarchy,
@@ -41,6 +43,7 @@ import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
+import { makeFileDetailMock } from "../../../entity/FileDetail/mocks";
 import NumericRange from "../../../entity/NumericRange";
 import SearchParams from "../../../entity/SearchParams";
 import FileFolder from "../../../entity/FileFolder";
@@ -1408,6 +1411,123 @@ describe("Selection logics", () => {
             expect(actions.includesMatch(changeSourceMetadata())).to.be.true;
             expect(actions.includesMatch(changeProvenanceSource())).to.be.true;
             expect(actions.includesMatch(changeDataSources(mockDataSources))).to.be.true;
+        });
+    });
+
+    describe("setOriginForProvenance", () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("expands graph when an origin is provided", async () => {
+            // Arrange
+            const origin = makeFileDetailMock("abc123");
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: initialState,
+            });
+
+            // Act
+            store.dispatch(setOriginForProvenance(origin));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: interaction.actions.EXPAND_GRAPH,
+                    payload: origin,
+                })
+            ).to.be.true;
+            expect(actions.includesMatch({ type: interaction.actions.REFRESH_GRAPH })).to.be.false;
+        });
+
+        it("refreshes graph when no origin is provided", async () => {
+            // Arrange
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: initialState,
+            });
+
+            // Act
+            store.dispatch(setOriginForProvenance());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch({ type: interaction.actions.REFRESH_GRAPH })).to.be.true;
+            expect(actions.includesMatch({ type: interaction.actions.EXPAND_GRAPH })).to.be.false;
+        });
+    });
+
+    describe("changeProvenanceOriginId", () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("resolves the uid into a file and sets it as the provenance origin", async () => {
+            // Arrange
+            const origin = makeFileDetailMock("abc123");
+            const fileService = new HttpFileService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: createMockHttpClient([]),
+                downloadService: new FileDownloadServiceNoop(),
+            });
+            sinon.stub(fileService, "getFileByUid").resolves(origin);
+            sinon.stub(interaction.selectors, "getFileService").returns(fileService);
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: initialState,
+            });
+
+            // Act
+            store.dispatch(changeProvenanceOriginId("abc123"));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch(setOriginForProvenance(origin))).to.be.true;
+        });
+
+        it("dispatches a process error when the uid cannot be resolved to a file", async () => {
+            // Arrange
+            const fileService = new HttpFileService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: createMockHttpClient([]),
+                downloadService: new FileDownloadServiceNoop(),
+            });
+            sinon.stub(fileService, "getFileByUid").resolves(undefined);
+            sinon.stub(interaction.selectors, "getFileService").returns(fileService);
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: initialState,
+            });
+
+            // Act
+            store.dispatch(changeProvenanceOriginId("missing-uid"));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch({ type: interaction.actions.SET_STATUS })).to.be.true;
+            expect(
+                actions.list.some(
+                    (action) =>
+                        action.type === interaction.actions.SET_STATUS &&
+                        action.payload?.processId === "provenanceOriginError"
+                )
+            ).to.be.true;
+        });
+
+        it("clears the provenance origin when no uid is provided", async () => {
+            // Arrange
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: initialState,
+            });
+
+            // Act
+            store.dispatch(changeProvenanceOriginId());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch(setOriginForProvenance())).to.be.true;
         });
     });
 });

@@ -31,8 +31,6 @@ import {
     SET_EXTRACT_METADATA_PYTHON_SNIPPET,
     SET_CONVERT_FILES_SNIPPET,
     SetVisibleModalAction,
-    SetOriginForProvenance,
-    SET_ORIGIN_FOR_PROVENANCE,
     TOGGLE_FILE_DETAILS_PANEL,
     ToggleFileDetailsPanel,
     REFRESH_GRAPH,
@@ -57,6 +55,7 @@ import NotificationServiceNoop from "../../services/NotificationService/Notifica
 import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
 import FileDetail from "../../entity/FileDetail";
+import { RESET_QUERY_FIELDS, SET_ORIGIN_FOR_PROVENANCE } from "../selection/actions";
 
 export interface InteractionStateBranch {
     applicationVersion?: string;
@@ -86,7 +85,6 @@ export interface InteractionStateBranch {
         code: string;
         options?: Record<string, string>;
     };
-    originForProvenance?: FileDetail;
     refreshKey?: string;
     selectedPublicDataset?: PublicDataset;
     status: StatusUpdate[];
@@ -210,11 +208,6 @@ export default makeReducer<InteractionStateBranch>(
             ...state,
             environment: action.payload.environment,
         }),
-        [SET_ORIGIN_FOR_PROVENANCE]: (state, action: SetOriginForProvenance) => ({
-            ...state,
-            fileForDetailPanel: undefined,
-            originForProvenance: action.payload,
-        }),
         [SET_VISIBLE_MODAL]: (state, action: SetVisibleModalAction) => ({
             ...state,
             fileFiltersForVisibleModal: action.payload.fileFiltersForVisibleModal,
@@ -285,6 +278,16 @@ export default makeReducer<InteractionStateBranch>(
         ) => ({
             ...state,
             isRemoteFileUploadServerAvailable: action.payload.isRemoteFileServerAvailable,
+        }),
+
+        // selection.actions
+        [RESET_QUERY_FIELDS]: (state) => ({
+            ...state,
+            fileForDetailPanel: undefined,
+        }),
+        [SET_ORIGIN_FOR_PROVENANCE]: (state) => ({
+            ...state,
+            fileForDetailPanel: undefined,
         }),
     },
     initialState

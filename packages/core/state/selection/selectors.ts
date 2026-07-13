@@ -21,13 +21,13 @@ export const getFileView = (state: State) => state.selection.fileView;
 export const getIsLoadingSource = (state: State) => state.selection.isLoadingDataSource;
 export const getLastTouchedFolder = (state: State) => state.selection.lastTouchedFolder;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
+export const getOriginForProvenance = (state: State) => state.selection.originForProvenance;
 export const getRecentAnnotations = (state: State) => state.selection.recentAnnotations;
 export const getRequiresDataSourceReload = (state: State) =>
     state.selection.requiresDataSourceReload;
 export const getSelectedDataSources = (state: State) => state.selection.dataSources;
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
 export const getSelectedSourceProvenance = (state: State) => state.selection.sourceProvenance;
-export const getProvenanceOriginId = (state: State) => state.selection.provenanceOriginId;
 export const getSelectedQuery = (state: State) => state.selection.selectedQuery;
 export const getShouldDisplaySmallFont = (state: State) => state.selection.shouldDisplaySmallFont;
 export const getShouldShowNullGroups = (state: State) => state.selection.shouldShowNullGroups;
@@ -95,7 +95,7 @@ export const getCurrentQueryParts = createSelector(
         getSelectedDataSources,
         getSelectedSourceMetadata,
         getSelectedSourceProvenance,
-        getProvenanceOriginId,
+        getOriginForProvenance,
     ],
     (
         hierarchy,
@@ -108,7 +108,7 @@ export const getCurrentQueryParts = createSelector(
         sources,
         sourceMetadata,
         provenanceSource,
-        provOriginId
+        provOrigin
     ): SearchParamsComponents => ({
         columns,
         hierarchy,
@@ -120,7 +120,7 @@ export const getCurrentQueryParts = createSelector(
         sources,
         sourceMetadata,
         provenanceSource,
-        provOriginId,
+        provOriginId: provOrigin?.uid, // Use the UID of the provenance origin if it exists
     })
 );
 

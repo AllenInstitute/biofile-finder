@@ -27,7 +27,7 @@ export default function RelationshipDiagram({ className, origin }: Props) {
                 <PrimaryButton
                     iconName="Back"
                     text="Back"
-                    onClick={() => dispatch(selection.actions.changeProvenanceOriginId())}
+                    onClick={() => dispatch(selection.actions.setOriginForProvenance())}
                     title="Close provenance relationship diagram"
                 />
                 <h2>Relationship diagram for {origin?.name}</h2>

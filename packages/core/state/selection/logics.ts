@@ -43,8 +43,6 @@ import {
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
     changeProvenanceSource,
-    CHANGE_PROVENANCE_ORIGIN_ID,
-    changeProvenanceOriginId,
     setRequiresDataSourceReload,
     addDataSourceReloadError,
     removeDataSourceReloadError,
@@ -56,7 +54,6 @@ import {
     EXPAND_ALL_FILE_FOLDERS,
     toggleNullValueGroups,
     setIsLoadingSource,
-    ChangeProvenanceOriginId,
     RESIZE_COLUMN,
     ResizeColumnAction,
     setColumns,
@@ -64,9 +61,15 @@ import {
     ChangeFileFilterTypeAction,
     AddFileFilterAction,
     RemoveFileFilterAction,
+    CHANGE_PROVENANCE_ORIGIN_ID,
+    ChangeProvenanceOriginId,
+    SET_ORIGIN_FOR_PROVENANCE,
+    SetOriginForProvenance,
+    setOriginForProvenance,
+    changeProvenanceOriginId,
 } from "./actions";
-import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
+import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import { AnnotationValue } from "../../entity/Annotation";
@@ -516,7 +519,7 @@ const decodeSearchParamsLogics = createLogic({
         batch(() => {
             dispatch(changeSourceMetadata(sourceMetadata));
             dispatch(changeProvenanceSource(provenanceSource));
-            dispatch(changeProvenanceOriginId(provOriginId) as AnyAction);
+            dispatch(changeProvenanceOriginId(provOriginId));
         });
         done();
     },
@@ -747,20 +750,56 @@ const changeSourceMetadataLogic = createLogic({
 });
 
 /**
+ * Interceptor responsible for processing relationship graph origin
+ * changes and updating the graph accordingly
+ */
+const setOriginForProvenanceLogic = createLogic({
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        const {
+            payload: { origin },
+        } = deps.action as SetOriginForProvenance;
+        const graph = interaction.selectors.getGraph(deps.getState());
+
+        // Clear internal dagre state whenever origin updates
+        graph.reset();
+
+        // If the origin is changing to a new origin, expand the graph
+        // otherwise reset the graph
+        if (origin) {
+            dispatch(interaction.actions.expandGraph(origin));
+        } else {
+            dispatch(interaction.actions.refreshGraph());
+        }
+        done();
+    },
+    type: SET_ORIGIN_FOR_PROVENANCE,
+});
+
+/**
  * Interceptor responsible for processing a file uid (string) into a FileDetail
  * that can be used as the origin for the relationship graph
  */
 const changeProvenanceOriginIdLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const { payload: uid } = deps.action as ChangeProvenanceOriginId;
+        const {
+            payload: { originUid },
+        } = deps.action as ChangeProvenanceOriginId;
         const fileService = interaction.selectors.getFileService(deps.getState());
-        if (uid) {
-            const file = await fileService.getFileByUid(uid);
+        if (originUid) {
+            const file = await fileService.getFileByUid(originUid);
             if (file) {
-                dispatch(interaction.actions.setOriginForProvenance(file));
+                dispatch(setOriginForProvenance(file));
+            } else {
+                console.error(`Could not find file with uid ${originUid} to be origin for diagram`);
+                dispatch(
+                    interaction.actions.processError(
+                        "provenanceOriginError",
+                        "Could not find which file to use as origin for diagram"
+                    )
+                );
             }
         } else {
-            dispatch(interaction.actions.setOriginForProvenance());
+            dispatch(setOriginForProvenance());
         }
         done();
     },
@@ -777,7 +816,6 @@ const changeProvenanceSourceLogic = createLogic({
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
         );
-        const origin = selectionSelectors.getProvenanceOriginId(deps.getState());
 
         try {
             if (selectedSourceProvenance) {
@@ -799,9 +837,10 @@ const changeProvenanceSourceLogic = createLogic({
                 // Single success case: processed provenance source into edge definitions
                 if (edgeDefinitions.length > 0) {
                     dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
-                    // provenance definitions may finish loading after we've already processed url query args.
-                    // If we do have a graph origin, this ensures the graph actually starts rendering
-                    dispatch(changeProvenanceOriginId(origin) as AnyAction);
+
+                    // Kick off graph expansion if the origin is already set
+                    const origin = selectionSelectors.getOriginForProvenance(deps.getState());
+                    if (origin) dispatch(interaction.actions.expandGraph(origin));
                 }
             } else {
                 await databaseService.deleteSourceProvenance();
@@ -1029,4 +1068,5 @@ export default [
     changeQueryLogic,
     removeQueryLogic,
     resizeColumnLogic,
+    setOriginForProvenanceLogic,
 ];

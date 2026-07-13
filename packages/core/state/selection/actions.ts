@@ -1,5 +1,6 @@
 import { makeConstant } from "@aics/redux-utils";
 
+import FileDetail from "../../entity/FileDetail";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -698,9 +699,34 @@ export function changeSourceMetadata(source?: Source): ChangeSourceMetadataActio
 }
 
 /**
+ * SET_ORIGIN_FOR_PROVENANCE
+ *
+ * Intention to set origin file for the provenance graph
+ */
+export const SET_ORIGIN_FOR_PROVENANCE = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-origin-for-provenance"
+);
+
+export interface SetOriginForProvenance {
+    payload: {
+        origin?: FileDetail;
+    };
+    type: string;
+}
+
+export function setOriginForProvenance(origin?: FileDetail): SetOriginForProvenance {
+    return {
+        payload: { origin },
+        type: SET_ORIGIN_FOR_PROVENANCE,
+    };
+}
+
+/**
  * CHANGE_PROVENANCE_ORIGIN_ID
  *
- * Intention to update the uid of the file used to originate the provenance graph
+ * Intention to update the origin of the provenance graph
+ * by first finding it using a uid
  */
 export const CHANGE_PROVENANCE_ORIGIN_ID = makeConstant(
     STATE_BRANCH_NAME,
@@ -708,13 +734,15 @@ export const CHANGE_PROVENANCE_ORIGIN_ID = makeConstant(
 );
 
 export interface ChangeProvenanceOriginId {
-    payload?: string;
+    payload: {
+        originUid?: string;
+    };
     type: string;
 }
 
-export function changeProvenanceOriginId(uid?: string): ChangeProvenanceOriginId {
+export function changeProvenanceOriginId(originUid?: string): ChangeProvenanceOriginId {
     return {
-        payload: uid,
+        payload: { originUid },
         type: CHANGE_PROVENANCE_ORIGIN_ID,
     };
 }

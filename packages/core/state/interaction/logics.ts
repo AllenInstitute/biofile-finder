@@ -40,9 +40,6 @@ import {
     editFiles,
     DELETE_METADATA,
     DeleteMetadataAction,
-    SET_ORIGIN_FOR_PROVENANCE,
-    SetOriginForProvenance,
-    expandGraph,
     ExpandGraph,
     refreshGraph,
     EXPAND_GRAPH,
@@ -751,27 +748,6 @@ const refresh = createLogic({
 });
 
 /**
- * Interceptor responsible for processing relationship graph origin
- * changes and updating the graph accordingly
- */
-const setOriginForProvenance = createLogic({
-    process(deps: ReduxLogicDeps, dispatch, done) {
-        const { payload: file } = deps.action as SetOriginForProvenance;
-        const graph = interactionSelectors.getGraph(deps.getState());
-        if (!file) {
-            graph.reset();
-            dispatch(refreshGraph());
-        } else {
-            // Clear old nodes
-            graph.reset();
-            dispatch(expandGraph(file));
-        }
-        done();
-    },
-    type: SET_ORIGIN_FOR_PROVENANCE,
-});
-
-/**
  * Interceptor responsible for processing a graph's expansion by
  * focusing on a file as the origin of the relationships
  */
@@ -954,6 +930,5 @@ export default [
     promptForNewExecutable,
     refresh,
     setIsSmallScreen,
-    setOriginForProvenance,
     showContextMenu,
 ];

@@ -117,8 +117,8 @@ export default function FileDetails(props: Props) {
                                             className={styles.simpleButton}
                                             onClick={() =>
                                                 dispatch(
-                                                    selection.actions.changeProvenanceOriginId(
-                                                        props.fileDetails?.uid
+                                                    selection.actions.setOriginForProvenance(
+                                                        props.fileDetails
                                                     )
                                                 )
                                             }

@@ -40,8 +40,10 @@ describe("<FileDetailPanel />", () => {
         const { store } = configureMockStore({
             state: mergeState(initialState, {
                 interaction: {
-                    originForProvenance: undefined,
                     fileForDetailPanel: mockFileDetail(),
+                },
+                selection: {
+                    originForProvenance: undefined,
                 },
             }),
         });
@@ -64,8 +66,10 @@ describe("<FileDetailPanel />", () => {
         const { store } = configureMockStore({
             state: mergeState(initialState, {
                 interaction: {
-                    originForProvenance: mockFileDetail(),
                     fileForDetailPanel: expectedFileDetail,
+                },
+                selection: {
+                    originForProvenance: mockFileDetail(),
                 },
             }),
         });
@@ -89,8 +93,10 @@ describe("<FileDetailPanel />", () => {
         const { store } = configureMockStore({
             state: mergeState(initialState, {
                 interaction: {
-                    originForProvenance,
                     fileForDetailPanel: undefined,
+                },
+                selection: {
+                    originForProvenance,
                 },
             }),
         });

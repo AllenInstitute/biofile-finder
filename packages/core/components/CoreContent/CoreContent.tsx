@@ -6,8 +6,7 @@ import GlobalActionButtonRow from "../GlobalActionButtonRow";
 import DirectoryTree from "../DirectoryTree";
 import DataSourcePrompt from "../DataSourcePrompt";
 import RelationshipDiagram from "../RelationshipDiagram";
-import SearchParams from "../../entity/SearchParams";
-import { interaction, metadata, selection } from "../../state";
+import { metadata, selection } from "../../state";
 
 import styles from "./CoreContent.module.css";
 
@@ -15,26 +14,21 @@ import styles from "./CoreContent.module.css";
  * Core content of the application
  */
 export default function CoreContent() {
-    const searchParams = window.location.search;
-    const origin = useSelector(interaction.selectors.getOriginForProvenance);
+    const origin = useSelector(selection.selectors.getOriginForProvenance);
     const edgeDefinitions = useSelector(metadata.selectors.getEdgeDefinitions);
     const hasQuerySelected = useSelector(selection.selectors.hasQuerySelected);
     const requiresDataSourceReload = useSelector(selection.selectors.getRequiresDataSourceReload);
+    const x = useSelector(selection.selectors.getCurrentQueryParts);
+    console.log("search", x);
 
     const hasSomethingToQuery = hasQuerySelected || window.location.search;
     const hasNeedToSelectQuery = requiresDataSourceReload || !hasSomethingToQuery;
 
     // The relationship diagram should only display if:
+    // - an origin file has been resolved into state
     // - the edge definitions have been fully loaded
-    // - the url still contains an ID representing the origin
-    // - that ID can be/has been processed into an origin file
-    const shouldDisplayProvenanceGraph = React.useMemo(() => {
-        return (
-            !!origin &&
-            edgeDefinitions.length > 0 &&
-            !!SearchParams.decode(searchParams)?.provOriginId
-        );
-    }, [origin, edgeDefinitions, searchParams]);
+    const shouldDisplayProvenanceGraph = !!origin && edgeDefinitions.length > 0;
+    console.log(origin, shouldDisplayProvenanceGraph, edgeDefinitions.length);
     if (shouldDisplayProvenanceGraph) {
         return <RelationshipDiagram className={styles.diagram} origin={origin} />;
     }

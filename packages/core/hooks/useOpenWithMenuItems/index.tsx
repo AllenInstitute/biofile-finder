@@ -494,6 +494,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
 
     // Determine is the file is small or not asynchronously
     React.useEffect(() => {
+        let isCancelled = false;
         async function determineFileSize() {
             if (path) {
                 let fileSize = size;
@@ -508,14 +509,20 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 }
 
                 // Consider a "small" file to be <= 100Mb
-                setIsSmallFile(!!fileSize && fileSize <= 100 * ONE_MEGABYTE);
+                if (!isCancelled) {
+                    setIsSmallFile(!!fileSize && fileSize <= 100 * ONE_MEGABYTE);
+                }
             }
         }
         determineFileSize();
+        return () => {
+            isCancelled = true;
+        };
     }, [path, size, s3StorageService, setIsSmallFile]);
 
     // Try to quickly check if user is on MacOS or not
     React.useEffect(() => {
+        let isCancelled = false;
         async function getIsMacOS() {
             try {
                 // Typescript doesn't have support for this property yet
@@ -534,7 +541,14 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
                 return false;
             }
         }
-        getIsMacOS().then(setIsMacOS);
+        getIsMacOS().then((result) => {
+            if (!isCancelled) {
+                setIsMacOS(result);
+            }
+        });
+        return () => {
+            isCancelled = true;
+        };
     }, []);
 
     const supportedApps = [...getSupportedApps(apps, isSmallFile, fileDetails), ...userApps]

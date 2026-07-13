@@ -37,17 +37,18 @@ import {
     TOGGLE_NULL_VALUE_GROUPS,
     CHANGE_PROVENANCE_SOURCE,
     ChangeProvenanceSource,
-    CHANGE_PROVENANCE_ORIGIN_ID,
-    ChangeProvenanceOriginId,
     SET_IS_LOADING_DATA_SOURCE,
     SetOpenFileFoldersAction,
     SetFileSelection,
     REORDER_COLUMNS,
     ReorderColumnsAction,
     SetAvailableAnnotationsAction,
+    SetOriginForProvenance,
+    SET_ORIGIN_FOR_PROVENANCE,
 } from "./actions";
 import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
+import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -70,7 +71,7 @@ export interface SelectionStateBranch {
     isLoadingDataSource: boolean;
     lastTouchedFolder?: FileFolder;
     openFileFolders: FileFolder[];
-    provenanceOriginId?: string;
+    originForProvenance?: FileDetail;
     recentAnnotations: string[];
     requiresDataSourceReload?: boolean;
     selectedQuery?: string;
@@ -83,7 +84,7 @@ export interface SelectionStateBranch {
     tutorials?: Tutorial[];
 }
 
-export const initialState = {
+export const initialState: SelectionStateBranch = {
     annotationHierarchy: [],
     availableAnnotationsForHierarchy: [],
     availableAnnotationsForHierarchyLoading: true,
@@ -165,14 +166,10 @@ export default makeReducer<SelectionStateBranch>(
             lastTouchedFolder: undefined,
             openFileFolders: [],
         }),
-        [CHANGE_PROVENANCE_ORIGIN_ID]: (state, action: ChangeProvenanceOriginId) => ({
-            ...state,
-            provenanceOriginId: action.payload,
-        }),
         [CHANGE_PROVENANCE_SOURCE]: (state, action: ChangeProvenanceSource) => ({
             ...state,
             sourceProvenance: action.payload,
-            provenanceOriginId: undefined, // Clear the previous provenance origin ID when the source changes
+            originForProvenance: undefined, // Clear the previous provenance origin
         }),
         [CHANGE_SOURCE_METADATA]: (state, action) => ({
             ...state,
@@ -198,16 +195,19 @@ export default makeReducer<SelectionStateBranch>(
             fileView: initialState.fileView,
             lastTouchedFolder: undefined,
             openFileFolders: initialState.openFileFolders,
+            originForProvenance: undefined,
             shouldShowNullGroups: initialState.shouldShowNullGroups,
             sortColumn: undefined,
             dataSources: initialState.dataSources,
             sourceMetadata: undefined,
             sourceProvenance: undefined,
-            provenanceOriginId: undefined,
 
             // If a file is selected, deselect it
-            fileForDetailPanel: undefined,
             fileSelection: new FileSelection(),
+        }),
+        [SET_ORIGIN_FOR_PROVENANCE]: (state, action: SetOriginForProvenance) => ({
+            ...state,
+            originForProvenance: action.payload.origin,
         }),
         [SET_QUERIES]: (state, action: SetQueries) => ({
             ...state,

@@ -12,7 +12,7 @@ import {
     MetadataNode as MetadataNodeType,
     getGridPosition,
 } from "../../../entity/Graph";
-import { interaction } from "../../../state";
+import { interaction, selection } from "../../../state";
 
 import styles from "./MetadataNode.module.css";
 
@@ -28,7 +28,7 @@ const clipLabel = (label?: string) => {
 export default function MetadataNode(props: NodeProps<FileNodeType | MetadataNodeType>) {
     const dispatch = useDispatch();
     const graph = useSelector(interaction.selectors.getGraph);
-    const origin = useSelector(interaction.selectors.getOriginForProvenance);
+    const origin = useSelector(selection.selectors.getOriginForProvenance);
 
     const canOrganizeAsGrid = React.useMemo(() => {
         const children = graph.getChildren(props.id);
