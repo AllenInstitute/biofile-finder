@@ -90,6 +90,16 @@ export interface FmsFile {
     uploaded?: string;
     thumbnail?: string;
 }
+// Keys of fields that are expected to be present in the FMS file detail response. Any other keys will be ignored.
+const KEYS_IN_FMS_FILE = new Set([
+    "annotations",
+    "file_id",
+    "file_name",
+    "file_path",
+    "file_size",
+    "uploaded",
+    "thumbnail",
+]);
 
 /**
  * Facade for a FileDetailResponse.
@@ -149,7 +159,7 @@ export default class FileDetail {
             // to annotations-like structure so that we can treat all metadata as
             // annotations in the frontend and avoid having some weird special cases
             .flatMap(([key, value]) => {
-                if (isNil(value)) return [];
+                if (isNil(value) || !KEYS_IN_FMS_FILE.has(key)) return [];
                 if (key === "annotations") return value as FmsFileAnnotation[];
 
                 // Skip any fields that have unexpected types to avoid runtime errors.
