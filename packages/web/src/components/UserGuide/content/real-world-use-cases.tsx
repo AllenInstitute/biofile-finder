@@ -45,20 +45,6 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                     </td>
                                     <td>Hours of scripting per query</td>
                                 </tr>
-                                {/* "Validate metadata" row — temporarily hidden
-                                <tr>
-                                    <td>
-                                        <a href={`#${kebabCase(SectionHeading.ValidateMetadata)}`}>
-                                            <strong>{SectionHeading.ValidateMetadata}</strong>
-                                        </a>
-                                    </td>
-                                    <td>
-                                        Filter for blanks/duplicates; group to check counts; export
-                                        errors
-                                    </td>
-                                    <td>Days of spreadsheet auditing</td>
-                                </tr>
-                                */}
                                 <tr>
                                     <td>
                                         <a
@@ -174,40 +160,6 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                     </>
                 ),
             },
-            /* "Validate metadata" section — temporarily hidden
-            {
-                heading: SectionHeading.ValidateMetadata,
-                level: 3,
-                body: (
-                    <>
-                        <p>
-                            Before publishing a dataset or submitting to a repository, you need to
-                            confirm that every file has complete, consistent metadata — no missing
-                            cell lines, no mislabeled plates, no blank file paths.
-                        </p>
-                        <h4>How BFF helps</h4>
-                        <p>
-                            Load your metadata file and use BFF&apos;s filters to find gaps. Group
-                            by &quot;Cell Line&quot; and look for a blank or &quot;(No value)&quot;
-                            group — those are your missing entries. Sort by &quot;File Path&quot; to
-                            spot duplicates or malformed paths. Filter for rows where
-                            &quot;Treatment&quot; is empty to find unlabeled conditions. Use the
-                            aggregate count at each folder level to verify expected file counts per
-                            condition (e.g., &quot;I should have 96 images per plate — any plate
-                            with fewer has missing data&quot;). Export the problematic subset as a
-                            CSV for correction.
-                        </p>
-                        <h4>Alternative use case</h4>
-                        <p>
-                            A museum digitization team loads their specimen catalog CSV into BFF to
-                            check for records missing accession numbers, blank taxonomic
-                            classifications, or broken file paths to scans — catching errors before
-                            ingesting into their collection management system.
-                        </p>
-                    </>
-                ),
-            },
-            */
             {
                 heading: SectionHeading.InspectSubsetsOfImages,
                 level: 3,
@@ -265,7 +217,9 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             confirm everything came from the microscope you expected. You can even
                             stack filters to catch labeling mistakes — for example, show only
                             &quot;Control&quot; plates that aren&apos;t labeled &quot;DMSO&quot; —
-                            all by pointing and clicking instead of programming.
+                            all by pointing and clicking instead of programming. When something
+                            looks off, export just those rows as a CSV to fix or hand off for
+                            correction.
                         </p>
                         <h4>Alternative use case</h4>
                         <p>
