@@ -283,10 +283,10 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             You ran a plate screen last week and now need to find every image from
                             Well A3 treated with Drug X. Your files are scattered across folders,
                             drives, or cloud storage, with no easy way to search by experimental
-                            conditions. BFF lets you load a spreadsheet of your file metadata and
-                            instantly filter, sort, and group by any column: cell line, treatment,
-                            plate, date, or anything else you need. No coding, no databases, no IT
-                            tickets. Just drag, drop, and find your files.
+                            conditions. Without requiring any coding, BFF lets you drag and drop a
+                            spreadsheet of your file metadata and instantly filter, sort, and group
+                            by any column, saving you from having to dig through files to find what
+                            you&apos;re looking for.
                         </p>
                         <h3>Computational biologists</h3>
                         <p>
