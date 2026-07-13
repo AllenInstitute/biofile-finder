@@ -143,6 +143,7 @@ export default class DatabaseFileService implements FileService {
     private readonly databaseService: DatabaseService;
     private readonly downloadService: FileDownloadService;
     private readonly dataSourceNames: string[];
+    public readonly provenanceIdColumns = ["File Path", "File ID"];
 
     private static convertDatabaseRowToFileDetail(row: FileRow, env: Environment): FileDetail {
         const uniqueId = row[HIDDEN_UID_ANNOTATION];
@@ -288,7 +289,7 @@ export default class DatabaseFileService implements FileService {
                 grouped.set(head, { isArray: headIsArray, subPaths: [] });
             }
             if (tailSegments.length > 0) {
-                grouped.get(head)!.subPaths.push({ segments: tailSegments, isArray: tailIsArray });
+                grouped.get(head)?.subPaths.push({ segments: tailSegments, isArray: tailIsArray });
             }
         }
 

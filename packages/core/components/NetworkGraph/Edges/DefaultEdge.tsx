@@ -61,10 +61,13 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
                         provOriginId: undefined,
                     });
                 } else {
+                    const filters = [data.child, data.parent]
+                        .filter((value) => !!value && typeof value === "string")
+                        .map((value) => new IncludeFilter(value as string));
                     newUrl = SearchParams.encode({
                         ...currentQuery,
                         hierarchy: [],
-                        filters: [new IncludeFilter(data.parent), new IncludeFilter(data.child)],
+                        filters: filters,
                         provOriginId: undefined,
                     });
                 }
