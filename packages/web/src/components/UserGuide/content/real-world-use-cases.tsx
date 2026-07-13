@@ -9,7 +9,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
         slug: PageSlug.UseCasesAndScenarios,
         title: "Use cases & scenarios",
         intro:
-            "BioFile Finder (BFF) is flexible enough to fit many different workflows and contexts. This page highlights common use cases observed across research labs, core facilities, and data teams — along with real-world scenarios showing how different types of users leverage BFF in their work.",
+            "BioFile Finder (BFF) is flexible enough to fit many different workflows and contexts. This page highlights common use cases observed across research labs, core facilities, and data teams, along with real-world scenarios showing how different types of users leverage BFF in their work.",
         sections: [
             {
                 heading: "How people use BFF",
@@ -147,14 +147,14 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             condition. Filter to a specific compound and sort by phenotype score to
                             surface the most interesting wells. Click into a well to see thumbnails
                             of every image at that position. Share the filtered view with a
-                            colleague by copying the URL — they see exactly the same subset without
+                            colleague by copying the URL. They see exactly the same subset without
                             re-running any queries.
                         </p>
                         <h4>Alternative use case</h4>
                         <p>
                             A genomics core runs CRISPR screens and outputs per-guide results as a
                             CSV. Researchers load it into BFF to filter by gene target, sort by
-                            effect size, and quickly identify which guides to follow up on — without
+                            effect size, and quickly identify which guides to follow up on, without
                             writing R or Python code.
                         </p>
                     </>
@@ -167,9 +167,8 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                     <>
                         <p>
                             You don&apos;t want to look at all 50,000 images. You want to look at a
-                            very specific slice — maybe failed QC images, or images from a
-                            particular experimental condition, or everything captured on a specific
-                            date.
+                            very specific slice: maybe failed QC images, or images from a particular
+                            experimental condition, or everything captured on a specific date.
                         </p>
                         <h4>How BFF helps</h4>
                         <p>
@@ -199,24 +198,24 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                     <>
                         <p>
                             Quality control means checking that your data is complete and correct
-                            before you build on it — the right number of files, sensible values,
+                            before you build on it: the right number of files, sensible values,
                             nothing blank, corrupted, or mislabeled. If you&apos;ve tried to do this
                             by scrolling through a huge spreadsheet, you know it gets unmanageable
-                            fast — and you shouldn&apos;t have to write code or formulas to catch
+                            fast, and you shouldn&apos;t have to write code or formulas to catch
                             these problems.
                         </p>
                         <h4>How BFF helps</h4>
                         <p>
-                            Drop your metadata file into BFF and let it do the checking for you — no
+                            Drop your metadata file into BFF and let it do the checking for you. No
                             scripts, no coding. The aggregate info bar shows your total file count
                             at a glance. Group by &quot;Plate,&quot; then &quot;Well,&quot; to see
-                            how many images are in each — any group with fewer than expected jumps
+                            how many images are in each. Any group with fewer than expected jumps
                             right out. Filter for files where &quot;File Size&quot; is 0 to find
                             empty or broken files. Sort by &quot;Date Acquired&quot; to make sure
                             nothing&apos;s out of sequence. Group by &quot;Instrument&quot; to
                             confirm everything came from the microscope you expected. You can even
-                            stack filters to catch labeling mistakes — for example, show only
-                            &quot;Control&quot; plates that aren&apos;t labeled &quot;DMSO&quot; —
+                            stack filters to catch labeling mistakes. For example, show only
+                            &quot;Control&quot; plates that aren&apos;t labeled &quot;DMSO,&quot;
                             all by pointing and clicking instead of programming. When something
                             looks off, export just those rows as a CSV to fix or hand off for
                             correction.
@@ -227,7 +226,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             metadata spreadsheet from a student. Rather than asking a programmer to
                             write a validation script, they open it in BFF to look for duplicate
                             sample names, spot rows missing a file path or a label, and confirm
-                            every expected experiment is present — finding and fixing the mistakes
+                            every expected experiment is present, finding and fixing the mistakes
                             themselves before the data goes out.
                         </p>
                     </>
@@ -241,9 +240,9 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                         <p>
                             You or your team have accumulated a large collection of files over
                             months or years. They live across local drives, shared network storage,
-                            or cloud buckets. You have metadata about them — maybe a database
-                            export, maybe a painstakingly maintained spreadsheet — and you need an
-                            easy way to browse, search, and share access to this inventory without
+                            or cloud buckets. You have metadata about them (maybe a database export,
+                            maybe a painstakingly maintained spreadsheet), and you need an easy way
+                            to browse, search, and share access to this inventory without
                             maintaining a server.
                         </p>
                         <h4>How BFF helps</h4>
@@ -264,7 +263,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             A natural history museum has 200,000 digitized specimen records in a CSV
                             exported from their collection database. They host a BFF instance on
                             their website so visiting researchers can browse specimens by taxonomy,
-                            collection site, and date — filtering to exactly the subset relevant to
+                            collection site, and date, filtering to exactly the subset relevant to
                             their study and downloading a manifest of matching file paths.
                         </p>
                     </>
@@ -285,7 +284,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             Well A3 treated with Drug X. Your files are scattered across folders,
                             drives, or cloud storage, with no easy way to search by experimental
                             conditions. BFF lets you load a spreadsheet of your file metadata and
-                            instantly filter, sort, and group by any column—cell line, treatment,
+                            instantly filter, sort, and group by any column: cell line, treatment,
                             plate, date, or anything else you need. No coding, no databases, no IT
                             tickets. Just drag, drop, and find your files.
                         </p>
@@ -299,7 +298,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                         <p>
                             You have a Parquet manifest with 10 million rows of imaging metadata.
                             You need to pull a specific subset for your next analysis run. BFF runs
-                            full SQL queries in your browser via DuckDB—no server, no cluster, no
+                            full SQL queries in your browser via DuckDB. No server, no cluster, no
                             credentials. Filter by any combination of annotations, copy out the file
                             paths you need, and get back to your actual work. Share your exact query
                             with a collaborator by copying the URL.
@@ -330,7 +329,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             made sense two years ago. BFF turns any metadata spreadsheet into a
                             searchable, filterable, shareable interface. Publish a dataset with a
                             BFF link and reviewers, collaborators, or new lab members can explore it
-                            immediately—no software to install, no accounts to create.
+                            immediately. No software to install, no accounts to create.
                         </p>
                         <h3>GLAM &amp; museum professionals</h3>
                         <p>
@@ -340,7 +339,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             You have a CSV with 200,000 digitized specimens, each with accession
                             numbers, taxonomic classifications, collection dates, and file paths to
                             high-resolution scans. BFF turns that spreadsheet into a browsable,
-                            filterable, groupable interface—right in the browser. Let researchers
+                            filterable, groupable interface, right in the browser. Let researchers
                             explore your collection by species, date range, or geographic origin.
                             Share a filtered view as a URL. No web developer needed.
                         </p>
@@ -527,7 +526,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             AMBIOM develops AI methods for very large microscopy datasets. Copying
                             petabyte-scale image collections into another repository is often
                             impractical. BioFile Finder (BFF) instead indexes metadata while leaving
-                            pixel data where it already resides—on institutional servers, cloud
+                            pixel data where it already resides on institutional servers, cloud
                             object storage, or local storage. Researchers continue using their
                             existing storage infrastructure and permissions while gaining a unified
                             interface for discovery and curation.
