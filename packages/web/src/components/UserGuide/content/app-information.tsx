@@ -142,7 +142,7 @@ export const APP_INFORMATION_CONTENT: Page[] = [
                             aria-label="Scrollable viewer comparison table"
                         >
                             <div className="ug-scroll-table">
-                                <table className="ug-table">
+                                <table className="ug-table ug-table-fixed">
                                     <thead>
                                         <tr>
                                             <th>Feature</th>
