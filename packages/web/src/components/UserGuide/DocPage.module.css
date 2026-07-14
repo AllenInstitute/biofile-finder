@@ -145,6 +145,13 @@
     table-layout: fixed;
 }
 
+/* With fixed columns, long unbreakable strings (e.g. URLs) would overflow, so
+   allow them to wrap within the cell. */
+.section-body :global(.ug-table-fixed) th,
+.section-body :global(.ug-table-fixed) td {
+    overflow-wrap: break-word;
+}
+
 .section-body table {
     width: 100%;
     border-collapse: collapse;
