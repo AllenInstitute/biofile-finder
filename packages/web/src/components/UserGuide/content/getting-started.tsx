@@ -455,12 +455,10 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                     <>
                         <p>
                             Columns can be anything that describes metadata fields relevant to your
-                            workflow. The only exceptions are the required column described below,
-                            and a few special optional columns that, if provided, enable special
-                            features in BFF.
+                            workflow. Optional columns, when provided, enable specific features in
+                            BFF.
                         </p>
-                        <h3>Required columns</h3>
-                        <p>This column is required for BFF to locate and open your files.</p>
+                        <h3>Required column</h3>
                         <ul>
                             <li>
                                 <strong>File Path</strong> — A reference to the file that BFF will
@@ -478,7 +476,6 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </li>
                         </ul>
                         <h3>Optional special columns</h3>
-                        <p>These optional columns enable specific features in BFF when provided.</p>
                         <ul>
                             <li>
                                 <strong>Thumbnail</strong> — If provided, should contain the URL to
