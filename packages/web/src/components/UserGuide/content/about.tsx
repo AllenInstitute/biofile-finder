@@ -119,10 +119,10 @@ export const ABOUT_CONTENT: Page[] = [
                             </div>
                             <div className="ug-feature-card">
                                 <span>Format agnostic</span>
-                                <br /> BFF treats metadata as data (Parquet/CSV), not tied to any
-                                specific image format. By contrast, OMERO is deeply tied to
-                                Bio-Formats, and tools like SSBD and Zarrcade are tied to specific
-                                formats like OME-Zarr.
+                                <br /> BFF treats metadata as data, not as a feature of a particular
+                                image format. Metadata can be provided in CSV, Parquet, or JSON,
+                                allowing BFF to work across diverse file formats and storage
+                                systems.
                             </div>
                             <div className="ug-feature-card">
                                 <span>Sharing</span>
