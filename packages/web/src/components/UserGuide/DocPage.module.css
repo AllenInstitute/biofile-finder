@@ -139,6 +139,18 @@
     min-width: 1140px;
 }
 
+/* Opt-in fixed layout for wide comparison tables so every column is the same
+   width (rows grow taller instead), rather than auto-sizing to content. The
+   first column (row labels) gets a bit more room. */
+.section-body :global(.ug-table-fixed) {
+    table-layout: fixed;
+}
+
+.section-body :global(.ug-table-fixed) th:first-child,
+.section-body :global(.ug-table-fixed) td:first-child {
+    width: 180px;
+}
+
 .section-body table {
     width: 100%;
     border-collapse: collapse;
