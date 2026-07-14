@@ -304,9 +304,7 @@ export const ABOUT_CONTENT: Page[] = [
                                             <td>
                                                 <strong>Works Without a Server</strong>
                                             </td>
-                                            <td>
-                                                Yes — runs entirely in-browser or as desktop app
-                                            </td>
+                                            <td>Yes — runs in-browser</td>
                                             <td>No — requires OMERO.server</td>
                                             <td>N/A (hosted service)</td>
                                             <td>N/A (hosted service)</td>
@@ -324,7 +322,7 @@ export const ABOUT_CONTENT: Page[] = [
                                             <td>Yes — via OMERO.server with S3 backend</td>
                                             <td>N/A</td>
                                             <td>N/A</td>
-                                            <td>Yes — any HTTP-hosted Zarr</td>
+                                            <td>Yes — any web-hosted Zarr</td>
                                             <td>N/A</td>
                                             <td>Yes — S3-backed</td>
                                             <td>Limited</td>
@@ -348,7 +346,9 @@ export const ABOUT_CONTENT: Page[] = [
                                             <td>
                                                 <strong>Image Viewing</strong>
                                             </td>
-                                            <td>Thumbnails; delegates to external viewers</td>
+                                            <td>
+                                                Delegates to external viewers; in-app thumbnails
+                                            </td>
                                             <td>
                                                 Built-in multi-dimensional viewer (OMERO.web,
                                                 OMERO.figure)
