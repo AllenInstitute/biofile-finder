@@ -1,8 +1,9 @@
 import { Icon } from "@fluentui/react";
 import { kebabCase } from "lodash";
 import * as React from "react";
+import { Link } from "react-router-dom";
 
-import { GroupSlug, Page, PageSlug, SectionHeading } from "./types";
+import { GroupSlug, Page, PageSlug, SectionHeading, userGuidePath } from "./types";
 
 type CsvValue = string | number | boolean | null | undefined;
 
@@ -200,17 +201,23 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         </ul>
                         <p>
                             See:{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.CreatingADatasetMetadataFile}`}
+                            <Link
+                                to={userGuidePath(
+                                    GroupSlug.GettingStarted,
+                                    PageSlug.CreatingADatasetMetadataFile
+                                )}
                             >
                                 Creating a metadata file
-                            </a>
+                            </Link>
                             ,{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.MetadataGuidance}`}
+                            <Link
+                                to={userGuidePath(
+                                    GroupSlug.GettingStarted,
+                                    PageSlug.MetadataGuidance
+                                )}
                             >
                                 Metadata guidance
-                            </a>
+                            </Link>
                         </p>
 
                         <h3>2. Reference your files</h3>
@@ -230,17 +237,23 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         </p>
                         <p>
                             See:{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.StorageOptions}`}
+                            <Link
+                                to={userGuidePath(
+                                    GroupSlug.OtherResources,
+                                    PageSlug.StorageOptions
+                                )}
                             >
                                 Storage options
-                            </a>
+                            </Link>
                             ,{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.AppInformation}/${PageSlug.SupportedViewers}`}
+                            <Link
+                                to={userGuidePath(
+                                    GroupSlug.AppInformation,
+                                    PageSlug.SupportedViewers
+                                )}
                             >
                                 Viewer compatibility
-                            </a>
+                            </Link>
                         </p>
 
                         <h3>3. Load the metadata file into BFF</h3>
@@ -319,11 +332,14 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         <p>
                             If data is intended to be publicly shared — like in a publication —
                             store the dataset and files referenced in the dataset in{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.StorageOptions}`}
+                            <Link
+                                to={userGuidePath(
+                                    GroupSlug.OtherResources,
+                                    PageSlug.StorageOptions
+                                )}
                             >
                                 cloud storage
-                            </a>{" "}
+                            </Link>{" "}
                             to enable readers to explore the dataset and its files via a sharable
                             BFF link (URL).
                         </p>
@@ -341,11 +357,14 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         <ul>
                             <li>
                                 Use consistent metadata conventions —{" "}
-                                <a
-                                    href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.MetadataGuidance}`}
+                                <Link
+                                    to={userGuidePath(
+                                        GroupSlug.GettingStarted,
+                                        PageSlug.MetadataGuidance
+                                    )}
                                 >
                                     see Metadata guidance
-                                </a>{" "}
+                                </Link>{" "}
                                 for detailed best practices.
                             </li>
                             <li>
@@ -365,13 +384,14 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </li>
                             <li>
                                 See{" "}
-                                <a
-                                    href={`/user-guide/${GroupSlug.GettingStarted}/${
+                                <Link
+                                    to={`${userGuidePath(
+                                        GroupSlug.GettingStarted,
                                         PageSlug.CreatingADatasetMetadataFile
-                                    }#${kebabCase(SectionHeading.MetadataFileExamples)}`}
+                                    )}#${kebabCase(SectionHeading.MetadataFileExamples)}`}
                                 >
                                     Metadata file examples
-                                </a>{" "}
+                                </Link>{" "}
                                 for examples to follow when creating a dataset.
                             </li>
                         </ul>
@@ -400,11 +420,14 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             support your workflow.
                         </p>
                         <p>
-                            <a
-                                href={`/user-guide/${GroupSlug.AppInformation}/${PageSlug.Specifications}`}
+                            <Link
+                                to={userGuidePath(
+                                    GroupSlug.AppInformation,
+                                    PageSlug.Specifications
+                                )}
                             >
                                 See Specifications
-                            </a>{" "}
+                            </Link>{" "}
                             for more details.
                         </p>
                     </>
@@ -444,11 +467,14 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 <strong>File Path</strong> — A reference to the file that BFF will
                                 attempt to open with relevant applications. This column does not
                                 have to be unique.{" "}
-                                <a
-                                    href={`/user-guide/${GroupSlug.OtherResources}/${PageSlug.StorageOptions}`}
+                                <Link
+                                    to={userGuidePath(
+                                        GroupSlug.OtherResources,
+                                        PageSlug.StorageOptions
+                                    )}
                                 >
                                     Information about file storage options
-                                </a>
+                                </Link>
                                 .
                             </li>
                         </ul>
@@ -466,13 +492,14 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 a cloud-hosted image and will override any thumbnail BFF will
                                 automatically try to generate. Note: BFF cannot automatically
                                 generate a thumbnail for all file types and storage locations.{" "}
-                                <a
-                                    href={`/user-guide/${GroupSlug.OtherResources}/${
+                                <Link
+                                    to={`${userGuidePath(
+                                        GroupSlug.OtherResources,
                                         PageSlug.StorageOptions
-                                    }#${kebabCase(SectionHeading.CloudStorage)}`}
+                                    )}#${kebabCase(SectionHeading.CloudStorage)}`}
                                 >
                                     See cloud storage options
-                                </a>
+                                </Link>
                                 .
                             </li>
                             <li>
@@ -512,16 +539,19 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             </a>
                         </p>
                         <p>
-                            <a href="/datasets">Browse open-source datasets</a>
+                            <Link to="/datasets">Browse open-source datasets</Link>
                         </p>
                         <h3>Full metadata guidance</h3>
                         <p>
                             Visit{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.MetadataGuidance}`}
+                            <Link
+                                to={userGuidePath(
+                                    GroupSlug.GettingStarted,
+                                    PageSlug.MetadataGuidance
+                                )}
                             >
                                 Metadata guidance
-                            </a>{" "}
+                            </Link>{" "}
                             for a full description of recommended metadata practices, including more
                             CSV examples and templates.
                         </p>
@@ -535,29 +565,38 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         <p>BFF supports:</p>
                         <ul>
                             <li>
-                                <a
-                                    href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.NestingMetadataColumns}`}
+                                <Link
+                                    to={userGuidePath(
+                                        GroupSlug.GettingStarted,
+                                        PageSlug.NestingMetadataColumns
+                                    )}
                                 >
                                     Nesting metadata columns
-                                </a>{" "}
+                                </Link>{" "}
                                 — columns that contain structured or repeated sub-fields within each
                                 row (for example, multiple wells or treatment conditions per file),
                                 formatted in Parquet and JSON.
                             </li>
                             <li>
-                                <a
-                                    href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.DescribingColumns}`}
+                                <Link
+                                    to={userGuidePath(
+                                        GroupSlug.GettingStarted,
+                                        PageSlug.DescribingColumns
+                                    )}
                                 >
                                     Describing columns in your dataset
-                                </a>{" "}
+                                </Link>{" "}
                                 — human-readable descriptions of the columns themselves.
                             </li>
                             <li>
-                                <a
-                                    href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.FileAndMetadataProvenance}`}
+                                <Link
+                                    to={userGuidePath(
+                                        GroupSlug.GettingStarted,
+                                        PageSlug.FileAndMetadataProvenance
+                                    )}
                                 >
                                     Describing file and metadata relationships
-                                </a>{" "}
+                                </Link>{" "}
                                 — relationships between files and metadata, defined using a
                                 provenance file.
                             </li>
@@ -652,11 +691,14 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                         </p>
                         <p>
                             See example descriptions for these fields in{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.GettingStarted}/${PageSlug.DescribingColumns}`}
+                            <Link
+                                to={userGuidePath(
+                                    GroupSlug.GettingStarted,
+                                    PageSlug.DescribingColumns
+                                )}
                             >
                                 Describing columns in your dataset
-                            </a>
+                            </Link>
                             .
                         </p>
                     </>

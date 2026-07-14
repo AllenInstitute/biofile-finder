@@ -1,8 +1,9 @@
 import { Icon } from "@fluentui/react";
 import { kebabCase } from "lodash";
 import * as React from "react";
+import { Link } from "react-router-dom";
 
-import { GroupSlug, Page, PageSlug, SectionHeading } from "./types";
+import { GroupSlug, Page, PageSlug, SectionHeading, userGuidePath } from "./types";
 import GroupingHierarchy from "../assets/grouping-hierarchy.png";
 import GroupingPanel from "../assets/grouping-panel.png";
 import QueryingFilters from "../assets/querying-filters.png";
@@ -87,11 +88,14 @@ export const ABOUT_CONTENT: Page[] = [
                             </li>
                         </ul>
                         <p>
-                            <a
-                                href={`/user-guide/${GroupSlug.RealWorldUseCases}/${PageSlug.UseCasesAndScenarios}`}
+                            <Link
+                                to={userGuidePath(
+                                    GroupSlug.RealWorldUseCases,
+                                    PageSlug.UseCasesAndScenarios
+                                )}
                             >
                                 Read detailed scenarios and use cases
-                            </a>
+                            </Link>
                         </p>
                     </>
                 ),
@@ -145,13 +149,14 @@ export const ABOUT_CONTENT: Page[] = [
                             repositories, but is intended to be used as a companion to these rather
                             than outright replacement. For more information on how BFF can be used
                             with a data repository, see{" "}
-                            <a
-                                href={`/user-guide/${GroupSlug.OtherResources}/${
+                            <Link
+                                to={`${userGuidePath(
+                                    GroupSlug.OtherResources,
                                     PageSlug.StorageOptions
-                                }#${kebabCase(SectionHeading.CloudStorageExamples)}`}
+                                )}#${kebabCase(SectionHeading.CloudStorageExamples)}`}
                             >
                                 Cloud storage examples
-                            </a>
+                            </Link>
                             .
                         </p>
                         <div
@@ -629,13 +634,14 @@ export const ABOUT_CONTENT: Page[] = [
                             </li>
                         </ul>
                         <p>
-                            <a
-                                href={`/user-guide/${GroupSlug.AppInformation}/${
+                            <Link
+                                to={`${userGuidePath(
+                                    GroupSlug.AppInformation,
                                     PageSlug.SupportedViewers
-                                }#${kebabCase(SectionHeading.ViewerTable)}`}
+                                )}#${kebabCase(SectionHeading.ViewerTable)}`}
                             >
                                 See the image viewer comparison table
-                            </a>
+                            </Link>
                         </p>
                     </>
                 ),
