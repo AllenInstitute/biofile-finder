@@ -434,10 +434,9 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 ),
             },
             {
-                heading: "Rows and columns",
+                heading: "Rows",
                 body: (
                     <>
-                        <h3>Rows</h3>
                         <p>
                             Each row typically represents a file you want BioFile Finder to explore.
                             Files can be stored locally, on network-attached storage, in cloud
@@ -447,20 +446,20 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                             Advanced workflows may reference multiple files from a single row or
                             reference the same file across multiple rows.
                         </p>
-                        <h3>Columns</h3>
+                    </>
+                ),
+            },
+            {
+                heading: "Columns",
+                body: (
+                    <>
                         <p>
                             Columns can be anything that describes metadata fields relevant to your
                             workflow. The only exceptions are the required column described below,
                             and a few special optional columns that, if provided, enable special
                             features in BFF.
                         </p>
-                    </>
-                ),
-            },
-            {
-                heading: "Required columns",
-                body: (
-                    <>
+                        <h3>Required columns</h3>
                         <p>This column is required for BFF to locate and open your files.</p>
                         <ul>
                             <li>
@@ -478,13 +477,7 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 .
                             </li>
                         </ul>
-                    </>
-                ),
-            },
-            {
-                heading: "Optional special columns",
-                body: (
-                    <>
+                        <h3>Optional special columns</h3>
                         <p>These optional columns enable specific features in BFF when provided.</p>
                         <ul>
                             <li>
