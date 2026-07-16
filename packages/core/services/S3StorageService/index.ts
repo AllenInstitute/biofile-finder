@@ -30,6 +30,19 @@ export default class S3StorageService extends HttpServiceBase {
     }
 
     /**
+     * Build a LIST URL for S3. Prefer virtual-hosted style
+     * (`<bucket>.<hostname>`) when a bucket is known, since that's the origin
+     * S3 buckets typically list in their CORS config. Falls back to path-style
+     * when we don't have a bucket (e.g. virtualized directories).
+     */
+    private static buildListUrl(parsedUrl: ParsedUrl): string {
+        const host = parsedUrl.bucket
+            ? `${parsedUrl.bucket}.${parsedUrl.hostname}`
+            : parsedUrl.hostname;
+        return `https://${host}/?list-type=2&prefix=${encodeURIComponent(parsedUrl.key)}`;
+    }
+
+    /**
      * Return true if s3 file.
      */
     private static isSimpleS3Url(url: string): boolean {
@@ -91,9 +104,7 @@ export default class S3StorageService extends HttpServiceBase {
         parsedUrl: ParsedUrl
     ): AsyncGenerator<{ url: string; name: string }> {
         let continuationToken: string | undefined;
-        const url = `https://${parsedUrl.hostname}/${
-            parsedUrl.bucket
-        }?list-type=2&prefix=${encodeURIComponent(parsedUrl.key)}`;
+        const url = S3StorageService.buildListUrl(parsedUrl);
 
         do {
             const listUrl = continuationToken
@@ -138,9 +149,7 @@ export default class S3StorageService extends HttpServiceBase {
 
         let totalSize = 0;
         let continuationToken: string | undefined;
-        const url = `https://${parsedUrl.hostname}/${
-            parsedUrl.bucket
-        }?list-type=2&prefix=${encodeURIComponent(parsedUrl.key)}`;
+        const url = S3StorageService.buildListUrl(parsedUrl);
 
         do {
             const listUrl = continuationToken
@@ -186,6 +195,30 @@ export default class S3StorageService extends HttpServiceBase {
             console.error(`Failed to get file size (content-length): ${err}`);
             throw err;
         }
+    }
+
+    /**
+     * List every `.parquet` object under the given S3 directory URL.
+     * Returns an array of full HTTPS URLs (one per shard), or null if the URL
+     * is not a listable S3 directory. Empty array is a valid result when
+     * the directory exists but contains no parquet files.
+     */
+    public async listParquetShards(directoryUrl: string): Promise<string[] | null> {
+        const parsedUrl = await this.parseUrl(directoryUrl);
+        if (!parsedUrl) return null;
+
+        const shardUrls: string[] = [];
+        try {
+            for await (const object of this.getObjectsInDirectory(parsedUrl)) {
+                if (object.name.toLowerCase().endsWith(".parquet")) {
+                    shardUrls.push(object.url);
+                }
+            }
+        } catch (err) {
+            console.error(`Failed to list parquet shards at ${directoryUrl}: ${err}`);
+            return null;
+        }
+        return shardUrls;
     }
 
     /**

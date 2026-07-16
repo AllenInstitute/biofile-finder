@@ -141,6 +141,10 @@ export default abstract class DatabaseService {
     private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
     // Data source names that are views (parquet), so we DROP VIEW on delete
     private readonly parquetDirectViewNames = new Set<string>();
+    // For sharded parquet sources: maps the data source name to the list of
+    // registered shard file handle names (unsuffixed; pass through fileHandleName
+    // when referencing in SQL).
+    protected readonly parquetShardNames = new Map<string, string[]>();
 
     protected database: duckdb.AsyncDuckDB | undefined;
 
@@ -223,13 +227,41 @@ export default abstract class DatabaseService {
     protected async addDataSource(
         name: string,
         type: "csv" | "json" | "parquet",
-        uri: string | File
+        uri: string | File,
+        shards?: (string | File)[]
     ): Promise<void> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
 
         const handle = fileHandleName(name);
+
+        // Sharded parquet: register each shard under its own handle.
+        if (type === "parquet" && shards && shards.length > 0) {
+            const shardHandleNames: string[] = [];
+            for (let i = 0; i < shards.length; i++) {
+                const shardName = `${name}__shard_${i}`;
+                const shardHandle = fileHandleName(shardName);
+                const shardUri = shards[i];
+                if (shardUri instanceof File) {
+                    await this.database.registerFileHandle(
+                        shardHandle,
+                        shardUri,
+                        duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+                        true
+                    );
+                } else {
+                    const protocol = shardUri.startsWith("s3")
+                        ? duckdb.DuckDBDataProtocol.S3
+                        : duckdb.DuckDBDataProtocol.HTTP;
+                    await this.database.registerFileURL(shardHandle, shardUri, protocol, false);
+                }
+                shardHandleNames.push(shardName);
+            }
+            this.parquetShardNames.set(name, shardHandleNames);
+            await this.createParquetDirectView(name);
+            return;
+        }
 
         if (uri instanceof File) {
             await this.database.registerFileHandle(
@@ -525,7 +557,7 @@ export default abstract class DatabaseService {
             );
         }
         // Add the data source as a table on the database
-        await this.addDataSource(name, type, uri);
+        await this.addDataSource(name, type, uri, dataSource.shards);
 
         // Add data source name to in-memory set
         // for quick data source checks
@@ -606,6 +638,17 @@ export default abstract class DatabaseService {
     protected async deleteDataSource(dataSource: string): Promise<void> {
         this.existingDataSources.delete(dataSource);
         this.dataSourceToAnnotationsMap.delete(dataSource);
+        const shardNames = this.parquetShardNames.get(dataSource);
+        if (shardNames && this.database) {
+            for (const shardName of shardNames) {
+                try {
+                    await this.database.dropFile(fileHandleName(shardName));
+                } catch {
+                    // Best-effort cleanup; ignore missing files.
+                }
+            }
+            this.parquetShardNames.delete(dataSource);
+        }
         if (this.parquetDirectViewNames.has(dataSource)) {
             this.parquetDirectViewNames.delete(dataSource);
             await this.execute(`DROP VIEW IF EXISTS "${dataSource}"`);
@@ -726,9 +769,11 @@ export default abstract class DatabaseService {
             return error;
         } else {
             // For large parquet tables, attempt to bypass the expensive
-            // getRowsWhereColumnIsBlank query.
+            // getRowsWhereColumnIsBlank query. Only applies to single-file
+            // parquet sources; sharded sources fall back to the full scan.
             if (
                 this.parquetDirectViewNames.has(name) &&
+                !this.parquetShardNames.has(name) &&
                 (await this.totalRowCount(name)) > 500000
             ) {
                 const originalColumn = await this.getOriginalParquetColumnName(
@@ -912,7 +957,10 @@ export default abstract class DatabaseService {
             selectParts.push(`"filename" AS "${DATA_SOURCE_COLUMN}"`);
         }
         // 4. Create the view for this data source
-        const quotedNames = sourceNames.map((name) => `'${fileHandleName(name)}'`).join(", ");
+        const quotedNames = sourceNames
+            .flatMap((name) => this.getParquetHandles(name))
+            .map((handle) => `'${handle}'`)
+            .join(", ");
         const createViewSql = `CREATE VIEW "${aggregateName}"
             AS SELECT ${selectParts.join(", ")}
             FROM parquet_scan(ARRAY[${quotedNames}], union_by_name = true);`;
@@ -1365,9 +1413,29 @@ export default abstract class DatabaseService {
     // Similar to getColumnsOnDataSource below, but suitable for use during the
     // data source preparation step.
     private async getRawParquetColumns(name: string): Promise<string[]> {
-        const sql = `DESCRIBE SELECT * FROM parquet_scan("${fileHandleName(name)}")`;
+        const shardHandles = this.getParquetHandles(name);
+        // For sharded parquet, describe across all shards with union_by_name
+        // so any column that appears in any shard is discovered.
+        const scanArg =
+            shardHandles.length > 1
+                ? `ARRAY[${shardHandles
+                      .map((h) => `'${h}'`)
+                      .join(", ")}], union_by_name = true`
+                : `"${shardHandles[0]}"`;
+        const sql = `DESCRIBE SELECT * FROM parquet_scan(${scanArg})`;
         const rows = await this.query(sql).promise;
         return rows.map((row) => row["column_name"] as string);
+    }
+
+    // Returns the list of file handles (with the -bff-filehandle suffix) that
+    // make up a parquet data source. For a sharded source this is every shard;
+    // for a single-file source it is the single handle for `name`.
+    private getParquetHandles(name: string): string[] {
+        const shards = this.parquetShardNames.get(name);
+        if (shards && shards.length > 0) {
+            return shards.map((shardName) => fileHandleName(shardName));
+        }
+        return [fileHandleName(name)];
     }
 
     protected async getColumnsOnDataSource(name: string): Promise<Set<string>> {

@@ -25,6 +25,9 @@ export interface Source {
     name: string;
     type?: typeof ACCEPTED_SOURCE_TYPES[number];
     uri?: string | File;
+    // Set when this source resolved to a sharded parquet directory.
+    // Each entry is an individual .parquet shard (URL or local File).
+    shards?: (string | File)[];
 }
 
 // Components of the application state this captures
@@ -86,13 +89,20 @@ export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
 };
 
 export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
-    const uriResource = dataSourceURL.substring(dataSourceURL.lastIndexOf("/") + 1).split("?")[0];
-    const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
+    const trimmed = dataSourceURL.split("?")[0].replace(/\/+$/, "");
+    const lastSegment = trimmed.substring(trimmed.lastIndexOf("/") + 1);
+    const name = `${lastSegment} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
     // Returns undefined if can't find a match
     let extensionGuess = ACCEPTED_SOURCE_TYPES.find(
-        (validSourcetype) => validSourcetype === uriResource.split(".").pop()
+        (validSourcetype) => validSourcetype === lastSegment.split(".").pop()
     );
     if (!extensionGuess) {
+        // URLs that end in a trailing slash, or a bare path segment with no
+        // extension, are treated as candidates for a sharded parquet directory.
+        // Callers should probe (e.g. via S3 list) to confirm before ingesting.
+        if (dataSourceURL.endsWith("/") || !lastSegment.includes(".")) {
+            return { name, type: "parquet" as const };
+        }
         console.warn("Assuming the source is csv since no extension was recognized");
         extensionGuess = "csv";
     }

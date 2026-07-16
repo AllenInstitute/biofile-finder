@@ -390,6 +390,52 @@ describe("DatabaseService", () => {
             expect(createViewSql).to.include("union_by_name = true");
             expect(createViewSql).to.include(`"filename" AS "Data source"`);
         });
+
+        it("expands every shard into the aggregate parquet view SQL", async () => {
+            class ShardedMockService extends MockAggregateParquetDatabaseService {
+                constructor() {
+                    super({
+                        "dirA__shard_0": ["file_path"],
+                        "dirA__shard_1": ["file_path"],
+                        "dirB__shard_0": ["file_path"],
+                    });
+                    this.parquetShardNames.set("dirA", ["dirA__shard_0", "dirA__shard_1"]);
+                    this.parquetShardNames.set("dirB", ["dirB__shard_0"]);
+                    // Pre-register the public source names so prepareDataSources
+                    // skips per-source prep and goes straight to the aggregate view.
+                    this.existingDataSources.add("dirA");
+                    this.existingDataSources.add("dirB");
+                    this.existingDataSources.delete("dirA__shard_0");
+                    this.existingDataSources.delete("dirA__shard_1");
+                    this.existingDataSources.delete("dirB__shard_0");
+                }
+            }
+            const service = new ShardedMockService();
+
+            await service.prepareDataSources([
+                {
+                    name: "dirA",
+                    type: "parquet",
+                    uri: "s3://example/a/",
+                    shards: ["https://example.com/a0.parquet", "https://example.com/a1.parquet"],
+                },
+                {
+                    name: "dirB",
+                    type: "parquet",
+                    uri: "s3://example/b/",
+                    shards: ["https://example.com/b0.parquet"],
+                },
+            ]);
+
+            const aggregateViewSql = service.executedSQL
+                .filter((sql) => sql.includes("CREATE VIEW"))
+                .pop();
+            expect(aggregateViewSql).to.not.be.undefined;
+            expect(aggregateViewSql).to.include("'dirA__shard_0-bff-filehandle'");
+            expect(aggregateViewSql).to.include("'dirA__shard_1-bff-filehandle'");
+            expect(aggregateViewSql).to.include("'dirB__shard_0-bff-filehandle'");
+            expect(aggregateViewSql).to.include("union_by_name = true");
+        });
     });
 
     describe("columnTypeToAnnotationType", () => {

@@ -3,10 +3,12 @@ import classNames from "classnames";
 import { throttle } from "lodash";
 import * as React from "react";
 import { useDropzone } from "react-dropzone";
+import { useSelector } from "react-redux";
 
 import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
 import { Source, getNameAndTypeFromSourceUrl } from "../../entity/SearchParams";
+import { interaction } from "../../state";
 
 import styles from "./FilePrompt.module.css";
 
@@ -19,24 +21,61 @@ interface Props {
     selectedFile?: Source;
 }
 
+// Extra attributes on the directory-select input that aren't in React's typings.
+// `webkitdirectory` is a Chromium/Safari extension; `directory` is the Firefox
+// counterpart. Both are needed for cross-browser directory selection.
+const directoryInputAttrs = {
+    webkitdirectory: "",
+    directory: "",
+} as unknown as React.InputHTMLAttributes<HTMLInputElement>;
+
 /**
  * Component for asking a user for a file or URL
  */
 export default function FilePrompt(props: Props) {
     const [dataSourceURL, setDataSourceURL] = React.useState("");
+    const [urlError, setUrlError] = React.useState<string | null>(null);
+    const [isResolvingUrl, setIsResolvingUrl] = React.useState(false);
+    const s3StorageService = useSelector(interaction.selectors.getS3StorageService);
+    const directoryInputRef = React.useRef<HTMLInputElement>(null);
     const { onSelectFile } = props;
 
     const onDrop = React.useCallback(
-        (acceptedFiles) => {
-            const selectedFile = acceptedFiles?.[0];
-            if (selectedFile) {
-                // Grab name minus extension
-                const nameAndExtension = selectedFile.name.split(".");
-                const name = nameAndExtension.slice(0, -1).join("");
-                // Extension validation is handled by the component itself
-                const extension = nameAndExtension.pop();
-                onSelectFile({ name, type: extension, uri: selectedFile });
+        (acceptedFiles: File[]) => {
+            if (!acceptedFiles?.length) return;
+
+            // Multi-file drop: only makes sense when everything is a parquet shard.
+            if (acceptedFiles.length > 1) {
+                const allParquet = acceptedFiles.every((f) =>
+                    f.name.toLowerCase().endsWith(".parquet")
+                );
+                if (allParquet) {
+                    const directoryName =
+                        // In a directory selection each File has a webkitRelativePath like "myDir/part.parquet".
+                        (acceptedFiles[0] as File & { webkitRelativePath?: string })
+                            .webkitRelativePath?.split("/")[0] || "parquet_directory";
+                    onSelectFile({
+                        name: directoryName,
+                        type: "parquet",
+                        uri: acceptedFiles[0],
+                        shards: acceptedFiles,
+                    });
+                    return;
+                }
             }
+
+            const selectedFile = acceptedFiles[0];
+            // Grab name minus extension
+            const nameAndExtension = selectedFile.name.split(".");
+            const name = nameAndExtension.slice(0, -1).join("");
+            const extension = nameAndExtension.pop();
+            onSelectFile({
+                name,
+                type: ["csv", "json", "parquet"].includes(extension ?? "")
+                    ? (extension as "csv" | "json" | "parquet")
+                    : "parquet",
+                uri: selectedFile,
+            });
         },
         [onSelectFile]
     );
@@ -73,19 +112,66 @@ export default function FilePrompt(props: Props) {
         ));
     }, [fileRejections]);
 
+    // A URL "looks like a directory" when it ends with a trailing slash, or its
+    // last path segment has no dotted extension. Both cases are treated as
+    // candidates for a sharded parquet directory and probed via S3 list.
+    const looksLikeDirectory = (url: string) => {
+        const trimmed = url.split("?")[0];
+        if (trimmed.endsWith("/")) return true;
+        const last = trimmed.substring(trimmed.lastIndexOf("/") + 1);
+        return !last.includes(".");
+    };
+
     const onEnterURL = throttle(
-        (evt?: React.FormEvent) => {
+        async (evt?: React.FormEvent) => {
             evt?.preventDefault();
-            if (dataSourceURL) {
-                props.onSelectFile({
-                    ...getNameAndTypeFromSourceUrl(dataSourceURL),
-                    uri: dataSourceURL,
-                });
+            if (!dataSourceURL) return;
+
+            const nameAndType = getNameAndTypeFromSourceUrl(dataSourceURL);
+
+            if (nameAndType.type === "parquet" && looksLikeDirectory(dataSourceURL)) {
+                setUrlError(null);
+                setIsResolvingUrl(true);
+                try {
+                    const shards = await s3StorageService.listParquetShards(dataSourceURL);
+                    if (!shards) {
+                        setUrlError(
+                            "Could not list objects at that URL. Confirm the path is a public S3 directory."
+                        );
+                        return;
+                    }
+                    if (shards.length === 0) {
+                        setUrlError("No .parquet files found at that URL.");
+                        return;
+                    }
+                    onSelectFile({
+                        ...nameAndType,
+                        uri: dataSourceURL,
+                        shards,
+                    });
+                } finally {
+                    setIsResolvingUrl(false);
+                }
+                return;
             }
+
+            setUrlError(null);
+            onSelectFile({
+                ...nameAndType,
+                uri: dataSourceURL,
+            });
         },
         10000,
         { leading: true, trailing: false }
     );
+
+    const onDirectoryChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
+        const files = evt.target.files;
+        if (!files || files.length === 0) return;
+        onDrop(Array.from(files));
+        // Reset so re-selecting the same directory refires onChange
+        evt.target.value = "";
+    };
 
     if (props.selectedFile) {
         return (
@@ -126,18 +212,22 @@ export default function FilePrompt(props: Props) {
                             dataSourceURL.length > 0 ? setDataSourceURL("") : undefined;
                         },
                     }}
-                    onChange={(_, newValue) => setDataSourceURL(newValue || "")}
+                    onChange={(_, newValue) => {
+                        setDataSourceURL(newValue || "");
+                        if (urlError) setUrlError(null);
+                    }}
                     placeholder="Paste URL (i.e. S3, Azure)..."
                     value={dataSourceURL}
                 />
                 <TertiaryButton
                     className={styles.enterButton}
-                    disabled={!dataSourceURL}
-                    iconName="ReturnKey"
+                    disabled={!dataSourceURL || isResolvingUrl}
+                    iconName={isResolvingUrl ? "Sync" : "ReturnKey"}
                     onClick={() => onEnterURL()}
-                    title="Select URL"
+                    title={isResolvingUrl ? "Resolving..." : "Select URL"}
                 />
             </form>
+            {urlError && <div className={styles.fileSelectionError}>{urlError}</div>}
             <div className={styles.orDivider}>OR</div>
             <div
                 {...getRootProps({
@@ -170,6 +260,21 @@ export default function FilePrompt(props: Props) {
                     </>
                 )}
             </div>
+            <input
+                ref={directoryInputRef}
+                type="file"
+                {...directoryInputAttrs}
+                style={{ display: "none" }}
+                onChange={onDirectoryChange}
+                data-testid={`directory-input-${props.parentId}`}
+            />
+            <TertiaryButton
+                className={styles.dropzoneButton}
+                iconName="FolderOpen"
+                text="Choose parquet directory"
+                title="Select a local directory containing sharded parquet files"
+                onClick={() => directoryInputRef.current?.click()}
+            />
             {fileRejections.length > 0 && fileErrorMessage}
         </div>
     );
