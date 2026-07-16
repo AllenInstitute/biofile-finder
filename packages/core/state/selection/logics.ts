@@ -887,9 +887,10 @@ const changeProvenanceSourceLogic = createLogic({
 
         try {
             if (selectedSourceProvenance) {
-                const { edgeDefinitions, warnings } = await databaseService.processProvenance(
-                    selectedSourceProvenance
-                );
+                const {
+                    edgeDefinitions,
+                    warnings,
+                } = await databaseService.getProvenanceEdgeDefinitions(selectedSourceProvenance);
                 dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
                 // provenance definitions may finish loading after we've already processed url query args.
                 // If we do have a graph origin, this ensures the graph actually starts rendering
@@ -908,7 +909,6 @@ const changeProvenanceSourceLogic = createLogic({
                     );
                 }
             } else {
-                await databaseService.deleteSourceProvenance();
                 dispatch(metadata.actions.receiveEdgeDefinitions([]));
                 // if we no longer have provenance definitions, we need to clear the graph origin
                 dispatch(changeProvenanceOriginId() as AnyAction);
@@ -945,7 +945,7 @@ const addQueryLogic = createLogic({
                 await databaseService.deleteSourceMetadata();
             }
             if (newQuery.parts.provenanceSource) {
-                await databaseService.processProvenance(newQuery.parts.provenanceSource);
+                await databaseService.getProvenanceEdgeDefinitions(newQuery.parts.provenanceSource);
             } else {
                 await databaseService.deleteSourceProvenance();
             }

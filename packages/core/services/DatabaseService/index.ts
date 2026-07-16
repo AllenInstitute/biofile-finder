@@ -822,7 +822,6 @@ export default abstract class DatabaseService {
     public async deleteSourceProvenance(): Promise<void> {
         if (this.sourceProvenanceName) {
             await this.deleteDataSource(this.sourceProvenanceName);
-            this.dataSourceToProvenanceMap.clear();
             this.sourceProvenanceName = undefined;
         }
     }
@@ -1429,9 +1428,17 @@ export default abstract class DatabaseService {
         await this.execute(this.getUpdateHiddenUIDSQL(viewName));
     }
 
-    public async processProvenance(
+    public async getProvenanceEdgeDefinitions(
         provenanceSource: Source
     ): Promise<{ edgeDefinitions: EdgeDefinition[]; warnings: string[] }> {
+        // Reuse the edge definitions if we have already processed this provenance source.
+        // The definitions live in state memory, so there is no need to re-read the file.
+        // TODO: Should warnings be cached alongside the edge definitions?
+        const cachedEdgeDefinitions = this.getProvenanceCache(provenanceSource);
+        if (!isNil(cachedEdgeDefinitions)) {
+            return { edgeDefinitions: cachedEdgeDefinitions, warnings: [] };
+        }
+
         await this.prepareSourceProvenance(provenanceSource);
 
         const sql = new SQLBuilder().select("*").from(`${this.sourceProvenanceName}`).toSQL();
@@ -1463,6 +1470,7 @@ export default abstract class DatabaseService {
                 }
             }
 
+            this.setProvenanceCache(provenanceSource, edgeDefinitions);
             return { edgeDefinitions, warnings };
         } catch (err) {
             // Source provenance file may not have been supplied
@@ -1473,7 +1481,7 @@ export default abstract class DatabaseService {
             }
             throw err;
         } finally {
-            // The definitions will already be in the state memory, no need to keep this in the database
+            // The definitions are now cached in memory, no need to keep this in the database
             await this.deleteSourceProvenance();
         }
     }
@@ -1685,5 +1693,15 @@ export default abstract class DatabaseService {
                 .execute(`INSERT INTO "${this.sourceMetadataName}" ("Column Name", "Description")
                     VALUES ('${columnName}', '${description}');`);
         }
+    }
+
+    private setProvenanceCache(provenanceSource: Source, edgeDefinitions: EdgeDefinition[]): void {
+        const cacheKey = provenanceSource.name;
+        this.dataSourceToProvenanceMap.set(cacheKey, edgeDefinitions);
+    }
+
+    private getProvenanceCache(provenanceSource: Source): EdgeDefinition[] | undefined {
+        const cacheKey = provenanceSource.name;
+        return this.dataSourceToProvenanceMap.get(cacheKey);
     }
 }
