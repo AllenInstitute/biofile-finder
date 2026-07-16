@@ -4,6 +4,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 
 import { GroupSlug, Page, PageSlug, SectionHeading, userGuidePath } from "./types";
+import ProvenanceDiagram from "../assets/provenance-graph.png";
 
 type CsvValue = string | number | boolean | null | undefined;
 
@@ -552,8 +553,18 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                 heading: "Advanced capabilities (optional)",
                 body: (
                     <>
-                        <p>BFF supports:</p>
                         <ul>
+                            <li>
+                                <Link
+                                    to={userGuidePath(
+                                        GroupSlug.GettingStarted,
+                                        PageSlug.DescribingColumns
+                                    )}
+                                >
+                                    Describing columns in your dataset
+                                </Link>{" "}
+                                — human-readable descriptions of the columns themselves.
+                            </li>
                             <li>
                                 <Link
                                     to={userGuidePath(
@@ -571,24 +582,13 @@ export const GETTING_STARTED_CONTENT: Page[] = [
                                 <Link
                                     to={userGuidePath(
                                         GroupSlug.GettingStarted,
-                                        PageSlug.DescribingColumns
-                                    )}
-                                >
-                                    Describing columns in your dataset
-                                </Link>{" "}
-                                — human-readable descriptions of the columns themselves.
-                            </li>
-                            <li>
-                                <Link
-                                    to={userGuidePath(
-                                        GroupSlug.GettingStarted,
                                         PageSlug.FileAndMetadataProvenance
                                     )}
                                 >
                                     Describing file and metadata relationships
                                 </Link>{" "}
                                 — relationships between files and metadata, defined using a
-                                provenance file.
+                                provenance descriptor file.
                             </li>
                         </ul>
                     </>
@@ -991,6 +991,16 @@ pq.write_table(table, "dataset.parquet")`}
         intro:
             'Information about how files relate to each other or to different pieces of metadata can be provided via an additional file called a "Provenance file". Provenance in BioFile Finder (BFF) can describe relationships between files, between a file and a piece of metadata, and between two pieces of metadata.',
         sections: [
+            {
+                heading: "",
+                body: (
+                    <img
+                        src={ProvenanceDiagram}
+                        alt="BioFile Finder relationship diagram for an .ome.zarr image, showing it linked to its plate barcode, well label, and input file path, with related and derived image files below and a metadata panel on the right"
+                        className="ug-image"
+                    />
+                ),
+            },
             {
                 heading: "Where to provide the provenance file",
                 body: (
