@@ -738,7 +738,7 @@ const changeProvenanceSourceLogic = createLogic({
 
         try {
             if (selectedSourceProvenance) {
-                const edgeDefinitions = await databaseService.processProvenance(
+                const edgeDefinitions = await databaseService.getProvenanceEdgeDefinitions(
                     selectedSourceProvenance
                 );
                 dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
@@ -746,7 +746,6 @@ const changeProvenanceSourceLogic = createLogic({
                 // If we do have a graph origin, this ensures the graph actually starts rendering
                 dispatch(changeProvenanceOriginId(origin) as AnyAction);
             } else {
-                await databaseService.deleteSourceProvenance();
                 dispatch(metadata.actions.receiveEdgeDefinitions([]));
                 // if we no longer have provenance definitions, we need to clear the graph origin
                 dispatch(changeProvenanceOriginId() as AnyAction);
