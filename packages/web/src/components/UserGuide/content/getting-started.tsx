@@ -168,10 +168,10 @@ const COLUMN_DESCRIPTIONS_EXAMPLE_ROWS: CsvValue[][] = [
 ];
 
 const PROVENANCE_SIMPLE_EXAMPLE_ROWS: CsvValue[][] = [
-    ["Child", "Relationship", "Parent", "Child Type", "Parent Type", "Relationship Type"],
-    ["WellID", "is well in", "PlateID", "entity", "entity", ""],
-    ["ColonyImage", "is image acquired from", "WellID", "file", "entity", ""],
-    ["SegmentationImage", "segmentation_algorithm_v1", "ColonyImage", "file", "file", "pointer"],
+    ["Parent", "Child", "Relationship", "Parent Type", "Child Type", "Relationship Type"],
+    ["PlateID", "WellID", "is well in", "entity", "entity", ""],
+    ["WellID", "ColonyImage", "is image acquired from", "entity", "file", ""],
+    ["ColonyImage", "SegmentationImage", "segmentation_algorithm_v1", "file", "file", "pointer"],
 ];
 
 export const GETTING_STARTED_CONTENT: Page[] = [
