@@ -312,7 +312,8 @@ const downloadFilesLogic = createLogic({
         await Promise.all(
             filesToDownload.map(async (file) => {
                 if (!file.size) {
-                    file.size = await s3StorageService.getCloudObjectSize(file.path);
+                    const { size } = await s3StorageService.getCloudObjectInfo(file.path);
+                    file.size = size;
                     if (file.size === undefined) someFilesHaveUnknownSize = true;
                 }
             })
