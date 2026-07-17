@@ -1007,8 +1007,8 @@ pq.write_table(table, "dataset.parquet")`}
                     <p>
                         In BFF, open the data source panel by clicking the dataset name at the top
                         of the app. At the bottom of that panel you will find an optional field
-                        labeled <strong>&quot;Provenance file&quot;</strong>. Paste the URL or drag
-                        in the file there to load it alongside your dataset.
+                        labeled <strong>&quot;Provenance descriptor file&quot;</strong>. Paste the
+                        URL or drag in the file there to load it alongside your dataset.
                     </p>
                 ),
             },
@@ -1018,6 +1018,10 @@ pq.write_table(table, "dataset.parquet")`}
                     <>
                         <p>The provenance file should contain 6 columns:</p>
                         <ul>
+                            <li>
+                                <strong>Parent</strong> — The column name in the dataset
+                                representing the parent entity.
+                            </li>
                             <li>
                                 <strong>Child</strong> — The column name in the dataset representing
                                 the child entity in the relationship.
@@ -1030,16 +1034,12 @@ pq.write_table(table, "dataset.parquet")`}
                                 that encodes the relationship.
                             </li>
                             <li>
-                                <strong>Parent</strong> — The column name in the dataset
-                                representing the parent entity.
+                                <strong>Parent Type</strong> — <code>file</code> if the parent is a
+                                file; <code>entity</code> if it is metadata.
                             </li>
                             <li>
                                 <strong>Child Type</strong> — <code>file</code> if the child is a
                                 file in the dataset; <code>entity</code> if it is metadata.
-                            </li>
-                            <li>
-                                <strong>Parent Type</strong> — <code>file</code> if the parent is a
-                                file; <code>entity</code> if it is metadata.
                             </li>
                             <li>
                                 <strong>Relationship Type</strong> — Empty for a static relationship
@@ -1089,13 +1089,6 @@ pq.write_table(table, "dataset.parquet")`}
                             Capturing these relationships ensures that derived data products remain
                             connected to their biological source, enabling validation,
                             troubleshooting, and reproducibility.
-                        </p>
-                        <p>
-                            In BFF, once a provenance file is loaded, each file row in the file list
-                            will show a relationship indicator. Expanding a row reveals its linked
-                            parent or child entities — for example, given the provenance schema
-                            defined above, clicking a segmentation image will show the colony image
-                            it was derived from and the well it originated in.
                         </p>
                         <p>
                             Provenance is also critical when a single publication draws on images
