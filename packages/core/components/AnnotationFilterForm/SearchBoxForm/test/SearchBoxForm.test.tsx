@@ -23,7 +23,7 @@ describe("<SearchBoxForm/>", () => {
         const checkbox = getByRole("checkbox");
         // Consistency checks
         expect(getByText("Fuzzy search (non-exact matching)")).to.exist;
-        expect(checkbox.getAttribute("title")!).to.equal("Turn on fuzzy search");
+        expect(checkbox.getAttribute("title")).to.equal("Turn on fuzzy search");
         expect(onSearch.called).to.equal(false);
 
         // Act
@@ -43,7 +43,7 @@ describe("<SearchBoxForm/>", () => {
 
         // Assert
         expect(getByText("Fuzzy search (non-exact matching)")).to.exist;
-        expect(checkbox.getAttribute("title")!).to.equal("Turn off fuzzy search");
+        expect(checkbox.getAttribute("title")).to.equal("Turn off fuzzy search");
         expect(onSearch.called).to.equal(true);
     });
 
@@ -62,12 +62,12 @@ describe("<SearchBoxForm/>", () => {
         const checkbox = getByRole("checkbox");
         // Consistency check
         expect(getByText("Fuzzy search (non-exact matching)")).to.exist;
-        expect(checkbox.getAttribute("title")!).to.equal("Turn off fuzzy search");
+        expect(checkbox.getAttribute("title")).to.equal("Turn off fuzzy search");
         // Act
         fireEvent.click(getByRole("checkbox"));
 
         // Assert
         expect(getByText("Fuzzy search (non-exact matching)")).to.exist;
-        expect(checkbox.getAttribute("title")!).to.equal("Turn on fuzzy search");
+        expect(checkbox.getAttribute("title")).to.equal("Turn on fuzzy search");
     });
 });
