@@ -1,9 +1,9 @@
+import axios from "axios";
 import { expect } from "chai";
 import sinon from "sinon";
 
-import { DatasetMetadata, parseFrontMatter, processMarkdown } from "../MarkdownFrontMatter";
+import { DatasetMetadata, parseFrontMatter, processMarkdown } from "..";
 import { Source } from "../../SearchParams";
-import axios from "axios";
 
 describe("MarkdownFrontMatter", () => {
     let consoleErrorStub: any;
@@ -25,6 +25,7 @@ describe("MarkdownFrontMatter", () => {
             const provUrl = "prov-url.csv";
             const colDescriptorUrl = "cd-url.csv";
             const description = "This is a text description";
+            // annoying indents to avoid including whitespace
             const markdownText = `---
 title: ${title}
 dataset_url: ${datasetUrl}
@@ -88,7 +89,7 @@ ${description}`;
     });
 
     describe("processMarkdown", () => {
-        // string formatted this way for whitespace
+        // string indented this way for whitespace
         const validMarkdownText = `---
 title: Some Title
 dataset_url: mainUrl.csv
@@ -134,7 +135,7 @@ A description of the dataset`;
         it("throws an error for a non-processable source (e.g., plain local path)", async () => {
             // Arrange
             const tempFileName = `test-markdown.md`;
-            const userPath = "/user/file/we/cannot/access/from/browser";
+            const userPath = "/user/file/path/we/cannot/access/from/browser";
             const testFile: Source = { name: tempFileName, type: "md", uri: userPath };
 
             // Act

@@ -73,7 +73,7 @@ import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
-import { DatasetUrls } from "../../entity/MarkdownFrontMatter/MarkdownFrontMatter";
+import { DatasetUrls } from "../../entity/MarkdownFrontMatter";
 import {
     DEFAULT_COLUMN_WIDTH,
     FileView,

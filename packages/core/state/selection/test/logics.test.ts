@@ -53,10 +53,7 @@ import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnot
 import { DataSource } from "../../../services/DataSourceService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
-import {
-    DatasetUrls,
-    ParsedFrontmatter,
-} from "../../../entity/MarkdownFrontMatter/MarkdownFrontMatter";
+import { DatasetUrls, ParsedFrontmatter } from "../../../entity/MarkdownFrontMatter";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {

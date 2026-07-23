@@ -13,10 +13,7 @@ import {
     getNameAndTypeFromSourceUrl,
     isMarkdownType,
 } from "../../entity/SearchParams";
-import {
-    ParsedFrontmatter,
-    processMarkdown,
-} from "../../entity/MarkdownFrontMatter/MarkdownFrontMatter";
+import { ParsedFrontmatter, processMarkdown } from "../../entity/MarkdownFrontMatter";
 import { interaction } from "../../state";
 
 import styles from "./FilePrompt.module.css";

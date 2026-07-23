@@ -1,8 +1,8 @@
-import type { DatasetUrls } from "../MarkdownFrontMatter/MarkdownFrontMatter";
 import AnnotationName from "../Annotation/AnnotationName";
 import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
+import type { DatasetUrls } from "../MarkdownFrontMatter";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Column } from "../../state/selection/actions";
 

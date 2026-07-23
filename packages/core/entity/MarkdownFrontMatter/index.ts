@@ -1,18 +1,19 @@
-import yaml from "js-yaml";
-import { Source } from "../SearchParams";
 import axios from "axios";
+import yaml from "js-yaml";
+
+import { Source } from "../SearchParams";
 
 export interface DatasetUrls {
-    provenance_url?: string; // url to provenance schema file
-    descriptions_url?: string; // url to metadata descriptions
     dataset_url?: string; // actual dataset
+    descriptions_url?: string; // url to metadata descriptions
+    provenance_url?: string; // url to provenance schema file
 }
 
 export interface DatasetMetadata extends DatasetUrls {
     title?: string;
     date?: string; // YYYY-MM-DD
     author?: string[];
-    [key: string]: string | string[] | undefined; // other unknown front-matter headers
+    [key: string]: string | string[] | undefined; // other unknown user-provided headers
 }
 
 export interface ParsedFrontmatter {
@@ -23,7 +24,7 @@ export interface ParsedFrontmatter {
 // Look for the markdown/yml file to start with a pattern like
 // ---
 // title: something
-// etc: etc
+// date: etc
 // ---
 // body
 const FRONT_MATTER_REGEX = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n([\s\S]*)$/;

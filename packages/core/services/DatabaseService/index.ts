@@ -6,11 +6,7 @@ import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constant
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { EdgeDefinition, EdgeNodeType, RelationshipType } from "../../entity/Graph";
-import {
-    DatasetUrls,
-    ParsedFrontmatter,
-    processMarkdown,
-} from "../../entity/MarkdownFrontMatter/MarkdownFrontMatter";
+import { DatasetUrls, ParsedFrontmatter, processMarkdown } from "../../entity/MarkdownFrontMatter";
 import {
     ACCEPTED_SOURCE_TYPES,
     getNameAndTypeFromSourceUrl,
