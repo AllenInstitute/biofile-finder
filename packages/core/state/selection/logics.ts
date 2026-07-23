@@ -872,8 +872,8 @@ const changeQueryLogic = createLogic({
         if (newlySelectedQuery) {
             const { parts } = newlySelectedQuery;
             let mainSources = parts.sources;
-            let provenanceSource = newlySelectedQuery.parts.provenanceSource;
-            let columnDescriptionSource = newlySelectedQuery.parts.sourceMetadata;
+            let provenanceSource = parts.provenanceSource;
+            let columnDescriptionSource = parts.sourceMetadata;
             const datasetDescriptionSource = parts.sources.find((source) => {
                 return isMarkdownType(source.type);
             });
@@ -908,24 +908,27 @@ const changeQueryLogic = createLogic({
                         )
                     );
                 } else {
-                    mainSources = [
-                        {
-                            ...getNameAndTypeFromSourceUrl(parsedMetadata.dataset_url),
-                            uri: parsedMetadata.dataset_url,
-                        },
-                    ];
+                    // TO DO: warn the user if these urls don't match what they provided
+                    const mainSourceUrl = parsedMetadata.dataset_url;
                     const provenanceSourceUrl = parsedMetadata.provenance_url;
                     const metadataDescriptorSourceUrl = parsedMetadata.descriptions_url;
-                    // TO DO: warn the user if these urls don't match
-                    if (provenanceSourceUrl && !newlySelectedQuery.parts.provenanceSource) {
-                        // allow users to override the markdown
+                    if (mainSourceUrl) {
+                        mainSources = [
+                            {
+                                ...getNameAndTypeFromSourceUrl(parsedMetadata.dataset_url),
+                                uri: parsedMetadata.dataset_url,
+                            },
+                        ];
+                    }
+                    // allow users to override the markdown
+                    if (provenanceSourceUrl && !parts.provenanceSource) {
                         provenanceSource = {
                             ...getNameAndTypeFromSourceUrl(provenanceSourceUrl),
                             uri: provenanceSourceUrl,
                         };
                     }
-                    if (metadataDescriptorSourceUrl && !newlySelectedQuery.parts.sourceMetadata) {
-                        // allow users to override the markdown
+                    // allow users to override the markdown
+                    if (metadataDescriptorSourceUrl && !parts.sourceMetadata) {
                         columnDescriptionSource = {
                             ...getNameAndTypeFromSourceUrl(metadataDescriptorSourceUrl),
                             uri: metadataDescriptorSourceUrl,
@@ -933,7 +936,7 @@ const changeQueryLogic = createLogic({
                     }
                     // cache
                     databaseService.setDatasetDescriptionUrls(datasetDescriptionSource.name, {
-                        dataset_url: parsedMetadata.dataset_url,
+                        dataset_url: mainSourceUrl,
                         provenance_url: provenanceSourceUrl,
                         descriptions_url: metadataDescriptorSourceUrl,
                     });
