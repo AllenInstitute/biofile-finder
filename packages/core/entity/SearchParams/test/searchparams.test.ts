@@ -179,7 +179,7 @@ describe("SearchParams", () => {
                 },
             };
             // Encoding SearchParams with only the md source should be functionally equivalent
-            const componentsWithoutSources: SearchParams = {
+            const componentsWithoutSources: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LIST,
                 hierarchy: [],
@@ -202,6 +202,10 @@ describe("SearchParams", () => {
                 descriptions_url: metadataSourceUri,
             });
             expect(result).to.equal(expected);
+            expect(result).to.contain("fake-uri.md");
+            expect(result).to.not.contain(mainSourceUri);
+            expect(result).to.not.contain(provSourceUri);
+            expect(result).to.not.contain(metadataSourceUri);
         });
 
         it("encodes sources that are not contained in the markdown", () => {
@@ -238,7 +242,7 @@ describe("SearchParams", () => {
                     uri: metadataSourceUri,
                 },
             };
-            const componentsWithProvSource: SearchParams = {
+            const componentsWithProvSource: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LIST,
                 hierarchy: [],
@@ -266,6 +270,10 @@ describe("SearchParams", () => {
                 descriptions_url: metadataSourceUri,
             });
             expect(result).to.equal(expected);
+            expect(result).to.not.contain(metadataSourceUri);
+            expect(result).to.not.contain(mainSourceUri);
+            expect(result).to.contain(provSourceUri);
+            expect(result).to.contain("fake-uri.md");
         });
 
         it("overrides the markdown if the manually-provided uris don't match", () => {
@@ -303,7 +311,7 @@ describe("SearchParams", () => {
                 },
             };
 
-            const componentsWithProvidedSource: SearchParams = {
+            const componentsWithProvidedSource: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LIST,
                 hierarchy: [],
@@ -332,6 +340,8 @@ describe("SearchParams", () => {
                 descriptions_url: "some other non-matching uri",
             });
             expect(result).to.equal(expected);
+            expect(result).to.not.contain("some other non-matching uri");
+            expect(result).to.contain(metadataSourceUri);
         });
     });
 
