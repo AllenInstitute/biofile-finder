@@ -11,6 +11,7 @@ import styles from "./QueryPartRow.module.css";
 
 export interface QueryPartRowItem extends DnDItem {
     description?: string;
+    datasetDescriptionSource?: string;
     titleIconName?: string;
     /**
      * Ancestor path segments shown as a greyed breadcrumb before the title (the leaf). E.g. for
@@ -20,6 +21,7 @@ export interface QueryPartRowItem extends DnDItem {
     titlePrefixParts?: string[];
     onClick?: (itemId: string) => void;
     onDelete?: (itemId: string) => void;
+    onShowDatasetInfo?: (itemId: string) => void;
     onRenderEditMenuList?: (item: QueryPartRowItem) => React.ReactElement<QueryPartRowItem>;
 }
 
@@ -128,6 +130,15 @@ export default function QueryGroupRow(props: Props) {
                     iconName="Cancel"
                     onClick={() => props.item.onDelete?.(props.item.id)}
                     title="Delete"
+                />
+            )}
+            {props.item.onShowDatasetInfo && !!props.item.datasetDescriptionSource && (
+                <TransparentIconButton
+                    className={styles.iconButton}
+                    disabled // TO DO: enable in follow-up when we have the UI component
+                    iconName="Info"
+                    onClick={() => props.item.onShowDatasetInfo?.(props.item.id)}
+                    title={`Data source info from ${props.item.datasetDescriptionSource}`}
                 />
             )}
         </div>

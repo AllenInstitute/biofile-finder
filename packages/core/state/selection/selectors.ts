@@ -25,6 +25,8 @@ export const getRecentAnnotations = (state: State) => state.selection.recentAnno
 export const getRequiresDataSourceReload = (state: State) =>
     state.selection.requiresDataSourceReload;
 export const getSelectedDataSources = (state: State) => state.selection.dataSources;
+export const getDatasetDescriptionSource = (state: State) =>
+    state.selection.datasetDescriptionSource;
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
 export const getSelectedSourceProvenance = (state: State) => state.selection.sourceProvenance;
 export const getProvenanceOriginId = (state: State) => state.selection.provenanceOriginId;
@@ -87,6 +89,7 @@ export const getCurrentQueryParts = createSelector(
     [
         getAnnotationHierarchy,
         getColumns,
+        getDatasetDescriptionSource,
         getFileFilters,
         getFileView,
         getOpenFileFolders,
@@ -100,6 +103,7 @@ export const getCurrentQueryParts = createSelector(
     (
         hierarchy,
         columns,
+        dataDescriptionSource,
         filters,
         fileView,
         openFolders,
@@ -117,15 +121,26 @@ export const getCurrentQueryParts = createSelector(
         openFolders,
         showNoValueGroups,
         sortColumn,
-        sources,
+        sources: [...sources, ...(dataDescriptionSource ? [dataDescriptionSource] : [])],
         sourceMetadata,
         provenanceSource,
         provOriginId,
     })
 );
 
-export const getEncodedSearchParams = createSelector([getCurrentQueryParts], (queryParts): string =>
-    SearchParams.encode(queryParts)
+export const getDatasetUrlsFromMarkdown = createSelector(
+    [getPlatformDependentServices, getDatasetDescriptionSource],
+    ({ databaseService }, datasetDescriptionSource) => {
+        if (!datasetDescriptionSource) return undefined;
+        return databaseService.getDatasetDescriptionUrls(datasetDescriptionSource.name);
+    }
+);
+
+export const getEncodedSearchParams = createSelector(
+    [getCurrentQueryParts, getDatasetUrlsFromMarkdown],
+    (queryParts, datasetUrls): string => {
+        return SearchParams.encode(queryParts, datasetUrls);
+    }
 );
 
 export const getLoadingNewQuery = createSelector([getQueries], (queries): boolean =>

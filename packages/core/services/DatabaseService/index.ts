@@ -6,7 +6,14 @@ import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constant
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { EdgeDefinition, EdgeNodeType, RelationshipType } from "../../entity/Graph";
-import { Source } from "../../entity/SearchParams";
+import { DatasetUrls, ParsedFrontmatter, processMarkdown } from "../../entity/MarkdownFrontMatter";
+import {
+    ACCEPTED_SOURCE_TYPES,
+    getNameAndTypeFromSourceUrl,
+    isMarkdownType,
+    Source,
+    TABULAR_SOURCE_TYPES,
+} from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
@@ -164,6 +171,7 @@ export default abstract class DatabaseService {
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
     protected readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
     private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
+    protected readonly dataSourceToMetadataMap: Map<string, DatasetUrls> = new Map();
     // Data source names that are views (parquet), so we DROP VIEW on delete
     private readonly parquetDirectViewNames = new Set<string>();
 
@@ -178,7 +186,7 @@ export default abstract class DatabaseService {
     public async saveQuery(
         destination: string,
         sql: string,
-        format: "parquet" | "csv" | "json"
+        format: typeof TABULAR_SOURCE_TYPES[number]
     ): Promise<Uint8Array> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
@@ -247,9 +255,10 @@ export default abstract class DatabaseService {
 
     protected async addDataSource(
         name: string,
-        type: "csv" | "json" | "parquet",
+        type: typeof ACCEPTED_SOURCE_TYPES[number],
         uri: string | File
     ): Promise<void> {
+        if (isMarkdownType(type)) return; // don't try to add markdown sources
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
@@ -545,6 +554,32 @@ export default abstract class DatabaseService {
         return this.currentAggregateSource === combinedName;
     }
 
+    // non-cached full parse
+    public async processMarkdown(source: Source): Promise<ParsedFrontmatter> {
+        const processedMarkdown = await processMarkdown(source);
+        if (processedMarkdown.metadata) {
+            const metadataUrls: DatasetUrls = {
+                dataset_url: processedMarkdown.metadata.dataset_url,
+                provenance_url: processedMarkdown.metadata.provenance_url,
+                descriptions_url: processedMarkdown.metadata.descriptions_url,
+            };
+            // set the cache
+            this.setDatasetDescriptionUrls(source.name, metadataUrls);
+        } // should error handling happen here
+        return processedMarkdown;
+    }
+
+    // Cache urls provided by a markdown (dataset description) file
+    // Allows us to avoid fetching/parsing the file every time we need those urls
+    public setDatasetDescriptionUrls(dataSourceName: string, metadata: DatasetUrls): void {
+        this.dataSourceToMetadataMap.set(dataSourceName, metadata);
+    }
+
+    // Get the cached urls from previously parsed markdown files
+    public getDatasetDescriptionUrls(dataSourceName: string): DatasetUrls | undefined {
+        return this.dataSourceToMetadataMap.get(dataSourceName);
+    }
+
     public async prepareDataSources(
         dataSources: Source[],
         skipNormalization = false
@@ -638,6 +673,50 @@ export default abstract class DatabaseService {
                 name
             );
         }
+
+        if (isMarkdownType(type)) {
+            let parsedDatasetMetadata: DatasetUrls | undefined;
+            // Check the cache first, otherwise fully process the markdown file
+            const cachedUrls = this.getDatasetDescriptionUrls(name);
+            if (cachedUrls) {
+                parsedDatasetMetadata = cachedUrls;
+            } else {
+                parsedDatasetMetadata = (await this.processMarkdown(dataSource)).metadata;
+            }
+            if (!parsedDatasetMetadata || !parsedDatasetMetadata.dataset_url) {
+                throw new DataSourcePreparationError(
+                    "Unable to parse metadata from markdown file",
+                    name
+                );
+            }
+
+            // Process the actual data source
+            const mainDatasource = parsedDatasetMetadata.dataset_url;
+            await this.prepareDataSource(
+                {
+                    ...getNameAndTypeFromSourceUrl(mainDatasource),
+                    uri: mainDatasource,
+                },
+                false
+            );
+
+            // Now process any supplied optional files
+            const provenanceSourceUrl = parsedDatasetMetadata.provenance_url;
+            const columnDescriptorSourceUrl = parsedDatasetMetadata.descriptions_url;
+            if (provenanceSourceUrl) {
+                await this.prepareSourceProvenance({
+                    ...getNameAndTypeFromSourceUrl(provenanceSourceUrl),
+                    uri: provenanceSourceUrl,
+                });
+            }
+            if (columnDescriptorSourceUrl) {
+                await this.prepareSourceMetadata({
+                    ...getNameAndTypeFromSourceUrl(columnDescriptorSourceUrl),
+                    uri: columnDescriptorSourceUrl,
+                });
+            }
+            return;
+        }
         // Add the data source as a table on the database
         await this.addDataSource(name, type, uri);
 
@@ -720,6 +799,7 @@ export default abstract class DatabaseService {
     protected async deleteDataSource(dataSource: string): Promise<void> {
         this.existingDataSources.delete(dataSource);
         this.dataSourceToAnnotationsMap.delete(dataSource);
+        this.dataSourceToMetadataMap.delete(dataSource);
         if (this.parquetDirectViewNames.has(dataSource)) {
             this.parquetDirectViewNames.delete(dataSource);
             await this.execute(`DROP VIEW IF EXISTS "${dataSource}"`);

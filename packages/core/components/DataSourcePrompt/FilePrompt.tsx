@@ -3,10 +3,13 @@ import classNames from "classnames";
 import { throttle } from "lodash";
 import * as React from "react";
 import { useDropzone } from "react-dropzone";
+import { useDispatch } from "react-redux";
 
 import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
-import { Source, getNameAndTypeFromSourceUrl } from "../../entity/SearchParams";
+import { Source, getNameAndTypeFromSourceUrl, isMarkdownType } from "../../entity/SearchParams";
+import { ParsedFrontmatter, processMarkdown } from "../../entity/MarkdownFrontMatter";
+import { interaction } from "../../state";
 
 import styles from "./FilePrompt.module.css";
 
@@ -23,8 +26,31 @@ interface Props {
  * Component for asking a user for a file or URL
  */
 export default function FilePrompt(props: Props) {
+    const dispatch = useDispatch();
     const [dataSourceURL, setDataSourceURL] = React.useState("");
+    const [mdFrontmatter, setMdFrontmatter] = React.useState<ParsedFrontmatter>();
+    const [shouldHaveFrontmatter, setShouldHaveFrontmatter] = React.useState(false);
     const { onSelectFile } = props;
+
+    // Parse markdown files to provide a preview of the metadata we're able to find
+    const handleMarkdownSource = (source: Source) => {
+        if (isMarkdownType(source.type)) {
+            // Calls the standalone process instead of going through the DB service
+            // since we don't want to cache the result yet
+            processMarkdown(source)
+                .then((result) => {
+                    setMdFrontmatter(result);
+                })
+                .catch((e) => {
+                    setMdFrontmatter(undefined);
+                    dispatch(interaction.actions.processError(source.name, (e as Error).message));
+                });
+            setShouldHaveFrontmatter(true);
+        } else {
+            setMdFrontmatter(undefined);
+            setShouldHaveFrontmatter(false);
+        }
+    };
 
     const onDrop = React.useCallback(
         (acceptedFiles) => {
@@ -36,9 +62,10 @@ export default function FilePrompt(props: Props) {
                 // Extension validation is handled by the component itself
                 const extension = nameAndExtension.pop();
                 onSelectFile({ name, type: extension, uri: selectedFile });
+                handleMarkdownSource({ name, type: extension, uri: selectedFile });
             }
         },
-        [onSelectFile]
+        [onSelectFile, handleMarkdownSource]
     );
 
     const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
@@ -47,10 +74,49 @@ export default function FilePrompt(props: Props) {
             "application/vnd.apache.parquet": [".parquet"],
             "application/json": [".json"],
             "text/csv": [".csv"],
+            "text/markdown": [".md", ".markdown"],
         },
         multiple: false,
         noDragEventsBubbling: true,
     });
+
+    const markdownFileMetadata: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
+        if (!shouldHaveFrontmatter) return null;
+        if (!mdFrontmatter?.metadata) {
+            return (
+                <div className={styles.mdMetadata}>
+                    <i>
+                        Unable to parse metadata from this markdown file. Please verify that the
+                        front-matter is formatted correctly.
+                    </i>
+                </div>
+            );
+        }
+        // semi-arbitrary shortening of markdown body
+        const truncatedDescription =
+            mdFrontmatter?.body?.length <= 100
+                ? mdFrontmatter.body
+                : mdFrontmatter.body.slice(0, 45) + "..." + mdFrontmatter.body.slice(-45);
+        return (
+            <div className={styles.mdMetadata}>
+                <i>Parsed the following metadata from the selected source:</i>
+                <ul>
+                    {Object.entries(mdFrontmatter.metadata).map(([key, value]) => {
+                        return (
+                            <li key={key}>
+                                <b>{key}:</b> {value?.toString()}
+                            </li>
+                        );
+                    })}
+                    {mdFrontmatter?.body && (
+                        <li key="raw-description">
+                            <b>description:</b> {truncatedDescription}
+                        </li>
+                    )}
+                </ul>
+            </div>
+        );
+    }, [shouldHaveFrontmatter, mdFrontmatter]);
 
     // Format file rejection error codes into readable messages
     const fileErrorMessage: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
@@ -77,10 +143,12 @@ export default function FilePrompt(props: Props) {
         (evt?: React.FormEvent) => {
             evt?.preventDefault();
             if (dataSourceURL) {
-                props.onSelectFile({
+                const source = {
                     ...getNameAndTypeFromSourceUrl(dataSourceURL),
                     uri: dataSourceURL,
-                });
+                };
+                props.onSelectFile(source);
+                handleMarkdownSource(source);
             }
         },
         10000,
@@ -104,6 +172,7 @@ export default function FilePrompt(props: Props) {
                         onClick={() => props.onSelectFile(undefined)}
                     />
                 </div>
+                {markdownFileMetadata}
                 {fileRejections.length > 0 && fileErrorMessage}
             </div>
         );
