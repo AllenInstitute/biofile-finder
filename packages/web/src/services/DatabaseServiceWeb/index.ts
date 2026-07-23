@@ -2,7 +2,7 @@ import { uniqueId } from "lodash";
 
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../../../core/constants";
 import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
-import { Source } from "../../../../core/entity/SearchParams";
+import { Source, TABULAR_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
 import {
     CanceledError,
     Pending,
@@ -57,7 +57,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
     public async saveQuery(
         destination: string,
         sql: string,
-        format: "parquet" | "csv" | "json"
+        format: typeof TABULAR_SOURCE_TYPES[number]
     ): Promise<Uint8Array> {
         if (!this.ready) {
             throw new Error("Database failed to initialize in save query");
