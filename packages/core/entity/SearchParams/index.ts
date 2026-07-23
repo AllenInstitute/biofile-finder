@@ -1,3 +1,4 @@
+import type { DatasetUrls } from "../MarkdownFrontMatter/MarkdownFrontMatter";
 import AnnotationName from "../Annotation/AnnotationName";
 import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
@@ -19,7 +20,12 @@ export enum FileView {
     LARGE_THUMBNAIL = "3",
 }
 
-export const ACCEPTED_SOURCE_TYPES = ["csv", "json", "parquet"] as const;
+export const MARKDOWN_SOURCE_TYPES = ["markdown", "md"] as const;
+export const TABULAR_SOURCE_TYPES = ["csv", "json", "parquet"] as const;
+export const ACCEPTED_SOURCE_TYPES = [...TABULAR_SOURCE_TYPES, ...MARKDOWN_SOURCE_TYPES] as const;
+export function isMarkdownType(type?: string): boolean {
+    return (MARKDOWN_SOURCE_TYPES as readonly any[]).includes(type);
+}
 
 export interface Source {
     name: string;
@@ -166,7 +172,10 @@ export default class SearchParams {
      * of our application state. As in, the names / system we track data in can change
      * without breaking an existing SearchParams.
      * */
-    public static encode(urlComponents: Partial<SearchParamsComponents>): string {
+    public static encode(
+        urlComponents: Partial<SearchParamsComponents>,
+        cachedUrlsFromDescription?: DatasetUrls
+    ): string {
         const params = new URLSearchParams();
         if (urlComponents.columns?.length) {
             params.append(URLQueryArgShorthands.COLUMNS, ColumnCoder.encode(urlComponents.columns));
@@ -184,7 +193,30 @@ export default class SearchParams {
         urlComponents.openFolders?.map((folder) => {
             params.append("openFolder", JSON.stringify(folder.fileFolder));
         });
-        urlComponents.sources?.map((source) => {
+
+        let sourcesToEncode = urlComponents.sources;
+        let columnDescriptionSourceAlreadyEncoded = false;
+        let provenanceSourceAlreadyEncoded = false;
+        // Check if one of sources is a markdown file. If so, parse it for urls.
+        // check that those urls match, or else give preference to the overwritten provided sources
+        const datasetDescriptionSource = urlComponents.sources?.find((source) =>
+            isMarkdownType(source.type)
+        );
+        if (datasetDescriptionSource) {
+            // Only encode sources that aren't already in the markdown file
+            const datasetUrl = cachedUrlsFromDescription?.dataset_url;
+            sourcesToEncode = datasetUrl
+                ? urlComponents.sources?.filter((source) => source.uri !== datasetUrl)
+                : urlComponents.sources;
+            // Skip source encoding if the markdown already contains the url
+            if (cachedUrlsFromDescription?.descriptions_url === urlComponents.sourceMetadata?.uri) {
+                columnDescriptionSourceAlreadyEncoded = true;
+            }
+            if (cachedUrlsFromDescription?.provenance_url === urlComponents.provenanceSource?.uri) {
+                provenanceSourceAlreadyEncoded = true;
+            }
+        }
+        sourcesToEncode?.map((source) => {
             params.append(
                 "source",
                 JSON.stringify({
@@ -196,7 +228,7 @@ export default class SearchParams {
                 })
             );
         });
-        if (urlComponents.sourceMetadata) {
+        if (urlComponents.sourceMetadata && !columnDescriptionSourceAlreadyEncoded) {
             params.append(
                 "sourceMetadata",
                 JSON.stringify({
@@ -209,7 +241,7 @@ export default class SearchParams {
                 })
             );
         }
-        if (urlComponents.provenanceSource) {
+        if (urlComponents.provenanceSource && !provenanceSourceAlreadyEncoded) {
             params.append(
                 "prov",
                 JSON.stringify({
@@ -221,13 +253,14 @@ export default class SearchParams {
                             : undefined,
                 })
             );
-            // Only include the graph origin if we also have a provenance source file
-            if (urlComponents.provOriginId) {
-                params.append(
-                    URLQueryArgShorthands.PROVENANCE_ORIGIN_ID,
-                    urlComponents.provOriginId
-                );
-            }
+        }
+        // Only include the graph origin if we also have a provenance source file,
+        // either directly encoded or in the markdown file
+        if (
+            urlComponents.provOriginId &&
+            (urlComponents.provenanceSource || cachedUrlsFromDescription?.provenance_url)
+        ) {
+            params.append(URLQueryArgShorthands.PROVENANCE_ORIGIN_ID, urlComponents.provOriginId);
         }
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
@@ -277,6 +310,11 @@ export default class SearchParams {
         const hierarchyDepth = hierarchy.length;
         const provenanceOriginId = params.get(URLQueryArgShorthands.PROVENANCE_ORIGIN_ID);
 
+        const parsedSources = unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource));
+        const mayHaveProvSource =
+            unparsedSourceProvenance ||
+            parsedSources.some((source) => isMarkdownType(source?.type));
+
         const parsedSort = unparsedSort ? JSON.parse(unparsedSort) : undefined;
         if (
             parsedSort &&
@@ -306,9 +344,9 @@ export default class SearchParams {
             provenanceSource: unparsedSourceProvenance
                 ? JSON.parse(unparsedSourceProvenance)
                 : undefined,
-            // only include the graph origin if we also have a provenance source file
-            provOriginId:
-                provenanceOriginId && unparsedSourceProvenance ? provenanceOriginId : undefined,
+            // avoid lengthening query string: only include the graph origin if we also have
+            // a provenance source OR dataset description file that may contain a provenance source
+            provOriginId: provenanceOriginId && mayHaveProvSource ? provenanceOriginId : undefined,
             showNoValueGroups: showNoValueGroupsString ? JSON.parse(showNoValueGroupsString) : true,
             sortColumn: parsedSort
                 ? new FileSort(
@@ -316,7 +354,7 @@ export default class SearchParams {
                       parsedSort.order || SortOrder.ASC
                   )
                 : undefined,
-            sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
+            sources: parsedSources,
             sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
         };
     }

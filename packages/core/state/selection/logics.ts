@@ -16,7 +16,6 @@ import {
     setFileSelection,
     TOGGLE_FILE_FOLDER_COLLAPSE,
     setOpenFileFolders,
-    DECODE_FILE_EXPLORER_URL,
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
     setSortColumn,
@@ -24,7 +23,6 @@ import {
     SetAnnotationHierarchyAction,
     RemoveFromAnnotationHierarchyAction,
     ReorderAnnotationHierarchyAction,
-    decodeSearchParams,
     ADD_QUERY,
     AddQuery,
     changeQuery,
@@ -64,17 +62,24 @@ import {
     ChangeFileFilterTypeAction,
     AddFileFilterAction,
     RemoveFileFilterAction,
+    setSelectedDescriptionSource,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import { AnnotationValue } from "../../entity/Annotation";
-import SearchParams, { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import { DatasetUrls } from "../../entity/MarkdownFrontMatter/MarkdownFrontMatter";
+import {
+    DEFAULT_COLUMN_WIDTH,
+    FileView,
+    getNameAndTypeFromSourceUrl,
+    isMarkdownType,
+} from "../../entity/SearchParams";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
@@ -483,47 +488,6 @@ const resizeColumnLogic = createLogic({
 });
 
 /**
- * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
- * other actions responsible for rehydrating the SearchParams into application state.
- */
-const decodeSearchParamsLogics = createLogic({
-    async process(deps: ReduxLogicDeps, dispatch, done) {
-        const encodedURL = deps.action.payload;
-        const {
-            columns,
-            hierarchy,
-            fileView,
-            filters,
-            openFolders,
-            showNoValueGroups,
-            sortColumn,
-            sources,
-            sourceMetadata,
-            provenanceSource,
-            provOriginId,
-        } = SearchParams.decode(encodedURL);
-
-        batch(() => {
-            dispatch(changeDataSources(sources));
-            dispatch(setAnnotationHierarchy(hierarchy));
-            columns && dispatch(setColumns(columns));
-            dispatch(setFileFilters(filters));
-            fileView && dispatch(setFileView(fileView) as AnyAction);
-            dispatch(setOpenFileFolders(openFolders));
-            dispatch(setSortColumn(sortColumn));
-            dispatch(toggleNullValueGroups(showNoValueGroups) as AnyAction);
-        });
-        batch(() => {
-            dispatch(changeSourceMetadata(sourceMetadata));
-            dispatch(changeProvenanceSource(provenanceSource));
-            dispatch(changeProvenanceOriginId(provOriginId) as AnyAction);
-        });
-        done();
-    },
-    type: [DECODE_FILE_EXPLORER_URL],
-});
-
-/**
  * Interceptor responsible for processing SELECT_NEARBY_FILE actions into SET_FILE_SELECTION actions.
  */
 const selectNearbyFile = createLogic({
@@ -834,6 +798,11 @@ const addQueryLogic = createLogic({
             } else {
                 await databaseService.deleteSourceMetadata();
             }
+            if (newQuery.parts.provenanceSource) {
+                await databaseService.processProvenance(newQuery.parts.provenanceSource);
+            } else {
+                await databaseService.deleteSourceProvenance();
+            }
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
@@ -886,6 +855,9 @@ const addQueryLogic = createLogic({
 const changeQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: newlySelectedQuery } = deps.action as ChangeQuery;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
         const currentQueries = selectionSelectors.getQueries(deps.getState());
         const currentQueryParts = selectionSelectors.getCurrentQueryParts(deps.getState());
         const updatedQueries = currentQueries.map((query) => ({
@@ -898,11 +870,97 @@ const changeQueryLogic = createLogic({
         }));
 
         if (newlySelectedQuery) {
-            dispatch(
-                decodeSearchParams(SearchParams.encode(newlySelectedQuery.parts)) as AnyAction
-            );
+            const { parts } = newlySelectedQuery;
+            let mainSources = parts.sources;
+            let provenanceSource = newlySelectedQuery.parts.provenanceSource;
+            let columnDescriptionSource = newlySelectedQuery.parts.sourceMetadata;
+            const datasetDescriptionSource = parts.sources.find((source) => {
+                return isMarkdownType(source.type);
+            });
+            if (datasetDescriptionSource) {
+                let parsedMetadata: DatasetUrls | undefined;
+                // Check if already exists in the cache
+                const cachedVersion = databaseService.getDatasetDescriptionUrls(
+                    datasetDescriptionSource.name
+                );
+                try {
+                    if (cachedVersion) {
+                        parsedMetadata = cachedVersion;
+                    } else {
+                        parsedMetadata = (
+                            await databaseService.processMarkdown(datasetDescriptionSource)
+                        ).metadata;
+                    }
+                } catch (e) {
+                    dispatch(
+                        interaction.actions.processError(
+                            datasetDescriptionSource.name,
+                            `Failed to process markdown file, ${(e as Error).message}`
+                        )
+                    );
+                }
+
+                if (!parsedMetadata || !parsedMetadata.dataset_url) {
+                    dispatch(
+                        interaction.actions.processError(
+                            datasetDescriptionSource.name,
+                            "Failed to process markdown file, no metadata provided in schema"
+                        )
+                    );
+                } else {
+                    mainSources = [
+                        {
+                            ...getNameAndTypeFromSourceUrl(parsedMetadata.dataset_url),
+                            uri: parsedMetadata.dataset_url,
+                        },
+                    ];
+                    const provenanceSourceUrl = parsedMetadata.provenance_url;
+                    const metadataDescriptorSourceUrl = parsedMetadata.descriptions_url;
+                    // TO DO: warn the user if these urls don't match
+                    if (provenanceSourceUrl && !newlySelectedQuery.parts.provenanceSource) {
+                        // allow users to override the markdown
+                        provenanceSource = {
+                            ...getNameAndTypeFromSourceUrl(provenanceSourceUrl),
+                            uri: provenanceSourceUrl,
+                        };
+                    }
+                    if (metadataDescriptorSourceUrl && !newlySelectedQuery.parts.sourceMetadata) {
+                        // allow users to override the markdown
+                        columnDescriptionSource = {
+                            ...getNameAndTypeFromSourceUrl(metadataDescriptorSourceUrl),
+                            uri: metadataDescriptorSourceUrl,
+                        };
+                    }
+                    // cache
+                    databaseService.setDatasetDescriptionUrls(datasetDescriptionSource.name, {
+                        dataset_url: parsedMetadata.dataset_url,
+                        provenance_url: provenanceSourceUrl,
+                        descriptions_url: metadataDescriptorSourceUrl,
+                    });
+                }
+            }
+            batch(() => {
+                dispatch(setQueries(updatedQueries));
+                dispatch(setSelectedDescriptionSource(datasetDescriptionSource));
+                dispatch(changeDataSources(mainSources));
+                dispatch(setAnnotationHierarchy(parts.hierarchy));
+                dispatch(setColumns(parts.columns ?? []));
+                dispatch(setFileFilters(parts.filters));
+                dispatch(setFileView(parts.fileView || FileView.LIST) as AnyAction);
+                dispatch(setOpenFileFolders(parts.openFolders));
+                dispatch(setSortColumn(parts.sortColumn));
+                dispatch(toggleNullValueGroups(parts.showNoValueGroups) as AnyAction);
+            });
+            batch(() => {
+                dispatch(changeSourceMetadata(columnDescriptionSource));
+                dispatch(changeProvenanceSource(provenanceSource));
+                dispatch(
+                    changeProvenanceOriginId(newlySelectedQuery.parts.provOriginId) as AnyAction
+                );
+            });
+        } else {
+            dispatch(setQueries(updatedQueries));
         }
-        dispatch(setQueries(updatedQueries));
         done();
     },
     transform(deps: ReduxLogicDeps, next) {
@@ -1017,7 +1075,6 @@ export default [
     modifyFileFilters,
     toggleFileFolderCollapse,
     expandAllFileFolders,
-    decodeSearchParamsLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
     changeDataSourceLogic,

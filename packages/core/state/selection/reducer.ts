@@ -45,6 +45,7 @@ import {
     REORDER_COLUMNS,
     ReorderColumnsAction,
     SetAvailableAnnotationsAction,
+    SET_SELECTED_DATASET_DESCRIPTION_SOURCE,
 } from "./actions";
 import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
@@ -63,6 +64,7 @@ export interface SelectionStateBranch {
     availableAnnotationsForHierarchy: string[] | null;
     availableAnnotationsForHierarchyLoading: boolean;
     columns: Column[];
+    datasetDescriptionSource?: Source;
     dataSources: Source[];
     fileSelection: FileSelection;
     fileView: FileView;
@@ -177,6 +179,10 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             sourceMetadata: action.payload,
         }),
+        [SET_SELECTED_DATASET_DESCRIPTION_SOURCE]: (state, action) => ({
+            ...state,
+            datasetDescriptionSource: action.payload,
+        }),
         [ADD_QUERY]: (state, action) => ({
             ...state,
             queries: [action.payload, ...state.queries],
@@ -193,6 +199,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             annotationHierarchy: initialState.annotationHierarchy,
             columns: initialState.columns,
+            datasetDescriptionSource: undefined,
             filters: initialState.filters,
             fileView: initialState.fileView,
             lastTouchedFolder: undefined,
