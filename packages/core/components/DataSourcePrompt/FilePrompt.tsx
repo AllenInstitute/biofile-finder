@@ -7,12 +7,7 @@ import { useDispatch } from "react-redux";
 
 import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
-import {
-    MARKDOWN_SOURCE_TYPES,
-    Source,
-    getNameAndTypeFromSourceUrl,
-    isMarkdownType,
-} from "../../entity/SearchParams";
+import { Source, getNameAndTypeFromSourceUrl, isMarkdownType } from "../../entity/SearchParams";
 import { ParsedFrontmatter, processMarkdown } from "../../entity/MarkdownFrontMatter";
 import { interaction } from "../../state";
 
@@ -70,7 +65,7 @@ export default function FilePrompt(props: Props) {
                 handleMarkdownSource({ name, type: extension, uri: selectedFile });
             }
         },
-        [onSelectFile]
+        [onSelectFile, handleMarkdownSource]
     );
 
     const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
@@ -79,7 +74,7 @@ export default function FilePrompt(props: Props) {
             "application/vnd.apache.parquet": [".parquet"],
             "application/json": [".json"],
             "text/csv": [".csv"],
-            "text/markdown": MARKDOWN_SOURCE_TYPES,
+            "text/markdown": [".md", ".markdown"],
         },
         multiple: false,
         noDragEventsBubbling: true,
