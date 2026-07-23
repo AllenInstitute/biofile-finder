@@ -1,11 +1,11 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
-import { isEmpty, mapKeys, uniq } from "lodash";
+import { isEmpty, isNil, mapKeys, mapValues, uniq } from "lodash";
 
 import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
-import { EdgeDefinition } from "../../entity/Graph";
+import { EdgeDefinition, EdgeNodeType, RelationshipType } from "../../entity/Graph";
 import { Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
@@ -14,6 +14,26 @@ export interface CancellablePromise<T> {
     promise: Promise<T>;
     cancel?: (reason?: string) => void;
 }
+
+interface ProvenanceRow {
+    child: string;
+    childtype: EdgeNodeType;
+    parent: string;
+    parenttype: EdgeNodeType;
+    relationship: string;
+    relationshiptype?: RelationshipType;
+}
+
+// Runtime-checkable lists of the valid values for the union types used by a
+// provenance row. Kept in sync with the EdgeNodeType/RelationshipType unions.
+const VALID_EDGE_NODE_TYPES: readonly EdgeNodeType[] = ["self", "file", "metadata"];
+const VALID_RELATIONSHIP_TYPES: readonly RelationshipType[] = ["pointer"];
+// Fields that must be present and non-empty on every provenance row.
+const REQUIRED_PROVENANCE_FIELDS: readonly (keyof ProvenanceRow)[] = [
+    "parenttype",
+    "childtype",
+    "relationship",
+];
 
 enum PreDefinedColumn {
     FILE_ID = "File ID",
@@ -38,6 +58,11 @@ const DATA_SOURCE_COLUMN = "Data source";
 const FILE_HANDLE_SUFFIX = "-bff-filehandle";
 function fileHandleName(name: string): string {
     return name + FILE_HANDLE_SUFFIX;
+}
+
+// Check if a value is a non-empty string. Returns true for any string with at least one non-whitespace character.
+function isValidString(value: unknown): value is string {
+    return typeof value === "string" && !isEmpty(value.trim());
 }
 
 // Map each actual column name to the predefined column name when they fuzzy-match.
@@ -286,8 +311,17 @@ export default abstract class DatabaseService {
 
     protected static columnTypeToAnnotationType(columnType: string): AnnotationType {
         // DECIMAL types include precision/scale info, e.g. "DECIMAL(18,3)"
-        if (columnType?.startsWith("DECIMAL")) {
+        if (columnType.startsWith("DECIMAL")) {
             return AnnotationType.NUMBER;
+        }
+        // STRUCT types (including STRUCT[]) represent nested/object metadata
+        // MAP types represent key-value pairs, typically we only see this for empty JSON objects
+        if (
+            columnType.startsWith("STRUCT") ||
+            columnType.includes("STRUCT") ||
+            columnType.startsWith("MAP")
+        ) {
+            return AnnotationType.NESTED;
         }
         switch (columnType) {
             case "INTEGER":
@@ -320,10 +354,186 @@ export default abstract class DatabaseService {
         }
     }
 
+    /**
+     * Parse all leaf fields from a DuckDB STRUCT type string, recursing into nested STRUCTs.
+     * Returns a flat list with dot-separated paths for nested fields.
+     *
+     * `isArray` carries one boolean per segment of `name` (relative to this STRUCT): true where that segment is a
+     * list — a STRUCT[] for an intermediate, or a list-typed leaf such as VARCHAR[].
+     *
+     * e.g. "STRUCT(Tags VARCHAR[], Dose STRUCT(Unit VARCHAR, Value DOUBLE)[])[]"
+     *   → [
+     *       {name: "Tags",       type: "VARCHAR[]", isArray: [true]},        // list leaf
+     *       {name: "Dose.Unit",  type: "VARCHAR",   isArray: [true, false]}, // Dose[], Unit scalar
+     *       {name: "Dose.Value", type: "DOUBLE",    isArray: [true, false]},
+     *     ]
+     */
+    public static parseStructFields(
+        dataType: string
+    ): { name: string; type: string; isArray: boolean[] }[] {
+        const isListType = (type: string) => type.trimEnd().endsWith("[]");
+        const topLevel = DatabaseService.parseStructFieldsShallow(dataType);
+        const result: { name: string; type: string; isArray: boolean[] }[] = [];
+        for (const field of topLevel) {
+            if (DatabaseService.isStructType(field.type)) {
+                // Recurse, prefixing this segment's name and array-ness onto each descendant.
+                for (const sub of DatabaseService.parseStructFields(field.type)) {
+                    result.push({
+                        name: `${field.name}.${sub.name}`,
+                        type: sub.type,
+                        isArray: [isListType(field.type), ...sub.isArray],
+                    });
+                }
+            } else {
+                result.push({
+                    name: field.name,
+                    type: field.type,
+                    isArray: [isListType(field.type)],
+                });
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Parse only the immediate (top-level) fields from a DuckDB STRUCT type string.
+     */
+    private static parseStructFieldsShallow(dataType: string): { name: string; type: string }[] {
+        // Strip trailing [] for STRUCT[] types
+        const structDef = dataType.replace(/\[\]$/, "").trim();
+        // Extract the content inside STRUCT(...)
+        const match = structDef.match(/^STRUCT\((.+)\)$/i);
+        if (!match) return [];
+
+        const fields: { name: string; type: string }[] = [];
+        const content = match[1];
+        // Parse field definitions, handling nested parens (e.g. STRUCT within STRUCT)
+        let depth = 0;
+        let current = "";
+        for (const char of content) {
+            if (char === "(") depth++;
+            else if (char === ")") depth--;
+            else if (char === "," && depth === 0) {
+                const field = DatabaseService.parseStructFieldDef(current.trim());
+                if (field) fields.push(field);
+                current = "";
+                continue;
+            }
+            current += char;
+        }
+        // Last field
+        const lastField = DatabaseService.parseStructFieldDef(current.trim());
+        if (lastField) fields.push(lastField);
+
+        return fields;
+    }
+
+    private static isStructType(type: string): boolean {
+        return /^STRUCT\(/i.test(type.replace(/\[\]$/, "").trim());
+    }
+
+    private static parseStructFieldDef(fieldDef: string): { name: string; type: string } | null {
+        // Field format: `fieldName TYPE` or `"fieldName" TYPE`
+        const quoted = fieldDef.match(/^"([^"]+)"\s+(.+)$/);
+        if (quoted) return { name: quoted[1], type: quoted[2].trim() };
+        const unquoted = fieldDef.match(/^(\S+)\s+(.+)$/);
+        if (unquoted) return { name: unquoted[1], type: unquoted[2].trim() };
+        return null;
+    }
+
     private static truncateString(str: string, length: number): string {
         return str.length > length
             ? `${str.slice(0, length / 2)}...${str.slice(str.length - length / 2)}`
             : str;
+    }
+
+    // Checks to see if the row is compatible with EdgeDefinition interface and returns a string describing
+    // the issue if not compatible
+    private static formatEdgeDefinition(
+        potentialEdge: Record<string, any>,
+        isEdgeDuplicateCallback?: (edge: EdgeDefinition) => boolean
+    ): EdgeDefinition | string {
+        // Lowercase keys and remove whitespace to help avoid issues with inconsistent formatting
+        const lowercaseEdge = mapKeys(potentialEdge, (_, key) =>
+            key.toLowerCase().replace(/\s+/g, "")
+        );
+
+        // Make sure values of object are all strings and trim whitespace
+        // if not a string will be converted to empty string which will be caught by the required field check below
+        const edge: Record<string, string> = mapValues(lowercaseEdge, (value) =>
+            isValidString(value) ? value.trim() : ""
+        );
+
+        // Determine which extra fields should be required below
+        const requiredFields = [...REQUIRED_PROVENANCE_FIELDS];
+
+        // "child" and "parent" are only required if the corresponding type is not "self"
+        // if "self" the "child" and "parent" are implicitly the row itself and do not
+        // need a column value
+        const columnAndTypes: { type: keyof ProvenanceRow; field: keyof ProvenanceRow }[] = [
+            { type: "childtype", field: "child" },
+            { type: "parenttype", field: "parent" },
+        ];
+        for (const { type, field } of columnAndTypes) {
+            if (edge[type] === "self") {
+                // This field is unnecessary when the type is "self", remove it to simplify the row
+                edge[field] = "";
+            } else {
+                // This field is required when the type is not "self"
+                requiredFields.push(field);
+            }
+        }
+
+        // Every required field must be a present, non-empty string
+        const missingField = requiredFields.find((field) => !isValidString(edge[field]));
+        if (missingField) {
+            return `missing required "${missingField}" value in row: ` + JSON.stringify(edge);
+        }
+
+        // Node type fields must be one of the recognized EdgeNodeType values
+        const invalidTypeField = ["parenttype", "childtype"].find(
+            (field) => !VALID_EDGE_NODE_TYPES.includes(edge[field] as EdgeNodeType)
+        );
+        if (invalidTypeField) {
+            return (
+                `invalid "${invalidTypeField}" value "${edge[invalidTypeField]}".` +
+                ` Expected one of: ${VALID_EDGE_NODE_TYPES.join(", ")}.`
+            );
+        }
+
+        // relationshiptype is optional, but if provided it must be recognized
+        if (
+            !isNil(edge.relationshiptype) &&
+            !isEmpty(edge.relationshiptype) &&
+            !VALID_RELATIONSHIP_TYPES.includes(edge.relationshiptype as RelationshipType)
+        ) {
+            return (
+                `invalid "Relationship Type" value "${edge.relationshiptype}". ` +
+                `Expected one of: ${VALID_RELATIONSHIP_TYPES.join(", ")} or none (default).`
+            );
+        }
+
+        const edgeDefinition: EdgeDefinition = {
+            child: {
+                name: edge.child,
+                type: edge.childtype as EdgeNodeType,
+            },
+            parent: {
+                name: edge.parent,
+                type: edge.parenttype as EdgeNodeType,
+            },
+            relationship: edge.relationship,
+            relationshipType: edge.relationshiptype as RelationshipType | undefined,
+        };
+
+        if (isEdgeDuplicateCallback?.(edgeDefinition)) {
+            return (
+                `duplicate parent (${edgeDefinition.parent.name}) and child` +
+                `(${edgeDefinition.child.name}) combination.`
+            );
+        }
+
+        return edgeDefinition;
     }
 
     public hasDataSource(dataSourceName: string): boolean {
@@ -1091,69 +1301,52 @@ export default abstract class DatabaseService {
         await this.execute(this.getUpdateHiddenUIDSQL(viewName));
     }
 
-    public async processProvenance(provenanceSource: Source): Promise<EdgeDefinition[]> {
+    public async processProvenance(
+        provenanceSource: Source
+    ): Promise<{ edgeDefinitions: EdgeDefinition[]; warnings: string[] }> {
         await this.prepareSourceProvenance(provenanceSource);
 
         const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
         try {
             const rows = await this.query(sql).promise;
-            const parentsAndChildren = new Set<string>();
-            return rows
-                .map((row) =>
-                    Object.keys(row).reduce(
-                        (mapSoFar, key) => ({
-                            ...mapSoFar,
-                            [key.toLowerCase().trim()]:
-                                typeof row[key] !== "object"
-                                    ? row[key]
-                                    : mapKeys(row[key], (_value, innerKey) =>
-                                          innerKey.toLowerCase().trim()
-                                      ),
-                        }),
-                        {} as Record<string, any>
-                    )
-                )
-                .map((row) => {
-                    try {
-                        const parentAndChildKey = `${row["parent"]}-${row["child"]}`;
-                        if (parentsAndChildren.has(parentAndChildKey)) {
-                            throw new Error(
-                                `Parent (${row["parent"]}) and Child (${row["child"]}) combination found multiple times`
-                            );
-                        }
 
-                        parentsAndChildren.add(parentAndChildKey);
-                        return {
-                            relationship: row["relationship"],
-                            relationshipType: row["relationship type"],
-                            parent: {
-                                name: row["parent"],
-                                type: row["parent type"],
-                            },
-                            child: {
-                                name: row["child"],
-                                type: row["child type"],
-                            },
-                        };
-                    } catch (err) {
-                        if ((err as Error).message.includes("key")) {
-                            throw new Error(
-                                `Unexpected format for provenance data. Check the documentation
-                                for what BFF expects provenance data to look like.
-                                Error: ${(err as Error).message}`
-                            );
-                        }
-                        throw err;
-                    }
-                });
+            const parentsAndChildren = new Set<string>();
+            const isEdgeDuplicateCallback = (edgeDefinition: EdgeDefinition) => {
+                const parentAndChildKey = `${edgeDefinition.parent.name}-${edgeDefinition.child.name}`;
+                const isEdgeDuplicate = parentsAndChildren.has(parentAndChildKey);
+                parentsAndChildren.add(parentAndChildKey);
+                return isEdgeDuplicate;
+            };
+
+            const warnings: string[] = [];
+            const edgeDefinitions: EdgeDefinition[] = [];
+            for (const [idx, row] of rows.entries()) {
+                // Format the row and check for any warnings (e.g., missing required fields, invalid relationship types, etc.)
+                const edgeDefinitionOrWarning = DatabaseService.formatEdgeDefinition(
+                    row,
+                    isEdgeDuplicateCallback
+                );
+
+                if (typeof edgeDefinitionOrWarning === "string") {
+                    // Add 2 to index to account for header row and 0-indexing
+                    warnings.push(`(Row #${idx + 2}) ${edgeDefinitionOrWarning}`);
+                } else {
+                    edgeDefinitions.push(edgeDefinitionOrWarning);
+                }
+            }
+
+            return { edgeDefinitions, warnings };
         } catch (err) {
             // Source provenance file may not have been supplied
             // and/or the columns may not exist
             const errMsg = typeof err === "string" ? err : err instanceof Error ? err.message : "";
             if (errMsg.includes("does not exist") || errMsg.includes("not found in FROM clause")) {
-                return [];
+                return { edgeDefinitions: [], warnings: [] };
             }
             throw err;
+        } finally {
+            // The definitions will already be in the state memory, no need to keep this in the database
+            await this.deleteSourceProvenance();
         }
     }
 
@@ -1176,7 +1369,7 @@ export default abstract class DatabaseService {
                 .where(`table_name = '${aggregateDataSourceName}'`)
                 .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
                 .toSQL();
-            const rows = await this.query(sql).promise;
+            const rows = await this.query<{ column_name: string; data_type: string }>(sql).promise;
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
             }
@@ -1184,22 +1377,86 @@ export default abstract class DatabaseService {
                 this.fetchAnnotationDescriptions(),
                 this.fetchAnnotationTypes(),
             ]);
-
-            const annotations = rows.map(
-                (row) =>
-                    new Annotation({
-                        annotationName: row["column_name"],
-                        annotationDisplayName: row["column_name"],
-                        description: annotationNameToDescriptionMap[row["column_name"]] || "",
-                        type:
-                            (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
-                            DatabaseService.columnTypeToAnnotationType(row["data_type"]),
-                    })
+            const annotations = DatabaseService.buildAnnotationsFromRows(
+                rows,
+                annotationNameToDescriptionMap,
+                annotationNameToTypeMap
             );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);
         }
 
         return this.dataSourceToAnnotationsMap.get(aggregateDataSourceName) || [];
+    }
+
+    protected static buildAnnotationsFromRows(
+        rows: { column_name: string; data_type: string }[],
+        annotationNameToDescriptionMap: Record<string, string>,
+        annotationNameToTypeMap: Record<string, AnnotationType>
+    ): Annotation[] {
+        const annotations: Annotation[] = [];
+        for (const row of rows) {
+            const { column_name: columnName, data_type: dataType } = row;
+            const explicitType = annotationNameToTypeMap[columnName];
+            const resolvedType =
+                explicitType || DatabaseService.columnTypeToAnnotationType(dataType);
+
+            if (resolvedType === AnnotationType.NESTED) {
+                const rootIsArray = dataType.trimEnd().endsWith("[]");
+                // Track which nested (parent/intermediate) annotations have been created so
+                // each intermediate struct level is only added once.
+                const createdNestedNames = new Set<string>();
+                annotations.push(
+                    new Annotation({
+                        annotationName: [columnName],
+                        description: annotationNameToDescriptionMap[columnName] || "",
+                        type: AnnotationType.NESTED,
+                        pathIsArray: [rootIsArray],
+                    })
+                );
+                createdNestedNames.add(columnName);
+                // Parse STRUCT fields recursively and create sub-field annotations.
+                const subFields = DatabaseService.parseStructFields(dataType);
+                for (const field of subFields) {
+                    const fieldParts = field.name.split(".");
+                    // One flag per path segment (length === path.length)
+                    const pathIsArray = [rootIsArray, ...field.isArray];
+                    const fullPath = [columnName, ...fieldParts];
+                    // Create a NESTED (parent) annotation for each intermediate struct level
+                    for (let depth = 1; depth < fullPath.length - 1; depth++) {
+                        const ancestorPath = fullPath.slice(0, depth + 1);
+                        const ancestorName = ancestorPath.join(".");
+                        if (!createdNestedNames.has(ancestorName)) {
+                            createdNestedNames.add(ancestorName);
+                            annotations.push(
+                                new Annotation({
+                                    annotationName: ancestorPath,
+                                    description: annotationNameToDescriptionMap[columnName] || "",
+                                    type: AnnotationType.NESTED,
+                                    pathIsArray: pathIsArray.slice(0, depth + 1),
+                                })
+                            );
+                        }
+                    }
+                    annotations.push(
+                        new Annotation({
+                            annotationName: fullPath,
+                            description: annotationNameToDescriptionMap[columnName] || "",
+                            type: DatabaseService.columnTypeToAnnotationType(field.type),
+                            pathIsArray,
+                        })
+                    );
+                }
+            } else {
+                annotations.push(
+                    new Annotation({
+                        annotationName: [columnName],
+                        description: annotationNameToDescriptionMap[columnName] || "",
+                        type: resolvedType,
+                    })
+                );
+            }
+        }
+        return annotations;
     }
 
     // Similar to getColumnsOnDataSource below, but suitable for use during the
@@ -1242,7 +1499,7 @@ export default abstract class DatabaseService {
         }
     }
 
-    public async fetchAnnotationTypes(): Promise<Record<string, string>> {
+    public async fetchAnnotationTypes(): Promise<Record<string, AnnotationType>> {
         // Unless we have actually added the source metadata table we can't fetch the types
         if (!this.sourceMetadataName || !this.existingDataSources.has(this.sourceMetadataName)) {
             return {};
@@ -1258,7 +1515,7 @@ export default abstract class DatabaseService {
             return rows.reduce(
                 (map, row) =>
                     DatabaseService.ANNOTATION_TYPE_SET.has(row["Type"])
-                        ? { ...map, [row["Column Name"]]: row["Type"] }
+                        ? { ...map, [row["Column Name"]]: row["Type"] as AnnotationType }
                         : // Ignore row if invalid annotation type
                           map,
                 {}

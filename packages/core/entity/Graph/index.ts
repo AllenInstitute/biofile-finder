@@ -22,16 +22,20 @@ export enum NodeType {
     FILE = "file",
 }
 
+export type EdgeNodeType = "self" | "file" | "metadata";
+export type RelationshipType = "pointer";
 interface EdgeNode {
     name: string;
-    type: "file" | "metadata" | "self";
+    type: EdgeNodeType;
 }
 
+// This definition must be in sync with the validation that occurs
+// within DatabaseService/index.ts
 export interface EdgeDefinition {
     parent: EdgeNode;
     child: EdgeNode;
     relationship: string;
-    relationshipType?: "pointer";
+    relationshipType?: RelationshipType;
 }
 
 export interface AnnotationEdge {
@@ -158,11 +162,11 @@ function createAnnotationEdge(
     file: FileDetail
 ): AnnotationEdge | undefined {
     if (edgeDefinition.relationshipType === "pointer") {
-        const annotation = file.getAnnotation(edgeDefinition.relationship);
-        if (!annotation) return undefined;
+        const values = file.getAnnotation(edgeDefinition.relationship);
+        if (!values) return undefined;
         return {
-            name: annotation.name,
-            value: `${annotation.values[0]}`,
+            name: edgeDefinition.relationship,
+            value: String(values[0]),
             parent: edgeDefinition.parent.name,
             child: edgeDefinition.child.name,
         };
@@ -465,6 +469,22 @@ export default class Graph {
                     // add an edge
                     parentNodes.forEach((parentNode) => {
                         childNodes.forEach((childNode) => {
+                            // Ensure both endpoints exist in the graph with their
+                            // real labels before connecting them. Recursive
+                            // expansion above may have skipped adding a node once
+                            // the node affordance limit was reached (especially
+                            // under the concurrent edge-definition traversal). If
+                            // we called setEdge for a missing endpoint, graphlib
+                            // would auto-create a labelless placeholder node, which
+                            // later breaks the `nodes` getter. Adding the node
+                            // objects we already hold here keeps the graph
+                            // connected without introducing phantom nodes.
+                            if (!this.graph.hasNode(parentNode.id)) {
+                                this.graph.setNode(parentNode.id, parentNode);
+                            }
+                            if (!this.graph.hasNode(childNode.id)) {
+                                this.graph.setNode(childNode.id, childNode);
+                            }
                             this.graph.setEdge(parentNode.id, childNode.id, annotationEdge);
                         });
                     });
@@ -488,8 +508,8 @@ export default class Graph {
         // Annotation may not exist on this file, this could happen
         // for some files for which there shouldn't be an edge connecting
         // to this file for that annotation
-        const annotation = thisNode.data.file.getAnnotation(edgeNode.name);
-        if (!annotation) {
+        const annotationValues = thisNode.data.file.getAnnotation(edgeNode.name);
+        if (!annotationValues) {
             return [];
         }
         // The Node could be a file such as when an annotation points to another
@@ -497,24 +517,21 @@ export default class Graph {
         // we have seen users use to note the ID of a file used as input to the segmentation
         // model that generated the current node ("thisNode")
         if (!Graph.isNodeAFile(edgeNode)) {
-            return [this.createMetadataNode(thisNode.data.file, annotation)];
+            return [
+                this.createMetadataNode(thisNode.data.file, {
+                    name: edgeNode.name,
+                    values: annotationValues,
+                }),
+            ];
         }
 
         return Promise.all(
-            (annotation.values as string[]).map(async (value) => {
+            (annotationValues as string[]).map(async (value) => {
                 // Avoid re-requesting the file when possible
                 const node = this.graph.node(value); // the value should be a file path
                 if (node) return node;
-                try {
-                    const file = await this.getFileBy("File Path", [value]);
-                    if (file) {
-                        return createFileNode(file);
-                    }
-                } catch {
-                    // Backup while moving between provenance versions: Try looking by "File ID", this should be removed in the future
-                    const fileById = await this.getFileBy("File ID", [value]);
-                    if (fileById) return createFileNode(fileById);
-                }
+                const file = await this.getFileByProvenanceId(value);
+                if (file) return createFileNode(file);
                 throw new Error(`Unable to find file with value ${value}`);
             })
         );
@@ -572,36 +589,35 @@ export default class Graph {
     }
 
     /**
-     * Get a single file that matches a column/value pair
+     * Get a single file that matches a provenance ID
      */
-    private async getFileBy(
-        column: string,
-        value: (string | number | boolean)[]
+    private async getFileByProvenanceId(
+        value: string | number | boolean
     ): Promise<FileDetail | undefined> {
-        let files;
-        try {
-            files = await this.fileService.getFiles({
-                from: 0,
-                limit: 2, // We only want one result, so if there are >=2 it's not a unique identifier
-                fileSet: new FileSet({
-                    fileService: this.fileService,
-                    filters: [new FileFilter(column, value)],
-                }),
-            });
-        } catch (err) {
-            console.error(
-                `Failed to find file with value ${column} for annotation ${value}. Error: ${
-                    (err as Error).message
-                }`
-            );
-            return undefined;
+        let files: FileDetail[] = [];
+        for (const column of this.fileService.provenanceIdColumns) {
+            try {
+                files = await this.fileService.getFiles({
+                    from: 0,
+                    limit: 2, // We only want one result, so if there are >=2 it's not a unique identifier
+                    fileSet: new FileSet({
+                        fileService: this.fileService,
+                        filters: [new FileFilter(column, [value])],
+                    }),
+                });
+                if (files.length === 1) return files[0];
+            } catch (err) {
+                console.debug(
+                    `Error in getFileByProvenanceId(${value}) for ${column}. Details: ${
+                        (err as Error).message
+                    }`
+                );
+            }
         }
-        if (files.length !== 1) {
-            throw new Error(
-                `Failed to fetch 1 file with value ${column} for annotation ${value}. Found ${files.length} instead.`
-            );
-        }
-        return files[0];
+        console.error(
+            `Failed to match file by value ${value} on any of the usual referential columns ${this.fileService.provenanceIdColumns}.`
+        );
+        return undefined;
     }
 
     /**
@@ -620,7 +636,7 @@ export default class Graph {
         const id = [...(this.childToAncestorsMap[annotation.name] || []), annotation.name]
             .map(
                 (annotationName) =>
-                    `${annotationName}: ${file.getAnnotation(annotationName)?.values?.join(", ")}`
+                    `${annotationName}: ${file.getAnnotation(annotationName)?.join(", ")}`
             )
             .join("-");
         return {

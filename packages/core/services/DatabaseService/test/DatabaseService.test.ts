@@ -17,7 +17,8 @@ import DatabaseService, { getParquetFileNameSelectPart } from "..";
 describe("DatabaseService", () => {
     describe("fetchAnnotations", () => {
         const annotations = ["A", "B", "Cc", "dD"].map((name) => ({
-            name,
+            column_name: name,
+            data_type: "VARCHAR",
         }));
 
         // DatabaseService is abstract so we need a dummy impl to test
@@ -445,6 +446,62 @@ describe("DatabaseService", () => {
             expect(map("SOMEUNKNOWNTYPE")).to.equal(AnnotationType.STRING));
     });
 
+    describe("parseStructFields", () => {
+        it("returns top-level scalar fields with a single false flag", () => {
+            expect(
+                DatabaseService.parseStructFields("STRUCT(Gene VARCHAR, Score DOUBLE)")
+            ).to.deep.equal([
+                { name: "Gene", type: "VARCHAR", isArray: [false] },
+                { name: "Score", type: "DOUBLE", isArray: [false] },
+            ]);
+        });
+
+        // Mixed leaf + nested STRUCT[] — the canonical example from the docstring.
+        it("flattens nested STRUCT[] fields with dotted names and per-segment flags", () => {
+            expect(
+                DatabaseService.parseStructFields(
+                    "STRUCT(Gene VARCHAR, Dose STRUCT(Unit VARCHAR, Value DOUBLE)[])[]"
+                )
+            ).to.deep.equal([
+                { name: "Gene", type: "VARCHAR", isArray: [false] },
+                { name: "Dose.Unit", type: "VARCHAR", isArray: [true, false] },
+                { name: "Dose.Value", type: "DOUBLE", isArray: [true, false] },
+            ]);
+        });
+
+        it("marks a scalar intermediate struct with a false flag", () => {
+            expect(
+                DatabaseService.parseStructFields("STRUCT(Dose STRUCT(Unit VARCHAR))")
+            ).to.deep.equal([{ name: "Dose.Unit", type: "VARCHAR", isArray: [false, false] }]);
+        });
+
+        it("flags a list-typed leaf field as array", () => {
+            expect(
+                DatabaseService.parseStructFields(
+                    "STRUCT(Tags VARCHAR[], Dose STRUCT(Names VARCHAR[])[])[]"
+                )
+            ).to.deep.equal([
+                { name: "Tags", type: "VARCHAR[]", isArray: [true] },
+                { name: "Dose.Names", type: "VARCHAR[]", isArray: [true, true] },
+            ]);
+        });
+
+        // Each array boundary contributes one flag in order, deepest path supported.
+        it("accumulates an array flag per segment for deeply nested STRUCT[]", () => {
+            expect(
+                DatabaseService.parseStructFields(
+                    "STRUCT(Dose STRUCT(Solution STRUCT(Name VARCHAR)[])[])[]"
+                )
+            ).to.deep.equal([
+                { name: "Dose.Solution.Name", type: "VARCHAR", isArray: [true, true, false] },
+            ]);
+        });
+
+        it("returns an empty array for a non-STRUCT type", () => {
+            expect(DatabaseService.parseStructFields("VARCHAR")).to.deep.equal([]);
+        });
+    });
+
     describe("getParquetFileNameSelectPart", () => {
         it("returns File Name SELECT expression when File Path exists and File Name does not", () => {
             // Arrange
@@ -483,6 +540,93 @@ describe("DatabaseService", () => {
 
             // Assert
             expect(result).to.be.null;
+        });
+    });
+
+    describe("processProvenance", () => {
+        function createMockService(rows: Record<string, unknown>[]): DatabaseService {
+            class MockProvenanceDatabaseService extends DatabaseServiceNoop {
+                sourceProvenanceName = "prov-source";
+                query(): { promise: Promise<any> } {
+                    return { promise: Promise.resolve(rows) };
+                }
+                deleteSourceProvenance(): Promise<void> {
+                    return Promise.resolve();
+                }
+            }
+            return new MockProvenanceDatabaseService();
+        }
+
+        const provenanceSource = { name: "prov-source", type: "csv" as const, uri: "prov.csv" };
+
+        it("emits a warning and filters out each malformed row while keeping valid ones", async () => {
+            // Arrange
+            const rows = [
+                // Valid row - should be kept
+                {
+                    parent: "A",
+                    "paren ttype": "file",
+                    child: "B",
+                    childtype: "file",
+                    relationship: "derived_from",
+                },
+                // Missing required "relationship" - should warn + drop
+                { parent: "A", parenttype: "file", child: "C", childtype: "file" },
+                // Invalid "parenttype" - should warn + drop
+                {
+                    parent: "A",
+                    parenttype: "banana",
+                    child: "D",
+                    childtype: "file",
+                    relationship: "derived_from",
+                },
+                // Invalid "relationshiptype" - should warn + drop
+                {
+                    parent: "A",
+                    parenttype: "file",
+                    child: "E",
+                    childtype: "file",
+                    relationship: "derived_from",
+                    relationshiptype: "not-a-real-type",
+                },
+            ];
+            const service = createMockService(rows);
+
+            // Act
+            const { edgeDefinitions, warnings } = await service.processProvenance(provenanceSource);
+
+            // Assert
+            expect(edgeDefinitions).to.have.lengthOf(1);
+            expect(edgeDefinitions[0]).to.deep.equal({
+                parent: { name: "A", type: "file" },
+                child: { name: "B", type: "file" },
+                relationship: "derived_from",
+                relationshipType: undefined,
+            });
+            expect(warnings).to.have.lengthOf(3);
+            expect(warnings.some((w) => w.includes("relationship"))).to.be.true;
+            expect(warnings.some((w) => w.includes("parenttype"))).to.be.true;
+            expect(warnings.some((w) => w.includes("Relationship Type"))).to.be.true;
+        });
+
+        it("emits a warning and drops duplicate parent/child combinations", async () => {
+            // Arrange
+            const duplicatedRow = {
+                parent: "A",
+                parenttype: "file",
+                child: "B",
+                childtype: "file",
+                relationship: "derived_from",
+            };
+            const service = createMockService([duplicatedRow, { ...duplicatedRow }]);
+
+            // Act
+            const { edgeDefinitions, warnings } = await service.processProvenance(provenanceSource);
+
+            // Assert
+            expect(edgeDefinitions).to.have.lengthOf(1);
+            expect(warnings).to.have.lengthOf(1);
+            expect(warnings[0]).to.include("duplicate");
         });
     });
 });

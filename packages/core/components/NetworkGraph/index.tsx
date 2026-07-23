@@ -8,6 +8,7 @@ import {
     Controls,
     useReactFlow,
     ReactFlowProvider,
+    FitViewOptions,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import classNames from "classnames";
@@ -54,7 +55,7 @@ function NetworkGraph(props: NetworkGraphProps) {
     const provenanceSource = useSelector(selection.selectors.getSelectedSourceProvenance);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<AnnotationEdge>>([]);
     const [nodes, setNodes, onNodesChange] = useNodesState<FileNodeType | MetadataNodeType>([]);
-    const { fitView } = useReactFlow();
+    const { fitView, getZoom } = useReactFlow();
 
     // Unfortunately we have to have some notion of state at a high level for control from the components
     // and at the dagre level for when the user does a drag action causing this duplication of efforts
@@ -62,6 +63,15 @@ function NetworkGraph(props: NetworkGraphProps) {
         setEdges(graph.edges);
         setNodes(graph.nodes);
     }, [graph, setEdges, setNodes, refreshKey]);
+
+    const originNodeId = React.useMemo(() => nodes.find((node) => node.data.isSelected)?.id, [
+        nodes,
+    ]);
+    const fitViewOptions: FitViewOptions<FileNodeType | MetadataNodeType> = React.useMemo(() => {
+        if (!originNodeId) return {};
+        // Center the origin node in the viewport and set the zoom level to fit the graph
+        return { nodes: [{ id: originNodeId }], duration: 800, maxZoom: getZoom() };
+    }, [originNodeId, getZoom]);
 
     // The option to open this graph shouldn't even appear when a
     // source isn't available so this shouldn't ever happen
@@ -79,7 +89,7 @@ function NetworkGraph(props: NetworkGraphProps) {
 
     const onClickReset = () => {
         graph.resetLayout(); // return to default layout if any
-        fitView(); // reset zoom
+        fitView(fitViewOptions); // reset zoom and center on origin
         dispatch(interaction.actions.refreshGraph());
     };
 
@@ -94,6 +104,7 @@ function NetworkGraph(props: NetworkGraphProps) {
             />
             <ReactFlow
                 fitView
+                fitViewOptions={fitViewOptions}
                 onlyRenderVisibleElements
                 className={styles.graph}
                 edgesFocusable={false}

@@ -1,18 +1,29 @@
-import { AnnotationValue } from "../AnnotationService";
 import { DownloadResult } from "../FileDownloadService";
-import Annotation from "../../entity/Annotation";
+import Annotation, { AnnotationValue } from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
+import FileFilter from "../../entity/FileFilter";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import FileSort from "../../entity/FileSort";
 import { JSONReadyRange } from "../../entity/NumericRange";
 
+export type PrimitiveMetadataValue = string | number | boolean;
+/**
+ * A value within a nested annotation entry. Can be a primitive, a nested object,
+ * or an array of nested entries — supporting arrays-of-objects at any depth.
+ */
+export type MetadataValue = PrimitiveMetadataValue[] | NestedMetadataValue[];
+export interface NestedMetadataValue {
+    [metadataKey: string]: MetadataValue;
+}
+
+// TODO: Remove this below interface type in favor of using the above schema
 /**
  * Represents a sub-document that can be found within an FmsFile's `annotations` list.
  */
 export interface FmsFileAnnotation {
-    [key: string]: any;
     name: string;
-    values: (string | number | boolean)[];
+    values: MetadataValue;
 }
 
 export interface GetFilesRequest {
@@ -27,17 +38,9 @@ export interface SelectionAggregationResult {
 }
 
 export interface Selection {
-    filters: {
-        [index: string]: (string | number | boolean)[];
-    };
+    filters: FileFilter[];
     indexRanges: JSONReadyRange[];
-    sort?: {
-        annotationName: string;
-        ascending: boolean;
-    };
-    fuzzy?: string[];
-    exclude?: string[];
-    include?: string[];
+    sort?: FileSort;
 }
 
 export interface AnnotationNameToValuesMap {
@@ -45,6 +48,9 @@ export interface AnnotationNameToValuesMap {
 }
 
 export default interface FileService {
+    // Ordered list of column names that can be used to uniquely identify a file in the system
+    // Used for provenance lookups.
+    provenanceIdColumns: string[];
     fileExplorerServiceBaseUrl?: string;
     download(
         annotations: string[],
@@ -59,7 +65,7 @@ export default interface FileService {
     editFile(
         fileId: string,
         annotations: AnnotationNameToValuesMap,
-        annotationNameToAnnotationMap?: Record<string, Annotation>,
+        annotationNameToAnnotationMap?: Map<string, Annotation>,
         user?: string
     ): Promise<void>;
     getAggregateInformation(fileSelection: FileSelection): Promise<SelectionAggregationResult>;

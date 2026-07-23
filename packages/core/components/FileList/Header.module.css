@@ -42,6 +42,9 @@
 }
 
 .header-tooltip-wrapper {
+  display: block;
+  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
   overflow: hidden;
 }
@@ -53,6 +56,17 @@
   white-space: nowrap;
   overflow: hidden;
   vertical-align: middle;
+}
+
+.header-title-prefix {
+  opacity: 0.55;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 50%;
+  padding-right: 2px;
+  vertical-align: bottom;
+  white-space: nowrap;
 }
 
 .header-cell {

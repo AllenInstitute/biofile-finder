@@ -242,21 +242,21 @@ describe("<AnnotationFilterForm />", () => {
                 </Provider>
             );
             await waitFor(
-                () => expect(getByTestId(`${LISTROW_TESTID_PREFIX}False`)).to.not.be.undefined
+                () => expect(getByTestId(`${LISTROW_TESTID_PREFIX}false`)).to.not.be.undefined
             );
 
             // (sanity-check): Check that the "False" input is selected
             expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(1);
 
             // Act: Deselect the "False" input
-            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}False`));
+            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}false`));
             await logicMiddleware.whenComplete();
 
             // Assert: Check that the "False" input is deselected
             expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(0);
 
             // Act: Reselect the "False" input
-            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}False`));
+            fireEvent.click(getByTestId(`${LISTROW_TESTID_PREFIX}false`));
             await logicMiddleware.whenComplete();
 
             // Assert: Check that the "False" input is selected again
