@@ -37,7 +37,7 @@ describe("SearchParams", () => {
 
     const markdownSourceUri = "dataset-descriptions.md";
     const mockMarkdownSource: Source = {
-        name: "Dataset description source",
+        name: "Dataset description markdown",
         type: "md",
         uri: markdownSourceUri,
     };
@@ -164,6 +164,33 @@ describe("SearchParams", () => {
             expect(result).to.be.equal(
                 "source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%2C%22uri%22%3A%22fake-uri.test%22%7D"
             );
+        });
+
+        it("encodes source URI is undefined (e.g., AICS FMS)", () => {
+            // Arrange
+            const mockSourceWithoutUri: Source = {
+                name: "datasource-without-uri",
+                type: "csv",
+            };
+            const components: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [
+                    mockSourceWithoutUri, // does not have a uri
+                    mockMarkdownSource, // risks overwriting source files
+                ],
+            };
+
+            // Act
+            const result = SearchParams.encode(components, {}); // No urls found in markdown
+
+            // Assert
+            // Should keep both sources since the markdown didn't contain any urls
+            expect(result).to.contain(mockSourceWithoutUri.name);
+            expect(result).to.contain(mockMarkdownSource.uri);
         });
 
         it("encodes only the markdown file if all other sources are already contained in the markdown", () => {
