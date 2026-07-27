@@ -394,23 +394,16 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             timelapse datasets in the browser, and interact with the dataset using
                             the same flexible metadata-driven framework.
                         </p>
-                        <h4>Key takeaways</h4>
+                        <h4>Key takeaway</h4>
                         <blockquote>
                             <p>
                                 &ldquo;Every organizational choice comes at the cost of another. In
-                                other words, every choice is a bad choice.&rdquo; &mdash; Antoine
+                                other words, every choice is a bad choice&hellip; BioFile Finder
+                                (BFF) allowed us to break away from this constraint entirely&hellip;
+                                We believe this approach sets a new standard for FAIR data sharing,
+                                and will significantly improve the accessibility, transparency, and
+                                reuse of complex biological datasets.&rdquo; &mdash; Antoine
                                 Borensztejn, <i>author</i>
-                            </p>
-                            <p>
-                                &ldquo;BioFile Finder (BFF) allowed us to break away from this
-                                constraint entirely.&rdquo; &mdash; Antoine Borensztejn,{" "}
-                                <i>author</i>
-                            </p>
-                            <p>
-                                &ldquo;We believe this approach sets a new standard for FAIR data
-                                sharing, and will significantly improve the accessibility,
-                                transparency, and reuse of complex biological datasets.&rdquo;
-                                &mdash; Antoine Borensztejn, <i>author</i>
                             </p>
                         </blockquote>
                     </>
@@ -489,7 +482,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             <p>
                                 &ldquo;BioFile Finder is a data management tool&hellip; like a fancy
                                 spreadsheet so that you can interact with it in multiple different
-                                ways.&rdquo; &mdash; Yoav Ben-Simon, <i>author</i>
+                                ways.&rdquo;
                             </p>
                             <p>
                                 &ldquo;I can create and curate data sets in two or three clicks of a
@@ -497,13 +490,15 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             </p>
                             <p>
                                 &ldquo;It doesn&apos;t require exchanging of files&mdash;it just
-                                requires exchanging of links.&rdquo; &mdash; Yoav Ben-Simon,{" "}
-                                <i>author</i>
+                                requires exchanging of links.&rdquo;
                             </p>
                             <p>
                                 &ldquo;It was really easy for us to repurpose it&hellip; from
                                 looking at individual cells to looking at images of brain sections
-                                and genomic data.&rdquo; &mdash; Yoav Ben-Simon, <i>author</i>
+                                and genomic data.&rdquo;
+                            </p>
+                            <p>
+                                &mdash; Yoav Ben-Simon, <i>author</i>
                             </p>
                         </blockquote>
                     </>
