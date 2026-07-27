@@ -111,18 +111,24 @@ export async function processMarkdown(
     let plainText = "";
     if (uri instanceof File) {
         plainText = await uri.text();
-    } else if (
-        uri?.startsWith("http://") ||
-        uri?.startsWith("https://") ||
-        uri?.startsWith("s3://")
-    ) {
-        const response = await axios.get(uri, { responseType: "text" });
-        plainText = String(response.data);
     } else {
-        throw new DataSourcePreparationError(
-            `Unable to process markdown file, received unsupported path ${uri}.`,
-            source.name
-        );
+        // try to treat the uri as a url
+        const response = await axios.get(uri).catch((e) => {
+            throw new DataSourcePreparationError(
+                `Unable to process markdown file with URL ${uri}. Received error: ${
+                    (e as Error).message
+                }`,
+                source.name
+            );
+        });
+        // In case axios doesn't throw
+        if (response.data === undefined) {
+            throw new DataSourcePreparationError(
+                `Failed to fetch markdown file with URL ${uri}. Response status text: ${response.statusText}`,
+                source.name
+            );
+        }
+        plainText = String(response.data);
     }
     return parseFrontMatter(plainText, normalizeSources);
 }
