@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 
 import { GroupSlug, Page, PageSlug, SectionHeading, userGuidePath } from "./types";
 import ProvenanceDiagram from "../assets/provenance-graph.png";
+import SimpleProvenanceExample from "../assets/simple_provenance_example.png";
 
 type CsvValue = string | number | boolean | null | undefined;
 
@@ -1084,6 +1085,11 @@ pq.write_table(table, "dataset.parquet")`}
                                 <Icon iconName="Download" className="ug-icon-sm" />
                             </a>
                         </p>
+                        <img
+                            src={SimpleProvenanceExample}
+                            alt="Relationship diagram for the simple provenance example: a plate linked to its wells, wells linked to acquired images (including a .czi source), and images linked to their segmentation outputs via a segmentation algorithm pointer"
+                            className="ug-image"
+                        />
                     </>
                 ),
             },
