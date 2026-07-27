@@ -550,7 +550,7 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             remains in its original storage locations and only metadata is indexed
                             for discovery and reuse.
                         </p>
-                        <p>Watch a video about the ISAS BFF Uploader.</p>
+                        <p>Check out this video to learn more.</p>
                         <iframe
                             width="560"
                             height="315"
@@ -560,7 +560,13 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             referrerPolicy="strict-origin-when-cross-origin"
                             allowFullScreen
                         ></iframe>
-                        <br />
+                    </>
+                ),
+            },
+            {
+                heading: "",
+                body: (
+                    <>
                         <p>
                             Check out this short video from the Allen Institute on how the brain
                             science accelerator and AMBIOM at ISAS used BFF to organize and share
