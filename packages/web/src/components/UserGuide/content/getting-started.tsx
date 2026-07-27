@@ -169,9 +169,9 @@ const COLUMN_DESCRIPTIONS_EXAMPLE_ROWS: CsvValue[][] = [
 
 const PROVENANCE_SIMPLE_EXAMPLE_ROWS: CsvValue[][] = [
     ["Parent", "Child", "Relationship", "Parent Type", "Child Type", "Relationship Type"],
-    ["PlateID", "WellID", "is well in", "entity", "entity", ""],
-    ["WellID", "ColonyImage", "is image acquired from", "entity", "file", ""],
-    ["ColonyImage", "SegmentationImage", "segmentation_algorithm_v1", "file", "file", "pointer"],
+    ["PlateID", "WellID", "is well in", "metadata", "metadata", ""],
+    ["WellID", "ColonyImage", "is image acquired from", "metadata", "self", ""],
+    ["SegmentationImage", "ColonyImage", "segmentation_algorithm_v1", "self", "file", "pointer"],
 ];
 
 export const GETTING_STARTED_CONTENT: Page[] = [
@@ -1034,12 +1034,18 @@ pq.write_table(table, "dataset.parquet")`}
                                 that encodes the relationship.
                             </li>
                             <li>
-                                <strong>Parent Type</strong> — <code>file</code> if the parent is a
-                                file; <code>entity</code> if it is metadata.
+                                <strong>Parent Type</strong> — <code>self</code> if the relationship
+                                applies to the current file/row itself, rather than referencing
+                                another file in the dataset; <code>file</code> if the parent is
+                                another file in the dataset; <code>metadata</code> if it is
+                                metadata.
                             </li>
                             <li>
-                                <strong>Child Type</strong> — <code>file</code> if the child is a
-                                file in the dataset; <code>entity</code> if it is metadata.
+                                <strong>Child Type</strong> — <code>self</code> if the relationship
+                                applies to the current file/row itself, rather than referencing
+                                another file in the dataset; <code>file</code> if the child is
+                                another file in the dataset; <code>metadata</code> if it is
+                                metadata.
                             </li>
                             <li>
                                 <strong>Relationship Type</strong> — Empty for a static relationship
@@ -1052,16 +1058,21 @@ pq.write_table(table, "dataset.parquet")`}
                         <ul>
                             <li>
                                 <strong>Plate → Well:</strong> Wells belong to a plate (simple
-                                descriptive relationship).
+                                descriptive relationship between two pieces of metadata).
                             </li>
                             <li>
                                 <strong>Well → Colony Image:</strong> Colony images are acquired
-                                from wells (image files linked to metadata).
+                                from wells (image files linked to metadata). Since the relationship
+                                is between a file/row and its own metadata, the child type is{" "}
+                                <code>self</code>.
                             </li>
                             <li>
                                 <strong>Colony Image → Segmentation Image:</strong> Segmentation
-                                images are derived from colony images; the relationship is specified
-                                via a pointer to the segmentation algorithm version used.
+                                images are derived from colony images. This is a relationship
+                                between two files, where the parent file (type <code>self</code>)
+                                contains a reference in its metadata to some other file in the
+                                dataset (type <code>file</code>). The relationship is specified via
+                                a pointer to the segmentation algorithm version used.
                             </li>
                         </ul>
                         <p>
