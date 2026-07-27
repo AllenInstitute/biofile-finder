@@ -568,9 +568,9 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                 body: (
                     <>
                         <p>
-                            Check out this short video from the Allen Institute on how the brain
-                            science accelerator and AMBIOM at ISAS used BFF to organize and share
-                            their datasets.{" "}
+                            You may also be interested in this short video from the Allen Institute
+                            on how the brain science accelerator and AMBIOM at ISAS used BFF to
+                            organize and share their datasets.{" "}
                             <a
                                 href="https://www.youtube.com/watch?v=RD2x4BFhWzY"
                                 target="_blank"
