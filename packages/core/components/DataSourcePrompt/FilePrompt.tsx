@@ -33,24 +33,29 @@ export default function FilePrompt(props: Props) {
     const { onSelectFile } = props;
 
     // Parse markdown files to provide a preview of the metadata we're able to find
-    const handleMarkdownSource = (source: Source) => {
-        if (isMarkdownType(source.type)) {
-            // Calls the standalone process instead of going through the DB service
-            // since we don't want to cache the result yet
-            processMarkdown(source)
-                .then((result) => {
-                    setMdFrontmatter(result);
-                })
-                .catch((e) => {
-                    setMdFrontmatter(undefined);
-                    dispatch(interaction.actions.processError(source.name, (e as Error).message));
-                });
-            setShouldHaveFrontmatter(true);
-        } else {
-            setMdFrontmatter(undefined);
-            setShouldHaveFrontmatter(false);
-        }
-    };
+    const handleMarkdownSource = React.useCallback(
+        (source: Source) => {
+            if (isMarkdownType(source.type)) {
+                // Calls the standalone process instead of going through the DB service
+                // since we don't want to cache the result yet
+                processMarkdown(source, false) // skip source normalization since just previewing the data
+                    .then((result) => {
+                        setMdFrontmatter(result);
+                    })
+                    .catch((e) => {
+                        setMdFrontmatter(undefined);
+                        dispatch(
+                            interaction.actions.processError(source.name, (e as Error).message)
+                        );
+                    });
+                setShouldHaveFrontmatter(true);
+            } else {
+                setMdFrontmatter(undefined);
+                setShouldHaveFrontmatter(false);
+            }
+        },
+        [dispatch]
+    );
 
     const onDrop = React.useCallback(
         (acceptedFiles) => {

@@ -1,23 +1,29 @@
 import axios from "axios";
 import yaml from "js-yaml";
 
-import { Source } from "../SearchParams";
+import { getNameAndTypeFromSourceUrl, Source } from "../SearchParams";
+import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
-export interface DatasetUrls {
-    dataset_url?: string; // actual dataset
-    descriptions_url?: string; // url to metadata descriptions
-    provenance_url?: string; // url to provenance schema file
+export interface DatasetSources {
+    dataSource?: Source; // actual dataset
+    descriptionsSource?: Source; // source for metadata/column descriptions
+    provenanceSource?: Source; // source for provenance schema file
 }
 
-export interface DatasetMetadata extends DatasetUrls {
+interface RawDatasetMetadata {
     title?: string;
     date?: string; // YYYY-MM-DD
     author?: string[];
-    [key: string]: string | string[] | undefined; // other unknown user-provided headers
+    dataset_url?: string; // actual dataset
+    descriptions_url?: string; // url to metadata descriptions
+    provenance_url?: string; // url to provenance schema file
+    [key: string]: string | string[] | Source | undefined; // other unknown user-provided headers
 }
 
+export interface ParsedDatasetMetadata extends DatasetSources, RawDatasetMetadata {}
+
 export interface ParsedFrontmatter {
-    metadata?: DatasetMetadata;
+    metadata?: ParsedDatasetMetadata;
     body: string; // raw markdown
 }
 
@@ -29,7 +35,12 @@ export interface ParsedFrontmatter {
 // body
 const FRONT_MATTER_REGEX = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n([\s\S]*)$/;
 
-export function parseFrontMatter(contents: string): ParsedFrontmatter {
+/**
+ * Extract yaml key/value pairs from text.
+ * When `parseSources` is false, skip the step that extracts names and types from data sources
+ * (e.g., if we just want to preview the raw data and urls)
+ */
+export function parseFrontMatter(contents: string, parseSources = true): ParsedFrontmatter {
     const match = contents.match(FRONT_MATTER_REGEX);
     if (!match) {
         return {
@@ -38,19 +49,65 @@ export function parseFrontMatter(contents: string): ParsedFrontmatter {
     }
     const [, yamlText, body] = match;
     try {
-        const metadata = yaml.load(yamlText) as DatasetMetadata;
+        const metadata = yaml.load(yamlText) as RawDatasetMetadata;
+        const parsedMetadata = deriveSourcesFromMetadata(metadata);
         return {
-            metadata, // to do: determine if some normalization needs to happen here
+            metadata: parseSources ? parsedMetadata : metadata,
             body,
         };
     } catch (e) {
-        console.error(new Error(`Unable to parse yaml, reason: ${(e as Error).message}`));
+        console.error(new Error(`Unable to parse yaml: ${(e as Error).message}`));
         return { body: contents };
     }
 }
 
-export async function processMarkdown(source: Source): Promise<ParsedFrontmatter> {
+// Generate source names only when the markdown file is first processed
+// since getNameAndTypeFromSourceUrl uses a new Date every time it's called
+function deriveSourcesFromMetadata(metadata: RawDatasetMetadata): ParsedDatasetMetadata {
+    let dataSource;
+    let provenanceSource;
+    let descriptionsSource;
+    const datasetUrl = metadata.dataset_url;
+    const provenanceUrl = metadata.provenance_url;
+    const descriptionsUrl = metadata.descriptions_url;
+    if (datasetUrl) {
+        dataSource = {
+            ...getNameAndTypeFromSourceUrl(datasetUrl),
+            uri: datasetUrl,
+        };
+    }
+    if (provenanceUrl) {
+        provenanceSource = {
+            ...getNameAndTypeFromSourceUrl(provenanceUrl),
+            uri: provenanceUrl,
+        };
+    }
+    if (descriptionsUrl) {
+        descriptionsSource = {
+            ...getNameAndTypeFromSourceUrl(descriptionsUrl),
+            uri: descriptionsUrl,
+        };
+    }
+    return {
+        // also still contains the original urls
+        ...metadata,
+        dataSource,
+        provenanceSource,
+        descriptionsSource,
+    };
+}
+
+// Fetch or read in the markdown file. Accepts a File object or url, but not a local path (e.g., "/local/path/on/users/machine")
+export async function processMarkdown(
+    source: Source,
+    normalizeSources = true
+): Promise<ParsedFrontmatter> {
     const { uri } = source;
+    if (uri === undefined)
+        throw new DataSourcePreparationError(
+            `Unable to find URL or file for "${source.name}".`,
+            source.name
+        );
     let plainText = "";
     if (uri instanceof File) {
         plainText = await uri.text();
@@ -62,7 +119,10 @@ export async function processMarkdown(source: Source): Promise<ParsedFrontmatter
         const response = await axios.get(uri, { responseType: "text" });
         plainText = String(response.data);
     } else {
-        throw new Error(`Unable to process markdown file, received unsupported path ${uri}`);
+        throw new DataSourcePreparationError(
+            `Unable to process markdown file, received unsupported path ${uri}.`,
+            source.name
+        );
     }
-    return parseFrontMatter(plainText);
+    return parseFrontMatter(plainText, normalizeSources);
 }

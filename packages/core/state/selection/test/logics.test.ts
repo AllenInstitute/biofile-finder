@@ -43,17 +43,17 @@ import Annotation from "../../../entity/Annotation";
 import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import NumericRange from "../../../entity/NumericRange";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
-import { getNameAndTypeFromSourceUrl, Source } from "../../../entity/SearchParams";
+import { DatasetSources, ParsedFrontmatter } from "../../../entity/MarkdownFrontMatter";
+import NumericRange from "../../../entity/NumericRange";
+import { Source } from "../../../entity/SearchParams";
 import { DatabaseService } from "../../../services";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../../services/DataSourceService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
-import { DatasetUrls, ParsedFrontmatter } from "../../../entity/MarkdownFrontMatter";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -1031,23 +1031,26 @@ describe("Selection logics", () => {
         });
 
         it("parses sources from a non-cached datasetDescriptionSource", async () => {
-            const mdSource: Source = { name: "README.md", type: "md", uri: "README" };
+            const mdSource: Source = { name: "README.md", type: "md", uri: "README.md" };
             const selectedQuery = mockQuery("Selected", {
                 sources: [mdSource],
             });
-            const mainDatasourceUrl = "main-url.csv";
-            const provenanceUrl = "prov-url.csv";
-            const columnDescriptionsUrl = "metadata-url.csv";
+            const mockDataSource: Source = { name: "Test source", uri: "main-url.csv" };
+            const mockProvenanceSource: Source = { name: "Provenance source", uri: "prov-url.csv" };
+            const mockColDescSource: Source = {
+                name: "Column descriptions",
+                uri: "metadata-url.csv",
+            };
             class MockDatabaseService extends DatabaseService {
-                public getDatasetDescriptionUrls(_dataSourceName: string): DatasetUrls | undefined {
+                public getDatasetDescriptionSources(): DatasetSources | undefined {
                     return undefined;
                 }
-                public async processMarkdown(_source: Source): Promise<ParsedFrontmatter> {
+                public async processMarkdown(): Promise<ParsedFrontmatter> {
                     return Promise.resolve({
                         metadata: {
-                            dataset_url: mainDatasourceUrl,
-                            provenance_url: provenanceUrl,
-                            descriptions_url: columnDescriptionsUrl,
+                            dataSource: mockDataSource,
+                            provenanceSource: mockProvenanceSource,
+                            descriptionsSource: mockColDescSource,
                         },
                         body: "",
                     });
@@ -1069,20 +1072,12 @@ describe("Selection logics", () => {
             store.dispatch(changeQuery(selectedQuery));
             await logicMiddleware.whenComplete();
 
-            const expectedSources = [getNameAndTypeFromSourceUrl(mainDatasourceUrl)];
-            const expectedProvenanceSource = getNameAndTypeFromSourceUrl(provenanceUrl);
-            const expectedColumnDescriptorSource = getNameAndTypeFromSourceUrl(
-                columnDescriptionsUrl
-            );
-
             // Assert
             expect(actions.includesMatch(changeDataSources([mdSource]))).to.be.false;
             expect(actions.includesMatch(setSelectedDescriptionSource(mdSource))).to.be.true;
-            expect(actions.includesMatch(changeDataSources(expectedSources))).to.be.true;
-            expect(actions.includesMatch(changeProvenanceSource(expectedProvenanceSource))).to.be
-                .true;
-            expect(actions.includesMatch(changeSourceMetadata(expectedColumnDescriptorSource))).to
-                .be.true;
+            expect(actions.includesMatch(changeDataSources([mockDataSource]))).to.be.true;
+            expect(actions.includesMatch(changeProvenanceSource(mockProvenanceSource))).to.be.true;
+            expect(actions.includesMatch(changeSourceMetadata(mockColDescSource))).to.be.true;
         });
 
         it("parses sources from a cached datasetDescriptionSource", async () => {
@@ -1090,20 +1085,22 @@ describe("Selection logics", () => {
             const selectedQuery = mockQuery("Selected", {
                 sources: [mdSource],
             });
-            const mainDatasourceUrl = "main-url.csv";
-            const provenanceUrl = "prov-url.csv";
-            const columnDescriptionsUrl = "metadata-url.csv";
-
+            const mockDataSource: Source = { name: "Test source", uri: "main-url.csv" };
+            const mockProvenanceSource: Source = { name: "Provenance source", uri: "prov-url.csv" };
+            const mockColDescSource: Source = {
+                name: "Column descriptions",
+                uri: "metadata-url.csv",
+            };
             class MockDatabaseService extends DatabaseService {
-                public getDatasetDescriptionUrls(_dataSourceName: string): DatasetUrls | undefined {
+                public getDatasetDescriptionSources(): DatasetSources {
                     return {
-                        dataset_url: mainDatasourceUrl,
-                        provenance_url: provenanceUrl,
-                        descriptions_url: columnDescriptionsUrl,
+                        dataSource: mockDataSource,
+                        provenanceSource: mockProvenanceSource,
+                        descriptionsSource: mockColDescSource,
                     };
                 }
                 // We shouldn't reach this function, but if we do, reject
-                public async processMarkdown(_source: Source): Promise<ParsedFrontmatter> {
+                public async processMarkdown(): Promise<ParsedFrontmatter> {
                     expect.fail("Should not reach process markdown function");
                 }
             }
@@ -1123,20 +1120,12 @@ describe("Selection logics", () => {
             store.dispatch(changeQuery(selectedQuery));
             await logicMiddleware.whenComplete();
 
-            const expectedSources = [getNameAndTypeFromSourceUrl(mainDatasourceUrl)];
-            const expectedProvenanceSource = getNameAndTypeFromSourceUrl(provenanceUrl);
-            const expectedColumnDescriptorSource = getNameAndTypeFromSourceUrl(
-                columnDescriptionsUrl
-            );
-
             // Assert
             expect(actions.includesMatch(changeDataSources([mdSource]))).to.be.false;
             expect(actions.includesMatch(setSelectedDescriptionSource(mdSource))).to.be.true;
-            expect(actions.includesMatch(changeDataSources(expectedSources))).to.be.true;
-            expect(actions.includesMatch(changeProvenanceSource(expectedProvenanceSource))).to.be
-                .true;
-            expect(actions.includesMatch(changeSourceMetadata(expectedColumnDescriptorSource))).to
-                .be.true;
+            expect(actions.includesMatch(changeDataSources([mockDataSource]))).to.be.true;
+            expect(actions.includesMatch(changeProvenanceSource(mockProvenanceSource))).to.be.true;
+            expect(actions.includesMatch(changeSourceMetadata(mockColDescSource))).to.be.true;
         });
 
         it("overrides markdown if provenance/column description sources are provided manually", async () => {
@@ -1156,20 +1145,26 @@ describe("Selection logics", () => {
                 provenanceSource: provSourceFromUser,
                 sourceMetadata: columnDescriptionsFromUser,
             });
-            const mainDatasourceUrl = "main-source.csv";
-            const provenanceUrlFromMarkdown = "prov-url.csv";
-            const columnDescriptionsUrlFromMarkdown = "metadata-url.csv";
+            const mockDataSource: Source = { name: "Test source", uri: "main-url.csv" };
+            const provSourceFromMarkdown: Source = {
+                name: "Provenance source",
+                uri: "prov-url.csv",
+            };
+            const colDescriptionSourceFromMarkdown: Source = {
+                name: "Column descriptions",
+                uri: "metadata-url.csv",
+            };
 
             class MockDatabaseService extends DatabaseService {
-                public getDatasetDescriptionUrls(_dataSourceName: string): DatasetUrls | undefined {
+                public getDatasetDescriptionSources(): DatasetSources | undefined {
                     return undefined;
                 }
-                public async processMarkdown(_source: Source): Promise<ParsedFrontmatter> {
+                public async processMarkdown(): Promise<ParsedFrontmatter> {
                     return Promise.resolve({
                         metadata: {
-                            dataset_url: mainDatasourceUrl,
-                            provenance_url: provenanceUrlFromMarkdown,
-                            descriptions_url: columnDescriptionsUrlFromMarkdown,
+                            dataSource: mockDataSource,
+                            provenanceSource: provSourceFromMarkdown,
+                            descriptionsSource: colDescriptionSourceFromMarkdown,
                         },
                         body: "",
                     });
@@ -1191,11 +1186,6 @@ describe("Selection logics", () => {
             store.dispatch(changeQuery(selectedQuery));
             await logicMiddleware.whenComplete();
 
-            const markdownProvSource = getNameAndTypeFromSourceUrl(provenanceUrlFromMarkdown);
-            const markdownDescriptorSource = getNameAndTypeFromSourceUrl(
-                columnDescriptionsUrlFromMarkdown
-            );
-
             // Assert
             expect(actions.includesMatch(changeDataSources([mdSource]))).to.be.false;
             expect(actions.includesMatch(setSelectedDescriptionSource(mdSource))).to.be.true;
@@ -1203,9 +1193,10 @@ describe("Selection logics", () => {
             expect(actions.includesMatch(changeProvenanceSource(provSourceFromUser))).to.be.true;
             expect(actions.includesMatch(changeSourceMetadata(columnDescriptionsFromUser))).to.be
                 .true;
-            expect(actions.includesMatch(changeProvenanceSource(markdownProvSource))).to.be.false;
-            expect(actions.includesMatch(changeSourceMetadata(markdownDescriptorSource))).to.be
+            expect(actions.includesMatch(changeProvenanceSource(provSourceFromMarkdown))).to.be
                 .false;
+            expect(actions.includesMatch(changeSourceMetadata(colDescriptionSourceFromMarkdown))).to
+                .be.false;
         });
     });
 

@@ -218,9 +218,9 @@ describe("SearchParams", () => {
             // Act
             const expected = SearchParams.encode(componentsWithoutSources);
             const result = SearchParams.encode(componentsWithAllSources, {
-                dataset_url: mockSourceUri,
-                provenance_url: provenanceSourceUri,
-                descriptions_url: colDescrSourceUri,
+                dataSource: mockSourceWithUri,
+                provenanceSource: mockProvenanceSource,
+                descriptionsSource: mockColumnDescriptorSource,
             });
             expect(result).to.equal(expected);
             expect(result).to.contain(markdownSourceUri);
@@ -255,8 +255,8 @@ describe("SearchParams", () => {
             const expected = SearchParams.encode(componentsWithProvSource);
             // The provenance url is not in the markdown map
             const result = SearchParams.encode(componentsWithAllSources, {
-                dataset_url: mockSourceUri,
-                descriptions_url: colDescrSourceUri,
+                dataSource: mockSourceWithUri,
+                descriptionsSource: mockColumnDescriptorSource,
             });
             expect(result).to.equal(expected);
             expect(result).to.not.contain(mockSourceUri);
@@ -291,8 +291,8 @@ describe("SearchParams", () => {
             const expected = SearchParams.encode(componentsWithColDescrSource);
             // The column descriptor url is not in the markdown map
             const result = SearchParams.encode(componentsWithAllSources, {
-                dataset_url: mockSourceUri,
-                provenance_url: provenanceSourceUri,
+                dataSource: mockSourceWithUri,
+                provenanceSource: mockProvenanceSource,
             });
             expect(result).to.equal(expected);
             expect(result).to.not.contain(mockSourceUri);
@@ -328,12 +328,12 @@ describe("SearchParams", () => {
             const expected = SearchParams.encode(componentsWithProvidedMetadataSource);
             // The manually provided column description url does not match what was in the markdown
             const result = SearchParams.encode(componentsWithAllSources, {
-                dataset_url: mockSourceUri,
-                provenance_url: provenanceSourceUri,
-                descriptions_url: "some other non-matching uri",
+                dataSource: mockSourceWithUri,
+                provenanceSource: mockProvenanceSource,
+                descriptionsSource: { name: "A different source", uri: "non-matching-uri" },
             });
             expect(result).to.equal(expected);
-            expect(result).to.not.contain("some other non-matching uri");
+            expect(result).to.not.contain("non-matching-uri");
             expect(result).to.contain(colDescrSourceUri);
         });
     });
@@ -525,7 +525,7 @@ describe("SearchParams", () => {
                 sources: [mockMarkdownSource],
             };
             const encodedUrl = SearchParams.encode(componentsWithProvID, {
-                provenance_url: "test.csv",
+                provenanceSource: { name: "Prov source", uri: "test.csv" },
             });
 
             // Act

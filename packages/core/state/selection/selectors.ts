@@ -128,18 +128,18 @@ export const getCurrentQueryParts = createSelector(
     })
 );
 
-export const getDatasetUrlsFromMarkdown = createSelector(
+export const getDatasetSourcesFromMarkdown = createSelector(
     [getPlatformDependentServices, getDatasetDescriptionSource],
     ({ databaseService }, datasetDescriptionSource) => {
         if (!datasetDescriptionSource) return undefined;
-        return databaseService.getDatasetDescriptionUrls(datasetDescriptionSource.name);
+        return databaseService.getDatasetDescriptionSources(datasetDescriptionSource);
     }
 );
 
 export const getEncodedSearchParams = createSelector(
-    [getCurrentQueryParts, getDatasetUrlsFromMarkdown],
-    (queryParts, datasetUrls): string => {
-        return SearchParams.encode(queryParts, datasetUrls);
+    [getCurrentQueryParts, getDatasetSourcesFromMarkdown],
+    (queryParts, datasetSources): string => {
+        return SearchParams.encode(queryParts, datasetSources);
     }
 );
 

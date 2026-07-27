@@ -73,13 +73,8 @@ import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
-import { DatasetUrls } from "../../entity/MarkdownFrontMatter";
-import {
-    DEFAULT_COLUMN_WIDTH,
-    FileView,
-    getNameAndTypeFromSourceUrl,
-    isMarkdownType,
-} from "../../entity/SearchParams";
+import { DatasetSources } from "../../entity/MarkdownFrontMatter";
+import { DEFAULT_COLUMN_WIDTH, FileView, isMarkdownType, Source } from "../../entity/SearchParams";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
@@ -625,9 +620,77 @@ const selectNearbyFile = createLogic({
  */
 const changeDataSourceLogic = createLogic({
     type: CHANGE_DATA_SOURCES,
+    async transform(deps: ReduxLogicDeps, next, reject) {
+        const { getState, action, ctx } = deps;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(getState());
+        // Intercept to check for markdown before continuing with the action since
+        // markdown files may be present when changeDataSource is called directly from an existing query
+        const selectedDataSources = action.payload as Source[];
+        const datasetDescriptionSource = selectedDataSources.find((source) =>
+            isMarkdownType(source.type)
+        );
+        if (!datasetDescriptionSource) {
+            return next(action);
+        }
+
+        let parsedMetadata: DatasetSources | undefined;
+        try {
+            // Check if already exists in the cache
+            const cachedSources = databaseService.getDatasetDescriptionSources(
+                datasetDescriptionSource
+            );
+            parsedMetadata = cachedSources
+                ? cachedSources
+                : (await databaseService.processMarkdown(datasetDescriptionSource)).metadata;
+        } catch (e) {
+            reject && reject(deps.action);
+            return;
+        }
+
+        // context to pass along in order to dispatch from the main process
+        ctx.markdownSource = datasetDescriptionSource;
+        ctx.parsedMetadata = parsedMetadata;
+
+        const mainDatasource = parsedMetadata?.dataSource;
+        if (mainDatasource) {
+            return next({
+                ...action,
+                payload: [
+                    // avoid duplicates and remove the markdown file
+                    ...selectedDataSources.filter(
+                        (source) =>
+                            !isMarkdownType(source.type) && source.name !== mainDatasource.name
+                    ),
+                    mainDatasource,
+                ],
+            });
+        }
+        return next(action); // perform the original action and pass through uncaught errors
+    },
     async process(deps: ReduxLogicDeps, dispatch, done) {
         dispatch(setIsLoadingSource(true) as AnyAction);
         const { payload: selectedDataSources } = deps.action as ChangeDataSourcesAction;
+        const { markdownSource, parsedMetadata } = deps.ctx as {
+            markdownSource?: Source;
+            parsedMetadata?: DatasetSources;
+        };
+        if (markdownSource) {
+            if (!parsedMetadata?.dataSource) {
+                dispatch(
+                    interaction.actions.processError(
+                        markdownSource.name,
+                        "Failed to process markdown file"
+                    )
+                );
+            } else {
+                dispatch(setSelectedDescriptionSource(markdownSource));
+                if (parsedMetadata.provenanceSource)
+                    dispatch(changeProvenanceSource(parsedMetadata.provenanceSource));
+                if (parsedMetadata.descriptionsSource)
+                    dispatch(changeSourceMetadata(parsedMetadata.descriptionsSource));
+            }
+        }
+
         const dataSources = interaction.selectors.getAllDataSources(deps.getState());
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
@@ -878,19 +941,16 @@ const changeQueryLogic = createLogic({
                 return isMarkdownType(source.type);
             });
             if (datasetDescriptionSource) {
-                let parsedMetadata: DatasetUrls | undefined;
-                // Check if already exists in the cache
-                const cachedVersion = databaseService.getDatasetDescriptionUrls(
-                    datasetDescriptionSource.name
-                );
+                let parsedMetadata: DatasetSources | undefined;
                 try {
-                    if (cachedVersion) {
-                        parsedMetadata = cachedVersion;
-                    } else {
-                        parsedMetadata = (
-                            await databaseService.processMarkdown(datasetDescriptionSource)
-                        ).metadata;
-                    }
+                    // Check if already exists in the cache
+                    const cachedSources = databaseService.getDatasetDescriptionSources(
+                        datasetDescriptionSource
+                    );
+                    parsedMetadata = cachedSources
+                        ? cachedSources
+                        : (await databaseService.processMarkdown(datasetDescriptionSource))
+                              .metadata;
                 } catch (e) {
                     dispatch(
                         interaction.actions.processError(
@@ -899,8 +959,8 @@ const changeQueryLogic = createLogic({
                         )
                     );
                 }
-
-                if (!parsedMetadata || !parsedMetadata.dataset_url) {
+                // TO DO: data source isn't necessary if the user already provided a source separately
+                if (!parsedMetadata || !parsedMetadata.dataSource) {
                     dispatch(
                         interaction.actions.processError(
                             datasetDescriptionSource.name,
@@ -909,36 +969,29 @@ const changeQueryLogic = createLogic({
                     );
                 } else {
                     // TO DO: warn the user if these urls don't match what they provided
-                    const mainSourceUrl = parsedMetadata.dataset_url;
-                    const provenanceSourceUrl = parsedMetadata.provenance_url;
-                    const metadataDescriptorSourceUrl = parsedMetadata.descriptions_url;
-                    if (mainSourceUrl) {
+                    const mainSource = parsedMetadata.dataSource;
+                    if (mainSource) {
                         mainSources = [
-                            {
-                                ...getNameAndTypeFromSourceUrl(parsedMetadata.dataset_url),
-                                uri: parsedMetadata.dataset_url,
-                            },
+                            ...parts.sources.filter(
+                                (source) =>
+                                    source.name !== mainSource?.name && !isMarkdownType(source.type)
+                            ),
+                            mainSource,
                         ];
                     }
                     // allow users to override the markdown
-                    if (provenanceSourceUrl && !parts.provenanceSource) {
-                        provenanceSource = {
-                            ...getNameAndTypeFromSourceUrl(provenanceSourceUrl),
-                            uri: provenanceSourceUrl,
-                        };
+                    if (parsedMetadata.provenanceSource && !parts.provenanceSource) {
+                        provenanceSource = parsedMetadata.provenanceSource;
                     }
                     // allow users to override the markdown
-                    if (metadataDescriptorSourceUrl && !parts.sourceMetadata) {
-                        columnDescriptionSource = {
-                            ...getNameAndTypeFromSourceUrl(metadataDescriptorSourceUrl),
-                            uri: metadataDescriptorSourceUrl,
-                        };
+                    if (parsedMetadata.descriptionsSource && !parts.sourceMetadata) {
+                        columnDescriptionSource = parsedMetadata.descriptionsSource;
                     }
-                    // cache
-                    databaseService.setDatasetDescriptionUrls(datasetDescriptionSource.name, {
-                        dataset_url: mainSourceUrl,
-                        provenance_url: provenanceSourceUrl,
-                        descriptions_url: metadataDescriptorSourceUrl,
+                    // set cache
+                    databaseService.setDatasetDescriptionSources(datasetDescriptionSource.name, {
+                        dataSource: mainSource,
+                        provenanceSource: parsedMetadata.provenanceSource,
+                        descriptionsSource: parsedMetadata.descriptionsSource,
                     });
                 }
             }

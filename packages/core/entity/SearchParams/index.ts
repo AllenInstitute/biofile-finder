@@ -2,7 +2,7 @@ import AnnotationName from "../Annotation/AnnotationName";
 import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
-import type { DatasetUrls } from "../MarkdownFrontMatter";
+import type { DatasetSources } from "../MarkdownFrontMatter";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Column } from "../../state/selection/actions";
 
@@ -174,7 +174,7 @@ export default class SearchParams {
      * */
     public static encode(
         urlComponents: Partial<SearchParamsComponents>,
-        cachedUrlsFromDescription?: DatasetUrls
+        cachedSourcesFromDescription?: DatasetSources
     ): string {
         const params = new URLSearchParams();
         if (urlComponents.columns?.length) {
@@ -204,15 +204,21 @@ export default class SearchParams {
         );
         if (datasetDescriptionSource) {
             // Only encode sources that aren't already in the markdown file
-            const datasetUrl = cachedUrlsFromDescription?.dataset_url;
+            const datasetUrl = cachedSourcesFromDescription?.dataSource?.uri;
             sourcesToEncode = datasetUrl
                 ? urlComponents.sources?.filter((source) => source.uri !== datasetUrl)
                 : urlComponents.sources;
             // Skip source encoding if the markdown already contains the url
-            if (cachedUrlsFromDescription?.descriptions_url === urlComponents.sourceMetadata?.uri) {
+            if (
+                cachedSourcesFromDescription?.descriptionsSource?.uri ===
+                urlComponents.sourceMetadata?.uri
+            ) {
                 columnDescriptionSourceAlreadyEncoded = true;
             }
-            if (cachedUrlsFromDescription?.provenance_url === urlComponents.provenanceSource?.uri) {
+            if (
+                cachedSourcesFromDescription?.provenanceSource?.uri ===
+                urlComponents.provenanceSource?.uri
+            ) {
                 provenanceSourceAlreadyEncoded = true;
             }
         }
@@ -258,7 +264,7 @@ export default class SearchParams {
         // either directly encoded or in the markdown file
         if (
             urlComponents.provOriginId &&
-            (urlComponents.provenanceSource || cachedUrlsFromDescription?.provenance_url)
+            (urlComponents.provenanceSource || cachedSourcesFromDescription?.provenanceSource)
         ) {
             params.append(URLQueryArgShorthands.PROVENANCE_ORIGIN_ID, urlComponents.provOriginId);
         }

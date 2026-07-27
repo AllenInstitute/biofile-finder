@@ -2,7 +2,7 @@ import axios from "axios";
 import { expect } from "chai";
 import sinon from "sinon";
 
-import { DatasetMetadata, parseFrontMatter, processMarkdown } from "..";
+import { ParsedDatasetMetadata, parseFrontMatter, processMarkdown } from "..";
 import { Source } from "../../SearchParams";
 
 describe("MarkdownFrontMatter", () => {
@@ -25,7 +25,7 @@ describe("MarkdownFrontMatter", () => {
             const provUrl = "prov-url.csv";
             const colDescriptorUrl = "cd-url.csv";
             const description = "This is a text description";
-            // annoying indents to avoid including whitespace
+            // no indents to avoid including whitespace
             const markdownText = `---
 title: ${title}
 dataset_url: ${datasetUrl}
@@ -35,8 +35,8 @@ descriptions_url: ${colDescriptorUrl}
 ${description}`;
 
             // Act
-            const parsedFrontMatter = parseFrontMatter(markdownText);
-            const expectedMetadata: DatasetMetadata = {
+            const parsedFrontMatter = parseFrontMatter(markdownText, false);
+            const expectedMetadata: ParsedDatasetMetadata = {
                 title: title,
                 dataset_url: datasetUrl,
                 descriptions_url: colDescriptorUrl,
@@ -46,6 +46,35 @@ ${description}`;
             // Assert
             expect(parsedFrontMatter.body).to.equal(description);
             expect(parsedFrontMatter.metadata).to.deep.equal(expectedMetadata);
+        });
+
+        it("extracts sources from valid markdown when 'parseSources=true'", async () => {
+            // Arrange
+            const title = "My Dataset";
+            const datasetUrl = "test-url.csv";
+            const provUrl = "prov-url.csv";
+            const colDescriptorUrl = "cd-url.csv";
+            const description = "This is a text description";
+            // no indents to avoid including whitespace
+            const markdownText = `---
+title: ${title}
+dataset_url: ${datasetUrl}
+provenance_url: ${provUrl}
+descriptions_url: ${colDescriptorUrl}
+---
+${description}`;
+
+            // Act
+            const parsedFrontMatter = parseFrontMatter(markdownText, true);
+
+            // Assert
+            expect(parsedFrontMatter.body).to.equal(description);
+            // For this test, can't compare actual vs expected results directly bc getNameAndTypeFromSourceUrl
+            // is brittle/Date()-dependent and returns a different name each second.
+            // Instead, just check it contains expected source keys and uris
+            expect(parsedFrontMatter.metadata?.dataSource?.uri).to.equal(datasetUrl);
+            expect(parsedFrontMatter.metadata?.provenanceSource?.uri).to.equal(provUrl);
+            expect(parsedFrontMatter.metadata?.descriptionsSource?.uri).to.equal(colDescriptorUrl);
         });
 
         it("skips parsing frontmatter if missing opening '---'", () => {

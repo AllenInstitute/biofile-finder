@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
-import { getNameAndTypeFromSourceUrl, Source } from "../../entity/SearchParams";
+import { isMarkdownType, Source } from "../../entity/SearchParams";
 import { interaction, metadata, selection } from "../../state";
 
 interface Props {
@@ -21,23 +21,27 @@ export default function QueryDataSource(props: Props) {
     const selectedQuery = useSelector(selection.selectors.getSelectedQuery);
     const dataSources = useSelector(metadata.selectors.getDataSources);
     const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
-    const markdownUrls = useSelector(selection.selectors.getDatasetUrlsFromMarkdown);
+    const markdownSources = useSelector(selection.selectors.getDatasetSourcesFromMarkdown);
     const datasetDescriptionSource = useSelector(selection.selectors.getDatasetDescriptionSource);
     const { mainSources, columnDescriptionSource, provenanceSource } = React.useMemo(() => {
-        if (markdownUrls) {
-            const main_url = markdownUrls?.dataset_url;
-            const descriptions_url = markdownUrls?.descriptions_url;
-            const provenance_url = markdownUrls?.provenance_url;
+        if (markdownSources) {
+            const mainSource = markdownSources?.dataSource;
+            const descriptionsSource = markdownSources?.descriptionsSource;
+            const provenanceSource = markdownSources?.provenanceSource;
             return {
-                mainSources: main_url
-                    ? [{ ...getNameAndTypeFromSourceUrl(main_url), uri: main_url }]
+                mainSources: mainSource
+                    ? // avoid displaying the main source twice, and don't include any markdown files
+                      [
+                          ...props.dataSources.filter(
+                              (source) =>
+                                  source.name !== mainSource?.name && !isMarkdownType(source.type)
+                          ),
+                          mainSource,
+                      ]
                     : props.dataSources,
-                columnDescriptionSource: descriptions_url
-                    ? { ...getNameAndTypeFromSourceUrl(descriptions_url), uri: descriptions_url }
-                    : props.sourceMetadata,
-                provenanceSource: provenance_url
-                    ? { ...getNameAndTypeFromSourceUrl(provenance_url), uri: provenance_url }
-                    : props.sourceProvenance,
+                // Prioritize manually provided sources over ones parsed from markdown
+                columnDescriptionSource: props.sourceMetadata || descriptionsSource,
+                provenanceSource: props.sourceProvenance || provenanceSource,
             };
         } else {
             return {
@@ -46,7 +50,7 @@ export default function QueryDataSource(props: Props) {
                 provenanceSource: props.sourceProvenance,
             };
         }
-    }, [markdownUrls, props.dataSources, props.sourceMetadata, props.sourceProvenance]);
+    }, [markdownSources, props.dataSources, props.sourceMetadata, props.sourceProvenance]);
 
     const onShowDatasetInfo = () => {
         if (!datasetDescriptionSource) return undefined;
