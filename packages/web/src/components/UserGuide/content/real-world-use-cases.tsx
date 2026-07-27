@@ -394,7 +394,13 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             timelapse datasets in the browser, and interact with the dataset using
                             the same flexible metadata-driven framework.
                         </p>
-                        <h4>Key takeaway</h4>
+                    </>
+                ),
+            },
+            {
+                heading: "Key takeaways",
+                body: (
+                    <>
                         <blockquote>
                             <p>
                                 &ldquo;Every organizational choice comes at the cost of another. In
