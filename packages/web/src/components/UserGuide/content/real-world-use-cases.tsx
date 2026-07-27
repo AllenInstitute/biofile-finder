@@ -550,10 +550,23 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                             remains in its original storage locations and only metadata is indexed
                             for discovery and reuse.
                         </p>
+                        <p>Watch a video about the ISAS BFF Uploader.</p>
+                        <iframe
+                            width="560"
+                            height="315"
+                            src="https://player.vimeo.com/video/1183082393?h=b64de85d1c"
+                            title="ISAS BFF Uploader video"
+                            allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            allowFullScreen
+                        ></iframe>
+                        <br />
                         <p>
-                            Watch a video about the ISAS BFF Uploader.{" "}
+                            Check out this short video from the Allen Institute on how the brain
+                            science accelerator and AMBIOM at ISAS used BFF to organize and share
+                            their datasets.{" "}
                             <a
-                                href="https://www.isas.de/en/en-kompakt/isas-bff-uploader/"
+                                href="https://www.youtube.com/watch?v=RD2x4BFhWzY"
                                 target="_blank"
                                 rel="noreferrer"
                             >
@@ -561,21 +574,6 @@ export const REAL_WORLD_USE_CASES_CONTENT: Page[] = [
                                 <Icon iconName="OpenInNewWindow" className="ug-icon-sm" />
                             </a>
                         </p>
-                        <br />
-                        <p>
-                            Check out this short video from the Allen Institute on how the brain
-                            science accelerator and AMBIOM at ISAS used BFF to organize and share
-                            their datasets.
-                        </p>
-                        <iframe
-                            width="560"
-                            height="315"
-                            src="https://www.youtube.com/embed/RD2x4BFhWzY?si=a1ZPYrq-k2VVhCCc"
-                            title="YouTube video player"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            referrerPolicy="strict-origin-when-cross-origin"
-                            allowFullScreen
-                        ></iframe>
                     </>
                 ),
             },
