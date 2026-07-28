@@ -5,6 +5,7 @@ import * as React from "react";
 import { useDropzone } from "react-dropzone";
 import { useDispatch } from "react-redux";
 
+import MarkdownPreview from "./MarkdownPreview";
 import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
 import { Source, getNameAndTypeFromSourceUrl, isMarkdownType } from "../../entity/SearchParams";
@@ -66,8 +67,9 @@ export default function FilePrompt(props: Props) {
                 const name = nameAndExtension.slice(0, -1).join("");
                 // Extension validation is handled by the component itself
                 const extension = nameAndExtension.pop();
-                onSelectFile({ name, type: extension, uri: selectedFile });
-                handleMarkdownSource({ name, type: extension, uri: selectedFile });
+                const source = { name, type: extension, uri: selectedFile };
+                onSelectFile(source);
+                handleMarkdownSource(source);
             }
         },
         [onSelectFile, handleMarkdownSource]
@@ -84,44 +86,6 @@ export default function FilePrompt(props: Props) {
         multiple: false,
         noDragEventsBubbling: true,
     });
-
-    const markdownFileMetadata: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
-        if (!shouldHaveFrontmatter) return null;
-        if (!mdFrontmatter?.metadata) {
-            return (
-                <div className={styles.mdMetadata}>
-                    <i>
-                        Unable to parse metadata from this markdown file. Please verify that the
-                        front-matter is formatted correctly.
-                    </i>
-                </div>
-            );
-        }
-        // semi-arbitrary shortening of markdown body
-        const truncatedDescription =
-            mdFrontmatter?.body?.length <= 100
-                ? mdFrontmatter.body
-                : mdFrontmatter.body.slice(0, 45) + "..." + mdFrontmatter.body.slice(-45);
-        return (
-            <div className={styles.mdMetadata}>
-                <i>Parsed the following metadata from the selected source:</i>
-                <ul>
-                    {Object.entries(mdFrontmatter.metadata).map(([key, value]) => {
-                        return (
-                            <li key={key}>
-                                <b>{key}:</b> {value?.toString()}
-                            </li>
-                        );
-                    })}
-                    {mdFrontmatter?.body && (
-                        <li key="raw-description">
-                            <b>description:</b> {truncatedDescription}
-                        </li>
-                    )}
-                </ul>
-            </div>
-        );
-    }, [shouldHaveFrontmatter, mdFrontmatter]);
 
     // Format file rejection error codes into readable messages
     const fileErrorMessage: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
@@ -177,7 +141,7 @@ export default function FilePrompt(props: Props) {
                         onClick={() => props.onSelectFile(undefined)}
                     />
                 </div>
-                {markdownFileMetadata}
+                {shouldHaveFrontmatter && <MarkdownPreview mdFrontmatter={mdFrontmatter} />}
                 {fileRejections.length > 0 && fileErrorMessage}
             </div>
         );
