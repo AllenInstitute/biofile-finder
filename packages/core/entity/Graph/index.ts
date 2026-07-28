@@ -22,16 +22,20 @@ export enum NodeType {
     FILE = "file",
 }
 
+export type EdgeNodeType = "self" | "file" | "metadata";
+export type RelationshipType = "pointer";
 interface EdgeNode {
     name: string;
-    type: "file" | "metadata" | "self";
+    type: EdgeNodeType;
 }
 
+// This definition must be in sync with the validation that occurs
+// within DatabaseService/index.ts
 export interface EdgeDefinition {
     parent: EdgeNode;
     child: EdgeNode;
     relationship: string;
-    relationshipType?: "pointer";
+    relationshipType?: RelationshipType;
 }
 
 export interface AnnotationEdge {
