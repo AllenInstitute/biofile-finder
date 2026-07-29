@@ -1,4 +1,5 @@
 import { isEqual, uniqBy } from "lodash";
+import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
 import { interaction, metadata, ReduxLogicDeps, selection } from "..";
@@ -74,6 +75,9 @@ const receiveAnnotationsLogic = createLogic({
         const annotationService = interaction.selectors.getAnnotationService(deps.getState());
         const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
         const currentColumns = selection.selectors.getColumns(deps.getState());
+        const hasUserSelectedColumns = selection.selectors.getHasUserSelectedColumns(
+            deps.getState()
+        );
         const isQueryingAicsFms = selection.selectors.isQueryingAicsFms(deps.getState());
         const currentFilters = selection.selectors.getFileFilters(deps.getState());
 
@@ -110,14 +114,39 @@ const receiveAnnotationsLogic = createLogic({
             dispatch(selection.actions.setFileFilters(enrichedFilters));
         }
 
+        // Exclude parents of nested fields since they don't have their own values to display
+        const displayableAnnotations = annotations.filter(
+            (annotation) => !annotationByName.get(annotation.name)?.isParent
+        );
+        const displayableAnnotationNames = new Set(
+            displayableAnnotations.map((annotation) => annotation.name)
+        );
+
+        // When the user has picked which columns to display, respect that choice rather than
+        // displaying every annotation; only drop columns this data source can no longer display.
+        const validUserSelectedColumns = currentColumns.filter((column) =>
+            displayableAnnotationNames.has(column.name)
+        );
+        if (hasUserSelectedColumns && validUserSelectedColumns.length) {
+            if (!isEqual(validUserSelectedColumns, currentColumns)) {
+                dispatch(selection.actions.setColumns(validUserSelectedColumns));
+            }
+            done();
+            return;
+        }
+
+        // None of the user's selected columns exist here (e.g. an entirely different data source
+        // was loaded), so fall back to displaying every annotation
+        if (hasUserSelectedColumns) {
+            dispatch(selection.actions.setHasUserSelectedColumns(false) as AnyAction);
+        }
+
         // This request should be unable to take longer than 2 seconds
         const widthByAnnotation = await annotationService.fetchOptimalWidthForAnnotations(
             annotations
         );
 
-        const columns: Column[] = annotations
-            // Exclude parents of nested fields since they don't have their own values to display
-            .filter((annotation) => !annotationByName.get(annotation.name)?.isParent)
+        const columns: Column[] = displayableAnnotations
             .map((annotation) => ({
                 annotation: annotation,
                 currentColumnIndex: currentColumns.findIndex(

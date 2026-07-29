@@ -4,10 +4,12 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
+import { ContextMenuItem } from "../../ContextMenu";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
-import { initialState, selection } from "../../../state";
+import Tutorial from "../../../entity/Tutorial";
+import { initialState, interaction, selection } from "../../../state";
 
 import Header from "../Header";
 
@@ -130,6 +132,111 @@ describe("<Header />", () => {
         const fileSizeCell = getAllByText(AnnotationName.FILE_SIZE)[0];
         fileSizeCell.querySelector("i[data-icon-name='ChevronUp']");
         expect(fileSizeCell).to.exist;
+    });
+
+    it("shows a menu with column ordering and column selection options on right-click", () => {
+        // Arrange
+        const annotations = [AnnotationName.FILE_NAME, AnnotationName.KIND];
+        const state = mergeState(initialState, {
+            metadata: {
+                annotations: annotations.map((name) => ({
+                    name,
+                    displayName: name,
+                    description: name,
+                    type: AnnotationType.STRING,
+                })),
+            },
+            selection: {
+                columns: annotations.map((name) => ({ name, width: 150 })),
+            },
+        });
+        const { actions, store } = configureMockStore({ state });
+        const { getAllByText } = render(
+            <Provider store={store}>
+                <Header />
+            </Provider>
+        );
+
+        // Act
+        fireEvent.contextMenu(getAllByText(AnnotationName.KIND)[0]);
+
+        // Assert
+        const showContextMenuAction = actions.list.find(
+            (action) => action.type === interaction.actions.SHOW_CONTEXT_MENU
+        );
+        expect(
+            showContextMenuAction?.payload.items.map((item: ContextMenuItem) => item.key)
+        ).to.eql(["Move to start", "Move to end", "modify-columns-divider", "modify-columns"]);
+    });
+
+    it("shows a menu with only column selection options when no column is right-clicked", () => {
+        // Arrange
+        const state = mergeState(initialState, {
+            selection: { columns: [{ name: AnnotationName.FILE_NAME, width: 150 }] },
+        });
+        const { actions, store } = configureMockStore({ state });
+        const { container } = render(
+            <Provider store={store}>
+                <Header />
+            </Provider>
+        );
+
+        // Act: right-click the header itself rather than one of its columns
+        fireEvent.contextMenu(container.querySelector(`#${Tutorial.COLUMN_HEADERS_ID}`) as Element);
+
+        // Assert
+        const showContextMenuAction = actions.list.find(
+            (action) => action.type === interaction.actions.SHOW_CONTEXT_MENU
+        );
+        expect(
+            showContextMenuAction?.payload.items.map((item: ContextMenuItem) => item.key)
+        ).to.eql(["modify-columns"]);
+    });
+
+    it("opens the column picker when the header is clicked while no columns are displayed", () => {
+        // Arrange
+        const state = mergeState(initialState, { selection: { columns: [] } });
+        const { actions, store } = configureMockStore({ state });
+        const { container } = render(
+            <Provider store={store}>
+                <Header />
+            </Provider>
+        );
+
+        // Act
+        fireEvent.click(
+            container.querySelector(`#${Tutorial.COLUMN_HEADERS_ID} > div > div`) as Element
+        );
+
+        // Assert: the picker itself is the menu, rather than an item that opens it
+        const showContextMenuAction = actions.list.find(
+            (action) => action.type === interaction.actions.SHOW_CONTEXT_MENU
+        );
+        expect(
+            showContextMenuAction?.payload.items.map((item: ContextMenuItem) => item.key)
+        ).to.eql(["available-annotations"]);
+    });
+
+    it("does not open the column picker when a header with columns is clicked", () => {
+        // Arrange
+        const state = mergeState(initialState, {
+            selection: { columns: [{ name: AnnotationName.FILE_NAME, width: 150 }] },
+        });
+        const { actions, store } = configureMockStore({ state });
+        const { container } = render(
+            <Provider store={store}>
+                <Header />
+            </Provider>
+        );
+
+        // Act
+        fireEvent.click(
+            container.querySelector(`#${Tutorial.COLUMN_HEADERS_ID} > div > div`) as Element
+        );
+
+        // Assert
+        expect(actions.list.some((action) => action.type === interaction.actions.SHOW_CONTEXT_MENU))
+            .to.be.false;
     });
 
     it("dispatches reorderColumns with reordered columns when column is dragged to new position", () => {

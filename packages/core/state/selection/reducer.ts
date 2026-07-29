@@ -45,6 +45,9 @@ import {
     REORDER_COLUMNS,
     ReorderColumnsAction,
     SetAvailableAnnotationsAction,
+    SELECT_COLUMNS,
+    SET_HAS_USER_SELECTED_COLUMNS,
+    SetHasUserSelectedColumnsAction,
 } from "./actions";
 import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
@@ -67,6 +70,9 @@ export interface SelectionStateBranch {
     fileSelection: FileSelection;
     fileView: FileView;
     filters: FileFilter[];
+    // Whether `columns` is a subset deliberately chosen by the user. When false, every available
+    // annotation is displayed as a column and newly loaded annotations are added automatically.
+    hasUserSelectedColumns: boolean;
     isLoadingDataSource: boolean;
     lastTouchedFolder?: FileFolder;
     openFileFolders: FileFolder[];
@@ -92,6 +98,7 @@ export const initialState = {
     fileSelection: new FileSelection(),
     fileView: FileView.LIST,
     filters: [],
+    hasUserSelectedColumns: false,
     isLoadingDataSource: false,
     openFileFolders: [],
     queries: [],
@@ -193,6 +200,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             annotationHierarchy: initialState.annotationHierarchy,
             columns: initialState.columns,
+            hasUserSelectedColumns: initialState.hasUserSelectedColumns,
             filters: initialState.filters,
             fileView: initialState.fileView,
             lastTouchedFolder: undefined,
@@ -228,6 +236,17 @@ export default makeReducer<SelectionStateBranch>(
         [SET_COLUMNS]: (state, action: SetColumns) => ({
             ...state,
             columns: action.payload,
+        }),
+        // SELECT_COLUMNS is turned into a SET_COLUMNS by `selectColumnsLogic`; here it only needs to
+        // record that the columns displayed from now on are the user's choice rather than the default
+        // of every available annotation.
+        [SELECT_COLUMNS]: (state) => ({
+            ...state,
+            hasUserSelectedColumns: true,
+        }),
+        [SET_HAS_USER_SELECTED_COLUMNS]: (state, action: SetHasUserSelectedColumnsAction) => ({
+            ...state,
+            hasUserSelectedColumns: action.payload,
         }),
         [SET_FILE_SELECTION]: (state, action: SetFileSelection) => {
             const focusedItem = action.payload.focusedItem;

@@ -60,6 +60,9 @@ import {
     RESIZE_COLUMN,
     ResizeColumnAction,
     setColumns,
+    setHasUserSelectedColumns,
+    SELECT_COLUMNS,
+    SelectColumnsAction,
     Column,
     ChangeFileFilterTypeAction,
     AddFileFilterAction,
@@ -69,7 +72,7 @@ import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
-import { AnnotationValue } from "../../entity/Annotation";
+import Annotation, { AnnotationValue } from "../../entity/Annotation";
 import SearchParams, { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -483,6 +486,51 @@ const resizeColumnLogic = createLogic({
 });
 
 /**
+ * Interceptor responsible for turning a SELECT_COLUMNS action into the SET_COLUMNS action that
+ * actually determines which columns the file list displays. Columns that are already displayed keep
+ * their current position and width; newly selected columns are appended to the end of the list and
+ * sized to fit their content.
+ */
+const selectColumnsLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: selectedAnnotationNames } = deps.action as SelectColumnsAction;
+        const currentColumns = selectionSelectors.getColumns(deps.getState());
+        const nameToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
+            deps.getState()
+        );
+        const annotationService = interaction.selectors.getAnnotationService(deps.getState());
+
+        const retainedColumns = currentColumns.filter((column) =>
+            selectedAnnotationNames.includes(column.name)
+        );
+        const addedAnnotationNames = selectedAnnotationNames.filter(
+            (name) => !currentColumns.some((column) => column.name === name)
+        );
+
+        // Size any newly added columns to fit their content, mirroring how columns are sized when
+        // they are first created in `receiveAnnotationsLogic`
+        const addedAnnotations = addedAnnotationNames
+            .map((name) => nameToAnnotationMap.get(name))
+            .filter((annotation): annotation is Annotation => !!annotation);
+        const widthByAnnotation = addedAnnotations.length
+            ? await annotationService.fetchOptimalWidthForAnnotations(addedAnnotations)
+            : new Map<string, number>();
+
+        dispatch(
+            setColumns([
+                ...retainedColumns,
+                ...addedAnnotationNames.map((name) => ({
+                    name,
+                    width: widthByAnnotation.get(name) ?? DEFAULT_COLUMN_WIDTH,
+                })),
+            ])
+        );
+        done();
+    },
+    type: SELECT_COLUMNS,
+});
+
+/**
  * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
  * other actions responsible for rehydrating the SearchParams into application state.
  */
@@ -491,6 +539,7 @@ const decodeSearchParamsLogics = createLogic({
         const encodedURL = deps.action.payload;
         const {
             columns,
+            hasUserSelectedColumns,
             hierarchy,
             fileView,
             filters,
@@ -507,6 +556,13 @@ const decodeSearchParamsLogics = createLogic({
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
             columns && dispatch(setColumns(columns));
+            // Only meaningful alongside columns; without any, the default of displaying every
+            // available annotation applies
+            dispatch(
+                setHasUserSelectedColumns(
+                    !!columns?.length && !!hasUserSelectedColumns
+                ) as AnyAction
+            );
             dispatch(setFileFilters(filters));
             fileView && dispatch(setFileView(fileView) as AnyAction);
             dispatch(setOpenFileFolders(openFolders));
@@ -1030,4 +1086,5 @@ export default [
     changeQueryLogic,
     removeQueryLogic,
     resizeColumnLogic,
+    selectColumnsLogic,
 ];

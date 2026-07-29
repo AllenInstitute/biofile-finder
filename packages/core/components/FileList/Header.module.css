@@ -19,6 +19,10 @@
   pointer-events: auto;
 }
 
+.header-context-menu-target {
+  height: var(--inner-header-size);
+}
+
 .header {
   background-color: var(--primary-background-color);
   border-radius: var(--small-border-radius);
@@ -27,6 +31,13 @@
 
 .header:hover {
   background-color: var(--accent-dark);
+}
+
+/* Keeps the header visible (and clickable) when no columns are displayed, since it is the only way
+   back to the column picker */
+.empty-header {
+  cursor: pointer;
+  height: var(--inner-header-size);
 }
 
 .header > div {

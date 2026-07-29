@@ -4,9 +4,10 @@ import { map } from "lodash";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
+import ColumnPicker from "./ColumnPicker";
 import useDragAndDropOrder from "./useDragAndDropOrder";
 import useVisibleColumns from "./useVisibleCells";
-import { ContextMenuItem } from "../ContextMenu";
+import { ContextMenuItem, ContextualMenuItemType } from "../ContextMenu";
 import Tooltip from "../Tooltip";
 import FileRow, { CellConfig } from "../../components/FileRow";
 import { SortOrder } from "../../entity/FileSort";
@@ -61,8 +62,32 @@ function Header(
         dispatch(selection.actions.sortColumn(columnName));
     };
 
+    const columnPickerMenuItems: ContextMenuItem[] = [
+        {
+            key: "available-annotations",
+            text: "Available annotations",
+            onRender() {
+                return <ColumnPicker />;
+            },
+        },
+    ];
+
+    // Available from any part of the header, including the empty space beyond the last column
+    const modifyColumnsMenuItem: ContextMenuItem = {
+        key: "modify-columns",
+        text: "Modify columns",
+        title: "Modify columns displayed in the file list",
+        iconProps: {
+            iconName: "TripleColumnEdit",
+        },
+        items: columnPickerMenuItems,
+    };
+
     const onHeaderColumnClick = (evt: React.MouseEvent, columnName: string) => {
         evt.preventDefault();
+        // Prevent this from also reaching the header's own onContextMenu, which would replace this
+        // column-specific menu with the generic one
+        evt.stopPropagation();
         const items: ContextMenuItem[] = [
             {
                 key: "Move to start",
@@ -84,8 +109,24 @@ function Header(
                     );
                 },
             },
+            {
+                key: "modify-columns-divider",
+                itemType: ContextualMenuItemType.Divider,
+            },
+            modifyColumnsMenuItem,
         ];
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
+    };
+
+    const onHeaderContextMenu = (evt: React.MouseEvent) => {
+        evt.preventDefault();
+        dispatch(interaction.actions.showContextMenu([modifyColumnsMenuItem], evt.nativeEvent));
+    };
+
+    // With no columns displayed there is no column header to right-click, so the empty header is
+    // kept visible and a plain click on it opens the picker directly
+    const onEmptyHeaderClick = (evt: React.MouseEvent) => {
+        dispatch(interaction.actions.showContextMenu(columnPickerMenuItems, evt.nativeEvent));
     };
 
     // Identify leaf names that appear on more than one column so we can
@@ -173,13 +214,25 @@ function Header(
 
     return (
         <div ref={ref} {...rest}>
-            <div className={styles.headerWrapper} id={Tutorial.COLUMN_HEADERS_ID}>
-                <FileRow
-                    cells={headerCells}
-                    className={styles.header}
-                    onResize={onResize}
-                    padding={padding}
-                />
+            <div
+                className={styles.headerWrapper}
+                id={Tutorial.COLUMN_HEADERS_ID}
+                onContextMenu={onHeaderContextMenu}
+            >
+                {/* Gives the full height of the header, including the space beyond the last column,
+                    something to receive right-clicks; the wrapper itself can't, since it disables
+                    pointer events to keep the first file row clickable */}
+                <div className={styles.headerContextMenuTarget}>
+                    <FileRow
+                        cells={headerCells}
+                        className={classNames(styles.header, {
+                            [styles.emptyHeader]: !allColumnNames.length,
+                        })}
+                        onClick={allColumnNames.length ? undefined : onEmptyHeaderClick}
+                        onResize={onResize}
+                        padding={padding}
+                    />
+                </div>
             </div>
             <div className={styles.listParent}>{children}</div>
         </div>
