@@ -24,6 +24,7 @@ interface WriteStreamOptions {
 interface DownloadOptions {
     downloadRequestId: string;
     encoding?: BufferEncoding;
+    onProgress?: (transferredBytes: number) => void;
     outFilePath: string;
     postData?: string;
     requestOptions: http.RequestOptions | https.RequestOptions;
@@ -58,6 +59,28 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             return (await this.isLocalPath(fileInfo.path))
                 ? this.copyDirectory(fileInfo, downloadRequestId, onProgress, destination)
                 : this.downloadCloudDirectory(fileInfo, downloadRequestId, onProgress, destination);
+        }
+
+        if (!fileInfo.data) {
+            let downloadPath = fileInfo.path;
+            // S3 protocol URLs can't be requested directly, format as an https resource
+            if (downloadPath.startsWith("s3")) {
+                downloadPath =
+                    (await this.s3StorageService.formatAsHttpResource(downloadPath)) ||
+                    downloadPath;
+            }
+            if (!downloadPath.startsWith("http")) {
+                throw new DownloadFailure(
+                    `Unable to download ${fileInfo.name}. Only files with a remote location can be downloaded; this file is at ${fileInfo.path}.`,
+                    downloadRequestId
+                );
+            }
+            return this.downloadHttpFile(
+                { ...fileInfo, path: downloadPath },
+                downloadRequestId,
+                onProgress,
+                destination
+            );
         }
 
         const data = fileInfo.data || fileInfo.path;
@@ -184,6 +207,21 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
 
         // retry policy: 3 times no matter the exception, with randomized exponential backoff between attempts
         const retry = Policy.handleAll().retry().attempts(3).exponential();
+
+        // Without a known size there is nothing to range over, ask for the whole body
+        if (!fileSize) {
+            return retry.execute(() =>
+                this.downloadOverHttp({
+                    downloadRequestId,
+                    onProgress,
+                    outFilePath,
+                    requestOptions: { method: "GET" },
+                    url: fileInfo.path,
+                    writeStreamOptions: { flags: "w" },
+                })
+            );
+        }
+
         let bytesDownloaded = -1;
         while (bytesDownloaded < fileSize) {
             const startByte = bytesDownloaded + 1;
@@ -249,6 +287,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         const {
             downloadRequestId,
             encoding,
+            onProgress,
             postData,
             outFilePath,
             requestOptions,
@@ -302,6 +341,12 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                             });
                         }
                     });
+
+                    if (onProgress) {
+                        incomingMsg.on("data", (chunk: Buffer | string) => {
+                            onProgress(chunk.length);
+                        });
+                    }
 
                     incomingMsg.pipe(outFileStream);
                 }

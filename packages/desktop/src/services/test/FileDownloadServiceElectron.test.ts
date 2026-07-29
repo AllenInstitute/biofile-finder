@@ -12,6 +12,7 @@ import sinon from "sinon";
 
 import { DownloadFailure } from "../../../../core/errors";
 import { DownloadResolution } from "../../../../core/services";
+import S3StorageService from "../../../../core/services/S3StorageService";
 import { RUN_IN_RENDERER } from "../../util/constants";
 import FileDownloadServiceElectron from "../FileDownloadServiceElectron";
 import { noop } from "lodash";
@@ -216,6 +217,87 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
                     const typedErr = err as NodeJS.ErrnoException;
                     expect(typedErr.code).to.equal("ENOENT", typedErr.message);
                 }
+            }
+        });
+
+        it("downloads an http file of unknown size in full", async () => {
+            // Arrange
+            const downloadHost = "https://aics-test.corp.alleninstitute.org/labkey/fmsfiles/image";
+            const fileName = "image.czi";
+            const filePath = `/some/path/${fileName}`;
+
+            nock(downloadHost)
+                .persist()
+                .get(filePath)
+                .reply(function () {
+                    const { range } = this.req.headers;
+                    if (range) {
+                        const { start, end } = parseRangeHeader(range);
+                        return [206, fs.createReadStream(sourceFile, { start, end })];
+                    }
+                    return [200, fs.createReadStream(sourceFile)];
+                });
+
+            const service = new FileDownloadServiceElectron();
+            const onProgress = sinon.spy();
+            const fileInfo = {
+                id: "abc123",
+                name: fileName,
+                path: path.join(downloadHost, filePath),
+            };
+
+            // Act
+            const result = await service.download(fileInfo, "beepbop", onProgress, tempdir);
+
+            // Assert
+            expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
+            const downloaded = await fs.promises.readFile(path.join(tempdir, fileName));
+            expect(downloaded.length).to.equal((await fs.promises.stat(sourceFile)).size);
+            expect(onProgress.called).to.equal(true);
+        });
+
+        it("downloads a file at an s3 protocol path", async () => {
+            // Arrange
+            const fileName = "image.czi";
+
+            nock("https://s3.amazonaws.com")
+                .get(`/some-bucket/path/to/${fileName}`)
+                .reply(200, () => fs.createReadStream(sourceFile));
+
+            const service = new FileDownloadServiceElectron(new S3StorageService());
+            const fileInfo = {
+                id: "abc123",
+                name: fileName,
+                path: `s3://some-bucket/path/to/${fileName}`,
+            };
+
+            // Act
+            const result = await service.download(fileInfo, "beepbop", noop, tempdir);
+
+            // Assert
+            expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
+            const downloaded = await fs.promises.readFile(path.join(tempdir, fileName));
+            expect(downloaded.length).to.equal((await fs.promises.stat(sourceFile)).size);
+        });
+
+        it("fails a file that is only available locally", async () => {
+            // Arrange
+            const service = new FileDownloadServiceElectron(new S3StorageService());
+            const fileInfo = {
+                id: "abc123",
+                name: "image.czi",
+                path: "/allen/programs/some/path/image.czi",
+            };
+
+            // Act / Assert
+            try {
+                await service.download(fileInfo, "beepbop", noop, tempdir);
+
+                // Shouldn't hit, but here to ensure test isn't evergreen
+                throw new assert.AssertionError({ message: `Expected exception to be thrown` });
+            } catch (err) {
+                expect(err).to.be.instanceOf(DownloadFailure);
+                expect((err as DownloadFailure).message).to.contain(fileInfo.path);
             }
         });
     });
