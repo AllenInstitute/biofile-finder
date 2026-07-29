@@ -543,14 +543,13 @@ describe("DatabaseService", () => {
         });
     });
 
-    describe("processProvenance", () => {
+    describe("getProvenanceEdgeDefinitions", () => {
         function createMockService(rows: Record<string, unknown>[]): DatabaseService {
             class MockProvenanceDatabaseService extends DatabaseServiceNoop {
-                sourceProvenanceName = "prov-source";
                 query(): { promise: Promise<any> } {
                     return { promise: Promise.resolve(rows) };
                 }
-                deleteSourceProvenance(): Promise<void> {
+                protected addDataSource(): Promise<void> {
                     return Promise.resolve();
                 }
             }
@@ -593,7 +592,9 @@ describe("DatabaseService", () => {
             const service = createMockService(rows);
 
             // Act
-            const { edgeDefinitions, warnings } = await service.processProvenance(provenanceSource);
+            const { edgeDefinitions, warnings } = await service.getProvenanceEdgeDefinitions(
+                provenanceSource
+            );
 
             // Assert
             expect(edgeDefinitions).to.have.lengthOf(1);
@@ -621,7 +622,9 @@ describe("DatabaseService", () => {
             const service = createMockService([duplicatedRow, { ...duplicatedRow }]);
 
             // Act
-            const { edgeDefinitions, warnings } = await service.processProvenance(provenanceSource);
+            const { edgeDefinitions, warnings } = await service.getProvenanceEdgeDefinitions(
+                provenanceSource
+            );
 
             // Assert
             expect(edgeDefinitions).to.have.lengthOf(1);

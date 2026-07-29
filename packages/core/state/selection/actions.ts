@@ -641,25 +641,6 @@ export function toggleNullValueGroups(showNullValues?: boolean): SetShowNullValu
 }
 
 /**
- * DECODE_FILE_EXPLORER_URL
- *
- * Intention to decode an incoming file explorer URL into application state
- */
-export const DECODE_FILE_EXPLORER_URL = makeConstant(STATE_BRANCH_NAME, "decode-file-explorer-url");
-
-export interface DecodeSearchParamsAction {
-    payload: string;
-    type: string;
-}
-
-export function decodeSearchParams(decodedSearchParams: string): DecodeSearchParamsAction {
-    return {
-        payload: decodedSearchParams,
-        type: DECODE_FILE_EXPLORER_URL,
-    };
-}
-
-/**
  * CHANGE_DATA_SOURCES
  *
  * Intention to update the data sources queries are run against.

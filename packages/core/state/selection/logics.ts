@@ -16,7 +16,6 @@ import {
     setFileSelection,
     TOGGLE_FILE_FOLDER_COLLAPSE,
     setOpenFileFolders,
-    DECODE_FILE_EXPLORER_URL,
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
     setSortColumn,
@@ -24,7 +23,6 @@ import {
     SetAnnotationHierarchyAction,
     RemoveFromAnnotationHierarchyAction,
     ReorderAnnotationHierarchyAction,
-    decodeSearchParams,
     ADD_QUERY,
     AddQuery,
     changeQuery,
@@ -70,7 +68,7 @@ import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import { AnnotationValue } from "../../entity/Annotation";
-import SearchParams, { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
+import { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -483,47 +481,6 @@ const resizeColumnLogic = createLogic({
 });
 
 /**
- * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
- * other actions responsible for rehydrating the SearchParams into application state.
- */
-const decodeSearchParamsLogics = createLogic({
-    async process(deps: ReduxLogicDeps, dispatch, done) {
-        const encodedURL = deps.action.payload;
-        const {
-            columns,
-            hierarchy,
-            fileView,
-            filters,
-            openFolders,
-            showNoValueGroups,
-            sortColumn,
-            sources,
-            sourceMetadata,
-            provenanceSource,
-            provOriginId,
-        } = SearchParams.decode(encodedURL);
-
-        batch(() => {
-            dispatch(changeDataSources(sources));
-            dispatch(setAnnotationHierarchy(hierarchy));
-            columns && dispatch(setColumns(columns));
-            dispatch(setFileFilters(filters));
-            fileView && dispatch(setFileView(fileView) as AnyAction);
-            dispatch(setOpenFileFolders(openFolders));
-            dispatch(setSortColumn(sortColumn));
-            dispatch(toggleNullValueGroups(showNoValueGroups) as AnyAction);
-        });
-        batch(() => {
-            dispatch(changeSourceMetadata(sourceMetadata));
-            dispatch(changeProvenanceSource(provenanceSource));
-            dispatch(changeProvenanceOriginId(provOriginId) as AnyAction);
-        });
-        done();
-    },
-    type: [DECODE_FILE_EXPLORER_URL],
-});
-
-/**
  * Interceptor responsible for processing SELECT_NEARBY_FILE actions into SET_FILE_SELECTION actions.
  */
 const selectNearbyFile = createLogic({
@@ -781,9 +738,10 @@ const changeProvenanceSourceLogic = createLogic({
 
         try {
             if (selectedSourceProvenance) {
-                const { edgeDefinitions, warnings } = await databaseService.processProvenance(
-                    selectedSourceProvenance
-                );
+                const {
+                    edgeDefinitions,
+                    warnings,
+                } = await databaseService.getProvenanceEdgeDefinitions(selectedSourceProvenance);
                 dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
                 // provenance definitions may finish loading after we've already processed url query args.
                 // If we do have a graph origin, this ensures the graph actually starts rendering
@@ -802,7 +760,6 @@ const changeProvenanceSourceLogic = createLogic({
                     );
                 }
             } else {
-                await databaseService.deleteSourceProvenance();
                 dispatch(metadata.actions.receiveEdgeDefinitions([]));
                 // if we no longer have provenance definitions, we need to clear the graph origin
                 dispatch(changeProvenanceOriginId() as AnyAction);
@@ -898,11 +855,28 @@ const changeQueryLogic = createLogic({
         }));
 
         if (newlySelectedQuery) {
-            dispatch(
-                decodeSearchParams(SearchParams.encode(newlySelectedQuery.parts)) as AnyAction
-            );
+            const { parts } = newlySelectedQuery;
+            batch(() => {
+                dispatch(setQueries(updatedQueries));
+                dispatch(changeDataSources(parts.sources));
+                dispatch(setAnnotationHierarchy(parts.hierarchy));
+                parts.columns && dispatch(setColumns(parts.columns));
+                dispatch(setFileFilters(parts.filters));
+                parts.fileView && dispatch(setFileView(parts.fileView) as AnyAction);
+                dispatch(setOpenFileFolders(parts.openFolders));
+                dispatch(setSortColumn(parts.sortColumn));
+                dispatch(toggleNullValueGroups(parts.showNoValueGroups) as AnyAction);
+            });
+            batch(() => {
+                dispatch(changeSourceMetadata(newlySelectedQuery.parts.sourceMetadata));
+                dispatch(changeProvenanceSource(newlySelectedQuery.parts.provenanceSource));
+                dispatch(
+                    changeProvenanceOriginId(newlySelectedQuery.parts.provOriginId) as AnyAction
+                );
+            });
+        } else {
+            dispatch(setQueries(updatedQueries));
         }
-        dispatch(setQueries(updatedQueries));
         done();
     },
     transform(deps: ReduxLogicDeps, next) {
@@ -1017,7 +991,6 @@ export default [
     modifyFileFilters,
     toggleFileFolderCollapse,
     expandAllFileFolders,
-    decodeSearchParamsLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
     changeDataSourceLogic,

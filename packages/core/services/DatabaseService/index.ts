@@ -158,7 +158,6 @@ export default abstract class DatabaseService {
     protected readonly SOURCE_PROVENANCE_TABLE = "source_provenance";
     private static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));
     protected sourceMetadataName?: string;
-    public sourceProvenanceName?: string;
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
@@ -685,30 +684,6 @@ export default abstract class DatabaseService {
         }
         // If the source doesn't have a uri, we should instead try to use the cached table
         this.sourceMetadataName = sourceMetadata.name;
-    }
-
-    private async prepareSourceProvenance(sourceProvenance: Source): Promise<void> {
-        const isPreviousSource = sourceProvenance.name === this.sourceProvenanceName;
-        if (isPreviousSource) {
-            return;
-        }
-        await this.deleteSourceProvenance();
-        await this.prepareDataSourceWrapper(
-            {
-                ...sourceProvenance,
-                name: this.SOURCE_PROVENANCE_TABLE,
-            },
-            true
-        );
-        this.sourceProvenanceName = sourceProvenance.name;
-    }
-
-    public async deleteSourceProvenance(): Promise<void> {
-        if (this.sourceProvenanceName) {
-            await this.deleteDataSource(this.SOURCE_PROVENANCE_TABLE);
-            this.dataSourceToProvenanceMap.clear();
-            this.sourceProvenanceName = undefined;
-        }
     }
 
     public async deleteSourceMetadata(): Promise<void> {
@@ -1301,13 +1276,26 @@ export default abstract class DatabaseService {
         await this.execute(this.getUpdateHiddenUIDSQL(viewName));
     }
 
-    public async processProvenance(
+    public async getProvenanceEdgeDefinitions(
         provenanceSource: Source
     ): Promise<{ edgeDefinitions: EdgeDefinition[]; warnings: string[] }> {
-        await this.prepareSourceProvenance(provenanceSource);
+        // Check if we have already processed this provenance source and cached the results
+        // otherwise, process this source and invalidate the cache
+        const cachedEdgeDefinitions = this.getProvenanceCache(provenanceSource);
+        // TODO: Should warnings be cached?
+        if (!isNil(cachedEdgeDefinitions))
+            return { edgeDefinitions: cachedEdgeDefinitions, warnings: [] };
 
         const sql = new SQLBuilder().select("*").from(`${this.SOURCE_PROVENANCE_TABLE}`).toSQL();
         try {
+            // Load the provenance source into the database
+            await this.prepareDataSourceWrapper(
+                { ...provenanceSource, name: this.SOURCE_PROVENANCE_TABLE },
+                true
+            );
+
+            // Query the edge definitions from the provenance source and
+            // process them into a usable format
             const rows = await this.query(sql).promise;
 
             const parentsAndChildren = new Set<string>();
@@ -1346,7 +1334,7 @@ export default abstract class DatabaseService {
             throw err;
         } finally {
             // The definitions will already be in the state memory, no need to keep this in the database
-            await this.deleteSourceProvenance();
+            // await this.deleteSourceProvenance();
         }
     }
 
@@ -1551,5 +1539,15 @@ export default abstract class DatabaseService {
                 .execute(`INSERT INTO "${this.sourceMetadataName}" ("Column Name", "Description")
                     VALUES ('${columnName}', '${description}');`);
         }
+    }
+
+    private setProvenanceCache(provenanceSource: Source, edgeDefinitions: EdgeDefinition[]): void {
+        const cacheKey = provenanceSource.name;
+        this.dataSourceToProvenanceMap.set(cacheKey, edgeDefinitions);
+    }
+
+    private getProvenanceCache(provenanceSource: Source): EdgeDefinition[] | undefined {
+        const cacheKey = provenanceSource.name;
+        return this.dataSourceToProvenanceMap.get(cacheKey);
     }
 }
