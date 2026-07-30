@@ -5,15 +5,35 @@ describe("ExecutionEnvServiceWeb", () => {
     const service = new ExecutionEnvServiceWeb();
 
     describe("formatPathForHost", () => {
-        it("is just an identity function", async () => {
+        it("returns the POSIX path unchanged on non-Windows", async () => {
             // Arrange
-            const input = "/Volumes/programs/object/path.ext";
+            const input = "/allen/programs/allencell/fms/object.foo";
 
             // Act
             const actual = await service.formatPathForHost(input);
 
             // Assert
             expect(actual).to.equal(input);
+        });
+
+        it("converts POSIX path to UNC path on Windows", async () => {
+            // Arrange
+            const originalNavigator = global.navigator;
+            (global as any).navigator = {
+                userAgent:
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            };
+
+            // Act
+            const actual = await service.formatPathForHost(
+                "/allen/programs/allencell/fms/object.foo"
+            );
+
+            // Restore
+            (global as any).navigator = originalNavigator;
+
+            // Assert
+            expect(actual).to.equal(String.raw`\\allen\programs\allencell\fms\object.foo`);
         });
     });
 
