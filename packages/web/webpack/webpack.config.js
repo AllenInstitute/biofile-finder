@@ -87,7 +87,7 @@ module.exports = ({ analyze, production } = {}) => ({
                 ],
             },
             {
-                test: /\.png/,
+                test: /\.(png|jpe?g)/,
                 type: "asset/resource",
             },
         ],
@@ -95,6 +95,7 @@ module.exports = ({ analyze, production } = {}) => ({
     output: {
         path: path.resolve(__dirname, "../", "dist"),
         filename: "[name].[chunkhash].js",
+        publicPath: "/",
     },
     plugins: getPluginsByEnv(production, analyze),
     resolve: {

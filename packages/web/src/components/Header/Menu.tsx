@@ -34,12 +34,12 @@ export default function Menu() {
                     Open-source datasets
                 </Link>
                 <Link
-                    to="learn"
+                    to="user-guide"
                     className={styles.routeLink}
                     target={isApp ? "_blank" : "_self"}
                     rel="noreferrer"
                 >
-                    Learn
+                    User guide
                 </Link>
                 <PrimaryFluent
                     ariaLabel="Help"
@@ -79,11 +79,11 @@ export default function Menu() {
                             href: "/datasets",
                         },
                         {
-                            key: "learn",
-                            text: "Learn",
+                            key: "user-guide",
+                            text: "User guide",
                             target: isApp ? "_blank" : "_self",
                             rel: "noreferrer",
-                            href: "/learn",
+                            href: "/user-guide",
                         },
                         {
                             key: "help",
