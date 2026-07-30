@@ -781,13 +781,26 @@ const changeProvenanceSourceLogic = createLogic({
 
         try {
             if (selectedSourceProvenance) {
-                const edgeDefinitions = await databaseService.processProvenance(
+                const { edgeDefinitions, warnings } = await databaseService.processProvenance(
                     selectedSourceProvenance
                 );
                 dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
                 // provenance definitions may finish loading after we've already processed url query args.
                 // If we do have a graph origin, this ensures the graph actually starts rendering
                 dispatch(changeProvenanceOriginId(origin) as AnyAction);
+
+                if (warnings.length > 0) {
+                    const definitions = warnings.length === 1 ? "definition" : "definitions";
+                    const intro = `Skipped processing ${warnings.length} relationship edge ${definitions} due to missing or invalid data`;
+                    const fullWarning = `${intro}:<br /> - ${warnings.join("<br /> - ")}`;
+                    dispatch(
+                        interaction.actions.processWarning(
+                            "processProvenanceWarning",
+                            `${intro}...`,
+                            fullWarning
+                        )
+                    );
+                }
             } else {
                 await databaseService.deleteSourceProvenance();
                 dispatch(metadata.actions.receiveEdgeDefinitions([]));

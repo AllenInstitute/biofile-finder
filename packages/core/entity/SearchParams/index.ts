@@ -77,6 +77,11 @@ export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
     openFolders: [],
     sources: [{ name: AICS_FMS_DATA_SOURCE_NAME }],
     filters: [PAST_YEAR_FILTER],
+    provenanceSource: {
+        name: "AICS",
+        type: "csv",
+        uri: "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com/FMS.provenance.csv",
+    },
     sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
 };
 
