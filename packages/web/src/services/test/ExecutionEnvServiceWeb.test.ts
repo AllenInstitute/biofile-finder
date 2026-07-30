@@ -18,11 +18,13 @@ describe("ExecutionEnvServiceWeb", () => {
 
         it("converts POSIX path to UNC path on Windows", async () => {
             // Arrange
-            const originalNavigator = global.navigator;
-            (global as any).navigator = {
-                userAgent:
+            const originalUserAgent = navigator.userAgent;
+            Object.defineProperty(navigator, "userAgent", {
+                value:
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            };
+                configurable: true,
+                writable: true,
+            });
 
             // Act
             const actual = await service.formatPathForHost(
@@ -30,7 +32,11 @@ describe("ExecutionEnvServiceWeb", () => {
             );
 
             // Restore
-            (global as any).navigator = originalNavigator;
+            Object.defineProperty(navigator, "userAgent", {
+                value: originalUserAgent,
+                configurable: true,
+                writable: true,
+            });
 
             // Assert
             expect(actual).to.equal(String.raw`\\allen\programs\allencell\fms\object.foo`);
