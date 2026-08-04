@@ -116,10 +116,10 @@ export enum TemporaryFileServiceBaseUrl {
 }
 
 export enum JSSBaseUrl {
-    LOCALHOST = "http://ip-10-141-0-217.us-west-2.compute.internal:9061",
+    LOCALHOST = "http://localhost:9061",
     STAGING = "https://stg-aics-api.corp.alleninstitute.org",
     PRODUCTION = "https://aics-api.corp.alleninstitute.org",
-    TEST = "https://stg-aics-api.corp.alleninstitute.org",
+    TEST = "http://test-aics-api.corp.alleninstitute.org",
 }
 
 export const UNSAVED_DATA_WARNING =
