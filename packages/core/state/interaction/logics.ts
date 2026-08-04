@@ -301,10 +301,7 @@ const downloadFilesLogic = createLogic({
                 id: file.uid,
                 name: file.name,
                 size: file.size,
-                path: fileDownloadService.isFileSystemAccessible
-                    ? ((file.getFirstAnnotationValue(AnnotationName.LOCAL_FILE_PATH) ||
-                          file.path) as string)
-                    : file.path,
+                path: file.path,
             }));
         }
 

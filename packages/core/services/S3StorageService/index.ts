@@ -24,9 +24,12 @@ export default class S3StorageService extends HttpServiceBase {
      */
     private static formatAsHttpResource(parsedUrl: ParsedUrl) {
         const bucketSimplified = parsedUrl.bucket.length > 0 ? `${parsedUrl.bucket}/` : "";
-        return `https://${parsedUrl.hostname}/${bucketSimplified}${encodeURIComponent(
-            parsedUrl.key
-        )}`;
+        // Encode each segment of the key separately
+        const encodedKey = parsedUrl.key
+            .split("/")
+            .map((segment) => encodeURIComponent(segment))
+            .join("/");
+        return `https://${parsedUrl.hostname}/${bucketSimplified}${encodedKey}`;
     }
 
     /**
