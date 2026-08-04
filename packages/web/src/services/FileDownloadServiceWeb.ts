@@ -151,7 +151,6 @@ Please navigate to this directory manually, or upload files to a remote address 
             const a = document.createElement("a");
             a.href = downloadUrl;
             a.download = fileInfo.name;
-            // No target="_blank": Chrome treats cross-origin anchors with that attribute as popups, blocking concurrent downloads.
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
