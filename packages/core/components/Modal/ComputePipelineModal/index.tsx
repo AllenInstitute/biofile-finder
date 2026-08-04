@@ -82,6 +82,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
     // User field
     const [userId, setUserId] = React.useState<string>("");
     const [userIdError, setUserIdError] = React.useState<string>("");
+    const [userValidated, setUserValidated] = React.useState(false);
 
     // Submission state
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -203,6 +204,24 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
         setFieldErrors((prev) => ({ ...prev, [param.name]: err }));
     };
 
+    const onUserIdBlur = React.useCallback(async () => {
+        const trimmed = userId.trim();
+        if (!trimmed) return;
+        try {
+            const valid = await pipelineService.validateUser(trimmed);
+            if (valid) {
+                setUserIdError("");
+                setUserValidated(true);
+            } else {
+                setUserIdError("User not found in Active Directory.");
+                setUserValidated(false);
+            }
+        } catch {
+            setUserIdError("Unable to validate user. Please try again.");
+            setUserValidated(false);
+        }
+    }, [userId, pipelineService]);
+
     const onSubmit = async () => {
         if (!selectedPipeline || !selectedCluster) return;
 
@@ -218,9 +237,34 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
             const err = validateParam(p, optionalValues[name]);
             if (err) errors[name] = err;
         }
-        const userErr = userId.trim() === "" ? "This field is required." : "";
-        if (userErr) setUserIdError(userErr);
-        if (Object.values(errors).some(Boolean) || userErr) {
+
+        const trimmedUserId = userId.trim();
+        if (!trimmedUserId) {
+            setUserIdError("This field is required.");
+            setFieldErrors(errors);
+            return;
+        }
+        if (userIdError) {
+            setFieldErrors(errors);
+            return;
+        }
+        if (!userValidated) {
+            try {
+                const valid = await pipelineService.validateUser(trimmedUserId);
+                if (valid) {
+                    setUserValidated(true);
+                } else {
+                    setUserIdError("User not found in Active Directory.");
+                    setFieldErrors(errors);
+                    return;
+                }
+            } catch {
+                setUserIdError("Unable to validate user. Please try again.");
+                setFieldErrors(errors);
+                return;
+            }
+        }
+        if (Object.values(errors).some(Boolean)) {
             setFieldErrors(errors);
             return;
         }
@@ -387,8 +431,10 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                                 value={userId}
                                 onChange={(_, v) => {
                                     setUserId(v ?? "");
-                                    if (userIdError) setUserIdError("");
+                                    setUserIdError("");
+                                    setUserValidated(false);
                                 }}
+                                onBlur={onUserIdBlur}
                                 placeholder="Enter your user ID (ex. first.last)"
                                 borderless
                                 className={styles.textField}

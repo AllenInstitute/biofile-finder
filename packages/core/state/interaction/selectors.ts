@@ -98,6 +98,7 @@ export const getPipelineService = createSelector(
         new PipelineService({
             loadBalancerBaseUrl: LoadBalancerBaseUrl[environment],
             jssBaseUrl: JSSBaseUrl[environment],
+            metadataManagementServiceBaseURl: MMSBaseUrl[environment],
         })
 );
 
