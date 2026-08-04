@@ -16,7 +16,6 @@ import {
     setFileSelection,
     TOGGLE_FILE_FOLDER_COLLAPSE,
     setOpenFileFolders,
-    DECODE_FILE_EXPLORER_URL,
     SET_ANNOTATION_HIERARCHY,
     SELECT_NEARBY_FILE,
     setSortColumn,
@@ -24,7 +23,6 @@ import {
     SetAnnotationHierarchyAction,
     RemoveFromAnnotationHierarchyAction,
     ReorderAnnotationHierarchyAction,
-    decodeSearchParams,
     ADD_QUERY,
     AddQuery,
     changeQuery,
@@ -64,17 +62,19 @@ import {
     ChangeFileFilterTypeAction,
     AddFileFilterAction,
     RemoveFileFilterAction,
+    setSelectedDescriptionSource,
 } from "./actions";
 import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 import { AnnotationValue } from "../../entity/Annotation";
-import SearchParams, { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
+import { DatasetSources } from "../../entity/MarkdownFrontMatter";
+import { DEFAULT_COLUMN_WIDTH, FileView, isMarkdownType, Source } from "../../entity/SearchParams";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
@@ -483,47 +483,6 @@ const resizeColumnLogic = createLogic({
 });
 
 /**
- * Interceptor responsible for processing DECODE_FILE_EXPLORER_URL actions into various
- * other actions responsible for rehydrating the SearchParams into application state.
- */
-const decodeSearchParamsLogics = createLogic({
-    async process(deps: ReduxLogicDeps, dispatch, done) {
-        const encodedURL = deps.action.payload;
-        const {
-            columns,
-            hierarchy,
-            fileView,
-            filters,
-            openFolders,
-            showNoValueGroups,
-            sortColumn,
-            sources,
-            sourceMetadata,
-            provenanceSource,
-            provOriginId,
-        } = SearchParams.decode(encodedURL);
-
-        batch(() => {
-            dispatch(changeDataSources(sources));
-            dispatch(setAnnotationHierarchy(hierarchy));
-            columns && dispatch(setColumns(columns));
-            dispatch(setFileFilters(filters));
-            fileView && dispatch(setFileView(fileView) as AnyAction);
-            dispatch(setOpenFileFolders(openFolders));
-            dispatch(setSortColumn(sortColumn));
-            dispatch(toggleNullValueGroups(showNoValueGroups) as AnyAction);
-        });
-        batch(() => {
-            dispatch(changeSourceMetadata(sourceMetadata));
-            dispatch(changeProvenanceSource(provenanceSource));
-            dispatch(changeProvenanceOriginId(provOriginId) as AnyAction);
-        });
-        done();
-    },
-    type: [DECODE_FILE_EXPLORER_URL],
-});
-
-/**
  * Interceptor responsible for processing SELECT_NEARBY_FILE actions into SET_FILE_SELECTION actions.
  */
 const selectNearbyFile = createLogic({
@@ -661,9 +620,77 @@ const selectNearbyFile = createLogic({
  */
 const changeDataSourceLogic = createLogic({
     type: CHANGE_DATA_SOURCES,
+    async transform(deps: ReduxLogicDeps, next, reject) {
+        const { getState, action, ctx } = deps;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(getState());
+        // Intercept to check for markdown before continuing with the action since
+        // markdown files may be present when changeDataSource is called directly from an existing query
+        const selectedDataSources = action.payload as Source[];
+        const datasetDescriptionSource = selectedDataSources.find((source) =>
+            isMarkdownType(source.type)
+        );
+        if (!datasetDescriptionSource) {
+            return next(action);
+        }
+
+        let parsedMetadata: DatasetSources | undefined;
+        try {
+            // Check if already exists in the cache
+            const cachedSources = databaseService.getDatasetDescriptionSources(
+                datasetDescriptionSource
+            );
+            parsedMetadata = cachedSources
+                ? cachedSources
+                : (await databaseService.processMarkdown(datasetDescriptionSource)).metadata;
+        } catch (e) {
+            reject && reject(deps.action);
+            return;
+        }
+
+        // context to pass along in order to dispatch from the main process
+        ctx.markdownSource = datasetDescriptionSource;
+        ctx.parsedMetadata = parsedMetadata;
+
+        const mainDatasource = parsedMetadata?.dataSource;
+        if (mainDatasource) {
+            return next({
+                ...action,
+                payload: [
+                    // avoid duplicates and remove the markdown file
+                    ...selectedDataSources.filter(
+                        (source) =>
+                            !isMarkdownType(source.type) && source.name !== mainDatasource.name
+                    ),
+                    mainDatasource,
+                ],
+            });
+        }
+        return next(action); // perform the original action and pass through uncaught errors
+    },
     async process(deps: ReduxLogicDeps, dispatch, done) {
         dispatch(setIsLoadingSource(true) as AnyAction);
         const { payload: selectedDataSources } = deps.action as ChangeDataSourcesAction;
+        const { markdownSource, parsedMetadata } = deps.ctx as {
+            markdownSource?: Source;
+            parsedMetadata?: DatasetSources;
+        };
+        if (markdownSource) {
+            if (!parsedMetadata?.dataSource) {
+                dispatch(
+                    interaction.actions.processError(
+                        markdownSource.name,
+                        "Failed to process markdown file"
+                    )
+                );
+            } else {
+                dispatch(setSelectedDescriptionSource(markdownSource));
+                if (parsedMetadata.provenanceSource)
+                    dispatch(changeProvenanceSource(parsedMetadata.provenanceSource));
+                if (parsedMetadata.descriptionsSource)
+                    dispatch(changeSourceMetadata(parsedMetadata.descriptionsSource));
+            }
+        }
+
         const dataSources = interaction.selectors.getAllDataSources(deps.getState());
         const { databaseService } = interaction.selectors.getPlatformDependentServices(
             deps.getState()
@@ -834,6 +861,11 @@ const addQueryLogic = createLogic({
             } else {
                 await databaseService.deleteSourceMetadata();
             }
+            if (newQuery.parts.provenanceSource) {
+                await databaseService.processProvenance(newQuery.parts.provenanceSource);
+            } else {
+                await databaseService.deleteSourceProvenance();
+            }
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
@@ -886,6 +918,9 @@ const addQueryLogic = createLogic({
 const changeQueryLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: newlySelectedQuery } = deps.action as ChangeQuery;
+        const { databaseService } = interaction.selectors.getPlatformDependentServices(
+            deps.getState()
+        );
         const currentQueries = selectionSelectors.getQueries(deps.getState());
         const currentQueryParts = selectionSelectors.getCurrentQueryParts(deps.getState());
         const updatedQueries = currentQueries.map((query) => ({
@@ -898,11 +933,90 @@ const changeQueryLogic = createLogic({
         }));
 
         if (newlySelectedQuery) {
-            dispatch(
-                decodeSearchParams(SearchParams.encode(newlySelectedQuery.parts)) as AnyAction
-            );
+            const { parts } = newlySelectedQuery;
+            let mainSources = parts.sources;
+            let provenanceSource = parts.provenanceSource;
+            let columnDescriptionSource = parts.sourceMetadata;
+            const datasetDescriptionSource = parts.sources.find((source) => {
+                return isMarkdownType(source.type);
+            });
+            if (datasetDescriptionSource) {
+                let parsedMetadata: DatasetSources | undefined;
+                try {
+                    // Check if already exists in the cache
+                    const cachedSources = databaseService.getDatasetDescriptionSources(
+                        datasetDescriptionSource
+                    );
+                    parsedMetadata = cachedSources
+                        ? cachedSources
+                        : (await databaseService.processMarkdown(datasetDescriptionSource))
+                              .metadata;
+                } catch (e) {
+                    dispatch(
+                        interaction.actions.processError(
+                            datasetDescriptionSource.name,
+                            `Failed to process markdown file, ${(e as Error).message}`
+                        )
+                    );
+                }
+                // TO DO: data source isn't necessary if the user already provided a source separately
+                if (!parsedMetadata || !parsedMetadata.dataSource) {
+                    dispatch(
+                        interaction.actions.processError(
+                            datasetDescriptionSource.name,
+                            "Failed to process markdown file, no metadata provided in schema"
+                        )
+                    );
+                } else {
+                    // TO DO: warn the user if these urls don't match what they provided
+                    const mainSource = parsedMetadata.dataSource;
+                    if (mainSource) {
+                        mainSources = [
+                            ...parts.sources.filter(
+                                (source) =>
+                                    source.name !== mainSource?.name && !isMarkdownType(source.type)
+                            ),
+                            mainSource,
+                        ];
+                    }
+                    // allow users to override the markdown
+                    if (parsedMetadata.provenanceSource && !parts.provenanceSource) {
+                        provenanceSource = parsedMetadata.provenanceSource;
+                    }
+                    // allow users to override the markdown
+                    if (parsedMetadata.descriptionsSource && !parts.sourceMetadata) {
+                        columnDescriptionSource = parsedMetadata.descriptionsSource;
+                    }
+                    // set cache
+                    databaseService.setDatasetDescriptionSources(datasetDescriptionSource.name, {
+                        dataSource: mainSource,
+                        provenanceSource: parsedMetadata.provenanceSource,
+                        descriptionsSource: parsedMetadata.descriptionsSource,
+                    });
+                }
+            }
+            batch(() => {
+                dispatch(setQueries(updatedQueries));
+                dispatch(setSelectedDescriptionSource(datasetDescriptionSource));
+                dispatch(changeDataSources(mainSources));
+                dispatch(setAnnotationHierarchy(parts.hierarchy));
+                dispatch(setColumns(parts.columns ?? []));
+                dispatch(setFileFilters(parts.filters));
+                dispatch(setFileView(parts.fileView || FileView.LIST) as AnyAction);
+                dispatch(setOpenFileFolders(parts.openFolders));
+                dispatch(setSortColumn(parts.sortColumn));
+                dispatch(toggleNullValueGroups(parts.showNoValueGroups) as AnyAction);
+            });
+            batch(() => {
+                dispatch(changeSourceMetadata(columnDescriptionSource));
+                dispatch(changeProvenanceSource(provenanceSource));
+                dispatch(
+                    changeProvenanceOriginId(newlySelectedQuery.parts.provOriginId) as AnyAction
+                );
+            });
+        } else {
+            dispatch(setQueries(updatedQueries));
         }
-        dispatch(setQueries(updatedQueries));
         done();
     },
     transform(deps: ReduxLogicDeps, next) {
@@ -1017,7 +1131,6 @@ export default [
     modifyFileFilters,
     toggleFileFolderCollapse,
     expandAllFileFolders,
-    decodeSearchParamsLogics,
     selectNearbyFile,
     setAvailableAnnotationsLogic,
     changeDataSourceLogic,
