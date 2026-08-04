@@ -12,6 +12,7 @@ export enum PersistedConfigKeys {
     DisplayAnnotations = "DISPLAY_ANNOTATIONS", // Deprecated, kept for backwards compatibility
     ImageJExecutable = "IMAGE_J_EXECUTABLE", // Deprecated
     HasUsedApplicationBefore = "HAS_USED_APPLICATION_BEFORE",
+    HasUserSelectedColumns = "HAS_USER_SELECTED_COLUMNS",
     UserSelectedApplications = "USER_SELECTED_APPLICATIONS",
     Queries = "QUERIES",
     RecentAnnotations = "RECENT_ANNOTATIONS",
@@ -31,6 +32,7 @@ export interface PersistedConfig {
     [PersistedConfigKeys.Environment]?: Environment;
     [PersistedConfigKeys.ImageJExecutable]?: string; // Deprecated
     [PersistedConfigKeys.HasUsedApplicationBefore]?: boolean;
+    [PersistedConfigKeys.HasUserSelectedColumns]?: boolean;
     [PersistedConfigKeys.Queries]?: Query[];
     [PersistedConfigKeys.RecentAnnotations]?: string[];
     [PersistedConfigKeys.UserSelectedApplications]?: UserSelectedApplication[];

@@ -184,6 +184,40 @@ export function setColumns(columns: Column[]) {
     };
 }
 
+// Records whether the user explicitly chose which columns to display.
+export const SET_HAS_USER_SELECTED_COLUMNS = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-has-user-selected-columns"
+);
+
+export interface SetHasUserSelectedColumnsAction {
+    payload: boolean;
+    type: string;
+}
+
+export function setHasUserSelectedColumns(
+    hasUserSelectedColumns: boolean
+): SetHasUserSelectedColumnsAction {
+    return {
+        payload: hasUserSelectedColumns,
+        type: SET_HAS_USER_SELECTED_COLUMNS,
+    };
+}
+
+export const SELECT_COLUMNS = makeConstant(STATE_BRANCH_NAME, "select-columns");
+
+export interface SelectColumnsAction {
+    payload: string[]; // names of the annotations to display as columns
+    type: string;
+}
+
+export function selectColumns(annotationNames: string[]): SelectColumnsAction {
+    return {
+        payload: annotationNames,
+        type: SELECT_COLUMNS,
+    };
+}
+
 /**
  * REORDER_COLUMN
  *

@@ -18,6 +18,7 @@ export const getColumns = (state: State) => state.selection.columns;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getFileView = (state: State) => state.selection.fileView;
+export const getHasUserSelectedColumns = (state: State) => state.selection.hasUserSelectedColumns;
 export const getIsLoadingSource = (state: State) => state.selection.isLoadingDataSource;
 export const getLastTouchedFolder = (state: State) => state.selection.lastTouchedFolder;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
@@ -89,6 +90,7 @@ export const getCurrentQueryParts = createSelector(
         getColumns,
         getFileFilters,
         getFileView,
+        getHasUserSelectedColumns,
         getOpenFileFolders,
         getShouldShowNullGroups,
         getSortColumn,
@@ -102,6 +104,7 @@ export const getCurrentQueryParts = createSelector(
         columns,
         filters,
         fileView,
+        hasUserSelectedColumns,
         openFolders,
         showNoValueGroups,
         sortColumn,
@@ -111,6 +114,7 @@ export const getCurrentQueryParts = createSelector(
         provOriginId
     ): SearchParamsComponents => ({
         columns,
+        hasUserSelectedColumns,
         hierarchy,
         fileView,
         filters,

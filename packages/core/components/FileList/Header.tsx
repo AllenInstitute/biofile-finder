@@ -4,9 +4,10 @@ import { map } from "lodash";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
+import ColumnPicker from "./ColumnPicker";
 import useDragAndDropOrder from "./useDragAndDropOrder";
 import useVisibleColumns from "./useVisibleCells";
-import { ContextMenuItem } from "../ContextMenu";
+import { ContextMenuItem, ContextualMenuItemType } from "../ContextMenu";
 import Tooltip from "../Tooltip";
 import FileRow, { CellConfig } from "../../components/FileRow";
 import { SortOrder } from "../../entity/FileSort";
@@ -61,9 +62,32 @@ function Header(
         dispatch(selection.actions.sortColumn(columnName));
     };
 
+    const columnPickerMenuItems: ContextMenuItem[] = [
+        {
+            key: "available-annotations",
+            text: "Available annotations",
+            onRender() {
+                return <ColumnPicker />;
+            },
+        },
+    ];
+
+    const modifyColumnsMenuItem: ContextMenuItem = {
+        key: "modify-columns",
+        text: "Modify columns",
+        title: "Modify columns displayed in the file list",
+        items: columnPickerMenuItems,
+    };
+
     const onHeaderColumnClick = (evt: React.MouseEvent, columnName: string) => {
         evt.preventDefault();
+        evt.stopPropagation();
         const items: ContextMenuItem[] = [
+            modifyColumnsMenuItem,
+            {
+                key: "modify-columns-divider",
+                itemType: ContextualMenuItemType.Divider,
+            },
             {
                 key: "Move to start",
                 text: "Move to start",
@@ -86,6 +110,16 @@ function Header(
             },
         ];
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
+    };
+
+    const onHeaderContextMenu = (evt: React.MouseEvent) => {
+        evt.preventDefault();
+        dispatch(interaction.actions.showContextMenu([modifyColumnsMenuItem], evt.nativeEvent));
+    };
+
+    // No columns means no header to right-click; a plain click on the empty header opens the picker.
+    const onEmptyHeaderClick = (evt: React.MouseEvent) => {
+        dispatch(interaction.actions.showContextMenu(columnPickerMenuItems, evt.nativeEvent));
     };
 
     // Identify leaf names that appear on more than one column so we can
@@ -173,13 +207,22 @@ function Header(
 
     return (
         <div ref={ref} {...rest}>
-            <div className={styles.headerWrapper} id={Tutorial.COLUMN_HEADERS_ID}>
-                <FileRow
-                    cells={headerCells}
-                    className={styles.header}
-                    onResize={onResize}
-                    padding={padding}
-                />
+            <div
+                className={styles.headerWrapper}
+                id={Tutorial.COLUMN_HEADERS_ID}
+                onContextMenu={onHeaderContextMenu}
+            >
+                <div className={styles.headerContextMenuTarget}>
+                    <FileRow
+                        cells={headerCells}
+                        className={classNames(styles.header, {
+                            [styles.emptyHeader]: !allColumnNames.length,
+                        })}
+                        onClick={allColumnNames.length ? undefined : onEmptyHeaderClick}
+                        onResize={onResize}
+                        padding={padding}
+                    />
+                </div>
             </div>
             <div className={styles.listParent}>{children}</div>
         </div>

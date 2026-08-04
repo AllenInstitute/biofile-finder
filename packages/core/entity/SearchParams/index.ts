@@ -30,6 +30,7 @@ export interface Source {
 // Components of the application state this captures
 export interface SearchParamsComponents {
     columns?: Column[];
+    hasUserSelectedColumns?: boolean;
     hierarchy: string[];
     fileView?: FileView;
     sources: Source[];
@@ -104,6 +105,7 @@ export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
 enum URLQueryArgShorthands {
     COLUMNS = "c",
     FILE_VIEW = "v",
+    HAS_USER_SELECTED_COLUMNS = "cs",
     PROVENANCE_ORIGIN_ID = "p",
 }
 
@@ -111,8 +113,10 @@ class ColumnCoder {
     private static readonly COLUMN_DELIMITER = ",";
     private static readonly VALUE_DELIMITER = ":";
     private static readonly COLUMN_VALUE_PRECISION = 10; // The divisor used when encoding column widths to shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths
+    // Arbitrary URL length limit; default columns beyond this regenerate on load anyway
+    private static readonly DEFAULT_COLUMN_LIMIT = 6;
 
-    public static encode(columns: Column[]): string {
+    public static encode(columns: Column[], areColumnsUserSelected = false): string {
         return (
             columns
                 // Encode width as divided by COLUMN_VALUE_PRECISION to shorten the resulting URL;
@@ -123,9 +127,10 @@ class ColumnCoder {
                             column.width / ColumnCoder.COLUMN_VALUE_PRECISION
                         )}`
                 )
-                // Arbitrary limit to prevent URLs from getting too long;
-                // if users have more than 6 columns they can resize and reorder them in-app after loading the URL
-                .slice(0, 6)
+                .slice(
+                    0,
+                    areColumnsUserSelected ? columns.length : ColumnCoder.DEFAULT_COLUMN_LIMIT
+                )
                 .join(ColumnCoder.COLUMN_DELIMITER)
         );
     }
@@ -169,7 +174,13 @@ export default class SearchParams {
     public static encode(urlComponents: Partial<SearchParamsComponents>): string {
         const params = new URLSearchParams();
         if (urlComponents.columns?.length) {
-            params.append(URLQueryArgShorthands.COLUMNS, ColumnCoder.encode(urlComponents.columns));
+            params.append(
+                URLQueryArgShorthands.COLUMNS,
+                ColumnCoder.encode(urlComponents.columns, urlComponents.hasUserSelectedColumns)
+            );
+            if (urlComponents.hasUserSelectedColumns) {
+                params.append(URLQueryArgShorthands.HAS_USER_SELECTED_COLUMNS, "true");
+            }
         }
         // Avoid including default in the URL
         if (urlComponents.fileView && urlComponents.fileView !== FileView.LIST) {
@@ -272,6 +283,8 @@ export default class SearchParams {
         const hierarchy = params.getAll("group");
         const unparsedSort = params.get("sort");
         const unparsedColumns = params.get(URLQueryArgShorthands.COLUMNS) || "";
+        const hasUserSelectedColumns =
+            params.get(URLQueryArgShorthands.HAS_USER_SELECTED_COLUMNS) === "true";
         const showNoValueGroupsString = params.get("showNulls");
         const fileView = (params.get(URLQueryArgShorthands.FILE_VIEW) as FileView) || FileView.LIST;
         const hierarchyDepth = hierarchy.length;
@@ -289,6 +302,7 @@ export default class SearchParams {
             fileView,
             hierarchy,
             columns: ColumnCoder.decode(unparsedColumns),
+            hasUserSelectedColumns,
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
                 .map(
