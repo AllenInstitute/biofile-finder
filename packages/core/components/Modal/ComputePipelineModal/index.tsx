@@ -1,4 +1,4 @@
-import { IComboBoxOption, Icon, Spinner, TextField } from "@fluentui/react";
+import { Icon, Spinner, TextField } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -63,6 +63,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
     const [pipelines, setPipelines] = React.useState<Pipeline[]>([]);
     const [selectedPipeline, setSelectedPipeline] = React.useState<Pipeline | null>(null);
     const [selectedCluster, setSelectedCluster] = React.useState<string | null>(null);
+    const [selectedDestination, setSelectedDestination] = React.useState<string | null>(null);
     const [parameters, setParameters] = React.useState<PipelineParameter[]>([]);
 
     // File state (count only — paths are fetched at submit time)
@@ -122,6 +123,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
             setSelectedPipeline(pipeline);
             const defaultCluster = pipeline.clusters[0] ?? null;
             setSelectedCluster(defaultCluster);
+            setSelectedDestination(pipeline.destinations[0] ?? null);
 
             setPhase("loading");
 
@@ -150,31 +152,6 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
             }
         },
         [pipelineService]
-    );
-
-    // Re-fetch params when cluster changes
-    const onClusterChange = React.useCallback(
-        async (option?: IComboBoxOption) => {
-            if (!option || !selectedPipeline) return;
-            const cluster = option.key as string;
-            setSelectedCluster(cluster);
-
-            setPhase("loading");
-
-            try {
-                const params = await pipelineService.getParameters(selectedPipeline.id, cluster);
-                setParameters(params);
-                setAddedOptionalNames([]);
-                setOptionalValues({});
-                setOptionalSelectorKey(null);
-                setFieldErrors({});
-                setPhase("configuring");
-            } catch {
-                setErrorMessage("Failed to load pipeline parameters.");
-                setPhase("error");
-            }
-        },
-        [pipelineService, selectedPipeline]
     );
 
     // requiredParams are always shown; optionalParams are user-added one at a time via a dropdown.
@@ -270,6 +247,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
             const result = await pipelineService.submitComputeTask({
                 pipeline: selectedPipeline.id,
                 cluster: selectedCluster,
+                destination: selectedDestination,
                 user: userId || null,
                 filePaths,
                 parameters: {
@@ -301,7 +279,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
     };
 
     const isSubmitting = phase === "submitting";
-    const submitDisabled = isSubmitting || fileCount === 0 || !selectedCluster;
+    const submitDisabled = isSubmitting || fileCount === 0 || !selectedDestination;
 
     const renderBody = () => {
         if (phase === "loading") {
@@ -389,14 +367,16 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
 
                         <div className={styles.section}>
                             <BaseComboBox
-                                label="Run Location"
-                                options={selectedPipeline.clusters.map((c) => ({
-                                    key: c,
-                                    text: c,
+                                label="Destination"
+                                options={selectedPipeline.destinations.map((d) => ({
+                                    key: d,
+                                    text: d,
                                 }))}
-                                selectedKey={selectedCluster ?? undefined}
-                                onChange={onClusterChange}
-                                placeholder="Select a cluster"
+                                selectedKey={selectedDestination ?? undefined}
+                                onChange={(option) =>
+                                    option && setSelectedDestination(option.key as string)
+                                }
+                                placeholder="Select a destination"
                             />
                         </div>
 

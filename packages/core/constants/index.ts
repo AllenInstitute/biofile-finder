@@ -115,5 +115,12 @@ export enum TemporaryFileServiceBaseUrl {
     TEST = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080",
 }
 
+export enum JSSBaseUrl {
+    LOCALHOST = "http://localhost:9061",
+    STAGING = "https://stg-aics-api.corp.alleninstitute.org",
+    PRODUCTION = "https://aics-api.corp.alleninstitute.org",
+    TEST = "http://test-aics-api.corp.alleninstitute.org",
+}
+
 export const UNSAVED_DATA_WARNING =
     "Edits to data source files are not preserved by this app. Download to save a copy with your changes.";
