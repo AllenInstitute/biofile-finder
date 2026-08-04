@@ -485,12 +485,7 @@ const resizeColumnLogic = createLogic({
     type: RESIZE_COLUMN,
 });
 
-/**
- * Interceptor responsible for turning a SELECT_COLUMNS action into the SET_COLUMNS action that
- * actually determines which columns the file list displays. Columns that are already displayed keep
- * their current position and width; newly selected columns are appended to the end of the list and
- * sized to fit their content.
- */
+// Retained columns keep their position and width; new ones are appended and sized to fit.
 const selectColumnsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: selectedAnnotationNames } = deps.action as SelectColumnsAction;
@@ -507,8 +502,7 @@ const selectColumnsLogic = createLogic({
             (name) => !currentColumns.some((column) => column.name === name)
         );
 
-        // Size any newly added columns to fit their content, mirroring how columns are sized when
-        // they are first created in `receiveAnnotationsLogic`
+        // Size new columns to fit their content.
         const addedAnnotations = addedAnnotationNames
             .map((name) => nameToAnnotationMap.get(name))
             .filter((annotation): annotation is Annotation => !!annotation);
@@ -556,8 +550,6 @@ const decodeSearchParamsLogics = createLogic({
             dispatch(changeDataSources(sources));
             dispatch(setAnnotationHierarchy(hierarchy));
             columns && dispatch(setColumns(columns));
-            // Only meaningful alongside columns; without any, the default of displaying every
-            // available annotation applies
             dispatch(
                 setHasUserSelectedColumns(
                     !!columns?.length && !!hasUserSelectedColumns

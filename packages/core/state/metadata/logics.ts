@@ -122,8 +122,7 @@ const receiveAnnotationsLogic = createLogic({
             displayableAnnotations.map((annotation) => annotation.name)
         );
 
-        // When the user has picked which columns to display, respect that choice rather than
-        // displaying every annotation; only drop columns this data source can no longer display.
+        // Respect the user's selection; only drop columns unavailable in this data source.
         const validUserSelectedColumns = currentColumns.filter((column) =>
             displayableAnnotationNames.has(column.name)
         );
@@ -135,8 +134,7 @@ const receiveAnnotationsLogic = createLogic({
             return;
         }
 
-        // None of the user's selected columns exist here (e.g. an entirely different data source
-        // was loaded), so fall back to displaying every annotation
+        // No user-selected columns available in this source (e.g. different data source); fall back to all annotations.
         if (hasUserSelectedColumns) {
             dispatch(selection.actions.setHasUserSelectedColumns(false) as AnyAction);
         }

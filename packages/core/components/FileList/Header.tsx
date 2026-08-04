@@ -72,14 +72,10 @@ function Header(
         },
     ];
 
-    // Available from any part of the header, including the empty space beyond the last column
     const modifyColumnsMenuItem: ContextMenuItem = {
         key: "modify-columns",
         text: "Modify columns",
         title: "Modify columns displayed in the file list",
-        iconProps: {
-            iconName: "TripleColumnEdit",
-        },
         items: columnPickerMenuItems,
     };
 
@@ -89,6 +85,11 @@ function Header(
         // column-specific menu with the generic one
         evt.stopPropagation();
         const items: ContextMenuItem[] = [
+            modifyColumnsMenuItem,
+            {
+                key: "modify-columns-divider",
+                itemType: ContextualMenuItemType.Divider,
+            },
             {
                 key: "Move to start",
                 text: "Move to start",
@@ -109,11 +110,6 @@ function Header(
                     );
                 },
             },
-            {
-                key: "modify-columns-divider",
-                itemType: ContextualMenuItemType.Divider,
-            },
-            modifyColumnsMenuItem,
         ];
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
     };
@@ -123,8 +119,7 @@ function Header(
         dispatch(interaction.actions.showContextMenu([modifyColumnsMenuItem], evt.nativeEvent));
     };
 
-    // With no columns displayed there is no column header to right-click, so the empty header is
-    // kept visible and a plain click on it opens the picker directly
+    // No columns means no header to right-click; a plain click on the empty header opens the picker.
     const onEmptyHeaderClick = (evt: React.MouseEvent) => {
         dispatch(interaction.actions.showContextMenu(columnPickerMenuItems, evt.nativeEvent));
     };
@@ -219,9 +214,7 @@ function Header(
                 id={Tutorial.COLUMN_HEADERS_ID}
                 onContextMenu={onHeaderContextMenu}
             >
-                {/* Gives the full height of the header, including the space beyond the last column,
-                    something to receive right-clicks; the wrapper itself can't, since it disables
-                    pointer events to keep the first file row clickable */}
+                {/* Captures right-clicks across the full header width; the wrapper disables pointer events to keep rows clickable */}
                 <div className={styles.headerContextMenuTarget}>
                     <FileRow
                         cells={headerCells}

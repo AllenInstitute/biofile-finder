@@ -115,16 +115,10 @@ class ColumnCoder {
     private static readonly COLUMN_DELIMITER = ",";
     private static readonly VALUE_DELIMITER = ":";
     private static readonly COLUMN_VALUE_PRECISION = 10; // The divisor used when encoding column widths to shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths
-    // Arbitrary limit to prevent URLs from getting too long when every available annotation is
-    // displayed; those columns are regenerated on load anyway, so the ones beyond this limit only
-    // lose their order and width, which users can adjust in-app after loading the URL
+    // Arbitrary URL length limit; default columns beyond this regenerate on load anyway
     private static readonly DEFAULT_COLUMN_LIMIT = 6;
 
-    /**
-     * When `areColumnsUserSelected`, every column must be encoded: the columns are the user's
-     * chosen subset rather than a prefix of the full list of annotations, so dropping any of them
-     * would silently remove columns the user asked to see.
-     */
+    // When user-selected, encode all columns — silently dropping any would remove ones the user chose.
     public static encode(columns: Column[], areColumnsUserSelected = false): string {
         return (
             columns
@@ -187,8 +181,6 @@ export default class SearchParams {
                 URLQueryArgShorthands.COLUMNS,
                 ColumnCoder.encode(urlComponents.columns, urlComponents.hasUserSelectedColumns)
             );
-            // Only encode when true (non-default); tells the decoder that the columns above are the
-            // complete set the user wants to see rather than a subset of every available annotation
             if (urlComponents.hasUserSelectedColumns) {
                 params.append(URLQueryArgShorthands.HAS_USER_SELECTED_COLUMNS, "true");
             }

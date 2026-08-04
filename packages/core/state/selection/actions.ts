@@ -184,13 +184,7 @@ export function setColumns(columns: Column[]) {
     };
 }
 
-/**
- * SET_HAS_USER_SELECTED_COLUMNS
- *
- * Intention to record whether the current set of columns is a subset deliberately chosen by the
- * user (as opposed to the default of displaying every available annotation). Used when rehydrating
- * state from a URL or a saved query.
- */
+// Records whether the user explicitly chose which columns to display, vs. showing all annotations by default.
 export const SET_HAS_USER_SELECTED_COLUMNS = makeConstant(
     STATE_BRANCH_NAME,
     "set-has-user-selected-columns"
@@ -210,13 +204,7 @@ export function setHasUserSelectedColumns(
     };
 }
 
-/**
- * SELECT_COLUMNS
- *
- * Intention to display only the given annotations as columns in the file list. Unlike SET_COLUMNS,
- * this represents a deliberate choice by the user of which subset of the available annotations to
- * display, which prevents newly loaded annotations from being added as columns automatically.
- */
+// Unlike SET_COLUMNS, marks columns as a deliberate user choice, preventing new annotations from auto-appearing.
 export const SELECT_COLUMNS = makeConstant(STATE_BRANCH_NAME, "select-columns");
 
 export interface SelectColumnsAction {

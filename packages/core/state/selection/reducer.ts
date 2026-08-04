@@ -70,8 +70,6 @@ export interface SelectionStateBranch {
     fileSelection: FileSelection;
     fileView: FileView;
     filters: FileFilter[];
-    // Whether `columns` is a subset deliberately chosen by the user. When false, every available
-    // annotation is displayed as a column and newly loaded annotations are added automatically.
     hasUserSelectedColumns: boolean;
     isLoadingDataSource: boolean;
     lastTouchedFolder?: FileFolder;
@@ -237,9 +235,6 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             columns: action.payload,
         }),
-        // SELECT_COLUMNS is turned into a SET_COLUMNS by `selectColumnsLogic`; here it only needs to
-        // record that the columns displayed from now on are the user's choice rather than the default
-        // of every available annotation.
         [SELECT_COLUMNS]: (state) => ({
             ...state,
             hasUserSelectedColumns: true,
