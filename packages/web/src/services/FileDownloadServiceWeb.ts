@@ -13,6 +13,8 @@ import Zarr from "../entity/Zarr";
 
 export default class FileDownloadServiceWeb extends FileDownloadService {
     isFileSystemAccessible = false;
+    private nextDownloadAt = 0;
+    private readonly DOWNLOAD_STAGGER_MS = 100;
 
     // TODO: Test this in unit tests
     public static isLocalPath(filePath: string): boolean {
@@ -151,6 +153,13 @@ Please navigate to this directory manually, or upload files to a remote address 
             const a = document.createElement("a");
             a.href = downloadUrl;
             a.download = fileInfo.name;
+            // Stagger concurrent downloads
+            const now = Date.now();
+            const delay = Math.max(0, this.nextDownloadAt - now);
+            this.nextDownloadAt = Math.max(now, this.nextDownloadAt) + this.DOWNLOAD_STAGGER_MS;
+            if (delay > 0) {
+                await new Promise<void>((resolve) => setTimeout(resolve, delay));
+            }
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
