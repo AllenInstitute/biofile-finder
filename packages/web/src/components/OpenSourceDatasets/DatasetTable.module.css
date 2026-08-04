@@ -54,15 +54,6 @@
   text-align: center;
 }
 
-.link {
-  color: var(--aqua);
-}
-
-.link:hover {
-  text-decoration: underline;
-  color: var(--bright-aqua);
-}
-
 .row-wrapper {
   display: flex;
   align-items: center;
