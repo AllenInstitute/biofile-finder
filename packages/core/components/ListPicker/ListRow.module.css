@@ -35,6 +35,27 @@
     color: var(--highlight-text-color);
 }
 
+.item-text {
+    display: flex;
+    flex-direction: row;
+    column-gap: 0.25em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-text > span {
+    flex-shrink: 0;
+}
+
+.item-text > span.breadcrumbs {
+    flex-shrink: 1;
+    flex-basis: auto;
+    min-width: 0;
+    opacity: 0.55;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .selected:not(:hover) {
     background-color: var(--secondary-background-color) !important;
     color: var(--secondary-text-color) !important;
@@ -49,11 +70,6 @@
 
 .item-container, .item-container label {
     cursor: pointer;
-}
-
-.item-container label > p {
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .disabled label {

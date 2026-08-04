@@ -3,7 +3,6 @@ import { isEmpty } from "lodash";
 
 import { QueryRow, WorkerMsgType, WorkerReqPayload, WorkerRequest, WorkerResType } from "./types";
 import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
-import { AnnotationType } from "../../../../core/entity/AnnotationFormatter";
 import { Source } from "../../../../core/entity/SearchParams";
 import SQLBuilder from "../../../../core/entity/SQLBuilder";
 import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
@@ -127,9 +126,9 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
                 (row): AnnotationResponse => {
                     return {
                         annotationName: row.name,
-                        annotationDisplayName: row.displayName,
                         description: row.description,
-                        type: row.type as AnnotationType,
+                        type: row.type,
+                        pathIsArray: row.pathIsArray,
                     };
                 }
             );
@@ -373,7 +372,10 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                 .where(`table_name = '${aggregateDataSourceName}'`)
                 .where(`column_name != '${HIDDEN_UID_ANNOTATION}'`)
                 .toSQL();
-            const rows = await this.queryWorker(sql, id);
+            const rows = await this.queryWorker<{ column_name: string; data_type: string }>(
+                sql,
+                id
+            );
             if (isEmpty(rows)) {
                 throw new Error(`Unable to fetch annotations for ${aggregateDataSourceName}`);
             }
@@ -382,16 +384,10 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
                 this.fetchAnnotationTypes(),
             ]);
 
-            const annotations = rows.map(
-                (row) =>
-                    new Annotation({
-                        annotationName: row["column_name"],
-                        annotationDisplayName: row["column_name"],
-                        description: annotationNameToDescriptionMap[row["column_name"]] || "",
-                        type:
-                            (annotationNameToTypeMap[row["column_name"]] as AnnotationType) ||
-                            DatabaseServiceWebWorker.columnTypeToAnnotationType(row["data_type"]),
-                    })
+            const annotations = DatabaseServiceWebWorker.buildAnnotationsFromRows(
+                rows,
+                annotationNameToDescriptionMap,
+                annotationNameToTypeMap
             );
             this.dataSourceToAnnotationsMap.set(aggregateDataSourceName, annotations);
         }

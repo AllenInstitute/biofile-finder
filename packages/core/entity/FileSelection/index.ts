@@ -1,8 +1,7 @@
 import { find, isArray, reject } from "lodash";
 
-import FileFilter, { FilterType } from "../FileFilter";
+import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
-import { SortOrder } from "../FileSort";
 import NumericRange from "../NumericRange";
 import FileDetail from "../FileDetail";
 import { IndexError, ValueError } from "../../errors";
@@ -495,25 +494,9 @@ export default class FileSelection {
      */
     public toCompactSelectionList(): Selection[] {
         return [...this.groupByFileSet().entries()].map(([fileSet, selectedRanges]) => ({
-            filters: fileSet.filters.reduce((accum, filter) => {
-                // Include values for fuzzy filters if present
-                if (filter.type === FilterType.DEFAULT || filter.type === FilterType.FUZZY) {
-                    return {
-                        ...accum,
-                        [filter.name]: [...(accum[filter.name] || []), filter.value],
-                    };
-                } else return accum;
-            }, {} as { [index: string]: any }),
+            filters: fileSet.filters,
             indexRanges: selectedRanges.map((range) => range.toJSON()),
-            sort: fileSet.sort
-                ? {
-                      annotationName: fileSet.sort.annotationName,
-                      ascending: fileSet.sort.order === SortOrder.ASC,
-                  }
-                : undefined,
-            fuzzy: fileSet?.fuzzyFilters?.map((filter) => filter.name),
-            include: fileSet?.includeFilters?.map((filter) => filter.name),
-            exclude: fileSet?.excludeFilters?.map((filter) => filter.name),
+            sort: fileSet.sort,
         }));
     }
 

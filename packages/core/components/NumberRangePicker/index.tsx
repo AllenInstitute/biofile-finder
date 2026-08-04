@@ -5,9 +5,9 @@ import * as React from "react";
 import NumberField from "./NumberField";
 import { PrimaryButton, TertiaryButton } from "../Buttons";
 import LoadingIcon from "../Icons/LoadingIcon";
+import { AnnotationValue } from "../../entity/Annotation";
 import FileFilter from "../../entity/FileFilter";
 import { extractValuesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/number-formatter";
-import { AnnotationValue } from "../../services/AnnotationService";
 
 import styles from "./NumberRangePicker.module.css";
 

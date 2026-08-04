@@ -10,6 +10,7 @@ interface Props {
     initialValue?: boolean;
     onChange: (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, isCheckedEv?: boolean) => void;
     label: string;
+    title?: string;
 }
 
 /**
@@ -38,6 +39,7 @@ export default function Checkbox(props: Props) {
                 checkmark: styles.checkmark,
             }}
             label={props.label}
+            title={props.title}
             disabled={props?.disabled}
             onChange={onCheckboxChange}
         />

@@ -7,9 +7,6 @@
 }
 
 .root {
-    --pagination-height: 40px;
-    --padding: 10px;
-
     background-color: var(--primary-background-color);
     color: var(--primary-text-color);
     display: flex;
@@ -41,20 +38,13 @@
 
 .pagination {
     width: 100%;
-    height: var(--pagination-height);
-}
-
-.pagination-and-content {
-    padding: 12px 12px 0 16px;
-    width: 100%;
+    height: 40px;
 }
 
 .overflow-container {
     overflow: auto;
-    padding-bottom: 1.25em;
-    padding-right: var(--margin);
+    padding: 12px 12px 0 16px;
     width: 100%;
-    height: calc(100% - var(--pagination-height));
 }
 
 .overflow-container::after {
@@ -63,18 +53,22 @@
     content: " ";
     height: 50px;
     right: 0;
-    max-width: var(--file-details-width);
     position: absolute;
     width: 100%;
     z-index: 11;
 }
 
-.title-row {
+.button-row {
     display: flex;
     justify-content: space-between;
 }
 
-.title-row > button {
+.button-row > div {
+    align-items: center;
+    display: flex;
+}
+
+.simple-button {
     background: none;
     border: none;
     color: var(--highlight-background-color);
@@ -82,12 +76,12 @@
     padding: 0;
 }
 
-.title-row > button:hover {
+.simple-button:hover {
     background: none;
     color: var(--highlight-hover-background-color);
 }
 
-.title-row > button span {
+.simple-button span {
     font-weight: normal;
 }
 
@@ -107,10 +101,6 @@
 .file-actions > *:last-child {
     margin-right: 0;
     width: 100%;
-}
-
-.annotation-list {
-    padding: var(--padding) 0 35px 0;
 }
 
 .thumbnail-container {
@@ -164,7 +154,6 @@
     max-height: 95vh;
     object-fit: contain;
 }
-
 
 .resize-handle {
     --resize-handle-width: 15px;

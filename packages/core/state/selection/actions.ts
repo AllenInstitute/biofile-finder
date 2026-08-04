@@ -532,11 +532,13 @@ export const SET_AVAILABLE_ANNOTATIONS = makeConstant(
 );
 
 export interface SetAvailableAnnotationsAction {
-    payload: string[];
+    payload: string[] | null;
     type: string;
 }
 
-export function setAvailableAnnotations(annotationNames: string[]): SetAvailableAnnotationsAction {
+export function setAvailableAnnotations(
+    annotationNames: string[] | null
+): SetAvailableAnnotationsAction {
     return {
         payload: annotationNames,
         type: SET_AVAILABLE_ANNOTATIONS,

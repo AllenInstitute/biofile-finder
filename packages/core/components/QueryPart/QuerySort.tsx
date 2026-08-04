@@ -42,13 +42,22 @@ export default function QuerySort(props: Props) {
             rows={
                 props.sort
                     ? [
-                          {
-                              id: props.sort.annotationName,
-                              title: `${props.sort.annotationName} (${props.sort.order})`,
-                              description:
-                                  annotationNameToAnnotationMap[props.sort.annotationName]
-                                      ?.description,
-                          },
+                          (() => {
+                              const annotation = annotationNameToAnnotationMap.get(
+                                  props.sort.annotationName
+                              );
+                              // Prefer the annotation's displayName so FMS top-level fields
+                              // show "File Name" rather than the raw key "file_name".
+                              const leafLabel =
+                                  annotation?.displayName.split(".").slice(-1)[0] ??
+                                  props.sort.path[props.sort.path.length - 1];
+                              return {
+                                  id: props.sort.annotationName,
+                                  title: `${leafLabel} (${props.sort.order})`,
+                                  titlePrefixParts: props.sort.path.slice(0, -1),
+                                  description: annotation?.description,
+                              };
+                          })(),
                       ]
                     : []
             }

@@ -707,14 +707,7 @@ describe("FileSelection", () => {
                 new NumericRange(3).toJSON(),
                 new NumericRange(12, 15).toJSON(),
             ]);
-            expect(selections[1].filters).to.deep.equal({
-                filterName: ["filterValue"],
-                [fuzzyFilterNames[0]]: [fuzzyFilterValues[0]],
-                [fuzzyFilterNames[1]]: [fuzzyFilterValues[1]],
-            });
-            expect(selections[1].fuzzy).to.deep.equal([fuzzyFilterNames[0], fuzzyFilterNames[1]]);
-            expect(selections[1].include).to.deep.equal([includeFilterName]);
-            expect(selections[1].exclude).to.deep.equal([excludeFilterName]);
+            expect(selections[1].filters).to.deep.equal(fileSet2.filters);
             expect(selections[1].indexRanges).to.deep.equal([
                 new NumericRange(8, 10).toJSON(),
                 new NumericRange(33).toJSON(),

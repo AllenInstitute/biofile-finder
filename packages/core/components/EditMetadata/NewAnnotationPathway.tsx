@@ -9,9 +9,8 @@ import { PrimaryButton, SecondaryButton, TransparentIconButton } from "../Button
 import ComboBox from "../ComboBox";
 import LoadingIcon from "../Icons/LoadingIcon";
 import Tooltip from "../Tooltip";
-import Annotation from "../../entity/Annotation";
+import Annotation, { AnnotationValue } from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
-import { AnnotationValue } from "../../services/AnnotationService";
 import { interaction, metadata } from "../../state";
 import { ProcessStatus } from "../../state/interaction/actions";
 

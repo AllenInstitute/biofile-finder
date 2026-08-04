@@ -43,11 +43,8 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
                 })}
                 initialValue={isFuzzySearching}
                 onChange={(ev, isChecked) => setIsFuzzySearching(!!isChecked)}
-                label={
-                    isFuzzySearching
-                        ? "Disable fuzzy (non-exact) matching"
-                        : "Enable fuzzy (non-exact) matching"
-                }
+                label="Fuzzy search (non-exact matching)"
+                title={isFuzzySearching ? "Turn off fuzzy search" : "Turn on fuzzy search"}
             />
             <SearchBox
                 defaultValue={props.defaultValue}

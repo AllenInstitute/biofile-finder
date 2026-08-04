@@ -2,6 +2,11 @@ import { ExecutionEnvService, SaveLocationResolution } from "../../../core/servi
 
 export default class ExecutionEnvServiceWeb implements ExecutionEnvService {
     public async formatPathForHost(posixPath: string): Promise<string> {
+        if (this.getOS() === "Windows_NT") {
+            const parts = posixPath.split("/");
+            const formatted = parts.join("\\");
+            return `\\${formatted}`;
+        }
         return posixPath;
     }
 
@@ -11,11 +16,11 @@ export default class ExecutionEnvServiceWeb implements ExecutionEnvService {
 
     public getOS(): string {
         const lowerCaseUserAgent = navigator.userAgent.toLowerCase();
-        if (lowerCaseUserAgent.includes("Darwin")) {
+        if (lowerCaseUserAgent.includes("macintosh") || lowerCaseUserAgent.includes("mac os")) {
             return "Darwin";
-        } else if (lowerCaseUserAgent.includes("Windows")) {
+        } else if (lowerCaseUserAgent.includes("windows")) {
             return "Windows_NT";
-        } else if (lowerCaseUserAgent.includes("Linux")) {
+        } else if (lowerCaseUserAgent.includes("linux")) {
             return "Linux";
         }
         return navigator.userAgent;

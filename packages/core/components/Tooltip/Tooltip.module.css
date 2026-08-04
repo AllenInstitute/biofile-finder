@@ -16,4 +16,11 @@
     color: var(--primary-text-color);
     font-size: 14px;
     font-weight: 400;
+    /* Preserve line breaks in the tooltip content */
+    white-space: pre-line;
+}
+
+.container > div > div > p {
+    /* Prevents drooping letters from cutoff */
+    padding-bottom: 1px;
 }

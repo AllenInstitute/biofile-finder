@@ -91,14 +91,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     const createFileFilter = (item: ListItem) => {
-        return new FileFilter(
-            props.annotation.name,
-            isNil(props.annotation.valueOf(item.value))
-                ? item.value
-                : props.annotation.valueOf(item.value),
-            filterType,
-            props.annotation.type as AnnotationType
-        );
+        const formattedValue = props.annotation.formatter.valueOf(item.value);
+        const value = isNil(formattedValue) ? item.value : formattedValue;
+
+        return new FileFilter(props.annotation.name, value, filterType, props.annotation.type);
     };
 
     const onFilterTypeOptionChange = (option: IChoiceGroupOption | undefined) => {
@@ -129,12 +125,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             dispatch(
                 selection.actions.setFileFilters([
                     ...allFilters.filter((filter) => filter.name !== props.annotation.name),
-                    new FileFilter(
-                        props.annotation.name,
-                        filterValue,
-                        type,
-                        props.annotation.type as AnnotationType
-                    ),
+                    new FileFilter(props.annotation.name, filterValue, type, props.annotation.type),
                 ])
             );
         }
@@ -164,7 +155,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const typeHasDedicatedPicker =
         props.annotation.name !== AnnotationName.FILE_SIZE &&
         [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
-            props.annotation.type as AnnotationType
+            props.annotation.type
         );
 
     const searchFormType = () => {

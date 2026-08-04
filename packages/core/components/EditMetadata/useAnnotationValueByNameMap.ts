@@ -17,14 +17,14 @@ export default function useAnnotationValueByNameMap() {
             const annotationMapping = new Map();
             // Group details by annotation with a count for each value
             fileDetails.forEach((file) => {
-                file.annotations.map((annotation) => {
+                [...file.metadata.entries()].forEach(([name, values]) => {
                     // For now, if a file has multiple values for an annotation it should be considered a distinct set
-                    const joinedValues = annotation.values.join(", ");
-                    if (!annotationMapping.has(annotation.name)) {
-                        annotationMapping.set(annotation.name, { [joinedValues]: 1 });
+                    const joinedValues = values.join(", ");
+                    if (!annotationMapping.has(name)) {
+                        annotationMapping.set(name, { [joinedValues]: 1 });
                     } else {
-                        const existing = annotationMapping.get(annotation.name);
-                        annotationMapping.set(annotation.name, {
+                        const existing = annotationMapping.get(name);
+                        annotationMapping.set(name, {
                             ...existing,
                             [joinedValues]: existing?.[joinedValues]
                                 ? existing[joinedValues] + 1

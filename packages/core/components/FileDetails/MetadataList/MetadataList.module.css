@@ -1,0 +1,14 @@
+.list {
+  --toggle-button-size: 24px;
+
+  /* flex parent */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0 0 35px 0;
+}
+
+.section-title {
+    padding: 20px 0;
+ }

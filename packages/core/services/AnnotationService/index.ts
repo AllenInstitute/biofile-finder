@@ -1,8 +1,6 @@
-import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
+import Annotation, { AnnotationResponseMms, AnnotationValue } from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
-
-export type AnnotationValue = string | number | boolean | Date;
 
 export interface AnnotationDetails {
     type: AnnotationType;
@@ -24,9 +22,9 @@ export default interface AnnotationService {
         path: string[],
         filters: FileFilter[]
     ): Promise<string[]>;
-    fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[]>;
+    fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[] | null>;
     fetchOptimalWidthForAnnotations(
-        annotationNames: string[],
+        annotations: Annotation[],
         ignoreWidthLimit?: boolean
     ): Promise<Map<string, number>>;
     validateAnnotationValues(name: string, values: AnnotationValue[]): Promise<boolean>;

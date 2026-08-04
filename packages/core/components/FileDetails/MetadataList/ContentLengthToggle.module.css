@@ -1,0 +1,17 @@
+.icon {
+    color: var(--light-grey);
+    font-size: 8px;
+    font-weight: 700;
+    width: var(--toggle-button-size);
+    height: var(--toggle-button-size);
+
+    /* Align actual icon in center */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon:hover {
+    color: var(--aqua);
+    cursor: pointer;
+}

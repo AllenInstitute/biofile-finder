@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileDetail from "../../../entity/FileDetail";
 import FileSelection from "../../../entity/FileSelection";
 import { interaction, selection } from "../../../state";
@@ -120,20 +121,14 @@ export default function CopyFileManifest({ onDismiss }: ModalProps) {
         onDismiss();
     };
 
-    const filesInLocalCache = fileDetails.filter((file) =>
-        file.annotations.some(
-            (annotation) =>
-                annotation.name === "Should Be in Local Cache" && annotation.values[0] === true
-        )
+    const filesInLocalCache = fileDetails.filter(
+        (file) => file.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL) === true
     );
 
     const filesNotInLocalCache = fileDetails.filter(
         (file) =>
-            file.annotations.some(
-                (annotation) =>
-                    annotation.name === "Should Be in Local Cache" && annotation.values[0] === false
-            ) ||
-            !file.annotations.some((annotation) => annotation.name === "Should Be in Local Cache")
+            file.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL) === false ||
+            file.getFirstAnnotationValue(AnnotationName.SHOULD_BE_IN_LOCAL) === undefined
     );
 
     return (

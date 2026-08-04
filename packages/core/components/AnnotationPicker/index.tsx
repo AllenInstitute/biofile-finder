@@ -36,6 +36,11 @@ interface Props {
 /**
  * Form for selecting which annotations to use in some exterior context like
  * downloading a manifest.
+ *
+ * Nested sub-field annotations (e.g. "Well.Gene", "Well.Dose.Unit") are listed under their
+ * top-level parent, with each leaf showing its full ancestry as breadcrumbs (e.g.
+ * "Well / Dose / Unit"). Leaves are grouped by segment parents and ordered so that sub-fields
+ * sharing an intermediate parent stay adjacent.
  */
 export default function AnnotationPicker(props: Props) {
     const annotations = useSelector(metadata.selectors.getSortedAnnotations);
@@ -47,10 +52,6 @@ export default function AnnotationPicker(props: Props) {
     );
     const recentAnnotationNames = useSelector(selection.selectors.getRecentAnnotations);
 
-    const recentAnnotations = recentAnnotationNames
-        .map((name) => annotations.find((annotation) => annotation.name === name))
-        .filter((annotation) => !!annotation) as Annotation[];
-
     const isSelectable = (annotation: Annotation): boolean =>
         !props.disabledTopLevelAnnotations ||
         !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(annotation.name);
@@ -60,29 +61,53 @@ export default function AnnotationPicker(props: Props) {
         const disabled =
             !selected &&
             props.disableUnavailableAnnotations &&
-            unavailableAnnotations.some((unavailable) => unavailable.name === annotation.name);
+            unavailableAnnotations?.has(annotation.name);
         return {
             disabled,
             selected,
             data: annotation,
             value: annotation.name,
             description: annotation.description,
-            displayValue: annotation.displayName,
+            displayValue: annotation.displayName.split(".").slice(-1)[0],
             recent: recentAnnotationNames.includes(annotation.name) && !selected,
             loading: props.disableUnavailableAnnotations && areAvailableAnnotationLoading,
+            breadcrumbs: annotation.path.length > 1 ? annotation.path.slice(0, -1) : undefined,
         };
     };
 
-    // Map recent annotations into a list of items for selection
-    const nonUniqueItems = [...recentAnnotations, ...annotations]
-        .filter(isSelectable)
+    const nonUniqueItems = annotations
+        // Annotations must be selectedable and not have nested children
+        .filter((a) => isSelectable(a) && !a.isParent)
+        // Sort recent annotations to the top then sort by alphabetically
+        .sort((a, b) => {
+            // Check if annotation is more or less recent than the other
+            const aIsRecent = recentAnnotationNames.includes(a.name);
+            const bIsRecent = recentAnnotationNames.includes(b.name);
+            const isMostRecentlyUsed = aIsRecent && !bIsRecent;
+            const isLeastRecentlyUsed = bIsRecent && !aIsRecent;
+            if (isMostRecentlyUsed) return -1;
+            if (isLeastRecentlyUsed) return 1;
+            // Check if annotations are same level of nesting
+            const aIsLessNested = a.path.length < b.path.length;
+            if (aIsLessNested) return -1;
+            const bIsLessNested = b.path.length < a.path.length;
+            if (bIsLessNested) return 1;
+            // Check for first instance of divergence in path
+            // then sort alphabetically by that segment
+            for (let index = 0; index < a.path.length; index++) {
+                if (a.path[index] !== b.path[index]) {
+                    // If they diverge at this segment, sort by this segment's name alphabetically
+                    return a.path[index].localeCompare(b.path[index]);
+                }
+            }
+            return 0;
+        })
         .map(annotationToListItem);
-
     const items = uniqBy(nonUniqueItems, "value");
 
     // If there are any recent annotations add a divider between them
     // and the rest of the annotations (assuming any left)
-    if (recentAnnotations.length) {
+    if (recentAnnotationNames.length) {
         items.push(RECENT_ANNOTATIONS_DIVIDER);
     }
 
@@ -109,7 +134,10 @@ export default function AnnotationPicker(props: Props) {
             onSelect={addSelection}
             onSelectAll={
                 props.hasSelectAllCapability
-                    ? () => props.setSelections?.(annotations.map((a) => a.name))
+                    ? () =>
+                          props.setSelections?.(
+                              annotations.filter((a) => !a.isParent).map((a) => a.name)
+                          )
                     : undefined
             }
             onDeselectAll={() => props.setSelections([])}

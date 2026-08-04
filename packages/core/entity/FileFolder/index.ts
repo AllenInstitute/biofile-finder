@@ -1,6 +1,6 @@
 import { isString, isNumber } from "lodash";
 
-import { AnnotationValue } from "../../services/AnnotationService";
+import { AnnotationValue } from "../Annotation";
 import { naturalComparator } from "../../util/strings";
 
 // Interface for map necessary to re-order annotations.

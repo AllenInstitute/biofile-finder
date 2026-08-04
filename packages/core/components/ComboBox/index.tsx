@@ -6,7 +6,7 @@ import styles from "./ComboBox.module.css";
 
 interface Props {
     className?: string;
-    selectedKey?: string;
+    selectedKey?: string | null;
     disabled?: boolean;
     label: string;
     multiSelect?: boolean;

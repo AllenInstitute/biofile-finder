@@ -15,6 +15,15 @@ export const MOCK_PIPELINES: Pipeline[] = [
         acceptedExtensions: ["czi", "zarr"],
         maxFileSizeBytes: 107374182400,
     },
+    {
+        id: "zarr-conversion",
+        name: "BioIO OME Zarr Conversion",
+        description: "Converts microscopy images to OME-Zarr format.",
+        restrictions: "Does not support mosaic images at this time.",
+        clusters: ["slurm-prod"],
+        acceptedExtensions: ["czi", "tif", "tiff", "nd2"],
+        maxFileSizeBytes: null,
+    },
 ];
 
 export const MOCK_PARAMETERS: Record<string, PipelineParameter[]> = {
@@ -36,6 +45,37 @@ export const MOCK_PARAMETERS: Record<string, PipelineParameter[]> = {
             required: false,
             default: 0,
             validation: { min: 0 },
+        },
+    ],
+    "zarr-conversion": [
+        {
+            name: "file_paths",
+            label: "File Paths",
+            description: "VAST paths of files to convert.",
+            type: "file_paths",
+            required: true,
+            default: null,
+            validation: {},
+        },
+        {
+            name: "scenes",
+            label: "Scenes",
+            description:
+                "Comma-separated scene indices to export (e.g. '0,2'). Leave blank to export all scenes.",
+            type: "string",
+            required: false,
+            default: null,
+            validation: { pattern: "^[0-9]+(,[0-9]+)*$" },
+        },
+        {
+            name: "zarr_format",
+            label: "Zarr Format",
+            description: "Zarr version to write. v3 is recommended.",
+            type: "select",
+            required: false,
+            default: "3",
+            options: ["2", "3"],
+            validation: {},
         },
     ],
 };
