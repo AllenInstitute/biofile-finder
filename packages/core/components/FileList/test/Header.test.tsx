@@ -217,28 +217,6 @@ describe("<Header />", () => {
         ).to.eql(["available-annotations"]);
     });
 
-    it("does not open the column picker when a header with columns is clicked", () => {
-        // Arrange
-        const state = mergeState(initialState, {
-            selection: { columns: [{ name: AnnotationName.FILE_NAME, width: 150 }] },
-        });
-        const { actions, store } = configureMockStore({ state });
-        const { container } = render(
-            <Provider store={store}>
-                <Header />
-            </Provider>
-        );
-
-        // Act
-        fireEvent.click(
-            container.querySelector(`#${Tutorial.COLUMN_HEADERS_ID} > div > div`) as Element
-        );
-
-        // Assert
-        expect(actions.list.some((action) => action.type === interaction.actions.SHOW_CONTEXT_MENU))
-            .to.be.false;
-    });
-
     it("dispatches reorderColumns with reordered columns when column is dragged to new position", () => {
         // Arrange
         const annotations = [

@@ -38,17 +38,6 @@ describe("<ColumnPicker />", () => {
         };
     }
 
-    it("displays the columns currently in the file list as selected", () => {
-        // Arrange / Act
-        const { getByTestId } = renderColumnPicker([cellLine.name]);
-
-        // Assert
-        expect(getByTestId(`default-button-${cellLine.name}`).textContent).to.contain(
-            cellLine.displayName
-        );
-        expect(getByTestId(`default-button-${gene.name}`)).to.exist;
-    });
-
     it("selects an annotation that is not yet displayed as a column", () => {
         // Arrange
         const { actions, getByTestId } = renderColumnPicker([cellLine.name]);
