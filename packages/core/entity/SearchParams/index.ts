@@ -30,8 +30,6 @@ export interface Source {
 // Components of the application state this captures
 export interface SearchParamsComponents {
     columns?: Column[];
-    // Whether `columns` is a subset deliberately chosen by the user rather than the default of
-    // every available annotation. Determines whether the columns encoded here are authoritative.
     hasUserSelectedColumns?: boolean;
     hierarchy: string[];
     fileView?: FileView;
@@ -118,7 +116,6 @@ class ColumnCoder {
     // Arbitrary URL length limit; default columns beyond this regenerate on load anyway
     private static readonly DEFAULT_COLUMN_LIMIT = 6;
 
-    // When user-selected, encode all columns — silently dropping any would remove ones the user chose.
     public static encode(columns: Column[], areColumnsUserSelected = false): string {
         return (
             columns

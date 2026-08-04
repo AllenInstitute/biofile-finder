@@ -184,7 +184,7 @@ export function setColumns(columns: Column[]) {
     };
 }
 
-// Records whether the user explicitly chose which columns to display, vs. showing all annotations by default.
+// Records whether the user explicitly chose which columns to display.
 export const SET_HAS_USER_SELECTED_COLUMNS = makeConstant(
     STATE_BRANCH_NAME,
     "set-has-user-selected-columns"
@@ -204,7 +204,6 @@ export function setHasUserSelectedColumns(
     };
 }
 
-// Unlike SET_COLUMNS, marks columns as a deliberate user choice, preventing new annotations from auto-appearing.
 export const SELECT_COLUMNS = makeConstant(STATE_BRANCH_NAME, "select-columns");
 
 export interface SelectColumnsAction {

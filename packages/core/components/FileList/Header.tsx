@@ -81,8 +81,6 @@ function Header(
 
     const onHeaderColumnClick = (evt: React.MouseEvent, columnName: string) => {
         evt.preventDefault();
-        // Prevent this from also reaching the header's own onContextMenu, which would replace this
-        // column-specific menu with the generic one
         evt.stopPropagation();
         const items: ContextMenuItem[] = [
             modifyColumnsMenuItem,
@@ -214,7 +212,6 @@ function Header(
                 id={Tutorial.COLUMN_HEADERS_ID}
                 onContextMenu={onHeaderContextMenu}
             >
-                {/* Captures right-clicks across the full header width; the wrapper disables pointer events to keep rows clickable */}
                 <div className={styles.headerContextMenuTarget}>
                     <FileRow
                         cells={headerCells}

@@ -485,7 +485,7 @@ const resizeColumnLogic = createLogic({
     type: RESIZE_COLUMN,
 });
 
-// Retained columns keep their position and width; new ones are appended and sized to fit.
+// Retained columns keep their position and width.
 const selectColumnsLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { payload: selectedAnnotationNames } = deps.action as SelectColumnsAction;

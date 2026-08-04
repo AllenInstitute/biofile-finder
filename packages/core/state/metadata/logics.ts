@@ -114,7 +114,6 @@ const receiveAnnotationsLogic = createLogic({
             dispatch(selection.actions.setFileFilters(enrichedFilters));
         }
 
-        // Exclude parents of nested fields since they don't have their own values to display
         const displayableAnnotations = annotations.filter(
             (annotation) => !annotationByName.get(annotation.name)?.isParent
         );
@@ -134,7 +133,7 @@ const receiveAnnotationsLogic = createLogic({
             return;
         }
 
-        // No user-selected columns available in this source (e.g. different data source); fall back to all annotations.
+        // Fall back to all annotations.
         if (hasUserSelectedColumns) {
             dispatch(selection.actions.setHasUserSelectedColumns(false) as AnyAction);
         }

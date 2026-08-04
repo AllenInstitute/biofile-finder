@@ -33,8 +33,6 @@
   background-color: var(--accent-dark);
 }
 
-/* Keeps the header visible (and clickable) when no columns are displayed, since it is the only way
-   back to the column picker */
 .empty-header {
   cursor: pointer;
   height: var(--inner-header-size);

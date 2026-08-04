@@ -250,7 +250,6 @@ describe("SearchParams", () => {
 
         it("Round-trips every column when the columns are the user's selection", () => {
             // Arrange
-            // More columns than the limit applied when displaying every available annotation
             const columns = [
                 { name: "Cell Line", width: 100 },
                 { name: "Cas9", width: 150 },
