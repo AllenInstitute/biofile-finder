@@ -15,6 +15,8 @@ interface SectionProps {
     ariaLabel?: string;
     /** Render on the raised/alternate background band. */
     alt?: boolean;
+    /** Extra classes for the outer band element. */
+    bandClassName?: string;
     /** Extra classes for the inner content container. */
     className?: string;
 }
@@ -32,7 +34,11 @@ export default function Section(props: SectionProps) {
             id={props.id}
             aria-labelledby={props.title ? headingId : undefined}
             aria-label={props.title ? undefined : props.ariaLabel}
-            className={classNames(styles.band, { [styles.bandAlt]: props.alt })}
+            className={classNames(
+                styles.band,
+                { [styles.bandAlt]: props.alt },
+                props.bandClassName
+            )}
         >
             <div className={classNames(styles.container, props.className)}>
                 {props.title && (

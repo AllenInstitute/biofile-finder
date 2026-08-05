@@ -12,7 +12,13 @@ import styles from "../Home.module.css";
  */
 export default function EngageWithUs() {
     return (
-        <Section id="engage" title="Engage with us" alt className={styles.centeredText}>
+        <Section
+            id="engage"
+            title="Engage with us"
+            alt
+            bandClassName={styles.bandFooterClearance}
+            className={styles.centeredText}
+        >
             <div className={styles.engageLinks}>
                 {ENGAGE_LINKS.map((link) => {
                     const isEmail = link.href.startsWith("mailto:");

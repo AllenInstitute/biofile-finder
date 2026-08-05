@@ -147,6 +147,13 @@
     margin-top: calc(3 * var(--margin));
 }
 
+/* Replaces the Layout's footer-clearance padding on the last section band so
+   the section's own background fills the gap above the fixed cookie footer,
+   instead of the layout background showing through. */
+.band-footer-clearance {
+    padding-bottom: calc(7 * var(--margin));
+}
+
 /* ---------- Buttons / CTAs ---------- */
 
 .button-row {
