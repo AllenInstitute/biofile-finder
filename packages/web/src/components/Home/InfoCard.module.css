@@ -41,9 +41,8 @@
     color: var(--bright-aqua);
 }
 
-/* Aqua card variant — entire card text in the brand aqua (used by How it works). */
-.card-aqua .heading,
-.card-aqua .body {
+/* Aqua card variant — heading in the brand aqua (used by How it works). */
+.card-aqua .heading {
     color: var(--bright-aqua);
 }
 
