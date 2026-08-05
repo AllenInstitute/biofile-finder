@@ -10,6 +10,7 @@ interface Props {
     className?: string;
     disabled?: boolean;
     iconName?: string;
+    iconPosition?: "before" | "after";
     id?: string;
     menuDirection?: DirectionalHint;
     menuItems?: IContextualMenuItem[];
@@ -29,6 +30,7 @@ export default function PrimaryButton(props: Props) {
             })}
             disabled={props.disabled}
             iconName={props.iconName}
+            iconPosition={props.iconPosition}
             id={props.id}
             menuDirection={props.menuDirection}
             menuItems={props.menuItems}

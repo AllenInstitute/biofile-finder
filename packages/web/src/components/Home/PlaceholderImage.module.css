@@ -1,0 +1,26 @@
+.placeholder {
+    align-items: center;
+    background-color: var(--accent-dark);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--small-border-radius);
+    color: var(--med-light-grey);
+    display: flex;
+    justify-content: center;
+    min-height: 240px;
+    padding: var(--margin);
+    width: 100%;
+}
+
+.label {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+@media screen and (max-width: 749px) {
+    .label {
+        font-size: 20px;
+    }
+}
