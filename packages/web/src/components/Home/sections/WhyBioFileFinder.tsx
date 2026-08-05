@@ -2,7 +2,6 @@ import classNames from "classnames";
 import * as React from "react";
 
 import InfoCard from "../InfoCard";
-import PlaceholderImage from "../PlaceholderImage";
 import Section from "../Section";
 import { WHY_CARDS } from "../content";
 
@@ -20,13 +19,10 @@ export default function WhyBioFileFinder() {
                         accent={card.accent}
                         heading={card.heading}
                         body={card.body}
+                        image={card.image}
                     />
                 ))}
             </div>
-            <PlaceholderImage
-                ariaLabel="Screenshot of the BioFile Finder app exploring a dataset"
-                className={classNames(styles.wideImage, styles.imageAfterGrid)}
-            />
         </Section>
     );
 }

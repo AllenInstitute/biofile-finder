@@ -1,4 +1,5 @@
 .card {
+    align-items: center;
     background-color: var(--primary-dark);
     border: 1px solid var(--border-color);
     border-radius: var(--small-border-radius);
@@ -7,17 +8,36 @@
     gap: var(--margin);
     height: 100%;
     padding: calc(2 * var(--margin));
+    text-align: center;
+}
+
+/* Graphic above the heading. Screenshots fill the card width; icons stay a
+   small, fixed height (see .image-icon). */
+.image {
+    border-radius: var(--small-border-radius);
+    display: block;
+    height: auto;
+    max-height: 105px;
+    max-width: 100%;
+    width: auto;
+}
+
+.image-icon {
+    border-radius: 0;
+    height: 105px;
+    width: auto;
 }
 
 .heading {
     /* Lighter than the global h3 weight to match the marketing layout. */
+    color: var(--secondary-text-color);
     font-size: 20px;
     font-weight: 400;
     line-height: 1.4;
 }
 
+/* Emphasized lead-in phrase; shares the heading's grey (no accent color). */
 .accent {
-    color: var(--bright-aqua);
     font-weight: 600;
 }
 

@@ -9,6 +9,8 @@ interface SectionProps {
     children: React.ReactNode;
     /** Visible H2 heading. Omit for bands that have no heading in the design. */
     title?: string;
+    /** Optional supporting line rendered beneath the heading. */
+    subtitle?: string;
     /** Accessible name for the landmark when there is no visible heading. */
     ariaLabel?: string;
     /** Render on the raised/alternate background band. */
@@ -34,10 +36,16 @@ export default function Section(props: SectionProps) {
         >
             <div className={classNames(styles.container, props.className)}>
                 {props.title && (
-                    <h2 id={headingId} className={styles.sectionHeading}>
+                    <h2
+                        id={headingId}
+                        className={classNames(styles.sectionHeading, {
+                            [styles.sectionHeadingWithSubtitle]: props.subtitle,
+                        })}
+                    >
                         {props.title}
                     </h2>
                 )}
+                {props.subtitle && <p className={styles.sectionSubtitle}>{props.subtitle}</p>}
                 {props.children}
             </div>
         </section>

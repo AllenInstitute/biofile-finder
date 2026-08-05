@@ -28,6 +28,19 @@
     text-align: center;
 }
 
+/* Pull the subtitle up close to the heading; the subtitle carries the gap to
+   the content below. */
+.section-heading-with-subtitle {
+    margin-bottom: var(--margin);
+}
+
+.section-subtitle {
+    color: var(--secondary-text-color);
+    margin: 0 auto calc(3 * var(--margin));
+    max-width: 720px;
+    text-align: center;
+}
+
 .centered-text {
     text-align: center;
 }
@@ -122,8 +135,11 @@
 /* ---------- Shared image ---------- */
 
 .wide-image {
+    display: block;
+    height: auto;
     margin: 0 auto;
-    min-height: 360px;
+    max-width: 100%;
+    width: 100%;
 }
 
 /* Spacing when an image follows a card grid (How it works). */
