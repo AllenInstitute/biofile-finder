@@ -98,7 +98,7 @@ export const WHY_CARDS: AccentCard[] = [
         accent: "Quick visual confirmation",
         heading: "with thumbnails",
         body:
-            "Preview responsive thumbnails designed for scale, making it easier to verify files, spot patterns, and focus on relevant data for deeper analysis.",
+            "Preview responsive thumbnails designed for scale, making it easier to verify files, spot patterns, and focus on relevant data.",
         image: {
             src: ThumbnailsGraphic,
             alt: "Thumbnail previews of imaging data",

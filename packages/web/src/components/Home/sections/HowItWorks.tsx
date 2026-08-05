@@ -3,7 +3,6 @@ import * as React from "react";
 
 import HowBFFWorksGraphic from "../../../../assets/home_how_BFF_works_graphic.png";
 import InfoCard from "../InfoCard";
-import cardStyles from "../InfoCard.module.css";
 import Section from "../Section";
 import { HOW_CARDS, HOW_SUBTITLE } from "../content";
 
@@ -20,7 +19,6 @@ export default function HowItWorks() {
                         accent={card.accent}
                         heading={card.heading}
                         body={card.body}
-                        className={cardStyles.cardAqua}
                     />
                 ))}
             </div>

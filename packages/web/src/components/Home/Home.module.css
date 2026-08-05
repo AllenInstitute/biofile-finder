@@ -120,8 +120,7 @@
 }
 
 @media screen and (min-width: 750px) {
-    .card-grid-2,
-    .card-grid-3 {
+    .card-grid-2 {
         grid-template-columns: repeat(2, 1fr);
     }
 }
