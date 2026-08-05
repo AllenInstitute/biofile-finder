@@ -36,9 +36,15 @@
     line-height: 1.4;
 }
 
-/* Emphasized lead-in phrase; shares the heading's grey (no accent color). */
+/* Emphasized lead-in phrase in the brand aqua; weight matches the heading. */
 .accent {
-    font-weight: 600;
+    color: var(--bright-aqua);
+}
+
+/* Aqua card variant — entire card text in the brand aqua (used by How it works). */
+.card-aqua .heading,
+.card-aqua .body {
+    color: var(--bright-aqua);
 }
 
 .body {
