@@ -12,7 +12,7 @@ import { EXAMPLE_DATASET_URL } from "../../constants";
 import ClockGraphic from "../../../assets/home_clock_graphic.svg";
 import PeopleShareGraphic from "../../../assets/home_people_share_graphic.svg";
 import GroupFilterGraphic from "../../../assets/home_group_filter_graphic.png";
-import ThumbnailsGraphic from "../../../assets/home_thumbnails_graphic.png";
+import ThumbnailsGraphic from "../../../assets/home_thumbnails_graphic.svg";
 
 /** Route/URL targets used across the page. */
 export const LINKS = {

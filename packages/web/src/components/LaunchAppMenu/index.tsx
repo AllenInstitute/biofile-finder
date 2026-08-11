@@ -1,7 +1,7 @@
 import { DirectionalHint, IContextualMenuItem } from "@fluentui/react";
 import * as React from "react";
 
-import { SecondaryButton } from "../../../../core/components/Buttons";
+import { PrimaryButton } from "../../../../core/components/Buttons";
 import { EXAMPLE_DATASET_URL } from "../../constants";
 
 /**
@@ -37,7 +37,7 @@ interface LaunchAppMenuProps {
 /** Dropdown button that launches the app (desktop nav + get-started section). */
 export default function LaunchAppMenu(props: LaunchAppMenuProps) {
     return (
-        <SecondaryButton
+        <PrimaryButton
             className={props.className}
             text="Launch app"
             menuIconName="ChevronDown"

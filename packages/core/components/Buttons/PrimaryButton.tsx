@@ -13,6 +13,7 @@ interface Props {
     iconPosition?: "before" | "after";
     id?: string;
     menuDirection?: DirectionalHint;
+    menuIconName?: string;
     menuItems?: IContextualMenuItem[];
     onClick?: () => void;
     text?: string;
@@ -33,6 +34,7 @@ export default function PrimaryButton(props: Props) {
             iconPosition={props.iconPosition}
             id={props.id}
             menuDirection={props.menuDirection}
+            menuIconName={props.menuIconName}
             menuItems={props.menuItems}
             onClick={props.onClick}
             text={props.text}

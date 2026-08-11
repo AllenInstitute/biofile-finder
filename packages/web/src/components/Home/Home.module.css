@@ -49,20 +49,37 @@
 
 .hero {
     align-items: center;
-    background-image: url('../../../assets/banner.png');
-    background-position: center;
+    background-image: url('../../../assets/home_banner.png');
+    background-position: center top;
     background-size: cover;
     color: var(--highlight-text-color);
     display: flex;
-    min-height: 380px;
+    min-height: 400px;
+    position: relative;
     width: 100%;
+}
+
+/* Gradient overlay: fades the left, right, and bottom edges into the page
+   background. Left/right are abrupt (~25%); bottom starts at 50% height.
+   Uses a pseudo-element so the gradients layer cleanly over the image. */
+.hero::before {
+    background:
+        linear-gradient(to right, #000, transparent 45%),
+        linear-gradient(to left, #000, transparent 3%),
+        linear-gradient(to top, #000, transparent 15%);
+    content: '';
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
 }
 
 .hero-content {
     margin: 0 auto;
     max-width: 1200px;
     padding: calc(4 * var(--margin)) calc(2 * var(--margin));
+    position: relative;
     width: 100%;
+    z-index: 1;
 }
 
 /* Shrink-wraps the hero CTA so its tooltip anchors to the button. */
