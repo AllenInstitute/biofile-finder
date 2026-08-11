@@ -145,9 +145,7 @@ describe("FileDownloadServiceWeb", () => {
             const anchor = {
                 href: "",
                 download: "",
-                target: "",
                 click: sinon.spy(),
-                remove: sinon.spy(),
             };
             const createElementStub = sinon.stub(document as any, "createElement").callsFake(((
                 tagName: string
@@ -157,6 +155,8 @@ describe("FileDownloadServiceWeb", () => {
                 }
                 throw new Error(`Unexpected tag requested: ${tagName}`);
             }) as any);
+            const appendChildStub = sinon.stub(document.body, "appendChild");
+            const removeChildStub = sinon.stub(document.body, "removeChild");
             const revokeStub = sinon.stub(URL, "revokeObjectURL");
 
             const result = await service.download(fileInfo, "request-3");
@@ -165,10 +165,14 @@ describe("FileDownloadServiceWeb", () => {
             expect(result.downloadRequestId).to.equal(fileInfo.id);
             expect(createElementStub.calledOnceWithExactly("a")).to.equal(true);
             expect((anchor.click as sinon.SinonSpy).calledOnce).to.equal(true);
-            expect((anchor.remove as sinon.SinonSpy).calledOnce).to.equal(true);
+            expect(appendChildStub.calledOnceWithExactly((anchor as unknown) as Node)).to.equal(
+                true
+            );
+            expect(removeChildStub.calledOnceWithExactly((anchor as unknown) as Node)).to.equal(
+                true
+            );
             expect(anchor.href).to.equal(formattedUrl);
             expect(anchor.download).to.equal(fileInfo.name);
-            expect(anchor.target).to.equal("_blank");
             expect(revokeStub.calledOnceWithExactly(formattedUrl)).to.equal(true);
         });
 
