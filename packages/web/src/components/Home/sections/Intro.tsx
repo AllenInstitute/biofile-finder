@@ -6,7 +6,7 @@ import { SecondaryButton } from "../../../../../core/components/Buttons";
 import { APPLICATION_NAME } from "../../../constants";
 import SiteLogo from "../../../../assets/site-logo.png";
 import Section from "../Section";
-import { INTRO_BODY, LINKS } from "../content";
+import { LINKS } from "../content";
 
 import styles from "../Home.module.css";
 
@@ -23,7 +23,9 @@ export default function Intro() {
             <img className={styles.introLogo} src={SiteLogo} alt="" />
             <div>
                 <p className={styles.introBody}>
-                    {INTRO_BODY} Visit the{" "}
+                    BioFile Finder (BFF) is a web-based tool for exploring large-scale biological
+                    imaging datasets. It allows users to query structured metadata and link results
+                    directly to image assets. Visit the{" "}
                     <Link to={LINKS.userGuide} className={styles.textLink}>
                         user guide
                     </Link>{" "}

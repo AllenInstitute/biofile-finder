@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { SecondaryButton } from "../../../../../core/components/Buttons";
 import InfoCard from "../InfoCard";
 import Section from "../Section";
-import { NEXT_CARDS, ActionCard } from "../content";
+import { ActionCard, NEXT_CARDS } from "../content";
 
 import styles from "../Home.module.css";
 

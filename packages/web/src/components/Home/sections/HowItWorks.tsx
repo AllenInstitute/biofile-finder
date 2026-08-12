@@ -1,10 +1,9 @@
 import classNames from "classnames";
 import * as React from "react";
 
-import HowBFFWorksGraphic from "../../../../assets/home_how_BFF_works_graphic.png";
 import InfoCard from "../InfoCard";
 import Section from "../Section";
-import { HOW_CARDS, HOW_SUBTITLE } from "../content";
+import { HOW_CARDS, HOW_GRAPHIC, HOW_SUBTITLE } from "../content";
 
 import styles from "../Home.module.css";
 
@@ -23,7 +22,7 @@ export default function HowItWorks() {
                 ))}
             </div>
             <img
-                src={HowBFFWorksGraphic}
+                src={HOW_GRAPHIC}
                 alt="Diagram of how BioFile Finder links metadata to distributed files and downstream tools"
                 className={classNames(styles.wideImage, styles.imageAfterGrid)}
             />

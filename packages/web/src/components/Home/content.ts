@@ -1,18 +1,15 @@
 /**
- * Single source of truth for the home page copy and links.
- *
- * Keeping content here (rather than inline in JSX) keeps the section
- * components small and declarative, and makes future copy edits a
- * one-file change with no markup risk.
+ * All home page content: copy, card data, links, and asset references.
+ * Section components import from here so that content edits live in one place.
  */
 import * as React from "react";
 
-import { EXAMPLE_DATASET_URL } from "../../constants";
-
 import ClockGraphic from "../../../assets/home_clock_graphic.svg";
-import PeopleShareGraphic from "../../../assets/home_people_share_graphic.svg";
 import GroupFilterGraphic from "../../../assets/home_group_filter_graphic.png";
+import HowBFFWorksGraphic from "../../../assets/home_how_BFF_works_graphic.png";
+import PeopleShareGraphic from "../../../assets/home_people_share_graphic.svg";
 import ThumbnailsGraphic from "../../../assets/home_thumbnails_graphic.svg";
+import { EXAMPLE_DATASET_URL } from "../../constants";
 
 /** Route/URL targets used across the page. */
 export const LINKS = {
@@ -53,20 +50,9 @@ export interface AccentCard {
     };
 }
 
-/** A card with a plain title, body, and a call-to-action button. */
-export interface ActionCard {
-    title: string;
-    body: string;
-    cta: {
-        text: string;
-        href: string;
-        /** External links open in a new tab with an indicator icon. */
-        external?: boolean;
-    };
-}
-
-export const INTRO_BODY =
-    "BioFile Finder (BFF) is a web-based tool for exploring large-scale biological imaging datasets. It allows users to query structured metadata and link results directly to image assets.";
+// ---------------------------------------------------------------------------
+// Why BioFile Finder
+// ---------------------------------------------------------------------------
 
 // Ordered to match the 2x2 grid layout (left-to-right, top-to-bottom).
 export const WHY_CARDS: AccentCard[] = [
@@ -99,14 +85,14 @@ export const WHY_CARDS: AccentCard[] = [
         heading: "with thumbnails",
         body:
             "Preview responsive thumbnails designed for scale, making it easier to verify files, spot patterns, and focus on relevant data.",
-        image: {
-            src: ThumbnailsGraphic,
-            alt: "Thumbnail previews of imaging data",
-        },
+        image: { src: ThumbnailsGraphic, alt: "Thumbnail previews of imaging data" },
     },
 ];
 
-/** Subtitle beneath the "How does BioFile Finder work?" heading. */
+// ---------------------------------------------------------------------------
+// How It Works
+// ---------------------------------------------------------------------------
+
 export const HOW_SUBTITLE =
     "BFF is designed so that you can incorporate it into your existing workflow.";
 
@@ -124,6 +110,19 @@ export const HOW_CARDS: AccentCard[] = [
             "BioFile Finder serves as a lightweight entry point, connecting metadata exploration with the applications you already use.",
     },
 ];
+
+/** Flow diagram rendered at the bottom of the How It Works section. */
+export const HOW_GRAPHIC = HowBFFWorksGraphic;
+
+// ---------------------------------------------------------------------------
+// What Would You Like to Do Next?
+// ---------------------------------------------------------------------------
+
+export interface ActionCard {
+    title: string;
+    body: string;
+    cta: { text: string; href: string; external?: boolean };
+}
 
 export const NEXT_CARDS: ActionCard[] = [
     {
@@ -146,8 +145,11 @@ export const NEXT_CARDS: ActionCard[] = [
     },
 ];
 
-/** Links in the "Engage with us" footer band. */
-export const ENGAGE_LINKS: { text: string; href: string }[] = [
+// ---------------------------------------------------------------------------
+// Engage With Us
+// ---------------------------------------------------------------------------
+
+export const ENGAGE_LINKS = [
     { text: "Visit support forum", href: LINKS.supportForum },
     { text: "Visit GitHub", href: LINKS.github },
     { text: "Contact via email", href: LINKS.email },

@@ -7,8 +7,7 @@ import { WHY_CARDS } from "../content";
 
 import styles from "../Home.module.css";
 
-/** "Why BioFile Finder?" — a 2x2 grid of value-proposition cards, closing with
- *  a wide app screenshot beneath the grid. */
+/** "Why BioFile Finder?" — a 2x2 grid of value-proposition cards. */
 export default function WhyBioFileFinder() {
     return (
         <Section id="why" title="Why BioFile Finder?">
