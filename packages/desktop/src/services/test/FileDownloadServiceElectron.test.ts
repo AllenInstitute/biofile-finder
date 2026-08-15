@@ -280,7 +280,28 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             expect(downloaded.length).to.equal((await fs.promises.stat(sourceFile)).size);
         });
 
-        it("fails a file that is only available locally", async () => {
+        it("copies a file that is available on the local file system", async () => {
+            // Arrange
+            const service = new FileDownloadServiceElectron(new S3StorageService());
+            const destinationDir = await fs.promises.mkdtemp(`${os.tmpdir()}${path.sep}`);
+            const fileInfo = {
+                id: "abc123",
+                name: "image.czi",
+                path: sourceFile,
+            };
+
+            // Act
+            const result = await service.download(fileInfo, "beepbop", noop, destinationDir);
+
+            // Assert
+            expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
+            const copied = await fs.promises.readFile(path.join(destinationDir, fileInfo.name));
+            expect(copied.length).to.equal((await fs.promises.stat(sourceFile)).size);
+
+            await fs.promises.rm(destinationDir, { recursive: true });
+        });
+
+        it("fails a file that is neither remote nor reachable locally", async () => {
             // Arrange
             const service = new FileDownloadServiceElectron(new S3StorageService());
             const fileInfo = {

@@ -53,28 +53,27 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        let downloadUrl: string;
-
         if (isMultiObjectFile(fileInfo.path)) {
             return (await this.isLocalPath(fileInfo.path))
                 ? this.copyDirectory(fileInfo, downloadRequestId, onProgress, destination)
                 : this.downloadCloudDirectory(fileInfo, downloadRequestId, onProgress, destination);
         }
 
-        if (!fileInfo.data) {
-            let downloadPath = fileInfo.path;
-            // S3 protocol URLs can't be requested directly, format as an https resource
-            if (downloadPath.startsWith("s3")) {
-                downloadPath =
-                    (await this.s3StorageService.formatAsHttpResource(downloadPath)) ||
-                    downloadPath;
-            }
-            if (!downloadPath.startsWith("http")) {
-                throw new DownloadFailure(
-                    `Unable to download ${fileInfo.name}. Only files with a remote location can be downloaded; this file is at ${fileInfo.path}.`,
-                    downloadRequestId
-                );
-            }
+        // Data already in hand (e.g. a generated manifest) goes straight to disk
+        const { data } = fileInfo;
+        if (data instanceof Uint8Array || data instanceof Blob) {
+            return this.saveDataToDisk(fileInfo, data);
+        }
+
+        // Otherwise the file lives at fileInfo.path. S3 protocol URLs can't be requested
+        // directly, so format those as an https resource first.
+        let downloadPath = fileInfo.path;
+        if (downloadPath.startsWith("s3")) {
+            downloadPath =
+                (await this.s3StorageService.formatAsHttpResource(downloadPath)) || downloadPath;
+        }
+
+        if (downloadPath.startsWith("http")) {
             return this.downloadHttpFile(
                 { ...fileInfo, path: downloadPath },
                 downloadRequestId,
@@ -83,16 +82,21 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             );
         }
 
-        const data = fileInfo.data;
-        if (data instanceof Uint8Array) {
-            const dataBlob = new Uint8Array(data.byteLength);
-            dataBlob.set(data);
-            downloadUrl = URL.createObjectURL(new Blob([dataBlob]));
-        } else if (data instanceof Blob) {
-            downloadUrl = URL.createObjectURL(data);
-        } else {
-            return this.downloadHttpFile(fileInfo, downloadRequestId, onProgress, destination);
+        // Desktop can reach the local file system, so a file on a mount the user has access to
+        // can be copied rather than downloaded
+        if (await this.isLocalPath(downloadPath)) {
+            return this.copyFile(fileInfo, downloadRequestId, onProgress, destination);
         }
+
+        throw new DownloadFailure(
+            `Unable to download ${fileInfo.name}. Only files with a remote location or a reachable local path can be downloaded; this file is at ${fileInfo.path}.`,
+            downloadRequestId
+        );
+    }
+
+    private saveDataToDisk(fileInfo: FileInfo, data: Uint8Array | Blob): DownloadResult {
+        const blob = data instanceof Blob ? data : new Blob([new Uint8Array(data)]);
+        const downloadUrl = URL.createObjectURL(blob);
 
         try {
             const a = document.createElement("a");
@@ -110,6 +114,34 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             throw err;
         } finally {
             URL.revokeObjectURL(downloadUrl);
+        }
+    }
+
+    private async copyFile(
+        fileInfo: FileInfo,
+        downloadRequestId: string,
+        onProgress?: (transferredBytes: number) => void,
+        destination?: string
+    ): Promise<DownloadResult> {
+        try {
+            const destinationDir = destination || (await this.getDefaultDownloadDirectory());
+            const outFilePath = path.join(destinationDir, fileInfo.name);
+
+            await fs.promises.copyFile(fileInfo.path, outFilePath);
+            if (onProgress) {
+                onProgress((await fs.promises.stat(fileInfo.path)).size);
+            }
+
+            return {
+                downloadRequestId: fileInfo.id,
+                msg: `Successfully copied ${fileInfo.path} to ${outFilePath}`,
+                resolution: DownloadResolution.SUCCESS,
+            };
+        } catch (err) {
+            throw new DownloadFailure(
+                `Failed to copy ${fileInfo.name}: ${(err as Error).message}`,
+                downloadRequestId
+            );
         }
     }
 
