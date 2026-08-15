@@ -64,8 +64,8 @@ function Header(
 
     const columnPickerMenuItems: ContextMenuItem[] = [
         {
-            key: "available-annotations",
-            text: "Available annotations",
+            key: "column-picker",
+            text: "Column picker",
             onRender() {
                 return <ColumnPicker />;
             },

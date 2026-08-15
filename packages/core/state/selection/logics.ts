@@ -506,6 +506,19 @@ const selectColumnsLogic = createLogic({
         const addedAnnotations = addedAnnotationNames
             .map((name) => nameToAnnotationMap.get(name))
             .filter((annotation): annotation is Annotation => !!annotation);
+
+        const unknownNames = addedAnnotationNames.filter((name) => !nameToAnnotationMap.has(name));
+        if (unknownNames.length) {
+            dispatch(
+                interaction.actions.processWarning(
+                    "selectColumnsWarning",
+                    `No metadata found for these columns, they may appear empty: ${unknownNames.join(
+                        ", "
+                    )}`
+                )
+            );
+        }
+
         const widthByAnnotation = addedAnnotations.length
             ? await annotationService.fetchOptimalWidthForAnnotations(addedAnnotations)
             : new Map<string, number>();

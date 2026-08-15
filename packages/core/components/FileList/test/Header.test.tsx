@@ -214,7 +214,7 @@ describe("<Header />", () => {
         );
         expect(
             showContextMenuAction?.payload.items.map((item: ContextMenuItem) => item.key)
-        ).to.eql(["available-annotations"]);
+        ).to.eql(["column-picker"]);
     });
 
     it("dispatches reorderColumns with reordered columns when column is dragged to new position", () => {

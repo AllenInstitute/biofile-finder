@@ -1323,12 +1323,18 @@ describe("Selection logics", () => {
 
     describe("selectColumns", () => {
         const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
-        const optimalWidth = 275;
+        const optimalWidthByName = new Map(
+            annotations.map((annotation, index) => [annotation.name, 100 + index * 25])
+        );
 
         beforeEach(() => {
             sinon.stub(interaction.selectors, "getAnnotationService").returns(({
                 fetchOptimalWidthForAnnotations: (annotationsToSize: Annotation[]) =>
-                    Promise.resolve(new Map(annotationsToSize.map((a) => [a.name, optimalWidth]))),
+                    Promise.resolve(
+                        new Map(
+                            annotationsToSize.map((a) => [a.name, optimalWidthByName.get(a.name)])
+                        )
+                    ),
             } as unknown) as HttpAnnotationService);
         });
 
@@ -1371,14 +1377,26 @@ describe("Selection logics", () => {
             });
 
             // Act
-            store.dispatch(selectColumns([annotations[0].name, annotations[1].name]));
+            store.dispatch(
+                selectColumns([annotations[0].name, annotations[1].name, annotations[2].name])
+            );
             await logicMiddleware.whenComplete();
 
             // Assert
             expect(
                 actions.includesMatch({
                     type: SET_COLUMNS,
-                    payload: [existingColumn, { name: annotations[1].name, width: optimalWidth }],
+                    payload: [
+                        existingColumn,
+                        {
+                            name: annotations[1].name,
+                            width: optimalWidthByName.get(annotations[1].name),
+                        },
+                        {
+                            name: annotations[2].name,
+                            width: optimalWidthByName.get(annotations[2].name),
+                        },
+                    ],
                 })
             ).to.be.true;
         });
