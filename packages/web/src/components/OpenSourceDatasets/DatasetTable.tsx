@@ -89,21 +89,6 @@ export default function DatasetTable(props: DatasetTableProps) {
     ) {
         const fieldContent = item[column?.fieldName as keyof PublicDatasetProps] as string;
         if (!fieldContent) return <>--</>;
-        if (
-            column?.fieldName === DatasetAnnotations.RELATED_PUBLICATON.name &&
-            (item?.related_publication_link || item?.doi)
-        ) {
-            return (
-                <a
-                    className={classNames(styles.link, styles.doubleLine)}
-                    href={item.related_publication_link || item.doi}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    {fieldContent}
-                </a>
-            );
-        }
         return <div className={styles.doubleLine}>{fieldContent}</div>;
     }
 

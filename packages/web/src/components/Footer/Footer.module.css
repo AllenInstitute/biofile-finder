@@ -1,9 +1,14 @@
 .footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: fit-content;
-  margin: 0 auto;
   padding: var(--margin) 0;
   border-top: 1px solid var(--border-color);
   text-align: center;
+  background-color: var(--secondary-dark);
+  z-index: 100;
 }
 
 .footer-link {

@@ -1,0 +1,29 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    height: 100%;
+    margin: 0 20%;
+}
+
+.container a {
+    color: var(--aqua) !important;
+}
+
+.container a:hover {
+    color: var(--bright-aqua) !important;
+}
+
+.container ul {
+    margin: 0;
+    padding: 0;
+}
+
+.container ul li {
+    margin: 0.25em 0 0.25em 1em;
+}
+
+.container p {
+    line-height: normal;
+}
