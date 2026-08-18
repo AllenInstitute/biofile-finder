@@ -24,6 +24,7 @@ interface WriteStreamOptions {
 interface DownloadOptions {
     downloadRequestId: string;
     encoding?: BufferEncoding;
+    onProgress?: (transferredBytes: number) => void;
     outFilePath: string;
     postData?: string;
     requestOptions: http.RequestOptions | https.RequestOptions;
@@ -52,39 +53,50 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         onProgress?: (transferredBytes: number) => void,
         destination?: string
     ): Promise<DownloadResult> {
-        let downloadUrl: string;
-
         if (isMultiObjectFile(fileInfo.path)) {
             return (await this.isLocalPath(fileInfo.path))
                 ? this.copyDirectory(fileInfo, downloadRequestId, onProgress, destination)
                 : this.downloadCloudDirectory(fileInfo, downloadRequestId, onProgress, destination);
         }
 
-        const data = fileInfo.data || fileInfo.path;
-        if (data instanceof Uint8Array) {
-            const dataBlob = new Uint8Array(data.byteLength);
-            dataBlob.set(data);
-            downloadUrl = URL.createObjectURL(new Blob([dataBlob]));
-        } else if (data instanceof Blob) {
-            downloadUrl = URL.createObjectURL(data);
-        } else if (typeof data === "string" && !destination) {
-            const dataAsBlob = new Blob([data], { type: "application/json" });
-            downloadUrl = URL.createObjectURL(dataAsBlob);
-            // if the string is a url, download directly from that url
-            const isValidURL = (path: string) => {
-                try {
-                    new URL(path);
-                    return true;
-                } catch {
-                    return false;
-                }
-            };
-            if (isValidURL(data)) {
-                downloadUrl = data;
-            }
-        } else {
-            return this.downloadHttpFile(fileInfo, downloadRequestId, onProgress, destination);
+        // Data already in hand (e.g. a generated manifest) goes straight to disk
+        const { data } = fileInfo;
+        if (data instanceof Uint8Array || data instanceof Blob) {
+            return this.downloadBlobLikeFile(fileInfo, data);
         }
+
+        // Otherwise the file lives at fileInfo.path. S3 protocol URLs can't be requested
+        // directly, so format those as an https resource first.
+        let downloadPath = fileInfo.path;
+        if (downloadPath.startsWith("s3")) {
+            downloadPath =
+                (await this.s3StorageService.formatAsHttpResource(downloadPath)) || downloadPath;
+        }
+
+        if (downloadPath.startsWith("http")) {
+            return this.downloadHttpFile(
+                { ...fileInfo, path: downloadPath },
+                downloadRequestId,
+                onProgress,
+                destination
+            );
+        }
+
+        // Desktop can reach the local file system, so a file on a mount the user has access to
+        // can be copied rather than downloaded
+        if (await this.isLocalPath(downloadPath)) {
+            return this.copyFile(fileInfo, downloadRequestId, onProgress, destination);
+        }
+
+        throw new DownloadFailure(
+            `Unable to download ${fileInfo.name}. Only files with a remote location or a reachable local path can be downloaded; this file is at ${fileInfo.path}.`,
+            downloadRequestId
+        );
+    }
+
+    private downloadBlobLikeFile(fileInfo: FileInfo, data: Uint8Array | Blob): DownloadResult {
+        const blob = data instanceof Blob ? data : new Blob([new Uint8Array(data)]);
+        const downloadUrl = URL.createObjectURL(blob);
 
         try {
             const a = document.createElement("a");
@@ -102,6 +114,34 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
             throw err;
         } finally {
             URL.revokeObjectURL(downloadUrl);
+        }
+    }
+
+    private async copyFile(
+        fileInfo: FileInfo,
+        downloadRequestId: string,
+        onProgress?: (transferredBytes: number) => void,
+        destination?: string
+    ): Promise<DownloadResult> {
+        try {
+            const destinationDir = destination || (await this.getDefaultDownloadDirectory());
+            const outFilePath = path.join(destinationDir, fileInfo.name);
+
+            await fs.promises.copyFile(fileInfo.path, outFilePath);
+            if (onProgress) {
+                onProgress((await fs.promises.stat(fileInfo.path)).size);
+            }
+
+            return {
+                downloadRequestId: fileInfo.id,
+                msg: `Successfully copied ${fileInfo.path} to ${outFilePath}`,
+                resolution: DownloadResolution.SUCCESS,
+            };
+        } catch (err) {
+            throw new DownloadFailure(
+                `Failed to copy ${fileInfo.name}: ${(err as Error).message}`,
+                downloadRequestId
+            );
         }
     }
 
@@ -184,6 +224,21 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
 
         // retry policy: 3 times no matter the exception, with randomized exponential backoff between attempts
         const retry = Policy.handleAll().retry().attempts(3).exponential();
+
+        // Without a known size there is nothing to range over, ask for the whole body
+        if (!fileSize) {
+            return retry.execute(() =>
+                this.downloadOverHttp({
+                    downloadRequestId,
+                    onProgress,
+                    outFilePath,
+                    requestOptions: { method: "GET" },
+                    url: fileInfo.path,
+                    writeStreamOptions: { flags: "w" },
+                })
+            );
+        }
+
         let bytesDownloaded = -1;
         while (bytesDownloaded < fileSize) {
             const startByte = bytesDownloaded + 1;
@@ -249,6 +304,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         const {
             downloadRequestId,
             encoding,
+            onProgress,
             postData,
             outFilePath,
             requestOptions,
@@ -302,6 +358,12 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
                             });
                         }
                     });
+
+                    if (onProgress) {
+                        incomingMsg.on("data", (chunk: Buffer | string) => {
+                            onProgress(chunk.length);
+                        });
+                    }
 
                     incomingMsg.pipe(outFileStream);
                 }

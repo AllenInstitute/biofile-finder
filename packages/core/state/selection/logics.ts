@@ -836,7 +836,11 @@ const changeProvenanceSourceLogic = createLogic({
             }
         } catch (err) {
             const msg = `Failed processing provenance. Error: ${(err as Error).message}`;
-            dispatch(interaction.actions.processError("provenanceIngestionError", msg));
+            if (err instanceof DataSourcePreparationError) {
+                dispatch(addDataSourceReloadError(err.sourceName, msg) as AnyAction);
+            } else {
+                dispatch(interaction.actions.processError("provenanceIngestionError", msg));
+            }
         }
 
         done();
