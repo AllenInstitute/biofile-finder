@@ -4,6 +4,7 @@ import sinon from "sinon";
 
 import { ParsedDatasetMetadata, parseFrontMatter, processMarkdown } from "..";
 import { Source } from "../../SearchParams";
+import DataSourcePreparationError from "../../../errors/DataSourcePreparationError";
 
 describe("MarkdownFrontMatter", () => {
     let consoleErrorStub: any;
@@ -161,16 +162,26 @@ A description of the dataset`;
             expect(result).to.deep.equal(expected);
         });
 
-        it("throws an error for a non-processable source (e.g., plain local path)", async () => {
+        it("throws an error when unable to fetch from uri (e.g., plain local path)", async () => {
+            sinon.restore();
+            sinon.stub(axios, "get").returns(Promise.reject());
             // Arrange
             const tempFileName = `test-markdown.md`;
+            // this path is just illustrative, does not impact the test
             const userPath = "/user/file/path/we/cannot/access/from/browser";
             const testFile: Source = { name: tempFileName, type: "md", uri: userPath };
 
-            // Act
-            const result = processMarkdown(testFile);
-            // Assert
-            expect(async () => await result).to.throw;
+            try {
+                // Act
+                await processMarkdown(testFile);
+                // shouldn't reach here, evergreen test
+                expect.fail("Expected processMarkdown function to throw, but it succeeded");
+            } catch (err) {
+                // Assert
+                expect(err).to.be.instanceOf(DataSourcePreparationError);
+                expect(err).to.match(/Unable to process markdown file with URL/);
+                expect((err as Error).message).to.contain(userPath);
+            }
         });
     });
 });

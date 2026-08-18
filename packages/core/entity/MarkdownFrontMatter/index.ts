@@ -13,7 +13,7 @@ export interface DatasetSources {
 interface RawDatasetMetadata {
     title?: string;
     date?: string; // YYYY-MM-DD
-    author?: string[];
+    authors?: string[];
     dataset_url?: string; // actual dataset
     descriptions_url?: string; // url to metadata descriptions
     provenance_url?: string; // url to provenance schema file
@@ -116,7 +116,7 @@ export async function processMarkdown(
         const response = await axios.get(uri).catch((e) => {
             throw new DataSourcePreparationError(
                 `Unable to process markdown file with URL ${uri}. Received error: ${
-                    (e as Error).message
+                    (e as Error)?.message || e
                 }`,
                 source.name
             );
