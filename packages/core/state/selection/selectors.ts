@@ -5,7 +5,11 @@ import { State } from "../";
 import Annotation from "../../entity/Annotation";
 import SearchParams, { SearchParamsComponents, FileView } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
-import { getAnnotations, getAnnotationNameToAnnotationMap } from "../metadata/selectors";
+import {
+    getAnnotations,
+    getEdgeDefinitions,
+    getAnnotationNameToAnnotationMap,
+} from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 // BASIC SELECTORS
@@ -39,9 +43,11 @@ const getPlatformDependentServices = (state: State) => state.interaction.platfor
 // COMPOSED SELECTORS
 export const hasQuerySelected = createSelector([getSelectedQuery], (query): boolean => !!query);
 
+// If there are no edge definitions, i.e., it's an invalid provenance file,
+// the UI should treat it as if there is no provenance file
 export const hasProvenanceSource = createSelector(
-    [getSelectedSourceProvenance],
-    (source): boolean => !!source
+    [getSelectedSourceProvenance, getEdgeDefinitions],
+    (source, edgeDefinitions): boolean => !!source && edgeDefinitions.length > 0
 );
 
 export const getTotalColumnWidth = createSelector([getColumns], (columns): number =>
