@@ -634,22 +634,30 @@ const changeDataSourceLogic = createLogic({
         }
 
         let parsedMetadata: DatasetSources | undefined;
+        let markdownError: Error | undefined;
         try {
             // Check if already exists in the cache
             const cachedSources = databaseService.getDatasetDescriptionSources(
                 datasetDescriptionSource
             );
-            parsedMetadata = cachedSources
-                ? cachedSources
-                : (await databaseService.processMarkdown(datasetDescriptionSource)).metadata;
+            if (cachedSources) {
+                parsedMetadata = cachedSources;
+            } else {
+                ({
+                    metadata: parsedMetadata,
+                    error: markdownError,
+                } = await databaseService.processMarkdown(datasetDescriptionSource));
+            }
         } catch (e) {
             reject && reject(deps.action);
-            return;
+            ctx.markdownError = e as Error;
+            return next(action);
         }
 
         // context to pass along in order to dispatch from the main process
         ctx.markdownSource = datasetDescriptionSource;
         ctx.parsedMetadata = parsedMetadata;
+        ctx.markdownError = markdownError;
 
         const mainDatasource = parsedMetadata?.dataSource;
         if (mainDatasource) {
@@ -670,12 +678,17 @@ const changeDataSourceLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         dispatch(setIsLoadingSource(true) as AnyAction);
         const { payload: selectedDataSources } = deps.action as ChangeDataSourcesAction;
-        const { markdownSource, parsedMetadata } = deps.ctx as {
+        const { markdownSource, parsedMetadata, markdownError } = deps.ctx as {
             markdownSource?: Source;
             parsedMetadata?: DatasetSources;
+            markdownError?: Error;
         };
         if (markdownSource) {
-            if (!parsedMetadata?.dataSource) {
+            if (markdownError) {
+                dispatch(
+                    interaction.actions.processError(markdownSource.name, markdownError.message)
+                );
+            } else if (!parsedMetadata?.dataSource) {
                 dispatch(
                     interaction.actions.processError(
                         markdownSource.name,

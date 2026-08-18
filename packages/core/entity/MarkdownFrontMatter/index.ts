@@ -25,6 +25,7 @@ export interface ParsedDatasetMetadata extends DatasetSources, RawDatasetMetadat
 export interface ParsedFrontmatter {
     metadata?: ParsedDatasetMetadata;
     body: string; // raw markdown
+    error?: Error;
 }
 
 // Look for the markdown/yml file to start with a pattern like
@@ -56,8 +57,9 @@ export function parseFrontMatter(contents: string, parseSources = true): ParsedF
             body,
         };
     } catch (e) {
-        console.error(new Error(`Unable to parse yaml: ${(e as Error).message}`));
-        return { body: contents };
+        const error = new Error(`Unable to parse yaml: ${(e as Error).message}`);
+        console.error(error);
+        return { body: contents, error: error };
     }
 }
 

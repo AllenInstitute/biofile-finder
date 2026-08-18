@@ -23,6 +23,14 @@ export default function MarkdownPreview(props: Props) {
             : mdFrontmatter.body.slice(0, 45) + "..." + mdFrontmatter.body.slice(-45);
 
     if (!mdFrontmatter.metadata) {
+        // First try rendering the yaml error if present
+        if (mdFrontmatter.error) {
+            return (
+                <div className={styles.mdMetadata}>
+                    <i>{mdFrontmatter.error.message}</i>
+                </div>
+            );
+        }
         return (
             <>
                 <div className={styles.mdMetadata}>

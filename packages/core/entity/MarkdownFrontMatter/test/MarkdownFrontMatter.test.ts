@@ -76,6 +76,7 @@ ${description}`;
             expect(parsedFrontMatter.metadata?.dataSource?.uri).to.equal(datasetUrl);
             expect(parsedFrontMatter.metadata?.provenanceSource?.uri).to.equal(provUrl);
             expect(parsedFrontMatter.metadata?.descriptionsSource?.uri).to.equal(colDescriptorUrl);
+            expect(parsedFrontMatter.error).to.be.undefined;
         });
 
         it("skips parsing frontmatter if missing opening '---'", () => {
@@ -100,7 +101,7 @@ ${description}`;
             expect(parsedFrontMatter.metadata).to.equal(undefined);
         });
 
-        it("returns only body for malformed yaml", () => {
+        it("returns only body and a warning for malformed yaml", () => {
             const description = "This is a text description";
             const markdownText = `---
 title: Some Title
@@ -115,6 +116,9 @@ ${description}`;
             // Assert
             expect(parsedFrontMatter.metadata).to.equal(undefined);
             expect(String(parsedFrontMatter.body)).to.equal(String(markdownText));
+            expect(parsedFrontMatter.error).to.match(
+                /Unable to parse yaml: duplicated mapping key/
+            );
         });
     });
 
