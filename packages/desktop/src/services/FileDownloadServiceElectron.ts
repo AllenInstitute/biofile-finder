@@ -62,7 +62,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         // Data already in hand (e.g. a generated manifest) goes straight to disk
         const { data } = fileInfo;
         if (data instanceof Uint8Array || data instanceof Blob) {
-            return this.saveDataToDisk(fileInfo, data);
+            return this.downloadBlobLikeFile(fileInfo, data);
         }
 
         // Otherwise the file lives at fileInfo.path. S3 protocol URLs can't be requested
@@ -94,7 +94,7 @@ export default class FileDownloadServiceElectron extends FileDownloadService {
         );
     }
 
-    private saveDataToDisk(fileInfo: FileInfo, data: Uint8Array | Blob): DownloadResult {
+    private downloadBlobLikeFile(fileInfo: FileInfo, data: Uint8Array | Blob): DownloadResult {
         const blob = data instanceof Blob ? data : new Blob([new Uint8Array(data)]);
         const downloadUrl = URL.createObjectURL(blob);
 
