@@ -15,8 +15,7 @@ describe("S3StorageService", () => {
             },
             {
                 url: "https://s3.region.amazonaws.com/some-bucket/key/with/multiple/parts",
-                expected:
-                    "https://s3.region.amazonaws.com/some-bucket/key%2Fwith%2Fmultiple%2Fparts",
+                expected: "https://s3.region.amazonaws.com/some-bucket/key/with/multiple/parts",
             },
             {
                 // Virtually-hosted style
@@ -26,7 +25,12 @@ describe("S3StorageService", () => {
             {
                 // S3 protocol
                 url: "s3://some-bucket/path/to/testfile",
-                expected: "https://s3.amazonaws.com/some-bucket/path%2Fto%2Ftestfile",
+                expected: "https://s3.amazonaws.com/some-bucket/path/to/testfile",
+            },
+            {
+                url: "https://s3.region.amazonaws.com/some-bucket/path with spaces/a#b?c.txt",
+                expected:
+                    "https://s3.region.amazonaws.com/some-bucket/path%20with%20spaces/a%23b%3Fc.txt",
             },
         ];
 
@@ -48,7 +52,7 @@ describe("S3StorageService", () => {
 
             // Assert
             expect(reformattedUrl).to.equal(
-                "https://s3.us-west-2.amazonaws.com/animatedcell-test-data/variance%2F10005.zarr"
+                "https://s3.us-west-2.amazonaws.com/animatedcell-test-data/variance/10005.zarr"
             );
         });
     });

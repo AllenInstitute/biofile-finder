@@ -2,7 +2,6 @@ import { throttle } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import AnnotationName from "../entity/Annotation/AnnotationName";
 import FileDetail from "../entity/FileDetail";
 import { interaction } from "../state";
 
@@ -14,7 +13,6 @@ export default (fileDetails?: FileDetail) => {
     const dispatch = useDispatch();
 
     const processStatuses = useSelector(interaction.selectors.getProcessStatuses);
-    const { fileDownloadService } = useSelector(interaction.selectors.getPlatformDependentServices);
 
     const isBeingDownloaded = processStatuses.some(
         (status) => fileDetails && status.data.fileId?.includes(fileDetails.uid)
@@ -41,17 +39,13 @@ export default (fileDetails?: FileDetail) => {
                                 id: fileDetails.uid,
                                 name: fileDetails.name,
                                 size: fileDetails.size,
-                                path: fileDownloadService.isFileSystemAccessible
-                                    ? ((fileDetails.getFirstAnnotationValue(
-                                          AnnotationName.LOCAL_FILE_PATH
-                                      ) || fileDetails.path) as string)
-                                    : fileDetails.path,
+                                path: fileDetails.path,
                             },
                         ])
                     );
                 }
             }, 1000),
-        [dispatch, fileDetails, fileDownloadService.isFileSystemAccessible]
+        [dispatch, fileDetails]
     );
 
     return {
