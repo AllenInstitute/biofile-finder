@@ -29,12 +29,13 @@ export default function BaseModal(props: BaseModalProps) {
         if (!el) return;
 
         const checkScroll = () => {
-            const isOverflowing = el.scrollHeight > el.clientHeight;
+            const hasOverflowingContent = el.scrollHeight > el.clientHeight;
             // we've reached the end of the content if the distance scrolled
             // from the top (rounded up to account for sub-pixel differences)
             // is equal to the total content height
-            const isAtBottom = Math.ceil(el.scrollTop) + el.clientHeight >= el.scrollHeight;
-            setHasScroll(isOverflowing && !isAtBottom);
+            const isAtBottomOfContent =
+                Math.ceil(el.scrollTop) + el.clientHeight >= el.scrollHeight;
+            setHasScroll(hasOverflowingContent && !isAtBottomOfContent);
         };
         checkScroll();
 
