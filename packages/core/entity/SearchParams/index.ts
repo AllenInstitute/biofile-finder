@@ -19,7 +19,7 @@ export enum FileView {
     LARGE_THUMBNAIL = "3",
 }
 
-export const ACCEPTED_SOURCE_TYPES = ["csv", "json", "parquet"] as const;
+export const ACCEPTED_SOURCE_TYPES = ["csv", "json", "parquet", "delta"] as const;
 
 export interface Source {
     name: string;

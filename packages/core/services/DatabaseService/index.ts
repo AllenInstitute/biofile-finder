@@ -2,11 +2,12 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
 import { isEmpty, isNil, mapKeys, mapValues, uniq } from "lodash";
 
+import DeltaLakeService from "../DeltaLakeService";
 import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { EdgeDefinition, EdgeNodeType, RelationshipType } from "../../entity/Graph";
-import { Source } from "../../entity/SearchParams";
+import { ACCEPTED_SOURCE_TYPES, Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
@@ -56,8 +57,28 @@ const DATA_SOURCE_COLUMN = "Data source";
 // "foo-bff-filehandle.parquet"). A proper fix requires an upstream change in
 // duckdb-wasm to use exact-match lookups for registered file handles.
 const FILE_HANDLE_SUFFIX = "-bff-filehandle";
+// Handle prefix for the transient reads of a Delta Lake checkpoint parquet.
+const DELTA_CHECKPOINT_HANDLE = "bff-delta-checkpoint";
 function fileHandleName(name: string): string {
     return name + FILE_HANDLE_SUFFIX;
+}
+
+export type SourceType = typeof ACCEPTED_SOURCE_TYPES[number];
+// Return true if type is parquet or parquet-like
+function isParquetBacked(type?: SourceType): boolean {
+    return type === "parquet" || type === "delta";
+}
+
+// A Delta Lake source is backed by many parquet files, so it registers one handle
+// per data file. The index is zero-padded to a fixed width so that no handle can
+// ever be a prefix of another (see FILE_HANDLE_SUFFIX above).
+function deltaFileHandleName(name: string, index: number): string {
+    return `${fileHandleName(name)}-${String(index).padStart(8, "0")}.parquet`;
+}
+
+// Render file handles as a DuckDB list literal, e.g. ARRAY['a', 'b'].
+function handleArrayLiteral(handles: string[]): string {
+    return `ARRAY[${handles.map((handle) => `'${handle}'`).join(", ")}]`;
 }
 
 // Check if a value is a non-empty string. Returns true for any string with at least one non-whitespace character.
@@ -159,16 +180,26 @@ export default abstract class DatabaseService {
     protected sourceMetadataName?: string;
     public sourceProvenanceName?: string;
     private currentAggregateSource?: string;
+    protected deltaLakeService: DeltaLakeService;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
     protected readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
     private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
     // Data source names that are views (parquet), so we DROP VIEW on delete
     private readonly parquetDirectViewNames = new Set<string>();
+    // Data sources backed by more than one parquet file (i.e. Delta Lake tables)
+    // map to the full list of DuckDB file handles registered for them.
+    private readonly sourceToHandles = new Map<string, string[]>();
+    // Distinguishes the DuckDB handle used for each checkpoint parquet read.
+    private deltaCheckpointCounter = 0;
 
     protected database: duckdb.AsyncDuckDB | undefined;
 
-    constructor() {
+    constructor(deltaLakeService?: DeltaLakeService) {
+        // Hand the delta service a way to read a checkpoint parquet: that needs
+        // DuckDB, which only this class has.
+        this.deltaLakeService =
+            deltaLakeService ?? new DeltaLakeService((url) => this.readDeltaCheckpoint(url));
         this.addDataSource = this.addDataSource.bind(this);
         this.execute = this.execute.bind(this);
         this.query = this.query.bind(this);
@@ -246,9 +277,13 @@ export default abstract class DatabaseService {
 
     protected async addDataSource(
         name: string,
-        type: "csv" | "json" | "parquet",
+        type: SourceType,
         uri: string | File
     ): Promise<void> {
+        if (type === "delta") {
+            return this.addDeltaDataSource(name, uri);
+        }
+
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
@@ -293,6 +328,87 @@ export default abstract class DatabaseService {
                 );
             }
         }
+    }
+
+    /**
+     * Read the "add" action paths out of a Delta Lake checkpoint parquet.
+     *
+     * Lives here rather than in DeltaLakeService because it needs DuckDB: a
+     * checkpoint is a parquet file whose columns are action structs.
+     */
+    private async readDeltaCheckpoint(checkpointUrl: string): Promise<string[]> {
+        const handle = `${DELTA_CHECKPOINT_HANDLE}-${this.deltaCheckpointCounter++}.parquet`;
+        await this.registerFileURLs([handle], [checkpointUrl]);
+        try {
+            const rows = await this.query<{ path: string }>(
+                `SELECT "add"."path" AS path FROM parquet_scan('${handle}') WHERE "add" IS NOT NULL`
+            ).promise;
+            return rows.map((row) => row.path);
+        } finally {
+            await this.dropFileHandles([handle]);
+        }
+    }
+
+    /**
+     * Release DuckDB file handles. Overridable alongside registerFileURLs so tests
+     * can exercise the surrounding logic without a database.
+     */
+    protected async dropFileHandles(handles: string[]): Promise<void> {
+        if (!this.database) return;
+        try {
+            await Promise.all(handles.map((handle) => this.database?.dropFile(handle)));
+        } catch (error) {
+            console.error(`Failed to drop file handles ${handles}: ${(error as Error).message}`);
+        }
+    }
+
+    /**
+     * Register every parquet data file of a Delta Lake table as its own DuckDB
+     * file handle, then expose them all as a single view.
+     */
+    private async addDeltaDataSource(name: string, uri: string | File): Promise<void> {
+        if (uri instanceof File) {
+            throw new Error(
+                `Delta Lake tables cannot be uploaded from your computer because they are ` +
+                    `directories rather than single files. Provide a URL to the table instead.`
+            );
+        }
+
+        const dataFileUrls = await this.deltaLakeService.listDataFiles(uri);
+        const handles = dataFileUrls.map((_, index) => deltaFileHandleName(name, index));
+        await this.registerFileURLs(handles, dataFileUrls);
+
+        this.sourceToHandles.set(name, handles);
+        await this.createParquetDirectView(name);
+    }
+
+    /**
+     * Register a batch of remote files with DuckDB, one handle per URL.
+     * Overridable so tests can exercise the surrounding logic without a database.
+     */
+    protected async registerFileURLs(handles: string[], urls: string[]): Promise<void> {
+        if (!this.database) {
+            throw new Error("Database failed to initialize");
+        }
+
+        await Promise.all(
+            urls.map((url, index) =>
+                this.database?.registerFileURL(
+                    handles[index],
+                    url,
+                    duckdb.DuckDBDataProtocol.HTTP,
+                    false
+                )
+            )
+        );
+    }
+
+    /**
+     * The DuckDB file handles backing a data source. All sources but Delta Lake
+     * tables are a single file, and so a single handle.
+     */
+    private handlesFor(name: string): string[] {
+        return this.sourceToHandles.get(name) ?? [fileHandleName(name)];
     }
 
     public async execute(sql: string): Promise<void> {
@@ -587,7 +703,7 @@ export default abstract class DatabaseService {
             let formattedError = (err as Error).message;
             // DuckDB does not provide informative server errors, so send a
             // separate 'get' call to retrieve error messages for URL data sources
-            if (!(uri instanceof File)) {
+            if (!(uri instanceof File) && dataSource.type !== "delta") {
                 await axios.get(uri).catch((error) => {
                     // Error responses can be formatted differently
                     // Get progressively less specific in where we look for the message
@@ -637,7 +753,7 @@ export default abstract class DatabaseService {
                 name
             );
         }
-        // Add the data source as a table on the database
+
         await this.addDataSource(name, type, uri);
 
         // Add data source name to in-memory set
@@ -647,7 +763,7 @@ export default abstract class DatabaseService {
         // Unless skipped, this will ensure the table is prepared
         // for querying with the expected columns & uniqueness constraints
         if (!skipNormalization) {
-            if (type !== "parquet") {
+            if (!isParquetBacked(type)) {
                 await this.normalizeDataSourceColumnNames(name);
                 await this.renameNonprintableCharColumns(name);
             }
@@ -657,7 +773,7 @@ export default abstract class DatabaseService {
                 throw new DataSourcePreparationError(error, name);
             }
 
-            if (type !== "parquet") {
+            if (!isParquetBacked(type)) {
                 await this.addRequiredColumns(name);
             }
         }
@@ -726,6 +842,11 @@ export default abstract class DatabaseService {
     protected async deleteDataSource(dataSource: string): Promise<void> {
         this.existingDataSources.delete(dataSource);
         this.dataSourceToAnnotationsMap.delete(dataSource);
+        const handles = this.sourceToHandles.get(dataSource);
+        this.sourceToHandles.delete(dataSource);
+        if (handles) {
+            await this.dropFileHandles(handles);
+        }
         if (this.parquetDirectViewNames.has(dataSource)) {
             this.parquetDirectViewNames.delete(dataSource);
             await this.execute(`DROP VIEW IF EXISTS "${dataSource}"`);
@@ -1011,7 +1132,10 @@ export default abstract class DatabaseService {
         // Note: we don't use this.getColumnsOnDataSource, since that expects a
         // fully built data source, and this function is used for creating a
         // data source.
-        const rawColumnQueries = sourceNames.map((name) => this.getRawParquetColumns(name));
+        const handles = sourceNames.flatMap((name) => this.handlesFor(name));
+        const rawColumnQueries = sourceNames.map((name) =>
+            this.getRawParquetColumns(this.handlesFor(name))
+        );
         const rawColumns = uniq((await Promise.all(rawColumnQueries)).flat());
         // 2. Determine which columns need to be renamed, if any
         const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
@@ -1028,8 +1152,9 @@ export default abstract class DatabaseService {
             selectParts.push(fileNameSelectPart);
         }
         // "file_row_number" restarts at 0 in every parquet file, so on its own it
-        // does not identify a row once the scan spans more than one file. Qualifying
-        // it with "filename" makes it unique. Kept VARCHAR even for a single file,
+        // does not identify a row once the scan spans more than one file -- which
+        // is every Delta Lake table and every multi-source aggregate. Qualifying it
+        // with "filename" makes it unique. Kept VARCHAR even for a single file,
         // both for consistency and because a 0-valued uid reads as falsy downstream.
         selectParts.push(
             `("filename" || '#' || CAST("file_row_number" AS VARCHAR)) AS "${HIDDEN_UID_ANNOTATION}"`
@@ -1037,14 +1162,17 @@ export default abstract class DatabaseService {
         if (sourceNames.length > 1) {
             selectParts.push(`"filename" AS "${DATA_SOURCE_COLUMN}"`);
         }
-        // 4. Create the view for this data source
-        const quotedNames = sourceNames.map((name) => `'${fileHandleName(name)}'`).join(", ");
+        // 4. Create the view for this data source.
         // filename/file_row_number are pseudo-columns parquet_scan only projects
         // when asked for, and the hidden uid above depends on both.
         const createViewSql = `CREATE VIEW "${aggregateName}"
             AS SELECT ${selectParts.join(", ")}
-            FROM parquet_scan(ARRAY[${quotedNames}], union_by_name = true,
-                filename = true, file_row_number = true);`;
+            FROM parquet_scan(
+                ${handleArrayLiteral(handles)},
+                union_by_name = true,
+                filename = true,
+                file_row_number = true
+            );`;
         await this.execute(createViewSql);
         this.parquetDirectViewNames.add(aggregateName);
     }
@@ -1055,7 +1183,7 @@ export default abstract class DatabaseService {
         name: string,
         logicalColumn: string
     ): Promise<string | null> {
-        const rawColumns = await this.getRawParquetColumns(name);
+        const rawColumns = await this.getRawParquetColumns(this.handlesFor(name));
         const actualToPreDefined = getActualToPreDefinedColumnMap(rawColumns);
         for (const [actual, predefined] of actualToPreDefined) {
             if (predefined === logicalColumn) {
@@ -1118,7 +1246,7 @@ export default abstract class DatabaseService {
          */
         const nullGroupCountSql = `
             SELECT COUNT(*) AS null_group_count,
-            FROM parquet_metadata('${fileHandleName(filename)}')
+            FROM parquet_metadata(${handleArrayLiteral(this.handlesFor(filename))})
             WHERE path_in_schema = '${column}'
             AND stats_null_count > 0`;
         const nullGroupCount = (await this.query(nullGroupCountSql).promise)[0].null_group_count;
@@ -1128,7 +1256,7 @@ export default abstract class DatabaseService {
 
         const validationSql = `
             SELECT COUNT(*) AS no_data_count,
-            FROM parquet_metadata('${fileHandleName(filename)}')
+            FROM parquet_metadata(${handleArrayLiteral(this.handlesFor(filename))})
             WHERE path_in_schema = '${column}'
             AND (
                 stats_null_count IS NULL
@@ -1147,7 +1275,7 @@ export default abstract class DatabaseService {
         // whitespace and/or non-printable control characters.
         const lowMinCountSql = `
             SELECT COUNT(*) as low_min_count,
-            FROM parquet_metadata('${fileHandleName(filename)}')
+            FROM parquet_metadata(${handleArrayLiteral(this.handlesFor(filename))})
             WHERE path_in_schema = '${column}'
             AND stats_min_value < '!'`;
         const lowMinCount = (await this.query(lowMinCountSql).promise)[0].low_min_count;
@@ -1190,9 +1318,9 @@ export default abstract class DatabaseService {
             await this.deleteDataSource(this.currentAggregateSource);
         }
 
-        const isParquet = dataSources.some((source) => source.type === "parquet");
+        const isParquet = dataSources.some((source) => isParquetBacked(source.type));
         if (isParquet) {
-            if (!dataSources.every((source) => source.type === "parquet")) {
+            if (!dataSources.every((source) => isParquetBacked(source.type))) {
                 throw new DataSourcePreparationError(
                     "Parquet tables cannot be aggregated with non-parquet tables.",
                     viewName
@@ -1476,8 +1604,10 @@ export default abstract class DatabaseService {
 
     // Similar to getColumnsOnDataSource below, but suitable for use during the
     // data source preparation step.
-    private async getRawParquetColumns(name: string): Promise<string[]> {
-        const sql = `DESCRIBE SELECT * FROM parquet_scan("${fileHandleName(name)}")`;
+    private async getRawParquetColumns(handles: string[]): Promise<string[]> {
+        const sql = `DESCRIBE SELECT * FROM parquet_scan(
+            ${handleArrayLiteral(handles)}
+        )`;
         const rows = await this.query(sql).promise;
         return rows.map((row) => row["column_name"] as string);
     }
