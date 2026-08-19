@@ -7,7 +7,7 @@ import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constant
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { EdgeDefinition, EdgeNodeType, RelationshipType } from "../../entity/Graph";
-import { ACCEPTED_SOURCE_TYPES, Source } from "../../entity/SearchParams";
+import { getResourceNameFromSourceUrl, Source } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
@@ -63,10 +63,29 @@ function fileHandleName(name: string): string {
     return name + FILE_HANDLE_SUFFIX;
 }
 
+// How a data source is read. Deliberately owned here rather than by the Source
+// entity: it is derived from the uri when a source loads, never persisted.
+export const ACCEPTED_SOURCE_TYPES = ["csv", "json", "parquet", "delta"] as const;
 export type SourceType = typeof ACCEPTED_SOURCE_TYPES[number];
+
+// A source with its reader settled, as everything past resolveSourceType sees it.
+export interface ResolvedSource extends Source {
+    type: SourceType;
+}
+
 // Return true if type is parquet or parquet-like
 function isParquetBacked(type?: SourceType): boolean {
     return type === "parquet" || type === "delta";
+}
+
+/**
+ * The reader implied by a file name or URL's extension, or undefined when there
+ * is no recognized extension. An extension-less URL may be a Delta Lake table
+ * (a directory), which only a probe can confirm -- see resolveSourceType.
+ */
+function sourceTypeFromExtension(nameOrUrl: string): SourceType | undefined {
+    const extension = getResourceNameFromSourceUrl(nameOrUrl).split(".").pop();
+    return ACCEPTED_SOURCE_TYPES.find((accepted) => accepted === extension);
 }
 
 // A Delta Lake source is backed by many parquet files, so it registers one handle
@@ -192,6 +211,8 @@ export default abstract class DatabaseService {
     private readonly sourceToHandles = new Map<string, string[]>();
     // Distinguishes the DuckDB handle used for each checkpoint parquet read.
     private deltaCheckpointCounter = 0;
+    // Probing a URL for "_delta_log" costs a request, so remember the answer.
+    private readonly resolvedTypeByUri = new Map<string, SourceType>();
 
     protected database: duckdb.AsyncDuckDB | undefined;
 
@@ -664,8 +685,14 @@ export default abstract class DatabaseService {
         dataSources: Source[],
         skipNormalization = false
     ): Promise<void> {
+        // Settle any unknown types up front: aggregation below branches on
+        // whether the sources are parquet-backed, so it needs real types.
+        const resolved = await Promise.all(
+            dataSources.map((dataSource) => this.withResolvedType(dataSource))
+        );
+
         await Promise.all(
-            dataSources
+            resolved
                 .filter((dataSource) => !this.hasDataSource(dataSource.name))
                 .map((dataSource) => this.prepareDataSourceWrapper(dataSource, skipNormalization))
         );
@@ -673,18 +700,65 @@ export default abstract class DatabaseService {
         // Because when querying multiple data sources column differences can complicate the queries
         // preparing a table ahead of time that is the aggregate of the data sources is most optimal
         // should look toward some way of reducing the memory footprint if that becomes an issue
-        if (dataSources.length > 1) {
-            await this.aggregateDataSources(dataSources);
+        if (resolved.length > 1) {
+            await this.aggregateDataSources(resolved);
         }
     }
 
+    /**
+     * Work out how to read a data source from where it lives.
+     *
+     * An extension settles it outright. Failing that, the uri is either a Delta
+     * Lake table (a directory, identified by its "_delta_log") or, as before,
+     * assumed to be a CSV -- and only a network probe can tell those apart,
+     * which is why this is deferred to load time rather than guessed at when the
+     * URL is first entered.
+     */
+    private async resolveSourceType(uri: string | File): Promise<SourceType> {
+        const type = this.cachedTypeFor(uri);
+        if (type) return type;
+
+        if (uri instanceof File) return "csv";
+
+        // Default to CSV if unable to determine if source is a Delta Lake table
+        const deltaOrCsv = (await this.deltaLakeService.isDeltaTable(uri)) ? "delta" : "csv";
+        this.resolvedTypeByUri.set(uri, deltaOrCsv);
+        return deltaOrCsv;
+    }
+
+    /**
+     * The type of a source without going to the network: what its extension says,
+     * or what a previous probe concluded. Undefined when neither has an answer.
+     */
+    private cachedTypeFor(uri: string | File): SourceType | undefined {
+        return uri instanceof File
+            ? sourceTypeFromExtension(uri.name)
+            : sourceTypeFromExtension(uri) ?? this.resolvedTypeByUri.get(uri);
+    }
+
+    /**
+     * How a loaded data source is being read, for callers that need to describe
+     * it (e.g. generating an equivalent Python snippet). Synchronous, so it only
+     * answers once the source's extension or a completed load has settled it.
+     */
+    public getResolvedType(dataSource: Source): SourceType | undefined {
+        return dataSource.uri ? this.cachedTypeFor(dataSource.uri) : undefined;
+    }
+
+    private async withResolvedType(dataSource: Source): Promise<ResolvedSource> {
+        return {
+            ...dataSource,
+            type: dataSource.uri ? await this.resolveSourceType(dataSource.uri) : "csv",
+        };
+    }
+
     private async prepareDataSourceWrapper(
-        dataSource: Source,
+        dataSource: ResolvedSource,
         skipNormalization: boolean
     ): Promise<void> {
-        const { name, type, uri } = dataSource;
+        const { name, uri } = dataSource;
 
-        if (!type || !uri) {
+        if (!uri) {
             throw new DataSourcePreparationError(
                 `Lost access to data source "${name}".\
                 </br> \
@@ -736,12 +810,12 @@ export default abstract class DatabaseService {
     }
 
     protected async prepareDataSource(
-        dataSource: Source,
+        dataSource: ResolvedSource,
         skipNormalization: boolean
     ): Promise<void> {
-        const { name, type, uri } = dataSource;
+        const { name, uri, type } = dataSource;
 
-        if (!type || !uri) {
+        if (!uri) {
             throw new DataSourcePreparationError(
                 `Lost access to data source "${name}".\
                 </br> \
@@ -791,7 +865,7 @@ export default abstract class DatabaseService {
             if (!this.hasDataSource(sourceMetadata.name)) {
                 await this.prepareDataSourceWrapper(
                     {
-                        ...sourceMetadata,
+                        ...(await this.withResolvedType(sourceMetadata)),
                         name: sourceMetadata.name,
                     },
                     true
@@ -814,7 +888,7 @@ export default abstract class DatabaseService {
             if (!this.hasDataSource(sourceProvenance.name)) {
                 await this.prepareDataSourceWrapper(
                     {
-                        ...sourceProvenance,
+                        ...(await this.withResolvedType(sourceProvenance)),
                         name: sourceProvenance.name,
                     },
                     true
@@ -1307,7 +1381,7 @@ export default abstract class DatabaseService {
             .join(", ");
     }
 
-    private async aggregateDataSources(dataSources: Source[]): Promise<void> {
+    private async aggregateDataSources(dataSources: ResolvedSource[]): Promise<void> {
         const viewName = DatabaseService.combineSourceNames(dataSources);
 
         if (this.currentAggregateSource === viewName) {

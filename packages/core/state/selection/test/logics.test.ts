@@ -720,7 +720,7 @@ describe("Selection logics", () => {
                     hierarchy: [],
                     filters: [],
                     openFolders: [],
-                    sources: [{ name: dataSourceName, type: "csv", uri }],
+                    sources: [{ name: dataSourceName, uri }],
                 },
             };
         };
@@ -1325,7 +1325,6 @@ describe("Selection logics", () => {
                 id: "1234148",
                 name: "Test Data Source",
                 version: 1,
-                type: "csv",
             },
         ];
 

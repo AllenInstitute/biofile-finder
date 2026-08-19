@@ -6,7 +6,7 @@ import { useDropzone } from "react-dropzone";
 
 import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
-import { Source, getNameAndTypeFromSourceUrl } from "../../entity/SearchParams";
+import { Source, getNameFromSourceUrl } from "../../entity/SearchParams";
 
 import styles from "./FilePrompt.module.css";
 
@@ -30,12 +30,11 @@ export default function FilePrompt(props: Props) {
         (acceptedFiles) => {
             const selectedFile = acceptedFiles?.[0];
             if (selectedFile) {
-                // Grab name minus extension
-                const nameAndExtension = selectedFile.name.split(".");
-                const name = nameAndExtension.slice(0, -1).join("");
-                // Extension validation is handled by the component itself
-                const extension = nameAndExtension.pop();
-                onSelectFile({ name, type: extension, uri: selectedFile });
+                // Grab name minus extension, keeping the whole filename when it
+                // has none
+                const segments = selectedFile.name.split(".");
+                const name = segments.length > 1 ? segments.slice(0, -1).join(".") : segments[0];
+                onSelectFile({ name, uri: selectedFile });
             }
         },
         [onSelectFile]
@@ -78,7 +77,7 @@ export default function FilePrompt(props: Props) {
             evt?.preventDefault();
             if (dataSourceURL) {
                 props.onSelectFile({
-                    ...getNameAndTypeFromSourceUrl(dataSourceURL),
+                    name: getNameFromSourceUrl(dataSourceURL),
                     uri: dataSourceURL,
                 });
             }
@@ -94,7 +93,7 @@ export default function FilePrompt(props: Props) {
                     <Tooltip content={props.selectedFile.name}>
                         <p className={styles.selectedFile}>
                             {props?.fileLabel}
-                            {props.selectedFile.name}.{props.selectedFile.type}
+                            {props.selectedFile.name}
                         </p>
                     </Tooltip>
                     <TransparentIconButton

@@ -8,7 +8,11 @@ import SQLBuilder from "../../../../core/entity/SQLBuilder";
 import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 import { DatabaseService } from "../../../../core/services";
-import { CancellablePromise, initializeDuckDB } from "../../../../core/services/DatabaseService";
+import {
+    CancellablePromise,
+    initializeDuckDB,
+    ResolvedSource,
+} from "../../../../core/services/DatabaseService";
 
 declare const self: DedicatedWorkerGlobalScope & typeof globalThis;
 let databaseService: DatabaseServiceWebWorker | null = null;
@@ -235,7 +239,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
 
     // public wrapper so that the worker can access the function
     public async prepareDataSourceWorker(
-        dataSource: Source,
+        dataSource: ResolvedSource,
         skipNormalization: boolean
     ): Promise<void> {
         await this.prepareDataSource(dataSource, skipNormalization);

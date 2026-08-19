@@ -1,4 +1,5 @@
-import { ACCEPTED_SOURCE_TYPES, Source } from "../../../../core/entity/SearchParams";
+import { Source } from "../../../../core/entity/SearchParams";
+import { SourceType } from "../../../../core/services/DatabaseService";
 
 export enum WorkerMsgType {
     ADD_SOURCE = "add datasource",
@@ -59,8 +60,8 @@ export type WorkerReqPayload<T extends WorkerMsgType> = {
     };
     [WorkerMsgType.SAVE]: {
         destination: string;
-        // Narrower than a source type: a query cannot be saved as a Delta Lake
-        // table, which is a directory rather than a file.
+        // Narrower than SourceType: a query cannot
+        // be saved as a Delta Lake table
         format: "csv" | "json" | "parquet";
         id: string;
         sql: string;
@@ -72,7 +73,7 @@ export type WorkerReqPayload<T extends WorkerMsgType> = {
     };
     [WorkerMsgType.ADD_SOURCE]: {
         name: string;
-        type: typeof ACCEPTED_SOURCE_TYPES[number];
+        type: SourceType;
         uri: string | File;
         skipNormalization?: boolean;
     };

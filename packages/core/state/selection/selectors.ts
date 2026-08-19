@@ -163,7 +163,10 @@ export const getPythonConversion = createSelector(
                 sortColumn,
                 sources,
             },
-            platformDependentServices.executionEnvService.getOS()
+            platformDependentServices.executionEnvService.getOS(),
+            // How to read the source is not carried on the Source itself; the
+            // database service settles it from the uri when the source loads.
+            sources?.[0] && platformDependentServices.databaseService.getResolvedType(sources[0])
         );
     }
 );
