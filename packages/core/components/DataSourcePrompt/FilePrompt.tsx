@@ -3,10 +3,14 @@ import classNames from "classnames";
 import { throttle } from "lodash";
 import * as React from "react";
 import { useDropzone } from "react-dropzone";
+import { useDispatch } from "react-redux";
 
+import MarkdownPreview from "./MarkdownPreview";
 import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
-import { Source, getNameAndTypeFromSourceUrl } from "../../entity/SearchParams";
+import { Source, getNameAndTypeFromSourceUrl, isMarkdownType } from "../../entity/SearchParams";
+import { ParsedFrontmatter, processMarkdown } from "../../entity/MarkdownFrontMatter";
+import { interaction } from "../../state";
 
 import styles from "./FilePrompt.module.css";
 
@@ -23,8 +27,36 @@ interface Props {
  * Component for asking a user for a file or URL
  */
 export default function FilePrompt(props: Props) {
+    const dispatch = useDispatch();
     const [dataSourceURL, setDataSourceURL] = React.useState("");
+    const [mdFrontmatter, setMdFrontmatter] = React.useState<ParsedFrontmatter>();
+    const [shouldHaveFrontmatter, setShouldHaveFrontmatter] = React.useState(false);
     const { onSelectFile } = props;
+
+    // Parse markdown files to provide a preview of the metadata we're able to find
+    const handleMarkdownSource = React.useCallback(
+        (source: Source) => {
+            if (isMarkdownType(source.type)) {
+                // Calls the standalone process instead of going through the DB service
+                // since we don't want to cache the result yet
+                processMarkdown(source, false) // skip source normalization since just previewing the data
+                    .then((result) => {
+                        setMdFrontmatter(result);
+                    })
+                    .catch((e) => {
+                        setMdFrontmatter(undefined);
+                        dispatch(
+                            interaction.actions.processError(source.name, (e as Error).message)
+                        );
+                    });
+                setShouldHaveFrontmatter(true);
+            } else {
+                setMdFrontmatter(undefined);
+                setShouldHaveFrontmatter(false);
+            }
+        },
+        [dispatch]
+    );
 
     const onDrop = React.useCallback(
         (acceptedFiles) => {
@@ -35,10 +67,12 @@ export default function FilePrompt(props: Props) {
                 const name = nameAndExtension.slice(0, -1).join("");
                 // Extension validation is handled by the component itself
                 const extension = nameAndExtension.pop();
-                onSelectFile({ name, type: extension, uri: selectedFile });
+                const source = { name, type: extension, uri: selectedFile };
+                onSelectFile(source);
+                handleMarkdownSource(source);
             }
         },
-        [onSelectFile]
+        [onSelectFile, handleMarkdownSource]
     );
 
     const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
@@ -47,6 +81,7 @@ export default function FilePrompt(props: Props) {
             "application/vnd.apache.parquet": [".parquet"],
             "application/json": [".json"],
             "text/csv": [".csv"],
+            "text/markdown": [".md", ".markdown"],
         },
         multiple: false,
         noDragEventsBubbling: true,
@@ -77,10 +112,12 @@ export default function FilePrompt(props: Props) {
         (evt?: React.FormEvent) => {
             evt?.preventDefault();
             if (dataSourceURL) {
-                props.onSelectFile({
+                const source = {
                     ...getNameAndTypeFromSourceUrl(dataSourceURL),
                     uri: dataSourceURL,
-                });
+                };
+                props.onSelectFile(source);
+                handleMarkdownSource(source);
             }
         },
         10000,
@@ -104,6 +141,7 @@ export default function FilePrompt(props: Props) {
                         onClick={() => props.onSelectFile(undefined)}
                     />
                 </div>
+                {shouldHaveFrontmatter && <MarkdownPreview mdFrontmatter={mdFrontmatter} />}
                 {fileRejections.length > 0 && fileErrorMessage}
             </div>
         );
