@@ -21,6 +21,10 @@
     max-height: 100vh;
 }
 
+.body-wrapper {
+    position: relative;
+}
+
 .scrollable-body {
     overflow-y: auto;
     max-height: 80vh;
@@ -60,4 +64,16 @@
 
 .overlay {
     background-color: rgba(0, 0, 0, 0.7);
+}
+
+.vertical-gradient {
+    background-image: linear-gradient(to bottom, transparent, var(--secondary-background-color));
+    position: absolute;
+    height: 60px;
+    width: 100%;
+    pointer-events: none;
+    opacity: 1;
+    /* Should cover the body but not the header or footer (1000)*/
+    z-index: 100;
+    bottom: 0;
 }
