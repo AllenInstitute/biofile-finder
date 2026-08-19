@@ -147,7 +147,9 @@ export default class DatabaseFileService implements FileService {
 
     private static convertDatabaseRowToFileDetail(row: FileRow, env: Environment): FileDetail {
         const uniqueId = row[HIDDEN_UID_ANNOTATION];
-        if (!uniqueId) {
+        // isNil rather than a truthiness check: 0 is a legitimate uid for the
+        // first row of a table.
+        if (isNil(uniqueId)) {
             throw new Error("Missing auto-generated unique ID");
         }
 

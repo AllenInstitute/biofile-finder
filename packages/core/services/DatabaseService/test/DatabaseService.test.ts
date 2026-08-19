@@ -7,6 +7,7 @@ import * as path from "path";
 import sinon from "sinon";
 
 import DatabaseServiceNoop from "../DatabaseServiceNoop";
+import { HIDDEN_UID_ANNOTATION } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
@@ -371,6 +372,49 @@ describe("DatabaseService", () => {
             expect(createViewSql).to.not.be.undefined;
             expect(createViewSql).to.match(/parquet_scan\(ARRAY\[.*'foo-bff-filehandle'.*]/);
             expect(createViewSql).to.match(/parquet_scan\(ARRAY\[.*'foo2-bff-filehandle'.*]/);
+        });
+
+        it("qualifies the hidden UID by filename so it stays unique across files", async () => {
+            // file_row_number restarts at 0 in every parquet file. Selecting it
+            // alone gives row 0 of file A and row 0 of file B the same id, which
+            // silently breaks `hidden_bff_uid IN (...)` selection and the ORDER BY
+            // that keeps pagination stable.
+            const service = new MockAggregateParquetDatabaseService({
+                "a.parquet": ["File Path"],
+                "b.parquet": ["File Path"],
+            });
+
+            await service.prepareDataSources([
+                { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
+                { name: "b.parquet", type: "parquet", uri: "https://example.com/b.parquet" },
+            ]);
+
+            const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
+            expect(createViewSql).to.include(
+                `("filename" || '#' || CAST("file_row_number" AS VARCHAR)) AS "${HIDDEN_UID_ANNOTATION}"`
+            );
+            expect(
+                createViewSql,
+                "a bare file_row_number uid is not unique across files"
+            ).to.not.match(new RegExp(`"file_row_number" AS "${HIDDEN_UID_ANNOTATION}"`));
+        });
+
+        it("asks parquet_scan for the pseudo-columns the view selects", async () => {
+            // filename and file_row_number are only projected when requested, and
+            // both the hidden UID and the "Data source" column depend on them.
+            const service = new MockAggregateParquetDatabaseService({
+                "a.parquet": ["File Path"],
+                "b.parquet": ["File Path"],
+            });
+
+            await service.prepareDataSources([
+                { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
+                { name: "b.parquet", type: "parquet", uri: "https://example.com/b.parquet" },
+            ]);
+
+            const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
+            expect(createViewSql).to.include("filename = true");
+            expect(createViewSql).to.include("file_row_number = true");
         });
 
         it("creates aggregate parquet view using union_by_name and data source projection", async () => {

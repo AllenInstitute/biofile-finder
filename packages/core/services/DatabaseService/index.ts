@@ -1027,15 +1027,24 @@ export default abstract class DatabaseService {
         if (fileNameSelectPart !== null) {
             selectParts.push(fileNameSelectPart);
         }
-        selectParts.push(`"file_row_number" AS "${HIDDEN_UID_ANNOTATION}"`);
+        // "file_row_number" restarts at 0 in every parquet file, so on its own it
+        // does not identify a row once the scan spans more than one file. Qualifying
+        // it with "filename" makes it unique. Kept VARCHAR even for a single file,
+        // both for consistency and because a 0-valued uid reads as falsy downstream.
+        selectParts.push(
+            `("filename" || '#' || CAST("file_row_number" AS VARCHAR)) AS "${HIDDEN_UID_ANNOTATION}"`
+        );
         if (sourceNames.length > 1) {
             selectParts.push(`"filename" AS "${DATA_SOURCE_COLUMN}"`);
         }
         // 4. Create the view for this data source
         const quotedNames = sourceNames.map((name) => `'${fileHandleName(name)}'`).join(", ");
+        // filename/file_row_number are pseudo-columns parquet_scan only projects
+        // when asked for, and the hidden uid above depends on both.
         const createViewSql = `CREATE VIEW "${aggregateName}"
             AS SELECT ${selectParts.join(", ")}
-            FROM parquet_scan(ARRAY[${quotedNames}], union_by_name = true);`;
+            FROM parquet_scan(ARRAY[${quotedNames}], union_by_name = true,
+                filename = true, file_row_number = true);`;
         await this.execute(createViewSql);
         this.parquetDirectViewNames.add(aggregateName);
     }
