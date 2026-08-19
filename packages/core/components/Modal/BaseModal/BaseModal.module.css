@@ -14,8 +14,16 @@
     flex-direction: column;
 }
 
+/* Prevent scrolling for the overall modal;
+ restrict to just the body content */
 .scrollable-container {
     overflow: hidden;
+    max-height: 100vh;
+}
+
+.scrollable-body {
+    overflow-y: auto;
+    max-height: 80vh;
 }
 
 .header {

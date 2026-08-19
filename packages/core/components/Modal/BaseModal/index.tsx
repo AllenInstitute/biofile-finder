@@ -30,6 +30,7 @@ export default function BaseModal(props: BaseModalProps) {
             containerClassName={classNames(styles.container, className)}
             titleAriaId={titleId}
             overlay={{ className: styles.overlay }}
+            scrollableContentClassName={styles.scrollableContainer}
         >
             <div className={styles.header}>
                 {title ? (
@@ -39,7 +40,7 @@ export default function BaseModal(props: BaseModalProps) {
                 ) : null}
                 <TertiaryButton iconName="Cancel" onClick={onDismiss} title="" />
             </div>
-            <div className={styles.scrollableContent}>{body}</div>
+            <div className={styles.scrollableBody}>{body}</div>
             <div className={styles.footer}>{footer}</div>
         </Modal>
     );
