@@ -166,7 +166,7 @@ describe("<Header />", () => {
         );
         expect(
             showContextMenuAction?.payload.items.map((item: ContextMenuItem) => item.key)
-        ).to.eql(["modify-columns", "modify-columns-divider", "Move to start", "Move to end"]);
+        ).to.eql(["modify-columns", "Move to start", "Move to end"]);
     });
 
     it("shows a menu with only column selection options when no column is right-clicked", () => {

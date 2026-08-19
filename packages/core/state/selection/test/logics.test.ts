@@ -1327,15 +1327,25 @@ describe("Selection logics", () => {
             annotations.map((annotation, index) => [annotation.name, 100 + index * 25])
         );
 
+        const annotationService = new HttpAnnotationService({
+            fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+            httpClient: createMockHttpClient([]),
+        });
+
         beforeEach(() => {
-            sinon.stub(interaction.selectors, "getAnnotationService").returns(({
-                fetchOptimalWidthForAnnotations: (annotationsToSize: Annotation[]) =>
+            sinon.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+            sinon
+                .stub(annotationService, "fetchOptimalWidthForAnnotations")
+                .callsFake((annotationsToSize: Annotation[]) =>
                     Promise.resolve(
                         new Map(
-                            annotationsToSize.map((a) => [a.name, optimalWidthByName.get(a.name)])
+                            annotationsToSize.map((a) => [
+                                a.name,
+                                optimalWidthByName.get(a.name) ?? 0,
+                            ])
                         )
-                    ),
-            } as unknown) as HttpAnnotationService);
+                    )
+                );
         });
 
         afterEach(() => {

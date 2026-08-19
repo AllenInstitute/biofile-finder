@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from "react-redux";
 import ColumnPicker from "./ColumnPicker";
 import useDragAndDropOrder from "./useDragAndDropOrder";
 import useVisibleColumns from "./useVisibleCells";
-import { ContextMenuItem, ContextualMenuItemType } from "../ContextMenu";
+import { ContextMenuItem } from "../ContextMenu";
 import Tooltip from "../Tooltip";
 import FileRow, { CellConfig } from "../../components/FileRow";
 import { SortOrder } from "../../entity/FileSort";
@@ -84,10 +84,6 @@ function Header(
         evt.stopPropagation();
         const items: ContextMenuItem[] = [
             modifyColumnsMenuItem,
-            {
-                key: "modify-columns-divider",
-                itemType: ContextualMenuItemType.Divider,
-            },
             {
                 key: "Move to start",
                 text: "Move to start",

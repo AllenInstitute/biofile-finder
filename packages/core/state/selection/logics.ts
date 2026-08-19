@@ -532,6 +532,17 @@ const selectColumnsLogic = createLogic({
                 })),
             ])
         );
+
+        const displayableAnnotationNames = metadata.selectors
+            .getAnnotations(deps.getState())
+            .filter((annotation) => !annotation.isParent)
+            .map((annotation) => annotation.name);
+        const hasSelectedEveryAnnotation =
+            !!displayableAnnotationNames.length &&
+            displayableAnnotationNames.every((name) => selectedAnnotationNames.includes(name));
+        if (hasSelectedEveryAnnotation) {
+            dispatch(setHasUserSelectedColumns(false) as AnyAction);
+        }
         done();
     },
     type: SELECT_COLUMNS,

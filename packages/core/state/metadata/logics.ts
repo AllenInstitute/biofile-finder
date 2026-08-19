@@ -114,6 +114,7 @@ const receiveAnnotationsLogic = createLogic({
             dispatch(selection.actions.setFileFilters(enrichedFilters));
         }
 
+        // Exclude parents of nested fields since they don't have their own values to display
         const displayableAnnotations = annotations.filter(
             (annotation) => !annotationByName.get(annotation.name)?.isParent
         );
@@ -125,7 +126,14 @@ const receiveAnnotationsLogic = createLogic({
         const validUserSelectedColumns = currentColumns.filter((column) =>
             displayableAnnotationNames.has(column.name)
         );
-        if (hasUserSelectedColumns && validUserSelectedColumns.length) {
+        // A selection of every displayable annotation is equivalent to the default
+        const hasSelectedEveryAnnotation =
+            validUserSelectedColumns.length === displayableAnnotationNames.size;
+        if (
+            hasUserSelectedColumns &&
+            validUserSelectedColumns.length &&
+            !hasSelectedEveryAnnotation
+        ) {
             if (!isEqual(validUserSelectedColumns, currentColumns)) {
                 dispatch(selection.actions.setColumns(validUserSelectedColumns));
             }
