@@ -3,7 +3,7 @@ import { createSelector } from "reselect";
 
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
-import SearchParams, { SearchParamsComponents, FileView } from "../../entity/SearchParams";
+import SearchParams, { SearchParamsComponents, FileView, Source } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import {
     getAnnotations,
@@ -30,6 +30,8 @@ export const getRecentAnnotations = (state: State) => state.selection.recentAnno
 export const getRequiresDataSourceReload = (state: State) =>
     state.selection.requiresDataSourceReload;
 export const getSelectedDataSources = (state: State) => state.selection.dataSources;
+export const getDatasetDescriptionSource = (state: State) =>
+    state.selection.datasetDescriptionSource;
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
 export const getSelectedSourceProvenance = (state: State) => state.selection.sourceProvenance;
 export const getProvenanceOriginId = (state: State) => state.selection.provenanceOriginId;
@@ -90,6 +92,17 @@ export const getColumnNames = createSelector([getColumns], (columns): string[] =
     columns.map((column) => column.name)
 );
 
+// reselect can only infer parameter types for up to 12 input selectors,
+// so the data sources and the dataset description source are combined here
+// to keep getCurrentQueryParts at that limit
+const getSourcesWithDescriptionSource = createSelector(
+    [getSelectedDataSources, getDatasetDescriptionSource],
+    (sources, dataDescriptionSource): Source[] => [
+        ...sources,
+        ...(dataDescriptionSource ? [dataDescriptionSource] : []),
+    ]
+);
+
 export const getCurrentQueryParts = createSelector(
     [
         getAnnotationHierarchy,
@@ -100,7 +113,7 @@ export const getCurrentQueryParts = createSelector(
         getOpenFileFolders,
         getShouldShowNullGroups,
         getSortColumn,
-        getSelectedDataSources,
+        getSourcesWithDescriptionSource,
         getSelectedSourceMetadata,
         getSelectedSourceProvenance,
         getProvenanceOriginId,
@@ -134,8 +147,19 @@ export const getCurrentQueryParts = createSelector(
     })
 );
 
-export const getEncodedSearchParams = createSelector([getCurrentQueryParts], (queryParts): string =>
-    SearchParams.encode(queryParts)
+export const getDatasetSourcesFromMarkdown = createSelector(
+    [getPlatformDependentServices, getDatasetDescriptionSource],
+    ({ databaseService }, datasetDescriptionSource) => {
+        if (!datasetDescriptionSource) return undefined;
+        return databaseService.getDatasetDescriptionSources(datasetDescriptionSource);
+    }
+);
+
+export const getEncodedSearchParams = createSelector(
+    [getCurrentQueryParts, getDatasetSourcesFromMarkdown],
+    (queryParts, datasetSources): string => {
+        return SearchParams.encode(queryParts, datasetSources);
+    }
 );
 
 export const getLoadingNewQuery = createSelector([getQueries], (queries): boolean =>
