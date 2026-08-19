@@ -1,0 +1,8 @@
+.md-metadata {
+    font-size: var(--s-paragraph-size);
+    line-height: 1.5;
+}
+
+.md-metadata > ul > li {
+    padding-inline-start: 25px;
+}

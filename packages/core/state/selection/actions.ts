@@ -641,25 +641,6 @@ export function toggleNullValueGroups(showNullValues?: boolean): SetShowNullValu
 }
 
 /**
- * DECODE_FILE_EXPLORER_URL
- *
- * Intention to decode an incoming file explorer URL into application state
- */
-export const DECODE_FILE_EXPLORER_URL = makeConstant(STATE_BRANCH_NAME, "decode-file-explorer-url");
-
-export interface DecodeSearchParamsAction {
-    payload: string;
-    type: string;
-}
-
-export function decodeSearchParams(decodedSearchParams: string): DecodeSearchParamsAction {
-    return {
-        payload: decodedSearchParams,
-        type: DECODE_FILE_EXPLORER_URL,
-    };
-}
-
-/**
  * CHANGE_DATA_SOURCES
  *
  * Intention to update the data sources queries are run against.
@@ -896,5 +877,25 @@ export function setIsLoadingSource(isLoading: boolean): SetIsLoadingSource {
     return {
         payload: isLoading,
         type: SET_IS_LOADING_DATA_SOURCE,
+    };
+}
+
+/** SET_SELECTED_DESCRIPTION_SOURCE
+ *
+ */
+export const SET_SELECTED_DATASET_DESCRIPTION_SOURCE = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-selected-dataset-description-source"
+);
+
+export interface SetSelectedDescriptionSource {
+    payload: Source | undefined;
+    type: string;
+}
+
+export function setSelectedDescriptionSource(source?: Source): SetSelectedDescriptionSource {
+    return {
+        payload: source,
+        type: SET_SELECTED_DATASET_DESCRIPTION_SOURCE,
     };
 }
