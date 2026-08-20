@@ -20,8 +20,10 @@ import {
     MARK_AS_USED_APPLICATION_BEFORE,
     MARK_AS_DISMISSED_SMALL_SCREEN_WARNING,
     ShowManifestDownloadDialogAction,
+    SET_ENVIRONMENT_OVERRIDES,
     SET_HAS_UNSAVED_CHANGES,
     SET_IS_AICS_EMPLOYEE,
+    SetEnvironmentOverrides,
     PROMPT_FOR_DATA_SOURCE,
     DownloadManifestAction,
     DOWNLOAD_MANIFEST,
@@ -42,7 +44,7 @@ import {
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
-import { Environment } from "../../constants";
+import { Environment, EnvironmentOverrides } from "../../constants";
 import FileFilter from "../../entity/FileFilter";
 import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
@@ -69,6 +71,7 @@ export interface InteractionStateBranch {
     fileTypeForVisibleModal: "csv" | "json" | "parquet";
     fileFiltersForVisibleModal: FileFilter[];
     environment: "LOCALHOST" | "PRODUCTION" | "STAGING" | "TEST";
+    environmentOverrides: EnvironmentOverrides;
     hasDismissedSmallScreenWarning: boolean;
     hasUnsavedChanges: boolean;
     hasUsedApplicationBefore: boolean;
@@ -94,6 +97,7 @@ export interface InteractionStateBranch {
 
 export const initialState: InteractionStateBranch = {
     environment: Environment.PRODUCTION,
+    environmentOverrides: {},
     contextMenuIsVisible: false,
     contextMenuItems: [],
     // Passed to `ContextualMenu` as `target`. From the "@fluentui/react" docs:
@@ -173,6 +177,10 @@ export default makeReducer<InteractionStateBranch>(
         [SET_USER_SELECTED_APPLICATIONS]: (state, action) => ({
             ...state,
             userSelectedApplications: action.payload,
+        }),
+        [SET_ENVIRONMENT_OVERRIDES]: (state, action: SetEnvironmentOverrides) => ({
+            ...state,
+            environmentOverrides: action.payload,
         }),
         [SET_HAS_UNSAVED_CHANGES]: (state) => ({
             ...state,

@@ -105,5 +105,19 @@ export enum VolEBaseUrl {
     TEST = "https://staging.volumeviewer.allencell.org/viewer",
 }
 
+// Services whose environment can be individually overridden by developers
+// via the environment switch modal (Ctrl+Shift+E)
+export enum OverridableService {
+    DatasetBucket = "datasetBucket",
+    FileExplorerService = "fileExplorerService",
+    FileStorageService = "fileStorageService",
+    LabKey = "labKey",
+    MetadataManagementService = "metadataManagementService",
+    VolE = "volE",
+}
+
+export type EnvironmentOverrides = Partial<Record<OverridableService, Environment>>;
+
+
 export const UNSAVED_DATA_WARNING =
     "Edits to data source files are not preserved by this app. Download to save a copy with your changes.";

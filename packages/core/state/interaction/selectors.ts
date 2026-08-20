@@ -10,6 +10,7 @@ import {
     FileStorageServiceBaseUrl,
     LabKeyBaseUrl,
     MMSBaseUrl,
+    OverridableService,
     VolEBaseUrl,
 } from "../../constants";
 import {
@@ -38,6 +39,7 @@ import { isMarkdownType } from "../../entity/SearchParams";
 
 // BASIC SELECTORS
 export const getEnvironment = (state: State) => state.interaction.environment;
+export const getEnvironmentOverrides = (state: State) => state.interaction.environmentOverrides;
 export const getContextMenuVisibility = (state: State) => state.interaction.contextMenuIsVisible;
 export const getContextMenuItems = (state: State) => state.interaction.contextMenuItems;
 export const getContextMenuPositionReference = (state: State) =>
@@ -74,24 +76,33 @@ export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee;
 
 // URL Mapping Selectors
+// Each service resolves to the developer-set override for that service when
+// present (see the environment switch modal), otherwise the app-wide environment
+export const getFileExplorerServiceEnvironment = createSelector(
+    [getEnvironment, getEnvironmentOverrides],
+    (environment, overrides) => overrides[OverridableService.FileExplorerService] ?? environment
+);
+
 export const getFileExplorerServiceBaseUrl = createSelector(
-    [getEnvironment],
+    [getFileExplorerServiceEnvironment],
     (environment) => FESBaseUrl[environment]
 );
 
 export const getDatasetBucketUrl = createSelector(
-    [getEnvironment],
-    (environment) => DatasetBucketUrl[environment]
+    [getEnvironment, getEnvironmentOverrides],
+    (environment, overrides) =>
+        DatasetBucketUrl[overrides[OverridableService.DatasetBucket] ?? environment]
 );
 
 export const getFileStorageServiceBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => FileStorageServiceBaseUrl[environment]
+    [getEnvironment, getEnvironmentOverrides],
+    (environment, overrides) =>
+        FileStorageServiceBaseUrl[overrides[OverridableService.FileStorageService] ?? environment]
 );
 
 export const getLabKeyBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => LabKeyBaseUrl[environment]
+    [getEnvironment, getEnvironmentOverrides],
+    (environment, overrides) => LabKeyBaseUrl[overrides[OverridableService.LabKey] ?? environment]
 );
 
 export const getPipelineService = createSelector(
@@ -100,13 +111,14 @@ export const getPipelineService = createSelector(
 );
 
 export const getMetadataManagementServiceBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => MMSBaseUrl[environment]
+    [getEnvironment, getEnvironmentOverrides],
+    (environment, overrides) =>
+        MMSBaseUrl[overrides[OverridableService.MetadataManagementService] ?? environment]
 );
 
 export const getVolEBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => VolEBaseUrl[environment]
+    [getEnvironment, getEnvironmentOverrides],
+    (environment, overrides) => VolEBaseUrl[overrides[OverridableService.VolE] ?? environment]
 );
 
 // COMPOSED SELECTORS
