@@ -275,7 +275,7 @@ export default function FileList(props: FileListProps) {
             <>
                 <Header />
                 <div className={styles.noColumnsMessage}>
-                    <EmptyFileListMessage hideIcon title="No Columns Selected">
+                    <EmptyFileListMessage hideIcon title="No columns selected">
                         <div>Select at least one column above to display the file list.</div>
                     </EmptyFileListMessage>
                 </div>

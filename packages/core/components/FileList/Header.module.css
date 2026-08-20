@@ -40,7 +40,6 @@
 
 .empty-header-prompt {
   color: var(--secondary-text-color);
-  font-style: italic;
   padding: var(--inner-header-padding);
 }
 

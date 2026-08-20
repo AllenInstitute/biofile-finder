@@ -76,7 +76,7 @@ describe("<FileList />", () => {
         expect(queryByText("Counting files...")).to.not.exist;
     });
 
-    it("displays 'No Columns Selected' when no columns are displayed", async () => {
+    it("displays 'No columns selected' when no columns are displayed", async () => {
         // Arrange: initialState has no columns selected
         const state = mergeState(initialState, {
             metadata: { annotations: [FILE_NAME_ANNOTATION] },
@@ -96,9 +96,9 @@ describe("<FileList />", () => {
         );
 
         // Assert
-        await findByText("No Columns Selected");
+        await findByText("No columns selected");
         expect(queryByText("Select at least one column above to display the file list.")).to.exist;
-        expect(queryByText("Click here to select columns...")).to.exist;
+        expect(queryByText("Click here to select columns")).to.exist;
     });
 
     it("waits for annotations to load before fetching files", async () => {

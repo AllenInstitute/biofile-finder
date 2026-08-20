@@ -230,7 +230,7 @@ describe("<Header />", () => {
         );
 
         // Assert
-        expect(getByText("Click here to select columns...")).to.exist;
+        expect(getByText("Click here to select columns")).to.exist;
     });
 
     it("dispatches reorderColumns with reordered columns when column is dragged to new position", () => {

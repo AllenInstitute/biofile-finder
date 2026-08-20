@@ -128,7 +128,7 @@ function Header(
         {
             className: styles.emptyHeaderPrompt,
             columnKey: "empty-header-prompt",
-            displayValue: "Click here to select columns...",
+            displayValue: "Click here to select columns",
             width: 0,
         },
     ];
