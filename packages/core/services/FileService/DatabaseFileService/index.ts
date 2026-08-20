@@ -146,12 +146,15 @@ export default class DatabaseFileService implements FileService {
     public readonly provenanceIdColumns = ["File Path", "File ID"];
 
     private static convertDatabaseRowToFileDetail(row: FileRow, env: Environment): FileDetail {
-        const uniqueId = row[HIDDEN_UID_ANNOTATION];
+        const rawUniqueId = row[HIDDEN_UID_ANNOTATION];
         // isNil rather than a truthiness check: 0 is a legitimate uid for the
-        // first row of a table.
-        if (isNil(uniqueId)) {
+        // first row of a table. It has to be stringified before it reaches
+        // FileDetail, whose uid getter is `this.uniqueId || this.id` -- a numeric
+        // 0 would otherwise be discarded in favour of the file ID.
+        if (isNil(rawUniqueId)) {
             throw new Error("Missing auto-generated unique ID");
         }
+        const uniqueId = String(rawUniqueId);
 
         const annotations = Object.entries(row).flatMap(([name, values]): FmsFileAnnotation[] => {
             // Filter out UID annotation used for selection logic

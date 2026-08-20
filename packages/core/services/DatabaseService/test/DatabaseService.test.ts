@@ -391,12 +391,38 @@ describe("DatabaseService", () => {
 
             const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
             expect(createViewSql).to.include(
-                `("filename" || '#' || CAST("file_row_number" AS VARCHAR)) AS "${HIDDEN_UID_ANNOTATION}"`
+                `("bff_source_file" || '#' || CAST("file_row_number" AS VARCHAR)) ` +
+                    `AS "${HIDDEN_UID_ANNOTATION}"`
             );
             expect(
                 createViewSql,
                 "a bare file_row_number uid is not unique across files"
             ).to.not.match(new RegExp(`"file_row_number" AS "${HIDDEN_UID_ANNOTATION}"`));
+        });
+
+        it("does not collide with a source column named filename", async () => {
+            // parquet_scan's injected filename column has a fixed default name.
+            // A source parquet carrying its own "filename" column collides with
+            // it and DuckDB refuses to bind the scan at all, so the injected one
+            // is requested under a namespaced name instead.
+            const service = new MockAggregateParquetDatabaseService({
+                "a.parquet": ["File Path", "filename"],
+                "b.parquet": ["File Path", "filename"],
+            });
+
+            await service.prepareDataSources([
+                { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
+                { name: "b.parquet", type: "parquet", uri: "https://example.com/b.parquet" },
+            ]);
+
+            const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
+            // The user's own column is still projected untouched...
+            expect(createViewSql).to.include(`"filename"`);
+            // ...while the injected one is asked for under a name of ours, and
+            // that is what the uid and "Data source" are built from.
+            expect(createViewSql).to.include(`filename = 'bff_source_file'`);
+            expect(createViewSql).to.include(`"bff_source_file" || '#'`);
+            expect(createViewSql).to.not.include(`("filename" || '#'`);
         });
 
         it("asks parquet_scan for the pseudo-columns the view selects", async () => {
@@ -413,7 +439,7 @@ describe("DatabaseService", () => {
             ]);
 
             const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
-            expect(createViewSql).to.include("filename = true");
+            expect(createViewSql).to.include(`filename = 'bff_source_file'`);
             expect(createViewSql).to.include("file_row_number = true");
         });
 
@@ -432,7 +458,7 @@ describe("DatabaseService", () => {
             expect(createViewSql).to.not.be.undefined;
             expect(createViewSql).to.include("parquet_scan(ARRAY[");
             expect(createViewSql).to.include("union_by_name = true");
-            expect(createViewSql).to.include(`"filename" AS "Data source"`);
+            expect(createViewSql).to.include(`"bff_source_file" AS "Data source"`);
         });
     });
 
