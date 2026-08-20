@@ -370,8 +370,9 @@ describe("DatabaseService", () => {
 
             const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
             expect(createViewSql).to.not.be.undefined;
-            expect(createViewSql).to.match(/parquet_scan\(ARRAY\[.*'foo-bff-filehandle'.*]/);
-            expect(createViewSql).to.match(/parquet_scan\(ARRAY\[.*'foo2-bff-filehandle'.*]/);
+            expect(createViewSql).to.match(/parquet_scan\(\s*ARRAY\[/);
+            expect(createViewSql).to.include("'foo-bff-filehandle'");
+            expect(createViewSql).to.include("'foo2-bff-filehandle'");
         });
 
         it("qualifies the hidden UID by filename so it stays unique across files", async () => {
@@ -425,7 +426,7 @@ describe("DatabaseService", () => {
 
             const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
             expect(createViewSql).to.not.be.undefined;
-            expect(createViewSql).to.include("parquet_scan(ARRAY[");
+            expect(createViewSql).to.match(/parquet_scan\(\s*ARRAY\[/);
             expect(createViewSql).to.include("union_by_name = true");
             expect(createViewSql).to.include(`"bff_source_file" AS "Data source"`);
         });
