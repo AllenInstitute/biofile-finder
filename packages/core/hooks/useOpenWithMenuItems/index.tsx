@@ -3,7 +3,6 @@ import { isEmpty } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import useOpenInCfe from "./useOpenInCfe";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
@@ -29,13 +28,11 @@ enum AppKeys {
     VALIDATOR = "validator",
     VOLE = "vole",
     VOLVIEW = "volview",
-    CFE = "cfe",
 }
 
 interface Apps {
     [AppKeys.AGAVE]: IContextualMenuItem;
     [AppKeys.BROWSER]: IContextualMenuItem;
-    [AppKeys.CFE]: IContextualMenuItem;
     [AppKeys.FIJI]: IContextualMenuItem;
     [AppKeys.IDR_VIEWER]: IContextualMenuItem;
     [AppKeys.NEUROGLANCER]: IContextualMenuItem;
@@ -46,7 +43,6 @@ interface Apps {
 }
 
 type AppOptions = {
-    openInCfe: () => void;
     openInVolE: () => void;
     openInFiji: () => void;
 };
@@ -113,13 +109,6 @@ const APPS = (
         href: fileDetails?.path,
         disabled: !fileDetails?.path,
         target: "_blank",
-    } as IContextualMenuItem,
-    [AppKeys.CFE]: {
-        key: AppKeys.CFE,
-        text: "Cell Feature Explorer",
-        title: `Open files with CFE`,
-        onClick: options?.openInCfe,
-        hidden: options?.openInCfe === undefined || !fileDetails?.path,
     } as IContextualMenuItem,
     [AppKeys.FIJI]: {
         key: AppKeys.FIJI,
@@ -262,8 +251,8 @@ function getSupportedApps(
             }
 
             return isLikelyLocalFile
-                ? [apps.agave, apps.neuroglancer, apps.vole, apps.cfe]
-                : [apps.vole, apps.neuroglancer, apps.agave, apps.cfe, apps.validator];
+                ? [apps.agave, apps.neuroglancer, apps.vole]
+                : [apps.vole, apps.neuroglancer, apps.agave, apps.validator];
     }
 
     // Now check for special cases where the path may include a subpath into the container
@@ -349,18 +338,11 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
     const labKeyBaseUrl = useSelector(interaction.selectors.getLabKeyBaseUrl);
-    const fileService = useSelector(interaction.selectors.getFileService);
     const volEBaseUrl = useSelector(getVolEBaseUrl);
 
     const fileSelection = useSelector(selection.selectors.getFileSelection);
-    const annotationNames = React.useMemo(
-        () => Array.from(annotationNameToAnnotationMap.keys()).sort(),
-        [annotationNameToAnnotationMap]
-    );
     const [isSmallFile, setIsSmallFile] = React.useState(false);
     const [isMacOS, setIsMacOS] = React.useState(false);
-
-    const openInCfe = useOpenInCfe(fileSelection, annotationNames, fileService);
 
     const openInFiji = React.useCallback(async (): Promise<void> => {
         if (!fileDetails) return;
@@ -373,7 +355,6 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         window.open(fijiUrl);
     }, [fileDetails, s3StorageService]);
 
-    // custom hook this, like `useOpenInCfe`?
     const openInVolE = React.useCallback(async (): Promise<void> => {
         let details = await fileSelection.fetchAllDetails();
         if (details.length > 1) {
@@ -490,7 +471,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         })
         .sort((a, b) => (a.text || "").localeCompare(b.text || ""));
 
-    const apps = APPS(fileDetails, { openInCfe, openInVolE, openInFiji });
+    const apps = APPS(fileDetails, { openInVolE, openInFiji });
 
     // Determine is the file is small or not asynchronously
     React.useEffect(() => {
