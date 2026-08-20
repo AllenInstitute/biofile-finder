@@ -31,7 +31,8 @@ type UnwrappedMetadataValue =
     | null
     | undefined;
 type FileRow = {
-    [HIDDEN_UID_ANNOTATION]?: string;
+    // This is a string for parquet and a number for CSV/JSON
+    [HIDDEN_UID_ANNOTATION]?: string | number;
     [key: string]: UnwrappedMetadataValue;
 };
 
@@ -147,10 +148,6 @@ export default class DatabaseFileService implements FileService {
 
     private static convertDatabaseRowToFileDetail(row: FileRow, env: Environment): FileDetail {
         const rawUniqueId = row[HIDDEN_UID_ANNOTATION];
-        // isNil rather than a truthiness check: 0 is a legitimate uid for the
-        // first row of a table. It has to be stringified before it reaches
-        // FileDetail, whose uid getter is `this.uniqueId || this.id` -- a numeric
-        // 0 would otherwise be discarded in favour of the file ID.
         if (isNil(rawUniqueId)) {
             throw new Error("Missing auto-generated unique ID");
         }

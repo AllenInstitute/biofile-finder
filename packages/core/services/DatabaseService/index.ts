@@ -57,10 +57,9 @@ const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
 
 const DATA_SOURCE_COLUMN = "Data source";
 
-// parquet_scan can inject the source file name as a column, but under its
-// default name it collides with any source parquet carrying its own column
-// called "filename" -- DuckDB then refuses to bind the scan at all. Ask for it
-// under a name a data file is not going to be using.
+// Assign a column name that is unlikely to be used in a data source to
+// be used as the name of the column that `parquet_scan` can inject the source
+// file name into.
 const SOURCE_FILE_COLUMN = "bff_source_file";
 
 // Suffix appended to every DuckDB file-handle name so that a short name like
@@ -1130,11 +1129,9 @@ export default abstract class DatabaseService {
         if (fileNameSelectPart !== null) {
             selectParts.push(fileNameSelectPart);
         }
-        // "file_row_number" restarts at 0 in every parquet file, so on its own it
-        // does not identify a row once the scan spans more than one file. Qualifying
-        // it with the source file makes it unique. Kept VARCHAR even for a single
-        // file, both for consistency and because a 0-valued uid reads as falsy
-        // downstream.
+        // Have to qualify each row number by its source file to prevent collisions
+        // across files (especially relevant for sharded datasets).
+        // Ex. This would become: "my_dataset#1"
         selectParts.push(
             `("${SOURCE_FILE_COLUMN}" || '#' || CAST("file_row_number" AS VARCHAR)) ` +
                 `AS "${HIDDEN_UID_ANNOTATION}"`
@@ -1144,12 +1141,14 @@ export default abstract class DatabaseService {
         }
         // 4. Create the view for this data source
         const quotedNames = sourceNames.map((name) => `'${fileHandleName(name)}'`).join(", ");
-        // Both are pseudo-columns parquet_scan only projects when asked for, and
-        // the hidden uid above depends on both.
         const createViewSql = `CREATE VIEW "${aggregateName}"
             AS SELECT ${selectParts.join(", ")}
-            FROM parquet_scan(ARRAY[${quotedNames}], union_by_name = true,
-                filename = '${SOURCE_FILE_COLUMN}', file_row_number = true);`;
+            FROM parquet_scan(
+                ARRAY[${quotedNames}],
+                union_by_name = true,
+                filename = '${SOURCE_FILE_COLUMN}',
+                file_row_number = true
+            );`;
         await this.execute(createViewSql);
         this.parquetDirectViewNames.add(aggregateName);
     }
