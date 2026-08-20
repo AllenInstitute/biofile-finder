@@ -76,8 +76,6 @@ export const getVisibleModal = (state: State) => state.interaction.visibleModal;
 export const isAicsEmployee = (state: State) => state.interaction.isAicsEmployee;
 
 // URL Mapping Selectors
-// Each service resolves to the developer-set override for that service when
-// present (see the environment switch modal), otherwise the app-wide environment
 export const getFileExplorerServiceEnvironment = createSelector(
     [getEnvironment, getEnvironmentOverrides],
     (environment, overrides) => overrides[OverridableService.FileExplorerService] ?? environment

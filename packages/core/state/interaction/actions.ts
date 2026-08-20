@@ -272,8 +272,7 @@ export const initializeApp = (payload: { environment: string }) => ({
 /**
  * SET_ENVIRONMENT_OVERRIDES
  *
- * Intention to override the environment used by individual services. Developer
- * tool for pointing one or many services at a non-default environment (e.g., staging).
+ * Set override of environment used by individual services.
  */
 export const SET_ENVIRONMENT_OVERRIDES = makeConstant(
     STATE_BRANCH_NAME,

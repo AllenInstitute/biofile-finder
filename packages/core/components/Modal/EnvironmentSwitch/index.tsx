@@ -64,10 +64,6 @@ const ENVIRONMENT_OPTIONS = Object.values(Environment).map((env) => ({
     text: env,
 }));
 
-/**
- * Developer tool for pointing one or many services at a non-default environment
- * (e.g., staging). Opened via keyboard shortcut; applies to the current session only.
- */
 export default function EnvironmentSwitch({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();
     const environment = useSelector(interaction.selectors.getEnvironment) as Environment;
@@ -108,8 +104,6 @@ export default function EnvironmentSwitch({ onDismiss }: ModalProps) {
     };
 
     const onApply = () => {
-        // Only persist actual deviations from the app-wide environment so that
-        // non-overridden services continue to follow it
         const newOverrides: EnvironmentOverrides = {};
         SERVICES.forEach((service) => {
             if (draft[service.key] !== environment) {
