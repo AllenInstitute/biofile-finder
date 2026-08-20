@@ -20,14 +20,14 @@ export default class PipelineService extends HttpServiceBase {
 
     getPipelines(): Promise<Pipeline[]> {
         if (!this.pipelinesCache) {
-            // TODO: this.pipelinesCache = this.get(`${this.loadBalancerBaseUrl}/fss2/v4.0/pipelines`).then((r) => r.data);
+            // TODO: this.pipelinesCache = this.get(`${this.fileStorageServiceBaseUrl}/fss2/v4.0/pipelines`).then((r) => r.data);
             this.pipelinesCache = Promise.resolve(MOCK_PIPELINES);
         }
         return this.pipelinesCache;
     }
 
     getParameters(pipelineId: string, _cluster: string): Promise<PipelineParameter[]> {
-        // TODO: return this.get(`${this.loadBalancerBaseUrl}/fss2/v4.0/pipelines/${pipelineId}/parameters?cluster=${_cluster}`).then((r) => r.data);
+        // TODO: return this.get(`${this.fileStorageServiceBaseUrl}/fss2/v4.0/pipelines/${pipelineId}/parameters?cluster=${_cluster}`).then((r) => r.data);
         const params = MOCK_PARAMETERS[pipelineId];
         if (!params) {
             return Promise.reject(new Error(`No parameters found for pipeline: ${pipelineId}`));
@@ -44,7 +44,7 @@ export default class PipelineService extends HttpServiceBase {
     }
 
     async submitComputeTask(request: ComputeTaskRequest): Promise<ComputeTaskResponse> {
-        const url = `${this.loadBalancerBaseUrl}/fss2/v4.0/compute/${request.pipeline}`;
+        const url = `${this.fileStorageServiceBaseUrl}/fss2/v4.0/compute/${request.pipeline}`;
 
         const files = request.filePaths.map((p) => PipelineService.encodeFilePath(p));
         const body: Record<string, string | string[]> = { files };

@@ -77,7 +77,17 @@ export enum MMSBaseUrl {
     TEST = "http://test-aics-mms-api.corp.alleninstitute.org",
 }
 
-export enum LoadBalancerBaseUrl {
+// File Storage Service (FSS2); fronted by the same gateway host as LabKey,
+// but kept separate so each can be configured independently
+export enum FileStorageServiceBaseUrl {
+    LOCALHOST = "http://localhost:8080",
+    STAGING = "https://stg-aics.corp.alleninstitute.org",
+    PRODUCTION = "https://aics.corp.alleninstitute.org",
+    TEST = "http://test-aics.corp.alleninstitute.org",
+}
+
+// Host used to build user-facing LabKey links (e.g., the Plate UI)
+export enum LabKeyBaseUrl {
     LOCALHOST = "http://localhost:8080",
     STAGING = "https://stg-aics.corp.alleninstitute.org",
     PRODUCTION = "https://aics.corp.alleninstitute.org",

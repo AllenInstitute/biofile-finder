@@ -348,7 +348,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
-    const loadBalancerBaseUrl = useSelector(interaction.selectors.getLoadBalancerBaseUrl);
+    const labKeyBaseUrl = useSelector(interaction.selectors.getLabKeyBaseUrl);
     const fileService = useSelector(interaction.selectors.getFileService);
     const volEBaseUrl = useSelector(getVolEBaseUrl);
 
@@ -442,7 +442,7 @@ export default (fileDetails?: FileDetail, filters?: FileFilter[]): IContextualMe
         }
     }, [fileDetails, fileSelection, volEBaseUrl]);
 
-    const plateLink = fileDetails?.getLinkToPlateUI(loadBalancerBaseUrl);
+    const plateLink = fileDetails?.getLinkToPlateUI(labKeyBaseUrl);
     const annotationNameToLinkMap = React.useMemo(
         () =>
             [...(fileDetails?.metadata.entries() ?? [])]
