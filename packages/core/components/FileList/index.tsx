@@ -271,10 +271,6 @@ export default function FileList(props: FileListProps) {
     if (totalCount !== null && totalCount <= 0) {
         content = <EmptyFileListMessage />;
     } else if (fileView === FileView.LIST && !columnNames.length) {
-        // Keep the (empty) header visible so its "Click here to select columns..."
-        // prompt remains clickable, but replace the rows with a message. The message
-        // is a sibling of the header (not a child) so it can position itself against
-        // the full list area rather than the header's transformed child container.
         content = (
             <>
                 <Header />

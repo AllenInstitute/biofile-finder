@@ -19,9 +19,6 @@
     position: relative;
 }
 
-/* Fills the space beneath the (empty) sticky header, centering the message
-within it; the positioned ancestor is the .list container above. The top
-offset matches the header-wrapper height defined in Header.module.css. */
 .no-columns-message {
     position: absolute;
     top: 40px;
