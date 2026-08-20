@@ -4,7 +4,7 @@ import * as React from "react";
 import styles from "./EmptyFileListMessage.module.css";
 
 interface EmptyFileListMessageProps {
-    iconName?: string;
+    hideIcon?: boolean;
     title?: string;
     children?: React.ReactNode;
 }
@@ -13,10 +13,9 @@ export default function EmptyFileListMessage(props: EmptyFileListMessageProps) {
     return (
         <div className={styles.emptyFileListContainer}>
             <div className={styles.emptyFileListMessage}>
-                <Icon
-                    className={styles.emptySearchIcon}
-                    iconName={props.iconName ?? "SearchIssue"}
-                />
+                {!props.hideIcon && (
+                    <Icon className={styles.emptySearchIcon} iconName="SearchIssue" />
+                )}
                 <h2>{props.title ?? "No files match your query"}</h2>
                 <br />
                 {props.children ?? (
