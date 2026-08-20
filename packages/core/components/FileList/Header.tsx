@@ -4,7 +4,7 @@ import { map } from "lodash";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-import ColumnPicker from "./ColumnPicker";
+import { COLUMN_PICKER_MENU_ITEMS } from "./ColumnPicker";
 import useDragAndDropOrder from "./useDragAndDropOrder";
 import useVisibleColumns from "./useVisibleCells";
 import { ContextMenuItem } from "../ContextMenu";
@@ -62,21 +62,11 @@ function Header(
         dispatch(selection.actions.sortColumn(columnName));
     };
 
-    const columnPickerMenuItems: ContextMenuItem[] = [
-        {
-            key: "column-picker",
-            text: "Column picker",
-            onRender() {
-                return <ColumnPicker />;
-            },
-        },
-    ];
-
     const modifyColumnsMenuItem: ContextMenuItem = {
         key: "modify-columns",
         text: "Modify columns",
         title: "Modify columns displayed in the file list",
-        items: columnPickerMenuItems,
+        items: COLUMN_PICKER_MENU_ITEMS,
     };
 
     const onHeaderColumnClick = (evt: React.MouseEvent, columnName: string) => {
@@ -115,7 +105,7 @@ function Header(
 
     // No columns means no header to right-click; a plain click on the empty header opens the picker.
     const onEmptyHeaderClick = (evt: React.MouseEvent) => {
-        dispatch(interaction.actions.showContextMenu(columnPickerMenuItems, evt.nativeEvent));
+        dispatch(interaction.actions.showContextMenu(COLUMN_PICKER_MENU_ITEMS, evt.nativeEvent));
     };
 
     // Identify leaf names that appear on more than one column so we can
@@ -133,6 +123,15 @@ function Header(
         }
         return dupes;
     }, [allColumnNames]);
+
+    const emptyHeaderCells: CellConfig[] = [
+        {
+            className: styles.emptyHeaderPrompt,
+            columnKey: "empty-header-prompt",
+            displayValue: "Click here to select columns...",
+            width: 0,
+        },
+    ];
 
     const headerCells: CellConfig[] = map(visibleColumns, (column) => {
         return {
@@ -210,12 +209,12 @@ function Header(
             >
                 <div className={styles.headerContextMenuTarget}>
                     <FileRow
-                        cells={headerCells}
+                        cells={allColumnNames.length ? headerCells : emptyHeaderCells}
                         className={classNames(styles.header, {
                             [styles.emptyHeader]: !allColumnNames.length,
                         })}
                         onClick={allColumnNames.length ? undefined : onEmptyHeaderClick}
-                        onResize={onResize}
+                        onResize={allColumnNames.length ? onResize : undefined}
                         padding={padding}
                     />
                 </div>

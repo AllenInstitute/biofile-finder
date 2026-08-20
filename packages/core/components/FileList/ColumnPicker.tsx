@@ -2,6 +2,7 @@ import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import AnnotationPicker from "../AnnotationPicker";
+import { ContextMenuItem } from "../ContextMenu";
 import { selection } from "../../state";
 
 export default function ColumnPicker() {
@@ -19,3 +20,13 @@ export default function ColumnPicker() {
         />
     );
 }
+
+export const COLUMN_PICKER_MENU_ITEMS: ContextMenuItem[] = [
+    {
+        key: "column-picker",
+        text: "Column picker",
+        onRender() {
+            return <ColumnPicker />;
+        },
+    },
+];

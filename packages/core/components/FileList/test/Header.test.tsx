@@ -217,6 +217,22 @@ describe("<Header />", () => {
         ).to.eql(["column-picker"]);
     });
 
+    it("renders a prompt to select columns when none are displayed", () => {
+        // Arrange
+        const state = mergeState(initialState, { selection: { columns: [] } });
+        const { store } = configureMockStore({ state });
+
+        // Act
+        const { getByText } = render(
+            <Provider store={store}>
+                <Header />
+            </Provider>
+        );
+
+        // Assert
+        expect(getByText("Click here to select columns...")).to.exist;
+    });
+
     it("dispatches reorderColumns with reordered columns when column is dragged to new position", () => {
         // Arrange
         const annotations = [

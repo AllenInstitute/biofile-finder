@@ -58,6 +58,7 @@ export default function FileList(props: FileListProps) {
     const fileGridColumnCount = useSelector(selection.selectors.getFileGridColCount);
     const isDisplayingSmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
     const totalColumnWidth = useSelector(selection.selectors.getTotalColumnWidth);
+    const columnNames = useSelector(selection.selectors.getColumnNames);
     const areAnnotationsLoaded = useSelector(metadata.selectors.areAnnotationsLoaded);
     const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
         HTMLDivElement
@@ -267,7 +268,24 @@ export default function FileList(props: FileListProps) {
             </div>
         );
     }
-    if (totalCount === null || totalCount > 0) {
+    if (totalCount !== null && totalCount <= 0) {
+        content = <EmptyFileListMessage />;
+    } else if (fileView === FileView.LIST && !columnNames.length) {
+        // Keep the (empty) header visible so its "Click here to select columns..."
+        // prompt remains clickable, but replace the rows with a message. The message
+        // is a sibling of the header (not a child) so it can position itself against
+        // the full list area rather than the header's transformed child container.
+        content = (
+            <>
+                <Header />
+                <div className={styles.noColumnsMessage}>
+                    <EmptyFileListMessage iconName="TripleColumn" title="No Columns Selected">
+                        <div>Select at least one column above to display the file list.</div>
+                    </EmptyFileListMessage>
+                </div>
+            </>
+        );
+    } else {
         if (height > 0) {
             // When this component isRoot the height is measured. It takes
             // a few milliseconds for that to happen along with a re-render, but
@@ -378,8 +396,6 @@ export default function FileList(props: FileListProps) {
                 </InfiniteLoader>
             );
         }
-    } else {
-        content = <EmptyFileListMessage />;
     }
 
     return (
