@@ -36,6 +36,7 @@ import HttpFileService from "../../services/FileService/HttpFileService";
 import S3StorageService from "../../services/S3StorageService";
 import PipelineService from "../../services/PipelineService";
 import Graph from "../../entity/Graph";
+import { isMarkdownType } from "../../entity/SearchParams";
 
 // BASIC SELECTORS
 export const getEnvironment = (state: State) => state.interaction.environment;
@@ -263,7 +264,10 @@ export const getAnnotationService = createSelector(
         if (dataSources.length && dataSources[0]?.name !== AICS_FMS_DATA_SOURCE_NAME) {
             return new DatabaseAnnotationService({
                 databaseService: platformDependentServices.databaseService,
-                dataSourceNames: dataSources.map((source) => source.name),
+                // Don't try to get annotations from markdown files
+                dataSourceNames: dataSources
+                    .filter((source) => !isMarkdownType(source.type))
+                    .map((source) => source.name),
                 metadataSource,
             });
         }
