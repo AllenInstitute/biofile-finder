@@ -93,6 +93,13 @@ function handleArrayLiteral(handles: string[]): string {
     return `ARRAY[${handles.map((handle) => `'${handle}'`).join(", ")}]`;
 }
 
+/**
+ * Recover the logical data source name from a DuckDB file handle.
+ */
+function sourceNameFromHandleExpression(handleColumn: string): string {
+    return `REGEXP_REPLACE(${handleColumn}, '${FILE_HANDLE_SUFFIX}.*$', '')`;
+}
+
 // Check if a value is a non-empty string. Returns true for any string with at least one non-whitespace character.
 function isValidString(value: unknown): value is string {
     return typeof value === "string" && !isEmpty(value.trim());
@@ -363,7 +370,7 @@ export default abstract class DatabaseService {
             );
         }
 
-const dataFileUrls = await this.deltaLakeService.listDataFiles(uri);
+        const dataFileUrls = await this.deltaLakeService.listDataFiles(uri);
         const handles = dataFileUrls.map((_, index) => deltaFileHandleName(name, index));
         this.sourceToHandles.set(name, handles);
         await this.registerFileURLs(handles, dataFileUrls);
@@ -1231,9 +1238,13 @@ const dataFileUrls = await this.deltaLakeService.listDataFiles(uri);
                 `AS "${HIDDEN_UID_ANNOTATION}"`
         );
         if (sourceNames.length > 1) {
-            selectParts.push(`"${SOURCE_FILE_COLUMN}" AS "${DATA_SOURCE_COLUMN}"`);
+            selectParts.push(
+                `${sourceNameFromHandleExpression(
+                    `"${SOURCE_FILE_COLUMN}"`
+                )} AS "${DATA_SOURCE_COLUMN}"`
+            );
         }
-        // 4. Create the view for this data source.
+        // 4. Create the view for this data source
         const createViewSql = `CREATE VIEW "${aggregateName}"
             AS SELECT ${selectParts.join(", ")}
             FROM parquet_scan(
@@ -1674,7 +1685,7 @@ const dataFileUrls = await this.deltaLakeService.listDataFiles(uri);
     // Similar to getColumnsOnDataSource below, but suitable for use during the
     // data source preparation step.
     private async getRawParquetColumns(handles: string[]): Promise<string[]> {
-const sql = `DESCRIBE SELECT * FROM parquet_scan(
+        const sql = `DESCRIBE SELECT * FROM parquet_scan(
             ${handleArrayLiteral(handles)},
             union_by_name = true
         )`;

@@ -436,7 +436,9 @@ describe("DatabaseService", () => {
             expect(createViewSql).to.not.be.undefined;
             expect(createViewSql).to.match(/parquet_scan\(\s*ARRAY\[/);
             expect(createViewSql).to.include("union_by_name = true");
-            expect(createViewSql).to.include(`"bff_source_file" AS "Data source"`);
+            expect(createViewSql).to.include(
+                `REGEXP_REPLACE("bff_source_file", '-bff-filehandle.*$', '') AS "Data source"`
+            );
         });
         describe("delta lake sources", () => {
             const DELTA_SOURCE = "table";
@@ -551,6 +553,32 @@ describe("DatabaseService", () => {
                 expect(createViewSql).to.include(`'table-bff-filehandle-00000000.parquet'`);
                 expect(createViewSql).to.include(`'table-bff-filehandle-00000001.parquet'`);
                 expect(createViewSql).to.include("union_by_name = true");
+            });
+
+            it('shows one "Data source" per logical source, not per data file', async () => {
+                const service = new MockDeltaDatabaseService(
+                    { table: ["File Path"], "a.parquet": ["File Path"] },
+                    DATA_FILES
+                );
+
+                await service.prepareDataSources(
+                    [
+                        { name: "table", type: "delta", uri: "s3://bucket/table" },
+                        {
+                            name: "a.parquet",
+                            type: "parquet",
+                            uri: "https://example.com/a.parquet",
+                        },
+                    ],
+                    true
+                );
+
+                const createViewSql = service.executedSQL.find((sql) =>
+                    sql.includes(`CREATE VIEW "a.parquet, table"`)
+                );
+                expect(createViewSql).to.include(
+                    `REGEXP_REPLACE("bff_source_file", '-bff-filehandle.*$', '') AS "Data source"`
+                );
             });
 
             it("aggregates with plain parquet sources rather than rejecting them", async () => {
