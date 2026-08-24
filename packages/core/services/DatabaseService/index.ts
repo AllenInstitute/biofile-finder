@@ -1674,8 +1674,9 @@ const dataFileUrls = await this.deltaLakeService.listDataFiles(uri);
     // Similar to getColumnsOnDataSource below, but suitable for use during the
     // data source preparation step.
     private async getRawParquetColumns(handles: string[]): Promise<string[]> {
-        const sql = `DESCRIBE SELECT * FROM parquet_scan(
-            ${handleArrayLiteral(handles)}
+const sql = `DESCRIBE SELECT * FROM parquet_scan(
+            ${handleArrayLiteral(handles)},
+            union_by_name = true
         )`;
         const rows = await this.query(sql).promise;
         return rows.map((row) => row["column_name"] as string);
