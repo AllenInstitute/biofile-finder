@@ -47,6 +47,7 @@
 }
 
 .file-prompt-outer-wrapper {
+    width: 100%;
     margin-bottom: 32px;
     min-width: var(--min-width);
     max-width: var(--max-width);
@@ -154,6 +155,7 @@
     margin: 0;
     padding: 2px 0.5em 2px 0;
     line-height: 1.5;
+    white-space: pre-line;
 }
 
 .title, .details, .warning > p {

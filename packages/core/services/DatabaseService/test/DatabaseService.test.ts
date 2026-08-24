@@ -553,6 +553,9 @@ describe("DatabaseService", () => {
                 deleteSourceProvenance(): Promise<void> {
                     return Promise.resolve();
                 }
+                addDataSource(): Promise<void> {
+                    return Promise.resolve();
+                }
             }
             return new MockProvenanceDatabaseService();
         }

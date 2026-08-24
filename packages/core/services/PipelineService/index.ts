@@ -117,25 +117,31 @@ export default class PipelineService extends HttpServiceBase {
     }
 
     async submitComputeTask(request: ComputeTaskRequest): Promise<ComputeTaskResponse> {
-        const url = `${this.loadBalancerBaseUrl}/fss2/v4.0/compute/${request.pipeline}`;
+        const url = `${this.jssBaseUrl}/jss/1.0/compute/pipelines/run`;
 
-        const files = request.filePaths.map((p) => PipelineService.encodeFilePath(p));
-        const body: Record<string, string | string[]> = { files };
+        const parameters: Record<string, string> = {};
         for (const [key, value] of Object.entries(request.parameters)) {
             if (value !== "") {
-                body[key] = value;
+                parameters[key] = value;
             }
         }
 
+        // Shape dictated by JSS's PipelineRunRequest
+        const body = {
+            pipelineId: request.pipeline,
+            cluster: request.cluster,
+            destination: request.destination,
+            filePaths: request.filePaths.map((p) => PipelineService.encodeFilePath(p)),
+            parameters,
+            user: request.user,
+        };
+
         const response = await this.httpClient.post(url, body, {
-            headers: {
-                "Content-Type": "application/json",
-                ...(request.user ? { "X-User-Id": request.user } : {}),
-            },
+            headers: { "Content-Type": "application/json" },
         });
 
         return {
-            computeTaskId: response.data.computeTaskId,
+            computeTaskId: response.data.runId,
             dashboardUrl: response.data.dashboardUrl ?? "",
         };
     }

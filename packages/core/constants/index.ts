@@ -116,9 +116,9 @@ export enum TemporaryFileServiceBaseUrl {
 }
 
 export enum JSSBaseUrl {
-    LOCALHOST = "http://localhost:9061",
-    STAGING = "https://stg-aics-api.corp.alleninstitute.org",
-    PRODUCTION = "https://aics-api.corp.alleninstitute.org",
+    LOCALHOST = "https://localhost:9061",
+    STAGING = "https://stg-aics.corp.alleninstitute.org",
+    PRODUCTION = "https://aics.corp.alleninstitute.org",
     TEST = "http://test-aics-api.corp.alleninstitute.org",
 }
 
