@@ -10,7 +10,7 @@ export default class DeltaLakeService {
     /**
      * True if the URL points at the root of a Delta Lake table.
      *
-     * Checks for presense of conventional log and checkpoint files,
+     * Checks for presence of conventional log and checkpoint files,
      * but does not guarantee the table is readable beyond that.
      */
     public async isDeltaTable(_url: string): Promise<boolean> {
