@@ -1,6 +1,13 @@
 import { expect } from "chai";
 
-import SearchParams, { SearchParamsComponents, FileView, Source, EMPTY_QUERY_COMPONENTS } from "..";
+import SearchParams, {
+    SearchParamsComponents,
+    FileView,
+    Source,
+    EMPTY_QUERY_COMPONENTS,
+    getNameFromSourceUrl,
+    getResourceNameFromSourceUrl,
+} from "..";
 import AnnotationName from "../../Annotation/AnnotationName";
 import FileFilter from "../../FileFilter";
 import ExcludeFilter from "../../FileFilter/ExcludeFilter";
@@ -12,7 +19,6 @@ import FileSort, { SortOrder } from "../../FileSort";
 describe("SearchParams", () => {
     const mockSource: Source = {
         name: "Fake Collection",
-        type: "csv",
     };
 
     const mockSourceUri = "fake-uri.test";
@@ -24,21 +30,18 @@ describe("SearchParams", () => {
     const provenanceSourceUri = "prov-url.csv";
     const mockProvenanceSource: Source = {
         name: "Provenance source",
-        type: "csv",
         uri: provenanceSourceUri,
     };
 
     const colDescrSourceUri = "metadata-url.csv";
     const mockColumnDescriptorSource: Source = {
         name: "Column description source",
-        type: "csv",
         uri: colDescrSourceUri,
     };
 
     const markdownSourceUri = "dataset-descriptions.md";
     const mockMarkdownSource: Source = {
         name: "Dataset description markdown",
-        type: "md",
         uri: markdownSourceUri,
     };
 
@@ -73,7 +76,7 @@ describe("SearchParams", () => {
 
             // Assert
             expect(result).to.be.equal(
-                "group=Cell+Line&group=Donor+Plasmid&group=Lifting%3F&filter=%7B%22name%22%3A%22Cas9%22%2C%22value%22%3A%22spCas9%22%2C%22type%22%3A%22default%22%7D&filter=%7B%22name%22%3A%22Donor+Plasmid%22%2C%22value%22%3A%22ACTB-mEGFP%22%2C%22type%22%3A%22default%22%7D&openFolder=%5B%22AICS-0%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Cfalse%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Ctrue%5D&source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%7D&sort=%7B%22annotationName%22%3A%22file_size%22%2C%22order%22%3A%22DESC%22%7D"
+                "group=Cell+Line&group=Donor+Plasmid&group=Lifting%3F&filter=%7B%22name%22%3A%22Cas9%22%2C%22value%22%3A%22spCas9%22%2C%22type%22%3A%22default%22%7D&filter=%7B%22name%22%3A%22Donor+Plasmid%22%2C%22value%22%3A%22ACTB-mEGFP%22%2C%22type%22%3A%22default%22%7D&openFolder=%5B%22AICS-0%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Cfalse%5D&openFolder=%5B%22AICS-0%22%2C%22ACTB-mEGFP%22%2Ctrue%5D&source=%7B%22name%22%3A%22Fake+Collection%22%7D&sort=%7B%22annotationName%22%3A%22file_size%22%2C%22order%22%3A%22DESC%22%7D"
             );
         });
 
@@ -118,7 +121,7 @@ describe("SearchParams", () => {
 
             // Assert
             expect(result).to.be.equal(
-                "group=Cell+Line&group=Well.Dose.Solution.Name&filter=%7B%22name%22%3A%22file_name%22%2C%22value%22%3A%22testname.csv%22%2C%22type%22%3A%22default%22%7D&filter=%7B%22name%22%3A%22file_path%22%2C%22value%22%3A%22%22%2C%22type%22%3A%22fuzzy%22%7D&filter=%7B%22name%22%3A%22Gene%22%2C%22value%22%3A%22%22%2C%22type%22%3A%22exclude%22%7D&filter=%7B%22name%22%3A%22Cell+Line%22%2C%22value%22%3A%22%22%2C%22type%22%3A%22include%22%7D&source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%7D&sort=%7B%22annotationName%22%3A%22file_size%22%2C%22order%22%3A%22DESC%22%7D"
+                "group=Cell+Line&group=Well.Dose.Solution.Name&filter=%7B%22name%22%3A%22file_name%22%2C%22value%22%3A%22testname.csv%22%2C%22type%22%3A%22default%22%7D&filter=%7B%22name%22%3A%22file_path%22%2C%22value%22%3A%22%22%2C%22type%22%3A%22fuzzy%22%7D&filter=%7B%22name%22%3A%22Gene%22%2C%22value%22%3A%22%22%2C%22type%22%3A%22exclude%22%7D&filter=%7B%22name%22%3A%22Cell+Line%22%2C%22value%22%3A%22%22%2C%22type%22%3A%22include%22%7D&source=%7B%22name%22%3A%22Fake+Collection%22%7D&sort=%7B%22annotationName%22%3A%22file_size%22%2C%22order%22%3A%22DESC%22%7D"
             );
         });
 
@@ -151,7 +154,6 @@ describe("SearchParams", () => {
                 sources: [
                     {
                         name: "Fake Collection",
-                        type: "csv",
                         uri: "fake-uri.test",
                     },
                 ],
@@ -162,7 +164,7 @@ describe("SearchParams", () => {
 
             // Assert
             expect(result).to.be.equal(
-                "source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%2C%22uri%22%3A%22fake-uri.test%22%7D"
+                "source=%7B%22name%22%3A%22Fake+Collection%22%2C%22uri%22%3A%22fake-uri.test%22%7D"
             );
         });
 
@@ -170,7 +172,6 @@ describe("SearchParams", () => {
             // Arrange
             const mockSourceWithoutUri: Source = {
                 name: "datasource-without-uri",
-                type: "csv",
             };
             const components: SearchParamsComponents = {
                 columns: [],
@@ -336,6 +337,61 @@ describe("SearchParams", () => {
             expect(result).to.not.contain("non-matching-uri");
             expect(result).to.contain(colDescrSourceUri);
         });
+        it("round-trips a directory-style source URL", () => {
+            // Arrange
+            const source: Source = {
+                name: "table",
+                uri: "s3://some-bucket/data/table",
+            };
+            const components: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [source],
+            };
+
+            // Act
+            const result = SearchParams.decode(SearchParams.encode(components));
+
+            // Assert
+            expect(result.sources).to.deep.equal([source]);
+        });
+    });
+
+    describe("getResourceNameFromSourceUrl", () => {
+        it("returns the last path segment", () => {
+            expect(getResourceNameFromSourceUrl("https://example.com/a/b.parquet")).to.equal(
+                "b.parquet"
+            );
+        });
+
+        it("ignores a query string", () => {
+            expect(
+                getResourceNameFromSourceUrl("https://example.com/a/b.json?versionId=7")
+            ).to.equal("b.json");
+        });
+
+        it("ignores trailing slashes", () => {
+            expect(getResourceNameFromSourceUrl("s3://some-bucket/data/table/")).to.equal("table");
+        });
+    });
+
+    describe("getNameFromSourceUrl", () => {
+        it("names a source after the last segment of its URL", () => {
+            expect(getNameFromSourceUrl("https://example.com/a/b.parquet")).to.contain("b.parquet");
+        });
+
+        it("adds a suffix so two sources sharing a filename do not collide", () => {
+            const name = getNameFromSourceUrl("https://a.example.com/proj1/manifest.csv");
+            expect(name).to.contain("manifest.csv");
+            expect(name).to.not.equal("manifest.csv");
+        });
+
+        it("names a directory URL after its last segment, ignoring trailing slashes", () => {
+            expect(getNameFromSourceUrl("s3://some-bucket/data/table/")).to.contain("table");
+        });
     });
 
     describe("decode", () => {
@@ -355,7 +411,6 @@ describe("SearchParams", () => {
                     {
                         // This grabs a date and isn't particularly important so just stub it out
                         name: result.sources[0].name,
-                        type: "csv",
                         uri: testUrl,
                     },
                 ],
