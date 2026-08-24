@@ -5,6 +5,7 @@ import FileSort, { SortOrder } from "../FileSort";
 import type { DatasetSources } from "../MarkdownFrontMatter";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Column } from "../../state/selection/actions";
+import type { SourceType } from "../../services/DatabaseService";
 
 // Somewhat arbitrary default column width in pixels;
 // used as a fallback when calculating column widths based on content,
@@ -20,20 +21,26 @@ export enum FileView {
     LARGE_THUMBNAIL = "3",
 }
 
+// The formats a source can be read as
 export const MARKDOWN_SOURCE_TYPES = ["markdown", "md"] as const;
 export const TABULAR_SOURCE_TYPES = ["csv", "json", "parquet"] as const;
-export const ACCEPTED_SOURCE_TYPES = [
-    ...TABULAR_SOURCE_TYPES,
-    ...MARKDOWN_SOURCE_TYPES,
-    "delta",
-] as const;
 export function isMarkdownType(type?: string): boolean {
     return (MARKDOWN_SOURCE_TYPES as readonly any[]).includes(type);
 }
 
+/**
+ * Whether a source is a dataset description file.
+ */
+export function isMarkdownSource(source: Source): boolean {
+    // A source with nothing to fetch (e.g. AICS FMS) is never a description file.
+    if (!source.uri) return false;
+    const resource =
+        source.uri instanceof File ? source.uri.name : getResourceNameFromSourceUrl(source.uri);
+    return isMarkdownType(resource.split(".").pop());
+}
+
 export interface Source {
     name: string;
-    type?: typeof ACCEPTED_SOURCE_TYPES[number];
     uri?: string | File;
 }
 
@@ -90,24 +97,27 @@ export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
     filters: [PAST_YEAR_FILTER],
     provenanceSource: {
         name: "AICS",
-        type: "csv",
         uri: "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com/FMS.provenance.csv",
     },
     sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
 };
 
-export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
-    const uriResource = dataSourceURL.substring(dataSourceURL.lastIndexOf("/") + 1).split("?")[0];
-    const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
-    // Returns undefined if can't find a match
-    let extensionGuess = ACCEPTED_SOURCE_TYPES.find(
-        (validSourcetype) => validSourcetype === uriResource.split(".").pop()
-    );
-    if (!extensionGuess) {
-        console.warn("Assuming the source is csv since no extension was recognized");
-        extensionGuess = "csv";
-    }
-    return { name, type: extensionGuess };
+/**
+ * The last meaningful path segment of a source URL, ignoring any query string
+ * and any trailing slashes (Delta Lake tables are directories, so their URLs
+ * commonly end in "/").
+ */
+export const getResourceNameFromSourceUrl = (dataSourceURL: string): string => {
+    const withoutQuery = dataSourceURL.split("?")[0].replace(/\/+$/, "");
+    return withoutQuery.substring(withoutQuery.lastIndexOf("/") + 1);
+};
+
+/**
+ * The derived name from getResourceNameFromSourceUrl() + a time-based suffix
+ */
+export const getNameFromSourceUrl = (url: string): string => {
+    const name = getResourceNameFromSourceUrl(url);
+    return `${name} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
 };
 
 // We want to eventually use shorthands and other tricks to
@@ -214,9 +224,7 @@ export default class SearchParams {
         let provenanceSourceAlreadyEncoded = false;
         // Check if one of sources is a markdown file. If so, parse it for urls.
         // check that those urls match, or else give preference to the overwritten provided sources
-        const datasetDescriptionSource = urlComponents.sources?.find((source) =>
-            isMarkdownType(source.type)
-        );
+        const datasetDescriptionSource = urlComponents.sources?.find(isMarkdownSource);
         if (datasetDescriptionSource) {
             // Only encode sources that aren't already in the markdown file
             const datasetUrl = cachedSourcesFromDescription?.dataSource?.uri;
@@ -312,7 +320,7 @@ export default class SearchParams {
             ...EMPTY_QUERY_COMPONENTS,
             sources: unparsedURLs.map((uri) => ({
                 uri,
-                ...getNameAndTypeFromSourceUrl(uri),
+                name: getNameFromSourceUrl(uri),
             })),
         };
     }
@@ -336,7 +344,7 @@ export default class SearchParams {
         const parsedSources = unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource));
         const mayHaveProvSource =
             unparsedSourceProvenance ||
-            parsedSources.some((source) => isMarkdownType(source?.type));
+            parsedSources.some((source) => source && isMarkdownSource(source));
 
         const parsedSort = unparsedSort ? JSON.parse(unparsedSort) : undefined;
         if (
@@ -383,7 +391,11 @@ export default class SearchParams {
         };
     }
 
-    public static convertToPython(urlComponents: Partial<SearchParamsComponents>, userOS: string) {
+    public static convertToPython(
+        urlComponents: Partial<SearchParamsComponents>,
+        userOS: string,
+        sourceType?: SourceType
+    ) {
         if (
             (urlComponents?.sources?.length && urlComponents.sources.length > 1) ||
             urlComponents?.sources?.[0]?.name === AICS_FMS_DATA_SOURCE_NAME ||
@@ -391,7 +403,11 @@ export default class SearchParams {
         ) {
             return "# Coming soon";
         }
-        const sourceString = this.convertDataSourceToPython(urlComponents?.sources?.[0], userOS);
+        const sourceString = this.convertDataSourceToPython(
+            urlComponents?.sources?.[0],
+            userOS,
+            sourceType
+        );
         const groupByQueryString =
             urlComponents.hierarchy
                 ?.map((annotation) => this.convertGroupByToPython(annotation))
@@ -448,19 +464,46 @@ export default class SearchParams {
         return `\`${filter.name}\`=="${filter.value}"`;
     }
 
-    private static convertDataSourceToPython(source: Source | undefined, userOS: string) {
+    /**
+     * The Python that loads a data source into a dataframe.
+     */
+    private static convertDataSourceToPythonRead(
+        sourceType: SourceType | undefined,
+        location: string
+    ) {
+        // A Delta Lake table is a directory rather than a file, and pandas has no
+        // reader for it, so it needs the deltalake package.
+        if (sourceType === "delta") {
+            return {
+                imports: "from deltalake import DeltaTable # pip install deltalake\n",
+                code: `df = DeltaTable(${location}).to_pandas().astype('str')`,
+            };
+        }
+
+        // Fall back to CSV when the type was never settled, matching how an
+        // otherwise unidentifiable data source is loaded.
+        return {
+            imports: "",
+            code: `df = pd.read_${sourceType ?? "csv"}(${location}).astype('str')`,
+        };
+    }
+
+    private static convertDataSourceToPython(
+        source: Source | undefined,
+        userOS: string,
+        sourceType?: SourceType
+    ) {
         const isUsingWindowsOS = userOS === "Windows_NT" || userOS.includes("Windows NT");
         const rawFlagForWindows = isUsingWindowsOS ? "r" : "";
 
         if (typeof source?.uri === "string") {
             const comment = "#Convert current datasource file to a pandas dataframe";
+            const { imports, code } = SearchParams.convertDataSourceToPythonRead(
+                sourceType,
+                `${rawFlagForWindows}'${source.uri}'`
+            );
 
-            // Currently suggest setting all fields to strings; otherwise pandas assumes type conversions
-            // TO DO: Address different non-string type conversions
-            const code = `df = pd.read_${source.type}(${rawFlagForWindows}'${source.uri}').astype('str')`;
-            // This only works if we assume that the file types will only be csv, parquet or json
-
-            return `${comment}\n${code}\n\n`;
+            return `${imports}${comment}\n${code}\n\n`;
         } else if (source?.uri) {
             // Any other type, i.e., File. `instanceof` breaks testing library
             // Adding strings to avoid including unwanted white space
@@ -473,8 +516,11 @@ export default class SearchParams {
                 '\traise Exception("Must supply the data source location for the query")\n';
             const inputFileCode = 'input_file = ""' + inputFileLineComment + inputFileError;
 
-            const conversionCode = `df = pd.read_${source.type}(input_file).astype('str')`;
-            return `${inputFileCode}\n${conversionCode}\n\n`;
+            const { imports, code } = SearchParams.convertDataSourceToPythonRead(
+                sourceType,
+                "input_file"
+            );
+            return `${imports}${inputFileCode}\n${code}\n\n`;
         } else return ""; // Safeguard. Should not reach else
     }
 }

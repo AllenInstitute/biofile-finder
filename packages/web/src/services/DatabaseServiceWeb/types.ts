@@ -1,8 +1,5 @@
-import {
-    ACCEPTED_SOURCE_TYPES,
-    Source,
-    TABULAR_SOURCE_TYPES,
-} from "../../../../core/entity/SearchParams";
+import { Source, TABULAR_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
+import { SourceType } from "../../../../core/services/DatabaseService";
 
 export enum WorkerMsgType {
     ADD_SOURCE = "add datasource",
@@ -74,7 +71,7 @@ export type WorkerReqPayload<T extends WorkerMsgType> = {
     };
     [WorkerMsgType.ADD_SOURCE]: {
         name: string;
-        type: typeof ACCEPTED_SOURCE_TYPES[number];
+        type: SourceType;
         uri: string | File;
         skipNormalization?: boolean;
     };

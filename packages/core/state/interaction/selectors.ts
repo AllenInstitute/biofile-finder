@@ -35,7 +35,7 @@ import HttpFileService from "../../services/FileService/HttpFileService";
 import PipelineService from "../../services/PipelineService";
 import S3StorageService from "../../services/S3StorageService";
 import Graph from "../../entity/Graph";
-import { isMarkdownType } from "../../entity/SearchParams";
+import { isMarkdownSource } from "../../entity/SearchParams";
 
 // BASIC SELECTORS
 export const getEnvironment = (state: State) => state.interaction.environment;
@@ -261,7 +261,7 @@ export const getAnnotationService = createSelector(
                 databaseService: platformDependentServices.databaseService,
                 // Don't try to get annotations from markdown files
                 dataSourceNames: dataSources
-                    .filter((source) => !isMarkdownType(source.type))
+                    .filter((source) => !isMarkdownSource(source))
                     .map((source) => source.name),
                 metadataSource,
             });

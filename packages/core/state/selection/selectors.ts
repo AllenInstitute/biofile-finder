@@ -191,7 +191,8 @@ export const getPythonConversion = createSelector(
                 sortColumn,
                 sources,
             },
-            platformDependentServices.executionEnvService.getOS()
+            platformDependentServices.executionEnvService.getOS(),
+            sources?.[0] && platformDependentServices.databaseService.getResolvedType(sources[0])
         );
     }
 );
