@@ -57,6 +57,11 @@ const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
 
 const DATA_SOURCE_COLUMN = "Data source";
 
+// Assign a column name that is unlikely to be used in a data source to
+// be used as the name of the column that `parquet_scan` can inject the source
+// file name into.
+const SOURCE_FILE_COLUMN = "bff_source_file";
+
 // Suffix appended to every DuckDB file-handle name so that a short name like
 // "foo" can never prefix-match a longer name like "foo2".
 // See https://github.com/duckdb/duckdb-wasm/issues/2227
@@ -1124,15 +1129,26 @@ export default abstract class DatabaseService {
         if (fileNameSelectPart !== null) {
             selectParts.push(fileNameSelectPart);
         }
-        selectParts.push(`"file_row_number" AS "${HIDDEN_UID_ANNOTATION}"`);
+        // Have to qualify each row number by its source file to prevent collisions
+        // across files (especially relevant for sharded datasets).
+        // Ex. This would become: "my_dataset#1"
+        selectParts.push(
+            `("${SOURCE_FILE_COLUMN}" || '#' || CAST("file_row_number" AS VARCHAR)) ` +
+                `AS "${HIDDEN_UID_ANNOTATION}"`
+        );
         if (sourceNames.length > 1) {
-            selectParts.push(`"filename" AS "${DATA_SOURCE_COLUMN}"`);
+            selectParts.push(`"${SOURCE_FILE_COLUMN}" AS "${DATA_SOURCE_COLUMN}"`);
         }
         // 4. Create the view for this data source
         const quotedNames = sourceNames.map((name) => `'${fileHandleName(name)}'`).join(", ");
         const createViewSql = `CREATE VIEW "${aggregateName}"
             AS SELECT ${selectParts.join(", ")}
-            FROM parquet_scan(ARRAY[${quotedNames}], union_by_name = true);`;
+            FROM parquet_scan(
+                ARRAY[${quotedNames}],
+                union_by_name = true,
+                filename = '${SOURCE_FILE_COLUMN}',
+                file_row_number = true
+            );`;
         await this.execute(createViewSql);
         this.parquetDirectViewNames.add(aggregateName);
     }
