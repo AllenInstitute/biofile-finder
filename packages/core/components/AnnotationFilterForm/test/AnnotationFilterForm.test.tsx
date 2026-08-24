@@ -123,6 +123,93 @@ describe("<AnnotationFilterForm />", () => {
             expect(selection.selectors.getFileFilters(store.getState())).to.be.lengthOf(1);
         });
 
+        it("defaults to search box over 100 values and can toggle to the list picker", async () => {
+            // arrange
+            const manyValues = Array.from({ length: 150 }, (_, index) => `value-${index}`);
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: manyValues },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const { store } = configureMockStore({
+                state: initialState,
+                responseStubs: responseStub,
+            });
+
+            // act
+            const { findByTestId, getByTestId, queryByTestId } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // assert: search box renders by default, not the list picker
+            const toggle = await findByTestId("picker-toggle");
+            expect(getByTestId("search-box-form")).to.exist;
+            expect(queryByTestId("list-picker")).to.equal(null);
+
+            // act: switch to the list picker
+            fireEvent.click(toggle);
+
+            // assert
+            expect(getByTestId("list-picker")).to.exist;
+            expect(queryByTestId("search-box-form")).to.equal(null);
+
+            // act: switch back to the search box
+            fireEvent.click(getByTestId("picker-toggle"));
+
+            // assert
+            expect(getByTestId("search-box-form")).to.exist;
+            expect(queryByTestId("list-picker")).to.equal(null);
+        });
+
+        it("defaults to list picker under 100 values and can toggle to the search box", async () => {
+            // arrange
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: ["a", "b", "c", "d"] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const { store } = configureMockStore({
+                state: initialState,
+                responseStubs: responseStub,
+            });
+
+            // act
+            const { findByTestId, getByTestId, queryByTestId } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // assert: list picker renders by default, not the search box
+            expect(await findByTestId("list-picker")).to.exist;
+            expect(queryByTestId("search-box-form")).to.equal(null);
+
+            // act: switch to the search box
+            fireEvent.click(getByTestId("picker-toggle"));
+
+            // assert
+            expect(getByTestId("search-box-form")).to.exist;
+            expect(queryByTestId("list-picker")).to.equal(null);
+        });
+
         it("naturally sorts values", async () => {
             // arrange
             const responseStub = {

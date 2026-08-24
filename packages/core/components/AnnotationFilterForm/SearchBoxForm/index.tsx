@@ -35,7 +35,10 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
     }
 
     return (
-        <div className={classNames(props.className, styles.container)}>
+        <div
+            className={classNames(props.className, styles.container)}
+            data-testid="search-box-form"
+        >
             <h3 className={styles.title}>{props.title}</h3>
             <Checkbox
                 className={classNames(styles.checkbox, {

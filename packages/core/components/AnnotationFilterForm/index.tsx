@@ -1,4 +1,4 @@
-import { IChoiceGroupOption } from "@fluentui/react";
+import { ActionButton, IChoiceGroupOption } from "@fluentui/react";
 import classNames from "classnames";
 import { isNil } from "lodash";
 import * as React from "react";
@@ -23,6 +23,10 @@ import styles from "./AnnotationFilterForm.module.css";
 interface AnnotationFilterFormProps {
     annotation: Annotation;
 }
+
+// Above this many distinct values, string annotations default to the search box
+// rather than the list picker; users can still toggle between the two.
+const MAX_VALUES_FOR_DEFAULT_LIST_PICKER = 100;
 
 /**
  * A form that provides a user the ability to select particular annotation values with which
@@ -58,6 +62,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     );
 
     const [filterType, setFilterType] = React.useState<FilterType>(defaultFilterType);
+
+    // User override for which picker to use for string annotations;
+    // undefined means no explicit choice has been made and the default applies
+    const [showListPicker, setShowListPicker] = React.useState<boolean | undefined>(undefined);
 
     // Propagate regular file filter values from state into UI
     const items = React.useMemo<ListItem[]>(() => {
@@ -194,23 +202,47 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                         units={props.annotation.units}
                     />
                 );
-            case AnnotationType.STRING:
-                // Use list picker when there are a manageable number of values; fall back to search otherwise
-                if (items.length > 0 && items.length <= 100) {
-                    return listPickerComponent;
-                }
+            case AnnotationType.STRING: {
+                // Use list picker by default when there are a manageable number of values;
+                // default to search otherwise. Users can toggle between the two,
+                // but without values to list only the search box is usable.
+                const useListPicker =
+                    items.length > 0 &&
+                    (showListPicker ?? items.length <= MAX_VALUES_FOR_DEFAULT_LIST_PICKER);
+                const toggleLabel = useListPicker
+                    ? "Switch to search box"
+                    : "Switch to list pick mode";
+
                 return (
-                    <SearchBoxForm
-                        className={styles.picker}
-                        onSelectAll={onSelectAll}
-                        onDeselectAll={onDeselectAll}
-                        onSearch={onSearch}
-                        fuzzySearchEnabled={fuzzySearchEnabled}
-                        fieldName={props.annotation.displayName}
-                        defaultValue={filtersForAnnotation?.[0]}
-                        hideFuzzyToggle={!canFuzzySearch}
-                    />
+                    <>
+                        {useListPicker ? (
+                            listPickerComponent
+                        ) : (
+                            <SearchBoxForm
+                                className={styles.picker}
+                                onSelectAll={onSelectAll}
+                                onDeselectAll={onDeselectAll}
+                                onSearch={onSearch}
+                                fuzzySearchEnabled={fuzzySearchEnabled}
+                                fieldName={props.annotation.displayName}
+                                defaultValue={filtersForAnnotation?.[0]}
+                                hideFuzzyToggle={!canFuzzySearch}
+                            />
+                        )}
+                        {items.length > 0 && (
+                            <ActionButton
+                                ariaLabel={toggleLabel}
+                                className={styles.pickerToggle}
+                                data-testid="picker-toggle"
+                                iconProps={{ iconName: useListPicker ? "Search" : "BulletedList" }}
+                                onClick={() => setShowListPicker(!useListPicker)}
+                            >
+                                {toggleLabel}
+                            </ActionButton>
+                        )}
+                    </>
                 );
+            }
             case AnnotationType.DURATION:
             // prettier-ignore
             default: // FALL-THROUGH
