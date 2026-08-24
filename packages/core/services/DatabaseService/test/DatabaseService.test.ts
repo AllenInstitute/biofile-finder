@@ -304,13 +304,21 @@ describe("DatabaseService", () => {
 
             public query(sql: string): { promise: Promise<any> } {
                 const parquetDescribeMatch = sql.match(
-                    /DESCRIBE SELECT \* FROM parquet_scan\("(.+)-bff-filehandle"\)/
+                    /DESCRIBE SELECT \* FROM parquet_scan\(\s*ARRAY\[([\s\S]*?)\]/
                 );
                 if (parquetDescribeMatch) {
-                    const sourceName = parquetDescribeMatch[1];
-                    const columns = this.parquetColumnsBySource[sourceName] || [];
+                    // Recover the source name from each handle
+                    const columns = new Set<string>();
+                    for (const match of parquetDescribeMatch[1].matchAll(/'([^']+)'/g)) {
+                        const sourceName = match[1].split("-bff-filehandle")[0];
+                        (this.parquetColumnsBySource[sourceName] || []).forEach((column) =>
+                            columns.add(column)
+                        );
+                    }
                     return {
-                        promise: Promise.resolve(columns.map((column_name) => ({ column_name }))),
+                        promise: Promise.resolve(
+                            [...columns].map((column_name) => ({ column_name }))
+                        ),
                     };
                 }
                 return { promise: Promise.resolve([]) };
@@ -485,7 +493,7 @@ describe("DatabaseService", () => {
 
                 public query(sql: string): { promise: Promise<any> } {
                     const parquetDescribeMatch = sql.match(
-                        /DESCRIBE SELECT \* FROM parquet_scan\(ARRAY\[(.+?)\]/
+                        /DESCRIBE SELECT \* FROM parquet_scan\(\s*ARRAY\[([\s\S]*?)\]/
                     );
                     if (parquetDescribeMatch) {
                         // Recover the source name from each file handle. A Delta source
