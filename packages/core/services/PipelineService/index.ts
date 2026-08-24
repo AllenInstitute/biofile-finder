@@ -145,4 +145,17 @@ export default class PipelineService extends HttpServiceBase {
             dashboardUrl: response.data.dashboardUrl ?? "",
         };
     }
+
+    async validateUser(userName: string): Promise<boolean> {
+        const url = `${
+            this.metadataManagementServiceBaseURl
+        }/metadata-management-service/1.0/user?userName=${encodeURIComponent(userName)}`;
+        try {
+            await this.httpClient.get(url);
+            return true;
+        } catch (err: any) {
+            if (err?.response?.status === 404) return false;
+            throw err;
+        }
+    }
 }
