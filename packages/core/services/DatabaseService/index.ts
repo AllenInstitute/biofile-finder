@@ -363,11 +363,10 @@ export default abstract class DatabaseService {
             );
         }
 
-        const dataFileUrls = await this.deltaLakeService.listDataFiles(uri);
+const dataFileUrls = await this.deltaLakeService.listDataFiles(uri);
         const handles = dataFileUrls.map((_, index) => deltaFileHandleName(name, index));
-        await this.registerFileURLs(handles, dataFileUrls);
-
         this.sourceToHandles.set(name, handles);
+        await this.registerFileURLs(handles, dataFileUrls);
         await this.createParquetDirectView(name);
     }
 
