@@ -1,7 +1,7 @@
 import axios from "axios";
 import yaml from "js-yaml";
 
-import { getNameAndTypeFromSourceUrl, Source } from "../SearchParams";
+import { getNameFromSourceUrl, Source } from "../SearchParams";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
 export interface DatasetSources {
@@ -64,7 +64,7 @@ export function parseFrontMatter(contents: string, parseSources = true): ParsedF
 }
 
 // Generate source names only when the markdown file is first processed
-// since getNameAndTypeFromSourceUrl uses a new Date every time it's called
+// since getNameFromSourceUrl uses a new Date every time it's called
 function deriveSourcesFromMetadata(metadata: RawDatasetMetadata): ParsedDatasetMetadata {
     let dataSource;
     let provenanceSource;
@@ -73,13 +73,22 @@ function deriveSourcesFromMetadata(metadata: RawDatasetMetadata): ParsedDatasetM
     const provenanceUrl = metadata.provenance_url;
     const descriptionsUrl = metadata.descriptions_url;
     if (datasetUrl) {
-        dataSource = getNameAndTypeFromSourceUrl(datasetUrl);
+        dataSource = {
+            name: getNameFromSourceUrl(datasetUrl),
+            uri: datasetUrl,
+        };
     }
     if (provenanceUrl) {
-        provenanceSource = getNameAndTypeFromSourceUrl(provenanceUrl);
+        provenanceSource = {
+            name: getNameFromSourceUrl(provenanceUrl),
+            uri: provenanceUrl,
+        };
     }
     if (descriptionsUrl) {
-        descriptionsSource = getNameAndTypeFromSourceUrl(descriptionsUrl);
+        descriptionsSource = {
+            name: getNameFromSourceUrl(descriptionsUrl),
+            uri: descriptionsUrl,
+        };
     }
     return {
         // also still contains the original urls

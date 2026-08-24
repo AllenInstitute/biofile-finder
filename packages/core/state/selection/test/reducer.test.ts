@@ -64,7 +64,6 @@ describe("Selection reducer", () => {
                 {
                     name: "My Tiffs",
                     version: 2,
-                    type: "csv",
                     id: "13123019",
                     uri: "",
                 },

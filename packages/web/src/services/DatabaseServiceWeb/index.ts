@@ -13,7 +13,7 @@ import {
     WorkerResType,
 } from "./types";
 import { DatabaseService } from "../../../../core/services";
-import { CancellablePromise } from "../../../../core/services/DatabaseService";
+import { CancellablePromise, SourceWithType } from "../../../../core/services/DatabaseService";
 
 export default class DatabaseServiceWeb extends DatabaseService {
     // Initialize with AICS FMS data source name to pretend it always exists
@@ -186,7 +186,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
     }
 
     protected async prepareDataSource(
-        dataSource: Source,
+        dataSource: SourceWithType,
         skipNormalization: boolean
     ): Promise<void> {
         const { name, type, uri } = dataSource;

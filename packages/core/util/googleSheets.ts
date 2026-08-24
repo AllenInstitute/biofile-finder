@@ -28,23 +28,24 @@ const SPREADSHEET_PATH = /^\/spreadsheets(?:\/u\/\d+)?\/d\/(e\/)?([A-Za-z0-9-_]+
 // sent to a server; it has to be pulled out of the pasted string ourselves.
 const GID_IN_FRAGMENT = /(?:^|[#&])gid=([0-9]+)/;
 
-export interface GoogleSheetSource {
-    /** URL that responds with the sheet as CSV */
-    csvUrl: string;
-    /** Stand-in for a file name, since the sheet's title isn't knowable from the URL alone */
-    displayName: string;
+interface GoogleSheetComponents {
+    url: URL;
+    publishedMarker: string | undefined;
+    id: string;
+    gid: string | undefined;
 }
 
 /**
- * Recognize a Google Sheets URL and return the equivalent CSV download URL. Returns undefined for
- * anything that isn't a Sheets URL, so callers can fall through to their normal URL handling.
+ * Recognize a Google Sheets URL and return the components of the sheet (published marker, ID, GID, etc.)
  *
  * Handles the shapes users actually paste: /edit with the tab in the query string or the
  * fragment, /view, /preview, bare /d/{id} links, ?usp=sharing links, multi-account /u/{n} links,
  * published-to-web /d/e/{id}/pubhtml links, and exports already requested in another format.
  * URLs that already ask for CSV are returned unchanged.
  */
-export function parseGoogleSheetUrl(rawUrl: string): GoogleSheetSource | undefined {
+function parseGoogleSheet(rawUrl?: string): GoogleSheetComponents | undefined {
+    if (!rawUrl) return undefined;
+
     let url: URL;
     try {
         url = new URL(rawUrl.trim());
@@ -63,31 +64,62 @@ export function parseGoogleSheetUrl(rawUrl: string): GoogleSheetSource | undefin
 
     const [, publishedMarker, id] = match;
     const gid = url.searchParams.get("gid") || GID_IN_FRAGMENT.exec(url.hash)?.[1];
-    const displayName = `Google Sheet ${id.substring(0, 8)}${gid ? `.${gid}` : ""}`;
+
+    return {
+        url,
+        publishedMarker,
+        id,
+        gid,
+    };
+}
+
+/**
+ * Recognize a Google Sheets URL and return the equivalent display name.
+ * Returns undefined for anything that isn't a Sheets URL, so callers can fall
+ * through to their normal URL handling.
+ */
+export function parseGoogleSheetName(rawUrl: string): string | undefined {
+    const components = parseGoogleSheet(rawUrl);
+    if (!components) return undefined;
+    const { id, gid } = components;
+    return `Google Sheet ${id.substring(0, 8)}${gid ? `.${gid}` : ""}`;
+}
+
+/**
+ * Recognize a Google Sheets URL and return the equivalent CSV access URL.
+ * Returns undefined for anything that isn't a Sheets URL, so callers can fall
+ * through to their normal URL handling.
+ *
+ * Handles the shapes users actually paste: /edit with the tab in the query string or the
+ * fragment, /view, /preview, bare /d/{id} links, ?usp=sharing links, multi-account /u/{n} links,
+ * published-to-web /d/e/{id}/pubhtml links, and exports already requested in another format.
+ * URLs that already ask for CSV are returned unchanged.
+ */
+export function parseGoogleSheetUrl(rawUrl?: string | File): string | undefined {
+    if (typeof rawUrl !== "string") return undefined;
+
+    const components = parseGoogleSheet(rawUrl);
+    if (!components) return undefined;
+    const { url, publishedMarker, id, gid } = components;
 
     // The Google Charts endpoint is a valid way to request CSV and applies its own type coercion.
     // If a user deliberately pasted one, respect it rather than swapping in a different endpoint.
     if (url.pathname.includes("/gviz/tq") && url.searchParams.get("tqx")?.includes("out:csv")) {
-        return { csvUrl: rawUrl.trim(), displayName };
+        return rawUrl.trim();
     }
 
+    let csvUrl: URL;
     if (publishedMarker) {
-        const csvUrl = new URL(`https://${GOOGLE_DOCS_HOST}/spreadsheets/d/e/${id}/pub`);
+        csvUrl = new URL(`https://${GOOGLE_DOCS_HOST}/spreadsheets/d/e/${id}/pub`);
         csvUrl.searchParams.set("output", "csv");
-        if (gid) {
-            // "single" limits a published workbook to the one requested tab
-            csvUrl.searchParams.set("gid", gid);
-            csvUrl.searchParams.set("single", "true");
-        }
-        return { csvUrl: csvUrl.toString(), displayName };
+        // "single" limits a published workbook to the one requested tab
+        if (gid) csvUrl.searchParams.set("single", "true");
+    } else {
+        csvUrl = new URL(`https://${GOOGLE_DOCS_HOST}/spreadsheets/d/${id}/export`);
+        csvUrl.searchParams.set("format", "csv");
     }
-
-    const csvUrl = new URL(`https://${GOOGLE_DOCS_HOST}/spreadsheets/d/${id}/export`);
-    csvUrl.searchParams.set("format", "csv");
-    if (gid) {
-        csvUrl.searchParams.set("gid", gid);
-    }
-    return { csvUrl: csvUrl.toString(), displayName };
+    if (gid) csvUrl.searchParams.set("gid", gid);
+    return csvUrl.toString();
 }
 
 /**
@@ -95,5 +127,5 @@ export function parseGoogleSheetUrl(rawUrl: string): GoogleSheetSource | undefin
  * `string | File` shape that data source URIs have elsewhere in the app.
  */
 export function isGoogleSheetUri(uri?: string | File): boolean {
-    return typeof uri === "string" && parseGoogleSheetUrl(uri) !== undefined;
+    return typeof uri === "string" && parseGoogleSheet(uri) !== undefined;
 }
