@@ -15,7 +15,11 @@ import {
 } from "../actions";
 import metadataLogics from "../logics";
 import { initialState, interaction } from "../../";
-import { SET_COLUMNS, SET_FILE_FILTERS } from "../../selection/actions";
+import {
+    SET_COLUMNS,
+    SET_FILE_FILTERS,
+    SET_HAS_USER_SELECTED_COLUMNS,
+} from "../../selection/actions";
 import DatasetService, { DataSource } from "../../../services/DataSourceService";
 import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 import Annotation from "../../../entity/Annotation";
@@ -229,6 +233,79 @@ describe("Metadata logics", () => {
                 (col: { name: string; width: number }) => col.name === mockAnnotations[0].name
             );
             expect(existingColumn?.width).to.equal(300);
+        });
+
+        it("leaves the columns the user selected alone", async () => {
+            // arrange: user chose to display only one of the available annotations
+            const state = mergeState(initialState, {
+                selection: {
+                    columns: [{ name: mockAnnotations[0].name, width: 300 }],
+                    hasUserSelectedColumns: true,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: metadataLogics,
+            });
+
+            // act: receive annotations that include the selected one and two others
+            store.dispatch(receiveAnnotations(mockAnnotations));
+            await logicMiddleware.whenComplete();
+
+            // assert: the unselected annotations were not added as columns
+            expect(actions.includesMatch({ type: SET_COLUMNS })).to.be.false;
+            expect(actions.includesMatch({ type: SET_HAS_USER_SELECTED_COLUMNS })).to.be.false;
+        });
+
+        it("drops columns the user selected that no longer exist in the data source", async () => {
+            // arrange
+            const existingColumn = { name: mockAnnotations[0].name, width: 300 };
+            const state = mergeState(initialState, {
+                selection: {
+                    columns: [existingColumn, { name: "old column", width: 200 }],
+                    hasUserSelectedColumns: true,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: metadataLogics,
+            });
+
+            // act
+            store.dispatch(receiveAnnotations(mockAnnotations));
+            await logicMiddleware.whenComplete();
+
+            // assert: only the column that no longer exists was dropped
+            const matchingAction = actions.list
+                .filter((action) => action.type === SET_COLUMNS)
+                .at(0);
+            expect(matchingAction?.payload).to.deep.equal([existingColumn]);
+        });
+
+        it("displays all annotations when none of the columns the user selected exist", async () => {
+            // arrange: none of the selected columns are available in this data source
+            const state = mergeState(initialState, {
+                selection: {
+                    columns: [{ name: "old column", width: 200 }],
+                    hasUserSelectedColumns: true,
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state,
+                logics: metadataLogics,
+            });
+
+            // act
+            store.dispatch(receiveAnnotations(mockAnnotations));
+            await logicMiddleware.whenComplete();
+
+            // assert: fell back to displaying every annotation
+            expect(actions.includesMatch({ type: SET_HAS_USER_SELECTED_COLUMNS, payload: false }))
+                .to.be.true;
+            const matchingAction = actions.list
+                .filter((action) => action.type === SET_COLUMNS)
+                .at(0);
+            expect(matchingAction?.payload.length).to.equal(mockAnnotations.length);
         });
     });
 
