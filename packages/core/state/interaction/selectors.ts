@@ -25,7 +25,7 @@ import {
     VolEBaseUrl,
 } from "../../constants";
 import Graph from "../../entity/Graph";
-import { isMarkdownType } from "../../entity/SearchParams";
+import { isMarkdownSource } from "../../entity/SearchParams";
 import { AnnotationService, FileService } from "../../services";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
@@ -274,7 +274,7 @@ export const getAnnotationService = createSelector(
                 databaseService: platformDependentServices.databaseService,
                 // Don't try to get annotations from markdown files
                 dataSourceNames: dataSources
-                    .filter((source) => !isMarkdownType(source.type))
+                    .filter((source) => !isMarkdownSource(source))
                     .map((source) => source.name),
                 metadataSource,
             });

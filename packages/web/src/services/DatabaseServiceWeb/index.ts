@@ -12,6 +12,7 @@ import { AICS_FMS_DATA_SOURCE_NAME } from "../../../../core/constants";
 import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
 import { Source, TABULAR_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
 import { CancellablePromise } from "../../../../core/entity/types";
+import { SourceWithType } from "../../../../core/services/DatabaseService";
 import { CanceledError } from "../../../../core/errors";
 import { DatabaseService } from "../../../../core/services";
 
@@ -186,7 +187,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
     }
 
     protected async prepareDataSource(
-        dataSource: Source,
+        dataSource: SourceWithType,
         skipNormalization: boolean
     ): Promise<void> {
         const { name, type, uri } = dataSource;

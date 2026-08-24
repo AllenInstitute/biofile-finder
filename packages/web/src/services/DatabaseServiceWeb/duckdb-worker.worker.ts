@@ -7,6 +7,7 @@ import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotati
 import { Source } from "../../../../core/entity/SearchParams";
 import SQLBuilder from "../../../../core/entity/SQLBuilder";
 import { CancellablePromise } from "../../../../core/entity/types";
+import { SourceWithType } from "../../../../core/services/DatabaseService";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 import { DatabaseService } from "../../../../core/services";
 import { initializeDuckDB } from "../../../../core/services/DatabaseService";
@@ -234,7 +235,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
 
     // public wrapper so that the worker can access the function
     public async prepareDataSourceWorker(
-        dataSource: Source,
+        dataSource: SourceWithType,
         skipNormalization: boolean
     ): Promise<void> {
         await this.prepareDataSource(dataSource, skipNormalization);
