@@ -76,6 +76,31 @@ describe("<FileList />", () => {
         expect(queryByText("Counting files...")).to.not.exist;
     });
 
+    it("displays 'No columns selected' when no columns are displayed", async () => {
+        // Arrange: initialState has no columns selected
+        const state = mergeState(initialState, {
+            metadata: { annotations: [FILE_NAME_ANNOTATION] },
+        });
+        const { store } = configureMockStore({ state });
+
+        const sandbox = createSandbox();
+        const fileService = new HttpFileService();
+        sandbox.replace(fileService, "getCountOfMatchingFiles", () => Promise.resolve(999));
+        const fileSet = new FileSet({ fileService });
+
+        // Act
+        const { findByText, queryByText } = render(
+            <Provider store={store}>
+                <FileList fileSet={fileSet} isRoot={false} sortOrder={4} dispatch={noop} />
+            </Provider>
+        );
+
+        // Assert
+        await findByText("No columns selected");
+        expect(queryByText("Select at least one column above to display the file list.")).to.exist;
+        expect(queryByText("Click here to select columns")).to.exist;
+    });
+
     it("waits for annotations to load before fetching files", async () => {
         // arrange
         const { store, logicMiddleware } = configureMockStore({

@@ -7,6 +7,7 @@ import * as path from "path";
 import sinon from "sinon";
 
 import DatabaseServiceNoop from "../DatabaseServiceNoop";
+import { HIDDEN_UID_ANNOTATION } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
@@ -369,8 +370,47 @@ describe("DatabaseService", () => {
 
             const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
             expect(createViewSql).to.not.be.undefined;
-            expect(createViewSql).to.match(/parquet_scan\(ARRAY\[.*'foo-bff-filehandle'.*]/);
-            expect(createViewSql).to.match(/parquet_scan\(ARRAY\[.*'foo2-bff-filehandle'.*]/);
+            expect(createViewSql).to.match(/parquet_scan\(\s*ARRAY\[/);
+            expect(createViewSql).to.include("'foo-bff-filehandle'");
+            expect(createViewSql).to.include("'foo2-bff-filehandle'");
+        });
+
+        it("qualifies the hidden UID by filename so it stays unique across files", async () => {
+            const service = new MockAggregateParquetDatabaseService({
+                "a.parquet": ["File Path"],
+                "b.parquet": ["File Path"],
+            });
+
+            await service.prepareDataSources([
+                { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
+                { name: "b.parquet", type: "parquet", uri: "https://example.com/b.parquet" },
+            ]);
+
+            const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
+            expect(createViewSql).to.include(
+                `("bff_source_file" || '#' || CAST("file_row_number" AS VARCHAR)) ` +
+                    `AS "${HIDDEN_UID_ANNOTATION}"`
+            );
+        });
+
+        it("does not collide with a source column named filename", async () => {
+            const service = new MockAggregateParquetDatabaseService({
+                "a.parquet": ["File Path", "filename"],
+                "b.parquet": ["File Path", "filename"],
+            });
+
+            await service.prepareDataSources([
+                { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
+                { name: "b.parquet", type: "parquet", uri: "https://example.com/b.parquet" },
+            ]);
+
+            const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
+            // The user's own column is still projected untouched...
+            expect(createViewSql).to.include(`"filename"`);
+            // ...while the injected one is asked for under a name of ours, and
+            // that is what the uid and "Data source" are built from.
+            expect(createViewSql).to.include(`filename = 'bff_source_file'`);
+            expect(createViewSql).to.include(`"bff_source_file" || '#'`);
         });
 
         it("creates aggregate parquet view using union_by_name and data source projection", async () => {
@@ -386,9 +426,9 @@ describe("DatabaseService", () => {
 
             const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
             expect(createViewSql).to.not.be.undefined;
-            expect(createViewSql).to.include("parquet_scan(ARRAY[");
+            expect(createViewSql).to.match(/parquet_scan\(\s*ARRAY\[/);
             expect(createViewSql).to.include("union_by_name = true");
-            expect(createViewSql).to.include(`"filename" AS "Data source"`);
+            expect(createViewSql).to.include(`"bff_source_file" AS "Data source"`);
         });
     });
 

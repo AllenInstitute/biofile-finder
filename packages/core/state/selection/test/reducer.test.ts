@@ -108,6 +108,7 @@ describe("Selection reducer", () => {
             type KeysEnum<T> = { [P in keyof Required<T>]: string };
             const searchParamsExpected: KeysEnum<SearchParamsComponents> = {
                 columns: "columns",
+                hasUserSelectedColumns: "hasUserSelectedColumns",
                 hierarchy: "annotationHierarchy",
                 fileView: "fileView",
                 sources: "dataSources",
