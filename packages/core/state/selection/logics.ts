@@ -58,6 +58,9 @@ import {
     RESIZE_COLUMN,
     ResizeColumnAction,
     setColumns,
+    setHasUserSelectedColumns,
+    SELECT_COLUMNS,
+    SelectColumnsAction,
     Column,
     ChangeFileFilterTypeAction,
     AddFileFilterAction,
@@ -68,7 +71,7 @@ import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
 import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
-import { AnnotationValue } from "../../entity/Annotation";
+import Annotation, { AnnotationValue } from "../../entity/Annotation";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -480,6 +483,69 @@ const resizeColumnLogic = createLogic({
         done();
     },
     type: RESIZE_COLUMN,
+});
+
+// Retained columns keep their position and width.
+const selectColumnsLogic = createLogic({
+    async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { payload: selectedAnnotationNames } = deps.action as SelectColumnsAction;
+        const currentColumns = selectionSelectors.getColumns(deps.getState());
+        const nameToAnnotationMap = metadata.selectors.getAnnotationNameToAnnotationMap(
+            deps.getState()
+        );
+        const annotationService = interaction.selectors.getAnnotationService(deps.getState());
+
+        const retainedColumns = currentColumns.filter((column) =>
+            selectedAnnotationNames.includes(column.name)
+        );
+        const addedAnnotationNames = selectedAnnotationNames.filter(
+            (name) => !currentColumns.some((column) => column.name === name)
+        );
+
+        // Size new columns to fit their content.
+        const addedAnnotations = addedAnnotationNames
+            .map((name) => nameToAnnotationMap.get(name))
+            .filter((annotation): annotation is Annotation => !!annotation);
+
+        const unknownNames = addedAnnotationNames.filter((name) => !nameToAnnotationMap.has(name));
+        if (unknownNames.length) {
+            dispatch(
+                interaction.actions.processWarning(
+                    "selectColumnsWarning",
+                    `No metadata found for these columns, they may appear empty: ${unknownNames.join(
+                        ", "
+                    )}`
+                )
+            );
+        }
+
+        const widthByAnnotation = addedAnnotations.length
+            ? await annotationService.fetchOptimalWidthForAnnotations(addedAnnotations)
+            : new Map<string, number>();
+
+        dispatch(
+            setColumns([
+                ...retainedColumns,
+                ...addedAnnotationNames.map((name) => ({
+                    name,
+                    width: widthByAnnotation.get(name) ?? DEFAULT_COLUMN_WIDTH,
+                })),
+            ])
+        );
+
+        const displayableAnnotationNames = metadata.selectors
+            .getAnnotations(deps.getState())
+            .filter((annotation) => !annotation.isParent)
+            .map((annotation) => annotation.name);
+        const hasSelectedEveryAnnotation =
+            !!displayableAnnotationNames.length &&
+            displayableAnnotationNames.every((name) => selectedAnnotationNames.includes(name));
+        if (hasSelectedEveryAnnotation) {
+            dispatch(setHasUserSelectedColumns(false) as AnyAction);
+        }
+        done();
+    },
+    type: SELECT_COLUMNS,
 });
 
 /**
@@ -1018,6 +1084,11 @@ const changeQueryLogic = createLogic({
                 dispatch(changeDataSources(mainSources));
                 dispatch(setAnnotationHierarchy(parts.hierarchy));
                 dispatch(setColumns(parts.columns ?? []));
+                dispatch(
+                    setHasUserSelectedColumns(
+                        !!parts.columns?.length && !!parts.hasUserSelectedColumns
+                    ) as AnyAction
+                );
                 dispatch(setFileFilters(parts.filters));
                 dispatch(setFileView(parts.fileView || FileView.LIST) as AnyAction);
                 dispatch(setOpenFileFolders(parts.openFolders));
@@ -1160,4 +1231,5 @@ export default [
     changeQueryLogic,
     removeQueryLogic,
     resizeColumnLogic,
+    selectColumnsLogic,
 ];

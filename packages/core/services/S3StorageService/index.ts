@@ -9,7 +9,7 @@ import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 export const isMultiObjectFile = (url: string) =>
     [".zarr", ".zarr/", ".sldy", ".sldy/"].some((ext) => url.endsWith(ext));
 
-interface ParsedUrl {
+export interface ParsedUrl {
     hostname: string;
     bucket: string;
     key: string;
@@ -194,7 +194,7 @@ export default class S3StorageService extends HttpServiceBase {
     /**
      * Parse URL into hostname, bucket, key from a url
      */
-    private parseUrl(url: string): Promise<ParsedUrl | undefined> {
+    public parseUrl(url: string): Promise<ParsedUrl | undefined> {
         return S3StorageService.isSimpleS3Url(url)
             ? Promise.resolve(S3StorageService.parseSimpleUrl(url))
             : // TODO: what about virtualized objects not directories???
