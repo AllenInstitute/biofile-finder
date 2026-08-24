@@ -68,8 +68,7 @@ function isParquetBacked(type?: SourceType): boolean {
 }
 
 // A Delta Lake source is backed by many parquet files, so it registers one handle
-// per data file. The index is zero-padded to a fixed width so that no handle can
-// ever be a prefix of another (see FILE_HANDLE_SUFFIX above).
+// per data file
 function deltaFileHandleName(name: string, index: number): string {
     return `${fileHandleName(name)}-${String(index).padStart(8, "0")}.parquet`;
 }
@@ -324,8 +323,7 @@ export default abstract class DatabaseService {
     }
 
     /**
-     * Release DuckDB file handles. Overridable alongside registerFileURLs so tests
-     * can exercise the surrounding logic without a database.
+     * Release DuckDB file handles
      */
     protected async dropFileHandles(handles: string[]): Promise<void> {
         if (!this.database) return;
@@ -1126,9 +1124,8 @@ export default abstract class DatabaseService {
             selectParts.push(fileNameSelectPart);
         }
         // "file_row_number" restarts at 0 in every parquet file, so on its own it
-        // does not identify a row once the scan spans more than one file -- which
-        // is every Delta Lake table and every multi-source aggregate. Qualifying it
-        // with "filename" makes it unique. Kept VARCHAR even for a single file,
+        // does not identify a row once the scan spans more than one file. Qualifying
+        // it with "filename" makes it unique. Kept VARCHAR even for a single file,
         // both for consistency and because a 0-valued uid reads as falsy downstream.
         selectParts.push(
             `("filename" || '#' || CAST("file_row_number" AS VARCHAR)) AS "${HIDDEN_UID_ANNOTATION}"`
