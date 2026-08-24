@@ -21,6 +21,7 @@ import {
     removeFileFilter,
     removeFromAnnotationHierarchy,
     setAnnotationHierarchy,
+    selectColumns,
     selectFile,
     setFileFilters,
     selectNearbyFile,
@@ -28,6 +29,7 @@ import {
     ADD_QUERY,
     CHANGE_DATA_SOURCES,
     SET_ANNOTATION_HIERARCHY,
+    SET_COLUMNS,
     SET_AVAILABLE_ANNOTATIONS,
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
@@ -1547,6 +1549,97 @@ describe("Selection logics", () => {
                     )
                 ).to.be.true;
             });
+        });
+    });
+
+    describe("selectColumns", () => {
+        const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
+        const optimalWidthByName = new Map(
+            annotations.map((annotation, index) => [annotation.name, 100 + index * 25])
+        );
+
+        const annotationService = new HttpAnnotationService({
+            fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+            httpClient: createMockHttpClient([]),
+        });
+
+        beforeEach(() => {
+            sinon.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+            sinon
+                .stub(annotationService, "fetchOptimalWidthForAnnotations")
+                .callsFake((annotationsToSize: Annotation[]) =>
+                    Promise.resolve(
+                        new Map(
+                            annotationsToSize.map((a) => [
+                                a.name,
+                                optimalWidthByName.get(a.name) ?? 0,
+                            ])
+                        )
+                    )
+                );
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("removes deselected columns and keeps the width of the columns that remain", async () => {
+            // Arrange
+            const keptColumn = { name: annotations[0].name, width: 333 };
+            const state = mergeState(initialState, {
+                metadata: { annotations },
+                selection: {
+                    columns: [keptColumn, { name: annotations[1].name, width: 150 }],
+                },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+
+            // Act
+            store.dispatch(selectColumns([annotations[0].name]));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch({ type: SET_COLUMNS, payload: [keptColumn] })).to.be.true;
+        });
+
+        it("appends newly selected columns sized to fit their content", async () => {
+            // Arrange
+            const existingColumn = { name: annotations[0].name, width: 333 };
+            const state = mergeState(initialState, {
+                metadata: { annotations },
+                selection: { columns: [existingColumn] },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
+            });
+
+            // Act
+            store.dispatch(
+                selectColumns([annotations[0].name, annotations[1].name, annotations[2].name])
+            );
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(
+                actions.includesMatch({
+                    type: SET_COLUMNS,
+                    payload: [
+                        existingColumn,
+                        {
+                            name: annotations[1].name,
+                            width: optimalWidthByName.get(annotations[1].name),
+                        },
+                        {
+                            name: annotations[2].name,
+                            width: optimalWidthByName.get(annotations[2].name),
+                        },
+                    ],
+                })
+            ).to.be.true;
         });
     });
 });
