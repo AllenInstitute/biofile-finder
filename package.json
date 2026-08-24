@@ -33,6 +33,7 @@
     "@types/classnames": "2.2.x",
     "@types/debounce-promise": "3.1.x",
     "@types/enzyme": "3.10.x",
+    "@types/js-yaml": "^4.0.9",
     "@types/jsdom": "16.x",
     "@types/lodash": "4.14.x",
     "@types/lru-cache": "5.1.x",

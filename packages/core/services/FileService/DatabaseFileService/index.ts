@@ -31,7 +31,8 @@ type UnwrappedMetadataValue =
     | null
     | undefined;
 type FileRow = {
-    [HIDDEN_UID_ANNOTATION]?: string;
+    // This is a string for parquet and a number for CSV/JSON
+    [HIDDEN_UID_ANNOTATION]?: string | number;
     [key: string]: UnwrappedMetadataValue;
 };
 
@@ -146,12 +147,11 @@ export default class DatabaseFileService implements FileService {
     public readonly provenanceIdColumns = ["File Path", "File ID"];
 
     private static convertDatabaseRowToFileDetail(row: FileRow, env: Environment): FileDetail {
-        const uniqueId = row[HIDDEN_UID_ANNOTATION];
-        // isNil rather than a truthiness check: 0 is a legitimate uid for the
-        // first row of a table.
-        if (isNil(uniqueId)) {
+        const rawUniqueId = row[HIDDEN_UID_ANNOTATION];
+        if (isNil(rawUniqueId)) {
             throw new Error("Missing auto-generated unique ID");
         }
+        const uniqueId = String(rawUniqueId);
 
         const annotations = Object.entries(row).flatMap(([name, values]): FmsFileAnnotation[] => {
             // Filter out UID annotation used for selection logic

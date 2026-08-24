@@ -184,6 +184,40 @@ export function setColumns(columns: Column[]) {
     };
 }
 
+// Records whether the user explicitly chose which columns to display.
+export const SET_HAS_USER_SELECTED_COLUMNS = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-has-user-selected-columns"
+);
+
+export interface SetHasUserSelectedColumnsAction {
+    payload: boolean;
+    type: string;
+}
+
+export function setHasUserSelectedColumns(
+    hasUserSelectedColumns: boolean
+): SetHasUserSelectedColumnsAction {
+    return {
+        payload: hasUserSelectedColumns,
+        type: SET_HAS_USER_SELECTED_COLUMNS,
+    };
+}
+
+export const SELECT_COLUMNS = makeConstant(STATE_BRANCH_NAME, "select-columns");
+
+export interface SelectColumnsAction {
+    payload: string[]; // names of the annotations to display as columns
+    type: string;
+}
+
+export function selectColumns(annotationNames: string[]): SelectColumnsAction {
+    return {
+        payload: annotationNames,
+        type: SELECT_COLUMNS,
+    };
+}
+
 /**
  * REORDER_COLUMN
  *
@@ -641,25 +675,6 @@ export function toggleNullValueGroups(showNullValues?: boolean): SetShowNullValu
 }
 
 /**
- * DECODE_FILE_EXPLORER_URL
- *
- * Intention to decode an incoming file explorer URL into application state
- */
-export const DECODE_FILE_EXPLORER_URL = makeConstant(STATE_BRANCH_NAME, "decode-file-explorer-url");
-
-export interface DecodeSearchParamsAction {
-    payload: string;
-    type: string;
-}
-
-export function decodeSearchParams(decodedSearchParams: string): DecodeSearchParamsAction {
-    return {
-        payload: decodedSearchParams,
-        type: DECODE_FILE_EXPLORER_URL,
-    };
-}
-
-/**
  * CHANGE_DATA_SOURCES
  *
  * Intention to update the data sources queries are run against.
@@ -896,5 +911,25 @@ export function setIsLoadingSource(isLoading: boolean): SetIsLoadingSource {
     return {
         payload: isLoading,
         type: SET_IS_LOADING_DATA_SOURCE,
+    };
+}
+
+/** SET_SELECTED_DESCRIPTION_SOURCE
+ *
+ */
+export const SET_SELECTED_DATASET_DESCRIPTION_SOURCE = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-selected-dataset-description-source"
+);
+
+export interface SetSelectedDescriptionSource {
+    payload: Source | undefined;
+    type: string;
+}
+
+export function setSelectedDescriptionSource(source?: Source): SetSelectedDescriptionSource {
+    return {
+        payload: source,
+        type: SET_SELECTED_DATASET_DESCRIPTION_SOURCE,
     };
 }

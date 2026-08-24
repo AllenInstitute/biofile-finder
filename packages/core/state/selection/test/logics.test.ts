@@ -14,44 +14,47 @@ import {
     addFileFilter,
     addQuery,
     changeDataSources,
-    changeSourceMetadata,
     changeProvenanceSource,
-    decodeSearchParams,
+    changeQuery,
     expandAllFileFolders,
     reorderAnnotationHierarchy,
     removeFileFilter,
     removeFromAnnotationHierarchy,
     setAnnotationHierarchy,
+    selectColumns,
     selectFile,
+    setFileFilters,
     selectNearbyFile,
     ADD_DATASOURCE_RELOAD_ERROR,
     ADD_QUERY,
+    CHANGE_DATA_SOURCES,
     SET_ANNOTATION_HIERARCHY,
+    SET_COLUMNS,
     SET_AVAILABLE_ANNOTATIONS,
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
-    SET_SORT_COLUMN,
+    SET_QUERIES,
     Query,
+    changeSourceMetadata,
+    setSelectedDescriptionSource,
 } from "../actions";
 import { initialState, interaction } from "../../";
 import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
-import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileFilter from "../../../entity/FileFilter";
 import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import NumericRange from "../../../entity/NumericRange";
-import SearchParams from "../../../entity/SearchParams";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
-import FileSort, { SortOrder } from "../../../entity/FileSort";
-import { DatabaseService, DatasetService } from "../../../services";
+import { DatasetSources, ParsedFrontmatter } from "../../../entity/MarkdownFrontMatter";
+import NumericRange from "../../../entity/NumericRange";
+import { Source } from "../../../entity/SearchParams";
+import { DatabaseService } from "../../../services";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../../services/DataSourceService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
-import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 
 describe("Selection logics", () => {
@@ -969,6 +972,236 @@ describe("Selection logics", () => {
         });
     });
 
+    describe("changeQueryLogic", () => {
+        const mockQuery = (name: string, parts: Partial<Query["parts"]> = {}): Query => ({
+            name,
+            parts: { hierarchy: [], filters: [], openFolders: [], sources: [], ...parts },
+        });
+
+        it("applies the newly selected query's parts", async () => {
+            // Arrange
+            const hierarchy = ["Cell Line"];
+            const filters = [new FileFilter("Cell Line", "AICS-13")];
+            const sources: DataSource[] = [
+                { id: "Source", name: "Source", type: "csv", uri: "fake-uri.test" },
+            ];
+            const provenanceSource: Source = {
+                name: "Provenance",
+                type: "csv",
+                uri: "prov-uri.test",
+            };
+            const selectedQuery = mockQuery("Selected", {
+                hierarchy,
+                filters,
+                sources,
+                provenanceSource,
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: mergeState(initialState, {
+                    selection: { selectedQuery: "Previous", queries: [selectedQuery] },
+                }),
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(changeQuery(selectedQuery));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch(setAnnotationHierarchy(hierarchy))).to.be.true;
+            expect(actions.includesMatch(setFileFilters(filters))).to.be.true;
+            expect(actions.includesMatch(changeDataSources(sources))).to.be.true;
+            expect(actions.includesMatch(changeProvenanceSource(provenanceSource))).to.be.true;
+        });
+
+        it("only updates queries when no new query is selected", async () => {
+            // Arrange
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: mergeState(initialState, {
+                    selection: { selectedQuery: "Previous", queries: [mockQuery("Previous")] },
+                }),
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(changeQuery());
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch({ type: SET_QUERIES })).to.be.true;
+            expect(actions.includesMatch({ type: CHANGE_DATA_SOURCES })).to.be.false;
+        });
+
+        it("parses sources from a non-cached datasetDescriptionSource", async () => {
+            const mdSource: Source = { name: "README.md", type: "md", uri: "README.md" };
+            const selectedQuery = mockQuery("Selected", {
+                sources: [mdSource],
+            });
+            const mockDataSource: Source = { name: "Test source", uri: "main-url.csv" };
+            const mockProvenanceSource: Source = { name: "Provenance source", uri: "prov-url.csv" };
+            const mockColDescSource: Source = {
+                name: "Column descriptions",
+                uri: "metadata-url.csv",
+            };
+            class MockDatabaseService extends DatabaseService {
+                public getDatasetDescriptionSources(): DatasetSources | undefined {
+                    return undefined;
+                }
+                public async processMarkdown(): Promise<ParsedFrontmatter> {
+                    return Promise.resolve({
+                        metadata: {
+                            dataSource: mockDataSource,
+                            provenanceSource: mockProvenanceSource,
+                            descriptionsSource: mockColDescSource,
+                        },
+                        body: "",
+                    });
+                }
+            }
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: mergeState(initialState, {
+                    interaction: {
+                        platformDependentServices: {
+                            databaseService: new MockDatabaseService(),
+                        },
+                    },
+                    selection: { selectedQuery: "Previous", queries: [selectedQuery] },
+                }),
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(changeQuery(selectedQuery));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch(changeDataSources([mdSource]))).to.be.false;
+            expect(actions.includesMatch(setSelectedDescriptionSource(mdSource))).to.be.true;
+            expect(actions.includesMatch(changeDataSources([mockDataSource]))).to.be.true;
+            expect(actions.includesMatch(changeProvenanceSource(mockProvenanceSource))).to.be.true;
+            expect(actions.includesMatch(changeSourceMetadata(mockColDescSource))).to.be.true;
+        });
+
+        it("parses sources from a cached datasetDescriptionSource", async () => {
+            const mdSource: Source = { name: "README.md", type: "md", uri: "README" };
+            const selectedQuery = mockQuery("Selected", {
+                sources: [mdSource],
+            });
+            const mockDataSource: Source = { name: "Test source", uri: "main-url.csv" };
+            const mockProvenanceSource: Source = { name: "Provenance source", uri: "prov-url.csv" };
+            const mockColDescSource: Source = {
+                name: "Column descriptions",
+                uri: "metadata-url.csv",
+            };
+            class MockDatabaseService extends DatabaseService {
+                public getDatasetDescriptionSources(): DatasetSources {
+                    return {
+                        dataSource: mockDataSource,
+                        provenanceSource: mockProvenanceSource,
+                        descriptionsSource: mockColDescSource,
+                    };
+                }
+                // We shouldn't reach this function, but if we do, reject
+                public async processMarkdown(): Promise<ParsedFrontmatter> {
+                    expect.fail("Should not reach process markdown function");
+                }
+            }
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: mergeState(initialState, {
+                    interaction: {
+                        platformDependentServices: {
+                            databaseService: new MockDatabaseService(),
+                        },
+                    },
+                    selection: { selectedQuery: "Previous", queries: [selectedQuery] },
+                }),
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(changeQuery(selectedQuery));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch(changeDataSources([mdSource]))).to.be.false;
+            expect(actions.includesMatch(setSelectedDescriptionSource(mdSource))).to.be.true;
+            expect(actions.includesMatch(changeDataSources([mockDataSource]))).to.be.true;
+            expect(actions.includesMatch(changeProvenanceSource(mockProvenanceSource))).to.be.true;
+            expect(actions.includesMatch(changeSourceMetadata(mockColDescSource))).to.be.true;
+        });
+
+        it("overrides markdown if provenance/column description sources are provided manually", async () => {
+            const provSourceFromUser: Source = {
+                name: "some-other-prov-source",
+                type: "csv",
+                uri: "some-other-prov-url.csv",
+            };
+            const columnDescriptionsFromUser: Source = {
+                name: "some-other-metadata-source",
+                type: "csv",
+                uri: "some-other-metadata-url.csv",
+            };
+            const mdSource: Source = { name: "README.md", type: "md", uri: "README" };
+            const selectedQuery = mockQuery("Selected", {
+                sources: [mdSource],
+                provenanceSource: provSourceFromUser,
+                sourceMetadata: columnDescriptionsFromUser,
+            });
+            const mockDataSource: Source = { name: "Test source", uri: "main-url.csv" };
+            const provSourceFromMarkdown: Source = {
+                name: "Provenance source",
+                uri: "prov-url.csv",
+            };
+            const colDescriptionSourceFromMarkdown: Source = {
+                name: "Column descriptions",
+                uri: "metadata-url.csv",
+            };
+
+            class MockDatabaseService extends DatabaseService {
+                public getDatasetDescriptionSources(): DatasetSources | undefined {
+                    return undefined;
+                }
+                public async processMarkdown(): Promise<ParsedFrontmatter> {
+                    return Promise.resolve({
+                        metadata: {
+                            dataSource: mockDataSource,
+                            provenanceSource: provSourceFromMarkdown,
+                            descriptionsSource: colDescriptionSourceFromMarkdown,
+                        },
+                        body: "",
+                    });
+                }
+            }
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: mergeState(initialState, {
+                    interaction: {
+                        platformDependentServices: {
+                            databaseService: new MockDatabaseService(),
+                        },
+                    },
+                    selection: { selectedQuery: "Previous", queries: [selectedQuery] },
+                }),
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(changeQuery(selectedQuery));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch(changeDataSources([mdSource]))).to.be.false;
+            expect(actions.includesMatch(setSelectedDescriptionSource(mdSource))).to.be.true;
+            // Override the markdown urls
+            expect(actions.includesMatch(changeProvenanceSource(provSourceFromUser))).to.be.true;
+            expect(actions.includesMatch(changeSourceMetadata(columnDescriptionsFromUser))).to.be
+                .true;
+            expect(actions.includesMatch(changeProvenanceSource(provSourceFromMarkdown))).to.be
+                .false;
+            expect(actions.includesMatch(changeSourceMetadata(colDescriptionSourceFromMarkdown))).to
+                .be.false;
+        });
+    });
+
     describe("setDataSourceReloadErrorLogic", () => {
         it("truncates long errors", async () => {
             const errorSubstring = "This is a string containing exactly 50 characters.";
@@ -1319,95 +1552,94 @@ describe("Selection logics", () => {
         });
     });
 
-    describe("decodeSearchParams", () => {
-        const mockDataSources: DataSource[] = [
-            {
-                id: "1234148",
-                name: "Test Data Source",
-                version: 1,
-                type: "csv",
-            },
-        ];
+    describe("selectColumns", () => {
+        const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
+        const optimalWidthByName = new Map(
+            annotations.map((annotation, index) => [annotation.name, 100 + index * 25])
+        );
+
+        const annotationService = new HttpAnnotationService({
+            fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+            httpClient: createMockHttpClient([]),
+        });
 
         beforeEach(() => {
-            const datasetService = new DatasetService();
-            sinon.stub(interaction.selectors, "getDatasetService").returns(datasetService);
+            sinon.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+            sinon
+                .stub(annotationService, "fetchOptimalWidthForAnnotations")
+                .callsFake((annotationsToSize: Annotation[]) =>
+                    Promise.resolve(
+                        new Map(
+                            annotationsToSize.map((a) => [
+                                a.name,
+                                optimalWidthByName.get(a.name) ?? 0,
+                            ])
+                        )
+                    )
+                );
         });
 
         afterEach(() => {
             sinon.restore();
         });
 
-        it("dispatches new hierarchy, filters, sort, source, & opened folders from given URL", async () => {
+        it("removes deselected columns and keeps the width of the columns that remain", async () => {
             // Arrange
-            const annotations = annotationsJson.map((annotation) => new Annotation(annotation));
-            class MockDatabaseService extends DatabaseServiceNoop {
-                public deleteSourceMetadata(): Promise<void> {
-                    return Promise.resolve();
-                }
-                public deleteSourceProvenance(): Promise<void> {
-                    return Promise.resolve();
-                }
-            }
+            const keptColumn = { name: annotations[0].name, width: 333 };
             const state = mergeState(initialState, {
-                interaction: {
-                    platformDependentServices: {
-                        databaseService: new MockDatabaseService(),
-                    },
-                },
-                metadata: {
-                    annotations,
-                    dataSources: mockDataSources,
+                metadata: { annotations },
+                selection: {
+                    columns: [keptColumn, { name: annotations[1].name, width: 150 }],
                 },
             });
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
                 state,
             });
-            const hierarchy = annotations.slice(0, 2).map((a) => a.name);
-            const filters = [new FileFilter(annotations[3].name, "20x")];
-            const openFolders = [["a"], ["a", false]].map((folder) => new FileFolder(folder));
-            const sortColumn = new FileSort(AnnotationName.UPLOADED, SortOrder.DESC);
-            const encodedURL = SearchParams.encode({
-                hierarchy,
-                filters,
-                openFolders,
-                sortColumn,
-                sources: mockDataSources,
+
+            // Act
+            store.dispatch(selectColumns([annotations[0].name]));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(actions.includesMatch({ type: SET_COLUMNS, payload: [keptColumn] })).to.be.true;
+        });
+
+        it("appends newly selected columns sized to fit their content", async () => {
+            // Arrange
+            const existingColumn = { name: annotations[0].name, width: 333 };
+            const state = mergeState(initialState, {
+                metadata: { annotations },
+                selection: { columns: [existingColumn] },
+            });
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state,
             });
 
             // Act
-            store.dispatch(decodeSearchParams(encodedURL));
+            store.dispatch(
+                selectColumns([annotations[0].name, annotations[1].name, annotations[2].name])
+            );
             await logicMiddleware.whenComplete();
 
             // Assert
             expect(
                 actions.includesMatch({
-                    type: SET_ANNOTATION_HIERARCHY,
-                    payload: hierarchy,
+                    type: SET_COLUMNS,
+                    payload: [
+                        existingColumn,
+                        {
+                            name: annotations[1].name,
+                            width: optimalWidthByName.get(annotations[1].name),
+                        },
+                        {
+                            name: annotations[2].name,
+                            width: optimalWidthByName.get(annotations[2].name),
+                        },
+                    ],
                 })
             ).to.be.true;
-            expect(
-                actions.includesMatch({
-                    type: SET_FILE_FILTERS,
-                    payload: filters,
-                })
-            ).to.be.true;
-            expect(
-                actions.includesMatch({
-                    type: SET_OPEN_FILE_FOLDERS,
-                    payload: openFolders,
-                })
-            ).to.be.true;
-            expect(
-                actions.includesMatch({
-                    type: SET_SORT_COLUMN,
-                    payload: sortColumn,
-                })
-            ).to.be.true;
-            expect(actions.includesMatch(changeSourceMetadata())).to.be.true;
-            expect(actions.includesMatch(changeProvenanceSource())).to.be.true;
-            expect(actions.includesMatch(changeDataSources(mockDataSources))).to.be.true;
         });
     });
 });

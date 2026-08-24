@@ -84,6 +84,8 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
         },
         selection: {
             columns: persistedConfig?.[PersistedConfigKeys.Columns] || [],
+            hasUserSelectedColumns:
+                persistedConfig?.[PersistedConfigKeys.HasUserSelectedColumns] || false,
             queries: queries.map((query) => ({
                 ...query,
                 parts: {

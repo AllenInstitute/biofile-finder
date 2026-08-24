@@ -1,13 +1,23 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
-import { isEmpty, isNil, mapKeys, mapValues, uniq } from "lodash";
+import { isEmpty, isNil, mapKeys, mapValues, uniq, uniqBy } from "lodash";
 
 import DeltaLakeService from "../DeltaLakeService";
 import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import { EdgeDefinition, EdgeNodeType, RelationshipType } from "../../entity/Graph";
-import { ACCEPTED_SOURCE_TYPES, Source } from "../../entity/SearchParams";
+import {
+    DatasetSources,
+    ParsedFrontmatter,
+    processMarkdown,
+} from "../../entity/MarkdownFrontMatter";
+import {
+    ACCEPTED_SOURCE_TYPES,
+    isMarkdownType,
+    Source,
+    TABULAR_SOURCE_TYPES,
+} from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
@@ -47,6 +57,11 @@ enum PreDefinedColumn {
 const PRE_DEFINED_COLUMNS = Object.values(PreDefinedColumn);
 
 const DATA_SOURCE_COLUMN = "Data source";
+
+// Assign a column name that is unlikely to be used in a data source to
+// be used as the name of the column that `parquet_scan` can inject the source
+// file name into.
+const SOURCE_FILE_COLUMN = "bff_source_file";
 
 // Suffix appended to every DuckDB file-handle name so that a short name like
 // "foo" can never prefix-match a longer name like "foo2".
@@ -182,6 +197,8 @@ export default abstract class DatabaseService {
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
     protected readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
     private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
+    // Map from the markdown source name to parsed data sources
+    protected readonly dataSourceToMetadataMap: Map<string, DatasetSources> = new Map();
     // Data source names that are views (parquet), so we DROP VIEW on delete
     private readonly parquetDirectViewNames = new Set<string>();
     // Data sources backed by more than one parquet file (i.e. Delta Lake tables)
@@ -200,7 +217,7 @@ export default abstract class DatabaseService {
     public async saveQuery(
         destination: string,
         sql: string,
-        format: "parquet" | "csv" | "json"
+        format: typeof TABULAR_SOURCE_TYPES[number]
     ): Promise<Uint8Array> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
@@ -272,10 +289,10 @@ export default abstract class DatabaseService {
         type: SourceType,
         uri: string | File
     ): Promise<void> {
+        if (isMarkdownType(type)) return; // don't try to add markdown sources
         if (type === "delta") {
             return this.addDeltaDataSource(name, uri);
         }
-
         if (!this.database) {
             throw new Error("Database failed to initialize");
         }
@@ -632,21 +649,60 @@ export default abstract class DatabaseService {
         return this.currentAggregateSource === combinedName;
     }
 
+    // non-cached full parse
+    public async processMarkdown(source: Source): Promise<ParsedFrontmatter> {
+        const processedMarkdown = await processMarkdown(source);
+        if (processedMarkdown.metadata) {
+            const sourcesFromMarkdown: DatasetSources = {
+                dataSource: processedMarkdown.metadata.dataSource,
+                provenanceSource: processedMarkdown.metadata.provenanceSource,
+                descriptionsSource: processedMarkdown.metadata.descriptionsSource,
+            };
+            // set the cache
+            this.setDatasetDescriptionSources(source.name, sourcesFromMarkdown);
+        } // should error handling happen here
+        return processedMarkdown;
+    }
+
+    // Cache sources provided by a markdown (dataset description) file
+    // Allows us to avoid fetching/parsing the file every time we need those urls
+    public setDatasetDescriptionSources(dataSourceName: string, metadata: DatasetSources): void {
+        this.dataSourceToMetadataMap.set(dataSourceName, metadata);
+    }
+
+    // Get the cached urls from previously parsed markdown files
+    public getDatasetDescriptionSources(source: Source): DatasetSources | undefined {
+        return this.dataSourceToMetadataMap.get(source.name);
+    }
+
     public async prepareDataSources(
         dataSources: Source[],
         skipNormalization = false
     ): Promise<void> {
+        const markdownSources = dataSources.filter((source) => isMarkdownType(source.type));
+        const additionalSourcesToPrepare = await Promise.all(
+            markdownSources.map((markdownSource) => this.getDataSourcesFromMarkdown(markdownSource))
+        );
+        // Account for the possibility of duplicate sources
+        const sourcesToPrepare = uniqBy(
+            [
+                ...dataSources.filter((source) => !isMarkdownType(source.type)),
+                ...additionalSourcesToPrepare,
+            ],
+            "name"
+        );
+
         await Promise.all(
-            dataSources
+            sourcesToPrepare
                 .filter((dataSource) => !this.hasDataSource(dataSource.name))
                 .map((dataSource) => this.prepareDataSourceWrapper(dataSource, skipNormalization))
         );
 
         // Because when querying multiple data sources column differences can complicate the queries
         // preparing a table ahead of time that is the aggregate of the data sources is most optimal
-        // should look toward some way of reducing the memory footprint if that becomes an issue
-        if (dataSources.length > 1) {
-            await this.aggregateDataSources(dataSources);
+        // should look toward some way of reducing the memory footprint if that becomes an issue.
+        if (sourcesToPrepare.length > 1) {
+            await this.aggregateDataSources(sourcesToPrepare); // Leave markdown files out of the aggregate source
         }
     }
 
@@ -726,6 +782,7 @@ export default abstract class DatabaseService {
             );
         }
 
+        // Add the data source as a table on the database
         await this.addDataSource(name, type, uri);
 
         // Add data source name to in-memory set
@@ -749,6 +806,49 @@ export default abstract class DatabaseService {
                 await this.addRequiredColumns(name);
             }
         }
+    }
+
+    protected async getDataSourcesFromMarkdown(dataSource: Source): Promise<Source> {
+        if (!isMarkdownType(dataSource.type)) {
+            // should not reach this, just a type guard
+            throw new Error("Data source is not a markdown file");
+        }
+
+        let parsedDatasetMetadata: DatasetSources | undefined;
+        // Check the cache first, otherwise fully process the markdown file
+        const cachedSources = this.getDatasetDescriptionSources(dataSource);
+        if (cachedSources) {
+            parsedDatasetMetadata = cachedSources;
+        } else {
+            parsedDatasetMetadata = (await this.processMarkdown(dataSource)).metadata;
+        }
+        if (!parsedDatasetMetadata || !parsedDatasetMetadata.dataSource) {
+            throw new DataSourcePreparationError(
+                "Unable to parse metadata from markdown file",
+                dataSource.name
+            );
+        }
+
+        // Get the url for the actual data source
+        const mainDatasource = parsedDatasetMetadata.dataSource;
+        // Now process any supplied optional files
+        const provenanceSource = parsedDatasetMetadata.provenanceSource;
+        const columnDescriptorSource = parsedDatasetMetadata.descriptionsSource;
+        if (provenanceSource) {
+            await this.prepareSourceProvenance(provenanceSource);
+        }
+        if (columnDescriptorSource) {
+            await this.prepareSourceMetadata(columnDescriptorSource);
+        }
+        // Set markdown cache
+        this.setDatasetDescriptionSources(dataSource.name, {
+            dataSource: mainDatasource,
+            provenanceSource: provenanceSource,
+            descriptionsSource: columnDescriptorSource,
+        });
+
+        // Return the main data source so it can be processed like a regular file
+        return mainDatasource;
     }
 
     public async prepareSourceMetadata(sourceMetadata: Source): Promise<void> {
@@ -813,6 +913,7 @@ export default abstract class DatabaseService {
 
     protected async deleteDataSource(dataSource: string): Promise<void> {
         this.existingDataSources.delete(dataSource);
+        this.dataSourceToMetadataMap.delete(dataSource);
         this.dataSourceToAnnotationsMap.delete(dataSource);
         const handles = this.sourceToHandles.get(dataSource);
         this.sourceToHandles.delete(dataSource);
@@ -1123,25 +1224,23 @@ export default abstract class DatabaseService {
         if (fileNameSelectPart !== null) {
             selectParts.push(fileNameSelectPart);
         }
-        // "file_row_number" restarts at 0 in every parquet file, so on its own it
-        // does not identify a row once the scan spans more than one file. Qualifying
-        // it with "filename" makes it unique. Kept VARCHAR even for a single file,
-        // both for consistency and because a 0-valued uid reads as falsy downstream.
+        // Have to qualify each row number by its source file to prevent collisions
+        // across files (especially relevant for sharded datasets).
+        // Ex. This would become: "my_dataset#1"
         selectParts.push(
-            `("filename" || '#' || CAST("file_row_number" AS VARCHAR)) AS "${HIDDEN_UID_ANNOTATION}"`
+            `("${SOURCE_FILE_COLUMN}" || '#' || CAST("file_row_number" AS VARCHAR)) ` +
+                `AS "${HIDDEN_UID_ANNOTATION}"`
         );
         if (sourceNames.length > 1) {
-            selectParts.push(`"filename" AS "${DATA_SOURCE_COLUMN}"`);
+            selectParts.push(`"${SOURCE_FILE_COLUMN}" AS "${DATA_SOURCE_COLUMN}"`);
         }
         // 4. Create the view for this data source.
-        // filename/file_row_number are pseudo-columns parquet_scan only projects
-        // when asked for, and the hidden uid above depends on both.
         const createViewSql = `CREATE VIEW "${aggregateName}"
             AS SELECT ${selectParts.join(", ")}
             FROM parquet_scan(
                 ${handleArrayLiteral(handles)},
                 union_by_name = true,
-                filename = true,
+                filename = '${SOURCE_FILE_COLUMN}',
                 file_row_number = true
             );`;
         await this.execute(createViewSql);
