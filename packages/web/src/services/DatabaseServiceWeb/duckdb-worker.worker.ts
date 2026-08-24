@@ -8,8 +8,11 @@ import SQLBuilder from "../../../../core/entity/SQLBuilder";
 import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 import { DatabaseService } from "../../../../core/services";
-import { CancellablePromise, initializeDuckDB } from "../../../../core/services/DatabaseService";
-import { SourceWithType } from "../../../../core/entity/SearchParams";
+import {
+    CancellablePromise,
+    initializeDuckDB,
+    SourceWithType,
+} from "../../../../core/services/DatabaseService";
 
 declare const self: DedicatedWorkerGlobalScope & typeof globalThis;
 let databaseService: DatabaseServiceWebWorker | null = null;

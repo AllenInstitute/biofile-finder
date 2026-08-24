@@ -13,12 +13,10 @@ import {
     processMarkdown,
 } from "../../entity/MarkdownFrontMatter";
 import {
-    ACCEPTED_SOURCE_TYPES,
     getResourceNameFromSourceUrl,
     isMarkdownType,
+    MARKDOWN_SOURCE_TYPES,
     Source,
-    SourceType,
-    SourceWithType,
     TABULAR_SOURCE_TYPES,
 } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
@@ -78,6 +76,17 @@ const SOURCE_FILE_COLUMN = "bff_source_file";
 const FILE_HANDLE_SUFFIX = "-bff-filehandle";
 function fileHandleName(name: string): string {
     return name + FILE_HANDLE_SUFFIX;
+}
+
+export const ACCEPTED_SOURCE_TYPES = [
+    ...TABULAR_SOURCE_TYPES,
+    ...MARKDOWN_SOURCE_TYPES,
+    "delta",
+] as const;
+export type SourceType = typeof ACCEPTED_SOURCE_TYPES[number];
+
+export interface SourceWithType extends Source {
+    type: SourceType;
 }
 
 // Return true if type is parquet or parquet-like
@@ -223,6 +232,8 @@ export default abstract class DatabaseService {
     // Data sources backed by more than one parquet file (i.e. Delta Lake tables)
     // map to the full list of DuckDB file handles registered for them.
     private readonly sourceToHandles = new Map<string, string[]>();
+    // Distinguishes the DuckDB handle used for each checkpoint parquet read.
+    // Probing a URL for "_delta_log" costs a request, so remember the answer.
     private readonly resolvedTypeByUri = new Map<string, SourceType>();
 
     protected database: duckdb.AsyncDuckDB | undefined;
