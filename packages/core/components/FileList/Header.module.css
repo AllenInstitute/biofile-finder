@@ -19,6 +19,10 @@
   pointer-events: auto;
 }
 
+.header-context-menu-target {
+  height: var(--inner-header-size);
+}
+
 .header {
   background-color: var(--primary-background-color);
   border-radius: var(--small-border-radius);
@@ -27,6 +31,16 @@
 
 .header:hover {
   background-color: var(--accent-dark);
+}
+
+.empty-header {
+  cursor: pointer;
+  height: var(--inner-header-size);
+}
+
+.empty-header-prompt {
+  color: var(--secondary-text-color);
+  padding: var(--inner-header-padding);
 }
 
 .header > div {

@@ -397,6 +397,7 @@ describe("SearchParams", () => {
                         (includeFilter) => new IncludeFilter(includeFilter.annotationName)
                     ),
                 ],
+                hasUserSelectedColumns: false,
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 showNoValueGroups: false,
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
@@ -420,6 +421,7 @@ describe("SearchParams", () => {
             const components: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LIST,
+                hasUserSelectedColumns: false,
                 hierarchy: [],
                 filters: [],
                 openFolders: [],
@@ -437,6 +439,55 @@ describe("SearchParams", () => {
 
             // Assert
             expect(result).to.deep.equal(components);
+        });
+
+        it("Round-trips every column when the columns are the user's selection", () => {
+            // Arrange
+            const columns = [
+                { name: "Cell Line", width: 100 },
+                { name: "Cas9", width: 150 },
+                { name: "Donor Plasmid", width: 200 },
+                { name: "Gene", width: 250 },
+                { name: "Plate Barcode", width: 300 },
+                { name: "Balls?", width: 350 },
+                { name: "Lifting?", width: 400 },
+            ];
+            const components: SearchParamsComponents = {
+                ...EMPTY_QUERY_COMPONENTS,
+                columns,
+                hasUserSelectedColumns: true,
+            };
+
+            // Act
+            const result = SearchParams.decode(SearchParams.encode(components));
+
+            // Assert
+            expect(result.hasUserSelectedColumns).to.be.true;
+            expect(result.columns).to.deep.equal(columns);
+        });
+
+        it("Truncates columns when displaying every available annotation", () => {
+            // Arrange
+            const columns = [
+                { name: "Cell Line", width: 100 },
+                { name: "Cas9", width: 150 },
+                { name: "Donor Plasmid", width: 200 },
+                { name: "Gene", width: 250 },
+                { name: "Plate Barcode", width: 300 },
+                { name: "Balls?", width: 350 },
+                { name: "Lifting?", width: 400 },
+            ];
+            const components: SearchParamsComponents = {
+                ...EMPTY_QUERY_COMPONENTS,
+                columns,
+            };
+
+            // Act
+            const result = SearchParams.decode(SearchParams.encode(components));
+
+            // Assert
+            expect(result.hasUserSelectedColumns).to.be.false;
+            expect(result.columns).to.deep.equal(columns.slice(0, 6));
         });
 
         it("Removes folders that are too deep for hierachy", () => {
