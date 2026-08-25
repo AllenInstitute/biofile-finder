@@ -512,8 +512,6 @@ describe("DatabaseService", () => {
             ];
 
             it("identifies an untyped URL as delta by probing for _delta_log", async () => {
-                // getNameAndTypeFromSourceUrl leaves type undefined for a URL with
-                // no recognized extension; this is where that gets settled.
                 const service = new MockDeltaDatabaseService({ table: ["File Path"] }, DATA_FILES);
 
                 await service.prepareDataSources(
