@@ -231,8 +231,6 @@ export default abstract class DatabaseService {
     // Data sources backed by more than one parquet file (i.e. Delta Lake tables)
     // map to the full list of DuckDB file handles registered for them.
     private readonly sourceToHandles = new Map<string, string[]>();
-    // Distinguishes the DuckDB handle used for each checkpoint parquet read.
-    // Probing a URL for "_delta_log" costs a request, so remember the answer.
     private readonly resolvedTypeByUri = new Map<string, SourceType>();
 
     protected database: duckdb.AsyncDuckDB | undefined;
