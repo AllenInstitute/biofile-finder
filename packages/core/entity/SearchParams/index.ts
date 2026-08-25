@@ -475,7 +475,7 @@ export default class SearchParams {
         // reader for it, so it needs the deltalake package.
         if (sourceType === "delta") {
             return {
-                imports: "from deltalake import DeltaTable # pip install deltalake\n",
+                imports: "from deltalake import DeltaTable\n",
                 code: `df = DeltaTable(${location}).to_pandas().astype('str')`,
             };
         }
