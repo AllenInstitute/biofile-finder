@@ -1,16 +1,16 @@
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import BaseModal from "../BaseModal";
-import { interaction } from "../../../state";
 import { ModalProps } from "..";
+import BaseModal from "../BaseModal";
 import CodeSnippet from "../../CodeSnippet";
+import { selection } from "../../../state";
 
 /**
  * Dialog meant to show the user a Code snippet of their active Query
  */
 export default function QueryCodeSnippet({ onDismiss }: ModalProps) {
-    const { code, setup } = useSelector(interaction.selectors.getPythonSnippet);
+    const { code, setup } = useSelector(selection.selectors.getPythonSnippet);
 
     return (
         <BaseModal
