@@ -11,6 +11,7 @@ import {
     getAnnotationNameToAnnotationMap,
 } from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import { PythonicDataAccessSnippet } from "../../services/DataSourceService";
 
 // BASIC SELECTORS
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;
@@ -173,7 +174,7 @@ export const getLoadingQueryOrSource = createSelector(
     }
 );
 
-export const getPythonConversion = createSelector(
+export const getPythonSnippet = createSelector(
     [
         getPlatformDependentServices,
         getAnnotationHierarchy,
@@ -181,9 +182,21 @@ export const getPythonConversion = createSelector(
         getOpenFileFolders,
         getSortColumn,
         getSelectedDataSources,
+        // Not read below: a source's type is settled while it loads, so this is
+        // what tells the memoized result to recompute once the answer exists.
+        getIsLoadingSource,
     ],
-    (platformDependentServices, hierarchy, filters, openFolders, sortColumn, sources) => {
-        return SearchParams.convertToPython(
+    (
+        platformDependentServices,
+        hierarchy,
+        filters,
+        openFolders,
+        sortColumn,
+        sources
+    ): PythonicDataAccessSnippet => {
+        const sourceType =
+            sources?.[0] && platformDependentServices.databaseService.getResolvedType(sources[0]);
+        const code = SearchParams.convertToPython(
             {
                 hierarchy,
                 filters,
@@ -192,8 +205,10 @@ export const getPythonConversion = createSelector(
                 sources,
             },
             platformDependentServices.executionEnvService.getOS(),
-            sources?.[0] && platformDependentServices.databaseService.getResolvedType(sources[0])
+            sourceType
         );
+        const dependencies = ['"pandas>=1.5"', ...(sourceType === "delta" ? ['"deltalake"'] : [])];
+        return { code, setup: `pip install ${dependencies.join(" ")}` };
     }
 );
 

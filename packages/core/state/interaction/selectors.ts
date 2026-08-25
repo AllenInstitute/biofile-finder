@@ -18,16 +18,9 @@ import {
     getDataSources,
     getEdgeDefinitions,
 } from "../metadata/selectors";
-import {
-    getSelectedDataSources,
-    getPythonConversion,
-    getSelectedSourceMetadata,
-} from "../selection/selectors";
+import { getSelectedDataSources, getSelectedSourceMetadata } from "../selection/selectors";
 import { AnnotationService, FileService } from "../../services";
-import DatasetService, {
-    DataSource,
-    PythonicDataAccessSnippet,
-} from "../../services/DataSourceService";
+import DatasetService, { DataSource } from "../../services/DataSourceService";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
@@ -151,16 +144,6 @@ export const getExtractMetadataPythonSnippet = (state: State) =>
     state.interaction.extractMetadataPythonSnippet;
 
 export const getConvertFilesSnippet = (state: State) => state.interaction.convertFilesSnippet;
-
-export const getPythonSnippet = createSelector(
-    [getPythonConversion],
-    (pythonQuery): PythonicDataAccessSnippet => {
-        const setup = `pip install \"pandas>=1.5\"`;
-        const code = `${pythonQuery}`;
-
-        return { setup, code };
-    }
-);
 
 export const getUserName = createSelector(
     [getPlatformDependentServices],

@@ -12,6 +12,45 @@ import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 
 describe("Selection selectors", () => {
+    describe("getPythonSnippet", () => {
+        const stateForSourceType = (uri: string, type?: string) =>
+            mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        databaseService: { getResolvedType: () => type },
+                        executionEnvService: { getOS: () => "Darwin" },
+                    },
+                },
+                selection: {
+                    dataSources: [{ name: "source", uri }],
+                },
+            });
+
+        it("installs only pandas for a source pandas can read on its own", () => {
+            // Arrange
+            const state = stateForSourceType("https://example.com/a.csv", "csv");
+
+            // Act
+            const { setup } = selection.selectors.getPythonSnippet(state);
+
+            // Assert
+            expect(setup).to.equal('pip install "pandas>=1.5"');
+        });
+
+        it("adds deltalake and pandas for a Delta source", () => {
+            // Arrange
+            // The snippet reads the table into a dataframe and queries it with
+            // pandas, so deltalake alone would leave `import pandas as pd` failing.
+            const state = stateForSourceType("s3://bucket/table", "delta");
+
+            // Act
+            const { setup } = selection.selectors.getPythonSnippet(state);
+
+            // Assert
+            expect(setup).to.equal('pip install "pandas>=1.5" "deltalake"');
+        });
+    });
+
     describe("getGroupedByFilterName", () => {
         it("leaves display value blank for any/none filters regardless of type", () => {
             // arrange
