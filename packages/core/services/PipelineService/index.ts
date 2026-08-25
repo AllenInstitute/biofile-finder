@@ -67,7 +67,7 @@ function mapJssPipeline(jss: JssPipeline): Pipeline {
 
 /**
  * Service responsible for fetching available compute pipelines and submitting
- * compute tasks via the JSS and FSS HTTP APIs.
+ * compute tasks via the JSS API.
  */
 export default class PipelineService extends HttpServiceBase {
     private readonly jssBaseUrl: string;
