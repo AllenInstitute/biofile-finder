@@ -201,7 +201,7 @@ export const getPythonSnippet = createSelector(
                 sources,
             },
             platformDependentServices.executionEnvService.getOS(),
-            sources?.[0] && platformDependentServices.databaseService.getResolvedType(sources[0])
+            sourceType
         );
         const dependencies = ['"pandas>=1.5"', ...(sourceType === "delta" ? ['"deltalake"'] : [])];
         return { code, setup: `pip install ${dependencies.join(" ")}` };
