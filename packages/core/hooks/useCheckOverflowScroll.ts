@@ -7,7 +7,7 @@ import * as React from "react";
  * @param deps  Any other dependencies that should force a re-calculation
  */
 export default function useCheckOverflowScroll<T extends HTMLElement>(
-    deps?: React.ReactNode[]
+    deps?: React.ReactNode
 ): [React.MutableRefObject<T | null>, boolean] {
     const ref = React.useRef<T | null>(null);
     const [hasScroll, setHasScroll] = React.useState(false);
@@ -34,7 +34,7 @@ export default function useCheckOverflowScroll<T extends HTMLElement>(
             observer.disconnect();
             el.removeEventListener("scroll", checkScroll);
         };
-    }, [...(deps ?? [])]);
+    }, [deps]);
 
     return [ref, hasScroll];
 }

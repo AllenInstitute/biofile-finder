@@ -34,7 +34,7 @@ export default function DatasetDetailsPanel(props: React.PropsWithChildren<Datas
     const dispatch = useDispatch();
     const [scrollRef, hasScroll] = useCheckOverflowScroll<HTMLDivElement>();
 
-    const isDetailsPanelVisible = useSelector(interaction.selectors.getDatasetDetailsVisibility);
+    const isDetailsPanelVisible = useSelector(interaction.selectors.isDatasetDetailsPanelVisible);
     const [showLongDescription, setShowLongDescription] = React.useState(false);
     const isLongDescription: boolean = React.useMemo(() => {
         if (!props.description) {

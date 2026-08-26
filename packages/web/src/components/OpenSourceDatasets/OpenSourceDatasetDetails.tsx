@@ -19,8 +19,8 @@ interface DatasetDetailsProps {
 }
 
 /***
- * Wrapper of the DatasetDetailsPanel, used for our open source datasets page.
- * Converts `PublicDataset`s into the array structure that that the panel expects,
+ * Wrapper for the DatasetDetailsPanel, used for our open source datasets page.
+ * Converts `PublicDataset`s into the array structure the panel expects,
  * and adds buttons for downloading the dataset file and for viewing it in the app
  */
 export default function PublicDatasetDetails(props: DatasetDetailsProps) {

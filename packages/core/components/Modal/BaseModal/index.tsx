@@ -23,7 +23,7 @@ interface BaseModalProps {
  */
 export default function BaseModal(props: BaseModalProps) {
     const { body, className, footer, title, onDismiss } = props;
-    const [scrollRef, hasScroll] = useCheckOverflowScroll<HTMLDivElement>([body]);
+    const [scrollRef, hasScroll] = useCheckOverflowScroll<HTMLDivElement>(body);
 
     const titleId = "base-modal-title";
     return (

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { selection } from "../../state";
+import { interaction, selection } from "../../state";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import { hideDatasetDetailsPanel } from "../../state/interaction/actions";
@@ -30,6 +30,9 @@ export interface OnSelect {
 export default function useFileSelector(fileSet: FileSet, sortOrder: number): OnSelect {
     const dispatch = useDispatch();
     const fileSelection = useSelector(selection.selectors.getFileSelection);
+    const isDatasetDetailsPanelVisible = useSelector(
+        interaction.selectors.isDatasetDetailsPanelVisible
+    );
     const [lastSelectedFileIndex, setLastSelectedFileIndex] = React.useState<undefined | number>(
         undefined
     );
@@ -60,7 +63,7 @@ export default function useFileSelector(fileSet: FileSet, sortOrder: number): On
         async (fileRow: { index: number; id: string }, eventParams: EventParams) => {
             isLocalClickPending.current = true;
             // hide DatasetDetailsPanel if open
-            dispatch(hideDatasetDetailsPanel());
+            if (isDatasetDetailsPanelVisible) dispatch(hideDatasetDetailsPanel());
             if (eventParams.shiftKeyIsPressed) {
                 const rangeBoundary =
                     lastSelectedFileIndex === undefined ? fileRow.index : lastSelectedFileIndex;
@@ -88,6 +91,6 @@ export default function useFileSelector(fileSet: FileSet, sortOrder: number): On
                 );
             }
         },
-        [dispatch, fileSet, lastSelectedFileIndex, sortOrder]
+        [dispatch, fileSet, lastSelectedFileIndex, sortOrder, isDatasetDetailsPanelVisible]
     );
 }
