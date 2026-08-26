@@ -75,6 +75,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 PersistedConfigKeys.HasUsedApplicationBefore,
                 expectedHasUsedApplicationBefore
             );
+            service.persist(PersistedConfigKeys.HasUserSelectedColumns, true);
             service.persist(PersistedConfigKeys.UserSelectedApplications, expectedUserSelectedApps);
             service.persist(PersistedConfigKeys.DisplayAnnotations, expectedDisplayAnnotations);
             service.persist(PersistedConfigKeys.RecentAnnotations, expectedRecentAnnotations);
@@ -87,6 +88,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 [PersistedConfigKeys.ImageJExecutable]: expectedImageJExecutable,
                 [PersistedConfigKeys.Queries]: expectedQueries,
                 [PersistedConfigKeys.HasUsedApplicationBefore]: expectedHasUsedApplicationBefore,
+                [PersistedConfigKeys.HasUserSelectedColumns]: true,
                 [PersistedConfigKeys.UserSelectedApplications]: expectedUserSelectedApps,
                 [PersistedConfigKeys.DisplayAnnotations]: expectedDisplayAnnotations,
                 [PersistedConfigKeys.RecentAnnotations]: expectedRecentAnnotations,
@@ -115,6 +117,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 [PersistedConfigKeys.ImageJExecutable]: "/my/imagej",
                 [PersistedConfigKeys.Queries]: [],
                 [PersistedConfigKeys.HasUsedApplicationBefore]: undefined,
+                [PersistedConfigKeys.HasUserSelectedColumns]: true,
                 [PersistedConfigKeys.RecentAnnotations]: ["column"],
                 [PersistedConfigKeys.UserSelectedApplications]: [
                     {

@@ -33,8 +33,8 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
-import PipelineService from "../../services/PipelineService";
 import S3StorageService from "../../services/S3StorageService";
+import PipelineService from "../../services/PipelineService";
 import Graph from "../../entity/Graph";
 import { isMarkdownType } from "../../entity/SearchParams";
 
@@ -110,15 +110,19 @@ export const getLabKeyBaseUrl = createSelector(
     (environment, overrides) => LabKeyBaseUrl[overrides[OverridableService.LabKey] ?? environment]
 );
 
-export const getPipelineService = createSelector(
-    [getFileStorageServiceBaseUrl],
-    (fileStorageServiceBaseUrl) => new PipelineService({ fileStorageServiceBaseUrl })
-);
-
 export const getMetadataManagementServiceBaseUrl = createSelector(
     [getEnvironment, getEnvironmentOverrides],
     (environment, overrides) =>
         MMSBaseUrl[overrides[OverridableService.MetadataManagementService] ?? environment]
+);
+
+export const getPipelineService = createSelector(
+    [getJSSBaseUrl, getMetadataManagementServiceBaseUrl],
+    (jssBaseUrl, metadataManagementServiceBaseUrl) =>
+        new PipelineService({
+            jssBaseUrl,
+            metadataManagementServiceBaseURl: metadataManagementServiceBaseUrl,
+        })
 );
 
 export const getVolEBaseUrl = createSelector(

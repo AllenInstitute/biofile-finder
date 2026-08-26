@@ -4,6 +4,18 @@ import { AnnotationType } from "../AnnotationFormatter";
 import { HIDDEN_UID_ANNOTATION } from "../../constants";
 
 /**
+ * Escape special characters for regex
+ */
+function toEscapedSqlString(str: string | number | boolean | null): string {
+    return (
+        `${str}`
+            .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
+            // Escape single-quotes for SQL string literal (ex. O'Reilly -> O''Reilly)
+            .replaceAll("'", "''")
+    );
+}
+
+/**
  * A simple SQL query builder.
  */
 export default class SQLBuilder {
@@ -26,8 +38,7 @@ export default class SQLBuilder {
         expr: string,
         value: string | boolean | number | null
     ): string {
-        // Escape special characters for regex
-        const escapedValue = `${value}`.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+        const escapedValue = toEscapedSqlString(value);
         return `REGEXP_MATCHES(CAST(${expr} AS VARCHAR), '(,\\s*${escapedValue}\\s*,)|(^\\s*${escapedValue}\\s*,)|(,\\s*${escapedValue}\\s*$)|(^\\s*${escapedValue}\\s*$)') = true`;
     }
 
@@ -36,9 +47,7 @@ export default class SQLBuilder {
      * `REGEXP_MATCHES(CAST(expr AS VARCHAR), '(?i)pattern') = true`.
      */
     public static regexContains(expr: string, value: string | boolean | number | null): string {
-        const regexEscaped = `${value}`
-            .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")
-            .replaceAll("'", "''");
+        const regexEscaped = toEscapedSqlString(value);
         return `REGEXP_MATCHES(CAST(${expr} AS VARCHAR), '(?i)${regexEscaped}') = true`;
     }
 
