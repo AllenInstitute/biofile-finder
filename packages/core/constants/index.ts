@@ -105,5 +105,12 @@ export enum VolEBaseUrl {
     TEST = "https://staging.volumeviewer.allencell.org/viewer",
 }
 
+export enum JSSBaseUrl {
+    LOCALHOST = "https://localhost:9061",
+    STAGING = "https://stg-aics.corp.alleninstitute.org",
+    PRODUCTION = "https://aics.corp.alleninstitute.org",
+    TEST = "http://test-aics-api.corp.alleninstitute.org",
+}
+
 export const UNSAVED_DATA_WARNING =
     "Edits to data source files are not preserved by this app. Download to save a copy with your changes.";

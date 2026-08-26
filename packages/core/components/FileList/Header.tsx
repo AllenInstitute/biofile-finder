@@ -4,6 +4,7 @@ import { map } from "lodash";
 import * as React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
+import { COLUMN_PICKER_MENU_ITEMS } from "./ColumnPicker";
 import useDragAndDropOrder from "./useDragAndDropOrder";
 import useVisibleColumns from "./useVisibleCells";
 import { ContextMenuItem } from "../ContextMenu";
@@ -61,9 +62,18 @@ function Header(
         dispatch(selection.actions.sortColumn(columnName));
     };
 
+    const modifyColumnsMenuItem: ContextMenuItem = {
+        key: "modify-columns",
+        text: "Modify columns",
+        title: "Modify columns displayed in the file list",
+        items: COLUMN_PICKER_MENU_ITEMS,
+    };
+
     const onHeaderColumnClick = (evt: React.MouseEvent, columnName: string) => {
         evt.preventDefault();
+        evt.stopPropagation();
         const items: ContextMenuItem[] = [
+            modifyColumnsMenuItem,
             {
                 key: "Move to start",
                 text: "Move to start",
@@ -88,6 +98,16 @@ function Header(
         dispatch(interaction.actions.showContextMenu(items, evt.nativeEvent));
     };
 
+    const onHeaderContextMenu = (evt: React.MouseEvent) => {
+        evt.preventDefault();
+        dispatch(interaction.actions.showContextMenu([modifyColumnsMenuItem], evt.nativeEvent));
+    };
+
+    // No columns means no header to right-click; a plain click on the empty header opens the picker.
+    const onEmptyHeaderClick = (evt: React.MouseEvent) => {
+        dispatch(interaction.actions.showContextMenu(COLUMN_PICKER_MENU_ITEMS, evt.nativeEvent));
+    };
+
     // Identify leaf names that appear on more than one column so we can
     // show the parent path prefix to disambiguate them in the header.
     const duplicateLeafNames = React.useMemo(() => {
@@ -103,6 +123,15 @@ function Header(
         }
         return dupes;
     }, [allColumnNames]);
+
+    const emptyHeaderCells: CellConfig[] = [
+        {
+            className: styles.emptyHeaderPrompt,
+            columnKey: "empty-header-prompt",
+            displayValue: "Click here to select columns",
+            width: 0,
+        },
+    ];
 
     const headerCells: CellConfig[] = map(visibleColumns, (column) => {
         return {
@@ -173,13 +202,22 @@ function Header(
 
     return (
         <div ref={ref} {...rest}>
-            <div className={styles.headerWrapper} id={Tutorial.COLUMN_HEADERS_ID}>
-                <FileRow
-                    cells={headerCells}
-                    className={styles.header}
-                    onResize={onResize}
-                    padding={padding}
-                />
+            <div
+                className={styles.headerWrapper}
+                id={Tutorial.COLUMN_HEADERS_ID}
+                onContextMenu={onHeaderContextMenu}
+            >
+                <div className={styles.headerContextMenuTarget}>
+                    <FileRow
+                        cells={allColumnNames.length ? headerCells : emptyHeaderCells}
+                        className={classNames(styles.header, {
+                            [styles.emptyHeader]: !allColumnNames.length,
+                        })}
+                        onClick={allColumnNames.length ? undefined : onEmptyHeaderClick}
+                        onResize={allColumnNames.length ? onResize : undefined}
+                        padding={padding}
+                    />
+                </div>
             </div>
             <div className={styles.listParent}>{children}</div>
         </div>
