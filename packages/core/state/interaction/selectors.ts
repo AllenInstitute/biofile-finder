@@ -5,14 +5,12 @@ import { State } from "../";
 import { ModalType } from "../../components/Modal";
 import {
     AICS_FMS_DATA_SOURCE_NAME,
-    CellFeatureExplorerBaseUrl,
     DatasetBucketUrl,
     FESBaseUrl,
     FileStorageServiceBaseUrl,
     JSSBaseUrl,
     LabKeyBaseUrl,
     MMSBaseUrl,
-    TemporaryFileServiceBaseUrl,
     VolEBaseUrl,
 } from "../../constants";
 import {
@@ -66,8 +64,6 @@ export const hasUsedApplicationBefore = (state: State) =>
     state.interaction.hasUsedApplicationBefore;
 export const isGraphLoading = (state: State) => state.interaction.isGraphLoading;
 export const isOnWeb = (state: State) => state.interaction.isOnWeb;
-export const isRemoteFileUploadServerAvailable = (state: State) =>
-    state.interaction.isRemoteFileUploadServerAvailable;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
@@ -113,19 +109,9 @@ export const getMetadataManagementServiceBaseUrl = createSelector(
     (environment) => MMSBaseUrl[environment]
 );
 
-export const getCellFeatureExplorerBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => CellFeatureExplorerBaseUrl[environment]
-);
-
 export const getVolEBaseUrl = createSelector(
     [getEnvironment],
     (environment) => VolEBaseUrl[environment]
-);
-
-export const getTemporaryFileServiceBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => TemporaryFileServiceBaseUrl[environment]
 );
 
 // COMPOSED SELECTORS
