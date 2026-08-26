@@ -97,6 +97,7 @@ export default class StreamedZipDownloader {
     public async end() {
         if (this.isCancelled) return;
         await this.taskQueue.drain();
+        if (this.isCancelled) return;
         this.zip.end();
         await this.finalizeWriter("close");
     }
@@ -105,7 +106,9 @@ export default class StreamedZipDownloader {
         if (this.isCancelled) return;
         this.isCancelled = true;
         await this.taskQueue.cancel();
-        this.zip.terminate();
+        if (!this.writerFinalized) {
+            this.zip.terminate();
+        }
         await this.finalizeWriter("abort");
     }
 

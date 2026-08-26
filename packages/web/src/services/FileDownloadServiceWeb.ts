@@ -98,6 +98,7 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
                     for await (const relativeInnerPath of this.getRelativePathsInDirectory(
                         file.path
                     )) {
+                        if (downloader.isCancelled) break;
                         await downloader.addFile(`${entryName}/${relativeInnerPath}`, () =>
                             FileDownloadServiceWeb.fetchFileStream(
                                 `${file.path}/${relativeInnerPath}`
@@ -217,6 +218,7 @@ Please navigate to this directory manually, or upload files to a remote address 
 
         try {
             for await (const relativeInnerPath of this.getRelativePathsInDirectory(fileInfo.path)) {
+                if (downloader.isCancelled) break;
                 await downloader.addFile(relativeInnerPath, () =>
                     FileDownloadServiceWeb.fetchFileStream(`${fileInfo.path}/${relativeInnerPath}`)
                 );
