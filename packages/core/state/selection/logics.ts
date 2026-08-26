@@ -1023,6 +1023,9 @@ const changeQueryLogic = createLogic({
                 dispatch(setOpenFileFolders(parts.openFolders));
                 dispatch(setSortColumn(parts.sortColumn));
                 dispatch(toggleNullValueGroups(parts.showNoValueGroups) as AnyAction);
+                datasetDescriptionSource
+                    ? dispatch(interaction.actions.showDatasetDetailsPanel())
+                    : dispatch(interaction.actions.hideDatasetDetailsPanel());
             });
             batch(() => {
                 dispatch(changeSourceMetadata(columnDescriptionSource));
