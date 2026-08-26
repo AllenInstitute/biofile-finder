@@ -1,4 +1,4 @@
-import { IComboBoxOption, Icon, Spinner, TextField } from "@fluentui/react";
+import { Icon, Spinner, TextField } from "@fluentui/react";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -63,6 +63,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
     const [pipelines, setPipelines] = React.useState<Pipeline[]>([]);
     const [selectedPipeline, setSelectedPipeline] = React.useState<Pipeline | null>(null);
     const [selectedCluster, setSelectedCluster] = React.useState<string | null>(null);
+    const [selectedDestination, setSelectedDestination] = React.useState<string | null>(null);
     const [parameters, setParameters] = React.useState<PipelineParameter[]>([]);
 
     // File state (count only — paths are fetched at submit time)
@@ -81,6 +82,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
     // User field
     const [userId, setUserId] = React.useState<string>("");
     const [userIdError, setUserIdError] = React.useState<string>("");
+    const [userValidated, setUserValidated] = React.useState(false);
 
     // Submission state
     const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -122,6 +124,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
             setSelectedPipeline(pipeline);
             const defaultCluster = pipeline.clusters[0] ?? null;
             setSelectedCluster(defaultCluster);
+            setSelectedDestination(pipeline.destinations[0] ?? null);
 
             setPhase("loading");
 
@@ -150,31 +153,6 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
             }
         },
         [pipelineService]
-    );
-
-    // Re-fetch params when cluster changes
-    const onClusterChange = React.useCallback(
-        async (option?: IComboBoxOption) => {
-            if (!option || !selectedPipeline) return;
-            const cluster = option.key as string;
-            setSelectedCluster(cluster);
-
-            setPhase("loading");
-
-            try {
-                const params = await pipelineService.getParameters(selectedPipeline.id, cluster);
-                setParameters(params);
-                setAddedOptionalNames([]);
-                setOptionalValues({});
-                setOptionalSelectorKey(null);
-                setFieldErrors({});
-                setPhase("configuring");
-            } catch {
-                setErrorMessage("Failed to load pipeline parameters.");
-                setPhase("error");
-            }
-        },
-        [pipelineService, selectedPipeline]
     );
 
     // requiredParams are always shown; optionalParams are user-added one at a time via a dropdown.
@@ -226,6 +204,24 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
         setFieldErrors((prev) => ({ ...prev, [param.name]: err }));
     };
 
+    const onUserIdBlur = React.useCallback(async () => {
+        const trimmed = userId.trim();
+        if (!trimmed) return;
+        try {
+            const valid = await pipelineService.validateUser(trimmed);
+            if (valid) {
+                setUserIdError("");
+                setUserValidated(true);
+            } else {
+                setUserIdError("User not found in Active Directory.");
+                setUserValidated(false);
+            }
+        } catch {
+            setUserIdError("Unable to validate user. Please try again.");
+            setUserValidated(false);
+        }
+    }, [userId, pipelineService]);
+
     const onSubmit = async () => {
         if (!selectedPipeline || !selectedCluster) return;
 
@@ -241,9 +237,34 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
             const err = validateParam(p, optionalValues[name]);
             if (err) errors[name] = err;
         }
-        const userErr = userId.trim() === "" ? "This field is required." : "";
-        if (userErr) setUserIdError(userErr);
-        if (Object.values(errors).some(Boolean) || userErr) {
+
+        const trimmedUserId = userId.trim();
+        if (!trimmedUserId) {
+            setUserIdError("This field is required.");
+            setFieldErrors(errors);
+            return;
+        }
+        if (userIdError) {
+            setFieldErrors(errors);
+            return;
+        }
+        if (!userValidated) {
+            try {
+                const valid = await pipelineService.validateUser(trimmedUserId);
+                if (valid) {
+                    setUserValidated(true);
+                } else {
+                    setUserIdError("User not found in Active Directory.");
+                    setFieldErrors(errors);
+                    return;
+                }
+            } catch {
+                setUserIdError("Unable to validate user. Please try again.");
+                setFieldErrors(errors);
+                return;
+            }
+        }
+        if (Object.values(errors).some(Boolean)) {
             setFieldErrors(errors);
             return;
         }
@@ -270,6 +291,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
             const result = await pipelineService.submitComputeTask({
                 pipeline: selectedPipeline.id,
                 cluster: selectedCluster,
+                destination: selectedDestination,
                 user: userId || null,
                 filePaths,
                 parameters: {
@@ -301,7 +323,7 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
     };
 
     const isSubmitting = phase === "submitting";
-    const submitDisabled = isSubmitting || fileCount === 0 || !selectedCluster;
+    const submitDisabled = isSubmitting || fileCount === 0 || !selectedDestination;
 
     const renderBody = () => {
         if (phase === "loading") {
@@ -389,14 +411,16 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
 
                         <div className={styles.section}>
                             <BaseComboBox
-                                label="Run Location"
-                                options={selectedPipeline.clusters.map((c) => ({
-                                    key: c,
-                                    text: c,
+                                label="Destination"
+                                options={selectedPipeline.destinations.map((d) => ({
+                                    key: d,
+                                    text: d,
                                 }))}
-                                selectedKey={selectedCluster ?? undefined}
-                                onChange={onClusterChange}
-                                placeholder="Select a cluster"
+                                selectedKey={selectedDestination ?? undefined}
+                                onChange={(option) =>
+                                    option && setSelectedDestination(option.key as string)
+                                }
+                                placeholder="Select a destination"
                             />
                         </div>
 
@@ -407,8 +431,10 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                                 value={userId}
                                 onChange={(_, v) => {
                                     setUserId(v ?? "");
-                                    if (userIdError) setUserIdError("");
+                                    setUserIdError("");
+                                    setUserValidated(false);
                                 }}
+                                onBlur={onUserIdBlur}
                                 placeholder="Enter your user ID (ex. first.last)"
                                 borderless
                                 className={styles.textField}
