@@ -8,6 +8,7 @@ import {
     CellFeatureExplorerBaseUrl,
     DatasetBucketUrl,
     FESBaseUrl,
+    JSSBaseUrl,
     LoadBalancerBaseUrl,
     MMSBaseUrl,
     TemporaryFileServiceBaseUrl,
@@ -32,8 +33,8 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
-import PipelineService from "../../services/PipelineService";
 import S3StorageService from "../../services/S3StorageService";
+import PipelineService from "../../services/PipelineService";
 import Graph from "../../entity/Graph";
 import { isMarkdownType } from "../../entity/SearchParams";
 
@@ -94,7 +95,12 @@ export const getLoadBalancerBaseUrl = createSelector(
 
 export const getPipelineService = createSelector(
     [getEnvironment],
-    (environment) => new PipelineService({ loadBalancerBaseUrl: LoadBalancerBaseUrl[environment] })
+    (environment) =>
+        new PipelineService({
+            loadBalancerBaseUrl: LoadBalancerBaseUrl[environment],
+            jssBaseUrl: JSSBaseUrl[environment],
+            metadataManagementServiceBaseURl: MMSBaseUrl[environment],
+        })
 );
 
 export const getMetadataManagementServiceBaseUrl = createSelector(
