@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { selection } from "../../state";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
+import { hideDatasetDetailsPanel } from "../../state/interaction/actions";
 
 export interface EventParams {
     ctrlKeyIsPressed: boolean;
@@ -58,6 +59,8 @@ export default function useFileSelector(fileSet: FileSet, sortOrder: number): On
     return React.useCallback(
         async (fileRow: { index: number; id: string }, eventParams: EventParams) => {
             isLocalClickPending.current = true;
+            // hide DatasetDetailsPanel if open
+            dispatch(hideDatasetDetailsPanel());
             if (eventParams.shiftKeyIsPressed) {
                 const rangeBoundary =
                     lastSelectedFileIndex === undefined ? fileRow.index : lastSelectedFileIndex;

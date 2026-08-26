@@ -23,7 +23,6 @@ interface Props {
     rows: QueryPartRowItem[];
     onClick?: (itemId: string) => void;
     onDelete?: (itemId: string) => void;
-    onShowDatasetInfo?: (itemId: string) => void;
     onReorder?: (itemId: string, destinationIndex: number) => void;
     addMenuListItems?: IContextualMenuItem[];
     onRenderAddMenuList?: IRenderFunction<IContextualMenuListProps>;
@@ -75,7 +74,6 @@ export default function QueryPart(props: Props) {
                             titleIconName: props.titleIconName,
                             onClick: props.onClick,
                             onDelete: props.onDelete,
-                            onShowDatasetInfo: props.onShowDatasetInfo,
                             disabled: !props.onReorder,
                             onRenderEditMenuList: props.onRenderEditMenuList,
                         }))}

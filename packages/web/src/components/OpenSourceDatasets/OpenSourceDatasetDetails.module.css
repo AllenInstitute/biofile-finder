@@ -1,0 +1,22 @@
+.dataset-panel {
+  top: 50px;
+  width: 510px;
+  /* Allow space for the website header & footer */
+  height: calc(100% - 50px - var(--margin) * 3);
+}
+
+.button-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  width: 100%;
+}
+
+.button-wrapper > * {
+  margin: 6px 10px;
+}
+
+.button {
+  height: 33px;
+  min-width: 115px;
+}
