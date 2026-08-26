@@ -274,6 +274,146 @@ describe("FileDownloadServiceWeb", () => {
         });
     });
 
+    describe("downloadFilesAsZip", () => {
+        type WriterStub = {
+            write: (chunk: Uint8Array) => Promise<void>;
+            close: () => Promise<void>;
+        };
+
+        let originalCreateWriteStream: typeof streamSaver.createWriteStream;
+
+        beforeEach(() => {
+            originalCreateWriteStream = streamSaver.createWriteStream;
+            const writer: WriterStub = {
+                write: async () => undefined,
+                close: async () => undefined,
+            };
+
+            (streamSaver as {
+                createWriteStream: typeof streamSaver.createWriteStream;
+            }).createWriteStream = () =>
+                ({
+                    getWriter: () => (writer as unknown) as WritableStreamDefaultWriter<Uint8Array>,
+                } as WritableStream<Uint8Array>);
+        });
+
+        afterEach(() => {
+            (streamSaver as {
+                createWriteStream: typeof streamSaver.createWriteStream;
+            }).createWriteStream = originalCreateWriteStream;
+        });
+
+        it("bundles every file into a single zip, deduplicating entry names", async () => {
+            const service = new FileDownloadServiceWeb();
+            const files: FileInfo[] = [
+                {
+                    id: "id-1",
+                    name: "image.tiff",
+                    path: "https://example.org/a/image.tiff",
+                },
+                {
+                    id: "id-2",
+                    name: "image.tiff",
+                    path: "https://example.org/b/image.tiff",
+                },
+                {
+                    id: "id-3",
+                    name: "notes.txt",
+                    path: "https://example.org/notes.txt",
+                },
+            ];
+
+            const addFileStub = sinon.stub(StreamedZipDownloader.prototype, "addFile").resolves();
+            const endStub = sinon.stub(StreamedZipDownloader.prototype, "end").resolves();
+            const cancelStub = sinon.stub(StreamedZipDownloader.prototype, "cancel").resolves();
+
+            const result = await service.downloadFilesAsZip(files, "request-zip-1");
+
+            expect(addFileStub.callCount).to.equal(3);
+            expect(addFileStub.getCall(0).args[0]).to.equal("image.tiff");
+            expect(addFileStub.getCall(1).args[0]).to.equal("image (2).tiff");
+            expect(addFileStub.getCall(2).args[0]).to.equal("notes.txt");
+            expect(endStub.calledOnce).to.equal(true);
+            expect(cancelStub.called).to.equal(false);
+            expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
+            expect(result.downloadRequestId).to.equal("request-zip-1");
+            expect(
+                ((service as unknown) as { activeRequestMap: Record<string, unknown> })
+                    .activeRequestMap["request-zip-1"]
+            ).to.equal(undefined);
+        });
+
+        it("nests multi-object (directory) files under their own folder in the zip", async () => {
+            const service = new FileDownloadServiceWeb();
+            const files: FileInfo[] = [
+                {
+                    id: "id-1",
+                    name: "dataset.zarr",
+                    path: "https://example.org/dataset.zarr",
+                },
+                {
+                    id: "id-2",
+                    name: "notes.txt",
+                    path: "https://example.org/notes.txt",
+                },
+            ];
+
+            const addFileStub = sinon.stub(StreamedZipDownloader.prototype, "addFile").resolves();
+            sinon.stub(StreamedZipDownloader.prototype, "end").resolves();
+            sinon.stub(StreamedZipDownloader.prototype, "cancel").resolves();
+
+            const pathsGenerator = (async function* () {
+                yield "0/zarr.json";
+                yield "0/c/0/0";
+            })();
+            sinon
+                .stub(
+                    (service as unknown) as {
+                        getRelativePathsInDirectory: (path: string) => AsyncGenerator<string>;
+                    },
+                    "getRelativePathsInDirectory"
+                )
+                .returns(pathsGenerator);
+
+            const result = await service.downloadFilesAsZip(files, "request-zip-2");
+
+            expect(addFileStub.callCount).to.equal(3);
+            expect(addFileStub.getCall(0).args[0]).to.equal("dataset.zarr/0/zarr.json");
+            expect(addFileStub.getCall(1).args[0]).to.equal("dataset.zarr/0/c/0/0");
+            expect(addFileStub.getCall(2).args[0]).to.equal("notes.txt");
+            expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
+        });
+
+        it("throws when fewer bytes than expected were downloaded", async () => {
+            const service = new FileDownloadServiceWeb();
+            const files: FileInfo[] = [
+                {
+                    id: "id-1",
+                    name: "image.tiff",
+                    path: "https://example.org/image.tiff",
+                    size: 1024,
+                },
+                {
+                    id: "id-2",
+                    name: "notes.txt",
+                    path: "https://example.org/notes.txt",
+                    size: 512,
+                },
+            ];
+
+            sinon.stub(StreamedZipDownloader.prototype, "addFile").resolves();
+            sinon.stub(StreamedZipDownloader.prototype, "end").resolves();
+            sinon.stub(StreamedZipDownloader.prototype, "cancel").resolves();
+
+            try {
+                await service.downloadFilesAsZip(files, "request-zip-3");
+                throw new Error("Expected size mismatch to throw");
+            } catch (error) {
+                expect((error as Error).message).to.contain("1536 vs 0");
+            }
+        });
+    });
+
     describe("getDefaultDownloadDirectory", () => {
         it("throws because web implementation is not supported", async () => {
             const service = new FileDownloadServiceWeb();

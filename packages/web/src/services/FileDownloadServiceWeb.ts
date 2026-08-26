@@ -13,8 +13,6 @@ import Zarr from "../entity/Zarr";
 
 export default class FileDownloadServiceWeb extends FileDownloadService {
     isFileSystemAccessible = false;
-    private nextDownloadAt = 0;
-    private readonly DOWNLOAD_STAGGER_MS = 100;
 
     // TODO: Test this in unit tests
     public static isLocalPath(filePath: string): boolean {
@@ -24,8 +22,24 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
 
     private static async fetchFileStream(path: string): Promise<ReadableStream<Uint8Array>> {
         const res = await fetch(path);
-        if (!res.ok || !res.body) throw new Error(`Failed to get .zarr file at ${path}`);
+        if (!res.ok || !res.body) throw new Error(`Failed to get file at ${path}`);
         return res.body;
+    }
+
+    /**
+     * Pick a unique name for a file's entry within a zip archive; selections can
+     * contain identically named files from different directories
+     */
+    private static toUniqueEntryName(name: string, usedEntryNames: Set<string>): string {
+        let entryName = name;
+        for (let attempt = 2; usedEntryNames.has(entryName); attempt += 1) {
+            const extensionIndex = name.lastIndexOf(".");
+            const base = extensionIndex > 0 ? name.slice(0, extensionIndex) : name;
+            const extension = extensionIndex > 0 ? name.slice(extensionIndex) : "";
+            entryName = `${base} (${attempt})${extension}`;
+        }
+        usedEntryNames.add(entryName);
+        return entryName;
     }
 
     public download(
@@ -39,6 +53,122 @@ export default class FileDownloadServiceWeb extends FileDownloadService {
         }
 
         return this.downloadFile(fileInfo);
+    }
+
+    /**
+     * Download multiple files as a single streamed ZIP archive. Browsers only allow one
+     * download per user gesture (additional ones are blocked behind Chrome's "download
+     * multiple files" permission prompt), so a multi-file selection must be bundled
+     * into one download.
+     */
+    public async downloadFilesAsZip(
+        files: FileInfo[],
+        downloadRequestId: string,
+        onProgress?: (transferredBytes: number) => void
+    ): Promise<DownloadResult> {
+        let totalBytesDownloaded = 0;
+        const downloader = new StreamedZipDownloader(
+            "biofile-finder-download",
+            (transferredBytes) => {
+                totalBytesDownloaded += transferredBytes;
+                onProgress?.(transferredBytes);
+            }
+        );
+
+        // Register cancellation token for this request
+        this.activeRequestMap[downloadRequestId] = {
+            cancel: () => {
+                void downloader.cancel();
+            },
+        };
+
+        const usedEntryNames = new Set<string>();
+        try {
+            for (const file of files) {
+                if (downloader.isCancelled) break;
+                const entryName = FileDownloadServiceWeb.toUniqueEntryName(
+                    file.name,
+                    usedEntryNames
+                );
+                if (isMultiObjectFile(file.path)) {
+                    if (FileDownloadServiceWeb.isLocalPath(file.path)) {
+                        this.downloadLocalDirectory(file); // throws with explanatory message
+                    }
+                    // Nest the directory's contents under its own folder within the zip
+                    for await (const relativeInnerPath of this.getRelativePathsInDirectory(
+                        file.path
+                    )) {
+                        await downloader.addFile(`${entryName}/${relativeInnerPath}`, () =>
+                            FileDownloadServiceWeb.fetchFileStream(
+                                `${file.path}/${relativeInnerPath}`
+                            )
+                        );
+                    }
+                } else {
+                    await downloader.addFile(entryName, () => this.getFileStream(file));
+                }
+            }
+            await downloader.end();
+        } catch (error) {
+            console.error("Failed to download files as zip", error);
+            await downloader.cancel();
+            throw error;
+        } finally {
+            // Cleanup after download finishes
+            delete this.activeRequestMap[downloadRequestId];
+        }
+
+        if (downloader.isCancelled) {
+            return {
+                downloadRequestId,
+                msg: "Download was cancelled.",
+                resolution: DownloadResolution.CANCELLED,
+            };
+        }
+
+        // Consider it a failure if we didn't download the amount of bytes we were expected to
+        const allSizesKnown = files.every((file) => file.size !== undefined);
+        const expectedBytes = files.reduce((sum, file) => sum + (file.size || 0), 0);
+        if (allSizesKnown && expectedBytes !== totalBytesDownloaded) {
+            const numberFormatter = annotationFormatterFactory(AnnotationType.NUMBER);
+            const expectedBytesWithUnits = numberFormatter.displayValue(expectedBytes, "bytes");
+            const totalBytesDownloadedWithUnits = numberFormatter.displayValue(
+                totalBytesDownloaded,
+                "bytes"
+            );
+            throw new Error(
+                `Expected to download ${expectedBytesWithUnits}, instead downloaded ${totalBytesDownloadedWithUnits} (${expectedBytes} vs ${totalBytesDownloaded}). This may indicate that some files either failed to download, couldn't be found, or were skipped.`
+            );
+        }
+
+        return {
+            downloadRequestId,
+            msg: `Successfully downloaded ${files.length} files as a ZIP file to your default downloads folder.`,
+            resolution: DownloadResolution.SUCCESS,
+        };
+    }
+
+    /**
+     * Resolve a single (non-directory) file to a readable stream of its contents
+     */
+    private async getFileStream(fileInfo: FileInfo): Promise<ReadableStream<Uint8Array>> {
+        const data = fileInfo.data || fileInfo.path;
+
+        if (data instanceof Uint8Array) {
+            const dataBlob = new Uint8Array(data.byteLength);
+            dataBlob.set(data);
+            return new Blob([dataBlob]).stream();
+        }
+        if (data instanceof Blob) {
+            return data.stream();
+        }
+        if (typeof data === "string") {
+            // See if the data is a URL that needs to be formatted
+            // this would be the case for S3 protocol URLs for example
+            const url = (await this.s3StorageService.formatAsHttpResource(data)) || data;
+            return FileDownloadServiceWeb.fetchFileStream(url);
+        }
+        throw new Error("Unsupported data type for download");
     }
 
     private downloadDirectory(
@@ -153,13 +283,6 @@ Please navigate to this directory manually, or upload files to a remote address 
             const a = document.createElement("a");
             a.href = downloadUrl;
             a.download = fileInfo.name;
-            // Stagger concurrent downloads
-            const now = Date.now();
-            const delay = Math.max(0, this.nextDownloadAt - now);
-            this.nextDownloadAt = Math.max(now, this.nextDownloadAt) + this.DOWNLOAD_STAGGER_MS;
-            if (delay > 0) {
-                await new Promise<void>((resolve) => setTimeout(resolve, delay));
-            }
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
