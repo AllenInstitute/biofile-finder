@@ -13,3 +13,14 @@ and running on port `9081`. If you run `file-explorer-service` on one computer (
 the frontend running on another computer (e.g., your laptop), you can make the service available through `localhost` by
 making use of port forwarding (e.g.: `ssh -L 9081:localhost:9081 dev-aics-gmp-001.corp.alleninstitute.org -N -f`).
 2. From within the running Electron application, under the "Data Source" menu bar option, select "Localhost."
+
+Per-service environment overrides
+---------------------------------
+
+The "Data Source" menu points _every_ service at the selected environment. If you instead want to mix environments —
+e.g., a locally running `file-explorer-service` while MMS and FSS2 continue to point at staging — use the developer
+environment switch modal:
+
+1. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> (available to AICS employees only).
+2. In the "Service environments (dev)" modal, choose an environment (`LOCALHOST`, `STAGING`, `PRODUCTION`, or `TEST`)
+   for each service individually, or use the "All services" dropdown to set them all at once.
