@@ -8,6 +8,7 @@ import {
     DatasetBucketUrl,
     FESBaseUrl,
     FileStorageServiceBaseUrl,
+    JSSBaseUrl,
     LabKeyBaseUrl,
     MMSBaseUrl,
     OverridableService,
@@ -96,6 +97,12 @@ export const getFileStorageServiceBaseUrl = createSelector(
     [getEnvironment, getEnvironmentOverrides],
     (environment, overrides) =>
         FileStorageServiceBaseUrl[overrides[OverridableService.FileStorageService] ?? environment]
+);
+
+export const getJSSBaseUrl = createSelector(
+    [getEnvironment, getEnvironmentOverrides],
+    (environment, overrides) =>
+        JSSBaseUrl[overrides[OverridableService.JobStatusService] ?? environment]
 );
 
 export const getLabKeyBaseUrl = createSelector(

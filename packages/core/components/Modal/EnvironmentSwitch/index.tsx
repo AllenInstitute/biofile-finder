@@ -11,6 +11,7 @@ import {
     EnvironmentOverrides,
     FESBaseUrl,
     FileStorageServiceBaseUrl,
+    JSSBaseUrl,
     LabKeyBaseUrl,
     MMSBaseUrl,
     OverridableService,
@@ -41,6 +42,11 @@ const SERVICES: ServiceDescriptor[] = [
         key: OverridableService.FileStorageService,
         label: "File Storage Service (FSS2)",
         urls: FileStorageServiceBaseUrl,
+    },
+    {
+        key: OverridableService.JobStatusService,
+        label: "Job Status Service (JSS)",
+        urls: JSSBaseUrl,
     },
     {
         key: OverridableService.LabKey,
