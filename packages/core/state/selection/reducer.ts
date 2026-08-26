@@ -45,6 +45,9 @@ import {
     REORDER_COLUMNS,
     ReorderColumnsAction,
     SetAvailableAnnotationsAction,
+    SELECT_COLUMNS,
+    SET_HAS_USER_SELECTED_COLUMNS,
+    SetHasUserSelectedColumnsAction,
     SET_SELECTED_DATASET_DESCRIPTION_SOURCE,
 } from "./actions";
 import interaction from "../interaction";
@@ -69,6 +72,7 @@ export interface SelectionStateBranch {
     fileSelection: FileSelection;
     fileView: FileView;
     filters: FileFilter[];
+    hasUserSelectedColumns: boolean;
     isLoadingDataSource: boolean;
     lastTouchedFolder?: FileFolder;
     openFileFolders: FileFolder[];
@@ -94,6 +98,7 @@ export const initialState = {
     fileSelection: new FileSelection(),
     fileView: FileView.LIST,
     filters: [],
+    hasUserSelectedColumns: false,
     isLoadingDataSource: false,
     openFileFolders: [],
     queries: [],
@@ -199,6 +204,7 @@ export default makeReducer<SelectionStateBranch>(
             ...state,
             annotationHierarchy: initialState.annotationHierarchy,
             columns: initialState.columns,
+            hasUserSelectedColumns: initialState.hasUserSelectedColumns,
             datasetDescriptionSource: undefined,
             filters: initialState.filters,
             fileView: initialState.fileView,
@@ -235,6 +241,14 @@ export default makeReducer<SelectionStateBranch>(
         [SET_COLUMNS]: (state, action: SetColumns) => ({
             ...state,
             columns: action.payload,
+        }),
+        [SELECT_COLUMNS]: (state) => ({
+            ...state,
+            hasUserSelectedColumns: true,
+        }),
+        [SET_HAS_USER_SELECTED_COLUMNS]: (state, action: SetHasUserSelectedColumnsAction) => ({
+            ...state,
+            hasUserSelectedColumns: action.payload,
         }),
         [SET_FILE_SELECTION]: (state, action: SetFileSelection) => {
             const focusedItem = action.payload.focusedItem;

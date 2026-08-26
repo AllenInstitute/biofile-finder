@@ -21,10 +21,10 @@ export default function useComputePipelineMenuItems(
     const [pipelines, setPipelines] = React.useState<Pipeline[] | null>(null);
     const [loadFailed, setLoadFailed] = React.useState(false);
 
-    // Fetch pipelines once — intentionally excludes folderFilters so filter
-    // changes don't trigger duplicate network calls.
     React.useEffect(() => {
         let cancelled = false;
+        setPipelines(null);
+        setLoadFailed(false);
         pipelineService
             .getPipelines()
             .then((result) => {

@@ -2,7 +2,13 @@ import axios, { AxiosInstance } from "axios";
 import { Policy } from "cockatiel";
 import LRUCache from "lru-cache";
 
-import { Environment, FESBaseUrl, LoadBalancerBaseUrl, MMSBaseUrl } from "../../constants";
+import {
+    Environment,
+    FESBaseUrl,
+    JSSBaseUrl,
+    LoadBalancerBaseUrl,
+    MMSBaseUrl,
+} from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
 
 export interface ConnectionConfig {
@@ -10,6 +16,7 @@ export interface ConnectionConfig {
     fileExplorerServiceBaseUrl?: FESBaseUrl;
     httpClient?: AxiosInstance;
     includeCustomHeaders?: boolean;
+    jssBaseUrl?: JSSBaseUrl;
     loadBalancerBaseUrl?: LoadBalancerBaseUrl;
     metadataManagementServiceBaseURl?: MMSBaseUrl;
     pathSuffix?: string;

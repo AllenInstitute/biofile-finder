@@ -21,6 +21,32 @@ interface BaseModalProps {
  */
 export default function BaseModal(props: BaseModalProps) {
     const { body, className, footer, title, onDismiss } = props;
+    const bodyContainerRef = React.useRef<HTMLDivElement>(null);
+    const [hasScroll, setHasScroll] = React.useState(false);
+
+    React.useEffect(() => {
+        const el = bodyContainerRef.current;
+        if (!el) return;
+
+        const checkScroll = () => {
+            const hasOverflowingContent = el.scrollHeight > el.clientHeight;
+            // we've reached the end of the content if the distance scrolled
+            // from the top (rounded up to account for sub-pixel differences)
+            // is equal to the total content height
+            const isAtBottomOfContent =
+                Math.ceil(el.scrollTop) + el.clientHeight >= el.scrollHeight;
+            setHasScroll(hasOverflowingContent && !isAtBottomOfContent);
+        };
+        checkScroll();
+
+        const observer = new ResizeObserver(checkScroll);
+        observer.observe(el);
+        el.addEventListener("scroll", checkScroll);
+        return () => {
+            observer.disconnect();
+            el.removeEventListener("scroll", checkScroll);
+        };
+    }, [body]);
 
     const titleId = "base-modal-title";
     return (
@@ -30,6 +56,7 @@ export default function BaseModal(props: BaseModalProps) {
             containerClassName={classNames(styles.container, className)}
             titleAriaId={titleId}
             overlay={{ className: styles.overlay }}
+            scrollableContentClassName={styles.scrollableContainer}
         >
             <div className={styles.header}>
                 {title ? (
@@ -39,7 +66,12 @@ export default function BaseModal(props: BaseModalProps) {
                 ) : null}
                 <TertiaryButton iconName="Cancel" onClick={onDismiss} title="" />
             </div>
-            <div className={styles.scrollableContent}>{body}</div>
+            <div className={styles.bodyWrapper}>
+                <div className={styles.scrollableBody} ref={bodyContainerRef}>
+                    {body}
+                </div>
+                {hasScroll && <div className={styles.verticalGradient} />}
+            </div>
             <div className={styles.footer}>{footer}</div>
         </Modal>
     );
