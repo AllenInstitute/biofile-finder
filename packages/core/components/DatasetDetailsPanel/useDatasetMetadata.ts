@@ -25,7 +25,9 @@ export default function useDatasetMetadata(): [
         let ignoreResponse = false;
         if (!datasetDescriptionSource) {
             // nothing to fetch
-            return setDatasetDetails(undefined);
+            setDatasetDetails(undefined);
+            setIsLoading(false);
+            return;
         }
         setIsLoading(true);
         processMarkdown(datasetDescriptionSource, false)

@@ -23,7 +23,7 @@ interface DatasetDetailsProps {
  * Converts `PublicDataset`s into the array structure the panel expects,
  * and adds buttons for downloading the dataset file and for viewing it in the app
  */
-export default function PublicDatasetDetails(props: DatasetDetailsProps) {
+export default function OpenSourceDatasetDetails(props: DatasetDetailsProps) {
     const datasetDetails: PublicDataset | undefined = useSelector(
         interaction.selectors.getSelectedPublicDataset
     );
