@@ -16,7 +16,7 @@ export default function useDatasetMetadata(): [
 ] {
     const datasetDescriptionSource = useSelector(selection.selectors.getDatasetDescriptionSource);
 
-    const [datasetDetails, setDatasetDetails] = React.useState<DatasetDetail[] | undefined>();
+    const [datasetDetails, setDatasetDetails] = React.useState<DatasetDetail[]>();
     const [title, setTitle] = React.useState<string>();
     const [description, setDescription] = React.useState<string>();
     const [isLoading, setIsLoading] = React.useState(false);
@@ -26,6 +26,8 @@ export default function useDatasetMetadata(): [
         if (!datasetDescriptionSource) {
             // nothing to fetch
             setDatasetDetails(undefined);
+            setTitle(undefined);
+            setDescription(undefined);
             setIsLoading(false);
             return;
         }
