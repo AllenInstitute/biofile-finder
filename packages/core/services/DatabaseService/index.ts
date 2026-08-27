@@ -73,8 +73,8 @@ const SOURCE_FILE_COLUMN = "bff_source_file";
 // "foo-bff-filehandle.parquet"). A proper fix requires an upstream change in
 // duckdb-wasm to use exact-match lookups for registered file handles.
 const FILE_HANDLE_SUFFIX = "-bff-filehandle";
-function fileHandleName(name: string): string {
-    return name + FILE_HANDLE_SUFFIX;
+function fileHandleName(name: string, index?: number): string {
+    return name + FILE_HANDLE_SUFFIX + (index !== undefined ? `-${index}` : "");
 }
 
 export const ACCEPTED_SOURCE_TYPES = [
@@ -232,11 +232,14 @@ export default abstract class DatabaseService {
     // map to the full list of DuckDB file handles registered for them.
     private readonly sourceToHandles = new Map<string, string[]>();
     private readonly resolvedTypeByUri = new Map<string, SourceType>();
+    // Distinguishes the DuckDB handle used for each checkpoint parquet read
+    private deltaCheckpointCounter = 0;
 
     protected database: duckdb.AsyncDuckDB | undefined;
 
     constructor(deltaLakeService?: DeltaLakeService) {
-        this.deltaLakeService = deltaLakeService ?? new DeltaLakeService();
+        this.readDeltaCheckpoint = this.readDeltaCheckpoint.bind(this);
+        this.deltaLakeService = deltaLakeService ?? new DeltaLakeService(this.readDeltaCheckpoint);
         this.addDataSource = this.addDataSource.bind(this);
         this.execute = this.execute.bind(this);
         this.query = this.query.bind(this);
@@ -364,6 +367,25 @@ export default abstract class DatabaseService {
                     `CREATE TABLE "${name}" AS FROM read_csv_auto('${handle}', header=true, all_varchar=true);`
                 );
             }
+        }
+    }
+
+    /**
+     * Read the "add" action paths out of a Delta Lake checkpoint parquet.
+     *
+     * Lives here rather than in DeltaLakeService because it needs DuckDB: a
+     * checkpoint is a parquet file whose columns are action structs.
+     */
+    private async readDeltaCheckpoint(checkpointUrl: string): Promise<Set<string>> {
+        const handle = fileHandleName("checkpoint", this.deltaCheckpointCounter++);
+        await this.registerFileURLs([handle], [checkpointUrl]);
+        try {
+            const rows = await this.query<{ path: string }>(
+                `SELECT DISTINCT "add"."path" AS path FROM parquet_scan('${handle}') WHERE "add" IS NOT NULL`
+            ).promise;
+            return new Set(rows.map((row) => row.path));
+        } finally {
+            await this.dropFileHandles([handle]);
         }
     }
 
