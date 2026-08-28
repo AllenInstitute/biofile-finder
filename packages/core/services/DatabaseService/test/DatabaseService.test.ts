@@ -435,6 +435,8 @@ describe("DatabaseService", () => {
             const DELTA_SOURCE = "table";
 
             class MockDeltaDatabaseService extends DatabaseService {
+                public isDelta = true;
+                public deltaProbeCount = 0;
                 public executedSQL: string[] = [];
 
                 constructor(
@@ -444,7 +446,8 @@ describe("DatabaseService", () => {
                     const deltaLakeService = {
                         listDataFiles: () => Promise.resolve(dataFiles),
                         isDeltaTable: () => {
-                            return Promise.resolve(true);
+                            this.deltaProbeCount++;
+                            return Promise.resolve(this.isDelta);
                         },
                     } as any;
                     super(deltaLakeService);
