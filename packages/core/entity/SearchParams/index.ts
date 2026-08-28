@@ -5,7 +5,6 @@ import FileSort, { SortOrder } from "../FileSort";
 import type { DatasetSources } from "../MarkdownFrontMatter";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Column } from "../../state/selection/actions";
-import type { SourceType } from "../../services/DatabaseService";
 
 // Somewhat arbitrary default column width in pixels;
 // used as a fallback when calculating column widths based on content,
@@ -39,9 +38,24 @@ export function isMarkdownSource(source: Source): boolean {
     return isMarkdownType(resource.split(".").pop());
 }
 
+// Every format a source can be read as. Kept off Source deliberately: a
+// source's type is derived from its uri when it loads, never persisted, so
+// nothing here is part of what a shareable URL carries.
+export const ACCEPTED_SOURCE_TYPES = [
+    ...TABULAR_SOURCE_TYPES,
+    ...MARKDOWN_SOURCE_TYPES,
+    "delta",
+] as const;
+export type SourceType = typeof ACCEPTED_SOURCE_TYPES[number];
+
 export interface Source {
     name: string;
     uri?: string | File;
+}
+
+// A source with its reader settled, as everything past type resolution sees it.
+export interface SourceWithType extends Source {
+    type: SourceType;
 }
 
 // Components of the application state this captures
