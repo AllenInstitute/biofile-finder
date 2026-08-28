@@ -13,10 +13,12 @@ import {
     processMarkdown,
 } from "../../entity/MarkdownFrontMatter";
 import {
+    ACCEPTED_SOURCE_TYPES,
     getResourceNameFromSourceUrl,
     isMarkdownType,
-    MARKDOWN_SOURCE_TYPES,
     Source,
+    SourceType,
+    SourceWithType,
     TABULAR_SOURCE_TYPES,
 } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
@@ -75,17 +77,6 @@ const SOURCE_FILE_COLUMN = "bff_source_file";
 const FILE_HANDLE_SUFFIX = "-bff-filehandle";
 function fileHandleName(name: string): string {
     return name + FILE_HANDLE_SUFFIX;
-}
-
-export const ACCEPTED_SOURCE_TYPES = [
-    ...TABULAR_SOURCE_TYPES,
-    ...MARKDOWN_SOURCE_TYPES,
-    "delta",
-] as const;
-export type SourceType = typeof ACCEPTED_SOURCE_TYPES[number];
-
-export interface SourceWithType extends Source {
-    type: SourceType;
 }
 
 // Return true if type is parquet or parquet-like
