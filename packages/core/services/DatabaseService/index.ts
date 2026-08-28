@@ -13,10 +13,12 @@ import {
     processMarkdown,
 } from "../../entity/MarkdownFrontMatter";
 import {
+    ACCEPTED_SOURCE_TYPES,
     getResourceNameFromSourceUrl,
     isMarkdownType,
-    MARKDOWN_SOURCE_TYPES,
     Source,
+    SourceType,
+    SourceWithType,
     TABULAR_SOURCE_TYPES,
 } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
@@ -79,17 +81,6 @@ function fileHandleName(name: string, index?: number): string {
         FILE_HANDLE_SUFFIX +
         (index !== undefined ? `-${String(index).padStart(8, "0")}` : "")
     );
-}
-
-export const ACCEPTED_SOURCE_TYPES = [
-    ...TABULAR_SOURCE_TYPES,
-    ...MARKDOWN_SOURCE_TYPES,
-    "delta",
-] as const;
-export type SourceType = typeof ACCEPTED_SOURCE_TYPES[number];
-
-export interface SourceWithType extends Source {
-    type: SourceType;
 }
 
 // Return true if type is parquet or parquet-like
