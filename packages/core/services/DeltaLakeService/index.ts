@@ -13,8 +13,8 @@ const DELTA_LOG_DIR = "_delta_log";
 // Guard against walking forever if a server answers 200 to everything.
 const MAX_COMMITS_TO_WALK = 10000;
 
-// Reads a checkpoint parquet and returns its "add" action paths.
-type CheckpointReader = (checkpointUrl: string) => Promise<Set<string>>;
+// Reads a checkpoint parquet and returns its actions.
+type CheckpointReader = (checkpointUrl: string) => Promise<DeltaAction[]>;
 
 // Version information extracted from a Delta Lake checkpoint parquet file.
 interface CheckpointVersionInfo {
@@ -24,11 +24,11 @@ interface CheckpointVersionInfo {
 }
 
 // A Delta Lake transaction log is a sequence of JSON lines, each of which is an "action".
-interface DeltaAction {
+export interface DeltaAction {
     add?: { deletionVector?: Record<string, unknown>; path: string };
     remove?: { path: string };
     protocol?: { minReaderVersion: number };
-    metaData?: { configuration?: Record<string, string> };
+    metaData?: { configuration?: Record<string, string> | Map<string, string> };
 }
 
 // Pads a version number to the fixed width used in Delta Lake file names.
@@ -59,11 +59,10 @@ export default class DeltaLakeService {
     private readonly readCheckpoint: CheckpointReader;
     private readonly s3StorageService: S3StorageService;
 
-    private static parseAction(
-        rawAction: string,
-        sourceUrl: string
-    ): { type: "add" | "remove"; path: string } | null {
-        const action = parseJson<DeltaAction>(rawAction, sourceUrl);
+    /**
+     * Reject an action that uses a feature this reader cannot honour.
+     */
+    private static assertSupported(action: DeltaAction): void {
         const readerVersion = action.protocol?.minReaderVersion || 0;
         if (readerVersion >= 3) {
             throw new Error(
@@ -71,24 +70,35 @@ export default class DeltaLakeService {
                     `${readerVersion}, which this application does not support.`
             );
         }
-        if (
-            action.metaData?.configuration?.["delta.columnMapping.mode"] === "id" ||
-            action.metaData?.configuration?.["delta.columnMapping.mode"] === "name"
-        ) {
-            throw new Error(
-                `This Delta Lake table uses column mapping, so its parquet columns are not ` +
-                    `named the way the table is. This application cannot read it yet.`
-            );
-        }
-
-        if (action.add) {
-            if (action.add.deletionVector) {
+        if (action.metaData?.configuration) {
+            const columnMapping =
+                action.metaData?.configuration instanceof Map
+                    ? action.metaData.configuration.get("delta.columnMapping.mode")
+                    : action.metaData.configuration["delta.columnMapping.mode"];
+            if (columnMapping === "id" || columnMapping === "name") {
                 throw new Error(
-                    `This Delta Lake table uses deletion vectors, so some rows in its parquet ` +
-                        `files are marked deleted without being rewritten. This application ` +
-                        `cannot read it yet.`
+                    `This Delta Lake table uses column mapping, so its parquet columns are not ` +
+                        `named the way the table is. This application cannot read it yet.`
                 );
             }
+        }
+        if (action.add?.deletionVector) {
+            throw new Error(
+                `This Delta Lake table uses deletion vectors, so some rows in its parquet ` +
+                    `files are marked deleted without being rewritten. This application ` +
+                    `cannot read it yet.`
+            );
+        }
+    }
+
+    private static parseAction(
+        rawAction: string,
+        sourceUrl: string
+    ): { type: "add" | "remove"; path: string } | null {
+        const action = parseJson<DeltaAction>(rawAction, sourceUrl);
+        DeltaLakeService.assertSupported(action);
+
+        if (action.add) {
             return { type: "add", path: action.add.path };
         }
         if (action.remove) {
@@ -163,7 +173,11 @@ export default class DeltaLakeService {
         if (isNil(version)) return { activePaths: new Set(), nextVersion: 0 };
 
         const checkpointUrl = `${logBase}/${padToVersionWidth(version)}.checkpoint.parquet`;
-        const activePaths = await this.readCheckpoint(checkpointUrl);
+        const activePaths = new Set<string>();
+        for (const action of await this.readCheckpoint(checkpointUrl)) {
+            DeltaLakeService.assertSupported(action);
+            if (action.add) activePaths.add(action.add.path);
+        }
         if (activePaths.size > MAX_DELTA_DATA_FILES) {
             throw new Error(
                 `This Delta Lake table contains more than ${MAX_DELTA_DATA_FILES} parquet ` +
@@ -185,7 +199,7 @@ export default class DeltaLakeService {
         if (isNil(raw)) return null;
 
         const { version, parts, v } = parseJson<CheckpointVersionInfo>(raw, checkpointUrl);
-        if (!isEmpty(parts)) {
+        if (!isNil(parts)) {
             throw new Error(
                 "This Delta Lake table uses a multi-part checkpoint, which this application cannot read."
             );
@@ -207,7 +221,7 @@ export default class DeltaLakeService {
         fromVersion: number,
         activePaths: Set<string>
     ): Promise<void> {
-        for (let version = fromVersion; version < fromVersion + MAX_COMMITS_TO_WALK; version++) {
+        for (let version = fromVersion; version <= fromVersion + MAX_COMMITS_TO_WALK; version++) {
             const body = await this.fetchJsonString(
                 `${logBase}/${padToVersionWidth(version)}.json`
             );
