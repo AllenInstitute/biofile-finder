@@ -240,7 +240,8 @@ export default abstract class DatabaseService {
 
     constructor(deltaLakeService?: DeltaLakeService) {
         this.readDeltaCheckpoint = this.readDeltaCheckpoint.bind(this);
-        this.deltaLakeService = deltaLakeService ?? new DeltaLakeService(this.readDeltaCheckpoint);
+        this.deltaLakeService =
+            deltaLakeService ?? new DeltaLakeService(axios.create(), this.readDeltaCheckpoint);
         this.addDataSource = this.addDataSource.bind(this);
         this.execute = this.execute.bind(this);
         this.query = this.query.bind(this);

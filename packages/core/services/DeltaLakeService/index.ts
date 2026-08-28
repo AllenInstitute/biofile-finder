@@ -1,7 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import { isEmpty, isNil } from "lodash";
 
-import HttpServiceBase from "../HttpServiceBase";
 import S3StorageService from "../S3StorageService";
 
 // Every data file becomes a DuckDB file handle and an HTTP range-request target,
@@ -55,7 +54,8 @@ function parseJson<T = Record<string, unknown>>(stringifiedJson: string, sourceU
  * plus a "_delta_log". DuckDB-wasm has no delta extension, so
  * we work out the file list ourselves and scan the data files directly.
  */
-export default class DeltaLakeService extends HttpServiceBase {
+export default class DeltaLakeService {
+    private readonly httpClient: AxiosInstance;
     private readonly readCheckpoint: CheckpointReader;
     private readonly s3StorageService: S3StorageService;
 
@@ -103,7 +103,7 @@ export default class DeltaLakeService extends HttpServiceBase {
         readCheckpoint: CheckpointReader,
         s3StorageService?: S3StorageService
     ) {
-        super({ httpClient });
+        this.httpClient = httpClient;
         this.readCheckpoint = readCheckpoint;
         this.s3StorageService = s3StorageService || new S3StorageService({ httpClient });
     }
@@ -257,9 +257,14 @@ export default class DeltaLakeService extends HttpServiceBase {
      * Normalize a table root into an https base that child paths append to.
      */
     private async toHttpBase(url: string): Promise<string> {
-        const urlAsHttp = await this.s3StorageService.formatAsHttpResource(url);
+        // Convert to an addressable URL, which may involve S3 presigned URLs or other transformations.
+        let urlAsHttp = await this.s3StorageService.formatAsHttpResource(url);
         if (isNil(urlAsHttp)) {
-            throw new Error(`Unable to resolve "${url}" to an addressable URL.`);
+            if (!url.startsWith("https://") && !url.startsWith("http://")) {
+                throw new Error(`Unable to resolve "${url}" to an addressable URL.`);
+            }
+            // If the S3StorageService cannot resolve the URL, fall back to using it as-is if it is already an http(s) URL.
+            urlAsHttp = url;
         }
         // Strip trailing slashes from the URL.
         return urlAsHttp.replace(/\/+$/, "");
@@ -273,7 +278,7 @@ export default class DeltaLakeService extends HttpServiceBase {
      */
     private async fetchJsonString(url: string): Promise<string | null> {
         try {
-            const response = await this.get(url, undefined, {
+            const response = await this.httpClient.get(url, {
                 // Avoid axios trying to parse the first line and hand back an object.
                 transformResponse: (data) => data,
             });
