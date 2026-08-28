@@ -1,5 +1,4 @@
-import { Source } from "../../../../core/entity/SearchParams";
-import { SourceType } from "../../../../core/services/DatabaseService";
+import { Source, SourceType } from "../../../../core/entity/SearchParams";
 
 export enum WorkerMsgType {
     ADD_SOURCE = "add datasource",

@@ -13,7 +13,8 @@ import {
     WorkerResType,
 } from "./types";
 import { DatabaseService } from "../../../../core/services";
-import { CancellablePromise, SourceWithType } from "../../../../core/services/DatabaseService";
+import { CancellablePromise } from "../../../../core/services/DatabaseService";
+import { SourceWithType } from "../../../../core/entity/SearchParams";
 
 export default class DatabaseServiceWeb extends DatabaseService {
     // Initialize with AICS FMS data source name to pretend it always exists
