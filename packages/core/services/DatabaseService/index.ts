@@ -398,7 +398,7 @@ export default abstract class DatabaseService {
         if (uri instanceof File) {
             throw new Error(
                 `Delta Lake tables cannot be uploaded from your computer because they are ` +
-                    `directories rather than single files. Provide a URL to the table instead.`
+                    `directories rather than single files. Upload your file to a remote source.`
             );
         }
 

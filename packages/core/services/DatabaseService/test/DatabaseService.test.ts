@@ -436,9 +436,9 @@ describe("DatabaseService", () => {
             const DELTA_SOURCE = "table";
 
             class MockDeltaDatabaseService extends DatabaseService {
-                public executedSQL: string[] = [];
-                public deltaProbeCount = 0;
                 public isDelta = true;
+                public deltaProbeCount = 0;
+                public executedSQL: string[] = [];
 
                 constructor(
                     private readonly parquetColumnsBySource: Record<string, string[]>,
@@ -447,7 +447,7 @@ describe("DatabaseService", () => {
                     const deltaLakeService = {
                         listDataFiles: () => Promise.resolve(dataFiles),
                         isDeltaTable: () => {
-                            this.deltaProbeCount += 1;
+                            this.deltaProbeCount++;
                             return Promise.resolve(this.isDelta);
                         },
                     } as any;
