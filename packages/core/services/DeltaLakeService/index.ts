@@ -31,6 +31,13 @@ export interface DeltaAction {
     metaData?: { configuration?: Record<string, string> | Map<string, string> };
 }
 
+/**
+ * True if a log path names its own location rather than one relative to the table.
+ */
+function isAbsoluteUri(path: string): boolean {
+    return /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(path);
+}
+
 // Pads a version number to the fixed width used in Delta Lake file names.
 // Delta Lake are always 20 characters wide, so pad with leading zeros to that width.
 function padToVersionWidth(version: number): string {
@@ -158,7 +165,18 @@ export default class DeltaLakeService {
                 `No parquet data files were found in the Delta Lake table at "${rootUrl}".`
             );
         }
-        return [...activePaths].map((path) => `${baseUrl}/${path}`);
+        if (activePaths.size > MAX_DELTA_DATA_FILES) {
+            throw new Error(
+                `This Delta Lake table contains more than ${MAX_DELTA_DATA_FILES} ` +
+                    `parquet files, more than this application can load at once. ` +
+                    `Consider compacting the table.`
+            );
+        }
+        return Promise.all(
+            [...activePaths].map((path) =>
+                isAbsoluteUri(path) ? this.toHttpBase(path, false) : `${baseUrl}/${path}`
+            )
+        );
     }
 
     /**
@@ -172,20 +190,12 @@ export default class DeltaLakeService {
         const version = await this.fetchCheckpointVersion(logBase);
         if (isNil(version)) return { activePaths: new Set(), nextVersion: 0 };
 
-        const checkpointUrl = `${logBase}/${padToVersionWidth(version)}.checkpoint.parquet`;
         const activePaths = new Set<string>();
+        const checkpointUrl = `${logBase}/${padToVersionWidth(version)}.checkpoint.parquet`;
         for (const action of await this.readCheckpoint(checkpointUrl)) {
             DeltaLakeService.assertSupported(action);
             if (action.add) activePaths.add(action.add.path);
         }
-        if (activePaths.size > MAX_DELTA_DATA_FILES) {
-            throw new Error(
-                `This Delta Lake table contains more than ${MAX_DELTA_DATA_FILES} parquet ` +
-                    `files, more than this application can load at once. Consider compacting ` +
-                    `the table.`
-            );
-        }
-
         return { activePaths, nextVersion: version + 1 };
     }
 
@@ -251,13 +261,6 @@ export default class DeltaLakeService {
                 } else if (action?.type === "remove") {
                     activePaths.delete(action.path);
                 }
-                if (activePaths.size > MAX_DELTA_DATA_FILES) {
-                    throw new Error(
-                        `This Delta Lake table contains more than ${MAX_DELTA_DATA_FILES} ` +
-                            `parquet files, more than this application can load at once. ` +
-                            `Consider compacting the table.`
-                    );
-                }
             }
         }
 
@@ -270,7 +273,7 @@ export default class DeltaLakeService {
     /**
      * Normalize a table root into an https base that child paths append to.
      */
-    private async toHttpBase(url: string): Promise<string> {
+    private async toHttpBase(url: string, replaceTrailingSlashes = true): Promise<string> {
         // Convert to an addressable URL, which may involve S3 presigned URLs or other transformations.
         let urlAsHttp = await this.s3StorageService.formatAsHttpResource(url);
         if (isNil(urlAsHttp)) {
@@ -280,8 +283,8 @@ export default class DeltaLakeService {
             // If the S3StorageService cannot resolve the URL, fall back to using it as-is if it is already an http(s) URL.
             urlAsHttp = url;
         }
-        // Strip trailing slashes from the URL.
-        return urlAsHttp.replace(/\/+$/, "");
+        if (replaceTrailingSlashes) return urlAsHttp.replace(/\/+$/, "");
+        return urlAsHttp;
     }
 
     /**
