@@ -2,7 +2,7 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
 import { isEmpty, isNil, mapKeys, mapValues, uniq, uniqBy } from "lodash";
 
-import DeltaLakeService from "../DeltaLakeService";
+import DeltaLakeService, { DeltaAction } from "../DeltaLakeService";
 import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
@@ -74,7 +74,11 @@ const SOURCE_FILE_COLUMN = "bff_source_file";
 // duckdb-wasm to use exact-match lookups for registered file handles.
 const FILE_HANDLE_SUFFIX = "-bff-filehandle";
 function fileHandleName(name: string, index?: number): string {
-    return name + FILE_HANDLE_SUFFIX + (index !== undefined ? `-${index}` : "");
+    return (
+        name +
+        FILE_HANDLE_SUFFIX +
+        (index !== undefined ? `-${String(index).padStart(8, "0")}` : "")
+    );
 }
 
 export const ACCEPTED_SOURCE_TYPES = [
@@ -100,12 +104,6 @@ function isParquetBacked(type?: SourceType): boolean {
 function sourceTypeFromExtension(nameOrUrl: string): SourceType | undefined {
     const extension = getResourceNameFromSourceUrl(nameOrUrl).split(".").pop();
     return ACCEPTED_SOURCE_TYPES.find((accepted) => accepted === extension);
-}
-
-// A Delta Lake source is backed by many parquet files, so it registers one handle
-// per data file
-function deltaFileHandleName(name: string, index: number): string {
-    return `${fileHandleName(name)}-${String(index).padStart(8, "0")}.parquet`;
 }
 
 // Render file handles as a DuckDB list literal, e.g. ARRAY['a', 'b'].
@@ -377,14 +375,13 @@ export default abstract class DatabaseService {
      * Lives here rather than in DeltaLakeService because it needs DuckDB: a
      * checkpoint is a parquet file whose columns are action structs.
      */
-    private async readDeltaCheckpoint(checkpointUrl: string): Promise<Set<string>> {
+    private async readDeltaCheckpoint(checkpointUrl: string): Promise<DeltaAction[]> {
         const handle = fileHandleName("checkpoint", this.deltaCheckpointCounter++);
         await this.registerFileURLs([handle], [checkpointUrl]);
         try {
-            const rows = await this.query<{ path: string }>(
-                `SELECT DISTINCT "add"."path" AS path FROM parquet_scan('${handle}') WHERE "add" IS NOT NULL`
+            return await this.query<DeltaAction>(
+                `SELECT "add", "protocol", "metaData" FROM parquet_scan('${handle}')`
             ).promise;
-            return new Set(rows.map((row) => row.path));
         } finally {
             await this.dropFileHandles([handle]);
         }
@@ -415,7 +412,7 @@ export default abstract class DatabaseService {
         }
 
         const dataFileUrls = await this.deltaLakeService.listDataFiles(uri);
-        const handles = dataFileUrls.map((_, index) => deltaFileHandleName(name, index));
+        const handles = dataFileUrls.map((_, index) => `${fileHandleName(name, index)}.parquet`);
         this.sourceToHandles.set(name, handles);
         await this.registerFileURLs(handles, dataFileUrls);
         await this.createParquetDirectView(name);
