@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, { AxiosInstance } from "axios";
 import { Policy } from "cockatiel";
 import LRUCache from "lru-cache";
 
@@ -146,11 +146,7 @@ export default class HttpServiceBase {
         }
     }
 
-    public async get<T>(
-        url: string,
-        queryArguments?: string[],
-        config?: AxiosRequestConfig
-    ): Promise<RestServiceResponse<T>> {
+    public async get<T>(url: string, queryArguments?: string[]): Promise<RestServiceResponse<T>> {
         let encodedUrl = HttpServiceBase.encodeURI(url);
         if (queryArguments) {
             encodedUrl += `?${queryArguments
@@ -162,7 +158,7 @@ export default class HttpServiceBase {
             let response;
             // if this fails, bubble up exception
             try {
-                response = await retry.execute(() => this.httpClient.get(encodedUrl, config));
+                response = await retry.execute(() => this.httpClient.get(encodedUrl));
             } catch (err) {
                 // Specific errors about the failure from services will be in this path
                 if (
