@@ -45,6 +45,10 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
     const overallMax = React.useMemo(() => {
         return items.at(-1)?.value?.toString() ?? "";
     }, [items]);
+    // On component load, default to slightly more than max so that values aren't excluded
+    const defaultMax = React.useMemo(() => {
+        return overallMax ? (Number(overallMax) + 1).toString() : "";
+    }, [overallMax]);
     const overallMinDisplay = items[0]?.displayValue?.toString() ?? overallMin;
     const overallMaxDisplay = items.at(-1)?.displayValue?.toString() ?? overallMax;
 
@@ -52,15 +56,15 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
         extractValuesFromRangeOperatorFilterString(currentRange?.value).minValue ?? overallMin
     );
     const [searchMaxValue, setSearchMaxValue] = React.useState(
-        extractValuesFromRangeOperatorFilterString(currentRange?.value).maxValue ?? overallMax
+        extractValuesFromRangeOperatorFilterString(currentRange?.value).maxValue ?? defaultMax
     );
 
     // Instead of removing filter completely, reset to min and max and submit
     function onResetSearch() {
         setSearchMinValue(overallMin);
-        setSearchMaxValue(overallMax);
-        if (overallMin && overallMax) {
-            onSearch(`RANGE(${overallMin},${overallMax})`);
+        setSearchMaxValue(defaultMax);
+        if (overallMin && defaultMax) {
+            onSearch(`RANGE(${overallMin},${defaultMax})`);
         }
     }
 
@@ -70,7 +74,7 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
             maxValue: oldMaxValue,
         } = extractValuesFromRangeOperatorFilterString(currentRange?.value);
         const newMinValue = searchMinValue || oldMinValue || overallMin;
-        const newMaxValue = searchMaxValue || oldMaxValue || (Number(overallMax) + 1).toString(); // Ensure that actual max is not excluded
+        const newMaxValue = searchMaxValue || oldMaxValue || defaultMax; // Ensure that actual max is not excluded
         if (newMinValue && newMaxValue) {
             onSearch(`RANGE(${newMinValue},${newMaxValue})`);
         }
@@ -131,7 +135,6 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                         label="Max (exclusive)"
                         onChange={onMaxChange}
                         min={Number(overallMin)}
-                        max={Number(overallMax)}
                     />
                     <div className={styles.resetButtonContainer}>
                         <TertiaryButton
