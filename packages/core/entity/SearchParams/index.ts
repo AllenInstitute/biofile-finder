@@ -2,6 +2,7 @@ import AnnotationName from "../Annotation/AnnotationName";
 import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
+import type { DatasetSources } from "../MarkdownFrontMatter";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Column } from "../../state/selection/actions";
 
@@ -19,7 +20,12 @@ export enum FileView {
     LARGE_THUMBNAIL = "3",
 }
 
-export const ACCEPTED_SOURCE_TYPES = ["csv", "json", "parquet"] as const;
+export const MARKDOWN_SOURCE_TYPES = ["markdown", "md"] as const;
+export const TABULAR_SOURCE_TYPES = ["csv", "json", "parquet"] as const;
+export const ACCEPTED_SOURCE_TYPES = [...TABULAR_SOURCE_TYPES, ...MARKDOWN_SOURCE_TYPES] as const;
+export function isMarkdownType(type?: string): boolean {
+    return (MARKDOWN_SOURCE_TYPES as readonly any[]).includes(type);
+}
 
 export interface Source {
     name: string;
@@ -30,6 +36,7 @@ export interface Source {
 // Components of the application state this captures
 export interface SearchParamsComponents {
     columns?: Column[];
+    hasUserSelectedColumns?: boolean;
     hierarchy: string[];
     fileView?: FileView;
     sources: Source[];
@@ -104,6 +111,7 @@ export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
 enum URLQueryArgShorthands {
     COLUMNS = "c",
     FILE_VIEW = "v",
+    HAS_USER_SELECTED_COLUMNS = "cs",
     PROVENANCE_ORIGIN_ID = "p",
 }
 
@@ -111,8 +119,10 @@ class ColumnCoder {
     private static readonly COLUMN_DELIMITER = ",";
     private static readonly VALUE_DELIMITER = ":";
     private static readonly COLUMN_VALUE_PRECISION = 10; // The divisor used when encoding column widths to shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths
+    // Arbitrary URL length limit; default columns beyond this regenerate on load anyway
+    private static readonly DEFAULT_COLUMN_LIMIT = 6;
 
-    public static encode(columns: Column[]): string {
+    public static encode(columns: Column[], areColumnsUserSelected = false): string {
         return (
             columns
                 // Encode width as divided by COLUMN_VALUE_PRECISION to shorten the resulting URL;
@@ -123,9 +133,10 @@ class ColumnCoder {
                             column.width / ColumnCoder.COLUMN_VALUE_PRECISION
                         )}`
                 )
-                // Arbitrary limit to prevent URLs from getting too long;
-                // if users have more than 6 columns they can resize and reorder them in-app after loading the URL
-                .slice(0, 6)
+                .slice(
+                    0,
+                    areColumnsUserSelected ? columns.length : ColumnCoder.DEFAULT_COLUMN_LIMIT
+                )
                 .join(ColumnCoder.COLUMN_DELIMITER)
         );
     }
@@ -166,10 +177,19 @@ export default class SearchParams {
      * of our application state. As in, the names / system we track data in can change
      * without breaking an existing SearchParams.
      * */
-    public static encode(urlComponents: Partial<SearchParamsComponents>): string {
+    public static encode(
+        urlComponents: Partial<SearchParamsComponents>,
+        cachedSourcesFromDescription?: DatasetSources
+    ): string {
         const params = new URLSearchParams();
         if (urlComponents.columns?.length) {
-            params.append(URLQueryArgShorthands.COLUMNS, ColumnCoder.encode(urlComponents.columns));
+            params.append(
+                URLQueryArgShorthands.COLUMNS,
+                ColumnCoder.encode(urlComponents.columns, urlComponents.hasUserSelectedColumns)
+            );
+            if (urlComponents.hasUserSelectedColumns) {
+                params.append(URLQueryArgShorthands.HAS_USER_SELECTED_COLUMNS, "true");
+            }
         }
         // Avoid including default in the URL
         if (urlComponents.fileView && urlComponents.fileView !== FileView.LIST) {
@@ -184,7 +204,36 @@ export default class SearchParams {
         urlComponents.openFolders?.map((folder) => {
             params.append("openFolder", JSON.stringify(folder.fileFolder));
         });
-        urlComponents.sources?.map((source) => {
+
+        let sourcesToEncode = urlComponents.sources;
+        let columnDescriptionSourceAlreadyEncoded = false;
+        let provenanceSourceAlreadyEncoded = false;
+        // Check if one of sources is a markdown file. If so, parse it for urls.
+        // check that those urls match, or else give preference to the overwritten provided sources
+        const datasetDescriptionSource = urlComponents.sources?.find((source) =>
+            isMarkdownType(source.type)
+        );
+        if (datasetDescriptionSource) {
+            // Only encode sources that aren't already in the markdown file
+            const datasetUrl = cachedSourcesFromDescription?.dataSource?.uri;
+            sourcesToEncode = datasetUrl
+                ? urlComponents.sources?.filter((source) => source.uri !== datasetUrl)
+                : urlComponents.sources;
+            // Skip source encoding if the markdown already contains the url
+            if (
+                cachedSourcesFromDescription?.descriptionsSource?.uri ===
+                urlComponents.sourceMetadata?.uri
+            ) {
+                columnDescriptionSourceAlreadyEncoded = true;
+            }
+            if (
+                cachedSourcesFromDescription?.provenanceSource?.uri ===
+                urlComponents.provenanceSource?.uri
+            ) {
+                provenanceSourceAlreadyEncoded = true;
+            }
+        }
+        sourcesToEncode?.map((source) => {
             params.append(
                 "source",
                 JSON.stringify({
@@ -196,7 +245,7 @@ export default class SearchParams {
                 })
             );
         });
-        if (urlComponents.sourceMetadata) {
+        if (urlComponents.sourceMetadata && !columnDescriptionSourceAlreadyEncoded) {
             params.append(
                 "sourceMetadata",
                 JSON.stringify({
@@ -209,7 +258,7 @@ export default class SearchParams {
                 })
             );
         }
-        if (urlComponents.provenanceSource) {
+        if (urlComponents.provenanceSource && !provenanceSourceAlreadyEncoded) {
             params.append(
                 "prov",
                 JSON.stringify({
@@ -221,13 +270,14 @@ export default class SearchParams {
                             : undefined,
                 })
             );
-            // Only include the graph origin if we also have a provenance source file
-            if (urlComponents.provOriginId) {
-                params.append(
-                    URLQueryArgShorthands.PROVENANCE_ORIGIN_ID,
-                    urlComponents.provOriginId
-                );
-            }
+        }
+        // Only include the graph origin if we also have a provenance source file,
+        // either directly encoded or in the markdown file
+        if (
+            urlComponents.provOriginId &&
+            (urlComponents.provenanceSource || cachedSourcesFromDescription?.provenanceSource)
+        ) {
+            params.append(URLQueryArgShorthands.PROVENANCE_ORIGIN_ID, urlComponents.provOriginId);
         }
         if (urlComponents.sortColumn) {
             params.append("sort", JSON.stringify(urlComponents.sortColumn.toJSON()));
@@ -272,10 +322,17 @@ export default class SearchParams {
         const hierarchy = params.getAll("group");
         const unparsedSort = params.get("sort");
         const unparsedColumns = params.get(URLQueryArgShorthands.COLUMNS) || "";
+        const hasUserSelectedColumns =
+            params.get(URLQueryArgShorthands.HAS_USER_SELECTED_COLUMNS) === "true";
         const showNoValueGroupsString = params.get("showNulls");
         const fileView = (params.get(URLQueryArgShorthands.FILE_VIEW) as FileView) || FileView.LIST;
         const hierarchyDepth = hierarchy.length;
         const provenanceOriginId = params.get(URLQueryArgShorthands.PROVENANCE_ORIGIN_ID);
+
+        const parsedSources = unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource));
+        const mayHaveProvSource =
+            unparsedSourceProvenance ||
+            parsedSources.some((source) => isMarkdownType(source?.type));
 
         const parsedSort = unparsedSort ? JSON.parse(unparsedSort) : undefined;
         if (
@@ -289,6 +346,7 @@ export default class SearchParams {
             fileView,
             hierarchy,
             columns: ColumnCoder.decode(unparsedColumns),
+            hasUserSelectedColumns,
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))
                 .map(
@@ -306,9 +364,9 @@ export default class SearchParams {
             provenanceSource: unparsedSourceProvenance
                 ? JSON.parse(unparsedSourceProvenance)
                 : undefined,
-            // only include the graph origin if we also have a provenance source file
-            provOriginId:
-                provenanceOriginId && unparsedSourceProvenance ? provenanceOriginId : undefined,
+            // avoid lengthening query string: only include the graph origin if we also have
+            // a provenance source OR dataset description file that may contain a provenance source
+            provOriginId: provenanceOriginId && mayHaveProvSource ? provenanceOriginId : undefined,
             showNoValueGroups: showNoValueGroupsString ? JSON.parse(showNoValueGroupsString) : true,
             sortColumn: parsedSort
                 ? new FileSort(
@@ -316,7 +374,7 @@ export default class SearchParams {
                       parsedSort.order || SortOrder.ASC
                   )
                 : undefined,
-            sources: unparsedSources.map((unparsedSource) => JSON.parse(unparsedSource)),
+            sources: parsedSources,
             sourceMetadata: unparsedSourceMetadata ? JSON.parse(unparsedSourceMetadata) : undefined,
         };
     }

@@ -3,8 +3,9 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
+import { DataSourceType } from "../DataSourcePrompt";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
-import { Source } from "../../entity/SearchParams";
+import { isMarkdownType, Source } from "../../entity/SearchParams";
 import { interaction, metadata, selection } from "../../state";
 
 interface Props {
@@ -21,6 +22,43 @@ export default function QueryDataSource(props: Props) {
     const selectedQuery = useSelector(selection.selectors.getSelectedQuery);
     const dataSources = useSelector(metadata.selectors.getDataSources);
     const selectedDataSources = useSelector(selection.selectors.getSelectedDataSources);
+    const markdownSources = useSelector(selection.selectors.getDatasetSourcesFromMarkdown);
+    const datasetDescriptionSource = useSelector(selection.selectors.getDatasetDescriptionSource);
+    const { mainSources, columnDescriptionSource, provenanceSource } = React.useMemo(() => {
+        if (markdownSources) {
+            const mainSource = markdownSources?.dataSource;
+            const descriptionsSource = markdownSources?.descriptionsSource;
+            const provenanceSource = markdownSources?.provenanceSource;
+            return {
+                mainSources: mainSource
+                    ? // avoid displaying the main source twice, and don't include any markdown files
+                      [
+                          ...props.dataSources.filter(
+                              (source) =>
+                                  source.name !== mainSource?.name && !isMarkdownType(source.type)
+                          ),
+                          mainSource,
+                      ]
+                    : props.dataSources,
+                // Prioritize manually provided sources over ones parsed from markdown
+                columnDescriptionSource: props.sourceMetadata || descriptionsSource,
+                provenanceSource: props.sourceProvenance || provenanceSource,
+            };
+        } else {
+            return {
+                mainSources: props.dataSources,
+                columnDescriptionSource: props.sourceMetadata,
+                provenanceSource: props.sourceProvenance,
+            };
+        }
+    }, [markdownSources, props.dataSources, props.sourceMetadata, props.sourceProvenance]);
+
+    const onShowDatasetInfo = () => {
+        if (!datasetDescriptionSource) return undefined;
+        else {
+            // TO DO: dispatch action when we have the UI component
+        }
+    };
 
     return (
         <QueryPart
@@ -36,6 +74,7 @@ export default function QueryDataSource(props: Props) {
                           )
                     : undefined
             }
+            onShowDatasetInfo={datasetDescriptionSource ? onShowDatasetInfo : undefined}
             addMenuListItems={[
                 {
                     key: "ADD DATA SOURCE",
@@ -83,25 +122,69 @@ export default function QueryDataSource(props: Props) {
                         );
                     },
                 },
-            ]}
-            rows={[
-                ...props.dataSources.map((dataSource) => ({
-                    id: dataSource.name,
-                    title: dataSource.name,
-                })),
-                ...(props.sourceMetadata
+                ...(selectedDataSources.length > 0
                     ? [
                           {
-                              id: "sourceMetadata",
-                              title: `described by: ${props.sourceMetadata.name}`,
+                              key: "Optional descriptor file",
+                              text: "Optional descriptor file",
+                              iconProps: { iconName: "NewFolder" },
+                              title:
+                                  "Add a file that describes data source metadata or provenance relationships",
+                              subMenuProps: {
+                                  items: [
+                                      {
+                                          key: "Metadata descriptor source",
+                                          text: "Add metadata descriptor source",
+                                          onClick: () => {
+                                              dispatch(
+                                                  interaction.actions.promptForDataSource({
+                                                      query: selectedQuery,
+                                                      // Current metadata file, if there is one
+                                                      source: props.sourceMetadata,
+                                                      sourceType: DataSourceType.metadata,
+                                                  })
+                                              );
+                                          },
+                                      },
+                                      {
+                                          key: "Provenance descriptor source",
+                                          text: "Add provenance descriptor source",
+                                          onClick: () => {
+                                              dispatch(
+                                                  interaction.actions.promptForDataSource({
+                                                      query: selectedQuery,
+                                                      // Current provenance file, if there is one
+                                                      source: props.sourceProvenance,
+                                                      sourceType: DataSourceType.provenance,
+                                                  })
+                                              );
+                                          },
+                                      },
+                                  ],
+                              },
                           },
                       ]
                     : []),
-                ...(props.sourceProvenance
+            ]}
+            rows={[
+                ...mainSources.map((dataSource) => ({
+                    id: dataSource.name,
+                    title: dataSource.name,
+                    datasetDescriptionSource: datasetDescriptionSource?.name,
+                })),
+                ...(columnDescriptionSource
+                    ? [
+                          {
+                              id: "sourceMetadata",
+                              title: `described by: ${columnDescriptionSource.name}`,
+                          },
+                      ]
+                    : []),
+                ...(provenanceSource
                     ? [
                           {
                               id: "sourceProvenance",
-                              title: `provenance from: ${props.sourceProvenance.name}`,
+                              title: `provenance from: ${provenanceSource.name}`,
                           },
                       ]
                     : []),

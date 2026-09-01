@@ -8,6 +8,7 @@ import {
     CellFeatureExplorerBaseUrl,
     DatasetBucketUrl,
     FESBaseUrl,
+    JSSBaseUrl,
     LoadBalancerBaseUrl,
     MMSBaseUrl,
     TemporaryFileServiceBaseUrl,
@@ -32,9 +33,10 @@ import DatabaseAnnotationService from "../../services/AnnotationService/Database
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
-import PipelineService from "../../services/PipelineService";
 import S3StorageService from "../../services/S3StorageService";
+import PipelineService from "../../services/PipelineService";
 import Graph from "../../entity/Graph";
+import { isMarkdownType } from "../../entity/SearchParams";
 
 // BASIC SELECTORS
 export const getEnvironment = (state: State) => state.interaction.environment;
@@ -93,7 +95,12 @@ export const getLoadBalancerBaseUrl = createSelector(
 
 export const getPipelineService = createSelector(
     [getEnvironment],
-    (environment) => new PipelineService({ loadBalancerBaseUrl: LoadBalancerBaseUrl[environment] })
+    (environment) =>
+        new PipelineService({
+            loadBalancerBaseUrl: LoadBalancerBaseUrl[environment],
+            jssBaseUrl: JSSBaseUrl[environment],
+            metadataManagementServiceBaseURl: MMSBaseUrl[environment],
+        })
 );
 
 export const getMetadataManagementServiceBaseUrl = createSelector(
@@ -258,7 +265,10 @@ export const getAnnotationService = createSelector(
         if (dataSources.length && dataSources[0]?.name !== AICS_FMS_DATA_SOURCE_NAME) {
             return new DatabaseAnnotationService({
                 databaseService: platformDependentServices.databaseService,
-                dataSourceNames: dataSources.map((source) => source.name),
+                // Don't try to get annotations from markdown files
+                dataSourceNames: dataSources
+                    .filter((source) => !isMarkdownType(source.type))
+                    .map((source) => source.name),
                 metadataSource,
             });
         }

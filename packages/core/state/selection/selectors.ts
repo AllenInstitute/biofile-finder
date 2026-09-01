@@ -3,9 +3,13 @@ import { createSelector } from "reselect";
 
 import { State } from "../";
 import Annotation from "../../entity/Annotation";
-import SearchParams, { SearchParamsComponents, FileView } from "../../entity/SearchParams";
+import SearchParams, { SearchParamsComponents, FileView, Source } from "../../entity/SearchParams";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
-import { getAnnotations, getAnnotationNameToAnnotationMap } from "../metadata/selectors";
+import {
+    getAnnotations,
+    getEdgeDefinitions,
+    getAnnotationNameToAnnotationMap,
+} from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 
 // BASIC SELECTORS
@@ -18,6 +22,7 @@ export const getColumns = (state: State) => state.selection.columns;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getFileView = (state: State) => state.selection.fileView;
+export const getHasUserSelectedColumns = (state: State) => state.selection.hasUserSelectedColumns;
 export const getIsLoadingSource = (state: State) => state.selection.isLoadingDataSource;
 export const getLastTouchedFolder = (state: State) => state.selection.lastTouchedFolder;
 export const getOpenFileFolders = (state: State) => state.selection.openFileFolders;
@@ -25,6 +30,8 @@ export const getRecentAnnotations = (state: State) => state.selection.recentAnno
 export const getRequiresDataSourceReload = (state: State) =>
     state.selection.requiresDataSourceReload;
 export const getSelectedDataSources = (state: State) => state.selection.dataSources;
+export const getDatasetDescriptionSource = (state: State) =>
+    state.selection.datasetDescriptionSource;
 export const getSelectedSourceMetadata = (state: State) => state.selection.sourceMetadata;
 export const getSelectedSourceProvenance = (state: State) => state.selection.sourceProvenance;
 export const getProvenanceOriginId = (state: State) => state.selection.provenanceOriginId;
@@ -39,9 +46,11 @@ const getPlatformDependentServices = (state: State) => state.interaction.platfor
 // COMPOSED SELECTORS
 export const hasQuerySelected = createSelector([getSelectedQuery], (query): boolean => !!query);
 
+// If there are no edge definitions, i.e., it's an invalid provenance file,
+// the UI should treat it as if there is no provenance file
 export const hasProvenanceSource = createSelector(
-    [getSelectedSourceProvenance],
-    (source): boolean => !!source
+    [getSelectedSourceProvenance, getEdgeDefinitions],
+    (source, edgeDefinitions): boolean => !!source && edgeDefinitions.length > 0
 );
 
 export const getTotalColumnWidth = createSelector([getColumns], (columns): number =>
@@ -83,16 +92,28 @@ export const getColumnNames = createSelector([getColumns], (columns): string[] =
     columns.map((column) => column.name)
 );
 
+// reselect can only infer parameter types for up to 12 input selectors,
+// so the data sources and the dataset description source are combined here
+// to keep getCurrentQueryParts at that limit
+const getSourcesWithDescriptionSource = createSelector(
+    [getSelectedDataSources, getDatasetDescriptionSource],
+    (sources, dataDescriptionSource): Source[] => [
+        ...sources,
+        ...(dataDescriptionSource ? [dataDescriptionSource] : []),
+    ]
+);
+
 export const getCurrentQueryParts = createSelector(
     [
         getAnnotationHierarchy,
         getColumns,
         getFileFilters,
         getFileView,
+        getHasUserSelectedColumns,
         getOpenFileFolders,
         getShouldShowNullGroups,
         getSortColumn,
-        getSelectedDataSources,
+        getSourcesWithDescriptionSource,
         getSelectedSourceMetadata,
         getSelectedSourceProvenance,
         getProvenanceOriginId,
@@ -102,6 +123,7 @@ export const getCurrentQueryParts = createSelector(
         columns,
         filters,
         fileView,
+        hasUserSelectedColumns,
         openFolders,
         showNoValueGroups,
         sortColumn,
@@ -111,6 +133,7 @@ export const getCurrentQueryParts = createSelector(
         provOriginId
     ): SearchParamsComponents => ({
         columns,
+        hasUserSelectedColumns,
         hierarchy,
         fileView,
         filters,
@@ -124,8 +147,19 @@ export const getCurrentQueryParts = createSelector(
     })
 );
 
-export const getEncodedSearchParams = createSelector([getCurrentQueryParts], (queryParts): string =>
-    SearchParams.encode(queryParts)
+export const getDatasetSourcesFromMarkdown = createSelector(
+    [getPlatformDependentServices, getDatasetDescriptionSource],
+    ({ databaseService }, datasetDescriptionSource) => {
+        if (!datasetDescriptionSource) return undefined;
+        return databaseService.getDatasetDescriptionSources(datasetDescriptionSource);
+    }
+);
+
+export const getEncodedSearchParams = createSelector(
+    [getCurrentQueryParts, getDatasetSourcesFromMarkdown],
+    (queryParts, datasetSources): string => {
+        return SearchParams.encode(queryParts, datasetSources);
+    }
 );
 
 export const getLoadingNewQuery = createSelector([getQueries], (queries): boolean =>

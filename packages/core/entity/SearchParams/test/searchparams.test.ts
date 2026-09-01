@@ -15,15 +15,37 @@ describe("SearchParams", () => {
         type: "csv",
     };
 
+    const mockSourceUri = "fake-uri.test";
     const mockSourceWithUri: Source = {
         ...mockSource,
-        uri: "fake-uri.test",
+        uri: mockSourceUri,
+    };
+
+    const provenanceSourceUri = "prov-url.csv";
+    const mockProvenanceSource: Source = {
+        name: "Provenance source",
+        type: "csv",
+        uri: provenanceSourceUri,
+    };
+
+    const colDescrSourceUri = "metadata-url.csv";
+    const mockColumnDescriptorSource: Source = {
+        name: "Column description source",
+        type: "csv",
+        uri: colDescrSourceUri,
+    };
+
+    const markdownSourceUri = "dataset-descriptions.md";
+    const mockMarkdownSource: Source = {
+        name: "Dataset description markdown",
+        type: "md",
+        uri: markdownSourceUri,
     };
 
     const mockOS = "Darwin";
 
     describe("encode", () => {
-        it("Encodes hierarchy, filters, open folders, and collection", () => {
+        it("encodes hierarchy, filters, open folders, and collection", () => {
             // Arrange
             const expectedAnnotationNames = ["Cell Line", "Donor Plasmid", "Lifting?"];
             const expectedFilters = [
@@ -55,7 +77,7 @@ describe("SearchParams", () => {
             );
         });
 
-        it("Encodes filters with fuzzy, include, and exclude filters applied", () => {
+        it("encodes filters with fuzzy, include, and exclude filters applied", () => {
             // Arrange
             const expectedAnnotationNames = ["Cell Line", "Well.Dose.Solution.Name"];
             const expectedFilters = [
@@ -100,7 +122,7 @@ describe("SearchParams", () => {
             );
         });
 
-        it("Encodes empty state", () => {
+        it("encodes empty state", () => {
             // Arrange
             const components: SearchParamsComponents = {
                 columns: [],
@@ -142,6 +164,177 @@ describe("SearchParams", () => {
             expect(result).to.be.equal(
                 "source=%7B%22name%22%3A%22Fake+Collection%22%2C%22type%22%3A%22csv%22%2C%22uri%22%3A%22fake-uri.test%22%7D"
             );
+        });
+
+        it("encodes source URI is undefined (e.g., AICS FMS)", () => {
+            // Arrange
+            const mockSourceWithoutUri: Source = {
+                name: "datasource-without-uri",
+                type: "csv",
+            };
+            const components: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [
+                    mockSourceWithoutUri, // does not have a uri
+                    mockMarkdownSource, // risks overwriting source files
+                ],
+            };
+
+            // Act
+            const result = SearchParams.encode(components, {}); // No urls found in markdown
+
+            // Assert
+            // Should keep both sources since the markdown didn't contain any urls
+            expect(result).to.contain(mockSourceWithoutUri.name);
+            expect(result).to.contain(mockMarkdownSource.uri);
+        });
+
+        it("encodes only the markdown file if all other sources are already contained in the markdown", () => {
+            // Arrange
+            const componentsWithAllSources: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [mockSourceWithUri, mockMarkdownSource],
+                provenanceSource: mockProvenanceSource,
+                sourceMetadata: mockColumnDescriptorSource,
+            };
+            // Encoding SearchParams with only the md source should be functionally equivalent
+            const componentsWithoutSources: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [mockMarkdownSource],
+            };
+
+            // Act
+            const expected = SearchParams.encode(componentsWithoutSources);
+            const result = SearchParams.encode(componentsWithAllSources, {
+                dataSource: mockSourceWithUri,
+                provenanceSource: mockProvenanceSource,
+                descriptionsSource: mockColumnDescriptorSource,
+            });
+            expect(result).to.equal(expected);
+            expect(result).to.contain(markdownSourceUri);
+            expect(result).to.not.contain(mockSourceUri);
+            expect(result).to.not.contain(provenanceSourceUri);
+            expect(result).to.not.contain(colDescrSourceUri);
+        });
+
+        it("encodes provenances sources that are not already contained in the markdown", () => {
+            // Arrange
+            const componentsWithAllSources: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [mockSourceWithUri, mockMarkdownSource],
+                provenanceSource: mockProvenanceSource,
+                sourceMetadata: mockColumnDescriptorSource,
+            };
+            const componentsWithProvSource: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [mockMarkdownSource],
+                provenanceSource: mockProvenanceSource,
+            };
+
+            // Act
+            const expected = SearchParams.encode(componentsWithProvSource);
+            // The provenance url is not in the markdown map
+            const result = SearchParams.encode(componentsWithAllSources, {
+                dataSource: mockSourceWithUri,
+                descriptionsSource: mockColumnDescriptorSource,
+            });
+            expect(result).to.equal(expected);
+            expect(result).to.not.contain(mockSourceUri);
+            expect(result).to.not.contain(colDescrSourceUri);
+            expect(result).to.contain(provenanceSourceUri);
+            expect(result).to.contain(markdownSourceUri);
+        });
+
+        it("encodes column descriptor sources that are not already contained in the markdown", () => {
+            // Arrange
+            const componentsWithAllSources: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [mockSourceWithUri, mockMarkdownSource],
+                provenanceSource: mockProvenanceSource,
+                sourceMetadata: mockColumnDescriptorSource,
+            };
+            const componentsWithColDescrSource: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [mockMarkdownSource],
+                sourceMetadata: mockColumnDescriptorSource,
+            };
+
+            // Act
+            const expected = SearchParams.encode(componentsWithColDescrSource);
+            // The column descriptor url is not in the markdown map
+            const result = SearchParams.encode(componentsWithAllSources, {
+                dataSource: mockSourceWithUri,
+                provenanceSource: mockProvenanceSource,
+            });
+            expect(result).to.equal(expected);
+            expect(result).to.not.contain(mockSourceUri);
+            expect(result).to.not.contain(provenanceSourceUri);
+            expect(result).to.contain(colDescrSourceUri);
+            expect(result).to.contain(markdownSourceUri);
+        });
+
+        it("overrides the markdown if the manually-provided uris don't match", () => {
+            // Arrange
+            const componentsWithAllSources: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [mockSourceWithUri, mockMarkdownSource],
+                provenanceSource: mockProvenanceSource,
+                sourceMetadata: mockColumnDescriptorSource,
+            };
+
+            const componentsWithProvidedMetadataSource: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                sources: [mockMarkdownSource],
+                sourceMetadata: mockColumnDescriptorSource,
+            };
+
+            // Act
+            const expected = SearchParams.encode(componentsWithProvidedMetadataSource);
+            // The manually provided column description url does not match what was in the markdown
+            const result = SearchParams.encode(componentsWithAllSources, {
+                dataSource: mockSourceWithUri,
+                provenanceSource: mockProvenanceSource,
+                descriptionsSource: { name: "A different source", uri: "non-matching-uri" },
+            });
+            expect(result).to.equal(expected);
+            expect(result).to.not.contain("non-matching-uri");
+            expect(result).to.contain(colDescrSourceUri);
         });
     });
 
@@ -204,6 +397,7 @@ describe("SearchParams", () => {
                         (includeFilter) => new IncludeFilter(includeFilter.annotationName)
                     ),
                 ],
+                hasUserSelectedColumns: false,
                 openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
                 showNoValueGroups: false,
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
@@ -227,6 +421,7 @@ describe("SearchParams", () => {
             const components: SearchParamsComponents = {
                 columns: [],
                 fileView: FileView.LIST,
+                hasUserSelectedColumns: false,
                 hierarchy: [],
                 filters: [],
                 openFolders: [],
@@ -244,6 +439,55 @@ describe("SearchParams", () => {
 
             // Assert
             expect(result).to.deep.equal(components);
+        });
+
+        it("Round-trips every column when the columns are the user's selection", () => {
+            // Arrange
+            const columns = [
+                { name: "Cell Line", width: 100 },
+                { name: "Cas9", width: 150 },
+                { name: "Donor Plasmid", width: 200 },
+                { name: "Gene", width: 250 },
+                { name: "Plate Barcode", width: 300 },
+                { name: "Balls?", width: 350 },
+                { name: "Lifting?", width: 400 },
+            ];
+            const components: SearchParamsComponents = {
+                ...EMPTY_QUERY_COMPONENTS,
+                columns,
+                hasUserSelectedColumns: true,
+            };
+
+            // Act
+            const result = SearchParams.decode(SearchParams.encode(components));
+
+            // Assert
+            expect(result.hasUserSelectedColumns).to.be.true;
+            expect(result.columns).to.deep.equal(columns);
+        });
+
+        it("Truncates columns when displaying every available annotation", () => {
+            // Arrange
+            const columns = [
+                { name: "Cell Line", width: 100 },
+                { name: "Cas9", width: 150 },
+                { name: "Donor Plasmid", width: 200 },
+                { name: "Gene", width: 250 },
+                { name: "Plate Barcode", width: 300 },
+                { name: "Balls?", width: 350 },
+                { name: "Lifting?", width: 400 },
+            ];
+            const components: SearchParamsComponents = {
+                ...EMPTY_QUERY_COMPONENTS,
+                columns,
+            };
+
+            // Act
+            const result = SearchParams.decode(SearchParams.encode(components));
+
+            // Assert
+            expect(result.hasUserSelectedColumns).to.be.false;
+            expect(result.columns).to.deep.equal(columns.slice(0, 6));
         });
 
         it("Removes folders that are too deep for hierachy", () => {
@@ -289,6 +533,81 @@ describe("SearchParams", () => {
 
             // Act / Assert
             expect(() => SearchParams.decode(encodedUrl)).to.throw();
+        });
+
+        it("encodes the provenance ID if there is a provenance source", () => {
+            // Arrange
+            const componentsWithProvID: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                showNoValueGroups: false,
+                sortColumn: undefined,
+                sourceMetadata: undefined,
+                provenanceSource: mockProvenanceSource,
+                provOriginId: "test-id",
+                sources: [],
+            };
+            const encodedUrl = SearchParams.encode(componentsWithProvID);
+
+            // Act
+            const result = SearchParams.decode(encodedUrl);
+
+            // Assert
+            expect(result.provOriginId).to.equal(componentsWithProvID.provOriginId);
+        });
+
+        // The markdown may or may not include a provenance url, but we keep the ID just in case
+        it("encodes the provenance ID if there is a markdown source", () => {
+            // Arrange
+            const componentsWithProvID: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                showNoValueGroups: false,
+                sortColumn: undefined,
+                sourceMetadata: undefined,
+                provenanceSource: undefined,
+                provOriginId: "test",
+                sources: [mockMarkdownSource],
+            };
+            const encodedUrl = SearchParams.encode(componentsWithProvID, {
+                provenanceSource: { name: "Prov source", uri: "test.csv" },
+            });
+
+            // Act
+            const result = SearchParams.decode(encodedUrl);
+
+            // Assert
+            expect(result.provOriginId).to.equal(componentsWithProvID.provOriginId);
+        });
+
+        it("drops the provenance ID if there is no possibility of a provenance source", () => {
+            // Arrange
+            const componentsWithProvID: SearchParamsComponents = {
+                columns: [],
+                fileView: FileView.LIST,
+                hierarchy: [],
+                filters: [],
+                openFolders: [],
+                showNoValueGroups: false,
+                sortColumn: undefined,
+                sourceMetadata: undefined,
+                provenanceSource: undefined,
+                provOriginId: "test",
+                sources: [mockSourceWithUri],
+            };
+            const encodedUrl = SearchParams.encode(componentsWithProvID);
+
+            // Act
+            const result = SearchParams.decode(encodedUrl);
+
+            // Assert
+            expect(result.provOriginId).to.be.undefined;
         });
     });
 
