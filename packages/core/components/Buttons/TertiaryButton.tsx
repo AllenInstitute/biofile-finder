@@ -18,8 +18,6 @@ interface Props {
     onClick?: () => void;
     invertColor?: boolean;
     text?: string;
-    // Shows a tooltip and sets the accessible name. Use `ariaLabel` instead to
-    // name an icon-only button without a tooltip.
     title?: string;
 }
 
