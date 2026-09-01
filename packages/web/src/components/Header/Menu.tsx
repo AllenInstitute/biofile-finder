@@ -22,7 +22,7 @@ export default function Menu() {
         items: helpMenuOptions,
         directionalHint: DirectionalHint.bottomAutoEdge,
     });
-    // Submenu for the mobile menu's "Launch app" item, styled like the Help submenu.
+    // Submenu for the mobile menu's "Launch app" item, styled like the Help submenu useButtonMenu-module__button-menu-callout--nxC5k.
     const launchMenu = useButtonMenu({
         items: LAUNCH_APP_MENU_ITEMS,
         directionalHint: DirectionalHint.bottomAutoEdge,
