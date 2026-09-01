@@ -9,21 +9,10 @@ import GroupFilterGraphic from "../../../assets/home_group_filter_graphic.png";
 import HowBFFWorksGraphic from "../../../assets/home_how_BFF_works_graphic.png";
 import PeopleShareGraphic from "../../../assets/home_people_share_graphic.svg";
 import ThumbnailsGraphic from "../../../assets/home_thumbnails_graphic.svg";
-import { EXAMPLE_DATASET_URL } from "../../constants";
+import { WEB_LINKS } from "../../constants";
 
 /** Route/URL targets used across the page. */
-export const LINKS = {
-    app: "/app",
-    datasets: "/datasets",
-    tryNow: EXAMPLE_DATASET_URL,
-    userGuide: "/user-guide",
-    userGuideSetupOverview: "/user-guide/getting-started/setup-overview",
-    userGuideUseCases: "/user-guide/real-world-use-cases/use-cases",
-    publication: "https://www.nature.com/articles/s41592-026-03130-w",
-    supportForum: "https://github.com/AllenInstitute/biofile-finder/discussions/categories/q-a",
-    github: "https://github.com/AllenInstitute/biofile-finder",
-    email: "mailto:aics_software_support@alleninstitute.org",
-};
+export const LINKS = WEB_LINKS;
 
 /**
  * A card whose heading leads with an emphasized (accent-colored) phrase
