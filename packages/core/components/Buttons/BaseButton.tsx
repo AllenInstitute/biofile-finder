@@ -8,29 +8,19 @@ import Tooltip from "../Tooltip";
 import styles from "./BaseButton.module.css";
 
 interface Props {
-    // Accessible name when no tooltip is wanted. `title` also sets the
-    // accessible name but additionally shows a tooltip; use `ariaLabel` to
-    // name the button (e.g. an icon-only button) without a tooltip.
     ariaLabel?: string;
     className?: string;
     disabled?: boolean;
     iconName?: string;
-    // Which side of the text the icon sits on. Defaults to "before" (the icon
-    // leads the text), preserving existing call sites.
     iconPosition?: "before" | "after";
     id?: string;
     isSelected?: boolean;
     menuDirection?: DirectionalHint;
-    // Optional Fluent icon name for the trailing menu chevron. When omitted the
-    // chevron stays hidden (the app's default), preserving existing call sites.
     menuIconName?: string;
     menuItems?: IContextualMenuItem[];
     onClick?: () => void;
     text?: string;
-    // title is only required if tooltip would be different from button text
-    // or if button does not have text (e.g., icon only)
     title?: string;
-    // default to all-caps except for link-like buttons
     useSentenceCase?: boolean;
 }
 
