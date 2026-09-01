@@ -29,6 +29,7 @@ export default function QueryDataSource(props: Props) {
     const datasetDescriptionSource = useSelector(selection.selectors.getDatasetDescriptionSource);
     const { mainSources, columnDescriptionSource, provenanceSource } = React.useMemo(() => {
         // To do: Allow sources/metadata to come from multiple markdown files in one query
+        // See https://github.com/AllenInstitute/biofile-finder/issues/922
         if (markdownSources) {
             const mainSource = markdownSources?.dataSource;
             const descriptionsSource = markdownSources?.descriptionsSource;
@@ -173,6 +174,7 @@ export default function QueryDataSource(props: Props) {
                 ...mainSources.map((dataSource) => {
                     // To do: with multiple markdown files & multiple sources within one markdown,
                     // will need to map the file to the correct md source
+                    // See https://github.com/AllenInstitute/biofile-finder/issues/922
                     const isFromMarkdown =
                         !!datasetDescriptionSource &&
                         markdownSources?.dataSource?.name === dataSource.name;
