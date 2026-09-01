@@ -23,12 +23,21 @@ export default class S3StorageService extends HttpServiceBase {
      * Given a parsed URL return a simple HTTP URL pointing to a file
      */
     private static formatAsHttpResource(parsedUrl: ParsedUrl) {
-        const bucketSimplified = parsedUrl.bucket.length > 0 ? `${parsedUrl.bucket}/` : "";
         // Encode each segment of the key separately
         const encodedKey = parsedUrl.key
             .split("/")
             .map((segment) => encodeURIComponent(segment))
             .join("/");
+
+        // Virtual-hosted style: https://bucket.s3.Region.amazonaws.com/key
+        if (parsedUrl.bucket.length > 0 && !parsedUrl.bucket.includes(".")) {
+            const virtualUrl = `https://${parsedUrl.bucket}.${parsedUrl.hostname}/${encodedKey}`;
+            // TODO: Do simple head request to see if this is valid, otherwise fall back to path-style
+            return virtualUrl;
+        }
+
+        // vs. Path-style: https://s3.Region.amazonaws.com/bucket/key
+        const bucketSimplified = parsedUrl.bucket.length > 0 ? `${parsedUrl.bucket}/` : "";
         return `https://${parsedUrl.hostname}/${bucketSimplified}${encodedKey}`;
     }
 
