@@ -187,7 +187,7 @@ export default class SQLBuilder {
         // Keep lambda variable names deterministic so generated SQL strings remain stable in tests.
         const lambdaVars = ["x", "y", "z", "w", "v", "u", "t", "s"];
         let nextLambdaVarIdx = 0;
-        let flattenLayers = 0;
+        let transformLayers = 0;
         const rootColumnExpr = `"${path[0]}"`;
         const isRootArray = pathIsArray[0];
 
@@ -202,6 +202,7 @@ export default class SQLBuilder {
                 // Root column: either list_transform("Root", var -> ...) for STRUCT[]
                 // or plain dot access for a scalar root struct.
                 if (isRootArray) {
+                    transformLayers++;
                     const lambdaVar = nextLambdaVar();
                     const innerExpr = buildFrom(1, lambdaVar);
                     return `list_transform(${rootColumnExpr}, ${lambdaVar} -> ${innerExpr})`;
@@ -215,10 +216,10 @@ export default class SQLBuilder {
                 return leafTransform(segmentExpr);
             }
 
-            // Intermediate array segment: add another transform layer and remember to
-            // flatten once after the recursive expression is built.
+            // Intermediate array segment: add another transform layer, which adds one more
+            // list level to unwrap once the recursive expression is built.
             if (pathIsArray[pathIndex]) {
-                flattenLayers++;
+                transformLayers++;
                 const lambdaVar = nextLambdaVar();
                 const innerExpr = buildFrom(pathIndex + 1, lambdaVar);
                 return `list_transform(${segmentExpr}, ${lambdaVar} -> ${innerExpr})`;
@@ -230,8 +231,8 @@ export default class SQLBuilder {
 
         let expr = buildFrom(0, "");
 
-        // Each intermediate array boundary adds one nested list layer to flatten.
-        for (let i = 0; i < flattenLayers; i++) {
+        // Each list_transform wraps the result in one more list layer.
+        for (let i = 1; i < transformLayers; i++) {
             expr = `flatten(${expr})`;
         }
 

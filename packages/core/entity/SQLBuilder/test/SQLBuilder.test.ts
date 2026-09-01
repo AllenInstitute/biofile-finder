@@ -21,6 +21,15 @@ describe("SQLBuilder", () => {
             );
         });
 
+        it("does not flatten when a scalar root has a single array segment", () => {
+            expect(
+                SQLBuilder.buildNestedAccessExpression(
+                    ["Conditions", "Reagents", "Concentration"],
+                    [false, true, false]
+                )
+            ).to.equal(`list_transform("Conditions"."Reagents", x -> x."Concentration")`);
+        });
+
         // Rare case: a singular (non-array) struct at the root collapses to plain dot access.
         it("uses plain dot access when the root segment is a scalar struct", () => {
             expect(SQLBuilder.buildNestedAccessExpression(["Well", "Unit"], [false])).to.equal(
