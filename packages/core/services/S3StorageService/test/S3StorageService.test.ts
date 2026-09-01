@@ -14,23 +14,24 @@ describe("S3StorageService", () => {
                 expected: "https://s3.region.amazonaws.com/some-bucket.org/testfile",
             },
             {
+                // Path style
                 url: "https://s3.region.amazonaws.com/some-bucket/key/with/multiple/parts",
-                expected: "https://s3.region.amazonaws.com/some-bucket/key/with/multiple/parts",
+                expected: "https://some-bucket.s3.region.amazonaws.com/key/with/multiple/parts",
             },
             {
                 // Virtually-hosted style
                 url: "https://some-bucket.s3-aws-region.amazonaws.com/testfile",
-                expected: "https://s3-aws-region.amazonaws.com/some-bucket/testfile",
+                expected: "https://some-bucket.s3-aws-region.amazonaws.com/testfile",
             },
             {
                 // S3 protocol
                 url: "s3://some-bucket/path/to/testfile",
-                expected: "https://s3.amazonaws.com/some-bucket/path/to/testfile",
+                expected: "https://some-bucket.s3.amazonaws.com/path/to/testfile",
             },
             {
                 url: "https://s3.region.amazonaws.com/some-bucket/path with spaces/a#b?c.txt",
                 expected:
-                    "https://s3.region.amazonaws.com/some-bucket/path%20with%20spaces/a%23b%3Fc.txt",
+                    "https://some-bucket.s3.region.amazonaws.com/path%20with%20spaces/a%23b%3Fc.txt",
             },
         ];
 
@@ -52,7 +53,7 @@ describe("S3StorageService", () => {
 
             // Assert
             expect(reformattedUrl).to.equal(
-                "https://s3.us-west-2.amazonaws.com/animatedcell-test-data/variance/10005.zarr"
+                "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/10005.zarr"
             );
         });
     });
