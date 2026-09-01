@@ -60,7 +60,7 @@ export const WHY_CARDS: AccentCard[] = [
         accent: "Reduce time",
         heading: "to find the right files",
         body:
-            "Search, filter, and browse large, distributed datasets using the metadata you already maintain—without digging through folders or filenames.",
+            "Search, filter, and browse large, distributed datasets using the metadata you already maintain without digging through folders or filenames.",
         image: { src: ClockGraphic, alt: "Clock icon", icon: true },
     },
     {
@@ -74,7 +74,7 @@ export const WHY_CARDS: AccentCard[] = [
         accent: "Dynamically organize",
         heading: "and curate datasets",
         body:
-            "Filter, group, and restructure collections using hierarchical views—without modifying underlying metadata or breaking existing reference.",
+            "Filter, group, and restructure collections using hierarchical views without modifying underlying metadata or breaking existing reference.",
         image: {
             src: GroupFilterGraphic,
             alt: "Group-by and filter controls in the BioFile Finder interface",
