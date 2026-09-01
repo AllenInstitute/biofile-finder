@@ -78,8 +78,7 @@ export default function BaseButton(props: Props) {
                 id={props.id}
                 menuIconProps={
                     props.menuIconName
-                        ? // Match the weight/styling of the button's leading/trailing icons.
-                          { iconName: props.menuIconName, className: styles.buttonIcon }
+                        ? { iconName: props.menuIconName, className: styles.buttonIcon }
                         : { className: styles.hidden }
                 }
                 menuProps={styledMenu}
