@@ -34,23 +34,23 @@ export default function BaseButton(props: Props) {
         directionalHint: props.menuDirection,
     });
 
-    const iconAfter = props.iconPosition === "after";
+    const isIconAfter = props.iconPosition === "after";
     const icon = props.iconName && (
         <Icon
             className={classNames(styles.buttonIcon, {
-                [styles.padRight]: !!props.text && !iconAfter,
-                [styles.padLeft]: !!props.text && iconAfter,
+                [styles.padRight]: !!props.text && !isIconAfter,
+                [styles.padLeft]: !!props.text && isIconAfter,
             })}
             iconName={props.iconName}
         />
     );
     const content = (
         <span className={styles.buttonContent}>
-            {!iconAfter && icon}
+            {!isIconAfter && icon}
             <span className={styles.buttonText}>
                 {props?.useSentenceCase ? props.text : props.text?.toUpperCase()}
             </span>
-            {iconAfter && icon}
+            {isIconAfter && icon}
         </span>
     );
 
