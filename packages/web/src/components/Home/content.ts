@@ -19,7 +19,6 @@ export const LINKS = {
     userGuide: "/user-guide",
     userGuideSetupOverview: "/user-guide/getting-started/setup-overview",
     userGuideUseCases: "/user-guide/real-world-use-cases/use-cases",
-    // External resources (open in a new tab).
     publication: "https://www.nature.com/articles/s41592-026-03130-w",
     supportForum: "https://github.com/AllenInstitute/biofile-finder/discussions/categories/q-a",
     github: "https://github.com/AllenInstitute/biofile-finder",
