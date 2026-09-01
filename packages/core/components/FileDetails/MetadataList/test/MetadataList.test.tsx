@@ -144,6 +144,58 @@ describe("<MetadataList />", () => {
             );
         });
 
+        it("does not report a missing annotation while annotations are loading", () => {
+            // Arrange
+            const fileWithUnknownField = () =>
+                new FileDetail(
+                    {
+                        file_path: "path/to/MyFile.txt",
+                        file_id: "abc123",
+                        file_name: "MyFile.txt",
+                        file_size: 7,
+                        uploaded: "01/01/01",
+                        annotations: [{ name: "Unknown Field", values: ["some value"] }],
+                    },
+                    Environment.TEST
+                );
+
+            function renderWith(annotations: Annotation[]) {
+                const { store, actions } = configureMockStore({
+                    state: mergeState(initialState, {
+                        metadata: {
+                            annotations,
+                        },
+                        interaction: {
+                            platformDependentServices: {
+                                executionEnvService: new ExecutionEnvServiceNoop(),
+                            },
+                        },
+                    }),
+                });
+                render(
+                    <Provider store={store}>
+                        <MetadataList isLoading={false} file={fileWithUnknownField()} />
+                    </Provider>
+                );
+                return actions;
+            }
+
+            const isMissingMetadataError = (action: any) =>
+                JSON.stringify(action?.payload ?? "").includes(
+                    "Unable to find column metadata for field"
+                );
+
+            // (sanity-check) check if error is present first
+            let actions = renderWith(TOP_LEVEL_FILE_ANNOTATIONS);
+            expect(actions.list.filter(isMissingMetadataError)).to.not.be.empty;
+
+            // Act
+            actions = renderWith([]);
+
+            // Assert
+            expect(actions.list.filter(isMissingMetadataError)).to.be.empty;
+        });
+
         it("has loading message when file is downloading", async () => {
             // Arrange
             class FakeExecutionEnvService extends ExecutionEnvServiceNoop {
