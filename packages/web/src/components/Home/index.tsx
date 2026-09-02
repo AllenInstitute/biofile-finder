@@ -12,8 +12,7 @@ import Modal from "../../../../core/components/Modal";
 
 /**
  * Public-facing splash page. This is static marketing content with no data
- * fetching, so there are no loading/empty/error states to model here; the
- * `PlaceholderImage` component represents assets that are not yet available.
+ * fetching, so there are no loading/empty/error states to model here.
  * Each section is its own component, composed top-to-bottom in design order.
  */
 export default function Home() {
