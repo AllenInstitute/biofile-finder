@@ -20,9 +20,7 @@ export const LINKS = WEB_LINKS;
  * Used by the "Why" and "How it works" grids.
  */
 export interface AccentCard {
-    /** Emphasized lead-in phrase, rendered in the accent color. */
     accent: string;
-    /** Remainder of the heading, rendered inline after the accent phrase. */
     heading: string;
     body: string;
     /**
