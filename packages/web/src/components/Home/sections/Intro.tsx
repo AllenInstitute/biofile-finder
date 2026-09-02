@@ -2,13 +2,12 @@ import classNames from "classnames";
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import { SecondaryButton } from "../../../../../core/components/Buttons";
-import { APPLICATION_NAME } from "../../../constants";
-import SiteLogo from "../../../../assets/site-logo.png";
 import Section from "../Section";
 import { LINKS } from "../content";
-
 import styles from "../Home.module.css";
+import { APPLICATION_NAME } from "../../../constants";
+import SiteLogo from "../../../../assets/site-logo.png";
+import { SecondaryButton } from "../../../../../core/components/Buttons";
 
 /** Brief lead-in band beneath the hero: brand mark, blurb, and the primary
  *  user-guide and publication CTAs. */

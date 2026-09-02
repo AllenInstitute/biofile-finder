@@ -4,7 +4,6 @@ import * as React from "react";
 import InfoCard from "../InfoCard";
 import Section from "../Section";
 import { HOW_CARDS, HOW_GRAPHIC, HOW_SUBTITLE } from "../content";
-
 import styles from "../Home.module.css";
 
 /** "How does BioFile Finder work?" — explanatory cards plus a flow diagram. */

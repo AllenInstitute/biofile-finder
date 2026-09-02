@@ -4,7 +4,6 @@ import * as React from "react";
 import InfoCard from "../InfoCard";
 import Section from "../Section";
 import { WHY_CARDS } from "../content";
-
 import styles from "../Home.module.css";
 
 /** "Why BioFile Finder?" — a 2x2 grid of value-proposition cards. */

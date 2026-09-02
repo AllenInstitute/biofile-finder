@@ -1,6 +1,5 @@
 import * as React from "react";
 
-import Modal from "../../../../core/components/Modal";
 import EngageWithUs from "./sections/EngageWithUs";
 import GetStarted from "./sections/GetStarted";
 import Hero from "./sections/Hero";
@@ -8,8 +7,8 @@ import HowItWorks from "./sections/HowItWorks";
 import Intro from "./sections/Intro";
 import WhatNext from "./sections/WhatNext";
 import WhyBioFileFinder from "./sections/WhyBioFileFinder";
-
 import styles from "./Home.module.css";
+import Modal from "../../../../core/components/Modal";
 
 /**
  * Public-facing splash page. This is static marketing content with no data
