@@ -106,7 +106,7 @@ export { default as HOW_GRAPHIC } from "../../../assets/home_how_BFF_works_graph
 export interface ActionCard {
     title: string;
     body: string;
-    cta: { text: string; href: string; external?: boolean };
+    cta: { text: string; href: string };
 }
 
 export const NEXT_CARDS: ActionCard[] = [

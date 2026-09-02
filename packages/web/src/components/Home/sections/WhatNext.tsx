@@ -11,7 +11,12 @@ import { SecondaryButton } from "../../../../../core/components/Buttons";
 /** Renders an action card's CTA as an internal Link or external anchor. */
 function CardAction(cta: ActionCard["cta"]) {
     const button = <SecondaryButton className={styles.ctaButton} text={cta.text} />;
-    if (cta.external) {
+    const isExternal =
+        cta.href.startsWith("http://") ||
+        cta.href.startsWith("https://") ||
+        cta.href.startsWith("mailto:");
+
+    if (isExternal) {
         return (
             <a
                 href={cta.href}
