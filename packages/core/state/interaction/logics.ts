@@ -723,6 +723,7 @@ const refresh = createLogic({
         try {
             const { getState } = deps;
             const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
+            const sources = selection.selectors.getSelectedDataSources(getState());
             const annotationService = interactionSelectors.getAnnotationService(getState());
 
             // Refresh list of annotations & which annotations are available
@@ -730,6 +731,8 @@ const refresh = createLogic({
                 annotationService.fetchAnnotations(),
                 annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy),
             ]);
+            // A late response would overwrite the newer source's schema with this one's.
+            if (selection.selectors.getSelectedDataSources(getState()) !== sources) return;
             dispatch(metadata.actions.receiveAnnotations(annotations));
             dispatch(selection.actions.setAvailableAnnotations(availableAnnotations) as AnyAction);
         } catch (err) {
