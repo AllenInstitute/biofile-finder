@@ -1,9 +1,10 @@
 import * as React from "react";
 
 import { LINKS } from "../content";
-import styles from "../Home.module.css";
 import { APPLICATION_NAME } from "../../../constants";
 import { PrimaryButton } from "../../../../../core/components/Buttons";
+
+import styles from "./Hero.module.css";
 
 /**
  * Full-bleed hero banner with the page's single H1, tagline, and primary
