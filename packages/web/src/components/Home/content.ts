@@ -7,7 +7,6 @@ import * as React from "react";
 import { WEB_LINKS } from "../../constants";
 import ClockGraphic from "../../../assets/home_clock_graphic.svg";
 import GroupFilterGraphic from "../../../assets/home_group_filter_graphic.png";
-import HowBFFWorksGraphic from "../../../assets/home_how_BFF_works_graphic.png";
 import PeopleShareGraphic from "../../../assets/home_people_share_graphic.svg";
 import ThumbnailsGraphic from "../../../assets/home_thumbnails_graphic.svg";
 
@@ -98,7 +97,7 @@ export const HOW_CARDS: AccentCard[] = [
 ];
 
 /** Flow diagram rendered at the bottom of the How It Works section. */
-export const HOW_GRAPHIC = HowBFFWorksGraphic;
+export { default as HOW_GRAPHIC } from "../../../assets/home_how_BFF_works_graphic.png";
 
 // ---------------------------------------------------------------------------
 // What Would You Like to Do Next?
