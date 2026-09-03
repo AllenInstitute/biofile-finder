@@ -722,11 +722,12 @@ const refresh = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const { getState } = deps;
         const sources = selection.selectors.getSelectedDataSources(getState());
-        const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
-        const annotationService = interactionSelectors.getAnnotationService(getState());
         const isStale = () => selection.selectors.getSelectedDataSources(getState()) !== sources;
 
         try {
+            const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
+            const annotationService = interactionSelectors.getAnnotationService(getState());
+
             // Refresh list of annotations & which annotations are available
             const [annotations, availableAnnotations] = await Promise.all([
                 annotationService.fetchAnnotations(),
