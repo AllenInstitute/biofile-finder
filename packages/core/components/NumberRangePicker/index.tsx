@@ -39,16 +39,10 @@ interface NumberRangePickerProps {
 export default function NumberRangePicker(props: NumberRangePickerProps) {
     const { errorMessage, items, loading, onSearch, currentRange, units } = props;
 
-    const overallMin = React.useMemo(() => {
-        return items[0]?.value?.toString() ?? "";
-    }, [items]);
-    const overallMax = React.useMemo(() => {
-        return items.at(-1)?.value?.toString() ?? "";
-    }, [items]);
+    const overallMin = items[0]?.value?.toString() ?? "";
+    const overallMax = items.at(-1)?.value?.toString() ?? "";
     // On component load, default to slightly more than max so that values aren't excluded
-    const defaultMax = React.useMemo(() => {
-        return overallMax ? (Number(overallMax) + 1).toString() : "";
-    }, [overallMax]);
+    const defaultMax = overallMax ? (Number(overallMax) + 1).toString() : "";
     const overallMinDisplay = items[0]?.displayValue?.toString() ?? overallMin;
     const overallMaxDisplay = items.at(-1)?.displayValue?.toString() ?? overallMax;
 
