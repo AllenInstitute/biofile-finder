@@ -77,7 +77,14 @@ export enum MMSBaseUrl {
     TEST = "http://test-aics-mms-api.corp.alleninstitute.org",
 }
 
-export enum LoadBalancerBaseUrl {
+export enum FileStorageServiceBaseUrl {
+    LOCALHOST = "http://localhost:8080",
+    STAGING = "https://stg-aics.corp.alleninstitute.org",
+    PRODUCTION = "https://aics.corp.alleninstitute.org",
+    TEST = "http://test-aics.corp.alleninstitute.org",
+}
+
+export enum LabKeyBaseUrl {
     LOCALHOST = "http://localhost:8080",
     STAGING = "https://stg-aics.corp.alleninstitute.org",
     PRODUCTION = "https://aics.corp.alleninstitute.org",

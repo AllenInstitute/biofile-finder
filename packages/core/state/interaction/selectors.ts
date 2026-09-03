@@ -8,8 +8,9 @@ import {
     CellFeatureExplorerBaseUrl,
     DatasetBucketUrl,
     FESBaseUrl,
+    FileStorageServiceBaseUrl,
     JSSBaseUrl,
-    LoadBalancerBaseUrl,
+    LabKeyBaseUrl,
     MMSBaseUrl,
     TemporaryFileServiceBaseUrl,
     VolEBaseUrl,
@@ -88,16 +89,20 @@ export const getDatasetBucketUrl = createSelector(
     (environment) => DatasetBucketUrl[environment]
 );
 
-export const getLoadBalancerBaseUrl = createSelector(
+export const getFileStorageServiceBaseUrl = createSelector(
     [getEnvironment],
-    (environment) => LoadBalancerBaseUrl[environment]
+    (environment) => FileStorageServiceBaseUrl[environment]
+);
+
+export const getLabKeyBaseUrl = createSelector(
+    [getEnvironment],
+    (environment) => LabKeyBaseUrl[environment]
 );
 
 export const getPipelineService = createSelector(
     [getEnvironment],
     (environment) =>
         new PipelineService({
-            loadBalancerBaseUrl: LoadBalancerBaseUrl[environment],
             jssBaseUrl: JSSBaseUrl[environment],
             metadataManagementServiceBaseURl: MMSBaseUrl[environment],
         })
@@ -182,7 +187,7 @@ export const getHttpFileService = createSelector(
     [
         getApplicationVersion,
         getFileExplorerServiceBaseUrl,
-        getLoadBalancerBaseUrl,
+        getFileStorageServiceBaseUrl,
         getMetadataManagementServiceBaseUrl,
         getUserName,
         getPlatformDependentServices,
@@ -191,7 +196,7 @@ export const getHttpFileService = createSelector(
     (
         applicationVersion,
         fileExplorerServiceBaseUrl,
-        loadBalancerBaseUrl,
+        fileStorageServiceBaseUrl,
         metadataManagementServiceBaseURL,
         userName,
         platformDependentServices
@@ -200,7 +205,7 @@ export const getHttpFileService = createSelector(
             userName,
             applicationVersion,
             fileExplorerServiceBaseUrl,
-            loadBalancerBaseUrl,
+            fileStorageServiceBaseUrl,
             metadataManagementServiceBaseURl: metadataManagementServiceBaseURL,
             downloadService: platformDependentServices.fileDownloadService,
         })
