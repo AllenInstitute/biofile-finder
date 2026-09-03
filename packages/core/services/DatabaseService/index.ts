@@ -2,7 +2,7 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
 import { isEmpty, isNil, mapKeys, mapValues, uniq, uniqBy } from "lodash";
 
-import DeltaLakeService from "../DeltaLakeService";
+import DeltaLakeService, { DeltaAction } from "../DeltaLakeService";
 import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
@@ -75,8 +75,12 @@ const SOURCE_FILE_COLUMN = "bff_source_file";
 // "foo-bff-filehandle.parquet"). A proper fix requires an upstream change in
 // duckdb-wasm to use exact-match lookups for registered file handles.
 const FILE_HANDLE_SUFFIX = "-bff-filehandle";
-function fileHandleName(name: string): string {
-    return name + FILE_HANDLE_SUFFIX;
+function fileHandleName(name: string, index?: number): string {
+    return (
+        name +
+        FILE_HANDLE_SUFFIX +
+        (index !== undefined ? `-${String(index).padStart(8, "0")}` : "")
+    );
 }
 
 // Return true if type is parquet or parquet-like
@@ -91,12 +95,6 @@ function isParquetBacked(type?: SourceType): boolean {
 function sourceTypeFromExtension(nameOrUrl: string): SourceType | undefined {
     const extension = getResourceNameFromSourceUrl(nameOrUrl).split(".").pop();
     return ACCEPTED_SOURCE_TYPES.find((accepted) => accepted === extension);
-}
-
-// A Delta Lake source is backed by many parquet files, so it registers one handle
-// per data file
-function deltaFileHandleName(name: string, index: number): string {
-    return `${fileHandleName(name)}-${String(index).padStart(8, "0")}.parquet`;
 }
 
 // Render file handles as a DuckDB list literal, e.g. ARRAY['a', 'b'].
@@ -223,11 +221,15 @@ export default abstract class DatabaseService {
     // map to the full list of DuckDB file handles registered for them.
     private readonly sourceToHandles = new Map<string, string[]>();
     private readonly resolvedTypeByUri = new Map<string, SourceType>();
+    // Distinguishes the DuckDB handle used for each checkpoint parquet read
+    private deltaCheckpointCounter = 0;
 
     protected database: duckdb.AsyncDuckDB | undefined;
 
     constructor(deltaLakeService?: DeltaLakeService) {
-        this.deltaLakeService = deltaLakeService ?? new DeltaLakeService();
+        this.readDeltaCheckpoint = this.readDeltaCheckpoint.bind(this);
+        this.deltaLakeService =
+            deltaLakeService ?? new DeltaLakeService(axios.create(), this.readDeltaCheckpoint);
         this.addDataSource = this.addDataSource.bind(this);
         this.execute = this.execute.bind(this);
         this.query = this.query.bind(this);
@@ -359,6 +361,24 @@ export default abstract class DatabaseService {
     }
 
     /**
+     * Read the "add" action paths out of a Delta Lake checkpoint parquet.
+     *
+     * Lives here rather than in DeltaLakeService because it needs DuckDB: a
+     * checkpoint is a parquet file whose columns are action structs.
+     */
+    private async readDeltaCheckpoint(checkpointUrl: string): Promise<DeltaAction[]> {
+        const handle = fileHandleName("checkpoint", this.deltaCheckpointCounter++);
+        await this.registerFileURLs([handle], [checkpointUrl]);
+        try {
+            return await this.query<DeltaAction>(
+                `SELECT "add", "protocol", "metaData" FROM parquet_scan('${handle}')`
+            ).promise;
+        } finally {
+            await this.dropFileHandles([handle]);
+        }
+    }
+
+    /**
      * Release DuckDB file handles
      */
     protected async dropFileHandles(handles: string[]): Promise<void> {
@@ -383,7 +403,7 @@ export default abstract class DatabaseService {
         }
 
         const dataFileUrls = await this.deltaLakeService.listDataFiles(uri);
-        const handles = dataFileUrls.map((_, index) => deltaFileHandleName(name, index));
+        const handles = dataFileUrls.map((_, index) => `${fileHandleName(name, index)}.parquet`);
         this.sourceToHandles.set(name, handles);
         await this.registerFileURLs(handles, dataFileUrls);
         await this.createParquetDirectView(name);
