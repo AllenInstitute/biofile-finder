@@ -9,17 +9,15 @@ import { EXAMPLE_DATASET_URL } from "../../constants";
  *   - "Start with your data"     -> the app's data-source picker (/app)
  *   - "Explore example dataset"  -> the app pre-loaded with a public dataset
  *
- * Defined once here and shared by the desktop dropdown (below), the home page
- * "How do I get started?" section, and the Header's mobile menu submenu so the
- * entry points stay in exactly one place.
+ * Defined once here and shared by the desktop dropdown (below) and the
+ * Header's mobile menu submenu so the entry points stay in exactly one place.
  */
 export const LAUNCH_APP_MENU_ITEMS: IContextualMenuItem[] = [
     {
         key: "your-data",
         text: "Start with your data",
         href: "/app",
-        target: "_blank",
-        rel: "noreferrer",
+        target: "_self",
     },
     {
         key: "example-dataset",

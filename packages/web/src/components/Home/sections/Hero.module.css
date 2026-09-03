@@ -1,6 +1,6 @@
 .hero {
     align-items: center;
-    background-image: url('../../../assets/home_banner.png');
+    background-image: url('../../../../assets/home_banner.png');
     background-position: center top;
     background-size: cover;
     color: var(--highlight-text-color);
