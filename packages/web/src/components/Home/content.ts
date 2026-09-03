@@ -4,14 +4,17 @@
  */
 import * as React from "react";
 
-import { WEB_LINKS } from "../../constants";
 import ClockGraphic from "../../../assets/home_clock_graphic.svg";
 import GroupFilterGraphic from "../../../assets/home_group_filter_graphic.png";
 import PeopleShareGraphic from "../../../assets/home_people_share_graphic.svg";
 import ThumbnailsGraphic from "../../../assets/home_thumbnails_graphic.svg";
+import { WEB_LINKS } from "../../constants";
 
-/** Route/URL targets used across the page. */
-export const LINKS = WEB_LINKS;
+// Deep link into the app pre-loaded with a public example dataset.
+export const EXAMPLE_DATASET_URL =
+    "/app?c=File+Name%3A15%2CTreatment+Group%3A15%2CGene%3A15%2CCell+Line%3A15%2CChannel+Number+for+405%3A21%2CChannel+Number+for+638%3A21&group=Structure&group=Drug+Label&group=Drug+Concentration&group=Timepoint&openFolder=%5B%22Microtubules%22%5D&openFolder=%5B%22Microtubules%22%2C%22Staurosporine%22%5D&openFolder=%5B%22Microtubules%22%2C%22Staurosporine%22%2C%220.5%22%5D&openFolder=%5B%22Microtubules%22%2C%22Staurosporine%22%2C%220.5%22%2C%222%22%5D&source=%7B%22name%22%3A%22Drug%2BPerturbation%2BDataset.csv+%282%2F6%2F2026+1%3A53%3A55+PM%29%22%2C%22type%22%3A%22csv%22%2C%22uri%22%3A%22https%3A%2F%2Fbiofile-finder-datasets.s3.us-west-2.amazonaws.com%2FDrug%2BPerturbation%2BDataset.csv%22%7D&sort=%7B%22annotationName%22%3A%22Treatment+Group%22%2C%22order%22%3A%22ASC%22%7D";
+
+export const LINKS = { ...WEB_LINKS, tryNow: EXAMPLE_DATASET_URL };
 
 /**
  * A card whose heading leads with an emphasized (accent-colored) phrase
