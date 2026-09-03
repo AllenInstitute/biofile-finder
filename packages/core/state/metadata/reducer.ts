@@ -1,5 +1,6 @@
 import { makeReducer } from "@aics/redux-utils";
 
+import { CHANGE_DATA_SOURCES } from "../selection/actions";
 import Annotation from "../../entity/Annotation";
 import { EdgeDefinition } from "../../entity/Graph";
 import { DataSource } from "../../services/DataSourceService";
@@ -33,6 +34,10 @@ export default makeReducer<MetadataStateBranch>(
         [RECEIVE_ANNOTATIONS]: (state, action) => ({
             ...state,
             annotations: action.payload,
+        }),
+        [CHANGE_DATA_SOURCES]: (state) => ({
+            ...state,
+            annotations: [],
         }),
         [RECEIVE_DATA_SOURCES]: (state, action) => ({
             ...state,
