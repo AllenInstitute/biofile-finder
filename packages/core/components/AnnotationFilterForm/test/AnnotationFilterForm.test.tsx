@@ -307,9 +307,9 @@ describe("<AnnotationFilterForm />", () => {
             const minInput = await findByTestId("rangemin");
             const maxInput = await findByTestId("rangemax");
 
-            // Values are naturally sorted so rangemin gets the overall min and rangemax the max
+            // Values are naturally sorted so rangemin gets the overall min and rangemax the default max (overall max + 1)
             expect((minInput as HTMLInputElement).value).to.equal("-12");
-            expect((maxInput as HTMLInputElement).value).to.equal("10000000000");
+            expect((maxInput as HTMLInputElement).value).to.equal("10000000001");
         });
     });
 
