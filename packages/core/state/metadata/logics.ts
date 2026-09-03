@@ -303,7 +303,7 @@ const requestDatasetManifest = createLogic({
 
         try {
             const uri = `${datasetBucketUrl}/Dataset+Manifest.csv`;
-            await databaseService.prepareDataSources([{ name, type: "csv", uri }]);
+            await databaseService.prepareDataSources([{ name, uri }]);
             dispatch(receiveDatasetManifest(name, uri));
         } catch (err) {
             console.error("Failed to add dataset manifest", err);

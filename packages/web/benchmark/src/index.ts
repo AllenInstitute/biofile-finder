@@ -135,7 +135,7 @@ async function main() {
         const warmup = config.testCases[0][0];
         const warmupFile = localFiles[warmup.label];
         await service.prepareDataSources(
-            [{ name: "__bff_warmup__", type: "parquet", uri: warmupFile ?? warmup.url }],
+            [{ name: "__bff_warmup__", uri: warmupFile ?? warmup.url }],
             /* skipNormalization */ true
         );
         await service.execute('DROP VIEW IF EXISTS "__bff_warmup__"');

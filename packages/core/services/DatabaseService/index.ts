@@ -14,8 +14,11 @@ import {
 } from "../../entity/MarkdownFrontMatter";
 import {
     ACCEPTED_SOURCE_TYPES,
+    getResourceNameFromSourceUrl,
     isMarkdownType,
     Source,
+    SourceType,
+    SourceWithType,
     TABULAR_SOURCE_TYPES,
 } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
@@ -76,10 +79,18 @@ function fileHandleName(name: string): string {
     return name + FILE_HANDLE_SUFFIX;
 }
 
-export type SourceType = typeof ACCEPTED_SOURCE_TYPES[number];
 // Return true if type is parquet or parquet-like
 function isParquetBacked(type?: SourceType): boolean {
     return type === "parquet" || type === "delta";
+}
+
+/**
+ * The reader implied by a file name or URL's extension, or undefined when there
+ * is no recognized extension
+ */
+function sourceTypeFromExtension(nameOrUrl: string): SourceType | undefined {
+    const extension = getResourceNameFromSourceUrl(nameOrUrl).split(".").pop();
+    return ACCEPTED_SOURCE_TYPES.find((accepted) => accepted === extension);
 }
 
 // A Delta Lake source is backed by many parquet files, so it registers one handle
@@ -211,6 +222,7 @@ export default abstract class DatabaseService {
     // Data sources backed by more than one parquet file (i.e. Delta Lake tables)
     // map to the full list of DuckDB file handles registered for them.
     private readonly sourceToHandles = new Map<string, string[]>();
+    private readonly resolvedTypeByUri = new Map<string, SourceType>();
 
     protected database: duckdb.AsyncDuckDB | undefined;
 
@@ -685,14 +697,20 @@ export default abstract class DatabaseService {
         dataSources: Source[],
         skipNormalization = false
     ): Promise<void> {
-        const markdownSources = dataSources.filter((source) => isMarkdownType(source.type));
+        const sourcesWithTypes = await Promise.all(
+            dataSources.map((dataSource) => this.withResolvedType(dataSource))
+        );
+
+        const markdownSources = sourcesWithTypes.filter((source) => isMarkdownType(source.type));
         const additionalSourcesToPrepare = await Promise.all(
-            markdownSources.map((markdownSource) => this.getDataSourcesFromMarkdown(markdownSource))
+            markdownSources.map(async (markdownSource) =>
+                this.withResolvedType(await this.getDataSourcesFromMarkdown(markdownSource))
+            )
         );
         // Account for the possibility of duplicate sources
         const sourcesToPrepare = uniqBy(
             [
-                ...dataSources.filter((source) => !isMarkdownType(source.type)),
+                ...sourcesWithTypes.filter((source) => !isMarkdownType(source.type)),
                 ...additionalSourcesToPrepare,
             ],
             "name"
@@ -712,13 +730,53 @@ export default abstract class DatabaseService {
         }
     }
 
+    /**
+     * Synchronous check for what the source's type is.
+     * Returns undefined if it cannot be determined without going to the network.
+     */
+    public getResolvedType(dataSource: Source): SourceType | undefined {
+        return dataSource.uri ? this.cachedTypeFor(dataSource.uri) : undefined;
+    }
+
+    /**
+     * Work out how to read a data source from where it lives.
+     */
+    private async resolveSourceType(uri: string | File): Promise<SourceType> {
+        const type = this.cachedTypeFor(uri);
+        if (type) return type;
+
+        if (uri instanceof File) return "csv";
+
+        // Default to CSV if unable to determine if source is a Delta Lake table
+        const deltaOrCsv = (await this.deltaLakeService.isDeltaTable(uri)) ? "delta" : "csv";
+        this.resolvedTypeByUri.set(uri, deltaOrCsv);
+        return deltaOrCsv;
+    }
+
+    /**
+     * The type of a source without going to the network: what its extension says,
+     * or what a previous probe concluded. Undefined when neither has an answer.
+     */
+    private cachedTypeFor(uri: string | File): SourceType | undefined {
+        return uri instanceof File
+            ? sourceTypeFromExtension(uri.name)
+            : sourceTypeFromExtension(uri) ?? this.resolvedTypeByUri.get(uri);
+    }
+
+    private async withResolvedType(dataSource: Source): Promise<SourceWithType> {
+        return {
+            ...dataSource,
+            type: dataSource.uri ? await this.resolveSourceType(dataSource.uri) : "csv",
+        };
+    }
+
     private async prepareDataSourceWrapper(
-        dataSource: Source,
+        dataSource: SourceWithType,
         skipNormalization: boolean
     ): Promise<void> {
-        const { name, type, uri } = dataSource;
+        const { name, uri } = dataSource;
 
-        if (!type || !uri) {
+        if (!uri) {
             throw new DataSourcePreparationError(
                 `Lost access to data source "${name}".\
                 </br> \
@@ -770,12 +828,12 @@ export default abstract class DatabaseService {
     }
 
     protected async prepareDataSource(
-        dataSource: Source,
+        dataSource: SourceWithType,
         skipNormalization: boolean
     ): Promise<void> {
-        const { name, type, uri } = dataSource;
+        const { name, uri, type } = dataSource;
 
-        if (!type || !uri) {
+        if (!uri) {
             throw new DataSourcePreparationError(
                 `Lost access to data source "${name}".\
                 </br> \
@@ -814,7 +872,7 @@ export default abstract class DatabaseService {
         }
     }
 
-    protected async getDataSourcesFromMarkdown(dataSource: Source): Promise<Source> {
+    protected async getDataSourcesFromMarkdown(dataSource: SourceWithType): Promise<Source> {
         if (!isMarkdownType(dataSource.type)) {
             // should not reach this, just a type guard
             throw new Error("Data source is not a markdown file");
@@ -869,7 +927,7 @@ export default abstract class DatabaseService {
             if (!this.hasDataSource(sourceMetadata.name)) {
                 await this.prepareDataSourceWrapper(
                     {
-                        ...sourceMetadata,
+                        ...(await this.withResolvedType(sourceMetadata)),
                         name: sourceMetadata.name,
                     },
                     true
@@ -892,7 +950,7 @@ export default abstract class DatabaseService {
             if (!this.hasDataSource(sourceProvenance.name)) {
                 await this.prepareDataSourceWrapper(
                     {
-                        ...sourceProvenance,
+                        ...(await this.withResolvedType(sourceProvenance)),
                         name: sourceProvenance.name,
                     },
                     true
@@ -1387,7 +1445,7 @@ export default abstract class DatabaseService {
             .join(", ");
     }
 
-    private async aggregateDataSources(dataSources: Source[]): Promise<void> {
+    private async aggregateDataSources(dataSources: SourceWithType[]): Promise<void> {
         const viewName = DatabaseService.combineSourceNames(dataSources);
 
         if (this.currentAggregateSource === viewName) {

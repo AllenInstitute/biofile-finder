@@ -109,10 +109,7 @@ describe("DatabaseService", () => {
                 await fs.promises.writeFile(tempFile, "a,b,c\n1,2,3\n4,5,6\n");
                 // Act
                 // Skip normalization
-                await service.prepareDataSources(
-                    [{ name: tempFileName, type, uri: tempFile }],
-                    true
-                );
+                await service.prepareDataSources([{ name: tempFileName, uri: tempFile }], true);
                 // Assert
                 expect(service.hasDataSource(tempFileName)).to.be.true;
             });
@@ -128,9 +125,7 @@ describe("DatabaseService", () => {
 
             // Act
             try {
-                await service.prepareDataSources([
-                    { name: tempFileName, type: "csv", uri: tempFile },
-                ]);
+                await service.prepareDataSources([{ name: tempFileName, uri: tempFile }]);
             } catch (error) {
                 caughtError = error;
             }
@@ -161,9 +156,7 @@ describe("DatabaseService", () => {
 
             // Act
             try {
-                await service.prepareDataSources([
-                    { name: tempFileName, type: "csv", uri: tempFile },
-                ]);
+                await service.prepareDataSources([{ name: tempFileName, uri: tempFile }]);
             } catch (error) {
                 caughtError = error;
             }
@@ -193,9 +186,7 @@ describe("DatabaseService", () => {
 
             // Act
             try {
-                await service.prepareDataSources([
-                    { name: tempFileName, type: "csv", uri: tempFile },
-                ]);
+                await service.prepareDataSources([{ name: tempFileName, uri: tempFile }]);
             } catch (error) {
                 caughtError = error;
             }
@@ -237,7 +228,7 @@ describe("DatabaseService", () => {
                 let caughtError;
                 try {
                     await failingService.prepareDataSources([
-                        { name: "cors-test", type: "csv", uri: "https://example.com/data.csv" },
+                        { name: "cors-test", uri: "https://example.com/data.csv" },
                     ]);
                 } catch (error) {
                     caughtError = error;
@@ -266,7 +257,6 @@ describe("DatabaseService", () => {
                     await failingService.prepareDataSources([
                         {
                             name: "http-error-test",
-                            type: "csv",
                             uri: "https://example.com/data.csv",
                         },
                     ]);
@@ -307,7 +297,8 @@ describe("DatabaseService", () => {
                     /DESCRIBE SELECT \* FROM parquet_scan\(\s*ARRAY\[([\s\S]*?)\]/
                 );
                 if (parquetDescribeMatch) {
-                    // Recover the source name from each handle
+                    // Recover the source name from each file handle. A Delta source
+                    // registers many handles, all prefixed with its source name.
                     const columns = new Set<string>();
                     for (const match of parquetDescribeMatch[1].matchAll(/'([^']+)'/g)) {
                         const sourceName = match[1].split("-bff-filehandle")[0];
@@ -332,8 +323,8 @@ describe("DatabaseService", () => {
             });
 
             await service.prepareDataSources([
-                { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
-                { name: "b.parquet", type: "parquet", uri: "https://example.com/b.parquet" },
+                { name: "a.parquet", uri: "https://example.com/a.parquet" },
+                { name: "b.parquet", uri: "https://example.com/b.parquet" },
             ]);
 
             expect(service.hasAggregateSource(["a.parquet", "b.parquet"])).to.be.true;
@@ -348,8 +339,8 @@ describe("DatabaseService", () => {
             let caughtError;
             try {
                 await service.prepareDataSources([
-                    { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
-                    { name: "b.csv", type: "csv", uri: "https://example.com/b.csv" },
+                    { name: "a.parquet", uri: "https://example.com/a.parquet" },
+                    { name: "b.csv", uri: "https://example.com/b.csv" },
                 ]);
             } catch (error) {
                 caughtError = error;
@@ -372,8 +363,8 @@ describe("DatabaseService", () => {
             });
 
             await service.prepareDataSources([
-                { name: "foo", type: "parquet", uri: "https://example.com/foo.parquet" },
-                { name: "foo2", type: "parquet", uri: "https://example.com/foo2.parquet" },
+                { name: "foo", uri: "https://example.com/foo.parquet" },
+                { name: "foo2", uri: "https://example.com/foo2.parquet" },
             ]);
 
             const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
@@ -390,8 +381,8 @@ describe("DatabaseService", () => {
             });
 
             await service.prepareDataSources([
-                { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
-                { name: "b.parquet", type: "parquet", uri: "https://example.com/b.parquet" },
+                { name: "a.parquet", uri: "https://example.com/a.parquet" },
+                { name: "b.parquet", uri: "https://example.com/b.parquet" },
             ]);
 
             const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
@@ -408,8 +399,8 @@ describe("DatabaseService", () => {
             });
 
             await service.prepareDataSources([
-                { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
-                { name: "b.parquet", type: "parquet", uri: "https://example.com/b.parquet" },
+                { name: "a.parquet", uri: "https://example.com/a.parquet" },
+                { name: "b.parquet", uri: "https://example.com/b.parquet" },
             ]);
 
             const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
@@ -428,8 +419,8 @@ describe("DatabaseService", () => {
             });
 
             await service.prepareDataSources([
-                { name: "a.parquet", type: "parquet", uri: "https://example.com/a.parquet" },
-                { name: "b.parquet", type: "parquet", uri: "https://example.com/b.parquet" },
+                { name: "a.parquet", uri: "https://example.com/a.parquet" },
+                { name: "b.parquet", uri: "https://example.com/b.parquet" },
             ]);
 
             const createViewSql = service.executedSQL.find((sql) => sql.includes("CREATE VIEW"));
@@ -440,10 +431,13 @@ describe("DatabaseService", () => {
                 `REGEXP_REPLACE("bff_source_file", '-bff-filehandle.*$', '') AS "Data source"`
             );
         });
+
         describe("delta lake sources", () => {
             const DELTA_SOURCE = "table";
 
             class MockDeltaDatabaseService extends DatabaseService {
+                public isDelta = true;
+                public deltaProbeCount = 0;
                 public executedSQL: string[] = [];
 
                 constructor(
@@ -453,7 +447,8 @@ describe("DatabaseService", () => {
                     const deltaLakeService = {
                         listDataFiles: () => Promise.resolve(dataFiles),
                         isDeltaTable: () => {
-                            return Promise.resolve(true);
+                            this.deltaProbeCount++;
+                            return Promise.resolve(this.isDelta);
                         },
                     } as any;
                     super(deltaLakeService);
@@ -519,13 +514,67 @@ describe("DatabaseService", () => {
                 "https://example.com/table/part-00001.snappy.parquet",
             ];
 
+            it("identifies an untyped URL as delta by probing for _delta_log", async () => {
+                const service = new MockDeltaDatabaseService({ table: ["File Path"] }, DATA_FILES);
+
+                await service.prepareDataSources(
+                    [{ name: "table", uri: "s3://bucket/table" }],
+                    true
+                );
+
+                expect(service.hasDataSource("table")).to.be.true;
+                expect(service.registeredURLs).to.have.lengthOf(2);
+            });
+
+            it("falls back to csv for an untyped URL that is not a delta table", async () => {
+                const service = new MockDeltaDatabaseService({ table: ["File Path"] }, DATA_FILES);
+                service.isDelta = false;
+
+                await service.prepareDataSources(
+                    [{ name: "table", uri: "s3://bucket/table" }],
+                    true
+                );
+
+                expect(service.hasDataSource("table")).to.be.true;
+                expect(service.registeredURLs).to.be.empty;
+            });
+
+            it("does not probe a URL whose extension already identified it", async () => {
+                const service = new MockDeltaDatabaseService(
+                    { "a.parquet": ["File Path"] },
+                    DATA_FILES
+                );
+
+                await service.prepareDataSources(
+                    [{ name: "a.parquet", uri: "https://example.com/a.parquet" }],
+                    true
+                );
+
+                expect(service.deltaProbeCount).to.equal(0);
+            });
+
+            it("probes a given URL only once", async () => {
+                const service = new MockDeltaDatabaseService({ table: ["File Path"] }, DATA_FILES);
+
+                await service.prepareDataSources(
+                    [{ name: "table", uri: "s3://bucket/table" }],
+                    true
+                );
+                await service.prepareDataSources(
+                    [{ name: "table", uri: "s3://bucket/table" }],
+                    true
+                );
+
+                expect(service.deltaProbeCount).to.equal(1);
+            });
+
             it("registers one file handle per parquet data file", async () => {
                 const service = new MockDeltaDatabaseService({ table: ["File Path"] }, DATA_FILES);
 
                 // Skip normalization: these assert on registration and SQL shape,
                 // not on data source validation.
                 await service.prepareDataSources(
-                    [{ name: "table", type: "delta", uri: "s3://bucket/table" }],
+                    [{ name: "table", uri: "s3://bucket/table" }],
                     true
                 );
 
@@ -538,8 +587,10 @@ describe("DatabaseService", () => {
             it("scans every data file from a single view", async () => {
                 const service = new MockDeltaDatabaseService({ table: ["File Path"] }, DATA_FILES);
 
+                // Skip normalization: these assert on registration and SQL shape,
+                // not on data source validation.
                 await service.prepareDataSources(
-                    [{ name: "table", type: "delta", uri: "s3://bucket/table" }],
+                    [{ name: "table", uri: "s3://bucket/table" }],
                     true
                 );
 
@@ -560,10 +611,9 @@ describe("DatabaseService", () => {
 
                 await service.prepareDataSources(
                     [
-                        { name: "table", type: "delta", uri: "s3://bucket/table" },
+                        { name: "table", uri: "s3://bucket/table" },
                         {
                             name: "a.parquet",
-                            type: "parquet",
                             uri: "https://example.com/a.parquet",
                         },
                     ],
@@ -579,8 +629,6 @@ describe("DatabaseService", () => {
             });
 
             it("aggregates with plain parquet sources rather than rejecting them", async () => {
-                // A Delta table is parquet underneath, so it must not trip the
-                // "parquet cannot be aggregated with non-parquet" guard.
                 const service = new MockDeltaDatabaseService(
                     { table: ["File Path"], "a.parquet": ["File Path"] },
                     DATA_FILES
@@ -588,10 +636,9 @@ describe("DatabaseService", () => {
 
                 await service.prepareDataSources(
                     [
-                        { name: "table", type: "delta", uri: "s3://bucket/table" },
+                        { name: "table", uri: "s3://bucket/table" },
                         {
                             name: "a.parquet",
-                            type: "parquet",
                             uri: "https://example.com/a.parquet",
                         },
                     ],
@@ -599,6 +646,21 @@ describe("DatabaseService", () => {
                 );
 
                 expect(service.hasAggregateSource(["table", "a.parquet"])).to.be.true;
+            });
+
+            it("never treats an uploaded local file as a Delta table", async () => {
+                // A Delta table is a directory, which the browser cannot hand us
+                // as a File, so there is nothing to probe.
+                const service = new MockDeltaDatabaseService({ table: ["File Path"] }, DATA_FILES);
+
+                await service.prepareDataSources(
+                    [{ name: "table", uri: new File([""], "table") }],
+                    true
+                );
+
+                expect(service.hasDataSource("table")).to.be.true;
+                expect(service.deltaProbeCount).to.equal(0);
+                expect(service.registeredURLs).to.be.empty;
             });
         });
     });
