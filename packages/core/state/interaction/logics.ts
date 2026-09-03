@@ -720,24 +720,26 @@ const showContextMenu = createLogic({
  */
 const refresh = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        try {
-            const { getState } = deps;
-            const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
-            const sources = selection.selectors.getSelectedDataSources(getState());
-            const annotationService = interactionSelectors.getAnnotationService(getState());
+        const { getState } = deps;
+        const sources = selection.selectors.getSelectedDataSources(getState());
+        const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
+        const annotationService = interactionSelectors.getAnnotationService(getState());
+        const isStale = () => selection.selectors.getSelectedDataSources(getState()) !== sources;
 
+        try {
             // Refresh list of annotations & which annotations are available
             const [annotations, availableAnnotations] = await Promise.all([
                 annotationService.fetchAnnotations(),
                 annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy),
             ]);
             // A late response would overwrite the newer source's schema with this one's.
-            if (selection.selectors.getSelectedDataSources(getState()) !== sources) return;
+            if (isStale()) return;
             dispatch(metadata.actions.receiveAnnotations(annotations));
             dispatch(selection.actions.setAvailableAnnotations(availableAnnotations) as AnyAction);
         } catch (err) {
+            if (isStale()) return;
             console.error(`Error encountered while refreshing: ${err}`);
-            const annotations = metadata.selectors.getAnnotations(deps.getState());
+            const annotations = metadata.selectors.getAnnotations(getState());
             dispatch(
                 selection.actions.setAvailableAnnotations(
                     annotations.map((a) => a.name)

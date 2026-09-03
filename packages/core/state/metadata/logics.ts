@@ -41,6 +41,8 @@ const requestAnnotations = createLogic({
         const sources = selection.selectors.getSelectedDataSources(getState());
         const annotationService = interaction.selectors.getAnnotationService(getState());
         const applicationVersion = interaction.selectors.getApplicationVersion(getState());
+        const isStale = () => selection.selectors.getSelectedDataSources(getState()) !== sources;
+
         if (annotationService instanceof HttpAnnotationService) {
             if (applicationVersion) {
                 annotationService.setApplicationVersion(applicationVersion);
@@ -51,14 +53,17 @@ const requestAnnotations = createLogic({
         try {
             const annotations = await annotationService.fetchAnnotations();
             // A late response would overwrite the newer source's schema with this one's.
-            if (selection.selectors.getSelectedDataSources(getState()) !== sources) return;
+            if (isStale()) return;
             dispatch(receiveAnnotations(annotations));
         } catch (err) {
+            if (isStale()) return;
             console.error("Failed to fetch annotations", err);
             dispatch(
                 interaction.actions.processError(
                     "requestAnnotations",
-                    `Failed to load column metadata for ${sources}. ${err}`
+                    `Failed to load column metadata for ${sources
+                        .map((source) => source.name)
+                        .join(", ")}. ${err}`
                 )
             );
         } finally {
