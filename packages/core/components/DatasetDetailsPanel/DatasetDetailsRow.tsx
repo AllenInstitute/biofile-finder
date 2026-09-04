@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import * as React from "react";
 
-import Cell from "../../../../core/components/FileRow/Cell";
+import Cell from "../FileRow/Cell";
 
 import styles from "./DatasetDetailsRow.module.css";
 
