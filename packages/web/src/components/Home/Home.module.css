@@ -57,6 +57,7 @@
 }
 
 .intro-logo {
+    display: none;
     /* Match the height of the adjacent copy; width follows the aspect ratio.
        max-height caps it because the source asset is only 128px — it stays
        crisp up to ~64px on Retina, so replace site-logo.png with a higher-res
@@ -82,6 +83,10 @@
 }
 
 @media screen and (min-width: 750px) {
+    .intro-logo {
+        display: block;
+    }
+
     .card-grid-2 {
         grid-template-columns: repeat(2, 1fr);
     }
