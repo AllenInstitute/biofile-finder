@@ -79,6 +79,43 @@ describe("FileSelection", () => {
             ).to.equal(true);
         });
 
+        it("does not double count file rows that are already selected", () => {
+            // Arrange
+            const fileSet = new FileSet();
+            const selection = new FileSelection().select({
+                fileSet,
+                index: new NumericRange(5, 14),
+                sortOrder: 0,
+            });
+
+            // Act: re-select a file row within the existing selection
+            const nextSelection = selection.select({ fileSet, index: 13, sortOrder: 0 });
+
+            // Assert
+            expect(nextSelection.count()).to.equal(10);
+            expect(nextSelection.getFocusedItemIndices().indexAcrossAllSelections).to.equal(8);
+        });
+
+        it("combines a new selection with a selection it abuts", () => {
+            // Arrange
+            const fileSet = new FileSet();
+            const selection = new FileSelection().select({
+                fileSet,
+                index: new NumericRange(5, 14),
+                sortOrder: 0,
+            });
+
+            // Act: extend the existing selection by one file row
+            const nextSelection = selection.select({ fileSet, index: 4, sortOrder: 0 });
+
+            // Assert
+            expect(nextSelection.count()).to.equal(11);
+            expect(nextSelection.getFocusedItemIndices().indexAcrossAllSelections).to.equal(0);
+            [4, 5, 14].forEach((idx) => {
+                expect(nextSelection.isSelected(fileSet, idx)).to.equal(true);
+            });
+        });
+
         it("makes the new selection focused", () => {
             // Arrange
             const selection = new FileSelection();
