@@ -17,8 +17,8 @@ export const EXAMPLE_DATASET_URL =
 export const LINKS = { ...WEB_LINKS, tryNow: EXAMPLE_DATASET_URL };
 
 /**
- * A card whose heading leads with an emphasized (accent-colored) phrase
- * followed by the rest of the heading, then a description.
+ * A card whose heading leads with an emphasized phrase followed by the rest
+ * of the heading, then a description.
  * Used by the "Why" and "How it works" grids.
  */
 export interface AccentCard {

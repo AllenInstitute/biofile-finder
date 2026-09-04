@@ -4,10 +4,7 @@ import * as React from "react";
 import styles from "./InfoCard.module.css";
 
 interface InfoCardProps {
-    /**
-     * Emphasized lead-in phrase rendered in the accent color before the
-     * heading (e.g. "Reduce time"). Omit for a plain title.
-     */
+    /** Lead-in phrase before the heading (e.g. "Reduce time"). */
     accent?: string;
     /** Heading text. Follows the accent phrase inline when one is provided. */
     heading: React.ReactNode;
@@ -51,7 +48,7 @@ export default function InfoCard(props: InfoCardProps) {
         <div className={classNames(styles.card, props.className)}>
             {imageEl}
             <h3 className={styles.heading}>
-                {props.accent && <span className={styles.accent}>{props.accent} </span>}
+                {props.accent && `${props.accent} `}
                 {props.heading}
             </h3>
             <p className={styles.body}>{props.body}</p>

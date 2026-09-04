@@ -36,10 +36,6 @@
     line-height: 1.4;
 }
 
-/* Emphasized lead-in phrase; weight and color match the heading. */
-.accent {
-}
-
 .body {
     /* Color is inherited from the app layout (--secondary-text-color). */
     flex: 1 1 auto;
