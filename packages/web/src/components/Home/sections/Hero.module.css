@@ -1,0 +1,46 @@
+.hero {
+    align-items: center;
+    background-image: url('../../../../assets/home_banner.png');
+    background-position: center top;
+    background-size: cover;
+    color: var(--highlight-text-color);
+    display: flex;
+    min-height: 400px;
+    position: relative;
+    width: 100%;
+}
+
+.hero::before {
+    background:
+        linear-gradient(to right, #000, transparent 45%),
+        linear-gradient(to left, #000, transparent 3%),
+        linear-gradient(to top, #000, transparent 15%);
+    content: '';
+    inset: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+.heroContent {
+    margin: 0 auto;
+    max-width: 1200px;
+    padding: calc(4 * var(--margin)) calc(2 * var(--margin));
+    position: relative;
+    width: 100%;
+    z-index: 1;
+}
+
+.heroCta {
+    display: inline-block;
+}
+
+.heroTitle {
+    font-size: clamp(40px, 6vw, 80px);
+    font-weight: 600;
+    margin: 0;
+}
+
+.heroTagline {
+    font-size: 20px;
+    margin: var(--margin) 0 calc(2 * var(--margin));
+}

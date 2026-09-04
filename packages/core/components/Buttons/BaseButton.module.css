@@ -38,6 +38,10 @@
     display: none;
 }
 
+.pad-left {
+    padding-left: 6px;
+}
+
 .pad-right {
     padding-right: 6px;
 }

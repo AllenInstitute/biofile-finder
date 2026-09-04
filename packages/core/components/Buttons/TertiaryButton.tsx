@@ -7,6 +7,7 @@ import BaseButton from "./BaseButton";
 import styles from "./TertiaryButton.module.css";
 
 interface Props {
+    ariaLabel?: string;
     className?: string;
     disabled?: boolean;
     iconName: string;
@@ -17,7 +18,7 @@ interface Props {
     onClick?: () => void;
     invertColor?: boolean;
     text?: string;
-    title: string;
+    title?: string;
 }
 
 /**
@@ -26,6 +27,7 @@ interface Props {
 export default function TertiaryButton(props: Props) {
     return (
         <BaseButton
+            ariaLabel={props.ariaLabel}
             className={classNames(props.className, styles.button, {
                 [styles.disabled]: props.disabled,
                 [styles.inverted]: props.invertColor,
