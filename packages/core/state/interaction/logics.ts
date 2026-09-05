@@ -319,7 +319,72 @@ const downloadFilesLogic = createLogic({
         const totalBytesToDownload = sumBy(filesToDownload, "size") || 0;
         const totalBytesDisplay = getBytesDisplay(totalBytesToDownload, someFilesHaveUnknownSize);
 
-        // TODO: Download these into a zip using new streamsaver zipped code
+        if (filesToDownload.length > 1 && fileDownloadService.downloadFilesAsZip) {
+            let isCancelled = false;
+            const downloadRequestId = uniqueId();
+            const fileIds = filesToDownload.map((file) => file.id);
+
+            const onCancel = () => {
+                isCancelled = true;
+                dispatch(cancelFileDownload(downloadRequestId));
+            };
+
+            let totalBytesDownloaded = 0;
+            const throttledProgressDispatcher = throttle((progressMsg: string) => {
+                if (isCancelled) return;
+                dispatch(
+                    processProgress(
+                        downloadRequestId,
+                        totalBytesToDownload ? totalBytesDownloaded / totalBytesToDownload : 0,
+                        progressMsg,
+                        onCancel,
+                        fileIds
+                    )
+                );
+            }, 1000);
+
+            const onProgress = (transferredBytes: number) => {
+                totalBytesDownloaded += transferredBytes;
+
+                const updatedBytesDisplay = numberFormatter.displayValue(
+                    totalBytesDownloaded,
+                    "bytes"
+                );
+                const progressMsg = `Downloading ${filesToDownload.length} files as ZIP. <br/> ${updatedBytesDisplay} out of ${totalBytesDisplay} set to download`;
+                throttledProgressDispatcher(progressMsg);
+            };
+
+            try {
+                const msg = `Downloading ${filesToDownload.length} files as ZIP. <br/> ${totalBytesDisplay} set to download`;
+                dispatch(processStart(downloadRequestId, msg, onCancel, fileIds));
+
+                const result = await fileDownloadService.downloadFilesAsZip(
+                    filesToDownload,
+                    downloadRequestId,
+                    onProgress
+                );
+
+                if (result.resolution === DownloadResolution.CANCELLED) {
+                    onCancel();
+                } else {
+                    dispatch(
+                        processSuccess(
+                            downloadRequestId,
+                            result.msg || "Download completed successfully."
+                        )
+                    );
+                }
+            } catch (err) {
+                const errorMsg = `File download failed. Details:<br/>${
+                    err instanceof Error ? err.message : err
+                }`;
+                dispatch(processError(downloadRequestId, errorMsg));
+            }
+
+            done();
+            return;
+        }
+
         await Promise.allSettled(
             filesToDownload.map(async (file) => {
                 let isCancelled = false;

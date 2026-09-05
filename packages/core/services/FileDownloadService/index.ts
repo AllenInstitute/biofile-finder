@@ -58,6 +58,15 @@ export default abstract class FileDownloadService extends HttpServiceBase {
     ): Promise<DownloadResult>;
 
     /**
+     * Download multiple files bundled together as a single ZIP archive.
+     */
+    downloadFilesAsZip?(
+        files: FileInfo[],
+        downloadRequestId: string,
+        onProgress?: (bytesDownloaded: number) => void
+    ): Promise<DownloadResult>;
+
+    /**
      * Retrieves the file system's default download location.
      */
     abstract getDefaultDownloadDirectory(): Promise<string>;
