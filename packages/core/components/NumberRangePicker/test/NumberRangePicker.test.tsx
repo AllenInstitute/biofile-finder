@@ -8,7 +8,7 @@ import NumberRangePicker, { ListItem } from "..";
 import FileFilter from "../../../entity/FileFilter";
 
 describe("<NumberRangePicker />", () => {
-    it("renders input fields for min and max values initialized to overall min/max", () => {
+    it("renders input fields for min and max values initialized to overall min and overall max + 1", () => {
         // Arrange
         const items: ListItem[] = ["0", "20"].map((val) => ({
             displayValue: val,
@@ -26,7 +26,7 @@ describe("<NumberRangePicker />", () => {
 
         // Should initialize to min and max item provided, respectively
         expect(screen.getByTestId<HTMLInputElement>("rangemin").value).to.equal("0");
-        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("20");
+        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("21");
     });
 
     it("initializes to values passed through props if provided", () => {
@@ -69,7 +69,7 @@ describe("<NumberRangePicker />", () => {
 
         // Should reset to min and max values
         expect(screen.getByTestId<HTMLInputElement>("rangemin").value).to.equal("0");
-        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("20");
+        expect(screen.getByTestId<HTMLInputElement>("rangemax").value).to.equal("21");
     });
 
     it("displays available min and max of items", () => {
