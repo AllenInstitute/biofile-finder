@@ -63,6 +63,44 @@ describe("DatabaseFileService", () => {
             });
         });
 
+        it("omits a nested column whose sub-fields are all empty", async () => {
+            const rowsWithEmptyStruct = [
+                {
+                    [HIDDEN_UID_ANNOTATION]: "1",
+                    "File Name": "file",
+                    "Empty Category": { "Processing Date": null, "Analysis Scope": null },
+                    "Partly Empty Category": { "Processing Date": "2017-02-27", Notes: null },
+                    "Empty Entries": [{ Name: null }, { Name: "kept" }, { Name: "  " }],
+                },
+            ];
+            class MockStructDatabaseService extends DatabaseServiceNoop {
+                protected readonly existingDataSources = new Set(["parquet_source"]);
+                public query(): { promise: Promise<any> } {
+                    return { promise: Promise.resolve(rowsWithEmptyStruct) };
+                }
+                public async fetchAnnotations(): Promise<[]> {
+                    return [];
+                }
+            }
+            const databaseFileService = new DatabaseFileService({
+                dataSourceNames: ["parquet_source"],
+                databaseService: new MockStructDatabaseService(),
+                downloadService: new FileDownloadServiceNoop(),
+            });
+
+            const [file] = await databaseFileService.getFiles({
+                from: 0,
+                limit: 1,
+                fileSet: new FileSet(),
+            });
+
+            expect(Object.fromEntries(file.metadata)).to.deep.equal({
+                "File Name": ["file"],
+                "Partly Empty Category": [{ "Processing Date": ["2017-02-27"] }],
+                "Empty Entries": [{ Name: ["kept"] }],
+            });
+        });
+
         it("sorts parquets by hidden_bff_uid when offset is used", async () => {
             // Arrange
             const parquetFiles = [
