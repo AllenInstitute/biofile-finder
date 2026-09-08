@@ -1540,6 +1540,8 @@ export default abstract class DatabaseService {
                     // One flag per path segment (length === path.length)
                     const pathIsArray = [rootIsArray, ...field.isArray];
                     const fullPath = [columnName, ...fieldParts];
+                    const fullName = fullPath.join(".");
+                    const explicitFieldType = annotationNameToTypeMap[fullName];
                     // Create a NESTED (parent) annotation for each intermediate struct level
                     for (let depth = 1; depth < fullPath.length - 1; depth++) {
                         const ancestorPath = fullPath.slice(0, depth + 1);
@@ -1549,7 +1551,7 @@ export default abstract class DatabaseService {
                             annotations.push(
                                 new Annotation({
                                     annotationName: ancestorPath,
-                                    description: annotationNameToDescriptionMap[columnName] || "",
+                                    description: annotationNameToDescriptionMap[ancestorName] || "",
                                     type: AnnotationType.NESTED,
                                     pathIsArray: pathIsArray.slice(0, depth + 1),
                                 })
@@ -1559,8 +1561,12 @@ export default abstract class DatabaseService {
                     annotations.push(
                         new Annotation({
                             annotationName: fullPath,
-                            description: annotationNameToDescriptionMap[columnName] || "",
-                            type: DatabaseService.columnTypeToAnnotationType(field.type),
+                            description: annotationNameToDescriptionMap[fullName] || "",
+                            // A leaf is never NESTED itself, so ignore that override if declared
+                            type:
+                                explicitFieldType && explicitFieldType !== AnnotationType.NESTED
+                                    ? explicitFieldType
+                                    : DatabaseService.columnTypeToAnnotationType(field.type),
                             pathIsArray,
                         })
                     );
