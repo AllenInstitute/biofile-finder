@@ -118,7 +118,7 @@ export default (folderFilters?: FileFilter[], onDismiss?: () => void) => {
                     ? [
                           {
                               key: "copy-to-cache",
-                              text: "Copy to vast",
+                              text: "Copy to VAST",
                               title: "Copy selected files to NAS Cache (VAST)",
                               onClick() {
                                   dispatch(interaction.actions.showCopyFileManifest());
