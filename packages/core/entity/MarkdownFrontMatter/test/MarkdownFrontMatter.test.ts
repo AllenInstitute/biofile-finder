@@ -157,7 +157,7 @@ A description of the dataset`;
             // Arrange
             const tempFileName = `test-markdown.md`;
             const markdownUri = "https://fake-uri/file.md";
-            const testFile: Source = { name: tempFileName, type: "md", uri: markdownUri };
+            const testFile: Source = { name: tempFileName, uri: markdownUri };
 
             // Act
             const result = await processMarkdown(testFile);
@@ -173,7 +173,7 @@ A description of the dataset`;
             const tempFileName = `test-markdown.md`;
             // this path is just illustrative, does not impact the test
             const userPath = "/user/file/path/we/cannot/access/from/browser";
-            const testFile: Source = { name: tempFileName, type: "md", uri: userPath };
+            const testFile: Source = { name: tempFileName, uri: userPath };
 
             try {
                 // Act

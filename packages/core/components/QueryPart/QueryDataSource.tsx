@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import QueryPart from ".";
 import { DataSourceType } from "../DataSourcePrompt";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
-import { isMarkdownType, Source } from "../../entity/SearchParams";
+import { isMarkdownSource, Source } from "../../entity/SearchParams";
 import { interaction, metadata, selection } from "../../state";
 
 interface Props {
@@ -35,7 +35,7 @@ export default function QueryDataSource(props: Props) {
                       [
                           ...props.dataSources.filter(
                               (source) =>
-                                  source.name !== mainSource?.name && !isMarkdownType(source.type)
+                                  source.name !== mainSource?.name && !isMarkdownSource(source)
                           ),
                           mainSource,
                       ]

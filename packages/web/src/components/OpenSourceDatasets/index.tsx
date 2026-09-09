@@ -9,7 +9,7 @@ import Modal from "../../../../core/components/Modal";
 import { metadata, selection } from "../../../../core/state";
 import SearchParams, {
     SearchParamsComponents,
-    getNameAndTypeFromSourceUrl,
+    getNameFromSourceUrl,
     Source,
 } from "../../../../core/entity/SearchParams";
 
@@ -58,7 +58,7 @@ export default function OpenSourceDatasets() {
         openDatasetInApp(
             datasetDetails.name,
             {
-                ...getNameAndTypeFromSourceUrl(dataSourceURL),
+                name: getNameFromSourceUrl(dataSourceURL),
                 uri: dataSourceURL,
             },
             url

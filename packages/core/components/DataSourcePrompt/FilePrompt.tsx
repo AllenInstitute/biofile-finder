@@ -8,7 +8,12 @@ import { useDispatch } from "react-redux";
 import MarkdownPreview from "./MarkdownPreview";
 import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
-import { Source, getNameAndTypeFromSourceUrl, isMarkdownType } from "../../entity/SearchParams";
+import {
+    Source,
+    getNameFromSourceUrl,
+    getResourceNameFromSourceUrl,
+    isMarkdownType,
+} from "../../entity/SearchParams";
 import { ParsedFrontmatter, processMarkdown } from "../../entity/MarkdownFrontMatter";
 import { interaction } from "../../state";
 
@@ -33,10 +38,10 @@ export default function FilePrompt(props: Props) {
     const [shouldHaveFrontmatter, setShouldHaveFrontmatter] = React.useState(false);
     const { onSelectFile } = props;
 
-    // Parse markdown files to provide a preview of the metadata we're able to find
+    // Parse markdown files to provide a preview of the metadata we're able to find.
     const handleMarkdownSource = React.useCallback(
-        (source: Source) => {
-            if (isMarkdownType(source.type)) {
+        (source: Source, extension?: string) => {
+            if (isMarkdownType(extension)) {
                 // Calls the standalone process instead of going through the DB service
                 // since we don't want to cache the result yet
                 processMarkdown(source, false) // skip source normalization since just previewing the data
@@ -63,13 +68,12 @@ export default function FilePrompt(props: Props) {
             const selectedFile = acceptedFiles?.[0];
             if (selectedFile) {
                 // Grab name minus extension
-                const nameAndExtension = selectedFile.name.split(".");
-                const name = nameAndExtension.slice(0, -1).join("");
+                const segments = selectedFile.name.split(".");
+                const name = segments.length > 1 ? segments.slice(0, -1).join(".") : segments[0];
                 // Extension validation is handled by the component itself
-                const extension = nameAndExtension.pop();
-                const source = { name, type: extension, uri: selectedFile };
+                const source = { name, uri: selectedFile };
                 onSelectFile(source);
-                handleMarkdownSource(source);
+                handleMarkdownSource(source, segments.length > 1 ? segments.pop() : undefined);
             }
         },
         [onSelectFile, handleMarkdownSource]
@@ -113,11 +117,14 @@ export default function FilePrompt(props: Props) {
             evt?.preventDefault();
             if (dataSourceURL) {
                 const source = {
-                    ...getNameAndTypeFromSourceUrl(dataSourceURL),
+                    name: getNameFromSourceUrl(dataSourceURL),
                     uri: dataSourceURL,
                 };
                 props.onSelectFile(source);
-                handleMarkdownSource(source);
+                handleMarkdownSource(
+                    source,
+                    getResourceNameFromSourceUrl(dataSourceURL).split(".").pop()
+                );
             }
         },
         10000,
@@ -131,7 +138,7 @@ export default function FilePrompt(props: Props) {
                     <Tooltip content={props.selectedFile.name}>
                         <p className={styles.selectedFile}>
                             {props?.fileLabel}
-                            {props.selectedFile.name}.{props.selectedFile.type}
+                            {props.selectedFile.name}
                         </p>
                     </Tooltip>
                     <TransparentIconButton
