@@ -36,6 +36,7 @@ export default function Row(props: Props) {
     const annotationNameToAnnotationMap = useSelector(
         metadata.selectors.getAnnotationNameToAnnotationMap
     );
+    const areAnnotationsLoaded = useSelector(metadata.selectors.areAnnotationsLoaded);
 
     const [isTextValueCollapsed, setIsTextValueCollapsed] = React.useState(true);
 
@@ -58,7 +59,7 @@ export default function Row(props: Props) {
 
     const pathLabel = path.join(" : ");
     React.useEffect(() => {
-        if (!annotation) {
+        if (!annotation && areAnnotationsLoaded) {
             dispatch(
                 interaction.actions.processError(
                     `<Row />-${pathLabel}`,
@@ -66,7 +67,7 @@ export default function Row(props: Props) {
                 )
             );
         }
-    }, [annotation, pathLabel, dispatch]);
+    }, [annotation, areAnnotationsLoaded, pathLabel, dispatch]);
 
     if (!annotation || text === null) {
         // Don't render anything for this metadata field (e.g. if it's still loading or if there is no value to show)

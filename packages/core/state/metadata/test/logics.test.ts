@@ -16,6 +16,8 @@ import {
 import metadataLogics from "../logics";
 import { initialState, interaction } from "../../";
 import {
+    changeDataSources,
+    CHANGE_DATA_SOURCES,
     SET_COLUMNS,
     SET_FILE_FILTERS,
     SET_HAS_USER_SELECTED_COLUMNS,
@@ -59,6 +61,50 @@ describe("Metadata logics", () => {
 
             // assert
             expect(actions.includesMatch({ type: RECEIVE_ANNOTATIONS })).to.be.true;
+        });
+
+        it("drops a response that arrives after the data source changed", async () => {
+            // Arrange: a fetch resolved by hand, so the response lands after the source swap
+            let resolveFetch: (annotations: Annotation[]) => void = () => undefined;
+            class SlowDatabaseService extends DatabaseServiceNoop {
+                public fetchAnnotations(): Promise<Annotation[]> {
+                    return new Promise((resolve) => {
+                        resolveFetch = resolve;
+                    });
+                }
+            }
+
+            const reducer = (state: any, action: any) =>
+                action.type === CHANGE_DATA_SOURCES
+                    ? { ...state, selection: { ...state.selection, dataSources: action.payload } }
+                    : state;
+
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: mergeState(initialState, {
+                    selection: { dataSources: [{ name: "source-a", type: "parquet" }] },
+                    interaction: {
+                        platformDependentServices: { databaseService: new SlowDatabaseService() },
+                    },
+                }),
+                reducer,
+                logics: metadataLogics,
+            });
+
+            // Act
+            store.dispatch(requestAnnotations());
+            await Promise.resolve(); // let the logic reach its await
+            store.dispatch(changeDataSources([{ name: "source-b", type: "parquet" }]) as any);
+            resolveFetch([
+                new Annotation({
+                    annotationName: "Only On Source A",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+            ]);
+            await logicMiddleware.whenComplete();
+
+            // Assert: source A's schema must not land on top of source B
+            expect(actions.includesMatch({ type: RECEIVE_ANNOTATIONS })).to.be.false;
         });
     });
 
