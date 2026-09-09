@@ -1,0 +1,17 @@
+.clickable-source:hover {
+  background: var(--aqua) !important;
+  border-radius: 4px;
+  color: var(--highlight-text-color);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.clickable-source:hover i {
+  color: var(--highlight-text-color);
+}
+
+.source, .clickable-source {
+  justify-content: space-between;
+  margin: unset;
+  margin-top: 2px;
+}

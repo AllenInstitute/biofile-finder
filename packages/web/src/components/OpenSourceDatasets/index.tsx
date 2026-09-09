@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import DatasetTable from "./DatasetTable";
-import DatasetDetails from "../DatasetDetails";
+import DatasetDetails from "./OpenSourceDatasetDetails";
 import PublicDataset from "../../entity/PublicDataset";
 import Modal from "../../../../core/components/Modal";
 import { metadata, selection } from "../../../../core/state";
