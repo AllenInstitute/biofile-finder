@@ -109,12 +109,17 @@ function unwrapNestedMetadata(values: UnwrappedMetadataValue): MetadataValue {
 
     // Recursive case: values is an array of nested metadata objects
     if (!isEmpty(nested)) {
-        return nested.map((nestedValue) =>
-            Object.entries(nestedValue).reduce((acc, [key, value]) => {
-                const unwrappedValue = unwrapNestedMetadata(value);
-                if (isEmpty(unwrappedValue)) return acc;
-                return { ...acc, [key]: unwrappedValue };
-            }, {} as NestedMetadataValue)
+        return (
+            nested
+                .map((nestedValue) =>
+                    Object.entries(nestedValue).reduce((acc, [key, value]) => {
+                        const unwrappedValue = unwrapNestedMetadata(value);
+                        if (isEmpty(unwrappedValue)) return acc;
+                        return { ...acc, [key]: unwrappedValue };
+                    }, {} as NestedMetadataValue)
+                )
+                // Prevent entries that are wholly empty (i.e., `{}`) from rendering
+                .filter((unwrappedValue) => !isEmpty(unwrappedValue))
         );
     }
 

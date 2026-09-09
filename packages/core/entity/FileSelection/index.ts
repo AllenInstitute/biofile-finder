@@ -238,16 +238,23 @@ export default class FileSelection {
         const { fileSet, sortOrder, indexToFocus = indexRange.max } = params;
 
         // if `indexRange` contains already selected file rows, compact
-        const compacted = reject(this.selections, (existingSelectionItem) => {
+        const overlapping = this.selections.filter((existingSelectionItem) => {
             return (
                 fileSet.equals(existingSelectionItem.fileSet) &&
-                indexRange.contains(existingSelectionItem.selection)
+                (indexRange.intersects(existingSelectionItem.selection) ||
+                    indexRange.abuts(existingSelectionItem.selection))
             );
         });
+        const compacted = reject(this.selections, (existingSelectionItem) =>
+            overlapping.includes(existingSelectionItem)
+        );
 
         const item: SelectionItem = {
             fileSet,
-            selection: indexRange,
+            selection: overlapping.reduce(
+                (range, existingSelectionItem) => range.union(existingSelectionItem.selection),
+                indexRange
+            ),
             sortOrder,
         };
 

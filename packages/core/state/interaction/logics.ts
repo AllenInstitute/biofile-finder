@@ -319,7 +319,72 @@ const downloadFilesLogic = createLogic({
         const totalBytesToDownload = sumBy(filesToDownload, "size") || 0;
         const totalBytesDisplay = getBytesDisplay(totalBytesToDownload, someFilesHaveUnknownSize);
 
-        // TODO: Download these into a zip using new streamsaver zipped code
+        if (filesToDownload.length > 1 && fileDownloadService.downloadFilesAsZip) {
+            let isCancelled = false;
+            const downloadRequestId = uniqueId();
+            const fileIds = filesToDownload.map((file) => file.id);
+
+            const onCancel = () => {
+                isCancelled = true;
+                dispatch(cancelFileDownload(downloadRequestId));
+            };
+
+            let totalBytesDownloaded = 0;
+            const throttledProgressDispatcher = throttle((progressMsg: string) => {
+                if (isCancelled) return;
+                dispatch(
+                    processProgress(
+                        downloadRequestId,
+                        totalBytesToDownload ? totalBytesDownloaded / totalBytesToDownload : 0,
+                        progressMsg,
+                        onCancel,
+                        fileIds
+                    )
+                );
+            }, 1000);
+
+            const onProgress = (transferredBytes: number) => {
+                totalBytesDownloaded += transferredBytes;
+
+                const updatedBytesDisplay = numberFormatter.displayValue(
+                    totalBytesDownloaded,
+                    "bytes"
+                );
+                const progressMsg = `Downloading ${filesToDownload.length} files as ZIP. <br/> ${updatedBytesDisplay} out of ${totalBytesDisplay} set to download`;
+                throttledProgressDispatcher(progressMsg);
+            };
+
+            try {
+                const msg = `Downloading ${filesToDownload.length} files as ZIP. <br/> ${totalBytesDisplay} set to download`;
+                dispatch(processStart(downloadRequestId, msg, onCancel, fileIds));
+
+                const result = await fileDownloadService.downloadFilesAsZip(
+                    filesToDownload,
+                    downloadRequestId,
+                    onProgress
+                );
+
+                if (result.resolution === DownloadResolution.CANCELLED) {
+                    onCancel();
+                } else {
+                    dispatch(
+                        processSuccess(
+                            downloadRequestId,
+                            result.msg || "Download completed successfully."
+                        )
+                    );
+                }
+            } catch (err) {
+                const errorMsg = `File download failed. Details:<br/>${
+                    err instanceof Error ? err.message : err
+                }`;
+                dispatch(processError(downloadRequestId, errorMsg));
+            }
+
+            done();
+            return;
+        }
+
         await Promise.allSettled(
             filesToDownload.map(async (file) => {
                 let isCancelled = false;
@@ -720,8 +785,11 @@ const showContextMenu = createLogic({
  */
 const refresh = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { getState } = deps;
+        const sources = selection.selectors.getSelectedDataSources(getState());
+        const isStale = () => selection.selectors.getSelectedDataSources(getState()) !== sources;
+
         try {
-            const { getState } = deps;
             const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
             const annotationService = interactionSelectors.getAnnotationService(getState());
 
@@ -730,11 +798,14 @@ const refresh = createLogic({
                 annotationService.fetchAnnotations(),
                 annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy),
             ]);
+            // A late response would overwrite the newer source's schema with this one's.
+            if (isStale()) return;
             dispatch(metadata.actions.receiveAnnotations(annotations));
             dispatch(selection.actions.setAvailableAnnotations(availableAnnotations) as AnyAction);
         } catch (err) {
+            if (isStale()) return;
             console.error(`Error encountered while refreshing: ${err}`);
-            const annotations = metadata.selectors.getAnnotations(deps.getState());
+            const annotations = metadata.selectors.getAnnotations(getState());
             dispatch(
                 selection.actions.setAvailableAnnotations(
                     annotations.map((a) => a.name)
