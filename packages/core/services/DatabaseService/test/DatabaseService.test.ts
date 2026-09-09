@@ -304,13 +304,21 @@ describe("DatabaseService", () => {
 
             public query(sql: string): { promise: Promise<any> } {
                 const parquetDescribeMatch = sql.match(
-                    /DESCRIBE SELECT \* FROM parquet_scan\("(.+)-bff-filehandle"\)/
+                    /DESCRIBE SELECT \* FROM parquet_scan\(\s*ARRAY\[([\s\S]*?)\]/
                 );
                 if (parquetDescribeMatch) {
-                    const sourceName = parquetDescribeMatch[1];
-                    const columns = this.parquetColumnsBySource[sourceName] || [];
+                    // Recover the source name from each handle
+                    const columns = new Set<string>();
+                    for (const match of parquetDescribeMatch[1].matchAll(/'([^']+)'/g)) {
+                        const sourceName = match[1].split("-bff-filehandle")[0];
+                        (this.parquetColumnsBySource[sourceName] || []).forEach((column) =>
+                            columns.add(column)
+                        );
+                    }
                     return {
-                        promise: Promise.resolve(columns.map((column_name) => ({ column_name }))),
+                        promise: Promise.resolve(
+                            [...columns].map((column_name) => ({ column_name }))
+                        ),
                     };
                 }
                 return { promise: Promise.resolve([]) };
@@ -428,7 +436,170 @@ describe("DatabaseService", () => {
             expect(createViewSql).to.not.be.undefined;
             expect(createViewSql).to.match(/parquet_scan\(\s*ARRAY\[/);
             expect(createViewSql).to.include("union_by_name = true");
-            expect(createViewSql).to.include(`"bff_source_file" AS "Data source"`);
+            expect(createViewSql).to.include(
+                `REGEXP_REPLACE("bff_source_file", '-bff-filehandle.*$', '') AS "Data source"`
+            );
+        });
+        describe("delta lake sources", () => {
+            const DELTA_SOURCE = "table";
+
+            class MockDeltaDatabaseService extends DatabaseService {
+                public executedSQL: string[] = [];
+
+                constructor(
+                    private readonly parquetColumnsBySource: Record<string, string[]>,
+                    dataFiles: string[]
+                ) {
+                    const deltaLakeService = {
+                        listDataFiles: () => Promise.resolve(dataFiles),
+                        isDeltaTable: () => {
+                            return Promise.resolve(true);
+                        },
+                    } as any;
+                    super(deltaLakeService);
+                    // The delta source must go through addDataSource for its data
+                    // files to be registered, so leave it out of the pre-registered set.
+                    Object.keys(parquetColumnsBySource)
+                        .filter((sourceName) => sourceName !== DELTA_SOURCE)
+                        .forEach((sourceName) => this.existingDataSources.add(sourceName));
+                }
+
+                public execute(sql: string): Promise<void> {
+                    this.executedSQL.push(sql);
+                    return Promise.resolve();
+                }
+
+                // Delta sources go through the real addDataSource, so stub out the
+                // pieces that need the network and a live database.
+                public registeredURLs: { handle: string; url: string }[] = [];
+
+                protected addDataSource(
+                    name: string,
+                    type: string,
+                    uri: string | File
+                ): Promise<void> {
+                    if (type === "delta") {
+                        return super.addDataSource(name, type as any, uri);
+                    }
+                    return Promise.resolve();
+                }
+
+                protected async registerFileURLs(handles: string[], urls: string[]): Promise<void> {
+                    handles.forEach((handle, index) =>
+                        this.registeredURLs.push({ handle, url: urls[index] })
+                    );
+                }
+
+                public query(sql: string): { promise: Promise<any> } {
+                    const parquetDescribeMatch = sql.match(
+                        /DESCRIBE SELECT \* FROM parquet_scan\(\s*ARRAY\[([\s\S]*?)\]/
+                    );
+                    if (parquetDescribeMatch) {
+                        // Recover the source name from each file handle. A Delta source
+                        // registers many handles, all prefixed with its source name.
+                        const columns = new Set<string>();
+                        for (const match of parquetDescribeMatch[1].matchAll(/'([^']+)'/g)) {
+                            const sourceName = match[1].split("-bff-filehandle")[0];
+                            (this.parquetColumnsBySource[sourceName] || []).forEach((column) =>
+                                columns.add(column)
+                            );
+                        }
+                        return {
+                            promise: Promise.resolve(
+                                [...columns].map((column_name) => ({ column_name }))
+                            ),
+                        };
+                    }
+                    return { promise: Promise.resolve([]) };
+                }
+            }
+
+            const DATA_FILES = [
+                "https://example.com/table/part-00000.snappy.parquet",
+                "https://example.com/table/part-00001.snappy.parquet",
+            ];
+
+            it("registers one file handle per parquet data file", async () => {
+                const service = new MockDeltaDatabaseService({ table: ["File Path"] }, DATA_FILES);
+
+                // Skip normalization: these assert on registration and SQL shape,
+                // not on data source validation.
+                await service.prepareDataSources(
+                    [{ name: "table", type: "delta", uri: "s3://bucket/table" }],
+                    true
+                );
+
+                expect(service.registeredURLs).to.deep.equal([
+                    { handle: "table-bff-filehandle-00000000.parquet", url: DATA_FILES[0] },
+                    { handle: "table-bff-filehandle-00000001.parquet", url: DATA_FILES[1] },
+                ]);
+            });
+
+            it("scans every data file from a single view", async () => {
+                const service = new MockDeltaDatabaseService({ table: ["File Path"] }, DATA_FILES);
+
+                await service.prepareDataSources(
+                    [{ name: "table", type: "delta", uri: "s3://bucket/table" }],
+                    true
+                );
+
+                const createViewSql = service.executedSQL.find((sql) =>
+                    sql.includes("CREATE VIEW")
+                );
+                expect(createViewSql).to.include(`CREATE VIEW "table"`);
+                expect(createViewSql).to.include(`'table-bff-filehandle-00000000.parquet'`);
+                expect(createViewSql).to.include(`'table-bff-filehandle-00000001.parquet'`);
+                expect(createViewSql).to.include("union_by_name = true");
+            });
+
+            it('shows one "Data source" per logical source, not per data file', async () => {
+                const service = new MockDeltaDatabaseService(
+                    { table: ["File Path"], "a.parquet": ["File Path"] },
+                    DATA_FILES
+                );
+
+                await service.prepareDataSources(
+                    [
+                        { name: "table", type: "delta", uri: "s3://bucket/table" },
+                        {
+                            name: "a.parquet",
+                            type: "parquet",
+                            uri: "https://example.com/a.parquet",
+                        },
+                    ],
+                    true
+                );
+
+                const createViewSql = service.executedSQL.find((sql) =>
+                    sql.includes(`CREATE VIEW "a.parquet, table"`)
+                );
+                expect(createViewSql).to.include(
+                    `REGEXP_REPLACE("bff_source_file", '-bff-filehandle.*$', '') AS "Data source"`
+                );
+            });
+
+            it("aggregates with plain parquet sources rather than rejecting them", async () => {
+                // A Delta table is parquet underneath, so it must not trip the
+                // "parquet cannot be aggregated with non-parquet" guard.
+                const service = new MockDeltaDatabaseService(
+                    { table: ["File Path"], "a.parquet": ["File Path"] },
+                    DATA_FILES
+                );
+
+                await service.prepareDataSources(
+                    [
+                        { name: "table", type: "delta", uri: "s3://bucket/table" },
+                        {
+                            name: "a.parquet",
+                            type: "parquet",
+                            uri: "https://example.com/a.parquet",
+                        },
+                    ],
+                    true
+                );
+
+                expect(service.hasAggregateSource(["table", "a.parquet"])).to.be.true;
+            });
         });
     });
 

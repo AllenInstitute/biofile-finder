@@ -22,7 +22,11 @@ export enum FileView {
 
 export const MARKDOWN_SOURCE_TYPES = ["markdown", "md"] as const;
 export const TABULAR_SOURCE_TYPES = ["csv", "json", "parquet"] as const;
-export const ACCEPTED_SOURCE_TYPES = [...TABULAR_SOURCE_TYPES, ...MARKDOWN_SOURCE_TYPES] as const;
+export const ACCEPTED_SOURCE_TYPES = [
+    ...TABULAR_SOURCE_TYPES,
+    ...MARKDOWN_SOURCE_TYPES,
+    "delta",
+] as const;
 export function isMarkdownType(type?: string): boolean {
     return (MARKDOWN_SOURCE_TYPES as readonly any[]).includes(type);
 }
