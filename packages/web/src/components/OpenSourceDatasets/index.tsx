@@ -57,10 +57,7 @@ export default function OpenSourceDatasets() {
         const url = datasetDetails?.presetQuery;
         openDatasetInApp(
             datasetDetails.name,
-            {
-                ...getNameAndTypeFromSourceUrl(dataSourceURL),
-                uri: dataSourceURL,
-            },
+            getNameAndTypeFromSourceUrl(dataSourceURL),
             url
         );
     };
