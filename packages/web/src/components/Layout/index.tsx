@@ -7,19 +7,26 @@ import Footer from "../Footer";
 
 import styles from "./Layout.module.css";
 
-// Basic wrapper to maintain global header
 export default function Layout() {
     const currentPath = useLocation().pathname;
     const isApp: boolean = currentPath == "/app";
-    // The user guide runs its own full-height scroll panels and handles footer
-    // clearance internally, so it opts out of the shared footer-clearance padding.
-    const isUserGuide: boolean = currentPath.startsWith("/user-guide");
+    const isDatasets: boolean = currentPath === "/datasets";
+
+    // Reset the scroll container to the top on every route change. React Router's
+    // built-in scroll restoration only resets window.scrollY; the app's scroll
+    // container is this inner div, so it must be reset manually.
+    const scrollRef = React.useRef<HTMLDivElement>(null);
+    React.useEffect(() => {
+        scrollRef.current?.scrollTo(0, 0);
+    }, [currentPath]);
+
     return (
         <div className={styles.root}>
             <Header />
             <div
+                ref={scrollRef}
                 className={classNames(isApp ? styles.fillScreen : styles.scrollable, {
-                    [styles.footerClearance]: !isApp && !isUserGuide,
+                    [styles.footerClearance]: isDatasets,
                 })}
             >
                 <Outlet />

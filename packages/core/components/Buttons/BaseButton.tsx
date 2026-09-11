@@ -8,19 +8,19 @@ import Tooltip from "../Tooltip";
 import styles from "./BaseButton.module.css";
 
 interface Props {
+    ariaLabel?: string;
     className?: string;
     disabled?: boolean;
     iconName?: string;
+    iconPosition?: "before" | "after";
     id?: string;
     isSelected?: boolean;
     menuDirection?: DirectionalHint;
+    menuIconName?: string;
     menuItems?: IContextualMenuItem[];
     onClick?: () => void;
     text?: string;
-    // title is only required if tooltip would be different from button text
-    // or if button does not have text (e.g., icon only)
     title?: string;
-    // default to all-caps except for link-like buttons
     useSentenceCase?: boolean;
 }
 
@@ -34,17 +34,23 @@ export default function BaseButton(props: Props) {
         directionalHint: props.menuDirection,
     });
 
+    const isIconAfter = props.iconPosition === "after";
+    const icon = props.iconName && (
+        <Icon
+            className={classNames(styles.buttonIcon, {
+                [styles.padRight]: !!props.text && !isIconAfter,
+                [styles.padLeft]: !!props.text && isIconAfter,
+            })}
+            iconName={props.iconName}
+        />
+    );
     const content = (
         <span className={styles.buttonContent}>
-            {props.iconName && (
-                <Icon
-                    className={classNames(styles.buttonIcon, { [styles.padRight]: !!props.text })}
-                    iconName={props.iconName}
-                />
-            )}
+            {!isIconAfter && icon}
             <span className={styles.buttonText}>
                 {props?.useSentenceCase ? props.text : props.text?.toUpperCase()}
             </span>
+            {isIconAfter && icon}
         </span>
     );
 
@@ -67,10 +73,14 @@ export default function BaseButton(props: Props) {
                     [styles.selected]: props.isSelected,
                 })}
                 data-testid={`base-button-${props.id}`}
-                ariaLabel={props.title}
+                ariaLabel={props.ariaLabel ?? props.title}
                 disabled={props.disabled}
                 id={props.id}
-                menuIconProps={{ className: styles.hidden }}
+                menuIconProps={
+                    props.menuIconName
+                        ? { iconName: props.menuIconName, className: styles.buttonIcon }
+                        : { className: styles.hidden }
+                }
                 menuProps={styledMenu}
                 onClick={props.onClick}
             >

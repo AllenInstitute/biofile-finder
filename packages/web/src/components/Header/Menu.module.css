@@ -53,7 +53,8 @@
 }
 
 .start-button {
-    width: 126px;
+    padding: 0 16px;
+    width: fit-content;
 }
 
 /**
