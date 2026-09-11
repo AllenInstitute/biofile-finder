@@ -1,29 +1,56 @@
 .hidden {
-  display: none;
+  transform: translateX(100%);
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .panel {
-  width: 510px;
+  /* Match the default width of the FileDetailPanel */
+  width: var(--file-details-width);
   height: 100%;
   background-color: var(--primary-dark);
   position: absolute;
-  top: 50px;
   right: 0;
   padding: 24px 30px;
   border-left: 1px solid var(--medium-grey);
   box-shadow: -4px 10px 8px 0px #000000;
-  z-index: 15;
+  z-index: 90;
+  transition: transform 0.5s ease, visibility 0.5s;
+  --footer-height: 36px;
+}
+
+.overflow-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.vertical-gradient {
+  background-image: linear-gradient(transparent, var(--primary-background-color));
+  bottom: var(--footer-height);
+  content: " ";
+  height: 60px;
+  right: 0;
+  position: absolute;
+  pointer-events: none;
+  width: 100%;
+  z-index: 11;
 }
 
 .internal-wrapper {
   position: relative;
-  height: calc(100% - var(--margin) * 4);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--footer-height);
 }
 
 .header {
-  position: absolute;
-  top: 0;
-  right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .title {
@@ -33,11 +60,12 @@
   max-width: 410px;
 }
 
-hr {
+.divider {
   border: none;
   height: 1px !important;
   color: var(--medium-grey); /* old IE */
   background-color: var(--medium-grey); /* Modern Browsers */
+  width: 100%;
 }
 
 .content {
@@ -45,8 +73,8 @@ hr {
   font-size: 16px;
   line-height: 26px !important;
   position: relative;
-  height: 85%;
-  padding: var(--margin) 0;
+  padding-top: var(--margin);
+  margin-bottom: var(--margin);
 }
 
 .description-truncated {
@@ -78,29 +106,13 @@ hr {
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: calc(2*var(--margin)) 0;
+  padding-top: calc(2*var(--margin));
 }
 
 .row {
   width: 100%;
   /* flex child */
   flex: 1 1 100%;
-}
-
-.button-wrapper {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-  width: 100%;
-}
-
-.button-wrapper > * {
-  margin: 6px 10px;
-}
-
-.button {
-  height: 33px;
-  min-width: 115px;
 }
 
 .secondary-close-button {
@@ -111,7 +123,9 @@ hr {
 .footer {
   width: 100%;
   position: absolute;
+  height: var(--footer-height);
   bottom: 0;
+  padding-top: var(--margin);
   
   /* flex parent */
   display: flex;
