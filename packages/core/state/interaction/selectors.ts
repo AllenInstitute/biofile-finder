@@ -5,13 +5,12 @@ import { State } from "../";
 import { ModalType } from "../../components/Modal";
 import {
     AICS_FMS_DATA_SOURCE_NAME,
-    CellFeatureExplorerBaseUrl,
     DatasetBucketUrl,
     FESBaseUrl,
+    FileStorageServiceBaseUrl,
     JSSBaseUrl,
-    LoadBalancerBaseUrl,
+    LabKeyBaseUrl,
     MMSBaseUrl,
-    TemporaryFileServiceBaseUrl,
     VolEBaseUrl,
 } from "../../constants";
 import {
@@ -65,8 +64,6 @@ export const hasUsedApplicationBefore = (state: State) =>
     state.interaction.hasUsedApplicationBefore;
 export const isGraphLoading = (state: State) => state.interaction.isGraphLoading;
 export const isOnWeb = (state: State) => state.interaction.isOnWeb;
-export const isRemoteFileUploadServerAvailable = (state: State) =>
-    state.interaction.isRemoteFileUploadServerAvailable;
 export const getPlatformDependentServices = (state: State) =>
     state.interaction.platformDependentServices;
 export const getProcessStatuses = (state: State) => state.interaction.status;
@@ -88,16 +85,20 @@ export const getDatasetBucketUrl = createSelector(
     (environment) => DatasetBucketUrl[environment]
 );
 
-export const getLoadBalancerBaseUrl = createSelector(
+export const getFileStorageServiceBaseUrl = createSelector(
     [getEnvironment],
-    (environment) => LoadBalancerBaseUrl[environment]
+    (environment) => FileStorageServiceBaseUrl[environment]
+);
+
+export const getLabKeyBaseUrl = createSelector(
+    [getEnvironment],
+    (environment) => LabKeyBaseUrl[environment]
 );
 
 export const getPipelineService = createSelector(
     [getEnvironment],
     (environment) =>
         new PipelineService({
-            loadBalancerBaseUrl: LoadBalancerBaseUrl[environment],
             jssBaseUrl: JSSBaseUrl[environment],
             metadataManagementServiceBaseURl: MMSBaseUrl[environment],
         })
@@ -108,19 +109,9 @@ export const getMetadataManagementServiceBaseUrl = createSelector(
     (environment) => MMSBaseUrl[environment]
 );
 
-export const getCellFeatureExplorerBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => CellFeatureExplorerBaseUrl[environment]
-);
-
 export const getVolEBaseUrl = createSelector(
     [getEnvironment],
     (environment) => VolEBaseUrl[environment]
-);
-
-export const getTemporaryFileServiceBaseUrl = createSelector(
-    [getEnvironment],
-    (environment) => TemporaryFileServiceBaseUrl[environment]
 );
 
 // COMPOSED SELECTORS
@@ -182,7 +173,7 @@ export const getHttpFileService = createSelector(
     [
         getApplicationVersion,
         getFileExplorerServiceBaseUrl,
-        getLoadBalancerBaseUrl,
+        getFileStorageServiceBaseUrl,
         getMetadataManagementServiceBaseUrl,
         getUserName,
         getPlatformDependentServices,
@@ -191,7 +182,7 @@ export const getHttpFileService = createSelector(
     (
         applicationVersion,
         fileExplorerServiceBaseUrl,
-        loadBalancerBaseUrl,
+        fileStorageServiceBaseUrl,
         metadataManagementServiceBaseURL,
         userName,
         platformDependentServices
@@ -200,7 +191,7 @@ export const getHttpFileService = createSelector(
             userName,
             applicationVersion,
             fileExplorerServiceBaseUrl,
-            loadBalancerBaseUrl,
+            fileStorageServiceBaseUrl,
             metadataManagementServiceBaseURl: metadataManagementServiceBaseURL,
             downloadService: platformDependentServices.fileDownloadService,
         })

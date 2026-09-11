@@ -5,6 +5,7 @@ import {
     PipelineParameter,
     PipelineParameterType,
 } from "../../entity/ComputePipeline";
+import { JSSBaseUrl } from "../../constants";
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
 interface JssPipelineSummary {
@@ -75,7 +76,7 @@ export default class PipelineService extends HttpServiceBase {
 
     constructor(config: ConnectionConfig = {}) {
         super(config);
-        this.jssBaseUrl = config.jssBaseUrl ?? this.loadBalancerBaseUrl;
+        this.jssBaseUrl = config.jssBaseUrl ?? JSSBaseUrl.PRODUCTION;
     }
 
     getPipelines(): Promise<Pipeline[]> {

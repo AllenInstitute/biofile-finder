@@ -294,7 +294,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         fileIds: string[],
         username?: string
     ): Promise<{ cacheFileStatuses: { [fileId: string]: string } }> {
-        const requestUrl = `${this.loadBalancerBaseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}${this.pathSuffix}`;
+        const requestUrl = `${this.fileStorageServiceBaseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}${this.pathSuffix}`;
         const requestBody = JSON.stringify({ fileIds });
         const headers = {
             "Content-Type": "application/json",

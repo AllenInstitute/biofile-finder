@@ -77,7 +77,14 @@ export enum MMSBaseUrl {
     TEST = "http://test-aics-mms-api.corp.alleninstitute.org",
 }
 
-export enum LoadBalancerBaseUrl {
+export enum FileStorageServiceBaseUrl {
+    LOCALHOST = "http://localhost:8080",
+    STAGING = "https://stg-aics.corp.alleninstitute.org",
+    PRODUCTION = "https://aics.corp.alleninstitute.org",
+    TEST = "http://test-aics.corp.alleninstitute.org",
+}
+
+export enum LabKeyBaseUrl {
     LOCALHOST = "http://localhost:8080",
     STAGING = "https://stg-aics.corp.alleninstitute.org",
     PRODUCTION = "https://aics.corp.alleninstitute.org",
@@ -91,28 +98,11 @@ export enum DatasetBucketUrl {
     TEST = "http://test-aics.corp.alleninstitute.org",
 }
 
-export enum CellFeatureExplorerBaseUrl {
-    LOCALHOST = "http://localhost:9002",
-    // TODO: Update this once the public build of CFE includes support for the
-    // csvUrl param, e.g.:
-    // STAGING = "https://cfe.allencell.org"
-    STAGING = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist",
-    PRODUCTION = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist",
-    TEST = "http://dev-aics-dtp-001.corp.alleninstitute.org/cell-feature-explorer/dist",
-}
-
 export enum VolEBaseUrl {
     LOCALHOST = "http://localhost:9020/viewer",
     STAGING = "https://staging.volumeviewer.allencell.org/viewer",
     PRODUCTION = "https://vole.allencell.org/viewer",
     TEST = "https://staging.volumeviewer.allencell.org/viewer",
-}
-
-export enum TemporaryFileServiceBaseUrl {
-    LOCALHOST = "http://localhost:5000",
-    STAGING = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080",
-    PRODUCTION = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080",
-    TEST = "http://dev-aics-dtp-001.corp.alleninstitute.org:8080",
 }
 
 export enum JSSBaseUrl {
