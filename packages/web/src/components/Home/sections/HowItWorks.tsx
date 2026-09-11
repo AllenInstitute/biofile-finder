@@ -12,12 +12,7 @@ export default function HowItWorks() {
         <Section id="how" title="How does BioFile Finder work?" subtitle={HOW_SUBTITLE}>
             <div className={classNames(styles.cardGrid, styles.cardGrid2)}>
                 {HOW_CARDS.map((card) => (
-                    <InfoCard
-                        key={card.accent}
-                        accent={card.accent}
-                        heading={card.heading}
-                        body={card.body}
-                    />
+                    <InfoCard key={card.heading} heading={card.heading} body={card.body} />
                 ))}
             </div>
             <img

@@ -13,8 +13,7 @@ export default function WhyBioFileFinder() {
             <div className={classNames(styles.cardGrid, styles.cardGrid2)}>
                 {WHY_CARDS.map((card) => (
                     <InfoCard
-                        key={card.accent}
-                        accent={card.accent}
+                        key={card.heading}
                         heading={card.heading}
                         body={card.body}
                         image={card.image}

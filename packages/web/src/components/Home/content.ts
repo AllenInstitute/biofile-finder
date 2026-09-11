@@ -16,13 +16,8 @@ export const EXAMPLE_DATASET_URL =
 
 export const LINKS = { ...WEB_LINKS, tryNow: EXAMPLE_DATASET_URL };
 
-/**
- * A card whose heading leads with an emphasized phrase followed by the rest
- * of the heading, then a description.
- * Used by the "Why" and "How it works" grids.
- */
-export interface AccentCard {
-    accent: string;
+/** A card used by the "Why" and "How it works" grids. */
+export interface InfoCardContent {
     heading: string;
     body: string;
     /**
@@ -43,24 +38,21 @@ export interface AccentCard {
 // ---------------------------------------------------------------------------
 
 // Ordered to match the 2x2 grid layout (left-to-right, top-to-bottom).
-export const WHY_CARDS: AccentCard[] = [
+export const WHY_CARDS: InfoCardContent[] = [
     {
-        accent: "Reduce time",
-        heading: "to find the right files",
+        heading: "Reduce time to find the right files",
         body:
             "Search, filter, and browse large, distributed datasets using the metadata you already maintain without digging through folders or filenames.",
         image: { src: ClockGraphic, alt: "Clock icon", icon: true },
     },
     {
-        accent: "Improve collaboration",
-        heading: "and reproducibility",
+        heading: "Improve collaboration and reproducibility",
         body:
             "Share persistent, interactive dataset views so collaborators can open the same filtered, organized state and see the exact view you see.",
         image: { src: PeopleShareGraphic, alt: "People sharing a dataset icon", icon: true },
     },
     {
-        accent: "Dynamically organize",
-        heading: "and curate datasets",
+        heading: "Dynamically organize and curate datasets",
         body:
             "Filter, group, and restructure collections using hierarchical views without modifying underlying metadata or breaking existing reference.",
         image: {
@@ -69,8 +61,7 @@ export const WHY_CARDS: AccentCard[] = [
         },
     },
     {
-        accent: "Quick visual confirmation",
-        heading: "with thumbnails",
+        heading: "Quick visual confirmation with thumbnails",
         body:
             "Preview responsive thumbnails designed for scale, making it easier to verify files, spot patterns, and focus on relevant data.",
         image: { src: ThumbnailsGraphic, alt: "Thumbnail previews of imaging data" },
@@ -84,16 +75,14 @@ export const WHY_CARDS: AccentCard[] = [
 export const HOW_SUBTITLE =
     "BFF is designed so that you can incorporate it into your existing workflow.";
 
-export const HOW_CARDS: AccentCard[] = [
+export const HOW_CARDS: InfoCardContent[] = [
     {
-        accent: "Decentralized storage system",
-        heading: "",
+        heading: "Decentralized storage system",
         body:
             "Work from metadata while files remain distributed across local storage, shared drives, or institutional systems—no copying or setup required.",
     },
     {
-        accent: "Integrates with existing tools",
-        heading: "",
+        heading: "Integrates with existing tools",
         body:
             "BioFile Finder serves as a lightweight entry point, connecting metadata exploration with the applications you already use.",
     },

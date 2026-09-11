@@ -4,9 +4,7 @@ import * as React from "react";
 import styles from "./InfoCard.module.css";
 
 interface InfoCardProps {
-    /** Lead-in phrase before the heading (e.g. "Reduce time"). */
-    accent?: string;
-    /** Heading text. Follows the accent phrase inline when one is provided. */
+    /** Heading text displayed above the card body. */
     heading: React.ReactNode;
     body: React.ReactNode;
     /**
@@ -47,10 +45,7 @@ export default function InfoCard(props: InfoCardProps) {
     return (
         <div className={classNames(styles.card, props.className)}>
             {imageEl}
-            <h3 className={styles.heading}>
-                {props.accent && `${props.accent} `}
-                {props.heading}
-            </h3>
+            <h3 className={styles.heading}>{props.heading}</h3>
             <p className={styles.body}>{props.body}</p>
             {props.action && <div className={styles.action}>{props.action}</div>}
         </div>
