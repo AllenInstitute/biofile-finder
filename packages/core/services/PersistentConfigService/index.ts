@@ -1,5 +1,5 @@
 import { AnnotationResponse } from "../../entity/Annotation";
-import { Environment } from "../../constants";
+import { Environment, EnvironmentOverrides } from "../../constants";
 import { Column, Query } from "../../state/selection/actions";
 
 /**
@@ -17,6 +17,7 @@ export enum PersistedConfigKeys {
     Queries = "QUERIES",
     RecentAnnotations = "RECENT_ANNOTATIONS",
     Environment = "ENVIRONMENT",
+    EnvironmentOverrides = "ENVIRONMENT_OVERRIDES",
 }
 
 export interface UserSelectedApplication {
@@ -30,6 +31,7 @@ export interface PersistedConfig {
     [PersistedConfigKeys.CsvColumns]?: string[];
     [PersistedConfigKeys.DisplayAnnotations]?: AnnotationResponse[];
     [PersistedConfigKeys.Environment]?: Environment;
+    [PersistedConfigKeys.EnvironmentOverrides]?: EnvironmentOverrides;
     [PersistedConfigKeys.ImageJExecutable]?: string; // Deprecated
     [PersistedConfigKeys.HasUsedApplicationBefore]?: boolean;
     [PersistedConfigKeys.HasUserSelectedColumns]?: boolean;

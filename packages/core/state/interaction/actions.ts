@@ -4,6 +4,7 @@ import { uniqueId } from "lodash";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { DataSourceType } from "../../components/DataSourcePrompt";
 import { ModalType } from "../../components/Modal";
+import { EnvironmentOverrides } from "../../constants";
 import FileFilter from "../../entity/FileFilter";
 import { AnnotationValue } from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
@@ -267,6 +268,28 @@ export const initializeApp = (payload: { environment: string }) => ({
     type: INITIALIZE_APP,
     payload,
 });
+
+/**
+ * SET_ENVIRONMENT_OVERRIDES
+ *
+ * Set override of environment used by individual services.
+ */
+export const SET_ENVIRONMENT_OVERRIDES = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-environment-overrides"
+);
+
+export interface SetEnvironmentOverrides {
+    type: string;
+    payload: EnvironmentOverrides;
+}
+
+export function setEnvironmentOverrides(overrides: EnvironmentOverrides): SetEnvironmentOverrides {
+    return {
+        type: SET_ENVIRONMENT_OVERRIDES,
+        payload: overrides,
+    };
+}
 
 /**
  * Indicate that there are unsaved edits for non-AICS data sources

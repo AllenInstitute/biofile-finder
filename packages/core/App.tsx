@@ -7,12 +7,13 @@ import { useDispatch, useSelector } from "react-redux";
 import ContextMenu from "./components/ContextMenu";
 import CoreContent from "./components/CoreContent/CoreContent";
 import FileDetailPanel from "./components/FileDetailPanel";
-import Modal from "./components/Modal";
+import Modal, { ModalType } from "./components/Modal";
 import StatusMessage from "./components/StatusMessage";
 import TutorialTooltip from "./components/TutorialTooltip";
 import { Environment } from "./constants";
 import useCheckForScreenSizeChange from "./hooks/useCheckForScreenSizeChange";
 import useCheckForUpdates from "./hooks/useCheckForUpdates";
+import useKeyDown from "./hooks/useKeyDown";
 import useUpdateHasUsedApp from "./hooks/useUpdateHasUsedApp";
 import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
 import useUnsavedDataWarning from "./hooks/useUnsavedDataWarning";
@@ -45,6 +46,8 @@ export default function App(props: AppProps) {
 
     const dispatch = useDispatch();
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
+    const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
+    const visibleModal = useSelector(interaction.selectors.getVisibleModal);
 
     const [measuredNodeRef, _measuredHeight, measuredWidth] = useLayoutMeasurements<
         HTMLDivElement
@@ -54,6 +57,17 @@ export default function App(props: AppProps) {
     useUpdateHasUsedApp();
     useUnsavedDataWarning();
     useCheckForScreenSizeChange(measuredWidth);
+
+    // Developer shortcut for pointing services at other environments;
+    useKeyDown(["Control", "Shift", "e"], (event) => {
+        if (!isAicsEmployee) return;
+        event.preventDefault();
+        if (visibleModal === ModalType.EnvironmentSwitch) {
+            dispatch(interaction.actions.hideVisibleModal());
+        } else {
+            dispatch(interaction.actions.setVisibleModal(ModalType.EnvironmentSwitch));
+        }
+    });
 
     // Set data source base urls
     React.useEffect(() => {
