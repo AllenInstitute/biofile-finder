@@ -21,6 +21,6 @@ The "Data Source" menu points _every_ service at the selected environment. If yo
 e.g., a locally running `file-explorer-service` while MMS and FSS2 continue to point at staging — use the developer
 environment switch modal:
 
-1. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> (available to AICS employees only).
+1. Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> (available when connected to Allen network only).
 2. In the "Service environments (dev)" modal, choose an environment (`LOCALHOST`, `STAGING`, `PRODUCTION`, or `TEST`)
    for each service individually, or use the "All services" dropdown to set them all at once.
