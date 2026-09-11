@@ -19,6 +19,7 @@ import {
 } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
+import { isGoogleSheetUri } from "../../util/googleSheets";
 
 export interface CancellablePromise<T> {
     promise: Promise<T>;
@@ -661,11 +662,19 @@ export default abstract class DatabaseService {
                         // where the server does not allow cross-origin requests.
                         // TODO: Update this once user guide is complete:
                         // https://github.com/AllenInstitute/biofile-finder/issues/723
-                        formattedError =
-                            `This is likely caused by CORS restrictions. ` +
-                            `The server hosting the data source may not be configured to allow ` +
-                            `requests from this application. For help resolving this, please visit our ` +
-                            `support forum.`;
+                        formattedError = isGoogleSheetUri(uri)
+                            ? // Google serves its "no access" page without CORS headers, so a
+                              // restricted sheet is indistinguishable from a CORS failure here.
+                              // Sharing is the overwhelmingly likely cause, so lead with that.
+                              `This Google Sheet could not be read. Sheets are requested ` +
+                              `without sign-in, so sharing must be set to "Anyone with the link" ` +
+                              `(Viewer is enough) — or the sheet must be published to the web ` +
+                              `via File > Share > Publish to web. Check that the link is correct ` +
+                              `and that the sheet has not been deleted.`
+                            : `This is likely caused by CORS restrictions. ` +
+                              `The server hosting the data source may not be configured to allow ` +
+                              `requests from this application. For help resolving this, please visit our ` +
+                              `support forum.`;
                     } else if (error?.message) {
                         formattedError = error.message;
                     } // else use default error message

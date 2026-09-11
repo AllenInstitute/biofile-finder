@@ -48,7 +48,7 @@ export const getContextMenuOnDismiss = (state: State) => state.interaction.conte
 export const getCsvColumns = (state: State) => state.interaction.csvColumns;
 export const getDataSourceInfoForVisibleModal = (state: State) =>
     state.interaction.dataSourceInfoForVisibleModal;
-export const getDatasetDetailsVisibility = (state: State) =>
+export const isDatasetDetailsPanelVisible = (state: State) =>
     state.interaction.datasetDetailsPanelIsVisible;
 export const getGraphRefreshKey = (state: State) => state.interaction.graphRefreshKey;
 export const getOriginForProvenance = (state: State) => state.interaction.originForProvenance;

@@ -25,11 +25,16 @@
 }
 
 .value {
+  user-select: text !important;
   /* flex child */
   flex: 1 1 60%;
 
   /* Allow whitespace to be rendered (including carriage returns & new lines) */
   white-space: pre-wrap; 
+}
+
+.value > span {
+  user-select: text !important;
 }
 
 .link {

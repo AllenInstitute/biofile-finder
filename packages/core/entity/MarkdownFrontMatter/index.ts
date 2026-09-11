@@ -73,22 +73,13 @@ function deriveSourcesFromMetadata(metadata: RawDatasetMetadata): ParsedDatasetM
     const provenanceUrl = metadata.provenance_url;
     const descriptionsUrl = metadata.descriptions_url;
     if (datasetUrl) {
-        dataSource = {
-            ...getNameAndTypeFromSourceUrl(datasetUrl),
-            uri: datasetUrl,
-        };
+        dataSource = getNameAndTypeFromSourceUrl(datasetUrl);
     }
     if (provenanceUrl) {
-        provenanceSource = {
-            ...getNameAndTypeFromSourceUrl(provenanceUrl),
-            uri: provenanceUrl,
-        };
+        provenanceSource = getNameAndTypeFromSourceUrl(provenanceUrl);
     }
     if (descriptionsUrl) {
-        descriptionsSource = {
-            ...getNameAndTypeFromSourceUrl(descriptionsUrl),
-            uri: descriptionsUrl,
-        };
+        descriptionsSource = getNameAndTypeFromSourceUrl(descriptionsUrl);
     }
     return {
         // also still contains the original urls
