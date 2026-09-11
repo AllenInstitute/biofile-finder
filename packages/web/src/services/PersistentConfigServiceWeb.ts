@@ -45,9 +45,16 @@ export default class PersistentConfigServiceWeb implements PersistentConfigServi
         return;
     }
 
-    // localStorage only stores strings
-    public get(key: PersistedConfigKeys): string | undefined {
-        return localStorage.getItem(key) ?? undefined; // prefer undefined over null to match parent class
+    public get(key: PersistedConfigKeys): any {
+        const raw = localStorage.getItem(key);
+        if (raw === null) {
+            return undefined;
+        }
+        try {
+            return JSON.parse(raw);
+        } catch {
+            return raw;
+        }
     }
 
     public getAll(): PersistedConfig {
@@ -75,7 +82,7 @@ export default class PersistentConfigServiceWeb implements PersistentConfigServi
             localStorage.removeItem(arg);
         } else {
             // setItem only accepts strings
-            localStorage.setItem(arg, value);
+            localStorage.setItem(arg, JSON.stringify(value));
         }
     }
 }

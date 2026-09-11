@@ -47,10 +47,11 @@ import {
     refreshGraph,
     EXPAND_GRAPH,
     setIsGraphLoading,
+    SET_ENVIRONMENT_OVERRIDES,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { ModalType } from "../../components/Modal";
-import { UNSAVED_DATA_WARNING } from "../../constants";
+import { EnvironmentOverrides, UNSAVED_DATA_WARNING } from "../../constants";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileDetail from "../../entity/FileDetail";
@@ -63,7 +64,10 @@ import {
     SystemDefaultAppLocation,
 } from "../../services/ExecutionEnvService";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
-import { UserSelectedApplication } from "../../services/PersistentConfigService";
+import {
+    PersistedConfigKeys,
+    UserSelectedApplication,
+} from "../../services/PersistentConfigService";
 
 export const DEFAULT_QUERY_NAME = "New Query";
 
@@ -900,6 +904,25 @@ const copyFilesLogic = createLogic({
     type: COPY_FILES,
 });
 
+/**
+ * Interceptor responsible for persisting service environment overrides so they
+ * survive a page reload.
+ */
+const setEnvironmentOverridesLogic = createLogic({
+    type: SET_ENVIRONMENT_OVERRIDES,
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        const { persistentConfigService } = interactionSelectors.getPlatformDependentServices(
+            deps.getState()
+        );
+        const overrides = deps.action.payload as EnvironmentOverrides;
+        persistentConfigService.persist(
+            PersistedConfigKeys.EnvironmentOverrides,
+            isEmpty(overrides) ? undefined : overrides
+        );
+        done();
+    },
+});
+
 export default [
     cancelFileDownloadLogic,
     copyFilesLogic,
@@ -913,6 +936,7 @@ export default [
     openWithLogic,
     promptForNewExecutable,
     refresh,
+    setEnvironmentOverridesLogic,
     setIsSmallScreen,
     setOriginForProvenance,
     showContextMenu,
