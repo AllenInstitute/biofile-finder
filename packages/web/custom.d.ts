@@ -1,8 +1,8 @@
+// react-svg-loader converts SVG files to React components (default export).
 declare module "*.svg" {
     import React = require("react");
-    export const ReactComponent: React.FC<React.SVGProps<SVGSVGElement>>;
-    const src: string;
-    export default src;
+    const SvgComponent: React.FC<React.SVGProps<SVGSVGElement>>;
+    export default SvgComponent;
 }
 
 declare module "*.png" {
