@@ -133,7 +133,7 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
                             "file is",
                             "files are"
                         )}{" "}
-                        missing the %quot;Program%quot; annotation. Files will soon be required to
+                        missing the &quot;Program&quot; annotation. Files will soon be required to
                         have this field defined to be downloaded to VAST.
                     </StatusMessageInline>
                 )}
