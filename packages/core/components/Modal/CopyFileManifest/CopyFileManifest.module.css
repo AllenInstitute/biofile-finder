@@ -93,16 +93,19 @@
     max-width: var(--file-size-column-width);
 }
 
-.file-table th:first-child,
+.file-table th.file-name-column,
 .file-table td:first-child {
     width: calc(100% - var(--file-size-column-width));
 }
 
 
-.file-table td:first-child {
+.file-table td:not(:last-child) {
     border-right: 1px solid var(--border-color);
 }
 
+.file-table th.warning-column {
+    width: 2em;
+}
 
 .footer-buttons {
     display: flex;
@@ -110,7 +113,10 @@
     gap: 8px;
 }
 
+
 .summary {
+    --row-count-margin-top: 0.25em;
+
     display: flex;
     justify-content: flex-end;
     gap: 1em;
