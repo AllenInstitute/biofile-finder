@@ -1,6 +1,7 @@
 import * as duckdb from "@duckdb/duckdb-wasm";
 import axios from "axios";
 import { isEmpty, isNil, mapKeys, mapValues, uniq, uniqBy } from "lodash";
+import LRUCache from "lru-cache";
 
 import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
@@ -33,6 +34,11 @@ interface ProvenanceRow {
     parenttype: EdgeNodeType;
     relationship: string;
     relationshiptype?: RelationshipType;
+}
+
+export interface ProvenanceEdgeDefinitions {
+    edgeDefinitions: EdgeDefinition[];
+    warnings: string[];
 }
 
 // Runtime-checkable lists of the valid values for the union types used by a
@@ -173,18 +179,30 @@ export default abstract class DatabaseService {
     public static readonly LIST_DELIMITER = ",";
     private static readonly ANNOTATION_TYPE_SET = new Set(Object.values(AnnotationType));
     protected sourceMetadataName?: string;
-    public sourceProvenanceName?: string;
     private currentAggregateSource?: string;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
     protected readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
-    private readonly dataSourceToProvenanceMap: Map<string, EdgeDefinition[]> = new Map();
+    private readonly dataSourceToProvenanceMap = new LRUCache<string, ProvenanceEdgeDefinitions>({
+        max: 10,
+    });
     // Map from the markdown source name to parsed data sources
     protected readonly dataSourceToMetadataMap: Map<string, DatasetSources> = new Map();
     // Data source names that are views (parquet), so we DROP VIEW on delete
     private readonly parquetDirectViewNames = new Set<string>();
 
     protected database: duckdb.AsyncDuckDB | undefined;
+
+    /**
+     * Cache key for a parsed provenance source.
+     */
+    private static getProvenanceCacheKey(provenanceSource: Source): string {
+        const { name, uri } = provenanceSource;
+        if (!uri) return name;
+        return typeof uri === "string"
+            ? `${name}:${uri}`
+            : `${name}:${uri.lastModified}:${uri.size}`;
+    }
 
     constructor() {
         this.addDataSource = this.addDataSource.bind(this);
@@ -757,7 +775,7 @@ export default abstract class DatabaseService {
         const provenanceSource = parsedDatasetMetadata.provenanceSource;
         const columnDescriptorSource = parsedDatasetMetadata.descriptionsSource;
         if (provenanceSource) {
-            await this.prepareSourceProvenance(provenanceSource);
+            await this.addSourceProvenance(provenanceSource);
         }
         if (columnDescriptorSource) {
             await this.prepareSourceMetadata(columnDescriptorSource);
@@ -796,37 +814,6 @@ export default abstract class DatabaseService {
         this.sourceMetadataName = sourceMetadata.name;
     }
 
-    private async prepareSourceProvenance(sourceProvenance: Source): Promise<void> {
-        const isPreviousSource = sourceProvenance.name === this.sourceProvenanceName;
-        if (isPreviousSource && this.hasDataSource(sourceProvenance.name)) {
-            return;
-        }
-        // If the provenance source is being replaced, delete the old instance before preparing the new one
-        if (sourceProvenance.uri) {
-            await this.deleteSourceProvenance();
-            // Make sure we don't still have a cached version of the provenance source
-            if (!this.hasDataSource(sourceProvenance.name)) {
-                await this.prepareDataSourceWrapper(
-                    {
-                        ...sourceProvenance,
-                        name: sourceProvenance.name,
-                    },
-                    true
-                );
-            }
-        }
-        // If the source doesn't have a uri, we should instead try to use the cached table
-        this.sourceProvenanceName = sourceProvenance.name;
-    }
-
-    public async deleteSourceProvenance(): Promise<void> {
-        if (this.sourceProvenanceName) {
-            await this.deleteDataSource(this.sourceProvenanceName);
-            this.dataSourceToProvenanceMap.clear();
-            this.sourceProvenanceName = undefined;
-        }
-    }
-
     public async deleteSourceMetadata(): Promise<void> {
         // Avoid trying to delete a file that doesn't exist
         if (this.sourceMetadataName) await this.deleteDataSource(this.sourceMetadataName);
@@ -842,6 +829,26 @@ export default abstract class DatabaseService {
             await this.execute(`DROP VIEW IF EXISTS "${dataSource}"`);
         } else {
             await this.execute(`DROP TABLE IF EXISTS "${dataSource}"`);
+        }
+    }
+
+    /**
+     * Add the source of provenance data to the database
+     */
+    private async addSourceProvenance(sourceProvenance: Source): Promise<void> {
+        const isSourceAvailable = !!sourceProvenance.uri;
+        const isAlreadyPrepared = this.hasDataSource(sourceProvenance.name);
+        if (isSourceAvailable && !isAlreadyPrepared) {
+            await this.prepareDataSourceWrapper(sourceProvenance, true);
+        }
+    }
+
+    /**
+     * Delete the source of the provenance data from the database
+     */
+    private async deleteSourceProvenance(sourceProvenance: Source): Promise<void> {
+        if (this.hasDataSource(sourceProvenance.name)) {
+            await this.deleteDataSource(sourceProvenance.name);
         }
     }
 
@@ -1429,12 +1436,15 @@ export default abstract class DatabaseService {
         await this.execute(this.getUpdateHiddenUIDSQL(viewName));
     }
 
-    public async processProvenance(
+    public async getProvenanceEdgeDefinitions(
         provenanceSource: Source
-    ): Promise<{ edgeDefinitions: EdgeDefinition[]; warnings: string[] }> {
-        await this.prepareSourceProvenance(provenanceSource);
+    ): Promise<ProvenanceEdgeDefinitions> {
+        const cachedResult = this.getProvenanceCache(provenanceSource);
+        if (!isNil(cachedResult)) return cachedResult;
 
-        const sql = new SQLBuilder().select("*").from(`${this.sourceProvenanceName}`).toSQL();
+        await this.addSourceProvenance(provenanceSource);
+
+        const sql = new SQLBuilder().select("*").from(provenanceSource.name).toSQL();
         try {
             const rows = await this.query(sql).promise;
 
@@ -1463,7 +1473,9 @@ export default abstract class DatabaseService {
                 }
             }
 
-            return { edgeDefinitions, warnings };
+            const result = { edgeDefinitions, warnings };
+            this.setProvenanceCache(provenanceSource, result);
+            return result;
         } catch (err) {
             // Source provenance file may not have been supplied
             // and/or the columns may not exist
@@ -1473,8 +1485,8 @@ export default abstract class DatabaseService {
             }
             throw err;
         } finally {
-            // The definitions will already be in the state memory, no need to keep this in the database
-            await this.deleteSourceProvenance();
+            // The definitions are now cached in memory, no need to keep this in the database
+            await this.deleteSourceProvenance(provenanceSource);
         }
     }
 
@@ -1685,5 +1697,18 @@ export default abstract class DatabaseService {
                 .execute(`INSERT INTO "${this.sourceMetadataName}" ("Column Name", "Description")
                     VALUES ('${columnName}', '${description}');`);
         }
+    }
+
+    private setProvenanceCache(provenanceSource: Source, result: ProvenanceEdgeDefinitions): void {
+        this.dataSourceToProvenanceMap.set(
+            DatabaseService.getProvenanceCacheKey(provenanceSource),
+            result
+        );
+    }
+
+    private getProvenanceCache(provenanceSource: Source): ProvenanceEdgeDefinitions | undefined {
+        return this.dataSourceToProvenanceMap.get(
+            DatabaseService.getProvenanceCacheKey(provenanceSource)
+        );
     }
 }
