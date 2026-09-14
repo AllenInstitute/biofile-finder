@@ -115,16 +115,16 @@
 
 
 .summary {
-    --row-count-margin-top: 0.25em;
+    --row-count-intrinsic-height: 12px; /* margin values are relative to this because it is used in font-size declaration */
 
     display: flex;
     justify-content: flex-end;
     gap: 1em;
-    margin-top: var(--row-count-margin-top);
+    margin-top: 0.25em;
     color: var(--secondary-text-color);
     opacity: 0.8;
-    font-size: var(--row-count-intrisic-height);
-    height: var(--row-count-intrisic-height-height);
+    font-size: var(--row-count-intrinsic-height);
+    height: var(--row-count-intrinsic-height);
 }
 
 .total-size {
