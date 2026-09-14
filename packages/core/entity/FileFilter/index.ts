@@ -35,7 +35,7 @@ export default class FileFilter {
     }
 
     /**
-     * Convert any mix of filters into SQL WHERE clause strings, one per root column.
+     * Convert any mix of filters into SQL WHERE clause strings, one per leaf column.
      * Returns a `string[]` so callers can pass the result directly to `SQLBuilder.where()`,
      * which AND-joins each element as its own clause.
      */
