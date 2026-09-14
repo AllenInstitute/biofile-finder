@@ -2,7 +2,7 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 
 import HttpFileService from "..";
-import { FESBaseUrl, LoadBalancerBaseUrl, MMSBaseUrl } from "../../../../constants";
+import { FESBaseUrl, FileStorageServiceBaseUrl, MMSBaseUrl } from "../../../../constants";
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
@@ -10,7 +10,7 @@ import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadSe
 
 describe("HttpFileService", () => {
     const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
-    const loadBalancerBaseUrl = LoadBalancerBaseUrl.TEST;
+    const fileStorageServiceBaseUrl = FileStorageServiceBaseUrl.TEST;
     const metadataManagementServiceBaseURl = MMSBaseUrl.TEST;
     const fileIds = ["abc123", "def456", "ghi789", "jkl012"];
     const files = fileIds.map((file_id) => ({
@@ -116,7 +116,7 @@ describe("HttpFileService", () => {
 
     describe("cacheFiles", () => {
         const httpClient = createMockHttpClient({
-            when: `${loadBalancerBaseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}`,
+            when: `${fileStorageServiceBaseUrl}/${HttpFileService.BASE_FILE_CACHE_URL}`,
             respondWith: {
                 data: {
                     cacheFileStatuses: {
@@ -130,7 +130,7 @@ describe("HttpFileService", () => {
         it("sends file IDs to be cached and returns their statuses", async () => {
             // Arrange
             const fileService = new HttpFileService({
-                loadBalancerBaseUrl: loadBalancerBaseUrl,
+                fileStorageServiceBaseUrl,
                 httpClient,
                 downloadService: new FileDownloadServiceNoop(),
             });
