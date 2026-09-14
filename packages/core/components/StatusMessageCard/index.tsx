@@ -3,7 +3,7 @@ import * as React from "react";
 import styles from "./StatusMessageCard.module.css";
 
 /** Displays a warning or error message onscreen, as a block of text. */
-export default function StatusMessageInline({
+export default function StatusMessageCard({
     type,
     children,
 }: {
