@@ -29,13 +29,13 @@ export default function OpenSourceDatasets() {
 
     const openDatasetInApp = (
         datasetName: string,
-        source: Source,
+        sources: Source[],
         url?: Partial<SearchParamsComponents>
     ) => {
         dispatch(
             selection.actions.addQuery({
-                name: `New ${source.name} Query on ${datasetName || "open-source dataset"}`,
-                parts: { ...url, sources: [source] },
+                name: `New query on ${datasetName || "open-source dataset"}`,
+                parts: { ...url, sources },
             })
         );
 
@@ -45,7 +45,7 @@ export default function OpenSourceDatasets() {
             pathname: "/app",
             search: `?${SearchParams.encode({
                 ...url,
-                sources: [source],
+                sources,
             })}`,
         });
     };
@@ -55,14 +55,16 @@ export default function OpenSourceDatasets() {
 
         const dataSourceURL = datasetDetails.path;
         const url = datasetDetails?.presetQuery;
-        openDatasetInApp(
-            datasetDetails.name,
-            {
-                ...getNameAndTypeFromSourceUrl(dataSourceURL),
-                uri: dataSourceURL,
-            },
-            url
-        );
+        // if the preset query does not contain any sources, use the dataSourceUrl as the source
+        const sources = url?.sources?.length
+            ? url.sources
+            : [
+                  {
+                      ...getNameAndTypeFromSourceUrl(dataSourceURL),
+                      uri: dataSourceURL,
+                  },
+              ];
+        openDatasetInApp(datasetDetails.name, sources, url);
     };
 
     return (
