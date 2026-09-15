@@ -5,8 +5,8 @@ import LRUCache from "lru-cache";
 import {
     Environment,
     FESBaseUrl,
+    FileStorageServiceBaseUrl,
     JSSBaseUrl,
-    LoadBalancerBaseUrl,
     MMSBaseUrl,
 } from "../../constants";
 import RestServiceResponse from "../../entity/RestServiceResponse";
@@ -14,10 +14,10 @@ import RestServiceResponse from "../../entity/RestServiceResponse";
 export interface ConnectionConfig {
     applicationVersion?: string;
     fileExplorerServiceBaseUrl?: FESBaseUrl;
+    fileStorageServiceBaseUrl?: FileStorageServiceBaseUrl;
     httpClient?: AxiosInstance;
     includeCustomHeaders?: boolean;
     jssBaseUrl?: JSSBaseUrl;
-    loadBalancerBaseUrl?: LoadBalancerBaseUrl;
     metadataManagementServiceBaseURl?: MMSBaseUrl;
     pathSuffix?: string;
     userName?: string;
@@ -25,8 +25,8 @@ export interface ConnectionConfig {
 
 export const DEFAULT_CONNECTION_CONFIG = {
     fileExplorerServiceBaseUrl: FESBaseUrl.PRODUCTION,
+    fileStorageServiceBaseUrl: FileStorageServiceBaseUrl.PRODUCTION,
     includeCustomHeaders: true, // Whether to include FMS-specific headers in http calls
-    loadBalancerBaseUrl: LoadBalancerBaseUrl.PRODUCTION,
     metadataManagementServiceBaseURl: MMSBaseUrl.PRODUCTION,
 };
 
@@ -105,7 +105,7 @@ export default class HttpServiceBase {
 
     public fileExplorerServiceBaseUrl: string =
         DEFAULT_CONNECTION_CONFIG.fileExplorerServiceBaseUrl;
-    public loadBalancerBaseUrl: string = DEFAULT_CONNECTION_CONFIG.loadBalancerBaseUrl;
+    public fileStorageServiceBaseUrl: string = DEFAULT_CONNECTION_CONFIG.fileStorageServiceBaseUrl;
     public metadataManagementServiceBaseURl: string =
         DEFAULT_CONNECTION_CONFIG.metadataManagementServiceBaseURl;
 
@@ -134,8 +134,8 @@ export default class HttpServiceBase {
             this.setHttpClient(config.httpClient);
         }
 
-        if (config.loadBalancerBaseUrl) {
-            this.setLoadBalancerBaseUrl(config.loadBalancerBaseUrl);
+        if (config.fileStorageServiceBaseUrl) {
+            this.setFileStorageServiceBaseUrl(config.fileStorageServiceBaseUrl);
         }
 
         if (config.metadataManagementServiceBaseURl) {
@@ -396,13 +396,13 @@ export default class HttpServiceBase {
         delete this.httpClient.defaults.headers.common["X-User-Id"];
     }
 
-    public setLoadBalancerBaseUrl(loadBalancerBaseUrl: LoadBalancerBaseUrl) {
-        if (this.loadBalancerBaseUrl !== loadBalancerBaseUrl) {
+    public setFileStorageServiceBaseUrl(fileStorageServiceBaseUrl: FileStorageServiceBaseUrl) {
+        if (this.fileStorageServiceBaseUrl !== fileStorageServiceBaseUrl) {
             // bust cache when base url changes
             this.urlToResponseDataCache.reset();
         }
 
-        this.loadBalancerBaseUrl = loadBalancerBaseUrl;
+        this.fileStorageServiceBaseUrl = fileStorageServiceBaseUrl;
     }
 
     public setMetadataManagementServiceBaseURl(metadataManagementServiceBaseURl: MMSBaseUrl) {

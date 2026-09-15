@@ -1,6 +1,7 @@
 import { expect } from "chai";
 
 import { PersistedConfigKeys } from "../../../../core/services";
+import { Environment as CoreEnvironment, OverridableService } from "../../../../core/constants";
 import { AnnotationType } from "../../../../core/entity/AnnotationFormatter";
 import { Environment, RUN_IN_RENDERER } from "../../util/constants";
 import PersistentConfigServiceElectron from "../PersistentConfigServiceElectron";
@@ -64,6 +65,9 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             ];
 
             const expectedEnvironment = Environment.TEST;
+            const expectedEnvironmentOverrides = {
+                [OverridableService.JobStatusService]: CoreEnvironment.STAGING,
+            };
             const expectedColumns = [{ file_size: 0.4 }, { file_name: 0.6 }];
 
             service.persist(PersistedConfigKeys.AllenMountPoint, expectedAllenMountPoint);
@@ -80,6 +84,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
             service.persist(PersistedConfigKeys.DisplayAnnotations, expectedDisplayAnnotations);
             service.persist(PersistedConfigKeys.RecentAnnotations, expectedRecentAnnotations);
             service.persist(PersistedConfigKeys.Environment, expectedEnvironment);
+            service.persist(PersistedConfigKeys.EnvironmentOverrides, expectedEnvironmentOverrides);
 
             const expectedConfig = {
                 [PersistedConfigKeys.AllenMountPoint]: expectedAllenMountPoint,
@@ -93,6 +98,7 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                 [PersistedConfigKeys.DisplayAnnotations]: expectedDisplayAnnotations,
                 [PersistedConfigKeys.RecentAnnotations]: expectedRecentAnnotations,
                 [PersistedConfigKeys.Environment]: expectedEnvironment,
+                [PersistedConfigKeys.EnvironmentOverrides]: expectedEnvironmentOverrides,
             };
 
             // Act
@@ -136,6 +142,9 @@ describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
                     },
                 ],
                 [PersistedConfigKeys.Environment]: Environment.TEST,
+                [PersistedConfigKeys.EnvironmentOverrides]: {
+                    [OverridableService.JobStatusService]: CoreEnvironment.STAGING,
+                },
             };
 
             // Act
