@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
 import LoadingIcon from "../../Icons/LoadingIcon";
+import StatusMessageCard from "../../StatusMessageCard";
 
 import styles from "./PasswordForm.module.css";
 
@@ -50,17 +51,17 @@ export default function PasswordForm(props: Props) {
     let infoMessage;
     if (props.isInvalidSelection) {
         infoMessage = (
-            <p className={styles.errorMessage}>
+            <StatusMessageCard type="error">
                 The files you have selected do not share the same program or do not have any program
                 value.
-            </p>
+            </StatusMessageCard>
         );
     } else if (props.isInvalidPassword) {
         infoMessage = (
-            <p className={styles.errorMessage}>
+            <StatusMessageCard type="error">
                 Not a valid password for any of the following programs:{" "}
                 <strong>{props.validPrograms.join(", ")}</strong>. Please try again.
-            </p>
+            </StatusMessageCard>
         );
     } else {
         infoMessage = (
