@@ -10,8 +10,8 @@ import Tooltip from "../Tooltip";
 import styles from "./QueryPartRow.module.css";
 
 export interface QueryPartRowItem extends DnDItem {
+    className?: string;
     description?: string;
-    datasetDescriptionSource?: string;
     titleIconName?: string;
     /**
      * Ancestor path segments shown as a greyed breadcrumb before the title (the leaf). E.g. for
@@ -21,7 +21,7 @@ export interface QueryPartRowItem extends DnDItem {
     titlePrefixParts?: string[];
     onClick?: (itemId: string) => void;
     onDelete?: (itemId: string) => void;
-    onShowDatasetInfo?: (itemId: string) => void;
+    onShowInfo?: (itemId: string) => void;
     onRenderEditMenuList?: (item: QueryPartRowItem) => React.ReactElement<QueryPartRowItem>;
 }
 
@@ -54,9 +54,19 @@ export default function QueryGroupRow(props: Props) {
     const prefixText = prefixParts.length ? `${prefixParts.join(" : ")} : ` : "";
     const tooltip = `${prefixText}${props.item.title}\n${props.item.description ?? ""}`;
 
+    const onClick = () => {
+        if (isInteractive) {
+            // filter, group, and sort have these interactions
+            return props.item.onClick?.(props.item.id);
+        } else if (!!props.item.onShowInfo) {
+            // data sources may have this
+            return props.item.onShowInfo(props.item.id);
+        }
+    };
+
     return (
         <div
-            className={classNames(styles.row, {
+            className={classNames(styles.row, props.item.className, {
                 [styles.grabbable]: !props.item.disabled,
                 [styles.interactive]: isInteractive,
             })}
@@ -64,6 +74,7 @@ export default function QueryGroupRow(props: Props) {
                 marginLeft,
                 maxWidth: marginLeft ? `calc(100% - ${marginLeft + 8}px)` : undefined,
             }}
+            onClick={onClick}
         >
             <div
                 ref={rowTitleRef}
@@ -71,7 +82,6 @@ export default function QueryGroupRow(props: Props) {
                     [styles.shortenedRowTitle]: !!props.item.onRenderEditMenuList,
                     [styles.dynamicRowTitle]: !isInteractive,
                 })}
-                onClick={() => props.item.onClick?.(props.item.id)}
             >
                 {props.item.titleIconName && (
                     <span ref={iconRef} className={styles.iconWrap}>
@@ -128,17 +138,11 @@ export default function QueryGroupRow(props: Props) {
                 <TransparentIconButton
                     className={styles.iconButton}
                     iconName="Cancel"
-                    onClick={() => props.item.onDelete?.(props.item.id)}
+                    onClick={(evt?: React.MouseEvent<any>) => {
+                        evt?.stopPropagation();
+                        props.item.onDelete?.(props.item.id);
+                    }}
                     title="Delete"
-                />
-            )}
-            {props.item.onShowDatasetInfo && !!props.item.datasetDescriptionSource && (
-                <TransparentIconButton
-                    className={styles.iconButton}
-                    disabled // TO DO: enable in follow-up when we have the UI component
-                    iconName="Info"
-                    onClick={() => props.item.onShowDatasetInfo?.(props.item.id)}
-                    title={`Data source info from ${props.item.datasetDescriptionSource}`}
                 />
             )}
         </div>

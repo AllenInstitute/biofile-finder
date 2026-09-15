@@ -1,0 +1,133 @@
+.hidden {
+  transform: translateX(100%);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.panel {
+  /* Match the default width of the FileDetailPanel */
+  width: var(--file-details-width);
+  height: 100%;
+  background-color: var(--primary-dark);
+  position: absolute;
+  right: 0;
+  padding: 24px 30px;
+  border-left: 1px solid var(--medium-grey);
+  box-shadow: -4px 10px 8px 0px #000000;
+  z-index: 90;
+  transition: transform 0.5s ease, visibility 0.5s;
+  --footer-height: 36px;
+}
+
+.overflow-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.vertical-gradient {
+  background-image: linear-gradient(transparent, var(--primary-background-color));
+  bottom: var(--footer-height);
+  content: " ";
+  height: 60px;
+  right: 0;
+  position: absolute;
+  pointer-events: none;
+  width: 100%;
+  z-index: 11;
+}
+
+.internal-wrapper {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--footer-height);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 32px;
+  max-width: 410px;
+}
+
+.divider {
+  border: none;
+  height: 1px !important;
+  color: var(--medium-grey); /* old IE */
+  background-color: var(--medium-grey); /* Modern Browsers */
+  width: 100%;
+}
+
+.content {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 26px !important;
+  position: relative;
+  padding-top: var(--margin);
+  margin-bottom: var(--margin);
+}
+
+.description-truncated {
+  min-height: 30px;
+  max-height: 150px;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 5 !important; /* number of lines to show */
+          line-clamp: 5; 
+  -webkit-box-orient: vertical !important;
+  word-wrap: break-word !important;
+}
+
+.link {
+  color: var(--aqua)
+}
+
+.link:hover, .link:focus {
+  text-decoration: underline;
+  color: var(--bright-aqua);
+  cursor: pointer;
+}
+
+.list {
+  /* flex parent */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: calc(2*var(--margin));
+}
+
+.row {
+  width: 100%;
+  /* flex child */
+  flex: 1 1 100%;
+}
+
+.secondary-close-button {
+  height: 33px;
+  width: fit-content;
+}
+
+.footer {
+  width: 100%;
+  position: absolute;
+  height: var(--footer-height);
+  bottom: 0;
+  padding-top: var(--margin);
+  
+  /* flex parent */
+  display: flex;
+  justify-content: flex-end;
+}

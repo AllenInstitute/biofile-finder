@@ -24,6 +24,7 @@ import {
     downloadFiles,
     editFiles,
     deleteMetadata,
+    setEnvironmentOverrides,
 } from "../actions";
 import {
     ExecutableEnvCancellationToken,
@@ -31,7 +32,7 @@ import {
 } from "../../../services/ExecutionEnvService";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import interactionLogics from "../logics";
-import { Environment, FESBaseUrl, MMSBaseUrl } from "../../../constants";
+import { Environment, FESBaseUrl, MMSBaseUrl, OverridableService } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
@@ -40,7 +41,11 @@ import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
 import NumericRange from "../../../entity/NumericRange";
 import { RECEIVE_ANNOTATIONS } from "../../metadata/actions";
-import { SET_AVAILABLE_ANNOTATIONS } from "../../selection/actions";
+import {
+    changeDataSources,
+    CHANGE_DATA_SOURCES,
+    SET_AVAILABLE_ANNOTATIONS,
+} from "../../selection/actions";
 import FileDownloadService, {
     DownloadResolution,
     FileInfo,
@@ -53,6 +58,8 @@ import HttpFileService from "../../../services/FileService/HttpFileService";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
 import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
+import { PersistedConfigKeys } from "../../../services/PersistentConfigService";
+import PersistentConfigServiceNoop from "../../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import S3StorageServiceNoop from "../../../services/S3StorageService/S3StorageServiceNoop";
 
 describe("Interaction logics", () => {
@@ -1200,6 +1207,42 @@ describe("Interaction logics", () => {
                 })
             ).to.be.true;
         });
+
+        it("drops a response that arrives after the data source changed", async () => {
+            // Arrange: a fetch resolved by hand, so the response lands after the source swap
+            let resolveFetch: (annotations: Annotation[]) => void = () => undefined;
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns({
+                fetchAnnotations: () =>
+                    new Promise((resolve) => {
+                        resolveFetch = resolve;
+                    }),
+                fetchAvailableAnnotationsForHierarchy: () => Promise.resolve([]),
+            } as any);
+
+            const reducer = (state: any, action: any) =>
+                action.type === CHANGE_DATA_SOURCES
+                    ? { ...state, selection: { ...state.selection, dataSources: action.payload } }
+                    : state;
+
+            const { actions, store, logicMiddleware } = configureMockStore({
+                state: mergeState(initialState, {
+                    selection: { dataSources: [{ name: "source-a", type: "parquet" }] },
+                }),
+                reducer,
+                logics: interactionLogics,
+            });
+
+            // Act
+            store.dispatch(refresh());
+            await Promise.resolve(); // let the logic reach its await
+            store.dispatch(changeDataSources([{ name: "source-b", type: "parquet" }]) as any);
+            resolveFetch(annotations);
+            await logicMiddleware.whenComplete();
+
+            // Assert: source A's schema must not land on top of source B
+            expect(actions.includesMatch({ type: RECEIVE_ANNOTATIONS })).to.be.false;
+            expect(actions.includesMatch({ type: SET_AVAILABLE_ANNOTATIONS })).to.be.false;
+        });
     });
 
     describe("promptForNewExecutable", () => {
@@ -1631,6 +1674,60 @@ describe("Interaction logics", () => {
                     ],
                 })
             ).to.be.false;
+        });
+    });
+
+    describe("setEnvironmentOverridesLogic", () => {
+        function configureStoreWithSpyService() {
+            const persistCalls: [PersistedConfigKeys, any][] = [];
+            class SpyPersistentConfigService extends PersistentConfigServiceNoop {
+                public persist(key?: any, value?: any) {
+                    persistCalls.push([key, value]);
+                    return Promise.resolve();
+                }
+            }
+            const state = mergeState(initialState, {
+                interaction: {
+                    platformDependentServices: {
+                        persistentConfigService: new SpyPersistentConfigService(),
+                    },
+                },
+            });
+            return {
+                persistCalls,
+                ...configureMockStore({ state, logics: interactionLogics }),
+            };
+        }
+
+        it("persists overrides so they survive a page reload", async () => {
+            // Arrange
+            const { store, logicMiddleware, persistCalls } = configureStoreWithSpyService();
+            const overrides = {
+                [OverridableService.JobStatusService]: Environment.STAGING,
+            };
+
+            // Act
+            store.dispatch(setEnvironmentOverrides(overrides));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(persistCalls).to.deep.equal([
+                [PersistedConfigKeys.EnvironmentOverrides, overrides],
+            ]);
+        });
+
+        it("clears the persisted key when overrides are reset to the app default", async () => {
+            // Arrange
+            const { store, logicMiddleware, persistCalls } = configureStoreWithSpyService();
+
+            // Act
+            store.dispatch(setEnvironmentOverrides({}));
+            await logicMiddleware.whenComplete();
+
+            // Assert
+            expect(persistCalls).to.deep.equal([
+                [PersistedConfigKeys.EnvironmentOverrides, undefined],
+            ]);
         });
     });
 });

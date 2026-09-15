@@ -7,6 +7,9 @@ import { DataSourceType } from "../DataSourcePrompt";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { isMarkdownType, Source } from "../../entity/SearchParams";
 import { interaction, metadata, selection } from "../../state";
+import { showDatasetDetailsPanel } from "../../state/interaction/actions";
+
+import styles from "./QueryDataSource.module.css";
 
 interface Props {
     dataSources: Source[];
@@ -25,6 +28,8 @@ export default function QueryDataSource(props: Props) {
     const markdownSources = useSelector(selection.selectors.getDatasetSourcesFromMarkdown);
     const datasetDescriptionSource = useSelector(selection.selectors.getDatasetDescriptionSource);
     const { mainSources, columnDescriptionSource, provenanceSource } = React.useMemo(() => {
+        // To do: Allow sources/metadata to come from multiple markdown files in one query
+        // See https://github.com/AllenInstitute/biofile-finder/issues/922
         if (markdownSources) {
             const mainSource = markdownSources?.dataSource;
             const descriptionsSource = markdownSources?.descriptionsSource;
@@ -53,11 +58,11 @@ export default function QueryDataSource(props: Props) {
         }
     }, [markdownSources, props.dataSources, props.sourceMetadata, props.sourceProvenance]);
 
-    const onShowDatasetInfo = () => {
+    // To do: When we allow multiple markdown files in one query, we will need to use
+    // the data source ID to determine which markdown file to display metadata from
+    const onShowDatasetInfo = (_sourceId: string) => {
         if (!datasetDescriptionSource) return undefined;
-        else {
-            // TO DO: dispatch action when we have the UI component
-        }
+        else dispatch(showDatasetDetailsPanel());
     };
 
     return (
@@ -74,7 +79,6 @@ export default function QueryDataSource(props: Props) {
                           )
                     : undefined
             }
-            onShowDatasetInfo={datasetDescriptionSource ? onShowDatasetInfo : undefined}
             addMenuListItems={[
                 {
                     key: "ADD DATA SOURCE",
@@ -167,14 +171,24 @@ export default function QueryDataSource(props: Props) {
                     : []),
             ]}
             rows={[
-                ...mainSources.map((dataSource) => ({
-                    id: dataSource.name,
-                    title: dataSource.name,
-                    datasetDescriptionSource: datasetDescriptionSource?.name,
-                })),
+                ...mainSources.map((dataSource) => {
+                    // To do: with multiple markdown files & multiple sources within one markdown,
+                    // will need to map the file to the correct md source
+                    // See https://github.com/AllenInstitute/biofile-finder/issues/922
+                    const isFromMarkdown =
+                        !!datasetDescriptionSource &&
+                        markdownSources?.dataSource?.name === dataSource.name;
+                    return {
+                        className: isFromMarkdown ? styles.clickableSource : styles.source,
+                        id: dataSource.name,
+                        title: dataSource.name,
+                        onShowInfo: isFromMarkdown ? onShowDatasetInfo : undefined,
+                    };
+                }),
                 ...(columnDescriptionSource
                     ? [
                           {
+                              className: styles.source,
                               id: "sourceMetadata",
                               title: `described by: ${columnDescriptionSource.name}`,
                           },
@@ -183,6 +197,7 @@ export default function QueryDataSource(props: Props) {
                 ...(provenanceSource
                     ? [
                           {
+                              className: styles.source,
                               id: "sourceProvenance",
                               title: `provenance from: ${provenanceSource.name}`,
                           },

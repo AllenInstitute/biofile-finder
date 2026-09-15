@@ -112,10 +112,9 @@ export default function FilePrompt(props: Props) {
         (evt?: React.FormEvent) => {
             evt?.preventDefault();
             if (dataSourceURL) {
-                const source = {
-                    ...getNameAndTypeFromSourceUrl(dataSourceURL),
-                    uri: dataSourceURL,
-                };
+                // The returned uri may differ from what was pasted; e.g. a Google Sheets
+                // link is rewritten to the sheet's CSV endpoint
+                const source = getNameAndTypeFromSourceUrl(dataSourceURL);
                 props.onSelectFile(source);
                 handleMarkdownSource(source);
             }
@@ -165,7 +164,7 @@ export default function FilePrompt(props: Props) {
                         },
                     }}
                     onChange={(_, newValue) => setDataSourceURL(newValue || "")}
-                    placeholder="Paste URL (i.e. S3, Azure)..."
+                    placeholder="Paste URL (i.e. S3, Azure, Google Sheets)..."
                     value={dataSourceURL}
                 />
                 <TertiaryButton

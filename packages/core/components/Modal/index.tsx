@@ -8,6 +8,7 @@ import QueryCodeSnippet from "./QueryCodeSnippet";
 import CopyFileManifest from "./CopyFileManifest";
 import DataSource from "./DataSource";
 import EditMetadata from "./EditMetadata";
+import EnvironmentSwitch from "./EnvironmentSwitch";
 import ExtractMetadataCodeSnippet from "./ExtractMetadataCodeSnippet";
 import MetadataManifest from "./MetadataManifest";
 import SmallScreenWarning from "./SmallScreenWarning";
@@ -28,6 +29,7 @@ export enum ModalType {
     ExtractMetadataCodeSnippet = 8,
     ConvertFiles = 9,
     ComputePipeline = 10,
+    EnvironmentSwitch = 11,
 }
 
 /**
@@ -62,6 +64,8 @@ export default function Modal() {
             return <ComputePipelineModal onDismiss={onDismiss} />;
         case ModalType.ConvertFiles:
             return <ConvertFiles onDismiss={onDismiss} />;
+        case ModalType.EnvironmentSwitch:
+            return <EnvironmentSwitch onDismiss={onDismiss} />;
         default:
             return null;
     }

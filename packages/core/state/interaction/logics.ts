@@ -47,11 +47,11 @@ import {
     refreshGraph,
     EXPAND_GRAPH,
     setIsGraphLoading,
-    setIsRemoteFileUploadServerAvailable,
+    SET_ENVIRONMENT_OVERRIDES,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
 import { ModalType } from "../../components/Modal";
-import { UNSAVED_DATA_WARNING } from "../../constants";
+import { EnvironmentOverrides, UNSAVED_DATA_WARNING } from "../../constants";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileDetail from "../../entity/FileDetail";
@@ -64,8 +64,10 @@ import {
     SystemDefaultAppLocation,
 } from "../../services/ExecutionEnvService";
 import { DownloadResolution, FileInfo } from "../../services/FileDownloadService";
-import { UserSelectedApplication } from "../../services/PersistentConfigService";
-import { fetchWithTimeout } from "../../hooks/useRemoteFileUpload";
+import {
+    PersistedConfigKeys,
+    UserSelectedApplication,
+} from "../../services/PersistentConfigService";
 
 export const DEFAULT_QUERY_NAME = "New Query";
 
@@ -90,9 +92,6 @@ const initializeApp = createLogic({
         const queries = selection.selectors.getQueries(deps.getState());
         const isOnWeb = interactionSelectors.isOnWeb(deps.getState());
         const fileService = interactionSelectors.getHttpFileService(deps.getState());
-        const remoteUploadBaseUrl = interactionSelectors.getTemporaryFileServiceBaseUrl(
-            deps.getState()
-        );
 
         // Rudimentary check to see if the user is an AICS employee by
         // checking if the AICS network is accessible
@@ -137,40 +136,8 @@ const initializeApp = createLogic({
             );
         }
         dispatch(setIsAicsEmployee(isAicsEmployee) as AnyAction);
-
-        let isRemoteServerAvailable = false;
-        if (isAicsEmployee) {
-            const checkRemoteServer = async (): Promise<boolean> => {
-                const maxFetchAttempts = 3;
-                let lastError: Error | undefined;
-                let attempt = 1;
-                while (attempt <= maxFetchAttempts) {
-                    attempt++;
-                    try {
-                        const response = await fetchWithTimeout(`${remoteUploadBaseUrl}/ping`);
-                        if (response.ok) {
-                            return true;
-                        }
-                    } catch (error) {
-                        lastError = error as Error;
-                    }
-                    await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) & 500));
-                }
-
-                console.warn(
-                    `Could not connect to remote file upload server after ${maxFetchAttempts} attempts. Certain viewer integrations may be disabled.`,
-                    lastError
-                );
-                return false;
-            };
-
-            isRemoteServerAvailable = await checkRemoteServer();
-        }
-
-        dispatch(setIsRemoteFileUploadServerAvailable(isRemoteServerAvailable));
         done();
     },
-    warnTimeout: 0, // pinging remote server can take a while
 });
 
 /**
@@ -785,8 +752,11 @@ const showContextMenu = createLogic({
  */
 const refresh = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        const { getState } = deps;
+        const sources = selection.selectors.getSelectedDataSources(getState());
+        const isStale = () => selection.selectors.getSelectedDataSources(getState()) !== sources;
+
         try {
-            const { getState } = deps;
             const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
             const annotationService = interactionSelectors.getAnnotationService(getState());
 
@@ -795,11 +765,14 @@ const refresh = createLogic({
                 annotationService.fetchAnnotations(),
                 annotationService.fetchAvailableAnnotationsForHierarchy(hierarchy),
             ]);
+            // A late response would overwrite the newer source's schema with this one's.
+            if (isStale()) return;
             dispatch(metadata.actions.receiveAnnotations(annotations));
             dispatch(selection.actions.setAvailableAnnotations(availableAnnotations) as AnyAction);
         } catch (err) {
+            if (isStale()) return;
             console.error(`Error encountered while refreshing: ${err}`);
-            const annotations = metadata.selectors.getAnnotations(deps.getState());
+            const annotations = metadata.selectors.getAnnotations(getState());
             dispatch(
                 selection.actions.setAvailableAnnotations(
                     annotations.map((a) => a.name)
@@ -1002,6 +975,25 @@ const copyFilesLogic = createLogic({
     type: COPY_FILES,
 });
 
+/**
+ * Interceptor responsible for persisting service environment overrides so they
+ * survive a page reload.
+ */
+const setEnvironmentOverridesLogic = createLogic({
+    type: SET_ENVIRONMENT_OVERRIDES,
+    process(deps: ReduxLogicDeps, dispatch, done) {
+        const { persistentConfigService } = interactionSelectors.getPlatformDependentServices(
+            deps.getState()
+        );
+        const overrides = deps.action.payload as EnvironmentOverrides;
+        persistentConfigService.persist(
+            PersistedConfigKeys.EnvironmentOverrides,
+            isEmpty(overrides) ? undefined : overrides
+        );
+        done();
+    },
+});
+
 export default [
     cancelFileDownloadLogic,
     copyFilesLogic,
@@ -1015,6 +1007,7 @@ export default [
     openWithLogic,
     promptForNewExecutable,
     refresh,
+    setEnvironmentOverridesLogic,
     setIsSmallScreen,
     setOriginForProvenance,
     showContextMenu,

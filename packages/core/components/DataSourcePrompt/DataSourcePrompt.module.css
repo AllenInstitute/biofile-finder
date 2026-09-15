@@ -37,7 +37,9 @@
 }
 
 .divider {
-    border-color: var(--border-color) !important;
+    background-color: var(--border-color) !important;
+    border: none;
+    height: 1px !important;
 }
 
 .file-prompt-wrapper, .file-prompt-outer-wrapper {

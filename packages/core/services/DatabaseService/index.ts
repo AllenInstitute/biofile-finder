@@ -19,6 +19,7 @@ import {
 } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
+import { isGoogleSheetUri } from "../../util/googleSheets";
 
 export interface CancellablePromise<T> {
     promise: Promise<T>;
@@ -661,11 +662,19 @@ export default abstract class DatabaseService {
                         // where the server does not allow cross-origin requests.
                         // TODO: Update this once user guide is complete:
                         // https://github.com/AllenInstitute/biofile-finder/issues/723
-                        formattedError =
-                            `This is likely caused by CORS restrictions. ` +
-                            `The server hosting the data source may not be configured to allow ` +
-                            `requests from this application. For help resolving this, please visit our ` +
-                            `support forum.`;
+                        formattedError = isGoogleSheetUri(uri)
+                            ? // Google serves its "no access" page without CORS headers, so a
+                              // restricted sheet is indistinguishable from a CORS failure here.
+                              // Sharing is the overwhelmingly likely cause, so lead with that.
+                              `This Google Sheet could not be read. Sheets are requested ` +
+                              `without sign-in, so sharing must be set to "Anyone with the link" ` +
+                              `(Viewer is enough) — or the sheet must be published to the web ` +
+                              `via File > Share > Publish to web. Check that the link is correct ` +
+                              `and that the sheet has not been deleted.`
+                            : `This is likely caused by CORS restrictions. ` +
+                              `The server hosting the data source may not be configured to allow ` +
+                              `requests from this application. For help resolving this, please visit our ` +
+                              `support forum.`;
                     } else if (error?.message) {
                         formattedError = error.message;
                     } // else use default error message
@@ -1540,6 +1549,8 @@ export default abstract class DatabaseService {
                     // One flag per path segment (length === path.length)
                     const pathIsArray = [rootIsArray, ...field.isArray];
                     const fullPath = [columnName, ...fieldParts];
+                    const fullName = fullPath.join(".");
+                    const explicitFieldType = annotationNameToTypeMap[fullName];
                     // Create a NESTED (parent) annotation for each intermediate struct level
                     for (let depth = 1; depth < fullPath.length - 1; depth++) {
                         const ancestorPath = fullPath.slice(0, depth + 1);
@@ -1549,7 +1560,7 @@ export default abstract class DatabaseService {
                             annotations.push(
                                 new Annotation({
                                     annotationName: ancestorPath,
-                                    description: annotationNameToDescriptionMap[columnName] || "",
+                                    description: annotationNameToDescriptionMap[ancestorName] || "",
                                     type: AnnotationType.NESTED,
                                     pathIsArray: pathIsArray.slice(0, depth + 1),
                                 })
@@ -1559,8 +1570,12 @@ export default abstract class DatabaseService {
                     annotations.push(
                         new Annotation({
                             annotationName: fullPath,
-                            description: annotationNameToDescriptionMap[columnName] || "",
-                            type: DatabaseService.columnTypeToAnnotationType(field.type),
+                            description: annotationNameToDescriptionMap[fullName] || "",
+                            // A leaf is never NESTED itself, so ignore that override if declared
+                            type:
+                                explicitFieldType && explicitFieldType !== AnnotationType.NESTED
+                                    ? explicitFieldType
+                                    : DatabaseService.columnTypeToAnnotationType(field.type),
                             pathIsArray,
                         })
                     );

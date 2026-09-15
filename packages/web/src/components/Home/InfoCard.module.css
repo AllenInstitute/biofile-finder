@@ -1,0 +1,50 @@
+.card {
+    align-items: center;
+    background-color: var(--primary-dark);
+    border: 1px solid var(--border-color);
+    border-radius: var(--small-border-radius);
+    display: flex;
+    flex-direction: column;
+    gap: var(--margin);
+    height: 100%;
+    padding: calc(2 * var(--margin));
+    text-align: center;
+}
+
+/* Graphic above the heading. Screenshots fill the card width; icons stay a
+   small, fixed height (see .image-icon). */
+.image {
+    border-radius: var(--small-border-radius);
+    display: block;
+    height: auto;
+    max-height: 105px;
+    max-width: 100%;
+    width: auto;
+}
+
+.image-icon {
+    border-radius: 0;
+    height: 105px;
+    width: auto;
+}
+
+.heading {
+    /* Lighter than the global h3 weight to match the marketing layout. */
+    color: var(--secondary-text-color);
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.body {
+    /* Color is inherited from the app layout (--secondary-text-color). */
+    flex: 1 1 auto;
+    font-size: var(--l-paragraph-size);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Push the CTA to the bottom edge so cards in a row align. */
+.action {
+    margin-top: var(--margin);
+}

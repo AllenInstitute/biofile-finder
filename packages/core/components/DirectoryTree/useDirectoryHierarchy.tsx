@@ -194,11 +194,7 @@ const useDirectoryHierarchy = (
                         // and also have filters applied for that field (e.g., barcode=1234, barcode=1357),
                         // then at the barcode=1234 group we should remove the barcode=1357 filter
                         const nonHierarchyFilters = selectedFileFilters.filter(
-                            (f) =>
-                                !(
-                                    take(hierarchy, depth + 1).includes(f.name) &&
-                                    f.type === FilterType.DEFAULT
-                                )
+                            (f) => !take(hierarchy, depth + 1).includes(f.name)
                         );
                         const filters = uniqWith(
                             [...hierarchyFilters, ...nonHierarchyFilters],

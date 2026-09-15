@@ -13,7 +13,7 @@ interface Props {
     id?: string; // For testing purposes
     label?: string;
     menuProps?: IContextualMenuProps;
-    onClick?: () => void;
+    onClick?: (event?: React.MouseEvent<any>) => void;
     title?: string;
 }
 
