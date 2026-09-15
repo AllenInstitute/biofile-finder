@@ -33,17 +33,10 @@ interface AnnotationFilterFormProps {
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
     const allFilters = useSelector(selection.selectors.getFileFilters);
-    const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
-    const canFuzzySearch = useSelector(selection.selectors.isQueryingAicsFms);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         props.annotation.name,
         annotationService
-    );
-
-    const fuzzySearchEnabled = React.useMemo(
-        () => !!fuzzyFilters?.some((filter) => filter.name === props.annotation.name),
-        [fuzzyFilters, props.annotation]
     );
 
     const filtersForAnnotation = React.useMemo(
@@ -69,6 +62,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             value,
         }));
     }, [props.annotation, annotationValues, filtersForAnnotation]);
+
+    // Search vs Browse list tab for string annotations; defaults to browsing
+    // when there are few enough values to reasonably scan
+    const [tabOverride, setTabOverride] = React.useState<"search" | "browse">();
+    const activeTab =
+        tabOverride ?? (items.length > 0 && items.length <= 100 ? "browse" : "search");
 
     const onDeselectAll = () => {
         // remove all regular filters for this annotation
@@ -128,6 +127,31 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     new FileFilter(props.annotation.name, filterValue, type, props.annotation.type),
                 ])
             );
+        }
+    }
+
+    // Search-tab commits: values with the same operator accumulate as chips;
+    // submitting with a different operator replaces this annotation's filters,
+    // as the form's warning forewarns
+    function onCommitSearchValue(filterValue: string, type: FilterType) {
+        if (!filterValue || !filterValue.trim()) {
+            return;
+        }
+        const newFilter = new FileFilter(
+            props.annotation.name,
+            filterValue,
+            type,
+            props.annotation.type
+        );
+        if (filtersForAnnotation.some((filter) => filter.type !== type)) {
+            dispatch(
+                selection.actions.setFileFilters([
+                    ...allFilters.filter((filter) => filter.name !== props.annotation.name),
+                    newFilter,
+                ])
+            );
+        } else {
+            dispatch(selection.actions.addFileFilter(newFilter));
         }
     }
 
@@ -195,21 +219,41 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     />
                 );
             case AnnotationType.STRING:
-                // Use list picker when there are a manageable number of values; fall back to search otherwise
-                if (items.length > 0 && items.length <= 100) {
-                    return listPickerComponent;
-                }
                 return (
-                    <SearchBoxForm
-                        className={styles.picker}
-                        onSelectAll={onSelectAll}
-                        onDeselectAll={onDeselectAll}
-                        onSearch={onSearch}
-                        fuzzySearchEnabled={fuzzySearchEnabled}
-                        fieldName={props.annotation.displayName}
-                        defaultValue={filtersForAnnotation?.[0]}
-                        hideFuzzyToggle={!canFuzzySearch}
-                    />
+                    <div className={classNames(styles.picker, styles.stringPicker)}>
+                        <div className={styles.modeContainer}>
+                            <div className={styles.tabs}>
+                                <button
+                                    className={classNames(styles.tab, {
+                                        [styles.tabActive]: activeTab === "search",
+                                    })}
+                                    onClick={() => setTabOverride("search")}
+                                >
+                                    Search
+                                </button>
+                                <button
+                                    className={classNames(styles.tab, {
+                                        [styles.tabActive]: activeTab === "browse",
+                                    })}
+                                    onClick={() => setTabOverride("browse")}
+                                >
+                                    Browse list
+                                </button>
+                            </div>
+                            {activeTab === "search" ? (
+                                <SearchBoxForm
+                                    filters={filtersForAnnotation}
+                                    onClearAll={onDeselectAll}
+                                    onRemoveFilter={(filter) =>
+                                        dispatch(selection.actions.removeFileFilter(filter))
+                                    }
+                                    onSearch={onCommitSearchValue}
+                                />
+                            ) : (
+                                listPickerComponent
+                            )}
+                        </div>
+                    </div>
                 );
             case AnnotationType.DURATION:
             // prettier-ignore
@@ -219,7 +263,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     return (
-        <div>
+        <div className={styles.form}>
             <div className={classNames(styles.header)}>
                 <h3>Filter {props.annotation.displayName} by</h3>
                 <ChoiceGroup

@@ -55,7 +55,7 @@ export default function QueryFilter(props: Props) {
                 />
             )}
             rows={Object.entries(filtersGroupedByName).map(([annotationName, filters]) => {
-                let operator = "EQUALS";
+                let operator = "EXACTLY MATCHES";
                 if (filters.length > 1) operator = "ONE OF";
                 else if (filters[0].type === FilterType.ANY) operator = "ANY VALUE";
                 else if (filters[0].type === FilterType.EXCLUDE) operator = "NO VALUE";

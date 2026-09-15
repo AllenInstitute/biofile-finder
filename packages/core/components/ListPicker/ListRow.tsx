@@ -45,6 +45,7 @@ export default function ListRow(props: Props) {
         directionalHint: DirectionalHint.rightTopEdge,
         // necessary to have a non-empty items list to have `onRenderMenuList` called
         items: [{ key: "placeholder" }],
+        calloutProps: { className: styles.subMenuCallout },
         onRenderMenuList: () => props.subMenuRenderer?.(item as ListItem) as React.ReactElement,
     });
 

@@ -1,19 +1,72 @@
-.checkbox {
-    margin-bottom: 6px;
-}
-
-.checkbox > label > span {
-    font-size: 14px;
-}
-
-.checkbox-hidden {
-    display: none;
-}
-
 .container {
-    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
 }
 
-.title {
-    margin: 0 0 8px 0;
+.search-row {
+    display: flex;
+    gap: 6px;
+}
+
+.operator-dropdown {
+    flex: 0 0 140px;
+    max-width: 140px;
+}
+
+.search-row > div:last-child {
+    flex: 1;
+}
+
+.warning {
+    align-items: center;
+    color: var(--warning-status-text-color);
+    display: flex;
+    font-size: var(--s-paragraph-size);
+    gap: 6px;
+}
+
+.chips {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chip {
+    align-items: center;
+    background-color: var(--secondary-background-color);
+    border-radius: var(--small-border-radius);
+    display: inline-flex;
+    font-size: var(--s-paragraph-size);
+    gap: 2px;
+    padding: 2px 2px 2px 8px;
+}
+
+.chip-remove {
+    height: 20px;
+    width: 20px;
+}
+
+/* Match the chip's fill and value text color */
+.chip .chip-remove {
+    background: none !important;
+    color: var(--secondary-text-color);
+}
+
+.chip-remove i {
+    font-size: 10px;
+}
+
+.clear-all {
+    background: none !important;
+}
+
+.clear-all span {
+    color: var(--aqua) !important;
+}
+
+.clear-all:hover span {
+    text-decoration: underline;
 }

@@ -19,6 +19,90 @@
     margin-bottom: 6px;
 }
 
+/* Flex from the form root down so the browse list can shrink to the height
+   FluentUI gives the submenu callout, rather than overflowing the viewport */
+.form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.form > .header {
+    flex: none;
+}
+
+.string-picker {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.mode-container {
+    border: 1px solid var(--border-color);
+    border-radius: var(--small-border-radius);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* The list picker sizes itself for standalone use; fit it inside the tab container
+   and let its list area flex against the available height */
+.mode-container [data-testid="list-picker"] {
+    display: flex;
+    flex-direction: column;
+    /* The rest of the form is ~325px tall; keep the whole submenu within the
+       viewport so the callout is never pushed off-screen */
+    max-height: calc(100vh - 350px);
+    min-height: 200px;
+    padding: 12px;
+    width: 100%;
+}
+
+.mode-container [data-testid="list-picker"] > div[class*="header"] {
+    flex: none;
+    min-height: unset;
+}
+
+.mode-container [data-testid="list-picker"] > div[class*="main-content"] {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+
+.mode-container [data-testid="list-picker"] > div[class*="footer"] {
+    flex: none;
+}
+
+.tabs {
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex: none;
+}
+
+.tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--secondary-text-color);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: var(--s-paragraph-size);
+    padding: 8px 4px 6px;
+    width: 140px;
+}
+
+.tab:hover,
+.tab:focus {
+    background: none !important;
+    color: var(--primary-text-color);
+}
+
+.tab-active {
+    border-bottom-color: var(--aqua);
+    color: var(--primary-text-color);
+}
+
 .footer {
     background-color: var(--primary-background-color);
     padding: 16px 30px 16px;

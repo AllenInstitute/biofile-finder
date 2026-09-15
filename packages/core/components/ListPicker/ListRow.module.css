@@ -85,3 +85,13 @@
     margin-left: auto;
     padding-left: 6px;
 }
+
+/* Let a tall submenu form (e.g. the annotation filter form) shrink to the
+   height FluentUI gives the callout instead of overflowing the viewport */
+.sub-menu-callout :global(.ms-Callout-main),
+.sub-menu-callout :global(.ms-ContextualMenu-container),
+.sub-menu-callout :global(.ms-ContextualMenu) {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
