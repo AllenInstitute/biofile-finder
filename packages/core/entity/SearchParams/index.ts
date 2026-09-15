@@ -5,6 +5,7 @@ import FileSort, { SortOrder } from "../FileSort";
 import type { DatasetSources } from "../MarkdownFrontMatter";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { Column } from "../../state/selection/actions";
+import { parseGoogleSheetUrl } from "../../util/googleSheets";
 
 // Somewhat arbitrary default column width in pixels;
 // used as a fallback when calculating column widths based on content,
@@ -93,8 +94,22 @@ export const DEFAULT_AICS_FMS_QUERY: SearchParamsComponents = {
 };
 
 export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
+    const timestamp = `${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
+
+    // A Google Sheets URL points at an HTML editor rather than at data, so swap in the
+    // equivalent CSV endpoint. Deriving a name from the path would otherwise produce
+    // something meaningless like "edit" or "export".
+    const googleSheet = parseGoogleSheetUrl(dataSourceURL);
+    if (googleSheet) {
+        return {
+            name: `${googleSheet.displayName} (${timestamp})`,
+            type: "csv" as typeof ACCEPTED_SOURCE_TYPES[number],
+            uri: googleSheet.csvUrl,
+        };
+    }
+
     const uriResource = dataSourceURL.substring(dataSourceURL.lastIndexOf("/") + 1).split("?")[0];
-    const name = `${uriResource} (${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()})`;
+    const name = `${uriResource} (${timestamp})`;
     // Returns undefined if can't find a match
     let extensionGuess = ACCEPTED_SOURCE_TYPES.find(
         (validSourcetype) => validSourcetype === uriResource.split(".").pop()
@@ -103,7 +118,7 @@ export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
         console.warn("Assuming the source is csv since no extension was recognized");
         extensionGuess = "csv";
     }
-    return { name, type: extensionGuess };
+    return { name, type: extensionGuess, uri: dataSourceURL };
 };
 
 // We want to eventually use shorthands and other tricks to
@@ -306,10 +321,7 @@ export default class SearchParams {
         const unparsedURLs = params.getAll("url");
         return {
             ...EMPTY_QUERY_COMPONENTS,
-            sources: unparsedURLs.map((uri) => ({
-                uri,
-                ...getNameAndTypeFromSourceUrl(uri),
-            })),
+            sources: unparsedURLs.map((uri) => getNameAndTypeFromSourceUrl(uri)),
         };
     }
 

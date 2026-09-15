@@ -63,6 +63,12 @@ const OPTIONS: Options<Record<string, unknown>> = {
                 },
             },
         },
+        [PersistedConfigKeys.EnvironmentOverrides]: {
+            type: "object",
+            additionalProperties: {
+                type: "string",
+            },
+        },
         // ImageJExecutable is Deprecated
         [PersistedConfigKeys.ImageJExecutable]: {
             type: "string",

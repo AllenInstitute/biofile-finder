@@ -10,8 +10,10 @@ interface Props {
     className?: string;
     disabled?: boolean;
     iconName?: string;
+    iconPosition?: "before" | "after";
     id?: string;
     menuDirection?: DirectionalHint;
+    menuIconName?: string;
     menuItems?: IContextualMenuItem[];
     onClick?: () => void;
     text?: string;
@@ -29,8 +31,10 @@ export default function SecondaryButton(props: Props) {
             })}
             disabled={props.disabled}
             iconName={props.iconName}
+            iconPosition={props.iconPosition}
             id={props.id}
             menuDirection={props.menuDirection}
+            menuIconName={props.menuIconName}
             menuItems={props.menuItems}
             onClick={props.onClick}
             text={props.text}

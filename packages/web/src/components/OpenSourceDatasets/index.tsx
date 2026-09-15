@@ -58,12 +58,7 @@ export default function OpenSourceDatasets() {
         // if the preset query does not contain any sources, use the dataSourceUrl as the source
         const sources = url?.sources?.length
             ? url.sources
-            : [
-                  {
-                      ...getNameAndTypeFromSourceUrl(dataSourceURL),
-                      uri: dataSourceURL,
-                  },
-              ];
+            : [getNameAndTypeFromSourceUrl(dataSourceURL)];
         openDatasetInApp(datasetDetails.name, sources, url);
     };
 

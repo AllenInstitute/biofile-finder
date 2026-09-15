@@ -77,6 +77,7 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
                 ...options.platformDependentServices,
             },
             csvColumns: persistedConfig?.[PersistedConfigKeys.CsvColumns],
+            environmentOverrides: persistedConfig?.[PersistedConfigKeys.EnvironmentOverrides] || {},
             hasUsedApplicationBefore:
                 persistedConfig?.[PersistedConfigKeys.HasUsedApplicationBefore],
             userSelectedApplications:
