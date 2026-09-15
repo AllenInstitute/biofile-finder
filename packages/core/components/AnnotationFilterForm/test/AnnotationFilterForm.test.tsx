@@ -1,5 +1,5 @@
 import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redux-utils";
-import { fireEvent, render, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
@@ -8,7 +8,7 @@ import { createSandbox } from "sinon";
 import AnnotationFilterForm from "..";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics, interaction, selection } from "../../../state";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import { FESBaseUrl } from "../../../constants";
@@ -161,6 +161,139 @@ describe("<AnnotationFilterForm />", () => {
                 expect(getByTestId(`${LISTROW_TESTID_PREFIX}${expectedOrder[index]}`)).to.not.be
                     .undefined;
             });
+        });
+
+        it("defaults to the search tab when there are more than 100 values", async () => {
+            // arrange
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: Array.from({ length: 101 }, (_, i) => `v${i}`) },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const { store } = configureMockStore({
+                state: initialState,
+                responseStubs: responseStub,
+            });
+
+            // act
+            const { findByDisplayValue, queryAllByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // assert: the search tab's operator dropdown renders instead of the browse list
+            expect(await findByDisplayValue("Exactly match")).to.exist;
+            expect(queryAllByRole("listitem")).to.be.lengthOf(0);
+        });
+
+        it("accumulates same-operator search values as chips", async () => {
+            // arrange
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: ["a", "b", "c", "d"] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const state = mergeState(initialState, {
+                selection: {
+                    filters: [new FileFilter(fooAnnotation.name, "a")],
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                logics: reduxLogics,
+                state,
+                reducer,
+                responseStubs: responseStub,
+            });
+
+            const { findByText, getByRole, getByText } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // act: switch to the search tab; the committed value shows as a chip
+            fireEvent.click(await findByText("Search"));
+            expect(getByText("Exact matches:")).to.exist;
+            expect(getByText("a")).to.exist;
+
+            // act: submit another value with the same operator
+            const searchbox = getByRole("searchbox");
+            fireEvent.change(searchbox, { target: { value: "b" } });
+            fireEvent.keyDown(searchbox, { key: "Enter", code: "Enter", keyCode: 13 });
+            await logicMiddleware.whenComplete();
+
+            // assert: both values are filters now
+            const filters = selection.selectors.getFileFilters(store.getState());
+            expect(filters).to.be.lengthOf(2);
+            expect(filters.map((filter) => filter.value)).to.deep.equal(["a", "b"]);
+        });
+
+        it("replaces committed filters when a different operator is submitted", async () => {
+            // arrange
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: ["a", "b", "c", "d"] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const state = mergeState(initialState, {
+                selection: {
+                    filters: [new FileFilter(fooAnnotation.name, "a")],
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                logics: reduxLogics,
+                state,
+                reducer,
+                responseStubs: responseStub,
+            });
+
+            const { container, findByText, getByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // act: switch to the search tab and select the Contains operator
+            fireEvent.click(await findByText("Search"));
+            fireEvent.click(container.querySelector(".ms-ComboBox button") as HTMLElement);
+            fireEvent.click(await screen.findByText("Contains"));
+
+            // act: submit a value with the new operator
+            const searchbox = getByRole("searchbox");
+            fireEvent.change(searchbox, { target: { value: "z" } });
+            fireEvent.keyDown(searchbox, { key: "Enter", code: "Enter", keyCode: 13 });
+            await logicMiddleware.whenComplete();
+
+            // assert: the previous exact-match filter was replaced
+            const filters = selection.selectors.getFileFilters(store.getState());
+            expect(filters).to.be.lengthOf(1);
+            expect(filters[0].value).to.equal("z");
+            expect(filters[0].type).to.equal(FilterType.FUZZY);
         });
     });
 
