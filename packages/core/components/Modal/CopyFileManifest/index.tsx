@@ -1,3 +1,4 @@
+import { Icon } from "@fluentui/react";
 import filesize from "filesize";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,6 +10,7 @@ import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileDetail from "../../../entity/FileDetail";
 import FileSelection from "../../../entity/FileSelection";
 import { interaction, selection } from "../../../state";
+import StatusMessageCard from "../../StatusMessageCard";
 
 import styles from "./CopyFileManifest.module.css";
 
@@ -23,6 +25,17 @@ function ResponsiveFileName({ fileName }: { fileName: string }) {
             {extension && <span className={styles.fileNameExtension}>{extension}</span>}
         </div>
     );
+}
+
+/**
+ * Formats a quantity string, using either the singular or plural form.
+ * @param quantity count of items.
+ * @param singular the singular form of the item name
+ * @param plural the plural form of the item name
+ * @returns a string formatted as "{quantity} {singular/plural}"
+ */
+function formatQuantityString(quantity: number, singular: string, plural: string): string {
+    return `${quantity} ${quantity === 1 ? singular : plural}`;
 }
 
 /**
@@ -50,6 +63,23 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
         return totalBytes ? filesize(totalBytes) : "Calculating...";
     };
 
+    // Show warning for files missing the `Program` annotation as an extra column
+    // in the table + a warning message below it.
+    const filesWithoutProgramAnnotation = files.reduce((acc, file) => {
+        const programAnnotation = file.getAnnotation("Program");
+        if (!programAnnotation || programAnnotation[0] === "None") {
+            acc.add(file.id);
+        }
+        return acc;
+    }, new Set<string>());
+    const areFilesMissingProgramAnnotation = filesWithoutProgramAnnotation.size > 0;
+
+    // Reorder files so that those missing the `Program` annotation appear first
+    const orderedFiles = [
+        ...files.filter((file) => filesWithoutProgramAnnotation.has(file.id)),
+        ...files.filter((file) => !filesWithoutProgramAnnotation.has(file.id)),
+    ];
+
     return (
         <div className={styles.tableContainer}>
             <h3 className={styles.tableTitle}>{title}</h3>
@@ -61,13 +91,28 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
                     <table className={styles.fileTable}>
                         <thead>
                             <tr>
-                                <th>File Name</th>
+                                {areFilesMissingProgramAnnotation && (
+                                    <th className={styles.warningColumn}></th>
+                                )}
+                                <th className={styles.fileNameColumn}>File Name</th>
                                 <th>File Size</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {files.map((file) => (
+                            {orderedFiles.map((file) => (
                                 <tr key={file.id}>
+                                    {areFilesMissingProgramAnnotation && (
+                                        <td>
+                                            {filesWithoutProgramAnnotation.has(file.id) ? (
+                                                <Icon
+                                                    iconName="WarningSolid"
+                                                    aria-label="Missing Program annotation"
+                                                />
+                                            ) : (
+                                                ""
+                                            )}
+                                        </td>
+                                    )}
                                     <td>
                                         <ResponsiveFileName fileName={file.name} />
                                     </td>
@@ -82,6 +127,19 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
             <div className={styles.summary}>
                 <span className={styles.totalSize}>{calculateTotalSize(files)}</span>
                 <span className={styles.fileCount}>{files.length.toLocaleString()} files</span>
+            </div>
+            <div>
+                {areFilesMissingProgramAnnotation && (
+                    <StatusMessageCard type="warning">
+                        {formatQuantityString(
+                            filesWithoutProgramAnnotation.size,
+                            "file is",
+                            "files are"
+                        )}{" "}
+                        missing the &quot;Program&quot; annotation. Files will soon be required to
+                        have this field defined to be downloaded to VAST.
+                    </StatusMessageCard>
+                )}
             </div>
         </div>
     );
