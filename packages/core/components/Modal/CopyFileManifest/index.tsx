@@ -34,7 +34,7 @@ function ResponsiveFileName({ fileName }: { fileName: string }) {
  * @param plural the plural form of the item name
  * @returns a string formatted as "{quantity} {singular/plural}"
  */
-export function formatQuantityString(quantity: number, singular: string, plural: string): string {
+function formatQuantityString(quantity: number, singular: string, plural: string): string {
     return `${quantity} ${quantity === 1 ? singular : plural}`;
 }
 
@@ -104,7 +104,10 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
                                     {areFilesMissingProgramAnnotation && (
                                         <td>
                                             {filesWithoutProgramAnnotation.has(file.id) ? (
-                                                <Icon iconName="WarningSolid" />
+                                                <Icon
+                                                    iconName="WarningSolid"
+                                                    aria-label="Missing Program annotation"
+                                                />
                                             ) : (
                                                 ""
                                             )}
