@@ -93,8 +93,7 @@
     max-width: var(--file-size-column-width);
 }
 
-.file-table th.file-name-column,
-.file-table td:first-child {
+.file-table th.file-name-column {
     width: calc(100% - var(--file-size-column-width));
 }
 
