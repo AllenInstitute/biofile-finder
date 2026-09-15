@@ -360,6 +360,22 @@ describe("FileFilter", () => {
             ]);
         });
 
+        it("ORs values within an annotation while ANDing across sibling annotations", () => {
+            const filters = [
+                new FileFilter(["Dataset", "Name"], "cardio"),
+                new FileFilter(["Dataset", "Name"], "drug perturbation dataset"),
+                new FileFilter(["Dataset", "Id"], "", FilterType.ANY),
+            ];
+            const pathIsArrayByName = new Map([
+                ["Dataset.Name", [false, false]],
+                ["Dataset.Id", [false, false]],
+            ]);
+            expect(FileFilter.toListOfWhereClauses(filters, pathIsArrayByName)).to.deep.equal([
+                `CAST("Dataset"."Name" AS VARCHAR) = 'cardio' OR CAST("Dataset"."Name" AS VARCHAR) = 'drug perturbation dataset'`,
+                `"Dataset"."Id" IS NOT NULL`,
+            ]);
+        });
+
         // Nested annotations absent from the schema map are a programming error: we throw
         // rather than guess (a wrong guess emits list ops against a possibly-scalar struct).
         it("throws when a nested filter's annotation is missing from the map", () => {
