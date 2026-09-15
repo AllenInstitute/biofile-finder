@@ -82,7 +82,7 @@ body {
     --l-paragraph-size: 16px;
     --s-paragraph-size: 14px;
     --xs-paragraph-size: 12px;
-    
+
     /* STATUS COLORS (dark theme)*/
     --info-status-background-color: #29484C;
     --info-status-text-color: var(--bright-aqua);
