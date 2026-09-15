@@ -10,7 +10,7 @@ import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileDetail from "../../../entity/FileDetail";
 import FileSelection from "../../../entity/FileSelection";
 import { interaction, selection } from "../../../state";
-import StatusMessageInline from "../../StatusMessageInline";
+import StatusMessageCard from "../../StatusMessageCard";
 
 import styles from "./CopyFileManifest.module.css";
 
@@ -127,7 +127,7 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
             </div>
             <div>
                 {areFilesMissingProgramAnnotation && (
-                    <StatusMessageInline type="warning">
+                    <StatusMessageCard type="warning">
                         {formatQuantityString(
                             filesWithoutProgramAnnotation.size,
                             "file is",
@@ -135,7 +135,7 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
                         )}{" "}
                         missing the &quot;Program&quot; annotation. Files will soon be required to
                         have this field defined to be downloaded to VAST.
-                    </StatusMessageInline>
+                    </StatusMessageCard>
                 )}
             </div>
         </div>
