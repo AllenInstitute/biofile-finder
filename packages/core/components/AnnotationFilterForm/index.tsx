@@ -1,6 +1,6 @@
 import { IChoiceGroupOption } from "@fluentui/react";
 import classNames from "classnames";
-import { isNil } from "lodash";
+import { castArray, isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -75,25 +75,58 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     const onDeselect = (item: ListItem) => {
-        dispatch(selection.actions.removeFileFilter(createFileFilter(item)));
+        // Remove the committed filter(s) that match this value, whatever their
+        // operator, rather than reconstructing a filter from current UI state
+        // (which could differ in type and silently remove nothing)
+        const matchingFilters = filtersForAnnotation.filter(
+            (filter) => String(filter.value) === String(item.value)
+        );
+        if (matchingFilters.length) {
+            dispatch(selection.actions.removeFileFilter(matchingFilters));
+        }
     };
 
     const onSelect = (item: ListItem) => {
-        dispatch(selection.actions.changeFileFilterType(props.annotation.name, FilterType.DEFAULT));
-        dispatch(selection.actions.addFileFilter(createFileFilter(item)));
+        commitFilters(createFileFilter(item));
     };
 
     // TODO: Should this select ALL or just the visible items in list?
     const onSelectAll = () => {
-        dispatch(selection.actions.changeFileFilterType(props.annotation.name, FilterType.DEFAULT));
-        dispatch(selection.actions.addFileFilter(items.map((item) => createFileFilter(item))));
+        commitFilters(items.map((item) => createFileFilter(item)));
     };
 
+    // List picker selections are always exact-match filters
     const createFileFilter = (item: ListItem) => {
         const formattedValue = props.annotation.formatter.valueOf(item.value);
         const value = isNil(formattedValue) ? item.value : formattedValue;
 
-        return new FileFilter(props.annotation.name, value, filterType, props.annotation.type);
+        return new FileFilter(
+            props.annotation.name,
+            value,
+            FilterType.DEFAULT,
+            props.annotation.type
+        );
+    };
+
+    // Values committed with the same operator accumulate; committing with a
+    // different operator (or over an "any"/"no value" filter) replaces this
+    // annotation's filters, as the search form's warning forewarns
+    const commitFilters = (newFilters: FileFilter | FileFilter[]) => {
+        const filtersAsArray = castArray(newFilters);
+        if (!filtersAsArray.length) {
+            return;
+        }
+        const type = filtersAsArray[0].type;
+        if (filtersForAnnotation.some((filter) => filter.type !== type)) {
+            dispatch(
+                selection.actions.setFileFilters([
+                    ...allFilters.filter((filter) => filter.name !== props.annotation.name),
+                    ...filtersAsArray,
+                ])
+            );
+        } else {
+            dispatch(selection.actions.addFileFilter(newFilters));
+        }
     };
 
     const onFilterTypeOptionChange = (option: IChoiceGroupOption | undefined) => {
@@ -130,29 +163,14 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }
     }
 
-    // Search-tab commits: values with the same operator accumulate as chips;
-    // submitting with a different operator replaces this annotation's filters,
-    // as the form's warning forewarns
+    // Search-tab commits share the list picker's commit policy (see commitFilters)
     function onCommitSearchValue(filterValue: string, type: FilterType) {
         if (!filterValue || !filterValue.trim()) {
             return;
         }
-        const newFilter = new FileFilter(
-            props.annotation.name,
-            filterValue,
-            type,
-            props.annotation.type
+        commitFilters(
+            new FileFilter(props.annotation.name, filterValue, type, props.annotation.type)
         );
-        if (filtersForAnnotation.some((filter) => filter.type !== type)) {
-            dispatch(
-                selection.actions.setFileFilters([
-                    ...allFilters.filter((filter) => filter.name !== props.annotation.name),
-                    newFilter,
-                ])
-            );
-        } else {
-            dispatch(selection.actions.addFileFilter(newFilter));
-        }
     }
 
     if (isLoading) {
@@ -240,18 +258,20 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                                     Browse list
                                 </button>
                             </div>
-                            {activeTab === "search" ? (
-                                <SearchBoxForm
-                                    filters={filtersForAnnotation}
-                                    onClearAll={onDeselectAll}
-                                    onRemoveFilter={(filter) =>
-                                        dispatch(selection.actions.removeFileFilter(filter))
-                                    }
-                                    onSearch={onCommitSearchValue}
-                                />
-                            ) : (
-                                listPickerComponent
-                            )}
+                            {/* Kept mounted (hidden) on the browse tab so the chosen
+                                operator and typed text survive tab switches */}
+                            <SearchBoxForm
+                                className={classNames({
+                                    [styles.hidden]: activeTab !== "search",
+                                })}
+                                filters={filtersForAnnotation}
+                                onClearAll={onDeselectAll}
+                                onRemoveFilter={(filter) =>
+                                    dispatch(selection.actions.removeFileFilter(filter))
+                                }
+                                onSearch={onCommitSearchValue}
+                            />
+                            {activeTab === "browse" && listPickerComponent}
                         </div>
                     </div>
                 );

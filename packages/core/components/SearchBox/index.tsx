@@ -16,25 +16,28 @@ interface Props {
     onReset: () => void;
     placeholder?: string;
     showSubmitButton?: boolean;
+    // When provided, the search box is controlled by the parent (pair with onChange)
+    value?: string;
 }
 
 /**
  * This component renders a simple form for searching on text values
  */
 export default function SearchBox(props: Props) {
-    const [searchValue, setSearchValue] = React.useState(props.defaultValue?.value ?? "");
+    const [internalValue, setInternalValue] = React.useState(props.defaultValue?.value ?? "");
+    const searchValue = props.value !== undefined ? props.value : internalValue;
     const showSubmitButton = props?.showSubmitButton || false;
 
     const onSearchBoxChange = (event?: React.ChangeEvent<HTMLInputElement>) => {
         if (event) {
-            setSearchValue(event.target.value);
+            setInternalValue(event.target.value);
             props.onChange?.(event.target.value);
         }
     };
 
     function onClear() {
         props.onReset();
-        setSearchValue("");
+        setInternalValue("");
     }
 
     // Autofocus into search box

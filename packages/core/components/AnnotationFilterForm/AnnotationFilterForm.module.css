@@ -103,6 +103,12 @@
     color: var(--primary-text-color);
 }
 
+/* Hides the search form while the browse tab is active without unmounting it,
+   so the chosen operator and typed text survive tab switches */
+.hidden {
+    display: none;
+}
+
 .footer {
     background-color: var(--primary-background-color);
     padding: 16px 30px 16px;

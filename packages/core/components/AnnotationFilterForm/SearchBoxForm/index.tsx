@@ -33,17 +33,15 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
         committedType === FilterType.FUZZY ? FilterType.FUZZY : FilterType.DEFAULT
     );
     const [searchText, setSearchText] = React.useState("");
-    // Bumped to remount (and thereby clear) the search box after each commit
-    const [searchBoxKey, setSearchBoxKey] = React.useState(0);
 
-    // Submitting with a different operator replaces this annotation's results
+    // Submitting with a different operator replaces this annotation's results;
+    // derived with the same predicate the commit handler uses
     const willReplaceResults =
-        !!searchText.trim() && props.filters.length > 0 && committedType !== filterType;
+        !!searchText.trim() && props.filters.some((filter) => filter.type !== filterType);
 
     function onSearchSubmitted(value: string) {
         props.onSearch(value, filterType);
         setSearchText("");
-        setSearchBoxKey((key) => key + 1);
     }
 
     return (
@@ -58,12 +56,12 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
                     onChange={(option) => option && setFilterType(option.key as FilterType)}
                 />
                 <SearchBox
-                    key={searchBoxKey}
                     onChange={setSearchText}
                     onReset={() => setSearchText("")}
                     onSearch={onSearchSubmitted}
                     placeholder="Search..."
                     showSubmitButton
+                    value={searchText}
                 />
             </div>
             {willReplaceResults && (
