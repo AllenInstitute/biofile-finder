@@ -19,8 +19,6 @@
     margin-bottom: 6px;
 }
 
-/* Flex from the form root down so the browse list can shrink to the height
-   FluentUI gives the submenu callout, rather than overflowing the viewport */
 .form {
     display: flex;
     flex-direction: column;
@@ -46,13 +44,9 @@
     min-height: 0;
 }
 
-/* The list picker sizes itself for standalone use; fit it inside the tab container
-   and let its list area flex against the available height */
 .mode-container [data-testid="list-picker"] {
     display: flex;
     flex-direction: column;
-    /* The rest of the form is ~325px tall; keep the whole submenu within the
-       viewport so the callout is never pushed off-screen */
     max-height: calc(100vh - 350px);
     min-height: 200px;
     padding: 12px;
@@ -103,8 +97,6 @@
     color: var(--primary-text-color);
 }
 
-/* Hides the search form while the browse tab is active without unmounting it,
-   so the chosen operator and typed text survive tab switches */
 .hidden {
     display: none;
 }

@@ -49,7 +49,6 @@
     width: 20px;
 }
 
-/* Match the chip's fill and value text color */
 .chip .chip-remove {
     background: none !important;
     color: var(--secondary-text-color);

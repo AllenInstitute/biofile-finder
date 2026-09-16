@@ -63,8 +63,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }));
     }, [props.annotation, annotationValues, filtersForAnnotation]);
 
-    // Search vs Browse list tab for string annotations; defaults to browsing
-    // when there are few enough values to reasonably scan
+    // Search vs Browse list tab for string annotations.
     const [tabOverride, setTabOverride] = React.useState<"search" | "browse">();
     const activeTab =
         tabOverride ?? (items.length > 0 && items.length <= 100 ? "browse" : "search");
@@ -75,9 +74,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     const onDeselect = (item: ListItem) => {
-        // Remove the committed filter(s) that match this value, whatever their
-        // operator, rather than reconstructing a filter from current UI state
-        // (which could differ in type and silently remove nothing)
         const matchingFilters = filtersForAnnotation.filter(
             (filter) => String(filter.value) === String(item.value)
         );
@@ -95,7 +91,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         commitFilters(items.map((item) => createFileFilter(item)));
     };
 
-    // List picker selections are always exact-match filters
     const createFileFilter = (item: ListItem) => {
         const formattedValue = props.annotation.formatter.valueOf(item.value);
         const value = isNil(formattedValue) ? item.value : formattedValue;
@@ -108,9 +103,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         );
     };
 
-    // Values committed with the same operator accumulate; committing with a
-    // different operator (or over an "any"/"no value" filter) replaces this
-    // annotation's filters, as the search form's warning forewarns
     const commitFilters = (newFilters: FileFilter | FileFilter[]) => {
         const filtersAsArray = castArray(newFilters);
         if (!filtersAsArray.length) {
@@ -163,7 +155,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }
     }
 
-    // Search-tab commits share the list picker's commit policy (see commitFilters)
     function onCommitSearchValue(filterValue: string, type: FilterType) {
         if (!filterValue || !filterValue.trim()) {
             return;
@@ -258,8 +249,6 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                                     Browse list
                                 </button>
                             </div>
-                            {/* Kept mounted (hidden) on the browse tab so the chosen
-                                operator and typed text survive tab switches */}
                             <SearchBoxForm
                                 className={classNames({
                                     [styles.hidden]: activeTab !== "search",

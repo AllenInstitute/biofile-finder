@@ -24,8 +24,7 @@ interface SearchBoxFormProps {
 
 /**
  * A form for searching on text values, matching either exactly or by
- * substring ("Contains", persisted as FilterType.FUZZY). Committed values
- * render as removable chips below the input.
+ * substring. Committed values render as removable chips below the input.
  */
 export default function SearchBoxForm(props: SearchBoxFormProps) {
     const committedType = props.filters[0]?.type;
@@ -33,9 +32,6 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
         committedType === FilterType.FUZZY ? FilterType.FUZZY : FilterType.DEFAULT
     );
     const [searchText, setSearchText] = React.useState("");
-
-    // Submitting with a different operator replaces this annotation's results;
-    // derived with the same predicate the commit handler uses
     const willReplaceResults =
         !!searchText.trim() && props.filters.some((filter) => filter.type !== filterType);
 

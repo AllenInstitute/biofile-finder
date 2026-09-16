@@ -16,7 +16,6 @@ interface Props {
     onReset: () => void;
     placeholder?: string;
     showSubmitButton?: boolean;
-    // When provided, the search box is controlled by the parent (pair with onChange)
     value?: string;
 }
 
