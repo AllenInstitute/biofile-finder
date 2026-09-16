@@ -49,7 +49,7 @@ describe("PipelineService", () => {
             }
         });
 
-        it("rethrows errors without an 'error' detail unchanged", async () => {
+        it("rethrows errors as is, if they don't have an 'error' property", async () => {
             // Arrange
             const original = new Error("Network Error");
             const httpClient = createRejectingHttpClient(original);
