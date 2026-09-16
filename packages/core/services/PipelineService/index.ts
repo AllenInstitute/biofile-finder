@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import {
     ComputeTaskRequest,
     ComputeTaskResponse,
@@ -137,9 +139,17 @@ export default class PipelineService extends HttpServiceBase {
             user: request.user,
         };
 
-        const response = await this.httpClient.post(url, body, {
-            headers: { "Content-Type": "application/json" },
-        });
+        let response;
+        try {
+            response = await this.httpClient.post(url, body, {
+                headers: { "Content-Type": "application/json" },
+            });
+        } catch (err) {
+            if (axios.isAxiosError(err) && err.response?.data?.error) {
+                throw new Error(err.response.data.error);
+            }
+            throw err;
+        }
 
         return {
             computeTaskId: response.data.runId,
