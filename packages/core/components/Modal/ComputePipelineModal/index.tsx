@@ -310,13 +310,17 @@ export default function ComputePipelineModal({ onDismiss }: ModalProps) {
                     `${selectedPipeline.name} job submitted successfully.`
                 )
             );
-        } catch {
-            setErrorMessage("An error occurred while submitting the job.");
+        } catch (err) {
+            const message =
+                err instanceof Error && err.message
+                    ? err.message
+                    : "An error occurred while submitting the job.";
+            setErrorMessage(message);
             setPhase("error");
             dispatch(
                 interaction.actions.processError(
                     "pipelineSubmitError",
-                    "Failed to submit pipeline job."
+                    `Failed to submit pipeline job: ${message}`
                 )
             );
         }
