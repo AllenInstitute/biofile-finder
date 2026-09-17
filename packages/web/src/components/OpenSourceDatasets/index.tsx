@@ -34,7 +34,7 @@ export default function OpenSourceDatasets() {
     ) => {
         dispatch(
             selection.actions.addQuery({
-                name: `New query on ${datasetName || "open-source dataset"}`,
+                name: `New query on ${datasetName}`,
                 parts: { ...url, sources },
             })
         );
