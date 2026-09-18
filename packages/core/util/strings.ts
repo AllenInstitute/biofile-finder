@@ -20,3 +20,14 @@ export function naturalComparator(a: any, b: any): number {
     // don't bother trying to sort other types
     return 0;
 }
+
+/**
+ * Formats a quantity string, using either the singular or plural form.
+ * @param quantity count of items.
+ * @param singular the singular form of the item name
+ * @param plural the plural form of the item name
+ * @returns a string formatted as "{quantity} {singular/plural}"
+ */
+export function formatQuantityString(quantity: number, singular: string, plural: string): string {
+    return `${quantity} ${quantity === 1 ? singular : plural}`;
+}

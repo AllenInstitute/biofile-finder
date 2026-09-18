@@ -6,11 +6,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { PrimaryButton, SecondaryButton } from "../../Buttons";
+import StatusMessageCard from "../../StatusMessageCard";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileDetail from "../../../entity/FileDetail";
 import FileSelection from "../../../entity/FileSelection";
 import { interaction, selection } from "../../../state";
-import StatusMessageCard from "../../StatusMessageCard";
+import { formatQuantityString } from "../../../util/strings";
 
 import styles from "./CopyFileManifest.module.css";
 
@@ -25,17 +26,6 @@ function ResponsiveFileName({ fileName }: { fileName: string }) {
             {extension && <span className={styles.fileNameExtension}>{extension}</span>}
         </div>
     );
-}
-
-/**
- * Formats a quantity string, using either the singular or plural form.
- * @param quantity count of items.
- * @param singular the singular form of the item name
- * @param plural the plural form of the item name
- * @returns a string formatted as "{quantity} {singular/plural}"
- */
-function formatQuantityString(quantity: number, singular: string, plural: string): string {
-    return `${quantity} ${quantity === 1 ? singular : plural}`;
 }
 
 /**
