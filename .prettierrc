@@ -18,7 +18,7 @@
         "^../../../../../../../[\\w/]*[\\w.]*(?<!.css)$",
         "^../../../../../../../../[\\w/]*[\\w.]*(?<!.css)$",
         "<SEPARATOR>",
-        "^.+\\.css$"
+        "^./.+\\.css$"
     ],
     "importOrderSeparation": true,
     "importOrderSortSpecifiers": true,
