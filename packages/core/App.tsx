@@ -1,6 +1,6 @@
-import "normalize.css";
 import { initializeIcons, loadTheme } from "@fluentui/react";
 import classNames from "classnames";
+import "normalize.css";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -15,9 +15,9 @@ import { Environment } from "./constants";
 import useCheckForScreenSizeChange from "./hooks/useCheckForScreenSizeChange";
 import useCheckForUpdates from "./hooks/useCheckForUpdates";
 import useKeyDown from "./hooks/useKeyDown";
-import useUpdateHasUsedApp from "./hooks/useUpdateHasUsedApp";
 import useLayoutMeasurements from "./hooks/useLayoutMeasurements";
 import useUnsavedDataWarning from "./hooks/useUnsavedDataWarning";
+import useUpdateHasUsedApp from "./hooks/useUpdateHasUsedApp";
 import { interaction, selection } from "./state";
 
 import styles from "./App.module.css";
@@ -50,9 +50,8 @@ export default function App(props: AppProps) {
     const isAicsEmployee = useSelector(interaction.selectors.isAicsEmployee);
     const visibleModal = useSelector(interaction.selectors.getVisibleModal);
 
-    const [measuredNodeRef, _measuredHeight, measuredWidth] = useLayoutMeasurements<
-        HTMLDivElement
-    >();
+    const [measuredNodeRef, _measuredHeight, measuredWidth] =
+        useLayoutMeasurements<HTMLDivElement>();
 
     useCheckForUpdates();
     useUpdateHasUsedApp();
