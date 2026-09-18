@@ -1,13 +1,13 @@
 .warning-message {
     background-color: var(--warning-status-background-color);
-    border: var(--warning-background-color) 1px solid;
+    border: var(--warning-status-text-color) 1px solid;
     color: var(--warning-status-text-color);
     padding: 10px;
 }
 
 .error-message {
     background-color: var(--error-status-background-color);
-    border: var(--error-background-color) 1px solid;
+    border: var(--error-status-text-color) 1px solid;
     color: var(--error-status-text-color);
     padding: 10px;
 }

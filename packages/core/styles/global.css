@@ -74,7 +74,6 @@ body {
     --border-secondary-color: var(--med-light-grey);
     --error-background-color: var(--red);
     --error-text-color: var(--white);
-    --warning-background-color: var(--yellow);
     --aqua-secondary-hover: rgba(13, 187, 206, 0.18);
     --small-border-radius: 4px;
     --large-border-radius: 18px;
