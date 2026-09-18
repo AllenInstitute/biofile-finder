@@ -4,7 +4,7 @@ import {
     mergeState,
     ResponseStub,
 } from "@aics/redux-utils";
-import { render, fireEvent } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import { get as _get } from "lodash";
 import * as React from "react";
@@ -16,9 +16,9 @@ import { FESBaseUrl } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import { AnnotationType } from "../../../../entity/AnnotationFormatter";
 import FileFilter from "../../../../entity/FileFilter";
-import { initialState, interaction, reduxLogics } from "../../../../state";
-import HttpFileService from "../../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../../services/FileDownloadService/FileDownloadServiceNoop";
+import HttpFileService from "../../../../services/FileService/HttpFileService";
+import { initialState, interaction, reduxLogics } from "../../../../state";
 
 describe("<MetadataManifest />", () => {
     const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;
