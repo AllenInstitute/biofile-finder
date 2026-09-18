@@ -4,6 +4,7 @@ import IMMUTABLE_ANNOTATION_NAMES from "./immutableAnnotationNames";
 import AnnotationService, { AnnotationDetails } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
 import Annotation, { AnnotationResponseMms, AnnotationValue } from "../../../entity/Annotation";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType, AnnotationTypeIdMap } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
@@ -51,6 +52,11 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
                 (annotationResponse) =>
                     new Annotation({
                         ...annotationResponse,
+                        // FES reports this synthesized annotation's type as "String" rather than "Text"
+                        type:
+                            annotationResponse.annotationName === AnnotationName.LOCAL_FILE_PATH
+                                ? AnnotationType.STRING
+                                : annotationResponse.type,
                         isImmutable: IMMUTABLE_ANNOTATION_NAMES.has(
                             annotationResponse.annotationName
                         ),

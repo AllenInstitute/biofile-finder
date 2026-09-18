@@ -1,6 +1,7 @@
 import { expect } from "chai";
 
 import FileFilter, { FilterType } from "../";
+import AnnotationName from "../../Annotation/AnnotationName";
 import { AnnotationType } from "../../AnnotationFormatter";
 import IncludeFilter from "../IncludeFilter";
 import ExcludeFilter from "../ExcludeFilter";
@@ -451,6 +452,65 @@ describe("FileFilter", () => {
             // Act/Assert
             expect(fileFilterFuzzyConstructor.equals(fileFilter)).to.be.false;
             expect(fileFilterIncludeConstructor.equals(fileFilterExcludeConstructor)).to.be.false;
+        });
+    });
+
+    describe("toQueryString", () => {
+        const LOCAL_VAST = AnnotationName.LOCAL_FILE_PATH;
+
+        it("serializes a plain value filter as name=value", () => {
+            expect(new FileFilter("Gene", "TUBA1B").toQueryString()).to.equal("Gene=TUBA1B");
+        });
+
+        it("rewrites an exact production local path filter to the file_path it mounts", () => {
+            const filter = new FileFilter(
+                LOCAL_VAST,
+                "/allen/programs/allencell/data/proj0/840/726/32e/file.czi"
+            );
+            expect(filter.toQueryString()).to.equal(
+                "file_path=production.files.allencell.org/840/726/32e/file.czi"
+            );
+        });
+
+        it("rewrites an exact staging local path filter to the staging file_path", () => {
+            const filter = new FileFilter(
+                LOCAL_VAST,
+                "/allen/aics/software/apps/staging/fss/data/130/b23/test.txt"
+            );
+            expect(filter.toQueryString()).to.equal(
+                "file_path=staging.files.allencell.org/130/b23/test.txt"
+            );
+        });
+
+        it("rewrites a fuzzy local path filter to a fuzzy file_path filter, dropping the mount prefix", () => {
+            const withPrefix = new FuzzyFilter(
+                LOCAL_VAST,
+                "/allen/programs/allencell/data/proj0/840/726"
+            );
+            expect(withPrefix.toQueryString()).to.equal("file_path=/840/726&fuzzy=file_path");
+
+            const fragment = new FuzzyFilter(LOCAL_VAST, "3500008526_10X");
+            expect(fragment.toQueryString()).to.equal("file_path=3500008526_10X&fuzzy=file_path");
+        });
+
+        it("passes an unrecognized local path value through unchanged, but still on file_path", () => {
+            expect(new FileFilter(LOCAL_VAST, "some/relative/path.czi").toQueryString()).to.equal(
+                "file_path=some/relative/path.czi"
+            );
+        });
+
+        it("expresses any/no local path in terms of whether the file should be in the local cache", () => {
+            expect(new IncludeFilter(LOCAL_VAST).toQueryString()).to.equal(
+                "Should Be in Local Cache=true"
+            );
+            expect(new ExcludeFilter(LOCAL_VAST).toQueryString()).to.equal(
+                "Should Be in Local Cache=false"
+            );
+        });
+
+        it("leaves any/no-value filters on other annotations alone", () => {
+            expect(new IncludeFilter("Gene").toQueryString()).to.equal("include=Gene");
+            expect(new ExcludeFilter("Gene").toQueryString()).to.equal("exclude=Gene");
         });
     });
 });

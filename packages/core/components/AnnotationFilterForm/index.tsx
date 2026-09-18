@@ -17,7 +17,7 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import { interaction, selection } from "../../state";
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
+import { ANNOTATION_NAMES_WITHOUT_VALUES } from "../../constants";
 
 import styles from "./AnnotationFilterForm.module.css";
 
@@ -66,7 +66,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     // Top-level file attributes (file name, size, uploaded, etc.) never have their values
     // fetched (see useAnnotationValues), so there is nothing for a "Browse list" tab to show.
-    const canBrowseList = !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(props.annotation.name);
+    const canBrowseList = !ANNOTATION_NAMES_WITHOUT_VALUES.includes(props.annotation.name);
 
     // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
     const typeHasDedicatedPicker =

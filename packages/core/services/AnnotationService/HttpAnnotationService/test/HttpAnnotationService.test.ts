@@ -4,6 +4,8 @@ import { spy } from "sinon";
 
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES, FESBaseUrl } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
+import AnnotationName from "../../../../entity/Annotation/AnnotationName";
+import { AnnotationType } from "../../../../entity/AnnotationFormatter";
 import { annotationsJson } from "../../../../entity/Annotation/mocks";
 import FileFilter from "../../../../entity/FileFilter";
 
@@ -30,6 +32,33 @@ describe("HttpAnnotationService", () => {
                 annotationsJson.length + TOP_LEVEL_FILE_ANNOTATION_NAMES.length
             );
             expect(annotations[0]).to.be.instanceOf(Annotation);
+        });
+
+        it("treats the 'String' type FES reports for the local path annotation as text", async () => {
+            const localPathHttpClient = createMockHttpClient({
+                when: `${FESBaseUrl.TEST}/${HttpAnnotationService.BASE_ANNOTATION_URL}`,
+                respondWith: {
+                    data: {
+                        data: [
+                            {
+                                annotationId: 0,
+                                annotationName: AnnotationName.LOCAL_FILE_PATH,
+                                annotationDisplayName: AnnotationName.LOCAL_FILE_PATH,
+                                description: "Location of file stored locally on VAST.",
+                                type: "String",
+                            },
+                        ],
+                    },
+                },
+            });
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: localPathHttpClient,
+            });
+
+            const annotations = await annotationService.fetchAnnotations();
+            const localPath = annotations.find((a) => a.name === AnnotationName.LOCAL_FILE_PATH);
+            expect(localPath?.type).to.equal(AnnotationType.STRING);
         });
     });
 

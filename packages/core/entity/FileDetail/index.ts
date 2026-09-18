@@ -1,5 +1,6 @@
 import { isEmpty, isNil, isObject, uniq } from "lodash";
 
+import { AICS_FMS_S3_BUCKETS, AICS_FMS_S3_URL_PREFIX, NAS_HOST_PREFIXES } from "./fmsPaths";
 import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
 import AnnotationName from "../Annotation/AnnotationName";
 import { Environment } from "../../constants";
@@ -11,21 +12,6 @@ import {
 } from "../../services/FileService";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
-const AICS_FMS_S3_URL_PREFIX = "https://s3.us-west-2.amazonaws.com/";
-
-const AICS_FMS_S3_BUCKETS: Record<Environment, string> = {
-    PRODUCTION: "production.files.allencell.org",
-    STAGING: "staging.files.allencell.org",
-    LOCALHOST: "",
-    TEST: "test.files.allencell.org",
-};
-
-const NAS_HOST_PREFIXES: Record<Environment, string> = {
-    LOCALHOST: "/tmp/fss/local",
-    PRODUCTION: "/allen/programs/allencell/data/proj0",
-    STAGING: "/allen/aics/software/apps/staging/fss/data",
-    TEST: "/test",
-};
 
 /**
  * Expected JSON response of a file detail returned from the query service. Example:

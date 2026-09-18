@@ -60,6 +60,13 @@ export const TOP_LEVEL_FILE_ANNOTATIONS = [
 
 export const TOP_LEVEL_FILE_ANNOTATION_NAMES = TOP_LEVEL_FILE_ANNOTATIONS.map((a) => a.name);
 
+// Annotations whose distinct values cannot be requested from FES: the top-level file attributes,
+// plus the local NAS path, which FES synthesizes per file record but does not index.
+export const ANNOTATION_NAMES_WITHOUT_VALUES = [
+    ...TOP_LEVEL_FILE_ANNOTATION_NAMES,
+    AnnotationName.LOCAL_FILE_PATH,
+];
+
 export const AICS_FMS_DATA_SOURCE_NAME = "AICS FMS";
 export const HIDDEN_UID_ANNOTATION = "hidden_bff_uid";
 

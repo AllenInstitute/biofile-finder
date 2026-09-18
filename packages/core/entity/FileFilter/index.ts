@@ -1,7 +1,9 @@
 import { isEqual } from "lodash";
 
 import SQLBuilder from "../SQLBuilder";
+import AnnotationName from "../Annotation/AnnotationName";
 import { AnnotationType } from "../AnnotationFormatter";
+import { localPathToFmsFilePath, stripNasHostPrefix } from "../FileDetail/fmsPaths";
 import resolvePathIsArray, { isLeafAnArray, hasArrayBeforeLeaf } from "../resolvePathIsArray";
 import { NO_VALUE_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 
@@ -123,6 +125,29 @@ export default class FileFilter {
         // API and used in FileSet cache keys, both of which expect `annotation=value` form.
         // URL-sharing serialization uses toJSON()/path instead.
         const name = this.name;
+
+        // "File Path (Local VAST)" is synthesized by FES on file records but is not queryable.
+        if (name === AnnotationName.LOCAL_FILE_PATH) {
+            if (this.type === FilterType.ANY) {
+                return `${AnnotationName.SHOULD_BE_IN_LOCAL}=true`;
+            }
+            if (this.type === FilterType.EXCLUDE) {
+                return `${AnnotationName.SHOULD_BE_IN_LOCAL}=false`;
+            }
+        }
+        if (name === AnnotationName.LOCAL_FILE_PATH && typeof this.value === "string") {
+            if (this.type === FilterType.FUZZY) {
+                if (this.value === "") return `fuzzy=${AnnotationName.FILE_PATH}`;
+                return `${AnnotationName.FILE_PATH}=${stripNasHostPrefix(this.value)}&fuzzy=${
+                    AnnotationName.FILE_PATH
+                }`;
+            }
+            if (this.type === FilterType.DEFAULT) {
+                const filePath = localPathToFmsFilePath(this.value) ?? this.value;
+                return `${AnnotationName.FILE_PATH}=${filePath}`;
+            }
+        }
+
         switch (this.type) {
             case FilterType.ANY:
                 return `include=${name}`;
