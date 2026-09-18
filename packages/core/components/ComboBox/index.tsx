@@ -1,6 +1,7 @@
 import { ComboBox, IComboBoxOption, IRenderFunction, ISelectableOption } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
+
 import Tooltip from "../Tooltip";
 
 import styles from "./ComboBox.module.css";
