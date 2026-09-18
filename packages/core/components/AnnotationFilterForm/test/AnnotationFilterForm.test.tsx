@@ -498,6 +498,26 @@ describe("<AnnotationFilterForm />", () => {
             expect(queryByRole("tablist")).to.not.exist;
             expect(queryByText("Browse list")).to.not.exist;
         });
+
+        it("explains that the FMS file size attribute cannot be filtered by value", () => {
+            // arrange: the backend rejects RANGE(...) filters on file_size and its values are never fetched
+            const fileSizeAnnotation = TOP_LEVEL_FILE_ANNOTATIONS.find(
+                (annotation) => annotation.name === AnnotationName.FILE_SIZE
+            ) as Annotation;
+            const { store } = configureMockStore({ state: initialState });
+
+            // act
+            const { container, getByText, queryByText } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fileSizeAnnotation} />
+                </Provider>
+            );
+
+            // assert: no range inputs, just the explanation
+            expect(getByText(/not yet supported for this data source/)).to.exist;
+            expect(queryByText("Min (inclusive)")).to.not.exist;
+            expect(container.querySelector("#rangemin")).to.not.exist;
+        });
     });
 
     describe("Duration annotation", () => {

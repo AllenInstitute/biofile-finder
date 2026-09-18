@@ -243,6 +243,17 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     const searchFormType = () => {
+        // The FMS file size attribute has no fetched values to list and the backend rejects
+        // RANGE(...) filters on it, so there is no working value picker to offer.
+        if (props.annotation.name === AnnotationName.FILE_SIZE) {
+            return (
+                <div className={styles.footer}>
+                    Filtering by specific {props.annotation.displayName} values is not yet supported
+                    for this data source
+                </div>
+            );
+        }
+
         // Types with dedicated pickers (number, date, datetime) use their own UI.
         // Non-string types without dedicated pickers fall back to the list picker when values are available.
         if (
