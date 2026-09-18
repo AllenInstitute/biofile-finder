@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { naturalComparator } from "../../util/strings";
 import AnnotationService from "../../services/AnnotationService";
-import { ANNOTATION_NAMES_WITHOUT_VALUES } from "../../constants";
+import { ANNOTATION_NAMES_WITHOUT_FETCHABLE_VALUES } from "../../constants";
 import { AnnotationValue } from "../../entity/Annotation";
 
 /**
@@ -26,7 +26,7 @@ export default function useAnnotationValues(
         let ignoreResponse = false;
 
         // Only fetch values for annotations that are not top level file annotations
-        if (!ANNOTATION_NAMES_WITHOUT_VALUES.includes(annotationName)) {
+        if (!ANNOTATION_NAMES_WITHOUT_FETCHABLE_VALUES.includes(annotationName)) {
             setIsLoading(true);
             annotationService
                 .fetchValues(annotationName)
