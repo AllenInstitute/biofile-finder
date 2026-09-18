@@ -64,9 +64,9 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     }, [props.annotation, annotationValues, filtersForAnnotation]);
 
     // Search vs Browse list tab for string annotations.
-    const [tabOverride, setTabOverride] = React.useState<"search" | "browse">();
-    const activeTab =
-        tabOverride ?? (items.length > 0 && items.length <= 100 ? "browse" : "search");
+    const defaultTab = items.length > 0 && items.length <= 100 ? "browse" : "search";
+    const [selectedTab, setSelectedTab] = React.useState<"search" | "browse">();
+    const activeTab = selectedTab ?? defaultTab;
 
     const onDeselectAll = () => {
         // remove all regular filters for this annotation
@@ -237,7 +237,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                                     className={classNames(styles.tab, {
                                         [styles.tabActive]: activeTab === "search",
                                     })}
-                                    onClick={() => setTabOverride("search")}
+                                    onClick={() => setSelectedTab("search")}
                                 >
                                     Search
                                 </button>
@@ -245,7 +245,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                                     className={classNames(styles.tab, {
                                         [styles.tabActive]: activeTab === "browse",
                                     })}
-                                    onClick={() => setTabOverride("browse")}
+                                    onClick={() => setSelectedTab("browse")}
                                 >
                                     Browse list
                                 </button>

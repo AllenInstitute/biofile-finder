@@ -49,7 +49,7 @@ describe("<SearchBoxForm/>", () => {
                 onSearch={onSearch}
             />
         );
-        expect(getByDisplayValue("Exactly match")).to.exist;
+        expect(getByDisplayValue("Exactly matches")).to.exist;
 
         // Act
         submitSearch(getByRole("searchbox"), "bar");
@@ -108,7 +108,7 @@ describe("<SearchBoxForm/>", () => {
                 onSearch={noop}
             />
         );
-        expect(getByText("Exact matches:")).to.exist;
+        expect(getByText("Exactly matches:")).to.exist;
         expect(getByText("bar")).to.exist;
         expect(getByText("baz")).to.exist;
 
@@ -145,6 +145,6 @@ describe("<SearchBoxForm/>", () => {
 
         // Assert: warning shows, and committed chips keep their original label
         expect(queryByText(warningText)).to.exist;
-        expect(queryByText("Exact matches:")).to.exist;
+        expect(queryByText("Exactly matches:")).to.exist;
     });
 });

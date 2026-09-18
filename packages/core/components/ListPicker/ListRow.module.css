@@ -96,10 +96,3 @@
     top: 0 !important;
 }
 
-.sub-menu-callout :global(.ms-Callout-main),
-.sub-menu-callout :global(.ms-ContextualMenu-container),
-.sub-menu-callout :global(.ms-ContextualMenu) {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-}
