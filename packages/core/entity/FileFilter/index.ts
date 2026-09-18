@@ -35,7 +35,7 @@ export default class FileFilter {
     }
 
     /**
-     * Convert any mix of filters into SQL WHERE clause strings, one per root column.
+     * Convert any mix of filters into SQL WHERE clause strings, one per leaf column.
      * Returns a `string[]` so callers can pass the result directly to `SQLBuilder.where()`,
      * which AND-joins each element as its own clause.
      */
@@ -65,9 +65,18 @@ export default class FileFilter {
                     independent.push(f);
                 }
             }
-            if (independent.length > 0) {
+            // Filters on the SAME annotation are alternative values for it (OR'd)
+            // Filters on DIFFERENT annotations are each an additional constraint (AND'd)
+            // - even when those annotations are siblings under a shared parent
+            const independentByName = new Map<string, FileFilter[]>();
+            for (const f of independent) {
+                const bucket = independentByName.get(f.name) ?? [];
+                bucket.push(f);
+                independentByName.set(f.name, bucket);
+            }
+            for (const sameAnnotation of independentByName.values()) {
                 clauses.push(
-                    independent
+                    sameAnnotation
                         .map((f) =>
                             f.toSimpleWhereClause(
                                 resolvePathIsArray(f.name, f.path.length, pathIsArrayByName)

@@ -231,7 +231,7 @@ describe("<AnnotationFilterForm />", () => {
 
             // act: switch to the search tab; the committed value shows as a chip
             fireEvent.click(await findByText("Search"));
-            expect(getByText("Exact matches:")).to.exist;
+            expect(getByText("Exactly matches:")).to.exist;
             expect(getByText("a")).to.exist;
 
             // act: submit another value with the same operator

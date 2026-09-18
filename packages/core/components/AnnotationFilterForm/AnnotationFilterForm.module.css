@@ -49,8 +49,6 @@
     min-height: 0;
 }
 
-/* Size the list to its contents (within limits) rather than the ListPicker's fixed height,
-   so short lists (e.g. True/False) don't leave a large empty area */
 .list-picker {
     display: flex;
     flex-direction: column;
@@ -65,8 +63,6 @@
     width: 100%;
 }
 
-/* The list picker's fade-out gradient is a flow element that would otherwise
-   take up space below the footer in this flex layout; anchor it just above the footer */
 .list-picker::after {
     bottom: calc(16px + var(--footer-height));
     left: 30px;
@@ -96,7 +92,6 @@
     flex: none;
 }
 
-/* Inset from the container edge to line up with the content below */
 .tabs {
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -104,8 +99,6 @@
     margin: 0 16px;
 }
 
-/* Scoped under .tabs to outrank the menu-wide `.button-menu button` background, which would
-   otherwise paint over the divider line when the panel sits on a fractional pixel */
 .tabs > .tab {
     background: none;
     border: none;
@@ -115,7 +108,6 @@
     font-size: var(--s-paragraph-size);
     padding: 8px 4px 8px;
     position: relative;
-    /* Matches the operator dropdown width to visually link the two */
     width: 140px;
 }
 
@@ -129,7 +121,6 @@
     color: var(--primary-text-color);
 }
 
-/* Active indicator drawn over the divider line beneath the tabs */
 .tab-active::after {
     background-color: var(--aqua);
     bottom: -1px;

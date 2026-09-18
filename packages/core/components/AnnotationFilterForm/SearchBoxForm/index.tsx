@@ -13,7 +13,7 @@ import styles from "./SearchBoxForm.module.css";
 const OPERATOR_OPTIONS = [
     {
         key: FilterType.DEFAULT,
-        text: "Exactly match",
+        text: "Exactly matches",
         data: { tooltip: "Finds only values identical to your input" },
     },
     {
@@ -42,6 +42,8 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
     );
     const [searchText, setSearchText] = React.useState("");
     const selectedOperator = OPERATOR_OPTIONS.find((option) => option.key === filterType);
+    const committedOperator =
+        OPERATOR_OPTIONS.find((option) => option.key === committedType) ?? OPERATOR_OPTIONS[0];
     const willReplaceResults =
         !!searchText.trim() && props.filters.some((filter) => filter.type !== filterType);
 
@@ -84,9 +86,7 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
             )}
             {props.filters.length > 0 && (
                 <div className={styles.chips}>
-                    <span>
-                        {committedType === FilterType.FUZZY ? "Contains:" : "Exact matches:"}
-                    </span>
+                    <span>{committedOperator.text}:</span>
                     {props.filters.map((filter) => (
                         <div className={styles.chip} key={String(filter.value)}>
                             {String(filter.value)}
