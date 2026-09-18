@@ -174,6 +174,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const listPickerComponent = (
         <ListPicker
+            className={styles.listPicker}
             items={items}
             loading={isLoading}
             errorMessage={errorMessage}

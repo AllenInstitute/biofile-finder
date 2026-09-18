@@ -1,4 +1,5 @@
-.loading-container, .picker {
+.loading-container,
+.picker {
     background-color: var(--primary-background-color);
     color: var(--primary-text-color);
     padding: 0 30px 16px;
@@ -36,6 +37,7 @@
     min-height: 0;
 }
 
+
 .mode-container {
     border: 1px solid var(--border-color);
     border-radius: var(--small-border-radius);
@@ -44,45 +46,73 @@
     min-height: 0;
 }
 
-.mode-container [data-testid="list-picker"] {
+/* Size the list to its contents (within limits) rather than the ListPicker's fixed height,
+   so short lists (e.g. True/False) don't leave a large empty area */
+.list-picker {
     display: flex;
     flex-direction: column;
+    height: auto;
     max-height: calc(100vh - 350px);
-    min-height: 200px;
-    padding: 12px;
+    min-height: 0;
+    position: relative;
+}
+
+.mode-container .list-picker {
+    padding: 16px;
     width: 100%;
 }
 
-.mode-container [data-testid="list-picker"] > div[class*="header"] {
+/* The list picker's fade-out gradient is a flow element that would otherwise
+   take up space below the footer in this flex layout; anchor it just above the footer */
+.list-picker::after {
+    bottom: calc(16px + var(--footer-height));
+    left: 30px;
+    position: absolute;
+    right: 30px;
+    transform: none;
+    width: auto;
+}
+
+.mode-container .list-picker::after {
+    left: 16px;
+    right: 16px;
+}
+
+.list-picker > div[class*="header"] {
     flex: none;
     min-height: unset;
 }
 
-.mode-container [data-testid="list-picker"] > div[class*="main-content"] {
+.list-picker > div[class*="main-content"] {
     flex: 1 1 auto;
     height: auto;
     min-height: 0;
 }
 
-.mode-container [data-testid="list-picker"] > div[class*="footer"] {
+.list-picker > div[class*="footer"] {
     flex: none;
 }
 
+/* Inset from the container edge to line up with the content below */
 .tabs {
     border-bottom: 1px solid var(--border-color);
     display: flex;
     flex: none;
+    margin: 0 16px;
 }
 
-.tab {
+/* Scoped under .tabs to outrank the menu-wide `.button-menu button` background, which would
+   otherwise paint over the divider line when the panel sits on a fractional pixel */
+.tabs > .tab {
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
     color: var(--secondary-text-color);
     cursor: pointer;
     font-family: inherit;
     font-size: var(--s-paragraph-size);
-    padding: 8px 4px 6px;
+    padding: 8px 4px 8px;
+    position: relative;
+    /* Matches the operator dropdown width to visually link the two */
     width: 140px;
 }
 
@@ -93,8 +123,18 @@
 }
 
 .tab-active {
-    border-bottom-color: var(--aqua);
     color: var(--primary-text-color);
+}
+
+/* Active indicator drawn over the divider line beneath the tabs */
+.tab-active::after {
+    background-color: var(--aqua);
+    bottom: -1px;
+    content: "";
+    height: 2px;
+    left: 0;
+    position: absolute;
+    right: 0;
 }
 
 .hidden {

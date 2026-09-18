@@ -18,12 +18,32 @@ describe("<SearchBoxForm/>", () => {
         fireEvent.keyDown(searchbox, { key: "Enter", code: "Enter", keyCode: 13, charCode: 13 });
     }
 
-    it("defaults to exact matching and submits searches with FilterType.DEFAULT", () => {
+    it("defaults to contains and submits searches with FilterType.FUZZY", () => {
         // Arrange
         const onSearch = sinon.spy();
         const { getByRole, getByDisplayValue } = render(
             <SearchBoxForm
                 filters={[]}
+                onClearAll={noop}
+                onRemoveFilter={noop}
+                onSearch={onSearch}
+            />
+        );
+        expect(getByDisplayValue("Contains")).to.exist;
+
+        // Act
+        submitSearch(getByRole("searchbox"), "bar");
+
+        // Assert
+        expect(onSearch.calledOnceWith("bar", FilterType.FUZZY)).to.equal(true);
+    });
+
+    it("seeds the exact match operator from committed exact filters", () => {
+        // Arrange
+        const onSearch = sinon.spy();
+        const { getByRole, getByDisplayValue } = render(
+            <SearchBoxForm
+                filters={[makeFilter("baz", FilterType.DEFAULT)]}
                 onClearAll={noop}
                 onRemoveFilter={noop}
                 onSearch={onSearch}

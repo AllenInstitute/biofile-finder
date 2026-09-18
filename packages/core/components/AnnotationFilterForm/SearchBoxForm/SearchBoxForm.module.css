@@ -2,17 +2,37 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 12px;
+    padding: 16px;
 }
 
 .search-row {
     display: flex;
-    gap: 6px;
 }
 
 .operator-dropdown {
+    display: block;
     flex: 0 0 140px;
     max-width: 140px;
+}
+
+.operator-dropdown-control {
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.search-input,
+.search-input::after {
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+}
+
+.search-input {
+    margin-left: -1px;
+}
+
+.search-input:focus-within {
+    position: relative;
+    z-index: 1;
 }
 
 .search-row > div:last-child {

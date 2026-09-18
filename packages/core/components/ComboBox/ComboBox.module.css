@@ -133,3 +133,11 @@
 .options-container {
   padding-bottom: var(--margin);
 }
+
+.combo-box-callout-short::after {
+  display: none;
+}
+
+.options-container-short {
+  padding-bottom: 0;
+}

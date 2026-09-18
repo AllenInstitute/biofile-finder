@@ -64,11 +64,18 @@ export default function ListPicker(props: ListPickerProps) {
 
     const dispatch = useDispatch();
     const [searchValue, setSearchValue] = React.useState("");
+    const [isSubMenuOpen, setIsSubMenuOpen] = React.useState(false);
+    const frozenOrder = React.useRef<Map<string, number>>();
 
     const fuse = React.useMemo(() => new Fuse(items, FUZZY_SEARCH_OPTIONS), [items]);
     const filteredItems = React.useMemo(() => {
-        const filteredRows = searchValue ? fuse.search(searchValue) : items;
-        return filteredRows.sort((a, b) => {
+        const filteredRows = searchValue ? fuse.search(searchValue) : [...items];
+        if (isSubMenuOpen && frozenOrder.current) {
+            const order = frozenOrder.current;
+            const position = (item: ListItem) => order.get(String(item.value)) ?? Infinity;
+            return filteredRows.sort((a, b) => position(a) - position(b));
+        }
+        const sortedRows = filteredRows.sort((a, b) => {
             // If selected, sort to the top
             if (a.selected !== b.selected) {
                 return a.selected ? -1 : 1;
@@ -87,7 +94,9 @@ export default function ListPicker(props: ListPickerProps) {
             // If disabled, sort to the bottom
             return a.disabled === b.disabled ? 0 : a.disabled ? 1 : -1;
         });
-    }, [items, searchValue, fuse]);
+        frozenOrder.current = new Map(sortedRows.map((item, index) => [String(item.value), index]));
+        return sortedRows;
+    }, [items, searchValue, fuse, isSubMenuOpen]);
 
     const { hasSelectedItem, hasUnselectedItem } = React.useMemo(
         () =>
@@ -100,6 +109,42 @@ export default function ListPicker(props: ListPickerProps) {
             ),
         [items]
     );
+
+    const mainContentRef = React.useRef<HTMLDivElement>(null);
+    const [isScrollable, setIsScrollable] = React.useState(false);
+    React.useLayoutEffect(() => {
+        const element = mainContentRef.current;
+        if (!element) {
+            return;
+        }
+        let frame: number | undefined;
+        const update = () => {
+            const content = element.firstElementChild;
+            const contentHeight = content ? content.getBoundingClientRect().height : 0;
+            setIsScrollable(contentHeight > element.clientHeight + 1);
+        };
+        update();
+        if (typeof ResizeObserver === "undefined") {
+            return;
+        }
+
+        const observer = new ResizeObserver(() => {
+            if (frame !== undefined) {
+                cancelAnimationFrame(frame);
+            }
+            frame = requestAnimationFrame(update);
+        });
+        observer.observe(element);
+        if (element.firstElementChild) {
+            observer.observe(element.firstElementChild);
+        }
+        return () => {
+            observer.disconnect();
+            if (frame !== undefined) {
+                cancelAnimationFrame(frame);
+            }
+        };
+    }, [filteredItems, loading, errorMessage]);
 
     if (errorMessage) {
         return <div className={styles.container}>Whoops! Encountered an error: {errorMessage}</div>;
@@ -117,6 +162,7 @@ export default function ListPicker(props: ListPickerProps) {
         <div
             className={classNames(styles.container, className, {
                 [styles.biggerHeader]: !!props.title,
+                [styles.scrollable]: isScrollable,
             })}
             data-is-focusable="true"
             data-testid="list-picker"
@@ -188,7 +234,7 @@ export default function ListPicker(props: ListPickerProps) {
                     )}
                 </div>
             </div>
-            <div className={styles.mainContent} data-is-scrollable="true">
+            <div className={styles.mainContent} data-is-scrollable="true" ref={mainContentRef}>
                 <List
                     ignoreScrollingState
                     getKey={(item) => String(item.value)}
@@ -199,6 +245,7 @@ export default function ListPicker(props: ListPickerProps) {
                             item={item}
                             onDeselect={onDeselect}
                             onSelect={onSelect}
+                            onSubMenuToggle={(_, isOpen) => setIsSubMenuOpen(isOpen)}
                             subMenuRenderer={props.subMenuRenderer}
                         />
                     )}

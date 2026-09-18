@@ -191,7 +191,7 @@ describe("<AnnotationFilterForm />", () => {
             );
 
             // assert: the search tab's operator dropdown renders instead of the browse list
-            expect(await findByDisplayValue("Exactly match")).to.exist;
+            expect(await findByDisplayValue("Contains")).to.exist;
             expect(queryAllByRole("listitem")).to.be.lengthOf(0);
         });
 

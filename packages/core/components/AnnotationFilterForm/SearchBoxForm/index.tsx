@@ -5,13 +5,22 @@ import * as React from "react";
 import { TransparentIconButton } from "../../Buttons";
 import ComboBox from "../../ComboBox";
 import SearchBox from "../../SearchBox";
+import Tooltip from "../../Tooltip";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 
 import styles from "./SearchBoxForm.module.css";
 
 const OPERATOR_OPTIONS = [
-    { key: FilterType.DEFAULT, text: "Exactly match" },
-    { key: FilterType.FUZZY, text: "Contains" },
+    {
+        key: FilterType.DEFAULT,
+        text: "Exactly match",
+        data: { tooltip: "Finds only values identical to your input" },
+    },
+    {
+        key: FilterType.FUZZY,
+        text: "Contains",
+        data: { tooltip: "Finds values that include your input" },
+    },
 ];
 
 interface SearchBoxFormProps {
@@ -29,9 +38,10 @@ interface SearchBoxFormProps {
 export default function SearchBoxForm(props: SearchBoxFormProps) {
     const committedType = props.filters[0]?.type;
     const [filterType, setFilterType] = React.useState<FilterType>(
-        committedType === FilterType.FUZZY ? FilterType.FUZZY : FilterType.DEFAULT
+        committedType === FilterType.DEFAULT ? FilterType.DEFAULT : FilterType.FUZZY
     );
     const [searchText, setSearchText] = React.useState("");
+    const selectedOperator = OPERATOR_OPTIONS.find((option) => option.key === filterType);
     const willReplaceResults =
         !!searchText.trim() && props.filters.some((filter) => filter.type !== filterType);
 
@@ -43,19 +53,25 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
     return (
         <div className={classNames(props.className, styles.container)}>
             <div className={styles.searchRow}>
-                <ComboBox
-                    className={styles.operatorDropdown}
-                    label=""
-                    placeholder=""
-                    options={OPERATOR_OPTIONS}
-                    selectedKey={filterType}
-                    onChange={(option) => option && setFilterType(option.key as FilterType)}
-                />
+                <Tooltip
+                    content={selectedOperator?.data.tooltip}
+                    hostClassName={styles.operatorDropdown}
+                >
+                    <ComboBox
+                        label=""
+                        placeholder=""
+                        options={OPERATOR_OPTIONS}
+                        rootClassName={styles.operatorDropdownControl}
+                        selectedKey={filterType}
+                        onChange={(option) => option && setFilterType(option.key as FilterType)}
+                    />
+                </Tooltip>
                 <SearchBox
+                    className={styles.searchInput}
                     onChange={setSearchText}
                     onReset={() => setSearchText("")}
                     onSearch={onSearchSubmitted}
-                    placeholder="Search..."
+                    placeholder="Search values..."
                     showSubmitButton
                     value={searchText}
                 />
