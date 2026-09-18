@@ -136,8 +136,8 @@ describe("googleSheets", () => {
 
     describe("isGoogleSheetUri", () => {
         it("recognizes a Sheets URL", () => {
-            expect(isGoogleSheetUri(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`)).to.be
-                .true;
+            expect(isGoogleSheetUri(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`)).to
+                .be.true;
         });
 
         it("does not recognize other URLs", () => {
