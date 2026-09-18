@@ -1,7 +1,27 @@
 {
+    "plugins": ["@trivago/prettier-plugin-sort-imports"],
     "arrowParens": "always",
     "jsxBracketSameLine": false,
     "printWidth": 100,
     "trailingComma": "es5",
-    "tabWidth": 4
+    "tabWidth": 4,
+    "importOrder": [
+        "<THIRD_PARTY_MODULES>",
+        "<SEPARATOR>",
+        "^\\./[\\w/]*[\\w.]*(?<!.css)$",
+        "^\\.\\.[\\w/]*[\\w.]*(?<!.css)$",
+        "^\\.\\./\\.\\.[\\w/]*[\\w.]*(?<!.css)$",
+        "^\\.\\./\\.\\./\\.\\.[\\w/]*[\\w.]*(?<!.css)$",
+        "^\\.\\./\\.\\./\\.\\./\\.\\.[\\w/]*[\\w.]*(?<!.css)$",
+        "^\\.\\./\\.\\./\\.\\./\\.\\./\\.\\.[\\w/]*[\\w.]*(?<!.css)$",
+        "^\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./\\.\\.[\\w/]*[\\w.]*(?<!.css)$",
+        "^\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./\\.\\.[\\w/]*[\\w.]*(?<!.css)$",
+        "^\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./\\.\\.[\\w/]*[\\w.]*(?<!.css)$",
+        "^\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./\\.\\.[\\w/]*[\\w.]*(?<!.css)$",
+        "<SEPARATOR>",
+        "^./.+\\.css$"
+    ],
+    "importOrderSeparation": true,
+    "importOrderSortSpecifiers": true,
+    "importOrderCaseInsensitive": true
 }

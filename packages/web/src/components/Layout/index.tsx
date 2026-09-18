@@ -2,8 +2,8 @@ import classNames from "classnames";
 import * as React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
-import Header from "../Header";
 import Footer from "../Footer";
+import Header from "../Header";
 
 import styles from "./Layout.module.css";
 
