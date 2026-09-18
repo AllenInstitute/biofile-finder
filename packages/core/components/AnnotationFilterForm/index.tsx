@@ -1,6 +1,6 @@
 import { IChoiceGroupOption } from "@fluentui/react";
 import classNames from "classnames";
-import { isNil } from "lodash";
+import { castArray, isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -33,17 +33,10 @@ interface AnnotationFilterFormProps {
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
     const allFilters = useSelector(selection.selectors.getFileFilters);
-    const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
-    const canFuzzySearch = useSelector(selection.selectors.isQueryingAicsFms);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         props.annotation.name,
         annotationService
-    );
-
-    const fuzzySearchEnabled = React.useMemo(
-        () => !!fuzzyFilters?.some((filter) => filter.name === props.annotation.name),
-        [fuzzyFilters, props.annotation]
     );
 
     const filtersForAnnotation = React.useMemo(
@@ -70,31 +63,66 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }));
     }, [props.annotation, annotationValues, filtersForAnnotation]);
 
+    const hasFuzzyFilter = filtersForAnnotation.some((filter) => filter.type === FilterType.FUZZY);
+    const defaultTab = hasFuzzyFilter
+        ? "search"
+        : items.length > 0 && items.length <= 100
+        ? "browse"
+        : "search";
+    const [selectedTab, setSelectedTab] = React.useState<"search" | "browse">();
+    const activeTab = selectedTab ?? defaultTab;
+
     const onDeselectAll = () => {
         // remove all regular filters for this annotation
         dispatch(selection.actions.removeFileFilter(filtersForAnnotation));
     };
 
     const onDeselect = (item: ListItem) => {
-        dispatch(selection.actions.removeFileFilter(createFileFilter(item)));
+        const matchingFilters = filtersForAnnotation.filter(
+            (filter) => String(filter.value) === String(item.value)
+        );
+        if (matchingFilters.length) {
+            dispatch(selection.actions.removeFileFilter(matchingFilters));
+        }
     };
 
     const onSelect = (item: ListItem) => {
-        dispatch(selection.actions.changeFileFilterType(props.annotation.name, FilterType.DEFAULT));
-        dispatch(selection.actions.addFileFilter(createFileFilter(item)));
+        commitFilters(createFileFilter(item));
     };
 
     // TODO: Should this select ALL or just the visible items in list?
     const onSelectAll = () => {
-        dispatch(selection.actions.changeFileFilterType(props.annotation.name, FilterType.DEFAULT));
-        dispatch(selection.actions.addFileFilter(items.map((item) => createFileFilter(item))));
+        commitFilters(items.map((item) => createFileFilter(item)));
     };
 
     const createFileFilter = (item: ListItem) => {
         const formattedValue = props.annotation.formatter.valueOf(item.value);
         const value = isNil(formattedValue) ? item.value : formattedValue;
 
-        return new FileFilter(props.annotation.name, value, filterType, props.annotation.type);
+        return new FileFilter(
+            props.annotation.name,
+            value,
+            FilterType.DEFAULT,
+            props.annotation.type
+        );
+    };
+
+    const commitFilters = (newFilters: FileFilter | FileFilter[]) => {
+        const filtersAsArray = castArray(newFilters);
+        if (!filtersAsArray.length) {
+            return;
+        }
+        const type = filtersAsArray[0].type;
+        if (filtersForAnnotation.some((filter) => filter.type !== type)) {
+            dispatch(
+                selection.actions.setFileFilters([
+                    ...allFilters.filter((filter) => filter.name !== props.annotation.name),
+                    ...filtersAsArray,
+                ])
+            );
+        } else {
+            dispatch(selection.actions.addFileFilter(newFilters));
+        }
     };
 
     const onFilterTypeOptionChange = (option: IChoiceGroupOption | undefined) => {
@@ -131,6 +159,15 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }
     }
 
+    function onCommitSearchValue(filterValue: string, type: FilterType) {
+        if (!filterValue || !filterValue.trim()) {
+            return;
+        }
+        commitFilters(
+            new FileFilter(props.annotation.name, filterValue, type, props.annotation.type)
+        );
+    }
+
     if (isLoading) {
         return (
             <div className={styles.loadingContainer}>
@@ -141,6 +178,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const listPickerComponent = (
         <ListPicker
+            className={styles.listPicker}
             items={items}
             loading={isLoading}
             errorMessage={errorMessage}
@@ -195,21 +233,42 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     />
                 );
             case AnnotationType.STRING:
-                // Use list picker when there are a manageable number of values; fall back to search otherwise
-                if (items.length > 0 && items.length <= 100) {
-                    return listPickerComponent;
-                }
                 return (
-                    <SearchBoxForm
-                        className={styles.picker}
-                        onSelectAll={onSelectAll}
-                        onDeselectAll={onDeselectAll}
-                        onSearch={onSearch}
-                        fuzzySearchEnabled={fuzzySearchEnabled}
-                        fieldName={props.annotation.displayName}
-                        defaultValue={filtersForAnnotation?.[0]}
-                        hideFuzzyToggle={!canFuzzySearch}
-                    />
+                    <div className={classNames(styles.picker, styles.stringPicker)}>
+                        <div className={styles.modeContainer}>
+                            <div className={styles.tabs}>
+                                <button
+                                    className={classNames(styles.tab, {
+                                        [styles.tabActive]: activeTab === "search",
+                                    })}
+                                    onClick={() => setSelectedTab("search")}
+                                >
+                                    Search
+                                </button>
+                                <button
+                                    className={classNames(styles.tab, {
+                                        [styles.tabActive]: activeTab === "browse",
+                                    })}
+                                    onClick={() => setSelectedTab("browse")}
+                                >
+                                    Browse list
+                                </button>
+                            </div>
+                            <SearchBoxForm
+                                availableValues={items.map((item) => String(item.value))}
+                                className={classNames({
+                                    [styles.hidden]: activeTab !== "search",
+                                })}
+                                filters={filtersForAnnotation}
+                                onClearAll={onDeselectAll}
+                                onRemoveFilter={(filter) =>
+                                    dispatch(selection.actions.removeFileFilter(filter))
+                                }
+                                onSearch={onCommitSearchValue}
+                            />
+                            {activeTab === "browse" && listPickerComponent}
+                        </div>
+                    </div>
                 );
             case AnnotationType.DURATION:
             // prettier-ignore
@@ -219,7 +278,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     return (
-        <div>
+        <div className={styles.form}>
             <div className={classNames(styles.header)}>
                 <h3>Filter {props.annotation.displayName} by</h3>
                 <ChoiceGroup

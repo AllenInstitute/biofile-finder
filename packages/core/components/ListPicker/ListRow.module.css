@@ -85,3 +85,14 @@
     margin-left: auto;
     padding-left: 6px;
 }
+
+.sub-menu-callout {
+    bottom: 0 !important;
+    height: fit-content;
+    margin-bottom: auto;
+    margin-top: auto;
+    max-height: calc(100vh - 32px) !important;
+    position: fixed !important;
+    top: 0 !important;
+}
+
