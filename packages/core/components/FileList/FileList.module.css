@@ -1,6 +1,5 @@
 .container {
     --row-count-margin-top: 0.05em;
-    --row-count-intrinsic-height: 12px; /* margin values are relative to this because it is used in font-size declaration */
 
     width: 100%;
     height: calc(100% - var(--margin));
@@ -35,8 +34,8 @@
 
     /* layout */
     float: right;
-    height: var(--row-count-intrinsic-height);
-    font-size: var(--row-count-intrinsic-height);
+    height: var(--xs-paragraph-size);
+    font-size: var(--xs-paragraph-size);
     margin-top: var(--row-count-margin-top);
     margin-block-end: 0;
 }
