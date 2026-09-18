@@ -4,14 +4,13 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
+import Header from "../Header";
 import { ContextMenuItem } from "../../ContextMenu";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
 import Tutorial from "../../../entity/Tutorial";
 import { initialState, interaction, selection } from "../../../state";
-
-import Header from "../Header";
 
 describe("<Header />", () => {
     it("dispatches sort action when clicked when file attribute", () => {
