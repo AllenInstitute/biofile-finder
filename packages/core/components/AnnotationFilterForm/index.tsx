@@ -17,6 +17,7 @@ import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import { interaction, selection } from "../../state";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 
 import styles from "./AnnotationFilterForm.module.css";
 
@@ -63,10 +64,26 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }));
     }, [props.annotation, annotationValues, filtersForAnnotation]);
 
-    // Search vs Browse list tab for string annotations.
-    const [tabOverride, setTabOverride] = React.useState<"search" | "browse">();
-    const activeTab =
-        tabOverride ?? (items.length > 0 && items.length <= 100 ? "browse" : "search");
+    // Top-level file attributes (file name, size, uploaded, etc.) never have their values
+    // fetched (see useAnnotationValues), so there is nothing for a "Browse list" tab to show.
+    const canBrowseList = !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(props.annotation.name);
+
+    // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
+    const typeHasDedicatedPicker =
+        props.annotation.name !== AnnotationName.FILE_SIZE &&
+        [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
+            props.annotation.type
+        );
+
+    // Types with a dedicated picker (text search, number/date range) also offer a
+    // "Browse list" tab. Short string value lists open on the list; range pickers
+    // always open on the range inputs.
+    const [tabOverride, setTabOverride] = React.useState<"picker" | "browse">();
+    const defaultTab =
+        props.annotation.type === AnnotationType.STRING && items.length > 0 && items.length <= 100
+            ? "browse"
+            : "picker";
+    const activeTab = tabOverride ?? defaultTab;
 
     const onDeselectAll = () => {
         // remove all regular filters for this annotation
@@ -185,12 +202,45 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         />
     );
 
-    // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
-    const typeHasDedicatedPicker =
-        props.annotation.name !== AnnotationName.FILE_SIZE &&
-        [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
-            props.annotation.type
+    const renderTabbedPicker = (pickerLabel: string, picker: React.ReactNode) => {
+        if (!canBrowseList) {
+            return (
+                <div className={classNames(styles.picker, styles.tabbedPicker)}>
+                    <div className={styles.modeContainer}>{picker}</div>
+                </div>
+            );
+        }
+
+        const isPickerActive = activeTab === "picker";
+        const tabs: { key: "picker" | "browse"; label: string }[] = [
+            { key: "picker", label: pickerLabel },
+            { key: "browse", label: "Browse list" },
+        ];
+        return (
+            <div className={classNames(styles.picker, styles.tabbedPicker)}>
+                <div className={styles.modeContainer}>
+                    <div className={styles.tabs} role="tablist">
+                        {tabs.map((tab) => (
+                            <button
+                                aria-selected={activeTab === tab.key}
+                                className={classNames(styles.tab, {
+                                    [styles.tabActive]: activeTab === tab.key,
+                                })}
+                                key={tab.key}
+                                onClick={() => setTabOverride(tab.key)}
+                                role="tab"
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                    {/* Kept mounted so draft input survives switching to the list and back */}
+                    <div className={classNames({ [styles.hidden]: !isPickerActive })}>{picker}</div>
+                    {!isPickerActive && listPickerComponent}
+                </div>
+            </div>
         );
+    };
 
     const searchFormType = () => {
         // Types with dedicated pickers (number, date, datetime) use their own UI.
@@ -206,9 +256,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         switch (props.annotation.type) {
             case AnnotationType.DATE:
             case AnnotationType.DATETIME:
-                return (
+                return renderTabbedPicker(
+                    "Range",
                     <DateRangePicker
-                        className={styles.picker}
+                        className={styles.rangePicker}
                         onSearch={onSearch}
                         onReset={onDeselectAll}
                         currentRange={filtersForAnnotation?.[0]}
@@ -216,9 +267,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     />
                 );
             case AnnotationType.NUMBER:
-                return (
+                return renderTabbedPicker(
+                    "Range",
                     <NumberRangePicker
-                        className={styles.picker}
+                        className={styles.rangePicker}
                         title={props.annotation.displayName}
                         items={items}
                         loading={isLoading}
@@ -229,41 +281,16 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     />
                 );
             case AnnotationType.STRING:
-                return (
-                    <div className={classNames(styles.picker, styles.stringPicker)}>
-                        <div className={styles.modeContainer}>
-                            <div className={styles.tabs}>
-                                <button
-                                    className={classNames(styles.tab, {
-                                        [styles.tabActive]: activeTab === "search",
-                                    })}
-                                    onClick={() => setTabOverride("search")}
-                                >
-                                    Search
-                                </button>
-                                <button
-                                    className={classNames(styles.tab, {
-                                        [styles.tabActive]: activeTab === "browse",
-                                    })}
-                                    onClick={() => setTabOverride("browse")}
-                                >
-                                    Browse list
-                                </button>
-                            </div>
-                            <SearchBoxForm
-                                className={classNames({
-                                    [styles.hidden]: activeTab !== "search",
-                                })}
-                                filters={filtersForAnnotation}
-                                onClearAll={onDeselectAll}
-                                onRemoveFilter={(filter) =>
-                                    dispatch(selection.actions.removeFileFilter(filter))
-                                }
-                                onSearch={onCommitSearchValue}
-                            />
-                            {activeTab === "browse" && listPickerComponent}
-                        </div>
-                    </div>
+                return renderTabbedPicker(
+                    "Search",
+                    <SearchBoxForm
+                        filters={filtersForAnnotation}
+                        onClearAll={onDeselectAll}
+                        onRemoveFilter={(filter) =>
+                            dispatch(selection.actions.removeFileFilter(filter))
+                        }
+                        onSearch={onCommitSearchValue}
+                    />
                 );
             case AnnotationType.DURATION:
             // prettier-ignore
