@@ -63,8 +63,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }));
     }, [props.annotation, annotationValues, filtersForAnnotation]);
 
-    // Search vs Browse list tab for string annotations.
-    const defaultTab = items.length > 0 && items.length <= 100 ? "browse" : "search";
+    const hasFuzzyFilter = filtersForAnnotation.some((filter) => filter.type === FilterType.FUZZY);
+    const defaultTab = hasFuzzyFilter
+        ? "search"
+        : items.length > 0 && items.length <= 100
+        ? "browse"
+        : "search";
     const [selectedTab, setSelectedTab] = React.useState<"search" | "browse">();
     const activeTab = selectedTab ?? defaultTab;
 

@@ -195,6 +195,44 @@ describe("<AnnotationFilterForm />", () => {
             expect(queryAllByRole("listitem")).to.be.lengthOf(0);
         });
 
+        it("defaults to the search tab when a Contains filter is already applied", async () => {
+            // arrange: a short value list would normally default to the browse tab
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: ["a", "b", "c", "d"] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            // start with a committed fuzzy ("Contains") filter for this annotation
+            const state = mergeState(initialState, {
+                selection: {
+                    filters: [new FileFilter(fooAnnotation.name, "a", FilterType.FUZZY)],
+                },
+            });
+            const { store } = configureMockStore({
+                state,
+                responseStubs: responseStub,
+            });
+
+            // act
+            const { findByDisplayValue, queryAllByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // assert: opens on the search tab (operator dropdown) instead of the browse list
+            expect(await findByDisplayValue("Contains")).to.exist;
+            expect(queryAllByRole("listitem")).to.be.lengthOf(0);
+        });
+
         it("accumulates same-operator search values as chips", async () => {
             // arrange
             const responseStub = {
