@@ -24,6 +24,7 @@ const OPERATOR_OPTIONS = [
 ];
 
 interface SearchBoxFormProps {
+    availableValues?: string[];
     className?: string;
     filters: FileFilter[];
     onClearAll: () => void;
@@ -41,15 +42,22 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
         committedType === FilterType.DEFAULT ? FilterType.DEFAULT : FilterType.FUZZY
     );
     const [searchText, setSearchText] = React.useState("");
+    const [hasBlurred, setHasBlurred] = React.useState(false);
     const selectedOperator = OPERATOR_OPTIONS.find((option) => option.key === filterType);
     const committedOperator =
         OPERATOR_OPTIONS.find((option) => option.key === committedType) ?? OPERATOR_OPTIONS[0];
     const willReplaceResults =
         !!searchText.trim() && props.filters.some((filter) => filter.type !== filterType);
+    const valueNotFound =
+        filterType === FilterType.DEFAULT &&
+        !!searchText.trim() &&
+        !!props.availableValues?.length &&
+        !props.availableValues.includes(searchText.trim());
 
     function onSearchSubmitted(value: string) {
         props.onSearch(value, filterType);
         setSearchText("");
+        setHasBlurred(false);
     }
 
     return (
@@ -70,19 +78,33 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
                 </Tooltip>
                 <SearchBox
                     className={styles.searchInput}
-                    onChange={setSearchText}
-                    onReset={() => setSearchText("")}
+                    onBlur={() => setHasBlurred(true)}
+                    onChange={(value) => {
+                        setSearchText(value);
+                        setHasBlurred(false);
+                    }}
+                    onReset={() => {
+                        setSearchText("");
+                        setHasBlurred(false);
+                    }}
                     onSearch={onSearchSubmitted}
                     placeholder="Search values..."
                     showSubmitButton
                     value={searchText}
                 />
             </div>
-            {willReplaceResults && (
-                <div className={styles.warning}>
+            {hasBlurred && valueNotFound ? (
+                <div className={styles.error}>
                     <Icon iconName="Warning" />
-                    Submitting this value search will replace the current results
+                    No files found with exactly matching value
                 </div>
+            ) : (
+                willReplaceResults && (
+                    <div className={styles.warning}>
+                        <Icon iconName="Warning" />
+                        Submitting this value search will replace the current results
+                    </div>
+                )
             )}
             {props.filters.length > 0 && (
                 <div className={styles.chips}>

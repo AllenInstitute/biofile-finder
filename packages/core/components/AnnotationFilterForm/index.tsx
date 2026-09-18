@@ -251,6 +251,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                                 </button>
                             </div>
                             <SearchBoxForm
+                                availableValues={items.map((item) => String(item.value))}
                                 className={classNames({
                                     [styles.hidden]: activeTab !== "search",
                                 })}

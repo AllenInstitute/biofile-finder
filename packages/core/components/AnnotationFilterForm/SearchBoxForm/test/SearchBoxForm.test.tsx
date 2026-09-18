@@ -121,6 +121,74 @@ describe("<SearchBoxForm/>", () => {
         expect(onClearAll.calledOnce).to.equal(true);
     });
 
+    it("shows an exact-match error only after blur when the value is not in the list", () => {
+        // Arrange
+        const errorText = /No files found with exactly matching value/;
+        const { getByRole, queryByText } = render(
+            <SearchBoxForm
+                availableValues={["bar", "baz"]}
+                filters={[makeFilter("bar", FilterType.DEFAULT)]}
+                onClearAll={noop}
+                onRemoveFilter={noop}
+                onSearch={noop}
+            />
+        );
+
+        // Act: type a value that isn't in the list
+        fireEvent.change(getByRole("searchbox"), { target: { value: "qux" } });
+
+        // Assert: no error while typing
+        expect(queryByText(errorText)).to.equal(null);
+
+        // Act: leave the input
+        fireEvent.blur(getByRole("searchbox"));
+
+        // Assert: error shows
+        expect(queryByText(errorText)).to.exist;
+    });
+
+    it("does not show the exact-match error when the value exists in the list", () => {
+        // Arrange
+        const errorText = /No files found with exactly matching value/;
+        const { getByRole, queryByText } = render(
+            <SearchBoxForm
+                availableValues={["bar", "baz"]}
+                filters={[makeFilter("bar", FilterType.DEFAULT)]}
+                onClearAll={noop}
+                onRemoveFilter={noop}
+                onSearch={noop}
+            />
+        );
+
+        // Act: type a value that is in the list and leave the input
+        fireEvent.change(getByRole("searchbox"), { target: { value: "baz" } });
+        fireEvent.blur(getByRole("searchbox"));
+
+        // Assert: no error
+        expect(queryByText(errorText)).to.equal(null);
+    });
+
+    it("does not show the exact-match error for the Contains operator", () => {
+        // Arrange
+        const errorText = /No files found with exactly matching value/;
+        const { getByRole, queryByText } = render(
+            <SearchBoxForm
+                availableValues={["bar", "baz"]}
+                filters={[makeFilter("bar", FilterType.FUZZY)]}
+                onClearAll={noop}
+                onRemoveFilter={noop}
+                onSearch={noop}
+            />
+        );
+
+        // Act: type a value that isn't in the list and leave the input
+        fireEvent.change(getByRole("searchbox"), { target: { value: "qux" } });
+        fireEvent.blur(getByRole("searchbox"));
+
+        // Assert: no error, Contains searches by substring
+        expect(queryByText(errorText)).to.equal(null);
+    });
+
     it("warns that results will be replaced only when the operator differs from committed filters", () => {
         // Arrange
         const warningText = /replace the current results/;

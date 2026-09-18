@@ -11,6 +11,7 @@ interface Props {
     className?: string;
     defaultValue?: FileFilter | undefined;
     id?: string;
+    onBlur?: () => void;
     onChange?: (value: string) => void;
     onSearch?: (value: string) => void;
     onReset: () => void;
@@ -56,6 +57,7 @@ export default function SearchBox(props: Props) {
             <SearchBoxComponent
                 className={classNames(props.className, styles.searchBox)}
                 id={`${props.id}-searchbox`}
+                onBlur={props.onBlur}
                 onClear={onClear}
                 onSearch={props.onSearch}
                 onChange={onSearchBoxChange}

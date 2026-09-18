@@ -47,6 +47,19 @@
     gap: 6px;
 }
 
+.error {
+    align-items: center;
+    color: var(--error-status-text-color);
+    display: flex;
+    font-size: var(--s-paragraph-size);
+    gap: 6px;
+}
+
+.warning i,
+.error i {
+    color: inherit;
+}
+
 .chips {
     align-items: center;
     display: flex;

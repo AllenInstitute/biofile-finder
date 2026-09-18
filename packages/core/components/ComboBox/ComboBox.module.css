@@ -2,11 +2,13 @@
   border: 1px solid var(--border-color);
   border-radius: var(--small-border-radius);
   width: 100%;
+  overflow: hidden;
 }
 
 .combo-box, .combo-box > :is(div, input), .combo-box :is(button, i) {
   background-color: var(--secondary-background-color) !important;
   color: var(--secondary-text-color) !important;
+  background-clip: padding-box !important;
 }
 
 .combo-box:focus, .combo-box:focus-visible {
