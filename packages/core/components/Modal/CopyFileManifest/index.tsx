@@ -75,10 +75,9 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
     const areFilesMissingProgramAnnotation = filesWithoutProgramAnnotation.size > 0;
 
     // Reorder files so that those missing the `Program` annotation appear first
-    const orderedFiles = [
-        ...files.filter((file) => filesWithoutProgramAnnotation.has(file.id)),
-        ...files.filter((file) => !filesWithoutProgramAnnotation.has(file.id)),
-    ];
+    const orderedFiles = files.sort((file) =>
+        filesWithoutProgramAnnotation.has(file.id) ? -1 : 1
+    );
 
     return (
         <div className={styles.tableContainer}>
@@ -137,7 +136,7 @@ function FileTable({ files, title }: { files: FileDetail[]; title: string }) {
                             "files are"
                         )}{" "}
                         missing the &quot;Program&quot; annotation. Files will soon be required to
-                        have this field defined to be downloaded to VAST.
+                        have this annotation before they can be be downloaded to VAST.
                     </StatusMessageCard>
                 )}
             </div>
