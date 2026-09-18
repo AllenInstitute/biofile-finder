@@ -59,16 +59,26 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const [filterType, setFilterType] = React.useState<FilterType>(defaultFilterType);
 
+    // Format display values once per value list. Formatting is O(n) and can be expensive
+    // (e.g. Intl date formatting), so keep it out of the memo that reacts to filter changes.
+    const formattedValues = React.useMemo(
+        () =>
+            (annotationValues || []).map((value) => ({
+                displayValue: props.annotation.getDisplayValue(value) || value,
+                value,
+            })),
+        [props.annotation, annotationValues]
+    );
+
     // Propagate regular file filter values from state into UI
     const items = React.useMemo<ListItem[]>(() => {
         const appliedFilters = new Set(filtersForAnnotation.map((filter) => String(filter.value)));
 
-        return (annotationValues || []).map((value) => ({
-            selected: appliedFilters.has(String(value)),
-            displayValue: props.annotation.getDisplayValue(value) || value,
-            value,
+        return formattedValues.map((item) => ({
+            ...item,
+            selected: appliedFilters.has(String(item.value)),
         }));
-    }, [props.annotation, annotationValues, filtersForAnnotation]);
+    }, [formattedValues, filtersForAnnotation]);
 
     const onDeselectAll = () => {
         // remove all regular filters for this annotation
