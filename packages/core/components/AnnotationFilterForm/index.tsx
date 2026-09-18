@@ -77,13 +77,14 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     // Types with a dedicated picker (text search, number/date range) also offer a
     // "Browse list" tab. Short string value lists open on the list; range pickers
-    // always open on the range inputs.
-    const [tabOverride, setTabOverride] = React.useState<"picker" | "browse">();
+    // always open on the range inputs. The default depends on asynchronously loaded
+    // values, so it stays separate from the user's explicit choice.
     const defaultTab =
         props.annotation.type === AnnotationType.STRING && items.length > 0 && items.length <= 100
             ? "browse"
             : "picker";
-    const activeTab = tabOverride ?? defaultTab;
+    const [selectedTab, setSelectedTab] = React.useState<"picker" | "browse">();
+    const activeTab = selectedTab ?? defaultTab;
 
     const onDeselectAll = () => {
         // remove all regular filters for this annotation
@@ -227,7 +228,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                                     [styles.tabActive]: activeTab === tab.key,
                                 })}
                                 key={tab.key}
-                                onClick={() => setTabOverride(tab.key)}
+                                onClick={() => setSelectedTab(tab.key)}
                                 role="tab"
                             >
                                 {tab.label}
