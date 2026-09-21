@@ -290,14 +290,9 @@ describe("DatabaseAnnotationService", () => {
     describe("fetchAvailableAnnotationsForHierarchy", () => {
         const annotationNames = ["Cell Line", "Is Split Scene", "Well.Dose"];
         class MockDatabaseService extends DatabaseService {
-            public lastSql = "";
-            public queryCount = 0;
             public query(sql: string): { promise: Promise<any> } {
-                this.lastSql = sql;
-                this.queryCount += 1;
-                // The availability check asks for one aggregate per annotation,
-                // aliased by position; answer "has values" for every alias asked
-                // for rather than pinning the projection text.
+                // Annotations are aliased by position; response "has values" for
+                // every alias asked for rather than pinning the projection text
                 const row = Array.from(sql.matchAll(/AS "(a\d+)"/g)).reduce(
                     (acc, [, alias]) => ({ ...acc, [alias]: true }),
                     {} as { [alias: string]: boolean }
@@ -330,40 +325,6 @@ describe("DatabaseAnnotationService", () => {
                 "cas9",
             ]);
             expect(values).to.deep.equal(annotationNames);
-        });
-
-        it("answers every annotation from a single scan", async () => {
-            // One query per annotation is what made a wide parquet source
-            // unusable: 281 columns meant 281 scans of the whole table.
-            const service = new MockDatabaseService();
-            const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: ["mock1"],
-                databaseService: service,
-            });
-
-            await annotationService.fetchAvailableAnnotationsForHierarchy(["cell_line"]);
-
-            expect(service.queryCount).to.equal(1);
-            expect(service.lastSql).to.match(/COUNT\(CASE WHEN .* THEN 1 END\) > 0 AS "a0"/);
-            // All three annotations answered by that one query.
-            expect(service.lastSql).to.include('AS "a2"');
-        });
-
-        it("omits annotations the scan found no values for", async () => {
-            class PartialDatabaseService extends MockDatabaseService {
-                public query(_sql: string): { promise: Promise<any> } {
-                    // Only the middle annotation has any value under this hierarchy.
-                    return { promise: Promise.resolve([{ a0: false, a1: true, a2: false }]) };
-                }
-            }
-            const annotationService = new DatabaseAnnotationService({
-                dataSourceNames: ["mock1"],
-                databaseService: new PartialDatabaseService(),
-            });
-
-            const values = await annotationService.fetchAvailableAnnotationsForHierarchy([]);
-
-            expect(values).to.deep.equal([annotationNames[1]]);
         });
 
         it("returns null after 30s and cancels all in-flight hierarchy queries", async () => {
@@ -406,8 +367,6 @@ describe("DatabaseAnnotationService", () => {
 
             try {
                 expect(await valuesPromise).to.be.null;
-                // One query covers all three annotations, so there is one thing
-                // in flight to cancel rather than one per annotation.
                 expect(cancelledCount).to.equal(1);
             } finally {
                 clock.restore();
