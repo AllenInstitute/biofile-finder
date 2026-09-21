@@ -189,6 +189,21 @@ export default class HttpServiceBase {
         return new RestServiceResponse(cachedResponseData);
     }
 
+    /**
+     * Returns true if the URL is reachable at all.
+     *
+     * Check if reachable by making a HEAD request to the URL.
+     */
+    public async isReachableUrl(url: string): Promise<boolean> {
+        try {
+            const response = await this.httpClient.head(url);
+            return response.status < 400;
+        } catch (err) {
+            console.debug(`Failed to reach URL: ${url}`, err);
+            return false;
+        }
+    }
+
     public getEnvironmentFromUrl(): Environment {
         const url = this.fileExplorerServiceBaseUrl;
 
