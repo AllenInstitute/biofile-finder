@@ -6,6 +6,11 @@ describe("S3StorageService", () => {
     // This uses an external package, so is mostly just a consistency check
     describe("formatAsHttpResource", () => {
         const s3StorageService = new S3StorageService();
+        ((s3StorageService as unknown) as {
+            httpClient: { head: (url: string) => Promise<{ status: number }> };
+        }).httpClient = {
+            head: async () => ({ status: 200 }),
+        };
 
         const testUrls = [
             {
