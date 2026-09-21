@@ -195,13 +195,12 @@ export default class DatabaseAnnotationService implements AnnotationService {
         }
 
         // Every annotation is answered by one aggregate over a single scan rather
-        // than a query apiece. On a wide parquet source that is the difference
-        // between one pass and hundreds: measured against duckdb-wasm on a 281
-        // column, 8 file table, ~39s of per-column queries became ~2s.
-        //
-        // Chunked so a very wide source does not build one enormous projection;
-        // most sources stay well under this and cost a single query.
-        const MAX_COLUMNS_PER_QUERY = 500;
+        // than a query apiece.
+        // On a wide parquet source that is the difference
+        // between one network request and hundreds
+        // On a 281 column, 8 file table, ~39s of per-column queries became ~2s
+        // when compared to querying each column individually.
+        const MAX_COLUMNS_PER_QUERY = 300;
         const TOTAL_TIMEOUT_MS = 30_000; // 30 seconds
 
         // Look up annotation metadata for nested sub-field handling.
@@ -242,8 +241,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 if (timedOut) return null;
 
                 const batch = annotationsToCheck.slice(i, i + MAX_COLUMNS_PER_QUERY);
-                // Aliased by position rather than by name: an annotation name is
-                // user-supplied and would have to be escaped to be a safe alias.
+                // Aliased by position rather than by name to avoid SQL injection
                 const projection = batch
                     .map((annotation, index) => {
                         const columnAccessExpr = SQLBuilder.buildNestedAccessExpression(
@@ -253,9 +251,7 @@ export default class DatabaseAnnotationService implements AnnotationService {
                         const hasValue = annotation.hasNestedArray
                             ? `len(${columnAccessExpr}) > 0`
                             : `${columnAccessExpr} IS NOT NULL`;
-                        // COUNT skips rows where the CASE yields NULL, so this is
-                        // "did any row satisfy the predicate" -- the same question
-                        // the old per-column SELECT ... LIMIT 1 asked.
+                        // COUNT skips rows where the CASE yields NULL
                         return `COUNT(CASE WHEN ${hasValue} THEN 1 END) > 0 AS "a${index}"`;
                     })
                     .join(", ");
