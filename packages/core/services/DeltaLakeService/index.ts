@@ -28,7 +28,7 @@ export interface DeltaAction {
     add?: { deletionVector?: Record<string, unknown>; path: string };
     remove?: { path: string };
     protocol?: { minReaderVersion: number };
-    metaData?: { configuration?: Record<string, string> | Map<string, string> };
+    metaData?: { configuration?: Record<string, string> };
 }
 
 /**
@@ -78,10 +78,7 @@ export default class DeltaLakeService {
             );
         }
         if (action.metaData?.configuration) {
-            const columnMapping =
-                action.metaData?.configuration instanceof Map
-                    ? action.metaData.configuration.get("delta.columnMapping.mode")
-                    : action.metaData.configuration["delta.columnMapping.mode"];
+            const columnMapping = action.metaData.configuration["delta.columnMapping.mode"];
             if (columnMapping === "id" || columnMapping === "name") {
                 throw new Error(
                     `This Delta Lake table uses column mapping, so its parquet columns are not ` +
@@ -98,6 +95,12 @@ export default class DeltaLakeService {
         }
     }
 
+    /**
+     * Parse a raw JSON string representing a Delta Lake action and return a structured object.
+     * representing an "add" or "remove" Delta Lake action.
+     *
+     * Returns null if the action is neither "add" nor "remove".
+     */
     private static parseAction(
         rawAction: string,
         sourceUrl: string
