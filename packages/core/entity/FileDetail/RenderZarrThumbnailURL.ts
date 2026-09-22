@@ -7,6 +7,9 @@
 // various solutions like changing Node versions, ts config settings, and package.json settings
 // I am timeboxing this issue and moving on to the next task. - Sean M 08/30/2024
 // The same issue occurs with omezarr. Applying the same workaround - Will Moore October 2025
+
+import { ThumbnailConfig } from "../../state/selection/actions";
+
 let omezarr: any;
 const isInTest = typeof global.it === "function";
 if (isInTest) {
@@ -47,19 +50,68 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     return Promise.race([promise, timeout]);
 }
 
+type OmeroChannel = {
+    color: string;
+    active?: boolean;
+};
+
 /**
  * Main function to attempt to render a usable thumbnail using the lowest
  * resolution present in a zarr image's metadata.
  */
 export async function renderZarrThumbnailURL(
     zarrUrl: string,
-    targetSize: number | undefined
+    targetSize: number | undefined,
+    thumbnailConfig?: ThumbnailConfig
 ): Promise<string | undefined> {
+    // thumbnailConfig = thumbnailConfig ?? {
+    //   relativeZ: 0.5,
+    //   relativeT: 0.5,
+    //   overrideOmeroMetadata: true,
+    //   channelConfigs: [
+    //     {hexColor: "FF0000", enabled: true},
+    //     {hexColor: "00FF00", enabled: true}
+    //   ]
+    // }
     try {
         return await retryWithTimeout(
             async () => {
-                // if targetSize is undefined, the smallest resolution will be used
-                return omezarr.renderThumbnail(zarrUrl, targetSize, true);
+                const image = await omezarr.NgffImage.load(zarrUrl, {
+                    datasetIndex: -1,
+                    attrs: undefined,
+                });
+                let slices: { z?: number; t?: number } | undefined = undefined;
+                let channels: OmeroChannel[] | undefined = undefined;
+
+                if (thumbnailConfig !== undefined) {
+                    const hasOmeroMetadata = image.omero !== undefined;
+                    if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
+                        const channelConfigs = thumbnailConfig.channelConfigs ?? [];
+                        channels = channelConfigs.map((config) => ({
+                            color: config.hexColor,
+                            active: config.enabled,
+                        }));
+                    }
+                    console.log("channels", channels);
+
+                    const shape: number[] = await image.getShape(); // 0-level
+                    const axesNames = image.getAxesNames();
+                    const zIndex: number = axesNames.indexOf("z");
+                    const tIndex: number = axesNames.indexOf("t");
+
+                    if (zIndex !== -1 || tIndex !== -1) {
+                        slices = {};
+                        if (zIndex !== -1 && thumbnailConfig) {
+                            const zDim = shape[zIndex];
+                            slices.z = Math.floor(zDim * thumbnailConfig.relativeZ);
+                        }
+                        if (tIndex !== -1 && thumbnailConfig) {
+                            const tDim = shape[tIndex];
+                            slices.t = Math.floor(tDim * thumbnailConfig.relativeT);
+                        }
+                    }
+                }
+                return image.render({ targetSize, autoBoost: true, slices, channels });
             },
             3,
             5000
