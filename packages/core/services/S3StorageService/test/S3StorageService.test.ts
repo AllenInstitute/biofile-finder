@@ -86,7 +86,15 @@ describe("S3StorageService", () => {
             expect(await encode("a%2Fb.txt")).to.equal(`${path}a%2Fb.txt`);
         });
 
-        it("probes the bucket root before trusting a non-AWS host", async () => {
+        const NON_AWS = {
+            hostname: "s3.example.com",
+            bucket: "my-bucket",
+            key: "table/_delta_log/_last_checkpoint",
+        };
+        const VIRTUAL = "https://my-bucket.s3.example.com/table/_delta_log/_last_checkpoint";
+        const PATH = "https://s3.example.com/my-bucket/table/_delta_log/_last_checkpoint";
+
+        function serviceProbing(head: () => Promise<{ status: number }>) {
             const service = new S3StorageService();
             const probed: string[] = [];
             ((service as unknown) as {
@@ -94,20 +102,30 @@ describe("S3StorageService", () => {
             }).httpClient = {
                 head: async (url: string) => {
                     probed.push(url);
-                    return { status: 301 };
+                    return head();
                 },
             };
+            return { service, probed };
+        }
 
-            const url = await service.formatAsHttpResource({
-                hostname: "s3.example.com",
-                bucket: "my-bucket",
-                key: "table/_delta_log/_last_checkpoint",
+        const probeOutcomes: { status: number; expected: string; why: string }[] = [
+            { status: 200, expected: VIRTUAL, why: "the bucket is served here" },
+            { status: 403, expected: VIRTUAL, why: "it exists, we may just not list it" },
+            { status: 401, expected: VIRTUAL, why: "it exists behind authentication" },
+            { status: 301, expected: PATH, why: "it is addressed somewhere else" },
+            { status: 404, expected: PATH, why: "no such virtual host" },
+            { status: 500, expected: PATH, why: "the host cannot answer" },
+            { status: 503, expected: PATH, why: "the host cannot answer" },
+        ];
+
+        probeOutcomes.forEach(({ status, expected, why }) => {
+            it(`falls ${
+                expected === PATH ? "back to path" : "through to virtual"
+            } style on ${status} (${why})`, async () => {
+                const { service } = serviceProbing(async () => ({ status }));
+
+                expect(await service.formatAsHttpResource(NON_AWS)).to.equal(expected);
             });
-
-            expect(probed).to.deep.equal(["https://my-bucket.s3.example.com/"]);
-            expect(url).to.equal(
-                "https://s3.example.com/my-bucket/table/_delta_log/_last_checkpoint"
-            );
         });
     });
 
