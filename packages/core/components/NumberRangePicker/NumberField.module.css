@@ -39,3 +39,12 @@
 .input-field > label {
     line-height: 1.5
 }
+
+.input-field-hint {
+    display: block;
+    color: var(--secondary-text-color);
+    font-size: var(--xs-paragraph-size) !important;
+    height: 0;
+    margin-top: 1px;
+    text-align: right;
+}

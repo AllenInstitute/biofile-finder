@@ -6,6 +6,7 @@ import NumberField from "./NumberField";
 import { PrimaryButton, TertiaryButton } from "../Buttons";
 import LoadingIcon from "../Icons/LoadingIcon";
 import { AnnotationValue } from "../../entity/Annotation";
+import { AnnotationFormatter } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import { extractValuesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/number-formatter";
 
@@ -19,7 +20,10 @@ export interface ListItem {
 interface NumberRangePickerProps {
     className?: string;
     disabled?: boolean;
+    defaultMin?: string; // value to display if the item list is empty
     errorMessage?: string;
+    fallbackMax?: string; // not for display, only used on submit if field is left empty
+    formatter?: AnnotationFormatter;
     title?: string;
     items: ListItem[];
     loading?: boolean;
@@ -37,9 +41,9 @@ interface NumberRangePickerProps {
  * It is best suited for selecting items that are numbers.
  */
 export default function NumberRangePicker(props: NumberRangePickerProps) {
-    const { errorMessage, items, loading, onSearch, currentRange, units } = props;
+    const { errorMessage, items, loading, onSearch, onReset, currentRange, units } = props;
 
-    const overallMin = items[0]?.value?.toString() ?? "";
+    const overallMin = items[0]?.value?.toString() ?? props?.defaultMin ?? "";
     const overallMax = items.at(-1)?.value?.toString() ?? "";
     // On component load, default to slightly more than max so that values aren't excluded
     const defaultMax = overallMax ? (Number(overallMax) + 1).toString() : "";
@@ -53,12 +57,18 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
         extractValuesFromRangeOperatorFilterString(currentRange?.value).maxValue ?? defaultMax
     );
 
+    // Formatted values to display below the field as a user hint, e.g., "10 KB" for 10000 bytes
+    const searchMinDisplayValue = props?.formatter?.displayValue(searchMinValue, units);
+    const searchMaxDisplayValue = props?.formatter?.displayValue(searchMaxValue, units);
+
     // Instead of removing filter completely, reset to min and max and submit
     function onResetSearch() {
         setSearchMinValue(overallMin);
         setSearchMaxValue(defaultMax);
         if (overallMin && defaultMax) {
             onSearch(`RANGE(${overallMin},${defaultMax})`);
+        } else {
+            onReset?.();
         }
     }
 
@@ -68,7 +78,7 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
             maxValue: oldMaxValue,
         } = extractValuesFromRangeOperatorFilterString(currentRange?.value);
         const newMinValue = searchMinValue || oldMinValue || overallMin;
-        const newMaxValue = searchMaxValue || oldMaxValue || defaultMax; // Ensure that actual max is not excluded
+        const newMaxValue = searchMaxValue || oldMaxValue || defaultMax || props.fallbackMax;
         if (newMinValue && newMaxValue) {
             onSearch(`RANGE(${newMinValue},${newMaxValue})`);
         }
@@ -113,6 +123,7 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                     <NumberField
                         aria-label="Input a minimum value (inclusive)"
                         defaultValue={searchMinValue}
+                        hint={searchMinDisplayValue}
                         id="rangemin"
                         label="Min (inclusive)"
                         onChange={onMinChange}
@@ -125,6 +136,7 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
                     <NumberField
                         aria-label="Input a maximum value (exclusive)"
                         defaultValue={searchMaxValue}
+                        hint={searchMaxDisplayValue}
                         id="rangemax"
                         label="Max (exclusive)"
                         onChange={onMaxChange}

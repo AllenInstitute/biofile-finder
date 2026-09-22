@@ -151,12 +151,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         />
     );
 
-    // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
-    const typeHasDedicatedPicker =
-        props.annotation.name !== AnnotationName.FILE_SIZE &&
-        [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
-            props.annotation.type
-        );
+    const typeHasDedicatedPicker = [
+        AnnotationType.NUMBER,
+        AnnotationType.DATE,
+        AnnotationType.DATETIME,
+    ].includes(props.annotation.type);
 
     const searchFormType = () => {
         // Types with dedicated pickers (number, date, datetime) use their own UI.
@@ -182,6 +181,9 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     />
                 );
             case AnnotationType.NUMBER:
+                // We are unable to pre-fetch values for top level annotations,
+                // so must manually set a default min/max value for size
+                const isFileSize = props.annotation.name === AnnotationName.FILE_SIZE;
                 return (
                     <NumberRangePicker
                         className={styles.picker}
@@ -189,9 +191,13 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                         items={items}
                         loading={isLoading}
                         errorMessage={errorMessage}
+                        formatter={props.annotation.units ? props.annotation.formatter : undefined}
                         onSearch={onSearch}
+                        onReset={onDeselectAll}
                         currentRange={filtersForAnnotation?.[0]}
                         units={props.annotation.units}
+                        defaultMin={isFileSize ? "0" : undefined}
+                        fallbackMax={isFileSize ? String(Number.MAX_SAFE_INTEGER) : undefined}
                     />
                 );
             case AnnotationType.STRING:
