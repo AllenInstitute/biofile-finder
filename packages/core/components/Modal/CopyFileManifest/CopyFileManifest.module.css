@@ -93,16 +93,18 @@
     max-width: var(--file-size-column-width);
 }
 
-.file-table th:first-child,
-.file-table td:first-child {
+.file-table th.file-name-column {
     width: calc(100% - var(--file-size-column-width));
 }
 
 
-.file-table td:first-child {
+.file-table td:not(:last-child) {
     border-right: 1px solid var(--border-color);
 }
 
+.file-table th.warning-column {
+    width: 2em;
+}
 
 .footer-buttons {
     display: flex;
@@ -110,15 +112,16 @@
     gap: 8px;
 }
 
+
 .summary {
     display: flex;
     justify-content: flex-end;
     gap: 1em;
-    margin-top: var(--row-count-margin-top);
+    margin-top: 0.25em;
     color: var(--secondary-text-color);
     opacity: 0.8;
-    font-size: var(--row-count-intrisic-height);
-    height: var(--row-count-intrisic-height-height);
+    font-size: var(--xs-paragraph-size);
+    height: var(--xs-paragraph-size);
 }
 
 .total-size {
