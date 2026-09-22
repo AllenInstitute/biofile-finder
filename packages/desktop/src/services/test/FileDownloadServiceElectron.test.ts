@@ -260,8 +260,8 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             // Arrange
             const fileName = "image.czi";
 
-            nock("https://s3.amazonaws.com")
-                .get(`/some-bucket/path/to/${fileName}`)
+            nock("https://some-bucket.s3.amazonaws.com")
+                .get(`/path/to/${fileName}`)
                 .reply(200, () => fs.createReadStream(sourceFile));
 
             const service = new FileDownloadServiceElectron(new S3StorageService());

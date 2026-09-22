@@ -17,6 +17,21 @@ export interface ParsedUrl {
 }
 
 /**
+ * Percent-encode one path segment of an object key,
+ * whatever state it arrives in (encoded or decoded)
+ */
+function encodeKeySegment(segment: string): string {
+    let decoded: string;
+    try {
+        decoded = decodeURIComponent(segment);
+    } catch (err) {
+        // A stray "%" is not valid encoding at all, so take the segment as-is.
+        decoded = segment;
+    }
+    return encodeURIComponent(decoded);
+}
+
+/**
  * Class for interfacing with objects stored on S3
  */
 export default class S3StorageService extends HttpServiceBase {
@@ -69,10 +84,7 @@ export default class S3StorageService extends HttpServiceBase {
         }
 
         // Encode each segment of the key separately
-        const encodedKey = parsedUrl.key
-            .split("/")
-            .map((segment) => encodeURIComponent(segment))
-            .join("/");
+        const encodedKey = parsedUrl.key.split("/").map(encodeKeySegment).join("/");
 
         // Prefer Virtual-hosted style: https://bucket.s3.Region.amazonaws.com/key
         if (!isEmpty(parsedUrl.bucket) && !parsedUrl.bucket.includes(".")) {
@@ -263,6 +275,7 @@ export default class S3StorageService extends HttpServiceBase {
         try {
             const response = await this.httpClient.head(`https://${bucketAndHost}/`, {
                 validateStatus: () => true,
+                timeout: 5000,
             });
             // A redirect is the one answer that means "not here".
             return response.status < 300 || response.status >= 400;
