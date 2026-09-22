@@ -61,7 +61,7 @@ type OmeroChannel = {
  */
 export async function renderZarrThumbnailURL(
     zarrUrl: string,
-    targetSize: number | undefined,
+    targetSize: number,
     thumbnailConfig?: ThumbnailConfig
 ): Promise<string | undefined> {
     // thumbnailConfig = thumbnailConfig ?? {

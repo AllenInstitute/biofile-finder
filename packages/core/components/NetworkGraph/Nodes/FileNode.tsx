@@ -12,9 +12,11 @@ import Tooltip from "../../Tooltip";
 import { FileNode as FileNodeType } from "../../../entity/Graph";
 import useOpenWithMenuItems from "../../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../../hooks/useTruncatedString";
-import { interaction } from "../../../state";
+import { interaction, selection } from "../../../state";
 
 import styles from "./FileNode.module.css";
+
+const THUMBNAIL_SIZE_PX = 100;
 
 /**
  * Custom node element for displaying a File and providing interaction
@@ -24,6 +26,7 @@ export default function FileNode(props: NodeProps<FileNodeType>) {
     const file = props.data.file;
     const dispatch = useDispatch();
     const graph = useSelector(interaction.selectors.getGraph);
+    const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
 
     const [thumbnail, setThumbnail] = React.useState<string | undefined>(file.thumbnail);
 
@@ -59,10 +62,10 @@ export default function FileNode(props: NodeProps<FileNodeType>) {
     // Ex. if the file is a .zarr will attempt to create a thumbnail for that.
     // If it is not available or does not work, will default to the basic thumbnail
     React.useEffect(() => {
-        file.getPathToThumbnail().then((thumbnail) => {
+        file.getPathToThumbnail(THUMBNAIL_SIZE_PX, thumbnailConfig).then((thumbnail) => {
             setThumbnail(thumbnail);
         });
-    }, [file]);
+    }, [file, thumbnailConfig]);
 
     return (
         <Tooltip content={file.name}>
@@ -79,7 +82,11 @@ export default function FileNode(props: NodeProps<FileNodeType>) {
                     position={Position.Top}
                 />
                 <div className={styles.contentContainer}>
-                    <FileThumbnail uri={thumbnail} height={100} width={100} />
+                    <FileThumbnail
+                        uri={thumbnail}
+                        height={THUMBNAIL_SIZE_PX}
+                        width={THUMBNAIL_SIZE_PX}
+                    />
                     <div className={styles.fileNodeLabel}>{useTruncatedString(file.name, 10)}</div>
                 </div>
                 <Handle

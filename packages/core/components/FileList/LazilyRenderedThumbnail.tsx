@@ -54,6 +54,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     const overallIndex = fileGridColCount * rowIndex + columnIndex;
     const file = fileSet.getFileByIndex(overallIndex);
     const thumbnailSize = measuredWidth / fileGridColCount - 2 * MARGIN;
+    const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
 
     const isSelected = React.useMemo(() => {
         return fileSelection.isSelected(fileSet, overallIndex);
@@ -72,12 +73,12 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     const targetZarrSize = 500 / fileGridColCount; // 100px for large thumbnails, and 50px for small thumbnails
     React.useEffect(() => {
         if (file) {
-            file.getPathToThumbnail(targetZarrSize).then((path) => {
+            file.getPathToThumbnail(targetZarrSize, thumbnailConfig).then((path) => {
                 setThumbnailPath(path);
                 setIsLoading(false);
             });
         }
-    }, [file, targetZarrSize]);
+    }, [file, targetZarrSize, thumbnailConfig]);
 
     const onClick = (evt: React.MouseEvent) => {
         evt.preventDefault();

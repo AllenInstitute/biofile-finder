@@ -9,6 +9,7 @@ import {
     NestedMetadataValue,
     PrimitiveMetadataValue,
 } from "../../services/FileService";
+import { ThumbnailConfig } from "../../state/selection/actions";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
 const AICS_FMS_S3_URL_PREFIX = "https://s3.us-west-2.amazonaws.com/";
@@ -298,7 +299,10 @@ export default class FileDetail {
         return this.getAnnotation(annotationName)?.[0];
     }
 
-    public async getPathToThumbnail(targetSize?: number): Promise<string | undefined> {
+    public async getPathToThumbnail(
+        targetSize: number,
+        thumbnailConfig?: ThumbnailConfig
+    ): Promise<string | undefined> {
         // When no thumbnail is provided, try to render one from the file path if it's a
         // zarr or a known renderable image format
         if (!this.thumbnail) {
@@ -312,7 +316,7 @@ export default class FileDetail {
             // Try to render a thumbnail from the zarr if the path is a zarr
             // and isn't a local file (since we can't read local zarrs in the browser)
             if (this.path.includes(".zarr") && !FileDetail.isLikelyLocalFile(this.path)) {
-                return renderZarrThumbnailURL(this.path, targetSize);
+                return renderZarrThumbnailURL(this.path, targetSize, thumbnailConfig);
             }
 
             return undefined;
@@ -330,7 +334,7 @@ export default class FileDetail {
         // Try to render a thumbnail from the zarr if the thumbnail is a zarr
         // and isn't a local file (since we can't read local zarrs in the browser)
         if (this.thumbnail.includes(".zarr") && !FileDetail.isLikelyLocalFile(this.thumbnail)) {
-            return renderZarrThumbnailURL(this.thumbnail, targetSize);
+            return renderZarrThumbnailURL(this.thumbnail, targetSize, thumbnailConfig);
         }
 
         return this.thumbnail;

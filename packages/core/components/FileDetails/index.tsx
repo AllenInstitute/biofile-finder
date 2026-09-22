@@ -79,10 +79,14 @@ function resizeHandleDoubleClick() {
 export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
     const hasProvenanceSource = useSelector(selection.selectors.hasProvenanceSource);
+    const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
 
     const openWithMenuItems = useOpenWithMenuItems(props.fileDetails);
     const truncatedFileName = useTruncatedString(props.fileDetails?.name || "", 30);
-    const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(props.fileDetails);
+    const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(
+        props.fileDetails,
+        thumbnailConfig
+    );
     const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(
         props.fileDetails
     );
