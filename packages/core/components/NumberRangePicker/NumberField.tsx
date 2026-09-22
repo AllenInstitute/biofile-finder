@@ -47,7 +47,7 @@ export default function NumberField(props: NumberFieldProps) {
                 min={props?.min}
                 max={props?.max}
             />
-            {props.hint && <span className={styles.inputFieldHint}>{props.hint}</span>}
+            {props.hint && <p className={styles.inputFieldHint}>{props.hint}</p>}
         </div>
     );
 }

@@ -180,7 +180,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                         type={props.annotation.type}
                     />
                 );
-            case AnnotationType.NUMBER:
+            case AnnotationType.NUMBER: {
                 // We are unable to pre-fetch values for top level annotations,
                 // so must manually set a default min/max value for size
                 const isFileSize = props.annotation.name === AnnotationName.FILE_SIZE;
@@ -200,6 +200,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                         fallbackMax={isFileSize ? String(Number.MAX_SAFE_INTEGER) : undefined}
                     />
                 );
+            }
             case AnnotationType.STRING:
                 // Use list picker when there are a manageable number of values; fall back to search otherwise
                 if (items.length > 0 && items.length <= 100) {

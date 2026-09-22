@@ -58,8 +58,12 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
     );
 
     // Formatted values to display below the field as a user hint, e.g., "10 KB" for 10000 bytes
-    const searchMinDisplayValue = props?.formatter?.displayValue(searchMinValue, units);
-    const searchMaxDisplayValue = props?.formatter?.displayValue(searchMaxValue, units);
+    const searchMinDisplayValue = searchMinValue
+        ? props?.formatter?.displayValue(searchMinValue, units)
+        : undefined;
+    const searchMaxDisplayValue = searchMaxValue
+        ? props?.formatter?.displayValue(searchMaxValue, units)
+        : undefined;
 
     // Instead of removing filter completely, reset to min and max and submit
     function onResetSearch() {
