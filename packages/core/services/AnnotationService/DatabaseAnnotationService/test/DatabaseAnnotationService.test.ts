@@ -290,16 +290,12 @@ describe("DatabaseAnnotationService", () => {
     describe("fetchAvailableAnnotationsForHierarchy", () => {
         const annotationNames = ["Cell Line", "Is Split Scene", "Well.Dose"];
         class MockDatabaseService extends DatabaseService {
+            public answer: { [alias: string]: boolean } = {};
             public query(sql: string): { promise: Promise<any> } {
-                // Annotations are aliased by position; response "has values" for
-                // every alias asked for rather than pinning the projection text
-                const row = Array.from(sql.matchAll(/AS "(a\d+)"/g)).reduce(
-                    (acc, [, alias]) => ({ ...acc, [alias]: true }),
-                    {} as { [alias: string]: boolean }
-                );
-                return {
-                    promise: Promise.resolve([row]),
-                };
+                if (sql.includes('AS "a0"')) {
+                    return { promise: Promise.resolve([this.answer]) };
+                }
+                return super.query(sql);
             }
             public async fetchAnnotations(): Promise<Annotation[]> {
                 return annotationNames.map(
@@ -316,6 +312,7 @@ describe("DatabaseAnnotationService", () => {
         const databaseService = new MockDatabaseService();
 
         it("issues request for annotations that can be combined with current hierarchy", async () => {
+            databaseService.answer = { a0: true, a1: false, a2: true };
             const annotationService = new DatabaseAnnotationService({
                 dataSourceNames: ["mock1"],
                 databaseService,
@@ -323,8 +320,9 @@ describe("DatabaseAnnotationService", () => {
             const values = await annotationService.fetchAvailableAnnotationsForHierarchy([
                 "cell_line",
                 "cas9",
+                "gene",
             ]);
-            expect(values).to.deep.equal(annotationNames);
+            expect(values).to.deep.equal(["Cell Line", "Well.Dose"]);
         });
 
         it("returns null after 30s and cancels all in-flight hierarchy queries", async () => {
