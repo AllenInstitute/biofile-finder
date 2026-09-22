@@ -277,8 +277,11 @@ export default class S3StorageService extends HttpServiceBase {
                 validateStatus: () => true,
                 timeout: 5000,
             });
-            // A redirect is the one answer that means "not here".
-            return response.status < 300 || response.status >= 400;
+            // Only a success, or an auth challenge for a bucket that plainly
+            // exists, is evidence this host serves the bucket virtual-hosted
+            // style.
+            if (response.status >= 200 && response.status < 300) return true;
+            return response.status === 401 || response.status === 403;
         } catch (err) {
             console.debug(`Host did not answer: ${bucketAndHost}`, err);
             return false;
