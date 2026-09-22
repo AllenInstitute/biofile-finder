@@ -118,15 +118,11 @@
 }
 
 .thumbnail {
-    margin: 0 auto 10px; /* --margin defined in App.module.css under .root{} */
+    margin: 0 auto 10px;
     max-height: 250px;
-    transition: width var(--transition-duration);
-}
-
-.thumbnail-skeleton {
+    aspect-ratio: 1 / 1;
     width: 100%;
-    max-height: 250px;
-    background-color: var(--primary-background-color);
+    transition: width var(--transition-duration);
 }
 
 .fullscreen-overlay {
