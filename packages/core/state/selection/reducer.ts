@@ -50,6 +50,8 @@ import {
     SetHasUserSelectedColumnsAction,
     SET_SELECTED_DATASET_DESCRIPTION_SOURCE,
     ThumbnailConfig,
+    SET_THUMBNAIL_CONFIG,
+    SetThumbnailConfig,
 } from "./actions";
 import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
@@ -362,6 +364,10 @@ export default makeReducer<SelectionStateBranch>(
         [SET_REQUIRES_DATASOURCE_RELOAD]: (state, action: SetRequiresDataSourceReload) => ({
             ...state,
             requiresDataSourceReload: action.payload,
+        }),
+        [SET_THUMBNAIL_CONFIG]: (state, action: SetThumbnailConfig) => ({
+            ...state,
+            thumbnailConfig: action.payload,
         }),
     },
     initialState
