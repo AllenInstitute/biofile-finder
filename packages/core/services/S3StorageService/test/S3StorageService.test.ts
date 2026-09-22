@@ -61,6 +61,30 @@ describe("S3StorageService", () => {
                 "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/10005.zarr"
             );
         });
+
+        it("probes the bucket root before trusting a non-AWS host", async () => {
+            const service = new S3StorageService();
+            const probed: string[] = [];
+            ((service as unknown) as {
+                httpClient: { head: (url: string) => Promise<{ status: number }> };
+            }).httpClient = {
+                head: async (url: string) => {
+                    probed.push(url);
+                    return { status: 301 };
+                },
+            };
+
+            const url = await service.formatAsHttpResource({
+                hostname: "s3.example.com",
+                bucket: "my-bucket",
+                key: "table/_delta_log/_last_checkpoint",
+            });
+
+            expect(probed).to.deep.equal(["https://my-bucket.s3.example.com/"]);
+            expect(url).to.equal(
+                "https://s3.example.com/my-bucket/table/_delta_log/_last_checkpoint"
+            );
+        });
     });
 
     describe("getObjectsInDirectory", () => {
