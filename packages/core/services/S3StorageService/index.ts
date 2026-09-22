@@ -76,13 +76,18 @@ export default class S3StorageService extends HttpServiceBase {
 
         // Prefer Virtual-hosted style: https://bucket.s3.Region.amazonaws.com/key
         if (!isEmpty(parsedUrl.bucket) && !parsedUrl.bucket.includes(".")) {
-            const virtualUrl = `https://${parsedUrl.bucket}.${parsedUrl.hostname}/${encodedKey}`;
-
-            // See if the virtual-hosted style URL is reachable before returning it
             const bucketAndHost = `${parsedUrl.bucket}.${parsedUrl.hostname}`;
+            const virtualUrl = `https://${bucketAndHost}/${encodedKey}`;
+
+            // A hostname ending in "amazonaws.com" is assumed to contain the region
+            // meaning we can use the virtual-hosted style URL safely.
+            if (parsedUrl.hostname.endsWith("amazonaws.com")) {
+                return virtualUrl;
+            }
+
             const canVirtualAccess = this.hostToVirtualAccess.has(bucketAndHost)
                 ? (this.hostToVirtualAccess.get(bucketAndHost) as boolean)
-                : await this.isReachableUrl(virtualUrl);
+                : await this.isVirtualHostAddressable(bucketAndHost);
             this.hostToVirtualAccess.set(bucketAndHost, canVirtualAccess);
 
             if (canVirtualAccess) return virtualUrl;
@@ -245,6 +250,25 @@ export default class S3StorageService extends HttpServiceBase {
             return { hostname, key, bucket: "" };
         } catch (error) {
             return undefined;
+        }
+    }
+
+    /**
+     * Whether a host serves buckets virtual-hosted style.
+     *
+     * Asks the server whether the host serves buckets virtual-hosted style
+     * by checking the root with a HEAD request.
+     */
+    private async isVirtualHostAddressable(bucketAndHost: string): Promise<boolean> {
+        try {
+            const response = await this.httpClient.head(`https://${bucketAndHost}/`, {
+                validateStatus: () => true,
+            });
+            // A redirect is the one answer that means "not here".
+            return response.status < 300 || response.status >= 400;
+        } catch (err) {
+            console.debug(`Host did not answer: ${bucketAndHost}`, err);
+            return false;
         }
     }
 }
