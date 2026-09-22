@@ -1,5 +1,6 @@
 import { parseS3Url, isS3Url } from "amazon-s3-url";
 import axios from "axios";
+import { isEmpty } from "lodash";
 
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
@@ -16,21 +17,25 @@ export interface ParsedUrl {
 }
 
 /**
+ * Percent-encode one path segment of an object key,
+ * whatever state it arrives in (encoded or decoded)
+ */
+function encodeKeySegment(segment: string): string {
+    let decoded: string;
+    try {
+        decoded = decodeURIComponent(segment);
+    } catch (err) {
+        // A stray "%" is not valid encoding at all, so take the segment as-is.
+        decoded = segment;
+    }
+    return encodeURIComponent(decoded);
+}
+
+/**
  * Class for interfacing with objects stored on S3
  */
 export default class S3StorageService extends HttpServiceBase {
-    /**
-     * Given a parsed URL return a simple HTTP URL pointing to a file
-     */
-    private static formatAsHttpResource(parsedUrl: ParsedUrl) {
-        const bucketSimplified = parsedUrl.bucket.length > 0 ? `${parsedUrl.bucket}/` : "";
-        // Encode each segment of the key separately
-        const encodedKey = parsedUrl.key
-            .split("/")
-            .map((segment) => encodeURIComponent(segment))
-            .join("/");
-        return `https://${parsedUrl.hostname}/${bucketSimplified}${encodedKey}`;
-    }
+    private readonly hostToVirtualAccess: Map<string, boolean> = new Map();
 
     /**
      * Return true if s3 file.
@@ -63,10 +68,46 @@ export default class S3StorageService extends HttpServiceBase {
         super({ ...config, includeCustomHeaders: false });
     }
 
-    public async formatAsHttpResource(url: string): Promise<string | undefined> {
-        const parsedUrl = await this.parseUrl(url);
-        if (!parsedUrl) return;
-        return S3StorageService.formatAsHttpResource(parsedUrl);
+    /**
+     * Format a given S3 URL or parsed URL as an HTTP resource URL.
+     *
+     * Returns undefined if unable to properly format the URL,
+     * may make HTTP requests to determine the correct URL.
+     */
+    public async formatAsHttpResource(url: string | ParsedUrl): Promise<string | undefined> {
+        let parsedUrl: ParsedUrl | undefined;
+        if (typeof url === "string") {
+            parsedUrl = await this.parseUrl(url);
+            if (!parsedUrl) return;
+        } else {
+            parsedUrl = url;
+        }
+
+        // Encode each segment of the key separately
+        const encodedKey = parsedUrl.key.split("/").map(encodeKeySegment).join("/");
+
+        // Prefer Virtual-hosted style: https://bucket.s3.Region.amazonaws.com/key
+        if (!isEmpty(parsedUrl.bucket) && !parsedUrl.bucket.includes(".")) {
+            const bucketAndHost = `${parsedUrl.bucket}.${parsedUrl.hostname}`;
+            const virtualUrl = `https://${bucketAndHost}/${encodedKey}`;
+
+            // A hostname ending in "amazonaws.com" is assumed to contain the region
+            // meaning we can use the virtual-hosted style URL safely.
+            if (parsedUrl.hostname.endsWith("amazonaws.com")) {
+                return virtualUrl;
+            }
+
+            const canVirtualAccess = this.hostToVirtualAccess.has(bucketAndHost)
+                ? (this.hostToVirtualAccess.get(bucketAndHost) as boolean)
+                : await this.isVirtualHostAddressable(bucketAndHost);
+            this.hostToVirtualAccess.set(bucketAndHost, canVirtualAccess);
+
+            if (canVirtualAccess) return virtualUrl;
+        }
+
+        // vs. Path-style: https://s3.Region.amazonaws.com/bucket/key
+        const bucketSimplified = isEmpty(parsedUrl.bucket) ? "" : `${parsedUrl.bucket}/`;
+        return `https://${parsedUrl.hostname}/${bucketSimplified}${encodedKey}`;
     }
 
     /**
@@ -115,13 +156,12 @@ export default class S3StorageService extends HttpServiceBase {
                 if (key.endsWith("/")) {
                     continue;
                 }
-                yield {
-                    name: key,
-                    url: S3StorageService.formatAsHttpResource({
-                        ...parsedUrl,
-                        key,
-                    }),
-                };
+                const url = await this.formatAsHttpResource({
+                    ...parsedUrl,
+                    key,
+                });
+                if (!url) throw new Error("Failed to format S3 object as HTTP resource");
+                yield { name: key, url };
             }
         } while (continuationToken);
     }
@@ -222,6 +262,26 @@ export default class S3StorageService extends HttpServiceBase {
             return { hostname, key, bucket: "" };
         } catch (error) {
             return undefined;
+        }
+    }
+
+    /**
+     * Whether a host serves buckets virtual-hosted style.
+     *
+     * Asks the server whether the host serves buckets virtual-hosted style
+     * by checking the root with a HEAD request.
+     */
+    private async isVirtualHostAddressable(bucketAndHost: string): Promise<boolean> {
+        try {
+            const response = await this.httpClient.head(`https://${bucketAndHost}/`, {
+                validateStatus: () => true,
+                timeout: 5000,
+            });
+            // A redirect is the one answer that means "not here".
+            return response.status < 300 || response.status >= 400;
+        } catch (err) {
+            console.debug(`Host did not answer: ${bucketAndHost}`, err);
+            return false;
         }
     }
 }

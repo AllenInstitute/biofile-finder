@@ -6,6 +6,11 @@ describe("S3StorageService", () => {
     // This uses an external package, so is mostly just a consistency check
     describe("formatAsHttpResource", () => {
         const s3StorageService = new S3StorageService();
+        ((s3StorageService as unknown) as {
+            httpClient: { head: (url: string) => Promise<{ status: number }> };
+        }).httpClient = {
+            head: async () => ({ status: 200 }),
+        };
 
         const testUrls = [
             {
@@ -14,23 +19,24 @@ describe("S3StorageService", () => {
                 expected: "https://s3.region.amazonaws.com/some-bucket.org/testfile",
             },
             {
+                // Path style
                 url: "https://s3.region.amazonaws.com/some-bucket/key/with/multiple/parts",
-                expected: "https://s3.region.amazonaws.com/some-bucket/key/with/multiple/parts",
+                expected: "https://some-bucket.s3.region.amazonaws.com/key/with/multiple/parts",
             },
             {
                 // Virtually-hosted style
                 url: "https://some-bucket.s3-aws-region.amazonaws.com/testfile",
-                expected: "https://s3-aws-region.amazonaws.com/some-bucket/testfile",
+                expected: "https://some-bucket.s3-aws-region.amazonaws.com/testfile",
             },
             {
                 // S3 protocol
                 url: "s3://some-bucket/path/to/testfile",
-                expected: "https://s3.amazonaws.com/some-bucket/path/to/testfile",
+                expected: "https://some-bucket.s3.amazonaws.com/path/to/testfile",
             },
             {
                 url: "https://s3.region.amazonaws.com/some-bucket/path with spaces/a#b?c.txt",
                 expected:
-                    "https://s3.region.amazonaws.com/some-bucket/path%20with%20spaces/a%23b%3Fc.txt",
+                    "https://some-bucket.s3.region.amazonaws.com/path%20with%20spaces/a%23b%3Fc.txt",
             },
         ];
 
@@ -52,7 +58,55 @@ describe("S3StorageService", () => {
 
             // Assert
             expect(reformattedUrl).to.equal(
-                "https://s3.us-west-2.amazonaws.com/animatedcell-test-data/variance/10005.zarr"
+                "https://animatedcell-test-data.s3.us-west-2.amazonaws.com/variance/10005.zarr"
+            );
+        });
+
+        it("does not re-encode a key that already arrived encoded", async () => {
+            const reformattedUrl = await s3StorageService.formatAsHttpResource(
+                "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com/Dataset%20Manifest.csv"
+            );
+
+            expect(reformattedUrl).to.equal(
+                "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com/Dataset%20Manifest.csv"
+            );
+        });
+
+        it("encodes within segments only, leaving the key's path structure intact", async () => {
+            const encode = (key: string) =>
+                s3StorageService.formatAsHttpResource({
+                    hostname: "s3.amazonaws.com",
+                    bucket: "some-bucket",
+                    key,
+                });
+            const path = "https://some-bucket.s3.amazonaws.com/";
+
+            expect(await encode("dir/sub dir/file.txt")).to.equal(`${path}dir/sub%20dir/file.txt`);
+            expect(await encode("table/_delta_log/")).to.equal(`${path}table/_delta_log/`);
+            expect(await encode("a%2Fb.txt")).to.equal(`${path}a%2Fb.txt`);
+        });
+
+        it("probes the bucket root before trusting a non-AWS host", async () => {
+            const service = new S3StorageService();
+            const probed: string[] = [];
+            ((service as unknown) as {
+                httpClient: { head: (url: string) => Promise<{ status: number }> };
+            }).httpClient = {
+                head: async (url: string) => {
+                    probed.push(url);
+                    return { status: 301 };
+                },
+            };
+
+            const url = await service.formatAsHttpResource({
+                hostname: "s3.example.com",
+                bucket: "my-bucket",
+                key: "table/_delta_log/_last_checkpoint",
+            });
+
+            expect(probed).to.deep.equal(["https://my-bucket.s3.example.com/"]);
+            expect(url).to.equal(
+                "https://s3.example.com/my-bucket/table/_delta_log/_last_checkpoint"
             );
         });
     });
