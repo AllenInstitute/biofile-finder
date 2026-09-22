@@ -62,6 +62,30 @@ describe("S3StorageService", () => {
             );
         });
 
+        it("does not re-encode a key that already arrived encoded", async () => {
+            const reformattedUrl = await s3StorageService.formatAsHttpResource(
+                "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com/Dataset%20Manifest.csv"
+            );
+
+            expect(reformattedUrl).to.equal(
+                "https://biofile-finder-datasets.s3.us-west-2.amazonaws.com/Dataset%20Manifest.csv"
+            );
+        });
+
+        it("encodes within segments only, leaving the key's path structure intact", async () => {
+            const encode = (key: string) =>
+                s3StorageService.formatAsHttpResource({
+                    hostname: "s3.amazonaws.com",
+                    bucket: "some-bucket",
+                    key,
+                });
+            const path = "https://some-bucket.s3.amazonaws.com/";
+
+            expect(await encode("dir/sub dir/file.txt")).to.equal(`${path}dir/sub%20dir/file.txt`);
+            expect(await encode("table/_delta_log/")).to.equal(`${path}table/_delta_log/`);
+            expect(await encode("a%2Fb.txt")).to.equal(`${path}a%2Fb.txt`);
+        });
+
         it("probes the bucket root before trusting a non-AWS host", async () => {
             const service = new S3StorageService();
             const probed: string[] = [];
