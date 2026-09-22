@@ -91,7 +91,7 @@
     "lru-cache": "5.1.x",
     "markdown-to-jsx": "^8.0.0",
     "normalize.css": "8.0.x",
-    "ome-zarr.js": "^0.0.15",
+    "ome-zarr.js": "^0.0.20",
     "react": "17.x",
     "react-beautiful-dnd": "13.1.x",
     "react-dom": "17.x",

@@ -49,6 +49,7 @@ import {
     SET_HAS_USER_SELECTED_COLUMNS,
     SetHasUserSelectedColumnsAction,
     SET_SELECTED_DATASET_DESCRIPTION_SOURCE,
+    ThumbnailConfig,
 } from "./actions";
 import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
@@ -87,9 +88,10 @@ export interface SelectionStateBranch {
     sourceProvenance?: Source;
     queries: Query[];
     tutorials?: Tutorial[];
+    thumbnailConfig: ThumbnailConfig;
 }
 
-export const initialState = {
+export const initialState: SelectionStateBranch = {
     annotationHierarchy: [],
     availableAnnotationsForHierarchy: [],
     availableAnnotationsForHierarchyLoading: true,
@@ -106,6 +108,12 @@ export const initialState = {
     requiresDataSourceReload: false,
     shouldDisplaySmallFont: false,
     shouldShowNullGroups: true,
+    thumbnailConfig: {
+        relativeT: 0.5,
+        relativeZ: 0.5,
+        overrideOmeroMetadata: false,
+        channelConfigs: [],
+    },
 };
 
 export default makeReducer<SelectionStateBranch>(

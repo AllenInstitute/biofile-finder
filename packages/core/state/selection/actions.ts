@@ -933,3 +933,15 @@ export function setSelectedDescriptionSource(source?: Source): SetSelectedDescri
         type: SET_SELECTED_DATASET_DESCRIPTION_SOURCE,
     };
 }
+
+export interface ThumbnailChannelConfig {
+    enabled: boolean;
+    hexColor: string;
+}
+
+export interface ThumbnailConfig {
+    relativeT: number;
+    relativeZ: number;
+    overrideOmeroMetadata: boolean;
+    channelConfigs: ThumbnailChannelConfig[];
+}
