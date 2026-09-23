@@ -4,8 +4,8 @@ import { isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import useAnnotationValues from "./useAnnotationValues";
 import SearchBoxForm from "./SearchBoxForm";
+import useAnnotationValues from "./useAnnotationValues";
 import ChoiceGroup from "../ChoiceGroup";
 import DateRangePicker from "../DateRangePicker";
 import LoadingIcon from "../Icons/LoadingIcon";

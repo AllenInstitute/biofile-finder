@@ -12,7 +12,7 @@ export default function useDatasetMetadata(): [
     DatasetDetail[] | undefined,
     string | undefined,
     string | undefined,
-    boolean
+    boolean,
 ] {
     const datasetDescriptionSource = useSelector(selection.selectors.getDatasetDescriptionSource);
 

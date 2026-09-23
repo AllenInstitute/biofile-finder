@@ -1,5 +1,5 @@
-import { Source } from "../../entity/SearchParams";
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
+import { Source } from "../../entity/SearchParams";
 
 export interface DataSource extends Source {
     id: string;

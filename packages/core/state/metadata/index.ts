@@ -1,6 +1,6 @@
 import * as actions from "./actions";
 import logics from "./logics";
-import reducer, { initialState, MetadataStateBranch as _MetadataStateBranch } from "./reducer";
+import reducer, { MetadataStateBranch as _MetadataStateBranch, initialState } from "./reducer";
 import * as selectors from "./selectors";
 
 export type MetadataStateBranch = _MetadataStateBranch;

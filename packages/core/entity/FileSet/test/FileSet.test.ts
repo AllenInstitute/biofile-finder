@@ -3,16 +3,16 @@ import { expect } from "chai";
 import { createSandbox } from "sinon";
 
 import FileSet from "../";
-import { FESBaseUrl } from "../../../constants";
-import FileFilter, { FilterType } from "../../FileFilter";
 import { AnnotationType } from "../../AnnotationFormatter";
-import FileSort, { SortOrder } from "../../FileSort";
 import { makeFileDetailMock } from "../../FileDetail/mocks";
+import FileFilter, { FilterType } from "../../FileFilter";
+import ExcludeFilter from "../../FileFilter/ExcludeFilter";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
 import IncludeFilter from "../../FileFilter/IncludeFilter";
-import ExcludeFilter from "../../FileFilter/ExcludeFilter";
-import HttpFileService from "../../../services/FileService/HttpFileService";
+import FileSort, { SortOrder } from "../../FileSort";
+import { FESBaseUrl } from "../../../constants";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 
 describe("FileSet", () => {
     const scientistEqualsJane = new FileFilter("scientist", "jane");

@@ -5,14 +5,13 @@ import * as React from "react";
 import { Provider } from "react-redux";
 import * as sinon from "sinon";
 
+import LazilyRenderedRow from "../LazilyRenderedRow";
+import { Environment } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileDetail from "../../../entity/FileDetail";
 import FileSet from "../../../entity/FileSet";
 import { initialState } from "../../../state";
-
-import LazilyRenderedRow from "../LazilyRenderedRow";
-import { Environment } from "../../../constants";
 
 describe("<LazilyRenderedRow />", () => {
     const fileNameAnnotation = new Annotation({

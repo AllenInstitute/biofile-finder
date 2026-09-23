@@ -3,8 +3,8 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
-import AnnotationPicker from "../AnnotationPicker";
 import AnnotationFilterForm from "../AnnotationFilterForm";
+import AnnotationPicker from "../AnnotationPicker";
 import Annotation from "../../entity/Annotation";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import Tutorial from "../../entity/Tutorial";

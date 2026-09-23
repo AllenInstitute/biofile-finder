@@ -2,15 +2,15 @@ import { groupBy, map } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
-import Annotation from "../../entity/Annotation";
-import SearchParams, { SearchParamsComponents, FileView, Source } from "../../entity/SearchParams";
-import FileFilter, { FilterType } from "../../entity/FileFilter";
 import {
+    getAnnotationNameToAnnotationMap,
     getAnnotations,
     getEdgeDefinitions,
-    getAnnotationNameToAnnotationMap,
 } from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
+import Annotation from "../../entity/Annotation";
+import FileFilter, { FilterType } from "../../entity/FileFilter";
+import SearchParams, { FileView, SearchParamsComponents, Source } from "../../entity/SearchParams";
 
 // BASIC SELECTORS
 export const getAnnotationHierarchy = (state: State) => state.selection.annotationHierarchy;

@@ -1,15 +1,14 @@
-import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
-
-import { expect } from "chai";
-import { ipcRenderer } from "electron";
-import { createSandbox } from "sinon";
-
 import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "./../../../../core/services";
+import { expect } from "chai";
+import { ipcRenderer } from "electron";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+import { createSandbox } from "sinon";
+
 import ExecutionEnvServiceElectron from "../ExecutionEnvServiceElectron";
 import NotificationServiceElectron from "../NotificationServiceElectron";
 import { RUN_IN_RENDERER } from "../../util/constants";

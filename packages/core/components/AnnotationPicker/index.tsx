@@ -1,5 +1,5 @@
-import * as React from "react";
 import { uniqBy } from "lodash";
+import * as React from "react";
 import { useSelector } from "react-redux";
 
 import ListPicker from "../ListPicker";

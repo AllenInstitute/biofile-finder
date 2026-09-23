@@ -1,7 +1,7 @@
 import {
     configureMockStore,
-    mergeState,
     createMockHttpClient,
+    mergeState,
     ResponseStub,
 } from "@aics/redux-utils";
 import { expect } from "chai";
@@ -10,54 +10,54 @@ import { createSandbox } from "sinon";
 
 import { initialState, interaction, reduxLogics } from "../..";
 import {
-    downloadManifest,
-    ProcessStatus,
-    REMOVE_STATUS,
-    SET_STATUS,
     cancelFileDownload,
-    refresh,
+    deleteMetadata,
+    downloadFiles,
+    downloadManifest,
+    editFiles,
     OPEN_WITH,
     openWith,
-    SET_USER_SELECTED_APPLICATIONS,
-    promptForNewExecutable,
     openWithDefault,
-    downloadFiles,
-    editFiles,
-    deleteMetadata,
+    ProcessStatus,
+    promptForNewExecutable,
+    refresh,
+    REMOVE_STATUS,
+    SET_STATUS,
+    SET_USER_SELECTED_APPLICATIONS,
     setEnvironmentOverrides,
 } from "../actions";
+import interactionLogics from "../logics";
+import { RECEIVE_ANNOTATIONS } from "../../metadata/actions";
+import {
+    CHANGE_DATA_SOURCES,
+    changeDataSources,
+    SET_AVAILABLE_ANNOTATIONS,
+} from "../../selection/actions";
+import { Environment, FESBaseUrl, MMSBaseUrl, OverridableService } from "../../../constants";
+import Annotation from "../../../entity/Annotation";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
+import { annotationsJson } from "../../../entity/Annotation/mocks";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
+import FileDetail, { FmsFile } from "../../../entity/FileDetail";
+import FileFilter from "../../../entity/FileFilter";
+import FileSelection from "../../../entity/FileSelection";
+import FileSet from "../../../entity/FileSet";
+import NumericRange from "../../../entity/NumericRange";
+import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
+import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 import {
     ExecutableEnvCancellationToken,
     SystemDefaultAppLocation,
 } from "../../../services/ExecutionEnvService";
 import ExecutionEnvServiceNoop from "../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
-import interactionLogics from "../logics";
-import { Environment, FESBaseUrl, MMSBaseUrl, OverridableService } from "../../../constants";
-import Annotation from "../../../entity/Annotation";
-import AnnotationName from "../../../entity/Annotation/AnnotationName";
-import { AnnotationType } from "../../../entity/AnnotationFormatter";
-import FileFilter from "../../../entity/FileFilter";
-import FileSet from "../../../entity/FileSet";
-import FileSelection from "../../../entity/FileSelection";
-import NumericRange from "../../../entity/NumericRange";
-import { RECEIVE_ANNOTATIONS } from "../../metadata/actions";
-import {
-    changeDataSources,
-    CHANGE_DATA_SOURCES,
-    SET_AVAILABLE_ANNOTATIONS,
-} from "../../selection/actions";
 import FileDownloadService, {
     DownloadResolution,
     FileInfo,
 } from "../../../services/FileDownloadService";
-import FileViewerService from "../../../services/FileViewerService";
-import { annotationsJson } from "../../../entity/Annotation/mocks";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
-import NotificationServiceNoop from "../../../services/NotificationService/NotificationServiceNoop";
 import HttpFileService from "../../../services/FileService/HttpFileService";
-import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
-import FileDetail, { FmsFile } from "../../../entity/FileDetail";
-import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
+import FileViewerService from "../../../services/FileViewerService";
+import NotificationServiceNoop from "../../../services/NotificationService/NotificationServiceNoop";
 import { PersistedConfigKeys } from "../../../services/PersistentConfigService";
 import PersistentConfigServiceNoop from "../../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import S3StorageServiceNoop from "../../../services/S3StorageService/S3StorageServiceNoop";

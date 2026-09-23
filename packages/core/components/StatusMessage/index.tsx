@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { SecondaryButton } from "../Buttons";
 import LoadingIcon from "../Icons/LoadingIcon";
 import { interaction } from "../../state";
-import { StatusUpdate, ProcessStatus } from "../../state/interaction/actions";
+import { ProcessStatus, StatusUpdate } from "../../state/interaction/actions";
 
 import styles from "./StatusMessage.module.css";
 

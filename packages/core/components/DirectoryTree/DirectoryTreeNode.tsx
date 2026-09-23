@@ -4,9 +4,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import DirectoryTreeNodeHeader from "./DirectoryTreeNodeHeader";
 import useDirectoryHierarchy from "./useDirectoryHierarchy";
-import { selection } from "../../state";
 import FileFolder from "../../entity/FileFolder";
 import FileSet from "../../entity/FileSet";
+import { selection } from "../../state";
 
 import styles from "./DirectoryTreeNode.module.css";
 

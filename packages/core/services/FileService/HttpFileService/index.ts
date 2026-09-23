@@ -1,23 +1,23 @@
 import { compact, filter, join, map, uniqueId } from "lodash";
 
 import FileService, {
-    GetFilesRequest,
-    SelectionAggregationResult,
-    Selection,
     AnnotationNameToValuesMap,
+    GetFilesRequest,
+    Selection,
+    SelectionAggregationResult,
 } from "..";
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import HttpServiceBase, { ConnectionConfig } from "../../HttpServiceBase";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
+import FileDetail, { FmsFile } from "../../../entity/FileDetail";
 import FileFilter from "../../../entity/FileFilter";
+import { FilterType } from "../../../entity/FileFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
-import FileDetail, { FmsFile } from "../../../entity/FileDetail";
-import { JSONReadyRange } from "../../../entity/NumericRange";
-import { FilterType } from "../../../entity/FileFilter";
 import { SortOrder } from "../../../entity/FileSort";
+import { JSONReadyRange } from "../../../entity/NumericRange";
 
 // Interface expected by FES API
 interface FESFileSelection {

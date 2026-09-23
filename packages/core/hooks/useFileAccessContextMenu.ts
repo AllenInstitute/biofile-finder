@@ -3,8 +3,8 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import useOpenWithMenuItems from "./useOpenWithMenuItems";
-import useSaveMetadataOptions from "./useSaveMetadataOptions";
 import useProcessMenuItems from "./useProcessFilesMenuItems";
+import useSaveMetadataOptions from "./useSaveMetadataOptions";
 import { ModalType } from "../components/Modal";
 import FileDetail from "../entity/FileDetail";
 import FileFilter from "../entity/FileFilter";

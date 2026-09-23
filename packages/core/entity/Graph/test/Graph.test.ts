@@ -1,12 +1,11 @@
 import { expect } from "chai";
 import { uniqueId } from "lodash";
 
+import Graph, { EdgeDefinition } from "..";
 import FileDetail from "../../FileDetail";
 import { Environment } from "../../../constants";
-import FileServiceNoop from "../../../services/FileService/FileServiceNoop";
 import { FmsFileAnnotation } from "../../../services/FileService";
-
-import Graph, { EdgeDefinition } from "..";
+import FileServiceNoop from "../../../services/FileService/FileServiceNoop";
 
 const mockFileDetail = (annotations: FmsFileAnnotation[] = []) =>
     new FileDetail(

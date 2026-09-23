@@ -1,5 +1,5 @@
-import * as path from "path";
 import { app, BrowserWindow, dialog, Menu, MessageBoxSyncOptions } from "electron";
+import * as path from "path";
 
 import getMenuTemplate from "./menu";
 import ExecutionEnvServicElectron from "../services/ExecutionEnvServiceElectron";

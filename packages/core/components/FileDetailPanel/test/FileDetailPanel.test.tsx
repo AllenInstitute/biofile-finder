@@ -6,13 +6,12 @@ import * as React from "react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
+import FileDetailPanel from "..";
+import * as useFileDetails from "../../FileDetailPanel/useFileDetails";
 import { Environment } from "../../../constants";
 import FileDetail from "../../../entity/FileDetail";
-import * as useFileDetails from "../../FileDetailPanel/useFileDetails";
 import { FmsFileAnnotation } from "../../../services/FileService";
 import { initialState } from "../../../state";
-
-import FileDetailPanel from "..";
 
 const mockFileDetail = (annotations: FmsFileAnnotation[] = []) =>
     new FileDetail(

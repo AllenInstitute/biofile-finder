@@ -3,9 +3,9 @@ import { noop } from "lodash";
 import sinon from "sinon";
 import streamSaver from "streamsaver";
 
-import { DownloadResolution, FileInfo } from "../../../../core/services";
-import StreamedZipDownloader from "../../entity/StreamedZipDownloader";
 import FileDownloadServiceWeb from "../FileDownloadServiceWeb";
+import StreamedZipDownloader from "../../entity/StreamedZipDownloader";
+import { DownloadResolution, FileInfo } from "../../../../core/services";
 
 describe("FileDownloadServiceWeb", () => {
     afterEach(() => {
@@ -50,18 +50,22 @@ describe("FileDownloadServiceWeb", () => {
                 },
             };
 
-            (streamSaver as {
-                createWriteStream: typeof streamSaver.createWriteStream;
-            }).createWriteStream = () =>
+            (
+                streamSaver as {
+                    createWriteStream: typeof streamSaver.createWriteStream;
+                }
+            ).createWriteStream = () =>
                 ({
-                    getWriter: () => (writer as unknown) as WritableStreamDefaultWriter<Uint8Array>,
-                } as WritableStream<Uint8Array>);
+                    getWriter: () => writer as unknown as WritableStreamDefaultWriter<Uint8Array>,
+                }) as WritableStream<Uint8Array>;
         });
 
         afterEach(() => {
-            (streamSaver as {
-                createWriteStream: typeof streamSaver.createWriteStream;
-            }).createWriteStream = originalCreateWriteStream;
+            (
+                streamSaver as {
+                    createWriteStream: typeof streamSaver.createWriteStream;
+                }
+            ).createWriteStream = originalCreateWriteStream;
         });
 
         it("uses the file download path for non-directory files", async () => {
@@ -73,12 +77,12 @@ describe("FileDownloadServiceWeb", () => {
 
             const downloadFileStub = sinon
                 .stub(
-                    (service as unknown) as { downloadFile: (fileInfo: FileInfo) => Promise<any> },
+                    service as unknown as { downloadFile: (fileInfo: FileInfo) => Promise<any> },
                     "downloadFile"
                 )
                 .resolves(expected);
             const downloadDirectoryStub = sinon.stub(
-                (service as unknown) as {
+                service as unknown as {
                     downloadDirectory: (
                         fileInfo: FileInfo,
                         downloadRequestId: string,
@@ -131,7 +135,7 @@ describe("FileDownloadServiceWeb", () => {
             const formattedUrl = "https://example.org/result.txt";
             sinon
                 .stub(
-                    (service as unknown) as {
+                    service as unknown as {
                         s3StorageService: {
                             formatAsHttpResource: (url: string) => Promise<string | undefined>;
                         };
@@ -165,12 +169,8 @@ describe("FileDownloadServiceWeb", () => {
             expect(result.downloadRequestId).to.equal(fileInfo.id);
             expect(createElementStub.calledOnceWithExactly("a")).to.equal(true);
             expect((anchor.click as sinon.SinonSpy).calledOnce).to.equal(true);
-            expect(appendChildStub.calledOnceWithExactly((anchor as unknown) as Node)).to.equal(
-                true
-            );
-            expect(removeChildStub.calledOnceWithExactly((anchor as unknown) as Node)).to.equal(
-                true
-            );
+            expect(appendChildStub.calledOnceWithExactly(anchor as unknown as Node)).to.equal(true);
+            expect(removeChildStub.calledOnceWithExactly(anchor as unknown as Node)).to.equal(true);
             expect(anchor.href).to.equal(formattedUrl);
             expect(anchor.download).to.equal(fileInfo.name);
             expect(revokeStub.calledOnceWithExactly(formattedUrl)).to.equal(true);
@@ -195,7 +195,7 @@ describe("FileDownloadServiceWeb", () => {
 
             sinon
                 .stub(
-                    (service as unknown) as {
+                    service as unknown as {
                         getRelativePathsInDirectory: (path: string) => AsyncGenerator<string>;
                     },
                     "getRelativePathsInDirectory"
@@ -210,7 +210,7 @@ describe("FileDownloadServiceWeb", () => {
             expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
             expect(result.downloadRequestId).to.equal(fileInfo.id);
             expect(
-                ((service as unknown) as { activeRequestMap: Record<string, unknown> })
+                (service as unknown as { activeRequestMap: Record<string, unknown> })
                     .activeRequestMap["request-cloud-1"]
             ).to.equal(undefined);
         });
@@ -239,7 +239,7 @@ describe("FileDownloadServiceWeb", () => {
 
             sinon
                 .stub(
-                    (service as unknown) as {
+                    service as unknown as {
                         getRelativePathsInDirectory: (path: string) => AsyncGenerator<string>;
                     },
                     "getRelativePathsInDirectory"
@@ -262,7 +262,7 @@ describe("FileDownloadServiceWeb", () => {
                 id: "id-3",
                 name: "bad-data",
                 path: "https://example.org/bad-data",
-                data: (123 as unknown) as FileInfo["data"],
+                data: 123 as unknown as FileInfo["data"],
             };
 
             try {
@@ -289,18 +289,22 @@ describe("FileDownloadServiceWeb", () => {
                 close: async () => undefined,
             };
 
-            (streamSaver as {
-                createWriteStream: typeof streamSaver.createWriteStream;
-            }).createWriteStream = () =>
+            (
+                streamSaver as {
+                    createWriteStream: typeof streamSaver.createWriteStream;
+                }
+            ).createWriteStream = () =>
                 ({
-                    getWriter: () => (writer as unknown) as WritableStreamDefaultWriter<Uint8Array>,
-                } as WritableStream<Uint8Array>);
+                    getWriter: () => writer as unknown as WritableStreamDefaultWriter<Uint8Array>,
+                }) as WritableStream<Uint8Array>;
         });
 
         afterEach(() => {
-            (streamSaver as {
-                createWriteStream: typeof streamSaver.createWriteStream;
-            }).createWriteStream = originalCreateWriteStream;
+            (
+                streamSaver as {
+                    createWriteStream: typeof streamSaver.createWriteStream;
+                }
+            ).createWriteStream = originalCreateWriteStream;
         });
 
         it("bundles every file into a single zip, deduplicating entry names", async () => {
@@ -338,7 +342,7 @@ describe("FileDownloadServiceWeb", () => {
             expect(result.resolution).to.equal(DownloadResolution.SUCCESS);
             expect(result.downloadRequestId).to.equal("request-zip-1");
             expect(
-                ((service as unknown) as { activeRequestMap: Record<string, unknown> })
+                (service as unknown as { activeRequestMap: Record<string, unknown> })
                     .activeRequestMap["request-zip-1"]
             ).to.equal(undefined);
         });
@@ -368,7 +372,7 @@ describe("FileDownloadServiceWeb", () => {
             })();
             sinon
                 .stub(
-                    (service as unknown) as {
+                    service as unknown as {
                         getRelativePathsInDirectory: (path: string) => AsyncGenerator<string>;
                     },
                     "getRelativePathsInDirectory"

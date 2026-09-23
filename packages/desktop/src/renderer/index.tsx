@@ -1,4 +1,4 @@
-import "regenerator-runtime/runtime";
+import "../../../core/styles/global.css";
 import FrontendInsights, { LogLevel, reduxMiddleware } from "@aics/frontend-insights";
 import AmplitudeNodePlugin from "@aics/frontend-insights-plugin-amplitude-node";
 import { ipcRenderer } from "electron";
@@ -6,19 +6,20 @@ import { memoize } from "lodash";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
-import FmsFileExplorer from "../../../core/App";
-import { PersistedConfigKeys } from "../../../core/services";
-import { createReduxStore, interaction, selection } from "../../../core/state";
+import "regenerator-runtime/runtime";
+
 import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
 import DatabaseServiceElectron from "../services/DatabaseServiceElectron";
 import ExecutionEnvServiceElectron from "../services/ExecutionEnvServiceElectron";
 import FileDownloadServiceElectron from "../services/FileDownloadServiceElectron";
 import FileViewerServiceElectron from "../services/FileViewerServiceElectron";
-import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
 import NotificationServiceElectron from "../services/NotificationServiceElectron";
-import S3StorageService from "../../../core/services/S3StorageService";
+import PersistentConfigServiceElectron from "../services/PersistentConfigServiceElectron";
+import FmsFileExplorer from "../../../core/App";
 import useKeyDown from "../../../core/hooks/useKeyDown";
-import "../../../core/styles/global.css";
+import { PersistedConfigKeys } from "../../../core/services";
+import S3StorageService from "../../../core/services/S3StorageService";
+import { createReduxStore, interaction, selection } from "../../../core/state";
 
 const APP_ID = "fms-file-explorer";
 

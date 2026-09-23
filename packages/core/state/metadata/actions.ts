@@ -1,8 +1,8 @@
 import { makeConstant } from "@aics/redux-utils";
 
 import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
-import { DataSource } from "../../services/DataSourceService";
 import { EdgeDefinition } from "../../entity/Graph";
+import { DataSource } from "../../services/DataSourceService";
 
 const STATE_BRANCH_NAME = "metadata";
 

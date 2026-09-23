@@ -3,11 +3,11 @@ import { expect } from "chai";
 import interaction from "..";
 import { initialState } from "../..";
 import {
-    ProcessStatus,
-    removeStatus,
-    processStart,
-    processSuccess,
     processError,
+    processStart,
+    ProcessStatus,
+    processSuccess,
+    removeStatus,
 } from "../actions";
 
 describe("Interaction reducer", () => {

@@ -1,18 +1,18 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { interaction } from "../../state";
 import About from "./About";
 import ComputePipelineModal from "./ComputePipelineModal";
-import QueryCodeSnippet from "./QueryCodeSnippet";
 import CopyFileManifest from "./CopyFileManifest";
 import DataSource from "./DataSource";
 import EditMetadata from "./EditMetadata";
 import EnvironmentSwitch from "./EnvironmentSwitch";
 import ExtractMetadataCodeSnippet from "./ExtractMetadataCodeSnippet";
 import MetadataManifest from "./MetadataManifest";
+import QueryCodeSnippet from "./QueryCodeSnippet";
 import SmallScreenWarning from "./SmallScreenWarning";
 import ConvertFiles from "./ZarrConversionModal";
+import { interaction } from "../../state";
 
 export interface ModalProps {
     onDismiss: () => void;

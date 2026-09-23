@@ -1,5 +1,5 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
-import { render, fireEvent } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import { noop } from "lodash";
 import * as React from "react";
@@ -9,8 +9,8 @@ import QuerySidebar from "..";
 import Query from "../Query";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../../constants";
 import FileFilter from "../../../entity/FileFilter";
-import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
+import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import { initialState, interaction, selection } from "../../../state";
 
 describe("<Query />", () => {

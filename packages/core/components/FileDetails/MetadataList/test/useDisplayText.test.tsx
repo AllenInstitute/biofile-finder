@@ -5,13 +5,13 @@ import * as React from "react";
 import { Provider } from "react-redux";
 
 import useDisplayText from "../useDisplayText";
+import { Environment } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import AnnotationName from "../../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../../entity/AnnotationFormatter";
 import FileDetail, { FmsFile } from "../../../../entity/FileDetail";
-import { Environment } from "../../../../constants";
-import { MetadataValue, NestedMetadataValue } from "../../../../services/FileService";
 import ExecutionEnvServiceNoop from "../../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
+import { MetadataValue, NestedMetadataValue } from "../../../../services/FileService";
 import { initialState } from "../../../../state";
 
 // Helper component that exercises the hook and renders the result

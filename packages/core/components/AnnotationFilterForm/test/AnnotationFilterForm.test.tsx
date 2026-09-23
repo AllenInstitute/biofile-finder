@@ -1,4 +1,4 @@
-import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redux-utils";
+import { configureMockStore, createMockHttpClient, mergeState } from "@aics/redux-utils";
 import { fireEvent, render, waitFor, within } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -6,12 +6,12 @@ import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
 import AnnotationFilterForm from "..";
+import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
-import { initialState, reducer, reduxLogics, interaction, selection } from "../../../state";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
-import { FESBaseUrl } from "../../../constants";
+import { initialState, interaction, reducer, reduxLogics, selection } from "../../../state";
 
 describe("<AnnotationFilterForm />", () => {
     const LISTROW_TESTID_PREFIX = "default-button-";

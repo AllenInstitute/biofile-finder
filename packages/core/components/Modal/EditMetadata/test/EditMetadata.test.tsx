@@ -6,12 +6,12 @@ import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
 import Modal, { ModalType } from "../..";
-import { initialState } from "../../../../state";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../../../constants";
-import * as useFilteredSelection from "../../../../hooks/useFilteredSelection";
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
+import * as useFilteredSelection from "../../../../hooks/useFilteredSelection";
+import { initialState } from "../../../../state";
 
 describe("<EditMetadata />", () => {
     const visibleDialogState = mergeState(initialState, {

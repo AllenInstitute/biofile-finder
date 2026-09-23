@@ -5,9 +5,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { TertiaryButton } from "../Buttons";
 import { ModalType } from "../Modal";
-import Tutorial from "../../entity/Tutorial";
 import IncludeFilter from "../../entity/FileFilter/IncludeFilter";
 import { SearchParamsComponents } from "../../entity/SearchParams";
+import Tutorial from "../../entity/Tutorial";
 import useSaveMetadataOptions from "../../hooks/useSaveMetadataOptions";
 import { interaction, selection } from "../../state";
 import { Query } from "../../state/selection/actions";
@@ -65,8 +65,7 @@ export default function QueryFooter(props: Props) {
             key: "Shareable link",
             text: "Shareable link",
             iconProps: { iconName: "Link" },
-            title:
-                "If you share this link, the recipient will be able to view the current query by importing it as a new query.",
+            title: "If you share this link, the recipient will be able to view the current query by importing it as a new query.",
             onClick: () => {
                 onCopy();
             },

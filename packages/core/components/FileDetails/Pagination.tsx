@@ -5,9 +5,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { TransparentIconButton } from "../Buttons";
 import SvgIcon from "../SvgIcon";
 import Tooltip from "../Tooltip";
-import { selection } from "../../state";
 import { FocusDirective } from "../../entity/FileSelection";
 import { CHEVRON_END_PATH_DATA, CHEVRON_START_PATH_DATA, CHEVRON_VIEW_BOX } from "../../icons";
+import { selection } from "../../state";
 
 import styles from "./Pagination.module.css";
 

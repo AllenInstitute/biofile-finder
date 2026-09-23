@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
-import { PersistedConfigKeys } from "../../../../core/services";
 import PersistentConfigServiceWeb from "../PersistentConfigServiceWeb";
+import { PersistedConfigKeys } from "../../../../core/services";
 
 describe("PersistentConfigServiceWeb", () => {
     beforeEach(() => {

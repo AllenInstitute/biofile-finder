@@ -1,9 +1,9 @@
+import styles from "../Home.module.css";
 import { Icon } from "@fluentui/react";
 import * as React from "react";
 
-import Section from "../Section";
 import { ENGAGE_LINKS } from "../content";
-import styles from "../Home.module.css";
+import Section from "../Section";
 
 /**
  * "Engage with us" — outbound links to the support forum, GitHub, and email.

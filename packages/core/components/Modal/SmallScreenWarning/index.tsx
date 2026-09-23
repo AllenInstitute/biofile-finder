@@ -3,8 +3,8 @@ import { useDispatch } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
-import Checkbox from "../../Checkbox";
 import { PrimaryButton } from "../../Buttons";
+import Checkbox from "../../Checkbox";
 import { interaction } from "../../../state";
 
 import styles from "./SmallScreen.module.css";

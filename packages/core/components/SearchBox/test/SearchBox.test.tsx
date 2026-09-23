@@ -1,12 +1,11 @@
-import { render, fireEvent, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { expect } from "chai";
 import { noop } from "lodash";
 import * as React from "react";
 import sinon from "sinon";
 
-import FileFilter from "../../../entity/FileFilter";
-
 import SearchBox from "..";
+import FileFilter from "../../../entity/FileFilter";
 
 describe("<SearchBox/>", () => {
     it("renders an input field for the search term", () => {

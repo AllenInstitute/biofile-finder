@@ -4,9 +4,8 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import { initialState } from "../../../state";
-
 import DatasetDetailsPanel, { DatasetDetail } from "..";
+import { initialState } from "../../../state";
 
 describe("<DatasetDetailsPanel />", () => {
     const mockDescriptionShort = "This is a string that has 40 characters.";

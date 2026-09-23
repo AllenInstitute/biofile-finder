@@ -6,12 +6,11 @@ import * as React from "react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
+import DirectoryTreeNodeHeader from "../DirectoryTreeNodeHeader";
 import annotationFormatterFactory, { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileSet from "../../../entity/FileSet";
 import * as useLayoutMeasurements from "../../../hooks/useLayoutMeasurements";
 import { initialState } from "../../../state";
-
-import DirectoryTreeNodeHeader from "../DirectoryTreeNodeHeader";
 
 describe("<DirectoryTreeNodeHeader />", () => {
     // Arrange

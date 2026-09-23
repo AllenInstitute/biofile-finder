@@ -1,13 +1,13 @@
 import { defaults, find, join, map, uniqueId } from "lodash";
 import LRUCache from "lru-cache";
 
+import FileDetail from "../FileDetail";
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
+import resolvePathIsArray from "../resolvePathIsArray";
+import SQLBuilder from "../SQLBuilder";
 import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
-import SQLBuilder from "../SQLBuilder";
-import FileDetail from "../FileDetail";
-import resolvePathIsArray from "../resolvePathIsArray";
 
 interface Opts {
     fileService: FileService;

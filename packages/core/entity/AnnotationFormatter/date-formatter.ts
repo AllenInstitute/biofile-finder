@@ -1,4 +1,5 @@
 import { extractDatesFromRangeOperatorFilterString } from "./date-time-formatter";
+
 /**
  * Accepts date/time string (UTC offset must be specified), outputs stringified, formatted version of just the date.
  * Should be replaced by a proper date parsing and formatting library like moment as soon as it matters.

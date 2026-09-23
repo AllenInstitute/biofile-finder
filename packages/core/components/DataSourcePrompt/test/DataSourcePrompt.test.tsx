@@ -4,9 +4,8 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import { initialState, reducer } from "../../../state";
-
 import DataSourcePrompt from "..";
+import { initialState, reducer } from "../../../state";
 
 describe("<DataSourcePrompt />", () => {
     it("disables the load button when no files are selected", async () => {

@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import nock from "nock";
 
-import { RUN_IN_RENDERER } from "../../util/constants";
 import ApplicationInfoServiceElectron from "../ApplicationInfoServiceElectron";
+import { RUN_IN_RENDERER } from "../../util/constants";
 
 describe(`${RUN_IN_RENDERER} ApplicationInfoServiceElectron`, () => {
     before(() => {

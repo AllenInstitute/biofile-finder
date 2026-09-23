@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
+import { JSSBaseUrl } from "../../constants";
 import {
     ComputeTaskRequest,
     ComputeTaskResponse,
@@ -7,8 +9,6 @@ import {
     PipelineParameter,
     PipelineParameterType,
 } from "../../entity/ComputePipeline";
-import { JSSBaseUrl } from "../../constants";
-import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
 
 interface JssPipelineSummary {
     id: string;

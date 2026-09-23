@@ -8,13 +8,13 @@ import { calcNodeSortOrder } from "../useDirectoryHierarchy";
 import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
+import FileFilter from "../../../entity/FileFilter";
 import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
-import FileFilter from "../../../entity/FileFilter";
 import FileSet from "../../../entity/FileSet";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
-import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 
 describe("DirectoryTree utilities", () => {
     describe("calcNodeSortOrder", () => {
