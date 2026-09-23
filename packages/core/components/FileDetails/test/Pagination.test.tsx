@@ -1,4 +1,3 @@
-import styles from "../Pagination.module.css";
 import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
@@ -13,6 +12,8 @@ import NumericRange from "../../../entity/NumericRange";
 import { SelectionAggregationResult } from "../../../services/FileService";
 import FileServiceNoop from "../../../services/FileService/FileServiceNoop";
 import { initialState, interaction, selection } from "../../../state";
+
+import styles from "../Pagination.module.css";
 
 describe("<Pagination />", () => {
     const sandbox = createSandbox();
