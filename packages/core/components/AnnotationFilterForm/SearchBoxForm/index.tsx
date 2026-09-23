@@ -55,6 +55,10 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
         !props.availableValues.includes(searchText.trim());
 
     function onSearchSubmitted(value: string) {
+        if (valueNotFound) {
+            setHasBlurred(true);
+            return;
+        }
         props.onSearch(value, filterType);
         setSearchText("");
         setHasBlurred(false);

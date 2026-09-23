@@ -189,6 +189,37 @@ describe("<SearchBoxForm/>", () => {
         expect(queryByText(errorText)).to.equal(null);
     });
 
+    it("blocks submitting an exact value that is not in the list and keeps the error visible", () => {
+        // Arrange
+        const errorText = /No files found with exactly matching value/;
+        const onSearch = sinon.spy();
+        const { getByRole, queryByText } = render(
+            <SearchBoxForm
+                availableValues={["bar", "baz"]}
+                filters={[makeFilter("bar", FilterType.DEFAULT)]}
+                onClearAll={noop}
+                onRemoveFilter={noop}
+                onSearch={onSearch}
+            />
+        );
+
+        // Act: submit a value that isn't in the list without blurring first
+        submitSearch(getByRole("searchbox"), "qux");
+
+        // Assert: nothing committed, input retained, error shown
+        expect(onSearch.called).to.equal(false);
+        expect((getByRole("searchbox") as HTMLInputElement).value).to.equal("qux");
+        expect(queryByText(errorText)).to.exist;
+
+        // Act: correct it to a value that exists
+        submitSearch(getByRole("searchbox"), "baz");
+
+        // Assert: committed and cleared as usual
+        expect(onSearch.calledOnceWith("baz", FilterType.DEFAULT)).to.equal(true);
+        expect((getByRole("searchbox") as HTMLInputElement).value).to.equal("");
+        expect(queryByText(errorText)).to.equal(null);
+    });
+
     it("warns that results will be replaced only when the operator differs from committed filters", () => {
         // Arrange
         const warningText = /replace the current results/;
