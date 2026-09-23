@@ -1,4 +1,3 @@
-import "../../core/styles/global.css";
 import { memoize } from "lodash";
 import * as React from "react";
 import { render } from "react-dom";
@@ -26,6 +25,7 @@ import S3StorageService from "../../core/services/S3StorageService";
 import { createReduxStore } from "../../core/state";
 
 import styles from "./src.module.css";
+import "../../core/styles/global.css";
 
 const APP_ID = "biofile-finder";
 

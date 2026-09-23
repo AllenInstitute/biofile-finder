@@ -1,4 +1,3 @@
-import "../../../core/styles/global.css";
 import FrontendInsights, { LogLevel, reduxMiddleware } from "@aics/frontend-insights";
 import AmplitudeNodePlugin from "@aics/frontend-insights-plugin-amplitude-node";
 import { ipcRenderer } from "electron";
@@ -20,6 +19,8 @@ import useKeyDown from "../../../core/hooks/useKeyDown";
 import { PersistedConfigKeys } from "../../../core/services";
 import S3StorageService from "../../../core/services/S3StorageService";
 import { createReduxStore, interaction, selection } from "../../../core/state";
+
+import "../../../core/styles/global.css";
 
 const APP_ID = "fms-file-explorer";
 
