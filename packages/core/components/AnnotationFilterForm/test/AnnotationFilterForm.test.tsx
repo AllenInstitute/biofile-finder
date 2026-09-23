@@ -7,11 +7,12 @@ import { createSandbox } from "sinon";
 
 import AnnotationFilterForm from "..";
 import Annotation from "../../../entity/Annotation";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics, interaction, selection } from "../../../state";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
-import { FESBaseUrl } from "../../../constants";
+import { FESBaseUrl, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 
 describe("<AnnotationFilterForm />", () => {
     const LISTROW_TESTID_PREFIX = "default-button-";
@@ -481,6 +482,59 @@ describe("<AnnotationFilterForm />", () => {
             // Values are naturally sorted so rangemin gets the overall min and rangemax the default max (overall max + 1)
             expect((minInput as HTMLInputElement).value).to.equal("-12");
             expect((maxInput as HTMLInputElement).value).to.equal("10000000001");
+        });
+
+        it("offers a Browse list tab that lists the values", async () => {
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: [5, 8, 6.3] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const { store } = configureMockStore({
+                state: initialState,
+                responseStubs: responseStub,
+            });
+
+            const { findByText, getByTestId } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // act: switch from the (default) range inputs to the list of values
+            fireEvent.click(await findByText("Browse list"));
+
+            // assert: the list rows render
+            expect(getByTestId("default-button-5")).to.exist;
+            expect(getByTestId("default-button-8")).to.exist;
+        });
+
+        it("hides the Browse list tab for top-level file attributes whose values are never fetched", () => {
+            // arrange
+            const uploadedAnnotation = TOP_LEVEL_FILE_ANNOTATIONS.find(
+                (annotation) => annotation.name === AnnotationName.UPLOADED
+            ) as Annotation;
+            const { store } = configureMockStore({ state: initialState });
+
+            // act
+            const { getByText, queryByText, queryByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={uploadedAnnotation} />
+                </Provider>
+            );
+
+            // assert: the range picker renders without a tab strip
+            expect(getByText("Start of date range")).to.exist;
+            expect(queryByRole("tablist")).to.not.exist;
+            expect(queryByText("Browse list")).to.not.exist;
         });
     });
 
