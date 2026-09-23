@@ -87,12 +87,10 @@
 }
 
 .sub-menu-callout {
-    bottom: 0 !important;
-    height: fit-content;
-    margin-bottom: auto;
-    margin-top: auto;
+    bottom: auto !important;
     max-height: calc(100vh - 32px) !important;
     position: fixed !important;
-    top: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
 }
 
