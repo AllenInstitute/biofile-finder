@@ -195,7 +195,7 @@ export default abstract class DatabaseService {
     public async saveQuery(
         destination: string,
         sql: string,
-        format: typeof TABULAR_SOURCE_TYPES[number]
+        format: (typeof TABULAR_SOURCE_TYPES)[number]
     ): Promise<Uint8Array> {
         if (!this.database) {
             throw new Error("Database failed to initialize");
@@ -264,7 +264,7 @@ export default abstract class DatabaseService {
 
     protected async addDataSource(
         name: string,
-        type: typeof ACCEPTED_SOURCE_TYPES[number],
+        type: (typeof ACCEPTED_SOURCE_TYPES)[number],
         uri: string | File
     ): Promise<void> {
         if (isMarkdownType(type)) return; // don't try to add markdown sources
@@ -1397,11 +1397,11 @@ export default abstract class DatabaseService {
                 };
                 await this.execute(`
                     INSERT INTO "${viewName}" ("${columnsSoFarArr.join(
-                    '", "'
-                )}", "${DATA_SOURCE_COLUMN}")
+                        '", "'
+                    )}", "${DATA_SOURCE_COLUMN}")
                     SELECT ${columnsSoFarArr.map((column) => columnToSql(column)).join(", ")}, '${
-                    dataSource.name
-                }' AS "${DATA_SOURCE_COLUMN}"
+                        dataSource.name
+                    }' AS "${DATA_SOURCE_COLUMN}"
                     FROM "${dataSource.name}"
                 `);
             }

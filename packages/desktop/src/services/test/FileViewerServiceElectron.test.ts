@@ -1,6 +1,5 @@
-import childProcess from "child_process";
-
 import { expect } from "chai";
+import childProcess from "child_process";
 import { createSandbox } from "sinon";
 
 import FileViewerServiceElectron from "../FileViewerServiceElectron";
@@ -46,7 +45,7 @@ describe(`${RUN_IN_RENDERER} FileViewerServiceElectron`, () => {
             sandbox
                 .stub(childProcess, "spawn")
                 // Rather than try to implement every method in ChildProcess, force its typing
-                .returns((new FakeProcess() as unknown) as childProcess.ChildProcess);
+                .returns(new FakeProcess() as unknown as childProcess.ChildProcess);
 
             // Act / Assert
             await service.open(executable, filePaths);

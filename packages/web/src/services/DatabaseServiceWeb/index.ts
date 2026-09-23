@@ -1,8 +1,5 @@
 import { uniqueId } from "lodash";
 
-import { AICS_FMS_DATA_SOURCE_NAME } from "../../../../core/constants";
-import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
-import { Source, TABULAR_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
 import {
     CanceledError,
     Pending,
@@ -12,6 +9,9 @@ import {
     WorkerResponse,
     WorkerResType,
 } from "./types";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../../../core/constants";
+import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
+import { Source, TABULAR_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
 import { DatabaseService } from "../../../../core/services";
 import { CancellablePromise } from "../../../../core/services/DatabaseService";
 
@@ -57,7 +57,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
     public async saveQuery(
         destination: string,
         sql: string,
-        format: typeof TABULAR_SOURCE_TYPES[number]
+        format: (typeof TABULAR_SOURCE_TYPES)[number]
     ): Promise<Uint8Array> {
         if (!this.ready) {
             throw new Error("Database failed to initialize in save query");
@@ -258,9 +258,8 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 return;
             }
             case WorkerResType.STARTED: {
-                const { id, connectionId } = data.payload as WorkerResPayload<
-                    WorkerResType.STARTED
-                >;
+                const { id, connectionId } =
+                    data.payload as WorkerResPayload<WorkerResType.STARTED>;
                 const p = this.pending.get(id);
                 if (!p) return;
                 p.connectionId = connectionId;
@@ -287,9 +286,8 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 return;
             }
             case WorkerResType.SOURCE_RESOLVED: {
-                const { dataSourceName, added } = data.payload as WorkerResPayload<
-                    WorkerResType.SOURCE_RESOLVED
-                >;
+                const { dataSourceName, added } =
+                    data.payload as WorkerResPayload<WorkerResType.SOURCE_RESOLVED>;
                 // Add or remove data source name from in-memory set
                 // for quick data source checks
                 if (added) this.existingDataSources.add(dataSourceName);
