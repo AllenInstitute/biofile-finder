@@ -5,6 +5,7 @@ import * as React from "react";
 import styles from "./Checkbox.modules.css";
 
 interface Props {
+    id?: string;
     className?: string;
     disabled?: boolean;
     initialValue?: boolean;
@@ -31,6 +32,7 @@ export default function Checkbox(props: Props) {
 
     return (
         <FluentCheckbox
+            id={props.id}
             checked={props.checked ?? isChecked}
             indeterminate={props.indeterminate}
             className={classNames(props.className, {

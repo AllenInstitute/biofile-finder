@@ -7,6 +7,7 @@ import { FileView } from "../../entity/SearchParams";
 import { selection } from "../../state";
 
 import styles from "./GlobalActionButtonRow.module.css";
+import ThumbnailConfigPopup from "../ThumbnailConfigPopup";
 
 interface Props {
     className?: string;
@@ -19,6 +20,9 @@ export default function GlobalActionButtonRow(props: Props) {
     const dispatch = useDispatch();
     const fileView = useSelector(selection.selectors.getFileView);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
+
+    const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
+    const setThumbnailConfig = dispatch(selection.actions.setThumbnailConfig);
 
     return (
         <div className={classNames(styles.container, props.className)}>
@@ -49,6 +53,22 @@ export default function GlobalActionButtonRow(props: Props) {
                     }}
                     title="Small thumbnail view"
                 />
+                <div className={styles.thumbnailConfigButton}>
+                    <ThumbnailConfigPopup
+                        renderButton={function (onClick: () => void) {
+                            return (
+                                <TertiaryButton
+                                    iconName="Settings"
+                                    onClick={onClick}
+                                    title="Global thumbnail settings"
+                                    // disabled={!isThumbnailView}
+                                />
+                            );
+                        }}
+                        thumbnailConfig={thumbnailConfig}
+                        setThumbnailConfig={setThumbnailConfig}
+                    ></ThumbnailConfigPopup>
+                </div>
             </div>
             <div className={styles.buttonGroup}>
                 <TertiaryButton
