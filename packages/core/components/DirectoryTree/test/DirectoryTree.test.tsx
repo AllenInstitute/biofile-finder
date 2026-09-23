@@ -1,42 +1,40 @@
+import styles from "../DirectoryTreeNode.module.css";
 import {
     configureMockStore,
     createMockHttpClient,
     mergeState,
     ResponseStub,
 } from "@aics/redux-utils";
+import {
+    findAllByText as findAllByTextWithin,
+    findByRole as findByRoleWithin,
+    findByTestId,
+    fireEvent,
+    getByText as getByTextWithin,
+    render,
+    waitFor,
+} from "@testing-library/react";
 import { expect } from "chai";
 import { get as _get, range, tail } from "lodash";
 import * as React from "react";
-import {
-    fireEvent,
-    render,
-    waitFor,
-    findByTestId,
-    getByText as getByTextWithin,
-    findAllByText as findAllByTextWithin,
-    findByRole as findByRoleWithin,
-} from "@testing-library/react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
+import DirectoryTree from "../";
 import { ModalType } from "../../Modal";
 import { FESBaseUrl, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
-import { FmsFileAnnotation } from "../../../services/FileService";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import FileFolder from "../../../entity/FileFolder";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
-import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
-import HttpFileService from "../../../services/FileService/HttpFileService";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
+import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
+import { FmsFileAnnotation } from "../../../services/FileService";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 import { initialState, interaction, reducer, reduxLogics, selection } from "../../../state";
-
-import DirectoryTree from "../";
-
-import styles from "../DirectoryTreeNode.module.css";
 
 describe("<DirectoryTree />", () => {
     const sandbox = createSandbox();

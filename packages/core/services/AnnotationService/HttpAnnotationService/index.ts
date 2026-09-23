@@ -3,10 +3,10 @@ import { map } from "lodash";
 import IMMUTABLE_ANNOTATION_NAMES from "./immutableAnnotationNames";
 import AnnotationService, { AnnotationDetails } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation, { AnnotationResponseMms, AnnotationValue } from "../../../entity/Annotation";
 import { AnnotationType, AnnotationTypeIdMap } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
-import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
 import { DEFAULT_COLUMN_WIDTH } from "../../../entity/SearchParams";
 
 enum QueryParam {

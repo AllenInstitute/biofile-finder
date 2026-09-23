@@ -3,60 +3,60 @@ import { makeReducer } from "@aics/redux-utils";
 import { filter, sortBy, uniqueId } from "lodash";
 
 import {
+    DataSourcePromptInfo,
+    DOWNLOAD_MANIFEST,
+    DownloadManifestAction,
+    EXPAND_GRAPH,
     HIDE_CONTEXT_MENU,
     HIDE_DATASET_DETAILS_PANEL,
     HIDE_VISIBLE_MODAL,
-    REFRESH,
-    REMOVE_STATUS,
-    SET_USER_SELECTED_APPLICATIONS,
     INITIALIZE_APP,
-    SET_STATUS,
-    SET_VISIBLE_MODAL,
-    SHOW_CONTEXT_MENU,
-    SHOW_DATASET_DETAILS_PANEL,
-    SHOW_MANIFEST_DOWNLOAD_DIALOG,
-    SHOW_COPY_FILE_MANIFEST,
-    StatusUpdate,
-    MARK_AS_USED_APPLICATION_BEFORE,
     MARK_AS_DISMISSED_SMALL_SCREEN_WARNING,
-    ShowManifestDownloadDialogAction,
+    MARK_AS_USED_APPLICATION_BEFORE,
+    PROMPT_FOR_DATA_SOURCE,
+    PromptForDataSource,
+    REFRESH,
+    REFRESH_GRAPH,
+    REMOVE_STATUS,
+    SET_CONVERT_FILES_SNIPPET,
     SET_ENVIRONMENT_OVERRIDES,
+    SET_EXTRACT_METADATA_PYTHON_SNIPPET,
     SET_HAS_UNSAVED_CHANGES,
     SET_IS_AICS_EMPLOYEE,
-    SetEnvironmentOverrides,
-    PROMPT_FOR_DATA_SOURCE,
-    DownloadManifestAction,
-    DOWNLOAD_MANIFEST,
-    DataSourcePromptInfo,
-    PromptForDataSource,
-    SET_SELECTED_PUBLIC_DATASET,
-    SET_EXTRACT_METADATA_PYTHON_SNIPPET,
-    SET_CONVERT_FILES_SNIPPET,
-    SetVisibleModalAction,
-    SetOriginForProvenance,
+    SET_IS_GRAPH_LOADING,
     SET_ORIGIN_FOR_PROVENANCE,
+    SET_SELECTED_PUBLIC_DATASET,
+    SET_STATUS,
+    SET_USER_SELECTED_APPLICATIONS,
+    SET_VISIBLE_MODAL,
+    SetEnvironmentOverrides,
+    SetIsGraphLoading,
+    SetOriginForProvenance,
+    SetVisibleModalAction,
+    SHOW_CONTEXT_MENU,
+    SHOW_COPY_FILE_MANIFEST,
+    SHOW_DATASET_DETAILS_PANEL,
+    SHOW_MANIFEST_DOWNLOAD_DIALOG,
+    ShowManifestDownloadDialogAction,
+    StatusUpdate,
     TOGGLE_FILE_DETAILS_PANEL,
     ToggleFileDetailsPanel,
-    REFRESH_GRAPH,
-    EXPAND_GRAPH,
-    SetIsGraphLoading,
-    SET_IS_GRAPH_LOADING,
 } from "./actions";
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
 import { ModalType } from "../../components/Modal";
 import { Environment, EnvironmentOverrides } from "../../constants";
+import FileDetail from "../../entity/FileDetail";
 import FileFilter from "../../entity/FileFilter";
 import { PlatformDependentServices } from "../../services";
 import ApplicationInfoServiceNoop from "../../services/ApplicationInfoService/ApplicationInfoServiceNoop";
+import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
+import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import FileDownloadServiceNoop from "../../services/FileDownloadService/FileDownloadServiceNoop";
 import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerServiceNoop";
-import ExecutionEnvServiceNoop from "../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
+import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
-import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
-import DatabaseServiceNoop from "../../services/DatabaseService/DatabaseServiceNoop";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
-import FileDetail from "../../entity/FileDetail";
 
 export interface InteractionStateBranch {
     applicationVersion?: string;

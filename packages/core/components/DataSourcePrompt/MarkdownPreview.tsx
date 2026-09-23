@@ -1,7 +1,8 @@
 import * as React from "react";
 
-import styles from "./MarkdownPreview.module.css";
 import { ParsedFrontmatter } from "../../entity/MarkdownFrontMatter";
+
+import styles from "./MarkdownPreview.module.css";
 
 interface Props {
     mdFrontmatter?: ParsedFrontmatter;

@@ -1,15 +1,15 @@
+import StreamedZipDownloader from "../entity/StreamedZipDownloader";
+import Zarr from "../entity/Zarr";
 import annotationFormatterFactory, {
     AnnotationType,
 } from "../../../core/entity/AnnotationFormatter";
 import {
-    FileDownloadService,
-    DownloadResult,
-    FileInfo,
     DownloadResolution,
+    DownloadResult,
+    FileDownloadService,
+    FileInfo,
 } from "../../../core/services";
 import { isMultiObjectFile } from "../../../core/services/S3StorageService";
-import StreamedZipDownloader from "../entity/StreamedZipDownloader";
-import Zarr from "../entity/Zarr";
 
 export default class FileDownloadServiceWeb extends FileDownloadService {
     isFileSystemAccessible = false;

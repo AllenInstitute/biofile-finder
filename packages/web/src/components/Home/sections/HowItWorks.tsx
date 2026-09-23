@@ -1,10 +1,10 @@
+import styles from "../Home.module.css";
 import classNames from "classnames";
 import * as React from "react";
 
+import { HOW_CARDS, HOW_GRAPHIC, HOW_SUBTITLE } from "../content";
 import InfoCard from "../InfoCard";
 import Section from "../Section";
-import { HOW_CARDS, HOW_GRAPHIC, HOW_SUBTITLE } from "../content";
-import styles from "../Home.module.css";
 
 /** "How does BioFile Finder work?" — explanatory cards plus a flow diagram. */
 export default function HowItWorks() {

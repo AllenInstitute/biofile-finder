@@ -1,12 +1,11 @@
 // Local benchmark runner for developer machines. Supports cloud (S3/https) and local
 // fixtures, single scale or all scales, and side-by-side cloud vs local comparison (--full).
-
-import { ParquetSource } from "../benchmark/src/types";
-
-import path from "path";
-import fs from "fs";
 import { execSync } from "child_process";
+import fs from "fs";
+import path from "path";
+
 import { runBenchmarkPage } from "./lib/run-benchmark-page";
+import { ParquetSource } from "../benchmark/src/types";
 
 const LOCAL_BASE = "http://localhost:18765/fixtures/synthetic";
 const REMOTE_BASE =

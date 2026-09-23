@@ -1,5 +1,5 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
-import { render, fireEvent } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
