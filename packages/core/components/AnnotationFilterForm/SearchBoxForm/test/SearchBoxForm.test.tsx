@@ -168,9 +168,10 @@ describe("<SearchBoxForm/>", () => {
         expect(queryByText(errorText)).to.equal(null);
     });
 
-    it("does not show the exact-match error for the Contains operator", () => {
+    it("shows a contains error after blur only when no value contains the text, case-insensitively", () => {
         // Arrange
-        const errorText = /No files found with exactly matching value/;
+        const exactErrorText = /No files found with exactly matching value/;
+        const containsErrorText = /No files found containing this value/;
         const { getByRole, queryByText } = render(
             <SearchBoxForm
                 availableValues={["bar", "baz"]}
@@ -181,12 +182,49 @@ describe("<SearchBoxForm/>", () => {
             />
         );
 
-        // Act: type a value that isn't in the list and leave the input
+        // Act: type text no value contains and leave the input
         fireEvent.change(getByRole("searchbox"), { target: { value: "qux" } });
         fireEvent.blur(getByRole("searchbox"));
 
-        // Assert: no error, Contains searches by substring
-        expect(queryByText(errorText)).to.equal(null);
+        // Assert: contains-specific error, not the exact-match one
+        expect(queryByText(containsErrorText)).to.exist;
+        expect(queryByText(exactErrorText)).to.equal(null);
+
+        // Act: a substring that matches only by case
+        fireEvent.change(getByRole("searchbox"), { target: { value: "BA" } });
+        fireEvent.blur(getByRole("searchbox"));
+
+        // Assert: no error, Contains matches case-insensitively like the query
+        expect(queryByText(containsErrorText)).to.equal(null);
+    });
+
+    it("blocks submitting a contains value that no value contains", () => {
+        // Arrange
+        const onSearch = sinon.spy();
+        const { getByRole, queryByText } = render(
+            <SearchBoxForm
+                availableValues={["bar", "baz"]}
+                filters={[]}
+                onClearAll={noop}
+                onRemoveFilter={noop}
+                onSearch={onSearch}
+            />
+        );
+
+        // Act
+        submitSearch(getByRole("searchbox"), "qux");
+
+        // Assert: nothing committed, input retained, error shown
+        expect(onSearch.called).to.equal(false);
+        expect((getByRole("searchbox") as HTMLInputElement).value).to.equal("qux");
+        expect(queryByText(/No files found containing this value/)).to.exist;
+
+        // Act: a real substring commits as usual
+        submitSearch(getByRole("searchbox"), "ba");
+
+        // Assert
+        expect(onSearch.calledOnceWith("ba", FilterType.FUZZY)).to.equal(true);
+        expect((getByRole("searchbox") as HTMLInputElement).value).to.equal("");
     });
 
     it("blocks submitting an exact value that is not in the list and keeps the error visible", () => {

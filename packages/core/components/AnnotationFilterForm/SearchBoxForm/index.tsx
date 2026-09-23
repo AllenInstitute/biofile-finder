@@ -48,11 +48,16 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
         OPERATOR_OPTIONS.find((option) => option.key === committedType) ?? OPERATOR_OPTIONS[0];
     const willReplaceResults =
         !!searchText.trim() && props.filters.some((filter) => filter.type !== filterType);
+    const trimmedSearchText = searchText.trim();
+    const isExactMatch = filterType === FilterType.DEFAULT;
     const valueNotFound =
-        filterType === FilterType.DEFAULT &&
-        !!searchText.trim() &&
+        !!trimmedSearchText &&
         !!props.availableValues?.length &&
-        !props.availableValues.includes(searchText.trim());
+        (isExactMatch
+            ? !props.availableValues.includes(trimmedSearchText)
+            : !props.availableValues.some((value) =>
+                  value.toLowerCase().includes(trimmedSearchText.toLowerCase())
+              ));
 
     function onSearchSubmitted(value: string) {
         if (valueNotFound) {
@@ -100,7 +105,9 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
             {hasBlurred && valueNotFound ? (
                 <div className={styles.error}>
                     <Icon iconName="Warning" />
-                    No files found with exactly matching value
+                    {isExactMatch
+                        ? "No files found with exactly matching value"
+                        : "No files found containing this value"}
                 </div>
             ) : (
                 willReplaceResults && (

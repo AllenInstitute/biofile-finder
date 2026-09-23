@@ -322,16 +322,17 @@ describe("<AnnotationFilterForm />", () => {
             fireEvent.click(container.querySelector(".ms-ComboBox button") as HTMLElement);
             fireEvent.click(await screen.findByText("Contains"));
 
-            // act: submit a value with the new operator
+            // act: submit a value with the new operator (must be a substring of a real value,
+            // otherwise the form refuses to commit it)
             const searchbox = getByRole("searchbox");
-            fireEvent.change(searchbox, { target: { value: "z" } });
+            fireEvent.change(searchbox, { target: { value: "b" } });
             fireEvent.keyDown(searchbox, { key: "Enter", code: "Enter", keyCode: 13 });
             await logicMiddleware.whenComplete();
 
             // assert: the previous exact-match filter was replaced
             const filters = selection.selectors.getFileFilters(store.getState());
             expect(filters).to.be.lengthOf(1);
-            expect(filters[0].value).to.equal("z");
+            expect(filters[0].value).to.equal("b");
             expect(filters[0].type).to.equal(FilterType.FUZZY);
         });
     });
