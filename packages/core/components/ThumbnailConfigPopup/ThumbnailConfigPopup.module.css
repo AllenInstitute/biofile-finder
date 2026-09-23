@@ -1,0 +1,52 @@
+.callout {
+    border-radius: 4px;
+}
+
+.callout > div[role="dialog"] {
+    /* Allow the color picker to overflow the callout contents. */
+    overflow: visible;
+}
+
+.callout-content {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 20px 20px 20px;
+    color: var(--primary-text-color);
+    gap: 6px;
+}
+
+.callout-title-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.callout-title {
+    font-size: var(--l-paragraph-size);
+    font-weight: 600;
+}
+
+.callout-close-button {
+    max-width: 28px;
+    max-height: 28px;
+}
+
+.slice-sliders {
+    margin-bottom: 4px;
+}
+
+.channel-title {
+    margin: 8px 0 4px 0;
+    font-weight: 600;
+}
+
+.channel-control-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 6px 0;
+}

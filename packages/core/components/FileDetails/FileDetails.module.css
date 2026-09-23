@@ -103,10 +103,18 @@
     width: 100%;
 }
 
+.thumbnail-config-container {
+    /* 
+     * Contains thumbnail and thumbnail config button-- allow 
+     * relative positioning for the button. 
+     */
+    position: relative;
+    padding-bottom: var(--padding);
+}
+
 .thumbnail-container {
     display: flex;
     justify-content: center;
-    padding-bottom: var(--padding);
 }
 
 .thumbnail-container-clickable {
@@ -149,6 +157,12 @@
     max-width: 95vw;
     max-height: 95vh;
     object-fit: contain;
+}
+
+.thumbnail-config-popup-container {
+    position: absolute;
+    bottom: 6px;
+    left: 0px;
 }
 
 .resize-handle {
@@ -198,7 +212,7 @@
     margin-right: 5px;
 }
 
-.open-with-button { 
+.open-with-button {
     width: fit-content;
 }
 
