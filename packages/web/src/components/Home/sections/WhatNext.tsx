@@ -1,4 +1,3 @@
-import styles from "../Home.module.css";
 import classNames from "classnames";
 import * as React from "react";
 import { Link } from "react-router-dom";
@@ -7,6 +6,8 @@ import { ActionCard, NEXT_CARDS } from "../content";
 import InfoCard from "../InfoCard";
 import Section from "../Section";
 import { SecondaryButton } from "../../../../../core/components/Buttons";
+
+import styles from "../Home.module.css";
 
 /** Renders an action card's CTA as an internal Link or external anchor. */
 function CardAction(cta: ActionCard["cta"]) {
