@@ -1,7 +1,3 @@
-import {
-    ExecutableEnvCancellationToken,
-    SystemDefaultAppLocation,
-} from "./../../../../core/services";
 import { expect } from "chai";
 import { ipcRenderer } from "electron";
 import * as fs from "fs";
@@ -12,6 +8,10 @@ import { createSandbox } from "sinon";
 import ExecutionEnvServiceElectron from "../ExecutionEnvServiceElectron";
 import NotificationServiceElectron from "../NotificationServiceElectron";
 import { RUN_IN_RENDERER } from "../../util/constants";
+import {
+    ExecutableEnvCancellationToken,
+    SystemDefaultAppLocation,
+} from "../../../../core/services";
 
 describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
     const runningOnMacOS = os.type() === "Darwin";
