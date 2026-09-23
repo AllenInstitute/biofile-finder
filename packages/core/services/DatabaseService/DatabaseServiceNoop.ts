@@ -1,4 +1,5 @@
 import { noop } from "lodash";
+
 import DatabaseService from ".";
 import { CancellablePromise } from "../../entity/types";
 

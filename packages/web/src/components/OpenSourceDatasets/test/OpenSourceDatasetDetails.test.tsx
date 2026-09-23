@@ -4,14 +4,14 @@ import { expect } from "chai";
 import { get as _get, noop } from "lodash";
 import * as React from "react";
 import { Provider } from "react-redux";
-import { spy } from "sinon";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { spy } from "sinon";
 
 import DatasetDetails from "../OpenSourceDatasetDetails";
 import PublicDataset, { DATASET_DISPLAY_FIELDS } from "../../../entity/PublicDataset";
 import { makePublicDatasetMock } from "../../../entity/PublicDataset/mocks";
-import { initialState } from "../../../../../core/state";
 import DatabaseServiceNoop from "../../../../../core/services/DatabaseService/DatabaseServiceNoop";
+import { initialState } from "../../../../../core/state";
 
 describe("<OpenSourceDatasetDetails />", () => {
     describe("render", () => {

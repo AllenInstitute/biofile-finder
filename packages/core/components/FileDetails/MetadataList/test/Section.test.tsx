@@ -1,10 +1,10 @@
-import { render, fireEvent } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
+import sinon from "sinon";
 
 import Section from "../Section";
 import { MetadataValue } from "../../../../services/FileService";
-import sinon from "sinon";
 
 // Helper component that renders a child row for testing purposes
 // necessary because Section expects a renderer component as a child

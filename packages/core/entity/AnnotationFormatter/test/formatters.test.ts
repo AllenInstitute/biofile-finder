@@ -3,8 +3,8 @@ import { expect } from "chai";
 import booleanFormatter from "../boolean-formatter";
 import dateFormatter from "../date-formatter";
 import dateTimeFormatter from "../date-time-formatter";
-import numberFormatter from "../number-formatter";
 import durationFormatter from "../duration-formatter";
+import numberFormatter from "../number-formatter";
 
 describe("Annotation formatters", () => {
     describe("Boolean annotation formatter", () => {

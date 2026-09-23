@@ -1,11 +1,11 @@
 import * as React from "react";
 import { useSelector } from "react-redux";
 
+import PublicDataset, { PublicDatasetProps } from "../../entity/PublicDataset";
 import FileSet from "../../../../core/entity/FileSet";
+import FileSort from "../../../../core/entity/FileSort";
 import { interaction } from "../../../../core/state";
 import { getDatasetManifestSource } from "../../../../core/state/metadata/selectors";
-import FileSort from "../../../../core/entity/FileSort";
-import PublicDataset, { PublicDatasetProps } from "../../entity/PublicDataset";
 
 /**
  * Custom React hook to accomplish storing and fetching details of datasets (i.e., dataset metadata).

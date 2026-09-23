@@ -1,6 +1,6 @@
+import { buildQueryResult, DEFAULT_ITERATIONS, DEFAULT_WARMUP_ROUNDS } from "./stats";
 import { BENCHMARK_TASKS, createServices } from "./tasks";
 import { BenchmarkConfig, BenchmarkResults, QueryResult, SourceResult } from "./types";
-import { DEFAULT_ITERATIONS, DEFAULT_WARMUP_ROUNDS, buildQueryResult } from "./stats";
 import DatabaseServiceWebWorker from "../../src/services/DatabaseServiceWeb/duckdb-worker.worker";
 
 // Updates the #status element in the benchmark HTML page and mirrors to console.

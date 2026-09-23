@@ -1,5 +1,5 @@
 import { DefaultButton, IContextualMenuItem } from "@fluentui/react";
-import { getBezierPath, EdgeLabelRenderer, BaseEdge, EdgeProps, Edge } from "@xyflow/react";
+import { BaseEdge, Edge, EdgeLabelRenderer, EdgeProps, getBezierPath } from "@xyflow/react";
 import { isEmpty } from "lodash";
 import React, { FC } from "react";
 import { useSelector } from "react-redux";

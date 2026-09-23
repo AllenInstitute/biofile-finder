@@ -1,5 +1,5 @@
-import { AnnotationResponse } from "../../entity/Annotation";
 import { Environment, EnvironmentOverrides } from "../../constants";
+import { AnnotationResponse } from "../../entity/Annotation";
 import { Column, Query } from "../../state/selection/actions";
 
 /**

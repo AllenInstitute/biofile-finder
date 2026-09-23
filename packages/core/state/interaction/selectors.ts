@@ -2,6 +2,16 @@ import { uniqBy } from "lodash";
 import { createSelector } from "reselect";
 
 import { State } from "../";
+import {
+    getDatasetManifestSource,
+    getDataSources,
+    getEdgeDefinitions,
+} from "../metadata/selectors";
+import {
+    getPythonConversion,
+    getSelectedDataSources,
+    getSelectedSourceMetadata,
+} from "../selection/selectors";
 import { ModalType } from "../../components/Modal";
 import {
     AICS_FMS_DATA_SOURCE_NAME,
@@ -14,29 +24,19 @@ import {
     OverridableService,
     VolEBaseUrl,
 } from "../../constants";
-import {
-    getDatasetManifestSource,
-    getDataSources,
-    getEdgeDefinitions,
-} from "../metadata/selectors";
-import {
-    getSelectedDataSources,
-    getPythonConversion,
-    getSelectedSourceMetadata,
-} from "../selection/selectors";
+import Graph from "../../entity/Graph";
+import { isMarkdownType } from "../../entity/SearchParams";
 import { AnnotationService, FileService } from "../../services";
+import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
+import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import DatasetService, {
     DataSource,
     PythonicDataAccessSnippet,
 } from "../../services/DataSourceService";
-import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
-import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import HttpFileService from "../../services/FileService/HttpFileService";
-import S3StorageService from "../../services/S3StorageService";
 import PipelineService from "../../services/PipelineService";
-import Graph from "../../entity/Graph";
-import { isMarkdownType } from "../../entity/SearchParams";
+import S3StorageService from "../../services/S3StorageService";
 
 // BASIC SELECTORS
 export const getEnvironment = (state: State) => state.interaction.environment;

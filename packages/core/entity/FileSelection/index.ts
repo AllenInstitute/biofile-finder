@@ -1,9 +1,9 @@
 import { find, isArray, reject } from "lodash";
 
+import FileDetail from "../FileDetail";
 import FileFilter from "../FileFilter";
 import FileSet from "../FileSet";
 import NumericRange from "../NumericRange";
-import FileDetail from "../FileDetail";
 import { IndexError, ValueError } from "../../errors";
 import { Selection } from "../../services/FileService";
 
@@ -354,9 +354,8 @@ export default class FileSelection {
         const nextItemToFocus = this.getItemContainingSelectionIndex(
             nextFocusedIndexAcrossAllSelections
         );
-        const relativeStartIndexForNextFocusedItem = this.relativeStartIndexForItem(
-            nextItemToFocus
-        );
+        const relativeStartIndexForNextFocusedItem =
+            this.relativeStartIndexForItem(nextItemToFocus);
         const offset = nextFocusedIndexAcrossAllSelections - relativeStartIndexForNextFocusedItem;
         const indexWithinFileSet = nextItemToFocus.selection.min + offset;
         return nextSelection.focusByFileSet(nextItemToFocus.fileSet, indexWithinFileSet);

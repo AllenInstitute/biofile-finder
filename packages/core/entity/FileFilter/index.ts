@@ -1,8 +1,8 @@
 import { isEqual } from "lodash";
 
-import SQLBuilder from "../SQLBuilder";
 import { AnnotationType } from "../AnnotationFormatter";
-import resolvePathIsArray, { isLeafAnArray, hasArrayBeforeLeaf } from "../resolvePathIsArray";
+import resolvePathIsArray, { hasArrayBeforeLeaf, isLeafAnArray } from "../resolvePathIsArray";
+import SQLBuilder from "../SQLBuilder";
 import { NO_VALUE_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
 
 export interface FileFilterJson {

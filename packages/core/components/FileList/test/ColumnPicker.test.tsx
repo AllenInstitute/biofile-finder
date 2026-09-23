@@ -4,11 +4,10 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
+import ColumnPicker from "../ColumnPicker";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import { initialState, selection } from "../../../state";
-
-import ColumnPicker from "../ColumnPicker";
 
 describe("<ColumnPicker />", () => {
     const cellLine = new Annotation({

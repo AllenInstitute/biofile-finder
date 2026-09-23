@@ -1,8 +1,8 @@
 import * as actions from "./actions";
 import logics from "./logics";
 import reducer, {
-    initialState,
     InteractionStateBranch as _InteractionStateBranch,
+    initialState,
 } from "./reducer";
 import * as selectors from "./selectors";
 

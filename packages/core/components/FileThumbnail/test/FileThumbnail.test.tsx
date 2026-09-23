@@ -4,9 +4,8 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import { initialState } from "../../../state";
-
 import FileThumbnail from "..";
+import { initialState } from "../../../state";
 
 describe("<FileThumbnail />", () => {
     it("renders thumbnail one if one specified", () => {

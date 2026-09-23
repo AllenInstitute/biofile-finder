@@ -3,9 +3,9 @@ import * as React from "react";
 
 import DateTimePicker from "./DateTimePicker";
 import { TertiaryButton } from "../Buttons";
-import FileFilter from "../../entity/FileFilter";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import { extractDatesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/date-time-formatter";
+import FileFilter from "../../entity/FileFilter";
 
 import styles from "./DateRangePicker.module.css";
 
@@ -47,10 +47,8 @@ export default function DateRangePicker(props: DateRangePickerProps) {
 
     function onDateRangeSelection(startDate: Date | null, endDate: Date | null) {
         // Derive previous startDate/endDate from current filter state, if possible
-        const {
-            startDate: oldStartDate,
-            endDate: oldEndDate,
-        } = extractDatesFromRangeOperatorFilterString(currentRange?.value);
+        const { startDate: oldStartDate, endDate: oldEndDate } =
+            extractDatesFromRangeOperatorFilterString(currentRange?.value);
         if (oldEndDate) {
             // The RANGE() filter uses an exclusive upper bound.
             // However, we want to present dates in the UI as if the upper bound was inclusive.
