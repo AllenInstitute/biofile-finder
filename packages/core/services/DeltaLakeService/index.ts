@@ -293,8 +293,7 @@ export default class DeltaLakeService {
     /**
      * GET a log file.
      *
-     * Returns null for missing file, which is how the commit walk below
-     * discovers it has reached the newest version.
+     * Returns null for missing file.
      */
     private async fetchJsonString(url: string): Promise<string | null> {
         try {
