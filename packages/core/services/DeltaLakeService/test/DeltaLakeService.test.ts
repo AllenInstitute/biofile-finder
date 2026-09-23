@@ -146,7 +146,7 @@ describe("DeltaLakeService", () => {
     });
 
     describe("hosts that answer 403 for a missing key", () => {
-        it("detects a table whose missing log files (403 case)", async () => {
+        it("detects a table that is missing log files (403 case)", async () => {
             serveLogAsS3({ [commit(0)]: add("part-0.parquet") });
             expect(await service.isDeltaTable(TABLE_URL)).to.be.true;
         });
