@@ -80,11 +80,17 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     // always open on the range inputs. The default depends on asynchronously loaded
     // values, so it stays separate from the user's explicit choice.
     const hasFuzzyFilter = filtersForAnnotation.some((filter) => filter.type === FilterType.FUZZY);
+    // A range filter value is always formatted as "RANGE(...)". If existing filters exist
+    // but none are range-formatted, the user previously selected from the browse list.
+    const hasRangeFilter = filtersForAnnotation.some((filter) =>
+        String(filter.value).startsWith("RANGE(")
+    );
     const defaultTab =
-        props.annotation.type === AnnotationType.STRING &&
-        !hasFuzzyFilter &&
-        items.length > 0 &&
-        items.length <= 100
+        (props.annotation.type === AnnotationType.STRING &&
+            !hasFuzzyFilter &&
+            items.length > 0 &&
+            items.length <= 100) ||
+        (typeHasDedicatedPicker && filtersForAnnotation.length > 0 && !hasRangeFilter)
             ? "browse"
             : "form";
     const [selectedTab, setSelectedTab] = React.useState<"form" | "browse">();

@@ -517,6 +517,40 @@ describe("<AnnotationFilterForm />", () => {
             expect(getByTestId("default-button-8")).to.exist;
         });
 
+        it("defaults to the Browse list tab when discrete (non-range) filters are already applied", async () => {
+            // arrange: an annotation with existing browse-list filters (not range filters)
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: [5, 8, 6.3] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const state = mergeState(initialState, {
+                selection: {
+                    filters: [new FileFilter(fooAnnotation.name, 5)],
+                },
+            });
+            const { store } = configureMockStore({ state, responseStubs: responseStub });
+
+            // act
+            const { findByTestId, queryByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // assert: opens directly on the Browse list tab (not the Range tab)
+            expect(await findByTestId("default-button-5")).to.exist;
+            expect(queryByRole("searchbox")).to.not.exist;
+        });
+
         it("hides the Browse list tab for top-level file attributes whose values are never fetched", () => {
             // arrange
             const uploadedAnnotation = TOP_LEVEL_FILE_ANNOTATIONS.find(
