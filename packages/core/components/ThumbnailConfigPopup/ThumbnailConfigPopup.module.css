@@ -1,0 +1,16 @@
+.callout {
+    border-radius: 4px;
+}
+
+.callout-content {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 20px;
+    color: var(--primary-text-color);
+}
+
+.callout-title {
+    font-size: var(--l-paragraph-size);
+    font-weight: 600;
+    /* margin: 0; */
+}

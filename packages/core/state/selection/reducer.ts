@@ -114,7 +114,13 @@ export const initialState: SelectionStateBranch = {
         relativeT: 0.5,
         relativeZ: 0.5,
         overrideOmeroMetadata: false,
-        channelConfigs: [],
+        channelConfigs: [
+            {
+                hexColor: "FF00FF",
+                enabled: true,
+            },
+            { hexColor: "00FF00", enabled: true },
+        ],
     },
 };
 

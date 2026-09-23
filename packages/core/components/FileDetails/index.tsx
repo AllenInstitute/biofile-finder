@@ -7,6 +7,7 @@ import MetadataList from "./MetadataList";
 import Pagination from "./Pagination";
 import useThumbnailPath from "./useThumbnailPath";
 import { PrimaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
+import ThumbnailConfigPopup from "../ThumbnailConfigPopup";
 import Tooltip from "../Tooltip";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
@@ -204,6 +205,15 @@ export default function FileDetails(props: Props) {
                                 }}
                             />
                         </Modal>
+                        <ThumbnailConfigPopup
+                            renderButton={(onClick) => {
+                                return (
+                                    <button aria-label="Settings" onClick={onClick}>
+                                        ⚙️
+                                    </button>
+                                );
+                            }}
+                        />
                         <MetadataList file={props.fileDetails} isLoading={!!props.isLoading} />
                     </>
                 )}
