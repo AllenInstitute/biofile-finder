@@ -95,14 +95,13 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const hasRangeFilter = filtersForAnnotation.some((filter) =>
         String(filter.value).startsWith("RANGE(")
     );
-    const defaultTab =
+    const shouldDefaultToBrowse =
         (props.annotation.type === AnnotationType.STRING &&
             !hasFuzzyFilter &&
             items.length > 0 &&
             items.length <= 100) ||
-        (typeHasDedicatedPicker && filtersForAnnotation.length > 0 && !hasRangeFilter)
-            ? "browse"
-            : "form";
+        (typeHasDedicatedPicker && filtersForAnnotation.length > 0 && !hasRangeFilter);
+    const defaultTab = shouldDefaultToBrowse ? "browse" : "form";
     const [selectedTab, setSelectedTab] = React.useState<"form" | "browse">();
     const activeTab = selectedTab ?? defaultTab;
 
