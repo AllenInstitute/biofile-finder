@@ -1,12 +1,11 @@
+// Content is split into per-section files to keep each file focused and reviewable.
+// To add a new page: add its entry to the relevant section file.
 import { ABOUT_CONTENT } from "./about";
 import { APP_INFORMATION_CONTENT } from "./app-information";
 import { GETTING_STARTED_CONTENT } from "./getting-started";
 import { OTHER_RESOURCES_CONTENT } from "./other-resources";
 import { REAL_WORLD_USE_CASES_CONTENT } from "./real-world-use-cases";
 import { GroupSlug, NavigationGroup } from "./types";
-
-// Content is split into per-section files to keep each file focused and reviewable.
-// To add a new page: add its entry to the relevant section file.
 
 export type { NavigationGroup, Page } from "./types";
 
