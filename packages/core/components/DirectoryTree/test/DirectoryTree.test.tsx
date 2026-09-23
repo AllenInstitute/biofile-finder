@@ -1,4 +1,3 @@
-import styles from "../DirectoryTreeNode.module.css";
 import {
     configureMockStore,
     createMockHttpClient,
@@ -35,6 +34,8 @@ import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileD
 import { FmsFileAnnotation } from "../../../services/FileService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import { initialState, interaction, reducer, reduxLogics, selection } from "../../../state";
+
+import styles from "../DirectoryTreeNode.module.css";
 
 describe("<DirectoryTree />", () => {
     const sandbox = createSandbox();
