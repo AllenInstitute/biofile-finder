@@ -43,7 +43,7 @@ interface NumberRangePickerProps {
 export default function NumberRangePicker(props: NumberRangePickerProps) {
     const { errorMessage, items, loading, onSearch, onReset, currentRange, units } = props;
 
-    const overallMin = items[0]?.value?.toString() ?? props?.defaultMin ?? "";
+    const overallMin = items[0]?.value?.toString() ?? props.defaultMin ?? "";
     const overallMax = items.at(-1)?.value?.toString() ?? "";
     // On component load, default to slightly more than max so that values aren't excluded
     const defaultMax = overallMax ? (Number(overallMax) + 1).toString() : "";
@@ -59,10 +59,10 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
 
     // Formatted values to display below the field as a user hint, e.g., "10 KB" for 10000 bytes
     const searchMinDisplayValue = searchMinValue
-        ? props?.formatter?.displayValue(searchMinValue, units)
+        ? props.formatter?.displayValue(searchMinValue, units)
         : undefined;
     const searchMaxDisplayValue = searchMaxValue
-        ? props?.formatter?.displayValue(searchMaxValue, units)
+        ? props.formatter?.displayValue(searchMaxValue, units)
         : undefined;
 
     // Instead of removing filter completely, reset to min and max and submit
