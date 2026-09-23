@@ -2,10 +2,10 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 import { isEmpty } from "lodash";
 
 import { QueryRow, WorkerMsgType, WorkerReqPayload, WorkerRequest, WorkerResType } from "./types";
+import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
 import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
 import { Source } from "../../../../core/entity/SearchParams";
 import SQLBuilder from "../../../../core/entity/SQLBuilder";
-import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 import { DatabaseService } from "../../../../core/services";
 import { CancellablePromise, initializeDuckDB } from "../../../../core/services/DatabaseService";
@@ -122,16 +122,14 @@ const messageHandler: { [T in WorkerMsgType]: MessageHandler<T> } = {
             );
             // Annotation rows need to be converted into flat AnnotationResponse objects for worker
             // since message cannot contain functions
-            const result: AnnotationResponse[] = rows.map(
-                (row): AnnotationResponse => {
-                    return {
-                        annotationName: row.name,
-                        description: row.description,
-                        type: row.type,
-                        pathIsArray: row.pathIsArray,
-                    };
-                }
-            );
+            const result: AnnotationResponse[] = rows.map((row): AnnotationResponse => {
+                return {
+                    annotationName: row.name,
+                    description: row.description,
+                    type: row.type,
+                    pathIsArray: row.pathIsArray,
+                };
+            });
             return self.postMessage({ type: WorkerResType.RESULT, payload: { result, id } });
         } catch (err) {
             // post error with ID so parent class can cancel pending query
