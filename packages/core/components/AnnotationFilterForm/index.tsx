@@ -16,6 +16,7 @@ import Annotation from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import { interaction, selection } from "../../state";
 
 import styles from "./AnnotationFilterForm.module.css";
@@ -63,13 +64,36 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }));
     }, [props.annotation, annotationValues, filtersForAnnotation]);
 
+    // Top-level file attributes (file name, size, uploaded, etc.) never have their values
+    // fetched (see useAnnotationValues), so there is nothing for a "Browse list" tab to show.
+    const canBrowseList = !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(props.annotation.name);
+
+    // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
+    const typeHasDedicatedPicker =
+        props.annotation.name !== AnnotationName.FILE_SIZE &&
+        [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
+            props.annotation.type
+        );
+
+    // Types with a dedicated form (text search, number/date range) also offer a
+    // "Browse list" tab. Short string value lists open on the list; range pickers
+    // always open on the range inputs. The default depends on asynchronously loaded
+    // values, so it stays separate from the user's explicit choice.
     const hasFuzzyFilter = filtersForAnnotation.some((filter) => filter.type === FilterType.FUZZY);
-    const defaultTab = hasFuzzyFilter
-        ? "search"
-        : items.length > 0 && items.length <= 100
-        ? "browse"
-        : "search";
-    const [selectedTab, setSelectedTab] = React.useState<"search" | "browse">();
+    // A range filter value is always formatted as "RANGE(...)". If existing filters exist
+    // but none are range-formatted, the user previously selected from the browse list.
+    const hasRangeFilter = filtersForAnnotation.some((filter) =>
+        String(filter.value).startsWith("RANGE(")
+    );
+    const defaultTab =
+        (props.annotation.type === AnnotationType.STRING &&
+            !hasFuzzyFilter &&
+            items.length > 0 &&
+            items.length <= 100) ||
+        (typeHasDedicatedPicker && filtersForAnnotation.length > 0 && !hasRangeFilter)
+            ? "browse"
+            : "form";
+    const [selectedTab, setSelectedTab] = React.useState<"form" | "browse">();
     const activeTab = selectedTab ?? defaultTab;
 
     const onDeselectAll = () => {
@@ -189,12 +213,45 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         />
     );
 
-    // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
-    const typeHasDedicatedPicker =
-        props.annotation.name !== AnnotationName.FILE_SIZE &&
-        [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
-            props.annotation.type
+    const renderTabbedPicker = (pickerLabel: string, picker: React.ReactNode) => {
+        if (!canBrowseList) {
+            return (
+                <div className={classNames(styles.picker, styles.tabbedPicker)}>
+                    <div className={styles.modeContainer}>{picker}</div>
+                </div>
+            );
+        }
+
+        const isFormActive = activeTab === "form";
+        const tabs: { key: "form" | "browse"; label: string }[] = [
+            { key: "form", label: pickerLabel },
+            { key: "browse", label: "Browse list" },
+        ];
+        return (
+            <div className={classNames(styles.picker, styles.tabbedPicker)}>
+                <div className={styles.modeContainer}>
+                    <div className={styles.tabs} role="tablist">
+                        {tabs.map((tab) => (
+                            <button
+                                aria-selected={activeTab === tab.key}
+                                className={classNames(styles.tab, {
+                                    [styles.tabActive]: activeTab === tab.key,
+                                })}
+                                key={tab.key}
+                                onClick={() => setSelectedTab(tab.key)}
+                                role="tab"
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                    {/* Kept mounted so draft input survives switching to the list and back */}
+                    <div className={classNames({ [styles.hidden]: !isFormActive })}>{picker}</div>
+                    {!isFormActive && listPickerComponent}
+                </div>
+            </div>
         );
+    };
 
     const searchFormType = () => {
         // Types with dedicated pickers (number, date, datetime) use their own UI.
@@ -210,9 +267,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         switch (props.annotation.type) {
             case AnnotationType.DATE:
             case AnnotationType.DATETIME:
-                return (
+                return renderTabbedPicker(
+                    "Range",
                     <DateRangePicker
-                        className={styles.picker}
+                        className={styles.rangePicker}
                         onSearch={onSearch}
                         onReset={onDeselectAll}
                         currentRange={filtersForAnnotation?.[0]}
@@ -220,9 +278,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     />
                 );
             case AnnotationType.NUMBER:
-                return (
+                return renderTabbedPicker(
+                    "Range",
                     <NumberRangePicker
-                        className={styles.picker}
+                        className={styles.rangePicker}
                         title={props.annotation.displayName}
                         items={items}
                         loading={isLoading}
@@ -233,42 +292,17 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     />
                 );
             case AnnotationType.STRING:
-                return (
-                    <div className={classNames(styles.picker, styles.stringPicker)}>
-                        <div className={styles.modeContainer}>
-                            <div className={styles.tabs}>
-                                <button
-                                    className={classNames(styles.tab, {
-                                        [styles.tabActive]: activeTab === "search",
-                                    })}
-                                    onClick={() => setSelectedTab("search")}
-                                >
-                                    Search
-                                </button>
-                                <button
-                                    className={classNames(styles.tab, {
-                                        [styles.tabActive]: activeTab === "browse",
-                                    })}
-                                    onClick={() => setSelectedTab("browse")}
-                                >
-                                    Browse list
-                                </button>
-                            </div>
-                            <SearchBoxForm
-                                availableValues={items.map((item) => String(item.value))}
-                                className={classNames({
-                                    [styles.hidden]: activeTab !== "search",
-                                })}
-                                filters={filtersForAnnotation}
-                                onClearAll={onDeselectAll}
-                                onRemoveFilter={(filter) =>
-                                    dispatch(selection.actions.removeFileFilter(filter))
-                                }
-                                onSearch={onCommitSearchValue}
-                            />
-                            {activeTab === "browse" && listPickerComponent}
-                        </div>
-                    </div>
+                return renderTabbedPicker(
+                    "Search",
+                    <SearchBoxForm
+                        availableValues={items.map((item) => String(item.value))}
+                        filters={filtersForAnnotation}
+                        onClearAll={onDeselectAll}
+                        onRemoveFilter={(filter) =>
+                            dispatch(selection.actions.removeFileFilter(filter))
+                        }
+                        onSearch={onCommitSearchValue}
+                    />
                 );
             case AnnotationType.DURATION:
             // prettier-ignore
