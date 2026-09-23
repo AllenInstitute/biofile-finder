@@ -540,15 +540,15 @@ describe("<AnnotationFilterForm />", () => {
             const { store } = configureMockStore({ state, responseStubs: responseStub });
 
             // act
-            const { findByTestId, queryByRole } = render(
+            const { findByRole, findByTestId } = render(
                 <Provider store={store}>
                     <AnnotationFilterForm annotation={fooAnnotation} />
                 </Provider>
             );
 
-            // assert: opens directly on the Browse list tab (not the Range tab)
+            // assert: opens directly on the Browse list tab (tab is selected and list items visible)
+            expect(await findByRole("tab", { name: "Browse list", selected: true })).to.exist;
             expect(await findByTestId("default-button-5")).to.exist;
-            expect(queryByRole("searchbox")).to.not.exist;
         });
 
         it("hides the Browse list tab for top-level file attributes whose values are never fetched", () => {
