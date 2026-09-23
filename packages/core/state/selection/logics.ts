@@ -1,76 +1,76 @@
 import { castArray, find, sortBy, truncate, uniqWith } from "lodash";
+import { batch } from "react-redux";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
-import { batch } from "react-redux";
 
 import {
+    ADD_DATASOURCE_RELOAD_ERROR,
     ADD_FILE_FILTER,
-    SELECT_FILE,
-    REORDER_ANNOTATION_HIERARCHY,
-    REMOVE_FILE_FILTER,
-    REMOVE_FROM_ANNOTATION_HIERARCHY,
-    SelectFileAction,
-    setAnnotationHierarchy,
-    setAvailableAnnotations,
-    setFileFilters,
-    setFileSelection,
-    TOGGLE_FILE_FOLDER_COLLAPSE,
-    setOpenFileFolders,
-    SET_ANNOTATION_HIERARCHY,
-    SELECT_NEARBY_FILE,
-    setSortColumn,
-    CHANGE_QUERY,
-    SetAnnotationHierarchyAction,
-    RemoveFromAnnotationHierarchyAction,
-    ReorderAnnotationHierarchyAction,
     ADD_QUERY,
+    addDataSourceReloadError,
+    AddDataSourceReloadError,
+    AddFileFilterAction,
     AddQuery,
-    changeQuery,
-    ChangeQuery,
-    setQueries,
-    REPLACE_DATA_SOURCE,
-    ReplaceDataSource,
-    REMOVE_QUERY,
-    resetQueryProperties,
+    CHANGE_DATA_SOURCES,
+    CHANGE_FILE_FILTER_TYPE,
+    CHANGE_PROVENANCE_ORIGIN_ID,
+    CHANGE_PROVENANCE_SOURCE,
+    CHANGE_QUERY,
+    CHANGE_SOURCE_METADATA,
     changeDataSources,
     ChangeDataSourcesAction,
-    CHANGE_DATA_SOURCES,
-    CHANGE_SOURCE_METADATA,
-    ChangeSourceMetadataAction,
-    changeSourceMetadata,
-    CHANGE_PROVENANCE_SOURCE,
+    ChangeFileFilterTypeAction,
+    changeProvenanceOriginId,
+    ChangeProvenanceOriginId,
     ChangeProvenanceSource,
     changeProvenanceSource,
-    CHANGE_PROVENANCE_ORIGIN_ID,
-    changeProvenanceOriginId,
-    setRequiresDataSourceReload,
-    addDataSourceReloadError,
-    removeDataSourceReloadError,
-    ADD_DATASOURCE_RELOAD_ERROR,
-    REMOVE_DATASOURCE_RELOAD_ERROR,
-    CHANGE_FILE_FILTER_TYPE,
-    AddDataSourceReloadError,
-    setFileView,
+    changeQuery,
+    ChangeQuery,
+    changeSourceMetadata,
+    ChangeSourceMetadataAction,
+    Column,
     EXPAND_ALL_FILE_FOLDERS,
-    toggleNullValueGroups,
-    setIsLoadingSource,
-    ChangeProvenanceOriginId,
+    REMOVE_DATASOURCE_RELOAD_ERROR,
+    REMOVE_FILE_FILTER,
+    REMOVE_FROM_ANNOTATION_HIERARCHY,
+    REMOVE_QUERY,
+    removeDataSourceReloadError,
+    RemoveFileFilterAction,
+    RemoveFromAnnotationHierarchyAction,
+    REORDER_ANNOTATION_HIERARCHY,
+    ReorderAnnotationHierarchyAction,
+    REPLACE_DATA_SOURCE,
+    ReplaceDataSource,
+    resetQueryProperties,
     RESIZE_COLUMN,
     ResizeColumnAction,
-    setColumns,
-    setHasUserSelectedColumns,
     SELECT_COLUMNS,
+    SELECT_FILE,
+    SELECT_NEARBY_FILE,
     SelectColumnsAction,
-    Column,
-    ChangeFileFilterTypeAction,
-    AddFileFilterAction,
-    RemoveFileFilterAction,
+    SelectFileAction,
+    SET_ANNOTATION_HIERARCHY,
+    setAnnotationHierarchy,
+    SetAnnotationHierarchyAction,
+    setAvailableAnnotations,
+    setColumns,
+    setFileFilters,
+    setFileSelection,
+    setFileView,
+    setHasUserSelectedColumns,
+    setIsLoadingSource,
+    setOpenFileFolders,
+    setQueries,
+    setRequiresDataSourceReload,
     setSelectedDescriptionSource,
+    setSortColumn,
+    TOGGLE_FILE_FOLDER_COLLAPSE,
+    toggleNullValueGroups,
 } from "./actions";
-import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import * as selectionSelectors from "./selectors";
-import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
+import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import { NO_VALUE_NODE, ROOT_NODE } from "../../components/DirectoryTree/directory-hierarchy-state";
+import { findChildNodes } from "../../components/DirectoryTree/findChildNodes";
 import Annotation, { AnnotationValue } from "../../entity/Annotation";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
@@ -518,7 +518,7 @@ const resizeColumnLogic = createLogic({
         dispatch(
             setColumns(
                 columns.map(
-                    (c) => ({ ...c, width: c.name === column.name ? width : c.width } as Column)
+                    (c) => ({ ...c, width: c.name === column.name ? width : c.width }) as Column
                 )
             )
         );
@@ -745,16 +745,13 @@ const changeDataSourceLogic = createLogic({
         let markdownError: Error | undefined;
         try {
             // Check if already exists in the cache
-            const cachedSources = databaseService.getDatasetDescriptionSources(
-                datasetDescriptionSource
-            );
+            const cachedSources =
+                databaseService.getDatasetDescriptionSources(datasetDescriptionSource);
             if (cachedSources) {
                 parsedMetadata = cachedSources;
             } else {
-                ({
-                    metadata: parsedMetadata,
-                    error: markdownError,
-                } = await databaseService.processMarkdown(datasetDescriptionSource));
+                ({ metadata: parsedMetadata, error: markdownError } =
+                    await databaseService.processMarkdown(datasetDescriptionSource));
             }
         } catch (e) {
             reject && reject(deps.action);
@@ -929,9 +926,8 @@ const changeProvenanceSourceLogic = createLogic({
 
         try {
             if (selectedSourceProvenance) {
-                const { edgeDefinitions, warnings } = await databaseService.processProvenance(
-                    selectedSourceProvenance
-                );
+                const { edgeDefinitions, warnings } =
+                    await databaseService.processProvenance(selectedSourceProvenance);
                 dispatch(metadata.actions.receiveEdgeDefinitions(edgeDefinitions));
                 // provenance definitions may finish loading after we've already processed url query args.
                 // If we do have a graph origin, this ensures the graph actually starts rendering
@@ -1069,9 +1065,8 @@ const changeQueryLogic = createLogic({
                 let parsedMetadata: DatasetSources | undefined;
                 try {
                     // Check if already exists in the cache
-                    const cachedSources = databaseService.getDatasetDescriptionSources(
-                        datasetDescriptionSource
-                    );
+                    const cachedSources =
+                        databaseService.getDatasetDescriptionSources(datasetDescriptionSource);
                     parsedMetadata = cachedSources
                         ? cachedSources
                         : (await databaseService.processMarkdown(datasetDescriptionSource))

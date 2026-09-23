@@ -15,9 +15,9 @@ import * as React from "react";
 import DatasetRow from "./DatasetRow";
 import useDatasetDetails from "./useDatasetDetails";
 import PublicDataset, {
-    PublicDatasetProps,
     DATASET_TABLE_FIELDS,
     DatasetAnnotations,
+    PublicDatasetProps,
 } from "../../entity/PublicDataset";
 import FileSort, { SortOrder } from "../../../../core/entity/FileSort";
 
@@ -32,20 +32,18 @@ export default function DatasetTable(props: DatasetTableProps) {
     const [sortColumn, setSortColumn] = React.useState<FileSort | undefined>(
         new FileSort(DatasetAnnotations.INDEX.displayLabel, SortOrder.ASC)
     );
-    const columns = DATASET_TABLE_FIELDS.map(
-        (value, index): IColumn => {
-            return {
-                key: `column${index}`,
-                name: value.displayLabel.toUpperCase(),
-                fieldName: value.name,
-                isResizable: true,
-                minWidth: value?.minWidth,
-                isSorted: sortColumn?.annotationName == value.displayLabel,
-                isSortedDescending: sortColumn?.order == SortOrder.DESC,
-                onColumnClick: () => onColumnClick(value.displayLabel),
-            };
-        }
-    );
+    const columns = DATASET_TABLE_FIELDS.map((value, index): IColumn => {
+        return {
+            key: `column${index}`,
+            name: value.displayLabel.toUpperCase(),
+            fieldName: value.name,
+            isResizable: true,
+            minWidth: value?.minWidth,
+            isSorted: sortColumn?.annotationName == value.displayLabel,
+            isSortedDescending: sortColumn?.order == SortOrder.DESC,
+            onColumnClick: () => onColumnClick(value.displayLabel),
+        };
+    });
     const [items, isLoading, error] = useDatasetDetails(sortColumn, props?.featured);
 
     const renderRow = (

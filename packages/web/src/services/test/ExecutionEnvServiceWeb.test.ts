@@ -1,4 +1,5 @@
 import { expect } from "chai";
+
 import ExecutionEnvServiceWeb from "../ExecutionEnvServiceWeb";
 
 describe("ExecutionEnvServiceWeb", () => {
@@ -20,8 +21,7 @@ describe("ExecutionEnvServiceWeb", () => {
             // Arrange
             const originalUserAgent = navigator.userAgent;
             Object.defineProperty(navigator, "userAgent", {
-                value:
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                value: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
                 configurable: true,
                 writable: true,
             });
