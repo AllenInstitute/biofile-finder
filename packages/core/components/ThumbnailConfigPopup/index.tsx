@@ -1,22 +1,18 @@
 import { Callout, DirectionalHint, Slider } from "@fluentui/react";
 import React, { ReactElement, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 
 import styles from "./ThumbnailConfigPopup.module.css";
 import Checkbox from "../Checkbox";
-import { selection } from "../../state";
 import { ThumbnailConfig } from "../../state/selection/actions";
 
 type ThumbnailConfigPopupProps = {
     renderButton: (onClick: () => void) => ReactElement;
+    thumbnailConfig: ThumbnailConfig;
+    setThumbnailConfig: (newConfig: ThumbnailConfig) => void;
 };
 
 export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): ReactElement {
-    const dispatch = useDispatch();
-    const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
-    const setThumbnailConfig = (newConfig: ThumbnailConfig) => {
-        dispatch(selection.actions.setThumbnailConfig(newConfig));
-    };
+    const { thumbnailConfig, setThumbnailConfig } = props;
 
     const [isCalloutVisible, setIsCalloutVisible] = useState(false);
     const divRef = useRef<HTMLDivElement>(null);

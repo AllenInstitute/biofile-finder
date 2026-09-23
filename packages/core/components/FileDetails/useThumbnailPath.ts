@@ -22,7 +22,7 @@ export default (fileDetails?: FileDetail, thumbnailConfig?: ThumbnailConfig) => 
                     setIsThumbnailLoading(false);
                 });
         }
-    }, [fileDetails, setIsThumbnailLoading, setThumbnailPath]);
+    }, [fileDetails, setIsThumbnailLoading, setThumbnailPath, thumbnailConfig]);
 
     return { isThumbnailLoading, thumbnailPath };
 };

@@ -9,6 +9,7 @@ import FileThumbnail from "../../components/FileThumbnail";
 import { FileView } from "../../entity/SearchParams";
 import FileSet from "../../entity/FileSet";
 import useTruncatedString from "../../hooks/useTruncatedString";
+import useDebounce from "../../hooks/useDebounce";
 import { selection } from "../../state";
 
 import styles from "./LazilyRenderedThumbnail.module.css";
@@ -54,7 +55,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     const overallIndex = fileGridColCount * rowIndex + columnIndex;
     const file = fileSet.getFileByIndex(overallIndex);
     const thumbnailSize = measuredWidth / fileGridColCount - 2 * MARGIN;
-    const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
+    const thumbnailConfig = useDebounce(useSelector(selection.selectors.getThumbnailConfig), 500);
 
     const isSelected = React.useMemo(() => {
         return fileSelection.isSelected(fileSet, overallIndex);

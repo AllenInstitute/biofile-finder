@@ -10,6 +10,7 @@ import { useButtonMenu } from "../../Buttons";
 import FileThumbnail from "../../FileThumbnail";
 import Tooltip from "../../Tooltip";
 import { FileNode as FileNodeType } from "../../../entity/Graph";
+import useDebounce from "../../../hooks/useDebounce";
 import useOpenWithMenuItems from "../../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../../hooks/useTruncatedString";
 import { interaction, selection } from "../../../state";
@@ -26,7 +27,7 @@ export default function FileNode(props: NodeProps<FileNodeType>) {
     const file = props.data.file;
     const dispatch = useDispatch();
     const graph = useSelector(interaction.selectors.getGraph);
-    const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
+    const thumbnailConfig = useDebounce(useSelector(selection.selectors.getThumbnailConfig), 500);
 
     const [thumbnail, setThumbnail] = React.useState<string | undefined>(file.thumbnail);
 

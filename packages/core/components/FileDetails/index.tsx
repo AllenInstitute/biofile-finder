@@ -13,10 +13,12 @@ import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
 import FileDetail from "../../entity/FileDetail";
 import Tutorial from "../../entity/Tutorial";
+import useDebounce from "../../hooks/useDebounce";
 import useDownloadFiles from "../../hooks/useDownloadFiles";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../hooks/useTruncatedString";
 import { selection } from "../../state";
+import { ThumbnailConfig } from "../../state/selection/actions";
 
 import styles from "./FileDetails.module.css";
 
@@ -80,14 +82,20 @@ function resizeHandleDoubleClick() {
 export default function FileDetails(props: Props) {
     const dispatch = useDispatch();
     const hasProvenanceSource = useSelector(selection.selectors.hasProvenanceSource);
-    const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
 
     const openWithMenuItems = useOpenWithMenuItems(props.fileDetails);
     const truncatedFileName = useTruncatedString(props.fileDetails?.name || "", 30);
+
+    const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
+    const debouncedThumbnailConfig = useDebounce(thumbnailConfig, 500);
+    const setThumbnailConfig = (newConfig: ThumbnailConfig) => {
+        dispatch(selection.actions.setThumbnailConfig(newConfig));
+    };
     const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(
         props.fileDetails,
-        thumbnailConfig
+        debouncedThumbnailConfig
     );
+
     const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(
         props.fileDetails
     );
@@ -213,6 +221,8 @@ export default function FileDetails(props: Props) {
                                     </button>
                                 );
                             }}
+                            thumbnailConfig={thumbnailConfig}
+                            setThumbnailConfig={setThumbnailConfig}
                         />
                         <MetadataList file={props.fileDetails} isLoading={!!props.isLoading} />
                     </>
