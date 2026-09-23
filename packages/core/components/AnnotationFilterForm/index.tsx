@@ -61,7 +61,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     // Format display values once per value list. Formatting is O(n) and can be expensive
     // (e.g. Intl date formatting), so keep it out of the memo that reacts to filter changes.
-    const formattedValues = React.useMemo(
+    const formattedValues: Omit<ListItem, "selected">[] = React.useMemo(
         () =>
             (annotationValues || []).map((value) => ({
                 displayValue: props.annotation.getDisplayValue(value) || value,
