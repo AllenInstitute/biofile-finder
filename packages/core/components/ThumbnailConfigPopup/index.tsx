@@ -1,9 +1,10 @@
-import { Callout, DirectionalHint, Slider } from "@fluentui/react";
+import { Callout, DirectionalHint } from "@fluentui/react";
 import React, { ReactElement, useRef, useState } from "react";
 
 import styles from "./ThumbnailConfigPopup.module.css";
 import Checkbox from "../Checkbox";
 import { ThumbnailConfig } from "../../state/selection/actions";
+import LabeledSlider from "../LabeledSlider";
 
 type ThumbnailConfigPopupProps = {
     renderButton: (onClick: () => void) => ReactElement;
@@ -35,7 +36,8 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 >
                     <div className={styles.calloutContent}>
                         <span className={styles.calloutTitle}>Global Thumbnail Settings</span>
-                        <Slider
+                        <LabeledSlider
+                            label={"Z"}
                             min={0}
                             max={100}
                             step={1}
@@ -46,10 +48,9 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                                     setThumbnailConfig({ ...thumbnailConfig, relativeZ: value });
                                 }
                             }}
-                        >
-                            Z
-                        </Slider>
-                        <Slider
+                        ></LabeledSlider>
+                        <LabeledSlider
+                            label={"T"}
                             min={0}
                             max={100}
                             step={1}
@@ -60,9 +61,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                                     setThumbnailConfig({ ...thumbnailConfig, relativeT: value });
                                 }
                             }}
-                        >
-                            T
-                        </Slider>
+                        ></LabeledSlider>
                         <Checkbox
                             initialValue={thumbnailConfig.overrideOmeroMetadata}
                             onChange={function (
