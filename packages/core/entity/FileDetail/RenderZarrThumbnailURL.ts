@@ -84,18 +84,23 @@ export async function renderZarrThumbnailURL(
                 let channels: OmeroChannel[] | undefined = undefined;
 
                 if (thumbnailConfig !== undefined) {
+                    const shape: number[] = await image.getShape(); // 0-level
+                    const axesNames = image.getAxesNames();
+                    const cIndex = axesNames.indexOf("c");
+                    const maxChannels = shape[cIndex];
+
                     const hasOmeroMetadata = image.omero !== undefined;
                     if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
                         const channelConfigs = thumbnailConfig.channelConfigs ?? [];
-                        channels = channelConfigs.map((config) => ({
-                            color: config.hexColor,
-                            active: config.enabled,
-                        }));
+                        channels = channelConfigs
+                            .map((config) => ({
+                                color: config.hexColor,
+                                active: config.enabled,
+                            }))
+                            .filter((_, index) => index < maxChannels);
                     }
                     console.log("channels", channels);
 
-                    const shape: number[] = await image.getShape(); // 0-level
-                    const axesNames = image.getAxesNames();
                     const zIndex: number = axesNames.indexOf("z");
                     const tIndex: number = axesNames.indexOf("t");
 

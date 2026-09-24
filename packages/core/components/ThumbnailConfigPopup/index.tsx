@@ -1,10 +1,13 @@
-import { Callout, DirectionalHint } from "@fluentui/react";
+import { Callout, ColorPicker, DirectionalHint, IconButton } from "@fluentui/react";
 import React, { ReactElement, useRef, useState } from "react";
 
 import styles from "./ThumbnailConfigPopup.module.css";
 import Checkbox from "../Checkbox";
 import { ThumbnailConfig } from "../../state/selection/actions";
 import LabeledSlider from "../LabeledSlider";
+import { SecondaryButton } from "../Buttons";
+
+const MIN_CHANNEL_CONTROLS = 3;
 
 type ThumbnailConfigPopupProps = {
     renderButton: (onClick: () => void) => ReactElement;
@@ -17,6 +20,58 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
 
     const [isCalloutVisible, setIsCalloutVisible] = useState(false);
     const divRef = useRef<HTMLDivElement>(null);
+
+    const onAddChannel = () => {
+        const newConfig = { ...thumbnailConfig };
+        newConfig.channelConfigs.push({ enabled: true, hexColor: "FFFFFF" });
+        setThumbnailConfig(newConfig);
+    };
+
+    const makeChannelControl = (index: number): ReactElement => {
+        const channelConfig = thumbnailConfig.channelConfigs[index];
+        const onToggleEnabled = (enabled: boolean) => {
+            const newConfig = { ...thumbnailConfig };
+            newConfig.channelConfigs[index].enabled = enabled;
+            setThumbnailConfig(newConfig);
+        };
+
+        const onColorChanged = (color: string) => {
+            const newConfig = { ...thumbnailConfig };
+            newConfig.channelConfigs[index].hexColor = color;
+            setThumbnailConfig(newConfig);
+        };
+
+        const onDeleteChannel = () => {
+            const newConfig = { ...thumbnailConfig };
+            newConfig.channelConfigs.splice(index, 1);
+            setThumbnailConfig(newConfig);
+        };
+
+        return (
+            <div className={styles.channelControlRow}>
+                <div className={styles.channelControlContainer}>
+                    <span>Channel {index}</span>
+                    <Checkbox
+                        label="Enabled"
+                        initialValue={channelConfig.enabled}
+                        onChange={(_e, checked) => onToggleEnabled(!!checked)}
+                    ></Checkbox>
+                    <ColorPicker
+                        color={"#" + channelConfig.hexColor}
+                        onChange={(_e, color) => onColorChanged(color.hex)}
+                        alphaType="none"
+                    ></ColorPicker>
+                </div>
+
+                {index >= MIN_CHANNEL_CONTROLS && (
+                    <IconButton
+                        iconProps={{ iconName: "Cancel" }}
+                        onClick={onDeleteChannel}
+                    ></IconButton>
+                )}
+            </div>
+        );
+    };
 
     return (
         <>
@@ -78,6 +133,17 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                             }}
                             label={"Override OMERO metadata"}
                         ></Checkbox>
+
+                        <div className={styles.channelControlList}>
+                            {thumbnailConfig.channelConfigs.map((_, index) => {
+                                return makeChannelControl(index);
+                            })}
+                        </div>
+
+                        <SecondaryButton
+                            title="+ Add Channel"
+                            onClick={onAddChannel}
+                        ></SecondaryButton>
                     </div>
                 </Callout>
             ) : null}
