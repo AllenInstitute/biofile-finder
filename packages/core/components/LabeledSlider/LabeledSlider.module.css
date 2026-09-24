@@ -7,17 +7,41 @@
     align-items: center;
 }
 
-.input {
+.labeled-slider-input,
+.labeled-slider-input > div {
+    width: fit-content;
+    min-width: unset;
+}
+
+.labeled-slider-input input {
     background-color: var(--secondary-background-color);
-    border: 1px solid var(--border-color);
     border-radius: var(--small-border-radius);
     color: var(--secondary-text-color);
+    border-color: var(--border-color);
+    min-width: 40px;
+    max-width: 40px;
+}
+
+.labeled-slider-input input:hover {
+    border-color: var(--border-secondary-color);
+}
+
+.labeled-slider-input:focus-within > ::after {
+    border: 1px solid var(--aqua);
+}
+
+.labeled-slider-input button:hover {
+    background-color: var(--secondary-background-color);
 }
 
 .slider-container {
-  width: 100%;
+    width: 100%;
+}
+
+.slider-container > div {
+    background-color: unset;
 }
 
 .slider-container :global(.ms-Slider-value) {
-  display: none;
+    display: none;
 }

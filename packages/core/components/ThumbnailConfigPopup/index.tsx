@@ -36,8 +36,9 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 >
                     <div className={styles.calloutContent}>
                         <span className={styles.calloutTitle}>Global Thumbnail Settings</span>
+
                         <LabeledSlider
-                            label={"Z"}
+                            label={"Z%"}
                             min={0}
                             max={100}
                             step={1}
@@ -49,8 +50,9 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                                 }
                             }}
                         ></LabeledSlider>
+
                         <LabeledSlider
-                            label={"T"}
+                            label={"T%"}
                             min={0}
                             max={100}
                             step={1}
@@ -62,6 +64,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                                 }
                             }}
                         ></LabeledSlider>
+
                         <Checkbox
                             initialValue={thumbnailConfig.overrideOmeroMetadata}
                             onChange={function (
