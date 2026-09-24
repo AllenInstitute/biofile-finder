@@ -1,4 +1,5 @@
 import { ContextualMenuItemType, IContextualMenuItem, IContextualMenuProps } from "@fluentui/react";
+import classNames from "classnames";
 import { noop } from "lodash";
 import * as React from "react";
 
@@ -29,7 +30,10 @@ function normalizeButtonMenu(menu: IContextualMenuProps): IContextualMenuProps {
         ...menu,
         shouldFocusOnMount: true,
         className: styles.buttonMenu,
-        calloutProps: { className: styles.buttonMenuCallout },
+        calloutProps: {
+            ...menu.calloutProps,
+            className: classNames(styles.buttonMenuCallout, menu.calloutProps?.className),
+        },
         items: menu.items.map((item) => normalizeButtonMenuItem(item)),
         onRestoreFocus: noop, // Prevent button from refocusing on menu close
     };

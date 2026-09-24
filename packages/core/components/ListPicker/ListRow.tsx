@@ -34,6 +34,7 @@ interface Props {
     onSelect: (item: ListItem) => void;
     onDeselect: (item: ListItem) => void;
     subMenuRenderer?: (item: ListItem) => React.ReactElement;
+    onSubMenuToggle?: (item: ListItem, isOpen: boolean) => void;
 }
 
 /**
@@ -45,6 +46,8 @@ export default function ListRow(props: Props) {
         directionalHint: DirectionalHint.rightTopEdge,
         // necessary to have a non-empty items list to have `onRenderMenuList` called
         items: [{ key: "placeholder" }],
+        calloutProps: { className: styles.subMenuCallout },
+        onMenuOpened: () => props.onSubMenuToggle?.(item as ListItem, true),
         onRenderMenuList: () => props.subMenuRenderer?.(item as ListItem) as React.ReactElement,
     });
 
@@ -74,6 +77,7 @@ export default function ListRow(props: Props) {
                     iconName: props.subMenuRenderer && !item.isDivider ? "ChevronRight" : undefined,
                 }}
                 menuProps={props.subMenuRenderer ? buttonMenu : undefined}
+                onAfterMenuDismiss={() => props.onSubMenuToggle?.(item, false)}
                 data-testid={`default-button-${item.value}`}
                 disabled={item.disabled}
                 onClick={() => (item.selected ? props.onDeselect(item) : props.onSelect(item))}

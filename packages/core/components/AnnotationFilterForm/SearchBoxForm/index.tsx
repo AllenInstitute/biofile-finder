@@ -1,58 +1,146 @@
+import { ActionButton, Icon } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 
-import Checkbox from "../../Checkbox";
-import { ListItem } from "../../ListPicker/ListRow";
+import { TransparentIconButton } from "../../Buttons";
+import ComboBox from "../../ComboBox";
 import SearchBox from "../../SearchBox";
+import Tooltip from "../../Tooltip";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 
 import styles from "./SearchBoxForm.module.css";
 
+const OPERATOR_OPTIONS = [
+    {
+        key: FilterType.DEFAULT,
+        text: "Exactly matches",
+        data: { tooltip: "Finds only values identical to your input" },
+    },
+    {
+        key: FilterType.FUZZY,
+        text: "Contains",
+        data: { tooltip: "Finds values that include your input" },
+    },
+];
+
 interface SearchBoxFormProps {
+    availableValues?: string[];
     className?: string;
-    items?: ListItem[];
-    title?: string;
-    onDeselect?: (item: ListItem) => void;
-    onDeselectAll: () => void;
-    onSelect?: (item: ListItem) => void;
-    onSelectAll: () => void;
+    filters: FileFilter[];
+    onClearAll: () => void;
+    onRemoveFilter: (filter: FileFilter) => void;
     onSearch: (filterValue: string, type: FilterType) => void;
-    fieldName: string;
-    fuzzySearchEnabled?: boolean;
-    hideFuzzyToggle?: boolean;
-    defaultValue: FileFilter | undefined;
 }
 
 /**
- * This component renders a simple form for searching on text values
- * with a toggle for exact vs fuzzy (non-exact) search matching
+ * A form for searching on text values, matching either exactly or by
+ * substring. Committed values render as removable chips below the input.
  */
 export default function SearchBoxForm(props: SearchBoxFormProps) {
-    const [isFuzzySearching, setIsFuzzySearching] = React.useState(!!props?.fuzzySearchEnabled);
+    const committedType = props.filters[0]?.type;
+    const [filterType, setFilterType] = React.useState<FilterType>(
+        committedType === FilterType.DEFAULT ? FilterType.DEFAULT : FilterType.FUZZY
+    );
+    const [searchText, setSearchText] = React.useState("");
+    const [hasBlurred, setHasBlurred] = React.useState(false);
+    const selectedOperator = OPERATOR_OPTIONS.find((option) => option.key === filterType);
+    const committedOperator =
+        OPERATOR_OPTIONS.find((option) => option.key === committedType) ?? OPERATOR_OPTIONS[0];
+    const willReplaceResults =
+        !!searchText.trim() && props.filters.some((filter) => filter.type !== filterType);
+    const trimmedSearchText = searchText.trim();
+    const isExactMatch = filterType === FilterType.DEFAULT;
+    const valueNotFound =
+        !!trimmedSearchText &&
+        !!props.availableValues?.length &&
+        (isExactMatch
+            ? !props.availableValues.includes(trimmedSearchText)
+            : !props.availableValues.some((value) =>
+                  value.toLowerCase().includes(trimmedSearchText.toLowerCase())
+              ));
 
     function onSearchSubmitted(value: string) {
-        props.onSearch(value, isFuzzySearching ? FilterType.FUZZY : FilterType.DEFAULT);
+        if (valueNotFound) {
+            setHasBlurred(true);
+            return;
+        }
+        props.onSearch(value, filterType);
+        setSearchText("");
+        setHasBlurred(false);
     }
 
     return (
         <div className={classNames(props.className, styles.container)}>
-            <h3 className={styles.title}>{props.title}</h3>
-            <Checkbox
-                className={classNames(styles.checkbox, {
-                    // [styles.checkboxHidden]: !!props?.hideFuzzyToggle,
-                })}
-                initialValue={isFuzzySearching}
-                onChange={(ev, isChecked) => setIsFuzzySearching(!!isChecked)}
-                label="Fuzzy search (non-exact matching)"
-                title={isFuzzySearching ? "Turn off fuzzy search" : "Turn on fuzzy search"}
-            />
-            <SearchBox
-                defaultValue={props.defaultValue}
-                onReset={props.onDeselectAll}
-                onSearch={onSearchSubmitted}
-                placeholder={"Search..."}
-                showSubmitButton={true}
-            />
+            <div className={styles.searchRow}>
+                <Tooltip
+                    content={selectedOperator?.data.tooltip}
+                    hostClassName={styles.operatorDropdown}
+                >
+                    <ComboBox
+                        label=""
+                        placeholder=""
+                        options={OPERATOR_OPTIONS}
+                        rootClassName={styles.operatorDropdownControl}
+                        selectedKey={filterType}
+                        onChange={(option) => option && setFilterType(option.key as FilterType)}
+                    />
+                </Tooltip>
+                <SearchBox
+                    className={styles.searchInput}
+                    onBlur={() => setHasBlurred(true)}
+                    onChange={(value) => {
+                        setSearchText(value);
+                        setHasBlurred(false);
+                    }}
+                    onReset={() => {
+                        setSearchText("");
+                        setHasBlurred(false);
+                    }}
+                    onSearch={onSearchSubmitted}
+                    placeholder="Search values..."
+                    showSubmitButton
+                    value={searchText}
+                />
+            </div>
+            {hasBlurred && valueNotFound ? (
+                <div className={styles.error}>
+                    <Icon iconName="Warning" />
+                    {isExactMatch
+                        ? "No files found with exactly matching value"
+                        : "No files found containing this value"}
+                </div>
+            ) : (
+                willReplaceResults && (
+                    <div className={styles.warning}>
+                        <Icon iconName="Warning" />
+                        Submitting this value search will replace the current results
+                    </div>
+                )
+            )}
+            {props.filters.length > 0 && (
+                <div className={styles.chips}>
+                    <span>{committedOperator.text}:</span>
+                    {props.filters.map((filter) => (
+                        <div className={styles.chip} key={String(filter.value)}>
+                            {String(filter.value)}
+                            <TransparentIconButton
+                                className={styles.chipRemove}
+                                iconName="Cancel"
+                                label={`Remove ${String(filter.value)}`}
+                                title={`Remove ${String(filter.value)}`}
+                                onClick={() => props.onRemoveFilter(filter)}
+                            />
+                        </div>
+                    ))}
+                    <ActionButton
+                        ariaLabel="Clear all"
+                        className={styles.clearAll}
+                        onClick={props.onClearAll}
+                    >
+                        Clear all
+                    </ActionButton>
+                </div>
+            )}
         </div>
     );
 }

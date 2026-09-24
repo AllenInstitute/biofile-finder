@@ -72,10 +72,6 @@ export const getFileGridColCount = createSelector(
     (fileView): number => FILE_VIEW_TO_COL_COUNT[fileView]
 );
 
-export const getFuzzyFilters = createSelector([getFileFilters], (filters): FileFilter[] =>
-    filters.filter((filter) => filter.type === FilterType.FUZZY)
-);
-
 export const getAnnotationsFilteredOut = createSelector([getFileFilters], (filters): FileFilter[] =>
     filters.filter((filter) => filter.type === FilterType.EXCLUDE)
 );
