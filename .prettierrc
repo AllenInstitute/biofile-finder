@@ -26,5 +26,6 @@
     "importOrderSeparation": true,
     "importOrderSortSpecifiers": true,
     "importOrderCaseInsensitive": true,
+    "importOrderSideEffects": false,
     "endOfLine": "auto"
 }
