@@ -1,3 +1,5 @@
+import "regenerator-runtime/runtime";
+
 import FrontendInsights, { LogLevel, reduxMiddleware } from "@aics/frontend-insights";
 import AmplitudeNodePlugin from "@aics/frontend-insights-plugin-amplitude-node";
 import { ipcRenderer } from "electron";
@@ -5,7 +7,6 @@ import { memoize } from "lodash";
 import * as React from "react";
 import { render } from "react-dom";
 import { Provider } from "react-redux";
-import "regenerator-runtime/runtime";
 
 import ApplicationInfoServiceElectron from "../services/ApplicationInfoServiceElectron";
 import DatabaseServiceElectron from "../services/DatabaseServiceElectron";
