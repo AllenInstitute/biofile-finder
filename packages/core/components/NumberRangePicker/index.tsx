@@ -6,8 +6,8 @@ import NumberField from "./NumberField";
 import { PrimaryButton, TertiaryButton } from "../Buttons";
 import LoadingIcon from "../Icons/LoadingIcon";
 import { AnnotationValue } from "../../entity/Annotation";
-import FileFilter from "../../entity/FileFilter";
 import { extractValuesFromRangeOperatorFilterString } from "../../entity/AnnotationFormatter/number-formatter";
+import FileFilter from "../../entity/FileFilter";
 
 import styles from "./NumberRangePicker.module.css";
 
@@ -63,10 +63,8 @@ export default function NumberRangePicker(props: NumberRangePickerProps) {
     }
 
     const onSubmitRange = () => {
-        const {
-            minValue: oldMinValue,
-            maxValue: oldMaxValue,
-        } = extractValuesFromRangeOperatorFilterString(currentRange?.value);
+        const { minValue: oldMinValue, maxValue: oldMaxValue } =
+            extractValuesFromRangeOperatorFilterString(currentRange?.value);
         const newMinValue = searchMinValue || oldMinValue || overallMin;
         const newMaxValue = searchMaxValue || oldMaxValue || defaultMax; // Ensure that actual max is not excluded
         if (newMinValue && newMaxValue) {

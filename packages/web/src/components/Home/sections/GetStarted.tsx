@@ -1,10 +1,11 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 
-import Section from "../Section";
 import { LINKS } from "../content";
-import styles from "../Home.module.css";
+import Section from "../Section";
 import { PrimaryButton } from "../../../../../core/components/Buttons";
+
+import styles from "../Home.module.css";
 
 /** "How do I get started?" — guidance summary plus guide + launch CTAs. */
 export default function GetStarted() {

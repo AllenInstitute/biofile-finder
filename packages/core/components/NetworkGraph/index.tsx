@@ -1,14 +1,14 @@
 import { SpinnerSize } from "@fluentui/react";
 import {
-    Edge,
-    ReactFlow,
-    EdgeTypes,
-    useNodesState,
-    useEdgesState,
     Controls,
-    useReactFlow,
-    ReactFlowProvider,
+    Edge,
+    EdgeTypes,
     FitViewOptions,
+    ReactFlow,
+    ReactFlowProvider,
+    useEdgesState,
+    useNodesState,
+    useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import classNames from "classnames";
@@ -23,9 +23,9 @@ import LoadingIcon from "../Icons/LoadingIcon";
 import {
     AnnotationEdge,
     EdgeType,
-    NodeType,
     FileNode as FileNodeType,
     MetadataNode as MetadataNodeType,
+    NodeType,
 } from "../../entity/Graph";
 import { interaction, selection } from "../../state";
 
@@ -64,9 +64,10 @@ function NetworkGraph(props: NetworkGraphProps) {
         setNodes(graph.nodes);
     }, [graph, setEdges, setNodes, refreshKey]);
 
-    const originNodeId = React.useMemo(() => nodes.find((node) => node.data.isSelected)?.id, [
-        nodes,
-    ]);
+    const originNodeId = React.useMemo(
+        () => nodes.find((node) => node.data.isSelected)?.id,
+        [nodes]
+    );
     const fitViewOptions: FitViewOptions<FileNodeType | MetadataNodeType> = React.useMemo(() => {
         if (!originNodeId) return {};
         // Center the origin node in the viewport and set the zoom level to fit the graph

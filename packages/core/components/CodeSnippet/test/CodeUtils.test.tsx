@@ -1,4 +1,5 @@
 import { expect } from "chai";
+
 import { detectBioioPlugins } from "../../CodeSnippet/CodeUtils";
 
 describe("detectBioioPlugins", () => {

@@ -1,8 +1,8 @@
 import { sampleSize } from "lodash";
 
 import FileDetail from ".";
-import { FmsFileAnnotation } from "../../services/FileService";
 import { Environment } from "../../constants";
+import { FmsFileAnnotation } from "../../services/FileService";
 
 const userAnnotations: FmsFileAnnotation[] = [
     {

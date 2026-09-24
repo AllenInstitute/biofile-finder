@@ -1,5 +1,5 @@
 import { configureMockStore, mergeState } from "@aics/redux-utils";
-import { render, fireEvent, waitFor } from "@testing-library/react";
+import { fireEvent, render, waitFor } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
@@ -103,7 +103,7 @@ describe("<ConvertToZarr />", () => {
                         )
                 );
             expect(hit, 'expected an updated snippet with `"scenes": 5`').to.exist;
-            return hit as typeof actions.list[number] | undefined;
+            return hit as (typeof actions.list)[number] | undefined;
         });
 
         expect(updated, "expected updated snippet action").to.exist;

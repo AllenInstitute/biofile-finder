@@ -1,7 +1,7 @@
 import { Shimmer } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { Droppable, Draggable } from "react-beautiful-dnd";
+import { Draggable, Droppable } from "react-beautiful-dnd";
 
 import DnDListItem from "./DnDListItem";
 

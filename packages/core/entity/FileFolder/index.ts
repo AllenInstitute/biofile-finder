@@ -1,4 +1,4 @@
-import { isString, isNumber } from "lodash";
+import { isNumber, isString } from "lodash";
 
 import { AnnotationValue } from "../Annotation";
 import { naturalComparator } from "../../util/strings";

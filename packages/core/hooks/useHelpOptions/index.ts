@@ -2,8 +2,8 @@ import { IContextualMenuItem } from "@fluentui/react";
 import { Dispatch } from "redux";
 
 import Tutorials from "./Tutorials";
-import { interaction, selection } from "../../state";
 import { ModalType } from "../../components/Modal";
+import { interaction, selection } from "../../state";
 
 export default function useHelpOptions(
     dispatch: Dispatch,
@@ -38,8 +38,7 @@ export default function useHelpOptions(
                   {
                       key: "tutorials",
                       text: "In-app tutorials",
-                      title:
-                          "List of available tutorials useful for getting familiar with the features of this application",
+                      title: "List of available tutorials useful for getting familiar with the features of this application",
                       subMenuProps: {
                           items: [
                               {

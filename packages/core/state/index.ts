@@ -1,17 +1,17 @@
 import { configureStore, mergeState } from "@aics/redux-utils";
 import axios, { AxiosInstance } from "axios";
-import { combineReducers, AnyAction, Middleware } from "redux";
+import { AnyAction, combineReducers, Middleware } from "redux";
 import { createLogicMiddleware } from "redux-logic";
 
 import interaction, { InteractionStateBranch } from "./interaction";
 import metadata, { MetadataStateBranch } from "./metadata";
 import selection, { SelectionStateBranch } from "./selection";
-import { PlatformDependentServices } from "../services";
-import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
-import FileSort from "../entity/FileSort";
+import { Query } from "./selection/actions";
 import FileFilter from "../entity/FileFilter";
 import FileFolder from "../entity/FileFolder";
-import { Query } from "./selection/actions";
+import FileSort from "../entity/FileSort";
+import { PlatformDependentServices } from "../services";
+import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
 
 export { interaction, metadata, selection };
 
@@ -103,7 +103,7 @@ export function createReduxStore(options: CreateStoreOptions = {}) {
                         (filter) => new FileFilter(filter.name, filter.value)
                     ),
                     openFolders: query.parts.openFolders.map(
-                        (folder) => new FileFolder(((folder as unknown) as string).split("."))
+                        (folder) => new FileFolder((folder as unknown as string).split("."))
                     ),
                 },
             })),

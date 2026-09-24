@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
-import { selection, interaction } from "../../../state";
-import { setExtractMetadataPythonSnippet } from "../../../state/interaction/actions";
 import CodeSnippet from "../../CodeSnippet";
 import { detectBioioPlugins } from "../../CodeSnippet/CodeUtils";
+import { interaction, selection } from "../../../state";
+import { setExtractMetadataPythonSnippet } from "../../../state/interaction/actions";
 
 export default function ExtractMetadata({ onDismiss }: ModalProps) {
     const dispatch = useDispatch();

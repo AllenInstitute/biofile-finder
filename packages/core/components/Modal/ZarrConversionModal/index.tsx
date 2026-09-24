@@ -5,11 +5,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { ModalProps } from "..";
 import BaseModal from "../BaseModal";
 import { SecondaryButton } from "../../Buttons";
+import ChoiceGroup from "../../ChoiceGroup";
+import CodeSnippet from "../../CodeSnippet";
+import { detectBioioPlugins } from "../../CodeSnippet/CodeUtils";
 import { interaction, selection } from "../../../state";
 import { setConvertFilesSnippet } from "../../../state/interaction/actions";
-import ChoiceGroup from "../../ChoiceGroup";
-import { detectBioioPlugins } from "../../CodeSnippet/CodeUtils";
-import CodeSnippet from "../../CodeSnippet";
 
 import styles from "./ConvertToZarr.module.css";
 

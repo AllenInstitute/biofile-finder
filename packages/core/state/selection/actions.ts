@@ -6,13 +6,13 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import FileSort from "../../entity/FileSort";
 import NumericRange from "../../entity/NumericRange";
-import Tutorial from "../../entity/Tutorial";
 import {
     EMPTY_QUERY_COMPONENTS,
-    SearchParamsComponents,
     FileView,
+    SearchParamsComponents,
     Source,
 } from "../../entity/SearchParams";
+import Tutorial from "../../entity/Tutorial";
 
 const STATE_BRANCH_NAME = "selection";
 

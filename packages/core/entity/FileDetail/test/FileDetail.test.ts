@@ -1,9 +1,8 @@
 import { expect } from "chai";
 import { uniqueId } from "lodash";
 
-import { Environment } from "../../../constants";
-
 import FileDetail, { FmsFile } from "..";
+import { Environment } from "../../../constants";
 import { MetadataValue } from "../../../services/FileService";
 
 describe("FileDetail", () => {

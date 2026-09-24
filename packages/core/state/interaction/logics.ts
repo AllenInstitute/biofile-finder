@@ -2,61 +2,61 @@ import { chunk, isEmpty, noop, sumBy, throttle, uniq, uniqueId } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import {
+    CANCEL_FILE_DOWNLOAD,
+    cancelFileDownload,
+    CancelFileDownloadAction,
+    COPY_FILES,
+    CopyFilesAction,
+    DELETE_METADATA,
+    DeleteMetadataAction,
+    DOWNLOAD_FILES,
     DOWNLOAD_MANIFEST,
+    DownloadFilesAction,
     DownloadManifestAction,
+    EDIT_FILES,
+    editFiles,
+    EditFilesAction,
+    EXPAND_GRAPH,
+    expandGraph,
+    ExpandGraph,
+    hideVisibleModal,
+    INITIALIZE_APP,
+    OPEN_WITH,
+    OPEN_WITH_DEFAULT,
+    openWith,
+    OpenWithAction,
+    OpenWithDefaultAction,
     processError,
     processInfo,
     processProgress,
     processStart,
     processSuccess,
-    removeStatus,
-    SHOW_CONTEXT_MENU,
-    CANCEL_FILE_DOWNLOAD,
-    CancelFileDownloadAction,
-    cancelFileDownload,
-    REFRESH,
-    OPEN_WITH,
-    OpenWithAction,
-    openWith,
-    OPEN_WITH_DEFAULT,
-    OpenWithDefaultAction,
-    DOWNLOAD_FILES,
-    DownloadFilesAction,
     PROMPT_FOR_NEW_EXECUTABLE,
-    setUserSelectedApplication,
-    INITIALIZE_APP,
+    REFRESH,
+    refreshGraph,
+    removeStatus,
+    SET_ENVIRONMENT_OVERRIDES,
+    SET_IS_SMALL_SCREEN,
+    SET_ORIGIN_FOR_PROVENANCE,
     setHasUnsavedChanges,
     setIsAicsEmployee,
-    SET_IS_SMALL_SCREEN,
-    SetIsSmallScreenAction,
-    setVisibleModal,
-    hideVisibleModal,
-    COPY_FILES,
-    CopyFilesAction,
-    EDIT_FILES,
-    EditFilesAction,
-    editFiles,
-    DELETE_METADATA,
-    DeleteMetadataAction,
-    SET_ORIGIN_FOR_PROVENANCE,
-    SetOriginForProvenance,
-    expandGraph,
-    ExpandGraph,
-    refreshGraph,
-    EXPAND_GRAPH,
     setIsGraphLoading,
-    SET_ENVIRONMENT_OVERRIDES,
+    SetIsSmallScreenAction,
+    SetOriginForProvenance,
+    setUserSelectedApplication,
+    setVisibleModal,
+    SHOW_CONTEXT_MENU,
 } from "./actions";
 import * as interactionSelectors from "./selectors";
+import { interaction, metadata, ReduxLogicDeps, selection } from "../";
 import { ModalType } from "../../components/Modal";
 import { EnvironmentOverrides, UNSAVED_DATA_WARNING } from "../../constants";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import annotationFormatterFactory, { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileDetail from "../../entity/FileDetail";
-import FileSet from "../../entity/FileSet";
 import FileSelection from "../../entity/FileSelection";
+import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
 import SearchParams, { DEFAULT_AICS_FMS_QUERY } from "../../entity/SearchParams";
 import {
@@ -432,10 +432,8 @@ const downloadFilesLogic = createLogic({
 
 const promptForNewExecutable = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
-        const {
-            executionEnvService,
-            notificationService,
-        } = interactionSelectors.getPlatformDependentServices(deps.getState());
+        const { executionEnvService, notificationService } =
+            interactionSelectors.getPlatformDependentServices(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
         const userSelectedApplications = interactionSelectors.getUserSelectedApplications(
             deps.getState()
@@ -531,15 +529,18 @@ const openWithDefault = createLogic({
         );
 
         // Map apps to the files they are meant to open
-        const appToFiles = filesToOpen.reduce((appToFilesMap, file) => {
-            const kinds = (file.getAnnotation(AnnotationName.KIND) ?? []) as string[];
-            const kind = kinds.length ? kinds[0] : "SYSTEM_DEFAULT";
-            const app = kindToApp[kind] || SYSTEM_DEFAULT_APP;
-            return {
-                ...appToFilesMap,
-                [app.filePath]: [...(appToFilesMap[app.filePath] || []), file],
-            };
-        }, {} as { [appFilePath: string]: FileDetail[] });
+        const appToFiles = filesToOpen.reduce(
+            (appToFilesMap, file) => {
+                const kinds = (file.getAnnotation(AnnotationName.KIND) ?? []) as string[];
+                const kind = kinds.length ? kinds[0] : "SYSTEM_DEFAULT";
+                const app = kindToApp[kind] || SYSTEM_DEFAULT_APP;
+                return {
+                    ...appToFilesMap,
+                    [app.filePath]: [...(appToFilesMap[app.filePath] || []), file],
+                };
+            },
+            {} as { [appFilePath: string]: FileDetail[] }
+        );
 
         // Dispatch openWith events for the files grouped by app
         Object.entries(appToFiles).forEach(([appFilePath, files]) => {
@@ -557,10 +558,8 @@ const openWithLogic = createLogic({
     async process(deps: ReduxLogicDeps, dispatch, done) {
         const fileService = interactionSelectors.getFileService(deps.getState());
         const fileSelection = selection.selectors.getFileSelection(deps.getState());
-        const {
-            fileViewerService,
-            executionEnvService,
-        } = interactionSelectors.getPlatformDependentServices(deps.getState());
+        const { fileViewerService, executionEnvService } =
+            interactionSelectors.getPlatformDependentServices(deps.getState());
         const sortColumn = selection.selectors.getSortColumn(deps.getState());
         const {
             payload: {
@@ -847,9 +846,8 @@ const setIsSmallScreen = createLogic({
         const isDisplayingSmallScreenModal = interactionSelectors.getIsDisplayingSmallScreenWarning(
             deps.getState()
         );
-        const hasDismissedSmallScreenWarning = interactionSelectors.getHasDismissedSmallScreenWarning(
-            deps.getState()
-        );
+        const hasDismissedSmallScreenWarning =
+            interactionSelectors.getHasDismissedSmallScreenWarning(deps.getState());
 
         if (
             isSmallScreen &&

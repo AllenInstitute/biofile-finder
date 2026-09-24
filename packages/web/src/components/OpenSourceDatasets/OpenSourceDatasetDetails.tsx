@@ -6,11 +6,11 @@ import PublicDataset, {
     DATASET_DISPLAY_FIELDS,
     DatasetAnnotations,
 } from "../../entity/PublicDataset";
-import { interaction } from "../../../../core/state";
 import { PrimaryButton, SecondaryButton } from "../../../../core/components/Buttons";
 import DatasetDetailsPanel, {
     DatasetDetail,
 } from "../../../../core/components/DatasetDetailsPanel";
+import { interaction } from "../../../../core/state";
 
 import styles from "./OpenSourceDatasetDetails.module.css";
 

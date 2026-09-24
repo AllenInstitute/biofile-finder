@@ -38,9 +38,8 @@ export default function AggregateInfoBox() {
             setLoading(true);
             const getAggregateInformation = async () => {
                 try {
-                    const { count, size } = await fileService.getAggregateInformation(
-                        fileSelection
-                    );
+                    const { count, size } =
+                        await fileService.getAggregateInformation(fileSelection);
                     if (!ignoreResponse) {
                         setAggregateData({ count, size: size ? filesize(size) : undefined });
                         setLoading(false);

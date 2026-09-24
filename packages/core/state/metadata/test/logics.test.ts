@@ -3,31 +3,31 @@ import { expect } from "chai";
 import { createSandbox } from "sinon";
 
 import {
-    receiveDataSources,
     RECEIVE_ANNOTATIONS,
-    requestAnnotations,
-    requestDataSources,
-    receiveDatasetManifest,
-    requestDatasetManifest,
     RECEIVE_PASSWORD_MAPPING,
-    requestPasswordMapping,
     receiveAnnotations,
+    receiveDatasetManifest,
+    receiveDataSources,
+    requestAnnotations,
+    requestDatasetManifest,
+    requestDataSources,
+    requestPasswordMapping,
 } from "../actions";
 import metadataLogics from "../logics";
 import { initialState, interaction } from "../../";
 import {
-    changeDataSources,
     CHANGE_DATA_SOURCES,
+    changeDataSources,
     SET_COLUMNS,
     SET_FILE_FILTERS,
     SET_HAS_USER_SELECTED_COLUMNS,
 } from "../../selection/actions";
-import DatasetService, { DataSource } from "../../../services/DataSourceService";
-import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
+import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
+import DatasetService, { DataSource } from "../../../services/DataSourceService";
 
 describe("Metadata logics", () => {
     describe("requestAnnotations", () => {

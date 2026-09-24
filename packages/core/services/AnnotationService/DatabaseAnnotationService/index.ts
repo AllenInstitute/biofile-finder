@@ -4,12 +4,12 @@ import AnnotationService, { AnnotationDetails } from "..";
 import DatabaseService, { CancellablePromise } from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
-import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import Annotation, { AnnotationValue } from "../../../entity/Annotation";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
-import { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH, Source } from "../../../entity/SearchParams";
 import { hasArrayBeforeLeaf } from "../../../entity/resolvePathIsArray";
+import { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH, Source } from "../../../entity/SearchParams";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
 interface Config {

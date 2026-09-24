@@ -1,16 +1,15 @@
 import { expect } from "chai";
 import { createSandbox, match } from "sinon";
 
+import DatabaseFileService from "..";
 import DatabaseService from "../../../DatabaseService";
+import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
+import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
+import { HIDDEN_UID_ANNOTATION } from "../../../../constants";
 import FileFilter from "../../../../entity/FileFilter";
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
-import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
-import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
-import { HIDDEN_UID_ANNOTATION } from "../../../../constants";
-
-import DatabaseFileService from "..";
 
 describe("DatabaseFileService", () => {
     const totalFileSize = 864452;

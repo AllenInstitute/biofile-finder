@@ -1,13 +1,12 @@
 // CI regression runner — benchmarks one branch against local fixtures and writes
 // benchmark-results-<branch>.json. Called once per branch by benchmark.yml.
-
-import { ParquetSource } from "../benchmark/src/types";
-import { BENCHMARK_TASKS } from "../benchmark/src/tasks";
-
-import path from "path";
-import fs from "fs";
 import { execSync } from "child_process";
+import fs from "fs";
+import path from "path";
+
 import { runBenchmarkPage } from "./lib/run-benchmark-page";
+import { BENCHMARK_TASKS } from "../benchmark/src/tasks";
+import { ParquetSource } from "../benchmark/src/types";
 
 const LARGE_TEST_CASE_LABELS = new Set(["10m+10m_2", "20m"]);
 

@@ -1,8 +1,8 @@
 import { DirectionalHint, IContextualMenuItem } from "@fluentui/react";
 import * as React from "react";
 
-import { PrimaryButton } from "../../../../core/components/Buttons";
 import { EXAMPLE_DATASET_URL } from "../Home/content";
+import { PrimaryButton } from "../../../../core/components/Buttons";
 
 /**
  * The two ways to launch the app:

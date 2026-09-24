@@ -5,6 +5,7 @@ import React from "react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
+import Pagination from "../Pagination";
 import FileSelection, { FocusDirective } from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
@@ -13,8 +14,6 @@ import FileServiceNoop from "../../../services/FileService/FileServiceNoop";
 import { initialState, interaction, selection } from "../../../state";
 
 import styles from "../Pagination.module.css";
-
-import Pagination from "../Pagination";
 
 describe("<Pagination />", () => {
     const sandbox = createSandbox();

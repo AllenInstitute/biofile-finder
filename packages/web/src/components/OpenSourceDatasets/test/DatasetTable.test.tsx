@@ -11,9 +11,9 @@ import DatasetTable from "../DatasetTable";
 import * as useDatasetDetails from "../useDatasetDetails";
 import { DATASET_TABLE_FIELDS, DatasetAnnotations } from "../../../entity/PublicDataset";
 import { makePublicDatasetMock } from "../../../entity/PublicDataset/mocks";
-import { initialState } from "../../../../../core/state";
-import DatabaseFileService from "../../../../../core/services/FileService/DatabaseFileService";
 import FileSort, { SortOrder } from "../../../../../core/entity/FileSort";
+import DatabaseFileService from "../../../../../core/services/FileService/DatabaseFileService";
+import { initialState } from "../../../../../core/state";
 
 describe("<DatasetTable />", () => {
     const sandbox = createSandbox();

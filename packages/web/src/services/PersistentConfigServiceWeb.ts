@@ -1,9 +1,9 @@
 import { lt, valid } from "semver";
 
 import {
-    PersistentConfigService,
     PersistedConfig,
     PersistedConfigKeys,
+    PersistentConfigService,
 } from "../../../core/services";
 
 interface PersistentConfigServiceWebOptions {

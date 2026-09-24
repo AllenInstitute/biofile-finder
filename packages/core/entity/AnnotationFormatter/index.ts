@@ -1,9 +1,9 @@
 import booleanFormatter from "./boolean-formatter";
 import dateFormatter from "./date-formatter";
 import dateTimeFormatter from "./date-time-formatter";
+import durationFormatter from "./duration-formatter";
 import identityFormatter from "./identity-formatter";
 import numberFormatter from "./number-formatter";
-import durationFormatter from "./duration-formatter";
 import { PrimitiveMetadataValue } from "../../services/FileService";
 
 export enum AnnotationType {

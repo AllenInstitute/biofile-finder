@@ -1,4 +1,5 @@
 import { noop } from "lodash";
+
 import DatabaseService, { CancellablePromise } from ".";
 
 export default class DatabaseServiceNoop extends DatabaseService {

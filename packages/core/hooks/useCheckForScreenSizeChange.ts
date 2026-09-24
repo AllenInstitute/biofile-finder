@@ -3,7 +3,6 @@ import { useDispatch } from "react-redux";
 
 import { interaction } from "../state";
 
-
 // Pixel size; used to alert users that screen is too small for optimal use
 const SMALL_SCREEN_BREAKPOINT = 768;
 
@@ -22,4 +21,4 @@ export default (measuredWidth: number) => {
         const isSmallScreen = measuredWidth < SMALL_SCREEN_BREAKPOINT;
         dispatch(interaction.actions.setIsSmallScreen(isSmallScreen));
     }, [dispatch, measuredWidth]);
-}
+};

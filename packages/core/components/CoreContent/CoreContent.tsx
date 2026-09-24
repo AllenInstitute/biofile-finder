@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import QuerySidebar from "../QuerySidebar";
-import GlobalActionButtonRow from "../GlobalActionButtonRow";
-import DirectoryTree from "../DirectoryTree";
 import DataSourcePrompt from "../DataSourcePrompt";
+import DirectoryTree from "../DirectoryTree";
+import GlobalActionButtonRow from "../GlobalActionButtonRow";
+import QuerySidebar from "../QuerySidebar";
 import RelationshipDiagram from "../RelationshipDiagram";
 import SearchParams from "../../entity/SearchParams";
 import { interaction, metadata, selection } from "../../state";
