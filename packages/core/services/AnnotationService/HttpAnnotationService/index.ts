@@ -91,6 +91,14 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
      * Fetch the unique values for a specific annotation.
      */
     public async fetchValues(annotation: string): Promise<AnnotationValue[]> {
+        // The values endpoint takes the annotation name as a path segment. A "/" in the name
+        // (e.g. "Shear Stress 1 target (dyn/cm2)") either splits the route (404) or, once encoded,
+        // is rejected by the server (400). The hierarchy root endpoint returns the same distinct
+        // values but takes the name as a query parameter, which encodes safely.
+        if (annotation.includes("/")) {
+            return this.fetchRootHierarchyValues([annotation], []);
+        }
+
         // Encode any special characters in the annotation as necessary
         const encodedAnnotation = HttpServiceBase.encodeURISection(annotation);
         const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_URL}/${encodedAnnotation}/values${this.pathSuffix}`;
