@@ -13,18 +13,23 @@
 
 .color-picker-button:disabled {
     cursor: not-allowed;
-    border: var(--border-color);
-    background-color: var(--accent-dark);
+    border: 1px solid var(--border-color);
 }
 
+/* Add colored inset square */
 .color-picker-button > span {
     height: 100%;
     width: 100%;
     max-height: calc(var(--size-px) - 2 * var(--padding-px));
     max-width: calc(var(--size-px) - 2 * var(--padding-px));
+    /* Set by JS via inline styling */
     background-color: var(--color-picker-color);
     border-radius: 2px;
     overflow: hidden;
+}
+
+.color-picker-button:disabled > span {
+    opacity: 0.5;
 }
 
 /* Darken color picker border */

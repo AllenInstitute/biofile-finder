@@ -1,15 +1,15 @@
 import { Callout, DirectionalHint } from "@fluentui/react";
 import React, { ReactElement, useRef, useState } from "react";
 
+import ThumbnailChannelConfigRow from "./ThumbnailChannelConfigRow";
 import { SecondaryButton, TransparentIconButton } from "../Buttons";
 import Checkbox from "../Checkbox";
-import ColorPickerButton from "../ColorPickerButton";
 import LabeledSlider from "../LabeledSlider";
 import { ThumbnailConfig } from "../../state/selection/actions";
 
 import styles from "./ThumbnailConfigPopup.module.css";
 
-const MIN_CHANNEL_CONTROLS = 3;
+const MIN_CHANNEL_CONTROLS = 1;
 
 type ThumbnailConfigPopupProps = {
     renderButton: (onClick: () => void) => ReactElement;
@@ -29,51 +29,33 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
         setThumbnailConfig(newConfig);
     };
 
-    const makeChannelControl = (index: number): ReactElement => {
-        const channelConfig = thumbnailConfig.channelConfigs[index];
-        const onToggleEnabled = (enabled: boolean) => {
-            const newConfig = { ...thumbnailConfig };
-            newConfig.channelConfigs[index].enabled = enabled;
-            setThumbnailConfig(newConfig);
-        };
-
-        const onColorChanged = (color: string) => {
-            const newConfig = { ...thumbnailConfig };
-            newConfig.channelConfigs[index].hexColor = color;
-            setThumbnailConfig(newConfig);
-        };
-
-        const onDeleteChannel = () => {
-            const newConfig = { ...thumbnailConfig };
-            newConfig.channelConfigs.splice(index, 1);
-            setThumbnailConfig(newConfig);
-        };
-
-        return (
-            <div className={styles.channelControlRow}>
-                <div className={styles.channelControlContainer}>
-                    <span>C{index}</span>
-                    <Checkbox
-                        label=""
-                        initialValue={channelConfig.enabled}
-                        onChange={(_e, checked) => onToggleEnabled(!!checked)}
-                    ></Checkbox>
-                    <ColorPickerButton
-                        hexColor={channelConfig.hexColor}
-                        onChange={onColorChanged}
-                        disabled={!channelConfig.enabled}
-                    ></ColorPickerButton>
-                </div>
-
-                {index >= MIN_CHANNEL_CONTROLS && (
-                    <TransparentIconButton
-                        iconName="Cancel"
-                        onClick={onDeleteChannel}
-                    ></TransparentIconButton>
-                )}
-            </div>
-        );
+    const onDeleteChannel = (index: number) => {
+        const newConfig = { ...thumbnailConfig };
+        newConfig.channelConfigs.splice(index, 1);
+        setThumbnailConfig(newConfig);
     };
+
+    const onChangeChannelConfig = (
+        index: number,
+        newConfig: { enabled: boolean; hexColor: string }
+    ) => {
+        const updatedConfig = { ...thumbnailConfig };
+        updatedConfig.channelConfigs[index] = newConfig;
+        setThumbnailConfig(updatedConfig);
+    };
+
+    const channelConfigRows = thumbnailConfig.channelConfigs.map((config, index) => {
+        return (
+            <ThumbnailChannelConfigRow
+                key={index}
+                channelConfig={config}
+                index={index}
+                onChange={(newConfig) => onChangeChannelConfig(index, newConfig)}
+                onDelete={() => onDeleteChannel(index)}
+                showDelete={thumbnailConfig.channelConfigs.length > MIN_CHANNEL_CONTROLS}
+            ></ThumbnailChannelConfigRow>
+        );
+    });
 
     return (
         <>
@@ -92,9 +74,17 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                     directionalHint={DirectionalHint.bottomLeftEdge}
                 >
                     <div className={styles.calloutContent}>
-                        <span className={styles.calloutTitle}>Global Thumbnail Settings</span>
+                        <div className={styles.calloutTitleRow}>
+                            <span className={styles.calloutTitle}>Global Thumbnail Settings</span>
+                            <TransparentIconButton
+                                className={styles.calloutCloseButton}
+                                iconName="Cancel"
+                                onClick={() => setIsCalloutVisible(false)}
+                            ></TransparentIconButton>
+                        </div>
 
                         <LabeledSlider
+                            className={styles.sliceSliders}
                             label={"Z%"}
                             min={0}
                             max={100}
@@ -109,6 +99,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                         ></LabeledSlider>
 
                         <LabeledSlider
+                            className={styles.sliceSliders}
                             label={"T%"}
                             min={0}
                             max={100}
@@ -122,6 +113,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                             }}
                         ></LabeledSlider>
 
+                        <p className={styles.channelTitle}>Channels</p>
                         <Checkbox
                             initialValue={thumbnailConfig.overrideOmeroMetadata}
                             onChange={function (
@@ -133,14 +125,9 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                                     overrideOmeroMetadata: !!isCheckedEv,
                                 });
                             }}
-                            label={"Override OMERO metadata"}
+                            label={"Override metadata colors (.zarr)"}
                         ></Checkbox>
-
-                        <div className={styles.channelControlList}>
-                            {thumbnailConfig.channelConfigs.map((_, index) => {
-                                return makeChannelControl(index);
-                            })}
-                        </div>
+                        <div className={styles.channelControlList}>{channelConfigRows}</div>
 
                         <SecondaryButton
                             text="+ Add Channel"

@@ -64,15 +64,6 @@ export async function renderZarrThumbnailURL(
     targetSize: number,
     thumbnailConfig?: ThumbnailConfig
 ): Promise<string | undefined> {
-    // thumbnailConfig = thumbnailConfig ?? {
-    //   relativeZ: 0.5,
-    //   relativeT: 0.5,
-    //   overrideOmeroMetadata: true,
-    //   channelConfigs: [
-    //     {hexColor: "FF0000", enabled: true},
-    //     {hexColor: "00FF00", enabled: true}
-    //   ]
-    // }
     try {
         return await retryWithTimeout(
             async () => {

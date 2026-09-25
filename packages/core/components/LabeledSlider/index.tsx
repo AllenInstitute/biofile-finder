@@ -1,9 +1,11 @@
 import { createTheme, PartialTheme, Slider, SpinButton, ThemeProvider } from "@fluentui/react";
+import classNames from "classnames";
 import React, { ReactElement, useCallback } from "react";
 
 import styles from "./LabeledSlider.module.css";
 
 interface LabeledSliderProps {
+    className?: string;
     label: string;
     value: number;
     onChange: (value: number) => void;
@@ -44,7 +46,7 @@ export default function LabeledSlider(props: LabeledSliderProps): ReactElement {
     });
 
     return (
-        <div className={styles.container}>
+        <div className={classNames([styles.container, props.className])}>
             <label htmlFor={id} style={{ width: labelWidth }}>
                 {label}
             </label>
