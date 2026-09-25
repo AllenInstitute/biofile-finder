@@ -1,13 +1,13 @@
 import { DefaultButton } from "@fluentui/react";
 // prettier-ignore
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, NodeProps, Position } from '@xyflow/react';
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import nodeMenuItems from "./nodeMenuItems";
 import { useButtonMenu } from "../../Buttons";
 import Tooltip from "../../Tooltip";
-import { MetadataNode as MetadataNodeType, getGridPosition } from "../../../entity/Graph";
+import { getGridPosition, MetadataNode as MetadataNodeType } from "../../../entity/Graph";
 import { interaction } from "../../../state";
 
 import styles from "./MetadataNode.module.css";

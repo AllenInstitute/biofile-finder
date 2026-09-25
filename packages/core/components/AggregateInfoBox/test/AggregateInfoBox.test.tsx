@@ -5,14 +5,13 @@ import React from "react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
+import AggregateInfoBox from "..";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import { SelectionAggregationResult } from "../../../services/FileService";
 import FileServiceNoop from "../../../services/FileService/FileServiceNoop";
 import { initialState, interaction } from "../../../state";
-
-import AggregateInfoBox from "..";
 
 describe("<AggregateInfoBox />", () => {
     const sandbox = createSandbox();
