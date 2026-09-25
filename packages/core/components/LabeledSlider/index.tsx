@@ -18,6 +18,9 @@ const defaultProps = {
     labelWidth: "40px",
 };
 
+/**
+ * Renders a labeled slider component and a spin button for numeric values.
+ */
 export default function LabeledSlider(props: LabeledSliderProps): ReactElement {
     props = { ...defaultProps, ...props };
     const id = `labeled-slider-${(props.label ?? "").replace(/\s+/g, "-").toLowerCase()}`;

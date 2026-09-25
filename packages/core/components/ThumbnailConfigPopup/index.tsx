@@ -1,12 +1,13 @@
-import { Callout, DirectionalHint, IconButton } from "@fluentui/react";
+import { Callout, DirectionalHint } from "@fluentui/react";
 import React, { ReactElement, useRef, useState } from "react";
 
-import styles from "./ThumbnailConfigPopup.module.css";
+import { SecondaryButton, TransparentIconButton } from "../Buttons";
 import Checkbox from "../Checkbox";
-import { ThumbnailConfig } from "../../state/selection/actions";
-import LabeledSlider from "../LabeledSlider";
-import { SecondaryButton } from "../Buttons";
 import ColorPickerButton from "../ColorPickerButton";
+import LabeledSlider from "../LabeledSlider";
+import { ThumbnailConfig } from "../../state/selection/actions";
+
+import styles from "./ThumbnailConfigPopup.module.css";
 
 const MIN_CHANNEL_CONTROLS = 3;
 
@@ -51,28 +52,24 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
         return (
             <div className={styles.channelControlRow}>
                 <div className={styles.channelControlContainer}>
-                    <span>Channel {index}</span>
+                    <span>C{index}</span>
                     <Checkbox
-                        label="Enabled"
+                        label=""
                         initialValue={channelConfig.enabled}
                         onChange={(_e, checked) => onToggleEnabled(!!checked)}
                     ></Checkbox>
                     <ColorPickerButton
                         hexColor={channelConfig.hexColor}
                         onChange={onColorChanged}
+                        disabled={!channelConfig.enabled}
                     ></ColorPickerButton>
-                    {/* <ColorPicker
-                        color={"#" + channelConfig.hexColor}
-                        onChange={(_e, color) => onColorChanged(color.hex)}
-                        alphaType="none"
-                    ></ColorPicker> */}
                 </div>
 
                 {index >= MIN_CHANNEL_CONTROLS && (
-                    <IconButton
-                        iconProps={{ iconName: "Cancel" }}
+                    <TransparentIconButton
+                        iconName="Cancel"
                         onClick={onDeleteChannel}
-                    ></IconButton>
+                    ></TransparentIconButton>
                 )}
             </div>
         );
@@ -146,7 +143,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                         </div>
 
                         <SecondaryButton
-                            title="+ Add Channel"
+                            text="+ Add Channel"
                             onClick={onAddChannel}
                         ></SecondaryButton>
                     </div>

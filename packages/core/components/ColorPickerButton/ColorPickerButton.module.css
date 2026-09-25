@@ -1,0 +1,55 @@
+/* Make a square color picker button with a colored inset square */
+.color-picker-button {
+    --size-px: 28px;
+    --padding-px: 5px;
+    height: var(--size-px);
+    width: var(--size-px);
+    min-width: unset;
+    min-height: unset;
+    border-radius: 4px;
+    padding: var(--padding-px);
+    overflow: hidden;
+}
+
+.color-picker-button:disabled {
+    cursor: not-allowed;
+    border: var(--border-color);
+    background-color: var(--accent-dark);
+}
+
+.color-picker-button > span {
+    height: 100%;
+    width: 100%;
+    max-height: calc(var(--size-px) - 2 * var(--padding-px));
+    max-width: calc(var(--size-px) - 2 * var(--padding-px));
+    background-color: var(--color-picker-color);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+/* Darken color picker border */
+.color-picker-container :global(.ms-ColorPicker-colorRect),
+.color-picker-container :global(.ms-ColorPicker-slider) {
+    border-color: var(--border-color);
+}
+
+/* Adjust input text + labels for dark BG  */
+.color-picker-container td,
+.color-picker-container :global(.ms-ColorPicker-input) input {
+    color: var(--primary-text-color);
+}
+
+/* Remove white background, change border color on focus */
+.color-picker-container :global(.ms-TextField-fieldGroup) {
+    background-color: transparent;
+    border-color: var(--border-color);
+}
+.color-picker-container :global(.ms-TextField-fieldGroup):focus-visible,
+.color-picker-container :global(.ms-TextField-fieldGroup):focus-within {
+    border-color: var(--aqua);
+}
+
+/* Disable default focus outline */
+.color-picker-container :global(.ms-TextField-fieldGroup)::after {
+    display: none;
+}
