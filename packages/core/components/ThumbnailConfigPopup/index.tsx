@@ -1,4 +1,4 @@
-import { Callout, ColorPicker, DirectionalHint, IconButton } from "@fluentui/react";
+import { Callout, DirectionalHint, IconButton } from "@fluentui/react";
 import React, { ReactElement, useRef, useState } from "react";
 
 import styles from "./ThumbnailConfigPopup.module.css";
@@ -6,6 +6,7 @@ import Checkbox from "../Checkbox";
 import { ThumbnailConfig } from "../../state/selection/actions";
 import LabeledSlider from "../LabeledSlider";
 import { SecondaryButton } from "../Buttons";
+import ColorPickerButton from "../ColorPickerButton";
 
 const MIN_CHANNEL_CONTROLS = 3;
 
@@ -56,11 +57,15 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                         initialValue={channelConfig.enabled}
                         onChange={(_e, checked) => onToggleEnabled(!!checked)}
                     ></Checkbox>
-                    <ColorPicker
+                    <ColorPickerButton
+                        hexColor={channelConfig.hexColor}
+                        onChange={onColorChanged}
+                    ></ColorPickerButton>
+                    {/* <ColorPicker
                         color={"#" + channelConfig.hexColor}
                         onChange={(_e, color) => onColorChanged(color.hex)}
                         alphaType="none"
-                    ></ColorPicker>
+                    ></ColorPicker> */}
                 </div>
 
                 {index >= MIN_CHANNEL_CONTROLS && (
