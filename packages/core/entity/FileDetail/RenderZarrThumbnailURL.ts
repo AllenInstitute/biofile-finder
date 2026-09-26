@@ -8,7 +8,7 @@
 // I am timeboxing this issue and moving on to the next task. - Sean M 08/30/2024
 // The same issue occurs with omezarr. Applying the same workaround - Will Moore October 2025
 
-import { ThumbnailConfig } from "../../state/selection/actions";
+import type { ThumbnailConfig } from "../../state/selection/actions";
 
 let omezarr: any;
 const isInTest = typeof global.it === "function";
@@ -90,7 +90,6 @@ export async function renderZarrThumbnailURL(
                             }))
                             .filter((_, index) => index < maxChannels);
                     }
-                    console.log("channels", channels);
 
                     const zIndex: number = axesNames.indexOf("z");
                     const tIndex: number = axesNames.indexOf("t");
