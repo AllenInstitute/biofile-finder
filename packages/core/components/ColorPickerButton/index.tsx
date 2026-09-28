@@ -26,7 +26,7 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
     // Handles a bug where, when clicking and dragging on the color picker,
     // releasing the mouse while outside the color picker would cause a parent
     // callout to dismiss. Disabling the default behavior (changing focus)
-    // when drags exit the color picker prevents this.
+    // when a drag exits the color picker prevents this.
     const isDraggingRef = React.useRef(false);
     const [preventFocusLoss, setPreventFocusLoss] = useState(false);
 
@@ -80,7 +80,7 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
                     hexColor={props.hexColor}
                     disabled={props.disabled}
                     onClick={() => setIsCalloutVisible(!isCalloutVisible)}
-                    title={"Select color (current color is #" + props.hexColor + ")"}
+                    title={"Select color"}
                 ></SwatchButton>
             </div>
             <div>
@@ -110,7 +110,7 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
                                         hexColor={color}
                                         key={index}
                                         onClick={() => props.onChange(color)}
-                                        title={"Select color #" + color}
+                                        title={"#" + color}
                                     />
                                 );
                             })}
