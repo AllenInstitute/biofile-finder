@@ -9,6 +9,7 @@ type SwatchButtonProps = {
     hexColor: string;
     disabled?: boolean;
     onClick?: () => void;
+    title?: string;
 };
 
 /**
@@ -28,6 +29,7 @@ export default function SwatchButton(props: SwatchButtonProps): ReactElement {
                 onClick={props.onClick}
                 disabled={props.disabled}
                 text=""
+                title={props.title}
             ></SecondaryButton>
         </div>
     );
