@@ -14,12 +14,24 @@ const OPERATOR_OPTIONS = [
     {
         key: FilterType.DEFAULT,
         text: "Exactly matches",
-        data: { tooltip: "Finds only values identical to your input" },
+        data: {
+            tooltip: (
+                <>
+                    Finds only values <strong>identical</strong> to your input
+                </>
+            ),
+        },
     },
     {
         key: FilterType.FUZZY,
         text: "Contains",
-        data: { tooltip: "Finds values that include your input" },
+        data: {
+            tooltip: (
+                <>
+                    Find all values that <strong>include</strong> your input
+                </>
+            ),
+        },
     },
 ];
 
@@ -46,9 +58,9 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
     const selectedOperator = OPERATOR_OPTIONS.find((option) => option.key === filterType);
     const committedOperator =
         OPERATOR_OPTIONS.find((option) => option.key === committedType) ?? OPERATOR_OPTIONS[0];
-    const willReplaceResults =
-        !!searchText.trim() && props.filters.some((filter) => filter.type !== filterType);
     const trimmedSearchText = searchText.trim();
+    const willReplaceResults =
+        !!trimmedSearchText && props.filters.some((filter) => filter.type !== filterType);
     const isExactMatch = filterType === FilterType.DEFAULT;
     const valueNotFound =
         !!trimmedSearchText &&

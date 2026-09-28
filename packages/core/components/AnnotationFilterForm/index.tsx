@@ -85,16 +85,18 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             props.annotation.type
         );
 
-    // Types with a dedicated form (text search, number/date range) also offer a
-    // "Browse list" tab. Short string value lists open on the list; range pickers
-    // always open on the range inputs. The default depends on asynchronously loaded
-    // values, so it stays separate from the user's explicit choice.
+    // "Contains" filters are only visible on the search form, not in the browse list
     const hasFuzzyFilter = filtersForAnnotation.some((filter) => filter.type === FilterType.FUZZY);
     // A range filter value is always formatted as "RANGE(...)". If existing filters exist
     // but none are range-formatted, the user previously selected from the browse list.
     const hasRangeFilter = filtersForAnnotation.some((filter) =>
         String(filter.value).startsWith("RANGE(")
     );
+    // Types with a dedicated form (text search, number/date range) also offer a
+    // "Browse list" tab. Short string value lists open on the list unless a "Contains"
+    // filter is applied; range pickers open on the range inputs unless the user previously
+    // selected from the list. The default depends on asynchronously loaded values, so it
+    // stays separate from the user's explicit choice (selectedTab).
     const shouldDefaultToBrowse =
         (props.annotation.type === AnnotationType.STRING &&
             !hasFuzzyFilter &&

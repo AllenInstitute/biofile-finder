@@ -110,6 +110,9 @@ export default function ListPicker(props: ListPickerProps) {
         [items]
     );
 
+    // Track whether the list overflows its container so the fade-out gradient and the
+    // extra bottom padding that make room for it only render when there is actually more
+    // content to scroll to.
     const mainContentRef = React.useRef<HTMLDivElement>(null);
     const [isScrollable, setIsScrollable] = React.useState(false);
     React.useLayoutEffect(() => {

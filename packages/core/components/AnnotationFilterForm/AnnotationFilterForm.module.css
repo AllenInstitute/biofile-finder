@@ -64,7 +64,7 @@
 }
 
 .list-picker::after {
-    bottom: calc(16px + var(--footer-height));
+    bottom: calc(16px + var(--footer-height) - 1px);
     left: 30px;
     position: absolute;
     right: 30px;
