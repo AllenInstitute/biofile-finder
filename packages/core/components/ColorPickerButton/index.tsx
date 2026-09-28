@@ -65,7 +65,7 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
             }
             document.body.removeEventListener("mouseup", handleMouseUp);
         };
-    }, [colorPickerContainerRef.current, preventFocusLoss]);
+    }, [preventFocusLoss]);
 
     const onCalloutDismiss = () => {
         setPreventFocusLoss(false);
