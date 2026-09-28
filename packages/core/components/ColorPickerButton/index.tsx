@@ -28,32 +28,36 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
     // callout to dismiss. Disabling the default behavior (changing focus)
     // when a drag exits the color picker prevents this.
     const isDraggingRef = React.useRef(false);
-    const [preventFocusLoss, setPreventFocusLoss] = useState(false);
+    const preventFocusLossRef = React.useRef(false);
 
     useEffect(() => {
         const handleMouseDown = () => {
             isDraggingRef.current = true;
         };
-        const handleMouseExit = () => {
+        const handleMouseLeave = () => {
             if (isDraggingRef.current) {
-                setPreventFocusLoss(true);
+                preventFocusLossRef.current = true;
+            }
+        };
+        const handleMouseEnter = () => {
+            if (isDraggingRef.current) {
+                preventFocusLossRef.current = false;
             }
         };
         const handleMouseUp = (event: MouseEvent) => {
-            if (preventFocusLoss) {
-                // Prevent focus loss when a click was initiated inside the
-                // color picker callout and then dragged outside.
+            if (preventFocusLossRef.current) {
                 event.preventDefault();
             }
             if (isDraggingRef.current) {
                 isDraggingRef.current = false;
-                setPreventFocusLoss(false);
+                preventFocusLossRef.current = false;
             }
         };
         const colorPickerContainer = colorPickerContainerRef.current;
         if (colorPickerContainer) {
             colorPickerContainer.addEventListener("mousedown", handleMouseDown);
-            colorPickerContainer.addEventListener("mouseleave", handleMouseExit);
+            colorPickerContainer.addEventListener("mouseleave", handleMouseLeave);
+            colorPickerContainer.addEventListener("mouseenter", handleMouseEnter);
         }
         document.body.addEventListener("mouseup", handleMouseUp, {
             capture: true,
@@ -61,14 +65,15 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
         return () => {
             if (colorPickerContainer) {
                 colorPickerContainer.removeEventListener("mousedown", handleMouseDown);
-                colorPickerContainer.removeEventListener("mouseleave", handleMouseExit);
+                colorPickerContainer.removeEventListener("mouseleave", handleMouseLeave);
+                colorPickerContainer.removeEventListener("mouseenter", handleMouseEnter);
             }
             document.body.removeEventListener("mouseup", handleMouseUp, { capture: true });
         };
-    }, [preventFocusLoss]);
+    }, []);
 
     const onCalloutDismiss = () => {
-        setPreventFocusLoss(false);
+        preventFocusLossRef.current = false;
         isDraggingRef.current = false;
         setIsCalloutVisible(false);
     };
@@ -83,14 +88,11 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
                     title={"Select color"}
                 ></SwatchButton>
             </div>
-            <div>
+            <div className={styles.calloutContainer}>
                 <Callout
                     role="dialog"
                     aria-label="Select color"
                     target={calloutRootRef.current}
-                    // TODO: Some layers of the callout still have a white BG color,
-                    // which causes some edge artifacts. Make a separate dark theme
-                    // component to handle callouts across the app.
                     backgroundColor="var(--primary-background-color)"
                     hidden={props.disabled || !isCalloutVisible}
                     onDismiss={onCalloutDismiss}
