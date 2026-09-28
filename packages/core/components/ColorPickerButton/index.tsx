@@ -63,7 +63,7 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
                 colorPickerContainer.removeEventListener("mousedown", handleMouseDown);
                 colorPickerContainer.removeEventListener("mouseleave", handleMouseExit);
             }
-            document.body.removeEventListener("mouseup", handleMouseUp);
+            document.body.removeEventListener("mouseup", handleMouseUp, { capture: true });
         };
     }, [preventFocusLoss]);
 
@@ -80,11 +80,13 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
                     hexColor={props.hexColor}
                     disabled={props.disabled}
                     onClick={() => setIsCalloutVisible(!isCalloutVisible)}
+                    title={"Select color (current color is #" + props.hexColor + ")"}
                 ></SwatchButton>
             </div>
             <div>
                 <Callout
                     role="dialog"
+                    aria-label="Select color"
                     target={calloutRootRef.current}
                     // TODO: Some layers of the callout still have a white BG color,
                     // which causes some edge artifacts. Make a separate dark theme
@@ -108,6 +110,7 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
                                         hexColor={color}
                                         key={index}
                                         onClick={() => props.onChange(color)}
+                                        title={"Select color #" + color}
                                     />
                                 );
                             })}
