@@ -36,3 +36,8 @@
     gap: 4px;
     margin: 0 20px 15px 20px;
 }
+
+/* Hide callout background layer that causes visual artifacts */
+.callout-container :global(.ms-Callout-beakCurtain) {
+    background-color: transparent;
+}
