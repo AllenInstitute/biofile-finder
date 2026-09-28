@@ -1,3 +1,4 @@
+import { CancellablePromise } from "../DatabaseService";
 import { DownloadResult } from "../FileDownloadService";
 import Annotation, { AnnotationValue } from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
@@ -69,7 +70,7 @@ export default interface FileService {
         user?: string
     ): Promise<void>;
     getAggregateInformation(fileSelection: FileSelection): Promise<SelectionAggregationResult>;
-    getCountOfMatchingFiles(fileSet: FileSet): Promise<number>;
+    getCountOfMatchingFiles(fileSet: FileSet): CancellablePromise<number>;
     getFiles(request: GetFilesRequest): Promise<FileDetail[]>;
     getFileByUid(uid: string): Promise<FileDetail | undefined>;
 }

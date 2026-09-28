@@ -1,11 +1,12 @@
 import FileService, { SelectionAggregationResult } from ".";
+import { CancellablePromise } from "../DatabaseService";
 import { DownloadResolution, DownloadResult } from "../FileDownloadService";
 import FileDetail from "../../entity/FileDetail";
 
 export default class FileServiceNoop implements FileService {
     public readonly provenanceIdColumns = [""];
-    public getCountOfMatchingFiles(): Promise<number> {
-        return Promise.resolve(0);
+    public getCountOfMatchingFiles(): CancellablePromise<number> {
+        return { promise: Promise.resolve(0) };
     }
 
     public getAggregateInformation(): Promise<SelectionAggregationResult> {

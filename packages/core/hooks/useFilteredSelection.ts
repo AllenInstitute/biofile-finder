@@ -5,6 +5,7 @@ import { interaction, selection } from "../state";
 import FileSelection from "../entity/FileSelection";
 import FileSet from "../entity/FileSet";
 import NumericRange from "../entity/NumericRange";
+import { CanceledError } from "../errors";
 
 export default function useFilteredSelection() {
     const defaultSelection = useSelector(
@@ -18,6 +19,7 @@ export default function useFilteredSelection() {
     const [filteredSelection, setFilteredSelection] = React.useState(defaultSelection);
 
     React.useEffect(() => {
+        let cancel: ((reason?: string | undefined) => void) | undefined;
         // Fetch the file selection that matches
         if (filters.length) {
             const fetchAndSetSelection = async () => {
@@ -26,22 +28,31 @@ export default function useFilteredSelection() {
                     fileService,
                     sort: sortColumn,
                 });
-                const count = await fileSet.fetchTotalCount();
-                setFilteredSelection(
-                    new FileSelection([
-                        {
-                            selection: new NumericRange(0, count - 1),
-                            fileSet,
-                            sortOrder: 0,
-                        },
-                    ])
-                );
+                const cancellableCount = fileSet.fetchTotalCount();
+                cancel = cancellableCount.cancel;
+                cancellableCount.promise
+                    .then((count) => {
+                        setFilteredSelection(
+                            new FileSelection([
+                                {
+                                    selection: new NumericRange(0, count - 1),
+                                    fileSet,
+                                    sortOrder: 0,
+                                },
+                            ])
+                        );
+                    })
+                    .catch((err) => {
+                        if (!(err instanceof CanceledError)) throw err;
+                    });
             };
             fetchAndSetSelection();
         } else {
             // default to default selection if no filters
             setFilteredSelection(defaultSelection);
         }
+        // Clean up by canceling stale query on dep change
+        return () => cancel?.(); // noop if cancel is still undefined
     }, [filters, sortColumn, fileService, defaultSelection]);
 
     return filteredSelection;
