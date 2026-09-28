@@ -621,7 +621,7 @@ const selectNearbyFile = createLogic({
                     ),
                     sort: sortColumn,
                 });
-                const totalFileSetSize = await openFileSetAboveCurrent.fetchTotalCount();
+                const totalFileSetSize = await openFileSetAboveCurrent.fetchTotalCount().promise;
                 newFileSelection = newFileSelection.select({
                     index: totalFileSetSize - 1,
                     fileSet: openFileSetAboveCurrent,
@@ -636,7 +636,7 @@ const selectNearbyFile = createLogic({
             // direction === "down"
             const indexBelowCurrentFileSetIndex = currentFocusedItem.indexWithinFileSet + 1;
             const fileListIndexBelowCurrentFileList = indexOfFocusedFileList + 1;
-            const totalFileSetSize = await currentFocusedItem.fileSet.fetchTotalCount();
+            const totalFileSetSize = await currentFocusedItem.fileSet.fetchTotalCount().promise;
             if (indexBelowCurrentFileSetIndex < totalFileSetSize) {
                 // If not at the bottom of the current file list navigate one row down
                 newFileSelection = newFileSelection.select({

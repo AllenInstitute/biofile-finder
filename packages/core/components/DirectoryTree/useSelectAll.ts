@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
+import { CanceledError } from "../../errors";
 import { interaction, selection } from "../../state";
 
 /**
@@ -39,6 +40,7 @@ export default function useSelectAll() {
     );
 
     React.useEffect(() => {
+        let cancel: ((reason?: string | undefined) => void) | undefined;
         const onSelectAllKeyDown = async (event: KeyboardEvent) => {
             if (visibleModal) return;
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "a") {
@@ -75,22 +77,33 @@ export default function useSelectAll() {
                     return;
                 }
 
-                const totalCount = await targetFileSet.fetchTotalCount();
-                if (totalCount > 0) {
-                    dispatch(
-                        selection.actions.selectFile({
-                            fileSet: targetFileSet,
-                            selection: new NumericRange(0, totalCount - 1),
-                            sortOrder: 0,
-                            updateExistingSelection: false,
-                        })
-                    );
-                }
+                const cancellableCount = targetFileSet.fetchTotalCount();
+                cancel = cancellableCount.cancel;
+                cancellableCount.promise
+                    .then((totalCount) => {
+                        if (totalCount > 0) {
+                            dispatch(
+                                selection.actions.selectFile({
+                                    fileSet: targetFileSet,
+                                    selection: new NumericRange(0, totalCount - 1),
+                                    sortOrder: 0,
+                                    updateExistingSelection: false,
+                                })
+                            );
+                        }
+                    })
+                    .catch((err) => {
+                        if (!(err instanceof CanceledError)) throw err;
+                    });
             }
         };
 
         window.addEventListener("keydown", onSelectAllKeyDown, true);
-        return () => window.removeEventListener("keydown", onSelectAllKeyDown, true);
+        // Clean up by canceling stale queries on dependency change
+        return () => {
+            window.removeEventListener("keydown", onSelectAllKeyDown, true);
+            cancel?.(); // noop if cancel is not defined
+        };
     }, [
         annotationHierarchy,
         dispatch,

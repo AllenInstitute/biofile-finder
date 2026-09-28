@@ -6,6 +6,7 @@ import FileService, {
     Selection,
     AnnotationNameToValuesMap,
 } from "..";
+import { CancellablePromise } from "../../DatabaseService";
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import HttpServiceBase, { ConnectionConfig } from "../../HttpServiceBase";
@@ -112,7 +113,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         }
     }
 
-    public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
+    public getCountOfMatchingFiles(fileSet: FileSet): CancellablePromise<number> {
         const requestUrl = join(
             compact([
                 `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILE_COUNT_URL}${this.pathSuffix}`,
@@ -121,14 +122,16 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             "?"
         );
 
-        const response = await this.get<number>(requestUrl);
-
-        // data is always an array, this endpoint should always return an array of length 1
-        if (response.data.length !== 1) {
-            throw new Error(`Expected response.data of ${requestUrl} to contain a single count`);
-        }
-
-        return response.data[0];
+        const promise = this.get<number>(requestUrl).then((response) => {
+            // data is always an array, this endpoint should always return an array of length 1
+            if (response.data.length !== 1) {
+                throw new Error(
+                    `Expected response.data of ${requestUrl} to contain a single count`
+                );
+            }
+            return response.data[0];
+        });
+        return { promise };
     }
 
     public async getAggregateInformation(

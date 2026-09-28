@@ -1,13 +1,14 @@
 import { defaults, find, join, map, uniqueId } from "lodash";
 import LRUCache from "lru-cache";
 
+import FileDetail from "../FileDetail";
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
+import SQLBuilder from "../SQLBuilder";
+import resolvePathIsArray from "../resolvePathIsArray";
+import { CancellablePromise } from "../../services/DatabaseService";
 import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
-import SQLBuilder from "../SQLBuilder";
-import FileDetail from "../FileDetail";
-import resolvePathIsArray from "../resolvePathIsArray";
 
 interface Opts {
     fileService: FileService;
@@ -75,12 +76,22 @@ export default class FileSet {
         return `${this.toQueryString()}:${this.fileService.fileExplorerServiceBaseUrl}`;
     }
 
-    public async fetchTotalCount() {
-        if (this.totalFileCount === undefined) {
-            this.totalFileCount = await this.fileService.getCountOfMatchingFiles(this);
+    public fetchTotalCount(): CancellablePromise<number> {
+        if (this.totalFileCount !== undefined) {
+            return { promise: Promise.resolve(this.totalFileCount) };
         }
-
-        return this.totalFileCount;
+        try {
+            const { promise, cancel } = this.fileService.getCountOfMatchingFiles(this);
+            return {
+                promise: promise.then((count) => {
+                    this.totalFileCount = count;
+                    return count;
+                }),
+                cancel,
+            };
+        } catch (err) {
+            return { promise: Promise.reject(err) };
+        }
     }
 
     public getFileByIndex(index: number) {

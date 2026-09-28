@@ -30,7 +30,9 @@ describe("<FileList />", () => {
 
         const sandbox = createSandbox();
         const fileService = new HttpFileService();
-        sandbox.replace(fileService, "getCountOfMatchingFiles", () => Promise.resolve(999));
+        sandbox.replace(fileService, "getCountOfMatchingFiles", () => {
+            return { promise: Promise.resolve(999) };
+        });
         const fileSet = new FileSet({ fileService });
 
         const { findByText, queryByText } = render(
@@ -56,7 +58,9 @@ describe("<FileList />", () => {
 
         const sandbox = createSandbox();
         const fileService = new HttpFileService();
-        sandbox.replace(fileService, "getCountOfMatchingFiles", () => Promise.resolve(0));
+        sandbox.replace(fileService, "getCountOfMatchingFiles", () => {
+            return { promise: Promise.resolve(0) };
+        });
         const fileSet = new FileSet({ fileService });
 
         const { findByText, queryByText } = render(
@@ -85,7 +89,9 @@ describe("<FileList />", () => {
 
         const sandbox = createSandbox();
         const fileService = new HttpFileService();
-        sandbox.replace(fileService, "getCountOfMatchingFiles", () => Promise.resolve(999));
+        sandbox.replace(fileService, "getCountOfMatchingFiles", () => {
+            return { promise: Promise.resolve(999) };
+        });
         const fileSet = new FileSet({ fileService });
 
         // Act
@@ -113,7 +119,7 @@ describe("<FileList />", () => {
         const fileService = new HttpFileService();
         sandbox.replace(fileService, "getCountOfMatchingFiles", () => {
             getCountSpy();
-            return Promise.resolve(0);
+            return { promise: Promise.resolve(0) };
         });
         const fileSet = new FileSet({ fileService });
 

@@ -164,7 +164,7 @@ const downloadManifest = createLogic({
                 fileService,
                 sort: sortColumn,
             });
-            const count = await fileSet.fetchTotalCount();
+            const count = await fileSet.fetchTotalCount().promise;
             fileSelection = new FileSelection([
                 {
                     selection: new NumericRange(0, count - 1),
@@ -511,7 +511,7 @@ const openWithDefault = createLogic({
                 fileService,
                 sort: sortColumn,
             });
-            const totalFileCount = await fileSet.fetchTotalCount();
+            const totalFileCount = await fileSet.fetchTotalCount().promise;
             filesToOpen = await fileSet.fetchFileRange(0, totalFileCount);
         } else {
             filesToOpen = await fileSelection.fetchAllDetails();
@@ -580,7 +580,7 @@ const openWithLogic = createLogic({
                 fileService,
                 sort: sortColumn,
             });
-            const totalFileCount = await fileSet.fetchTotalCount();
+            const totalFileCount = await fileSet.fetchTotalCount().promise;
             filesToOpen = await fileSet.fetchFileRange(0, totalFileCount);
         } else {
             filesToOpen = await fileSelection.fetchAllDetails();
@@ -658,7 +658,7 @@ const editFilesLogic = createLogic({
                 fileService,
                 sort: sortColumn,
             });
-            const totalFileCount = await fileSet.fetchTotalCount();
+            const totalFileCount = await fileSet.fetchTotalCount().promise;
             filesSelected = await fileSet.fetchFileRange(0, totalFileCount);
         } else {
             filesSelected = await fileSelection.fetchAllDetails();

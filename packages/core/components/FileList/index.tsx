@@ -15,6 +15,7 @@ import { Action, setError } from "../DirectoryTree/directory-hierarchy-state";
 import EmptyFileListMessage from "../EmptyFileListMessage";
 import { FileView } from "../../entity/SearchParams";
 import FileSet from "../../entity/FileSet";
+import { CanceledError } from "../../errors";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileAccessContextMenu from "../../hooks/useFileAccessContextMenu";
 import { metadata, selection } from "../../state";
@@ -206,24 +207,19 @@ export default function FileList(props: FileListProps) {
         // Set the file count to null so that the UI will display the loading message until a
         // new count is retrieved. Otherwise, may display stale count from previous fileSet
         setTotalCount(null);
-        let cancel = false;
-        fileSet
-            .fetchTotalCount()
-            .then((count) => {
-                if (!cancel) {
-                    setTotalCount(count);
-                }
-            })
-            .catch((err) => {
+        const { promise, cancel } = fileSet.fetchTotalCount();
+        promise.then(setTotalCount).catch((err) => {
+            if (!(err instanceof CanceledError)) {
                 // Data source may not be prepared if the data source is taking longer to load
                 // than the component does to render. In this case, we can ignore the error.
                 // The component will re-render when the data source is prepared.
                 if (!(err as Error)?.message?.includes("Data source is not prepared")) {
                     throw err;
                 }
-            });
+            }
+        });
         return () => {
-            cancel = true;
+            cancel?.(); // no-op if cancel hasn't been returned yet
         };
     }, [areAnnotationsLoaded, fileSet]);
 
