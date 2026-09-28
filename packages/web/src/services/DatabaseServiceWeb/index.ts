@@ -3,8 +3,8 @@ import { uniqueId } from "lodash";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../../../core/constants";
 import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
 import { Source, TABULAR_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
+import { CanceledError } from "../../../../core/errors";
 import {
-    CanceledError,
     Pending,
     QueryRow,
     WorkerMsgType,
@@ -152,7 +152,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
     // Cancel ALL pending queries without terminating the worker itself
     public cancelAllPending() {
         for (const [id, p] of this.pending) {
-            p.reject(new CanceledError());
+            p.reject(new CanceledError("Canceled all pending queries"));
             this.worker.postMessage({
                 type: WorkerMsgType.CANCEL,
                 payload: { connectionId: p.connectionId },
