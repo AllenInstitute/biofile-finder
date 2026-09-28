@@ -31,13 +31,6 @@ export type Pending = {
     canceledBeforeStart?: boolean;
 };
 
-export class CanceledError extends Error {
-    constructor(message = "Query canceled") {
-        super(message);
-        this.name = "CanceledError";
-    }
-}
-
 export type QueryRow = {
     [key: string]: any;
 };
