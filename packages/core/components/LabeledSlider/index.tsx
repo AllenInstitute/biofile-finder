@@ -1,0 +1,77 @@
+import { createTheme, PartialTheme, Slider, SpinButton, ThemeProvider } from "@fluentui/react";
+import classNames from "classnames";
+import React, { ReactElement, useCallback } from "react";
+
+import styles from "./LabeledSlider.module.css";
+
+interface LabeledSliderProps {
+    className?: string;
+    label: string;
+    value: number;
+    onChange: (value: number) => void;
+    min: number;
+    max: number;
+    step?: number;
+    labelWidth?: string;
+}
+
+const defaultProps = {
+    step: 1,
+    labelWidth: "40px",
+};
+
+/**
+ * Renders a label, a slider, and a spin button for inputting and editing
+ * numeric values.
+ */
+export default function LabeledSlider(props: LabeledSliderProps): ReactElement {
+    props = { ...defaultProps, ...props };
+    const id = `labeled-slider-${(props.label ?? "").replace(/\s+/g, "-").toLowerCase()}`;
+
+    const { label, value, onChange, min, max, step, labelWidth } = props;
+
+    const onChangeCallback = useCallback(
+        (value: number) => {
+            value = Math.min(Math.max(value, min), max);
+            onChange(value);
+        },
+        [min, max, onChange]
+    );
+
+    const globalStyle = getComputedStyle(document.body);
+    const sliderTheme: PartialTheme = createTheme({
+        palette: {
+            themePrimary: globalStyle.getPropertyValue("--aqua"),
+            themeDarker: globalStyle.getPropertyValue("--aqua-darker"),
+        },
+    });
+
+    return (
+        <div className={classNames([styles.container, props.className])}>
+            <label htmlFor={id} style={{ width: labelWidth }}>
+                {label}
+            </label>
+            <SpinButton
+                id={id}
+                className={styles["labeled-slider-input"]}
+                value={value.toString()}
+                onChange={(_event, value) => onChangeCallback(Number(value))}
+                min={min}
+                max={max}
+                step={step}
+            ></SpinButton>
+            <div className={styles.sliderContainer}>
+                <ThemeProvider theme={sliderTheme}>
+                    <Slider
+                        value={value}
+                        onChange={onChangeCallback}
+                        min={min}
+                        max={max}
+                        step={step}
+                        id={id}
+                    ></Slider>
+                </ThemeProvider>
+            </div>
+        </div>
+    );
+}
