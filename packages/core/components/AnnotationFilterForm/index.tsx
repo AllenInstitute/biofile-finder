@@ -78,12 +78,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     // fetched (see useAnnotationValues), so there is nothing for a "Browse list" tab to show.
     const canBrowseList = !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(props.annotation.name);
 
-    // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
-    const typeHasDedicatedPicker =
-        props.annotation.name !== AnnotationName.FILE_SIZE &&
-        [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
-            props.annotation.type
-        );
+    const typeHasDedicatedPicker = [
+        AnnotationType.NUMBER,
+        AnnotationType.DATE,
+        AnnotationType.DATETIME,
+    ].includes(props.annotation.type);
 
     // "Contains" filters are only visible on the search form, not in the browse list
     const hasFuzzyFilter = filtersForAnnotation.some((filter) => filter.type === FilterType.FUZZY);
@@ -288,7 +287,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                         type={props.annotation.type}
                     />
                 );
-            case AnnotationType.NUMBER:
+            case AnnotationType.NUMBER: {
+                // We are unable to pre-fetch values for top level annotations,
+                // so must manually set a default min/max value for size
+                const isFileSize = props.annotation.name === AnnotationName.FILE_SIZE;
                 return renderTabbedPicker(
                     "Range",
                     <NumberRangePicker
@@ -297,11 +299,16 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                         items={items}
                         loading={isLoading}
                         errorMessage={errorMessage}
+                        formatter={props.annotation.units ? props.annotation.formatter : undefined}
                         onSearch={onSearch}
+                        onReset={onDeselectAll}
                         currentRange={filtersForAnnotation?.[0]}
                         units={props.annotation.units}
+                        defaultMin={isFileSize ? "0" : undefined}
+                        fallbackMax={isFileSize ? String(Number.MAX_SAFE_INTEGER) : undefined}
                     />
                 );
+            }
             case AnnotationType.STRING:
                 return renderTabbedPicker(
                     "Search",
