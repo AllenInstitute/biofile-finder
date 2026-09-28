@@ -1,5 +1,5 @@
 import { configureMockStore, mergeState, createMockHttpClient } from "@aics/redux-utils";
-import { fireEvent, render, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
@@ -7,11 +7,12 @@ import { createSandbox } from "sinon";
 
 import AnnotationFilterForm from "..";
 import Annotation from "../../../entity/Annotation";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import { initialState, reducer, reduxLogics, interaction, selection } from "../../../state";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
-import { FESBaseUrl } from "../../../constants";
+import { FESBaseUrl, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 
 describe("<AnnotationFilterForm />", () => {
     const LISTROW_TESTID_PREFIX = "default-button-";
@@ -162,6 +163,178 @@ describe("<AnnotationFilterForm />", () => {
                     .undefined;
             });
         });
+
+        it("defaults to the search tab when there are more than 100 values", async () => {
+            // arrange
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: Array.from({ length: 101 }, (_, i) => `v${i}`) },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const { store } = configureMockStore({
+                state: initialState,
+                responseStubs: responseStub,
+            });
+
+            // act
+            const { findByDisplayValue, queryAllByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // assert: the search tab's operator dropdown renders instead of the browse list
+            expect(await findByDisplayValue("Contains")).to.exist;
+            expect(queryAllByRole("listitem")).to.be.lengthOf(0);
+        });
+
+        it("defaults to the search tab when a Contains filter is already applied", async () => {
+            // arrange: a short value list would normally default to the browse tab
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: ["a", "b", "c", "d"] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            // start with a committed fuzzy ("Contains") filter for this annotation
+            const state = mergeState(initialState, {
+                selection: {
+                    filters: [new FileFilter(fooAnnotation.name, "a", FilterType.FUZZY)],
+                },
+            });
+            const { store } = configureMockStore({
+                state,
+                responseStubs: responseStub,
+            });
+
+            // act
+            const { findByDisplayValue, queryAllByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // assert: opens on the search tab (operator dropdown) instead of the browse list
+            expect(await findByDisplayValue("Contains")).to.exist;
+            expect(queryAllByRole("listitem")).to.be.lengthOf(0);
+        });
+
+        it("accumulates same-operator search values as chips", async () => {
+            // arrange
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: ["a", "b", "c", "d"] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const state = mergeState(initialState, {
+                selection: {
+                    filters: [new FileFilter(fooAnnotation.name, "a")],
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                logics: reduxLogics,
+                state,
+                reducer,
+                responseStubs: responseStub,
+            });
+
+            const { findByText, getByRole, getByText } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // act: switch to the search tab; the committed value shows as a chip
+            fireEvent.click(await findByText("Search"));
+            expect(getByText("Exactly matches:")).to.exist;
+            expect(getByText("a")).to.exist;
+
+            // act: submit another value with the same operator
+            const searchbox = getByRole("searchbox");
+            fireEvent.change(searchbox, { target: { value: "b" } });
+            fireEvent.keyDown(searchbox, { key: "Enter", code: "Enter", keyCode: 13 });
+            await logicMiddleware.whenComplete();
+
+            // assert: both values are filters now
+            const filters = selection.selectors.getFileFilters(store.getState());
+            expect(filters).to.be.lengthOf(2);
+            expect(filters.map((filter) => filter.value)).to.deep.equal(["a", "b"]);
+        });
+
+        it("replaces committed filters when a different operator is submitted", async () => {
+            // arrange
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: ["a", "b", "c", "d"] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const state = mergeState(initialState, {
+                selection: {
+                    filters: [new FileFilter(fooAnnotation.name, "a")],
+                },
+            });
+            const { store, logicMiddleware } = configureMockStore({
+                logics: reduxLogics,
+                state,
+                reducer,
+                responseStubs: responseStub,
+            });
+
+            const { container, findByText, getByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // act: switch to the search tab and select the Contains operator
+            fireEvent.click(await findByText("Search"));
+            fireEvent.click(container.querySelector(".ms-ComboBox button") as HTMLElement);
+            fireEvent.click(await screen.findByText("Contains"));
+
+            // act: submit a value with the new operator (must be a substring of a real value,
+            // otherwise the form refuses to commit it)
+            const searchbox = getByRole("searchbox");
+            fireEvent.change(searchbox, { target: { value: "b" } });
+            fireEvent.keyDown(searchbox, { key: "Enter", code: "Enter", keyCode: 13 });
+            await logicMiddleware.whenComplete();
+
+            // assert: the previous exact-match filter was replaced
+            const filters = selection.selectors.getFileFilters(store.getState());
+            expect(filters).to.be.lengthOf(1);
+            expect(filters[0].value).to.equal("b");
+            expect(filters[0].type).to.equal(FilterType.FUZZY);
+        });
     });
 
     describe("Boolean annotations", () => {
@@ -310,6 +483,93 @@ describe("<AnnotationFilterForm />", () => {
             // Values are naturally sorted so rangemin gets the overall min and rangemax the default max (overall max + 1)
             expect((minInput as HTMLInputElement).value).to.equal("-12");
             expect((maxInput as HTMLInputElement).value).to.equal("10000000001");
+        });
+
+        it("offers a Browse list tab that lists the values", async () => {
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: [5, 8, 6.3] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const { store } = configureMockStore({
+                state: initialState,
+                responseStubs: responseStub,
+            });
+
+            const { findByText, getByTestId } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // act: switch from the (default) range inputs to the list of values
+            fireEvent.click(await findByText("Browse list"));
+
+            // assert: the list rows render
+            expect(getByTestId("default-button-5")).to.exist;
+            expect(getByTestId("default-button-8")).to.exist;
+        });
+
+        it("defaults to the Browse list tab when discrete (non-range) filters are already applied", async () => {
+            // arrange: an annotation with existing browse-list filters (not range filters)
+            const responseStub = {
+                when: `${FESBaseUrl.TEST}/file-explorer-service/1.0/annotations/${fooAnnotation.name}/values`,
+                respondWith: {
+                    data: { data: [5, 8, 6.3] },
+                },
+            };
+            const mockHttpClient = createMockHttpClient(responseStub);
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient: mockHttpClient,
+            });
+            sandbox.stub(interaction.selectors, "getAnnotationService").returns(annotationService);
+
+            const state = mergeState(initialState, {
+                selection: {
+                    filters: [new FileFilter(fooAnnotation.name, 5)],
+                },
+            });
+            const { store } = configureMockStore({ state, responseStubs: responseStub });
+
+            // act
+            const { findByRole, findByTestId } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={fooAnnotation} />
+                </Provider>
+            );
+
+            // assert: opens directly on the Browse list tab (tab is selected and list items visible)
+            expect(await findByRole("tab", { name: "Browse list", selected: true })).to.exist;
+            expect(await findByTestId("default-button-5")).to.exist;
+        });
+
+        it("hides the Browse list tab for top-level file attributes whose values are never fetched", () => {
+            // arrange
+            const uploadedAnnotation = TOP_LEVEL_FILE_ANNOTATIONS.find(
+                (annotation) => annotation.name === AnnotationName.UPLOADED
+            ) as Annotation;
+            const { store } = configureMockStore({ state: initialState });
+
+            // act
+            const { getByText, queryByText, queryByRole } = render(
+                <Provider store={store}>
+                    <AnnotationFilterForm annotation={uploadedAnnotation} />
+                </Provider>
+            );
+
+            // assert: the range picker renders without a tab strip
+            expect(getByText("Start of date range")).to.exist;
+            expect(queryByRole("tablist")).to.not.exist;
+            expect(queryByText("Browse list")).to.not.exist;
         });
     });
 

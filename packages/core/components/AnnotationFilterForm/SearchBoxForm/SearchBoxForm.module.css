@@ -1,19 +1,104 @@
-.checkbox {
-    margin-bottom: 6px;
-}
-
-.checkbox > label > span {
-    font-size: 14px;
-}
-
-.checkbox-hidden {
-    display: none;
-}
-
 .container {
-    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
 }
 
-.title {
-    margin: 0 0 8px 0;
+.search-row {
+    display: flex;
+}
+
+.operator-dropdown {
+    display: block;
+    flex: 0 0 140px;
+    max-width: 140px;
+}
+
+.operator-dropdown-control {
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.search-input,
+.search-input::after {
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+}
+
+.search-input {
+    margin-left: -1px;
+}
+
+.search-input:focus-within {
+    position: relative;
+    z-index: 1;
+}
+
+.search-row > div:last-child {
+    flex: 1;
+}
+
+.warning {
+    align-items: center;
+    color: var(--warning-status-text-color);
+    display: flex;
+    font-size: var(--s-paragraph-size);
+    gap: 6px;
+}
+
+.error {
+    align-items: center;
+    color: var(--error-status-text-color);
+    display: flex;
+    font-size: var(--s-paragraph-size);
+    gap: 6px;
+}
+
+.warning i,
+.error i {
+    color: inherit;
+}
+
+.chips {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chip {
+    align-items: center;
+    background-color: var(--secondary-background-color);
+    border-radius: var(--small-border-radius);
+    display: inline-flex;
+    font-size: var(--s-paragraph-size);
+    gap: 2px;
+    padding: 2px 2px 2px 8px;
+}
+
+.chip-remove {
+    height: 20px;
+    width: 20px;
+}
+
+.chip .chip-remove {
+    background: none !important;
+    color: var(--secondary-text-color);
+}
+
+.chip-remove i {
+    font-size: 10px;
+}
+
+.clear-all {
+    background: none !important;
+}
+
+.clear-all span {
+    color: var(--aqua) !important;
+}
+
+.clear-all:hover span {
+    text-decoration: underline;
 }

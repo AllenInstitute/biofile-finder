@@ -10,6 +10,7 @@
 .search-box, .search-box > :is(div, input), .search-box :is(button, i) {
     background-color: var(--secondary-background-color) !important;
     color: var(--secondary-text-color) !important;
+    background-clip: padding-box !important;
 }
 
 .search-box:hover {
