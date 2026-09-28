@@ -37,6 +37,7 @@ import {
     SET_REQUIRES_DATASOURCE_RELOAD,
     SET_SELECTED_DATASET_DESCRIPTION_SOURCE,
     SET_SORT_COLUMN,
+    SET_THUMBNAIL_CONFIG,
     SetAvailableAnnotationsAction,
     SetColumns,
     SetFileFiltersAction,
@@ -47,7 +48,9 @@ import {
     SetQueries,
     SetRequiresDataSourceReload,
     SetSortColumnAction,
+    SetThumbnailConfig,
     SORT_COLUMN,
+    ThumbnailConfig,
     TOGGLE_NULL_VALUE_GROUPS,
 } from "./actions";
 import interaction from "../interaction";
@@ -87,9 +90,10 @@ export interface SelectionStateBranch {
     sourceProvenance?: Source;
     queries: Query[];
     tutorials?: Tutorial[];
+    thumbnailConfig: ThumbnailConfig;
 }
 
-export const initialState = {
+export const initialState: SelectionStateBranch = {
     annotationHierarchy: [],
     availableAnnotationsForHierarchy: [],
     availableAnnotationsForHierarchyLoading: true,
@@ -106,6 +110,18 @@ export const initialState = {
     requiresDataSourceReload: false,
     shouldDisplaySmallFont: false,
     shouldShowNullGroups: true,
+    thumbnailConfig: {
+        relativeT: 0.5,
+        relativeZ: 0.5,
+        overrideOmeroMetadata: false,
+        channelConfigs: [
+            {
+                hexColor: "FF00FF",
+                enabled: true,
+            },
+            { hexColor: "00FF00", enabled: true },
+        ],
+    },
 };
 
 export default makeReducer<SelectionStateBranch>(
@@ -354,6 +370,10 @@ export default makeReducer<SelectionStateBranch>(
         [SET_REQUIRES_DATASOURCE_RELOAD]: (state, action: SetRequiresDataSourceReload) => ({
             ...state,
             requiresDataSourceReload: action.payload,
+        }),
+        [SET_THUMBNAIL_CONFIG]: (state, action: SetThumbnailConfig) => ({
+            ...state,
+            thumbnailConfig: action.payload,
         }),
     },
     initialState
