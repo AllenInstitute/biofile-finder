@@ -933,3 +933,29 @@ export function setSelectedDescriptionSource(source?: Source): SetSelectedDescri
         type: SET_SELECTED_DATASET_DESCRIPTION_SOURCE,
     };
 }
+
+export interface ThumbnailChannelConfig {
+    enabled: boolean;
+    hexColor: string;
+}
+
+export interface ThumbnailConfig {
+    relativeT: number;
+    relativeZ: number;
+    overrideOmeroMetadata: boolean;
+    channelConfigs: ThumbnailChannelConfig[];
+}
+
+export const SET_THUMBNAIL_CONFIG = makeConstant(STATE_BRANCH_NAME, "set-thumbnail-config");
+
+export interface SetThumbnailConfig {
+    payload: ThumbnailConfig;
+    type: string;
+}
+
+export function setThumbnailConfig(config: ThumbnailConfig): SetThumbnailConfig {
+    return {
+        payload: config,
+        type: SET_THUMBNAIL_CONFIG,
+    };
+}

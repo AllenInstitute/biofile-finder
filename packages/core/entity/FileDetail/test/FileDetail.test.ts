@@ -94,7 +94,7 @@ describe("FileDetail", () => {
             const detail = new FileDetail({ ...metadata, thumbnail }, Environment.TEST);
 
             // Act
-            const path = await detail.getPathToThumbnail();
+            const path = await detail.getPathToThumbnail(100);
 
             // Assert
             expect(path).to.be.equal(thumbnail);
@@ -107,7 +107,7 @@ describe("FileDetail", () => {
             const detail = new FileDetail({ ...metadata, thumbnail }, Environment.TEST);
 
             // Act
-            const path = await detail.getPathToThumbnail();
+            const path = await detail.getPathToThumbnail(100);
 
             // Assert
             expect(path).to.be.equal(thumbnail);
@@ -122,7 +122,7 @@ describe("FileDetail", () => {
             );
 
             // Act
-            const path = await detail.getPathToThumbnail();
+            const path = await detail.getPathToThumbnail(100);
 
             // Assert
             expect(path).to.be.equal(filePath);
@@ -138,7 +138,7 @@ describe("FileDetail", () => {
             );
 
             // Act
-            const path = await detail.getPathToThumbnail();
+            const path = await detail.getPathToThumbnail(100);
 
             // Assert
             expect(path).to.be.equal(filePath);
@@ -150,7 +150,7 @@ describe("FileDetail", () => {
             const detail = new FileDetail({ ...metadata, thumbnail }, Environment.TEST);
 
             // Act
-            const path = await detail.getPathToThumbnail();
+            const path = await detail.getPathToThumbnail(100);
 
             // Assert
             expect(path).to.be.equal(thumbnail);
@@ -165,7 +165,7 @@ describe("FileDetail", () => {
             );
 
             // Act
-            const path = await detail.getPathToThumbnail();
+            const path = await detail.getPathToThumbnail(100);
 
             // Assert
             expect(path).to.be.undefined;
