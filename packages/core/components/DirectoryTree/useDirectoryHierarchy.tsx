@@ -116,7 +116,7 @@ const useDirectoryHierarchy = (
     const isLeaf = !isRoot && !!hierarchy.length && ancestorNodes.length === hierarchy.length - 1;
 
     React.useEffect(() => {
-        let cancel = false;
+        let cancel: ((reason?: string | undefined) => void) | undefined;
 
         // nothing to do if the node is collapsed
         if (collapsed) {
@@ -151,7 +151,7 @@ const useDirectoryHierarchy = (
                     const depth = pathToNode.length;
                     const annotationNameAtDepth = hierarchy[depth];
                     const annotationAtDepth = annotationByName.get(annotationNameAtDepth);
-                    const allChildNodes = await findChildNodes({
+                    const cancellableChildNodePromise = findChildNodes({
                         ancestorNodes,
                         currentNode,
                         fileSet,
@@ -160,6 +160,8 @@ const useDirectoryHierarchy = (
                         fileService,
                         shouldShowNullGroups,
                     });
+                    cancel = cancellableChildNodePromise.cancel;
+                    const allChildNodes = await cancellableChildNodePromise.promise;
                     const nodes = allChildNodes.map((value, idx) => {
                         let childNodeSortOrder: number;
                         if (isRoot) {
@@ -224,9 +226,7 @@ const useDirectoryHierarchy = (
                         );
                     });
 
-                    if (!cancel) {
-                        dispatch(receiveContent(nodes));
-                    }
+                    dispatch(receiveContent(nodes));
                 } catch (e) {
                     console.error(
                         `Something went wrong fetching next level of hierarchy underneath ${pathToNode}`,
@@ -243,7 +243,7 @@ const useDirectoryHierarchy = (
         getContent();
 
         return function cleanUp() {
-            cancel = true;
+            cancel?.();
         };
     }, [
         ancestorNodes,

@@ -137,7 +137,7 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
     // specific parent value (cell_line=3 → plate_id values).
     {
         name: "expand_folder",
-        run: (a) => a.fetchHierarchyValuesUnderPath(["cell_line", "plate_id"], ["3"], []),
+        run: (a) => a.fetchHierarchyValuesUnderPath(["cell_line", "plate_id"], ["3"], []).promise,
     },
 
     // Date range filter covering ~half the fixture rows (acquisition_date spans 2024-01-01

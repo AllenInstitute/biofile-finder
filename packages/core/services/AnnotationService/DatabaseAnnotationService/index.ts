@@ -89,99 +89,122 @@ export default class DatabaseAnnotationService implements AnnotationService {
      * Fetch the unique values for a specific annotation.
      */
     public async fetchValues(annotation: string): Promise<AnnotationValue[]> {
-        return this.fetchFilteredValuesForAnnotation(annotation);
+        return this.fetchFilteredValuesForAnnotation(annotation).promise;
     }
 
-    public async fetchRootHierarchyValues(
+    public fetchRootHierarchyValues(
         hierarchy: string[],
         filters: FileFilter[]
-    ): Promise<string[]> {
+    ): CancellablePromise<string[]> {
         return this.fetchHierarchyValuesUnderPath(hierarchy, [], filters);
     }
 
-    public async fetchHierarchyValuesUnderPath(
+    public fetchHierarchyValuesUnderPath(
         hierarchy: string[],
         path: string[],
         filters: FileFilter[]
-    ): Promise<string[]> {
+    ): CancellablePromise<string[]> {
         if (hierarchy.length <= 0) {
-            throw new Error("Hierarchy must contain at least one annotation to fetch values for.");
+            return {
+                promise: Promise.reject(
+                    "Hierarchy must contain at least one annotation to fetch values for."
+                ),
+            };
         }
 
-        const nameToAnnotationMap = await this.fetchNameToAnnotationMap();
-        const annotationNamesInFilters = new Set(filters.map((f) => f.name));
-        const hierarchyAsFilters = hierarchy
-            // Map hierarchy annotations to filters
-            .map((annotation, index) =>
-                index < path.length
-                    ? new FileFilter(
-                          annotation,
-                          path[index],
-                          FilterType.DEFAULT,
-                          nameToAnnotationMap.get(annotation)?.type
-                      )
-                    : new IncludeFilter(annotation)
-            )
-            // Exclude any filters that already exist for these hierarchy annotations
-            .filter((filter) => !annotationNamesInFilters.has(filter.name));
+        let cancel: ((reason?: string) => void) | undefined;
 
-        return this.fetchFilteredValuesForAnnotation(hierarchy[path.length], [
-            ...filters,
-            ...hierarchyAsFilters,
-        ]);
+        const promise = this.fetchNameToAnnotationMap()
+            .then((nameToAnnotationMap) => {
+                const annotationNamesInFilters = new Set(filters.map((f) => f.name));
+                const hierarchyAsFilters = hierarchy
+                    // Map hierarchy annotations to filters
+                    .map((annotation, index) =>
+                        index < path.length
+                            ? new FileFilter(
+                                  annotation,
+                                  path[index],
+                                  FilterType.DEFAULT,
+                                  nameToAnnotationMap.get(annotation)?.type
+                              )
+                            : new IncludeFilter(annotation)
+                    )
+                    // Exclude any filters that already exist for these hierarchy annotations
+                    .filter((filter) => !annotationNamesInFilters.has(filter.name));
+
+                const {
+                    promise: filteredValuesPromise,
+                    cancel: filteredValuesCancel,
+                } = this.fetchFilteredValuesForAnnotation(hierarchy[path.length], [
+                    ...filters,
+                    ...hierarchyAsFilters,
+                ]);
+                cancel = filteredValuesCancel;
+                return filteredValuesPromise;
+            })
+            .then();
+
+        return { promise, cancel };
     }
 
     // Given a particular annotation in the hierarchy list, apply filters to the files in that category
-    private async fetchFilteredValuesForAnnotation(
+    private fetchFilteredValuesForAnnotation(
         annotation: string,
         filters: FileFilter[] = []
-    ): Promise<string[]> {
+    ): CancellablePromise<string[]> {
         if (!this.dataSourceNames.length) {
-            return [];
+            return { promise: Promise.resolve([]) };
         }
+        let cancel: ((reason?: string) => void) | undefined;
 
         // Look up annotation metadata to determine if this is a nested sub-field.
-        const nameToAnnotationMap = await this.fetchNameToAnnotationMap();
-        const annotationMeta = nameToAnnotationMap.get(annotation);
-        if (!annotationMeta) {
-            console.error("Annotation metadata not found for annotation:", annotation);
-            return [];
-        }
-
-        // Get expression for accessing the (potentially) nested annotation value
-        const accessExpr = SQLBuilder.buildNestedAccessExpression(
-            annotationMeta.path,
-            annotationMeta.pathIsArray
-        );
-        // If the (potentially) nested column is an array, unnest it to get individual values.
-        // Otherwise, use built-in DISTINCT
-        const selectExpr = annotationMeta.hasNestedArray
-            ? `unnest(${accessExpr}) AS "${annotation}"`
-            : `DISTINCT ${accessExpr} AS "${annotation}"`;
-
-        const sqlBuilder = new SQLBuilder()
-            .select(selectExpr)
-            .from(this.dataSourceNames)
-            .where(
-                FileFilter.toListOfWhereClauses(
-                    filters,
-                    Annotation.pathIsArrayByName([...nameToAnnotationMap.values()])
-                )
-            );
-
-        const rows = await this.databaseService.query(sqlBuilder.toSQL()).promise;
-        const rowsSplitByDelimiter = rows
-            .flatMap((row) => {
-                if (isNil(row[annotation])) return [];
-                // For array columns (e.g. VARCHAR[]), DuckDB returns JS arrays after
-                // the JSON round-trip. Flatten them so each element is treated individually.
-                if (Array.isArray(row[annotation])) {
-                    return row[annotation].map((v: unknown) => String(v));
+        const promise = this.fetchNameToAnnotationMap()
+            .then((nameToAnnotationMap) => {
+                const annotationMeta = nameToAnnotationMap.get(annotation);
+                if (!annotationMeta) {
+                    console.error("Annotation metadata not found for annotation:", annotation);
+                    return [];
                 }
-                return String(row[annotation]).split(DatabaseService.LIST_DELIMITER);
+
+                // Get expression for accessing the (potentially) nested annotation value
+                const accessExpr = SQLBuilder.buildNestedAccessExpression(
+                    annotationMeta.path,
+                    annotationMeta.pathIsArray
+                );
+                // If the (potentially) nested column is an array, unnest it to get individual values.
+                // Otherwise, use built-in DISTINCT
+                const selectExpr = annotationMeta.hasNestedArray
+                    ? `unnest(${accessExpr}) AS "${annotation}"`
+                    : `DISTINCT ${accessExpr} AS "${annotation}"`;
+
+                const sqlBuilder = new SQLBuilder()
+                    .select(selectExpr)
+                    .from(this.dataSourceNames)
+                    .where(
+                        FileFilter.toListOfWhereClauses(
+                            filters,
+                            Annotation.pathIsArrayByName([...nameToAnnotationMap.values()])
+                        )
+                    );
+                const cancellableQuery = this.databaseService.query(sqlBuilder.toSQL());
+                cancel = cancellableQuery.cancel;
+                return cancellableQuery.promise;
             })
-            .map((value) => value.trim());
-        return uniq(rowsSplitByDelimiter);
+            .then((rows) => {
+                const rowsSplitByDelimiter = rows
+                    .flatMap((row) => {
+                        if (isNil(row[annotation])) return [];
+                        // For array columns (e.g. VARCHAR[]), DuckDB returns JS arrays after
+                        // the JSON round-trip. Flatten them so each element is treated individually.
+                        if (Array.isArray(row[annotation])) {
+                            return row[annotation].map((v: unknown) => String(v));
+                        }
+                        return String(row[annotation]).split(DatabaseService.LIST_DELIMITER);
+                    })
+                    .map((value) => value.trim());
+                return uniq(rowsSplitByDelimiter);
+            });
+        return { promise, cancel };
     }
 
     /**

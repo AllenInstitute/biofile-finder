@@ -4,6 +4,7 @@ import { NO_VALUE_NODE, ROOT_NODE } from "./directory-hierarchy-state";
 import FileSet from "../../entity/FileSet";
 import { FilterType } from "../../entity/FileFilter";
 import ExcludeFilter from "../../entity/FileFilter/ExcludeFilter";
+import { CancellablePromise } from "../../entity/types";
 import { AnnotationService, FileService } from "../../services";
 import { naturalComparator } from "../../util/strings";
 
@@ -23,7 +24,7 @@ const DEFAULTS = {
     shouldShowNullGroups: false,
 };
 
-export async function findChildNodes(params: FindChildNodesParams): Promise<string[]> {
+export function findChildNodes(params: FindChildNodesParams): CancellablePromise<string[]> {
     const {
         ancestorNodes,
         currentNode,
@@ -43,78 +44,101 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
 
     const depth = pathToNode.length;
     const annotationNameAtDepth = hierarchy[depth];
-    let hasNullValueFile = false;
-    if (shouldShowNullGroups) {
-        // Check whether we should include the 'no value' folder by getting a count
-        hasNullValueFile =
-            (await fileService.getCountOfMatchingFiles(
+
+    // stores the cancel function for the currently active query
+    let activePromiseCancel: ((reason?: string) => void) | undefined;
+
+    const valuesPromise = (async () => {
+        let hasNullValueFile = false;
+        if (shouldShowNullGroups) {
+            // Check whether we should include the 'no value' folder by getting a count
+            const countQuery = fileService.getCountOfMatchingFiles(
                 new FileSet({
                     fileService,
                     filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
                 })
-            ).promise) > 0;
-    }
-    const isExcludeFilterApplied = fileSet.filters.some(
-        (filter) => filter.name === annotationNameAtDepth && filter.type === FilterType.EXCLUDE
-    );
-    if (isExcludeFilterApplied) {
-        // User does not want files with this annotation; don't return any non-null values.
-        return shouldShowNullGroups && hasNullValueFile ? [NO_VALUE_NODE] : [];
-    }
-
-    const userSelectedFiltersForCurrentAnnotation = fileSet.filters
-        .filter(
-            (filter) =>
-                filter.name === annotationNameAtDepth &&
-                !filter.value.toString().includes("RANGE") && // 'RANGE' filters are handled by the value fetching endpoint
-                filter.type !== FilterType.ANY // 'Include' filters have a blank value and shouldn't be counted here
-        )
-        .map((filter) => filter.value);
-
-    if (shouldShowNullGroups) {
-        // Fetch all values under current node, ignoring past hierarchy
-        // Including the full hierarchy would filter out files that miss any part of the hierarchy
-        values = await annotationService.fetchRootHierarchyValues(
-            [annotationNameAtDepth],
-            fileSet.filters
-        );
-    } else if (isRoot) {
-        values = await annotationService.fetchRootHierarchyValues(hierarchy, fileSet.filters);
-    } else {
-        values = await annotationService.fetchHierarchyValuesUnderPath(
-            hierarchy,
-            pathToNode,
-            fileSet.filters
-        );
-    }
-
-    // If the annotation is in 'includeFilters' or if no filters are applied, we can use all the values
-    let filteredValues = values;
-    // If specific value filter(s) are selected for this annotation, we should only use the selected values
-    if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
-        const isFuzzyFilterApplied = fileSet.filters.some(
-            (filter) => filter.name === annotationNameAtDepth && filter.type === FilterType.FUZZY
-        );
-        if (isFuzzyFilterApplied) {
-            filteredValues = values.filter((value) =>
-                // If a user applies a fuzzy filter to an annotation, they can't add any other filters for it
-                value.includes(userSelectedFiltersForCurrentAnnotation[0])
             );
-        } else {
-            filteredValues = values.filter((value) =>
-                userSelectedFiltersForCurrentAnnotation.includes(value)
-            );
+            activePromiseCancel = countQuery.cancel;
+            hasNullValueFile = (await countQuery.promise) > 0; // immediately invoke
+            activePromiseCancel = undefined; // Unset since done querying
         }
-    }
 
-    const filteredValuesSorted = filteredValues.sort(naturalComparator);
-    // Don't add NO_VALUE_NODE if there are user-applied filters for the annotation
-    if (
-        shouldShowNullGroups &&
-        hasNullValueFile &&
-        !userSelectedFiltersForCurrentAnnotation.length
-    ) {
-        return [...filteredValuesSorted, NO_VALUE_NODE];
-    }
-    return filteredValuesSorted;
+        const isExcludeFilterApplied = fileSet.filters.some(
+            (filter) => filter.name === annotationNameAtDepth && filter.type === FilterType.EXCLUDE
+        );
+        if (isExcludeFilterApplied) {
+            // User does not want files with this annotation; don't return any non-null values.
+            return shouldShowNullGroups && hasNullValueFile ? [NO_VALUE_NODE] : [];
+        }
+
+        const userSelectedFiltersForCurrentAnnotation = fileSet.filters
+            .filter(
+                (filter) =>
+                    filter.name === annotationNameAtDepth &&
+                    !filter.value.toString().includes("RANGE") && // 'RANGE' filters are handled by the value fetching endpoint
+                    filter.type !== FilterType.ANY // 'Include' filters have a blank value and shouldn't be counted here
+            )
+            .map((filter) => filter.value);
+
+        if (shouldShowNullGroups) {
+            // Fetch all values under current node, ignoring past hierarchy
+            // Including the full hierarchy would filter out files that miss any part of the hierarchy
+            const { promise, cancel } = annotationService.fetchRootHierarchyValues(
+                [annotationNameAtDepth],
+                fileSet.filters
+            );
+            activePromiseCancel = cancel;
+            values = await promise;
+            activePromiseCancel = undefined;
+        } else if (isRoot) {
+            const { promise, cancel } = annotationService.fetchRootHierarchyValues(
+                hierarchy,
+                fileSet.filters
+            );
+            activePromiseCancel = cancel;
+            values = await promise;
+            activePromiseCancel = undefined;
+        } else {
+            const { promise, cancel } = annotationService.fetchHierarchyValuesUnderPath(
+                hierarchy,
+                pathToNode,
+                fileSet.filters
+            );
+            activePromiseCancel = cancel;
+            values = await promise;
+            activePromiseCancel = undefined;
+        }
+
+        // If the annotation is in 'includeFilters' or if no filters are applied, we can use all the values
+        let filteredValues = values;
+        // If specific value filter(s) are selected for this annotation, we should only use the selected values
+        if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
+            const isFuzzyFilterApplied = fileSet.filters.some(
+                (filter) =>
+                    filter.name === annotationNameAtDepth && filter.type === FilterType.FUZZY
+            );
+            if (isFuzzyFilterApplied) {
+                filteredValues = values.filter((value) =>
+                    // If a user applies a fuzzy filter to an annotation, they can't add any other filters for it
+                    value.includes(userSelectedFiltersForCurrentAnnotation[0])
+                );
+            } else {
+                filteredValues = values.filter((value) =>
+                    userSelectedFiltersForCurrentAnnotation.includes(value)
+                );
+            }
+        }
+
+        const filteredValuesSorted = filteredValues.sort(naturalComparator);
+        // Don't add NO_VALUE_NODE if there are user-applied filters for the annotation
+        if (
+            shouldShowNullGroups &&
+            hasNullValueFile &&
+            !userSelectedFiltersForCurrentAnnotation.length
+        ) {
+            return [...filteredValuesSorted, NO_VALUE_NODE];
+        }
+        return filteredValuesSorted;
+    })();
+    return { promise: valuesPromise, cancel: activePromiseCancel };
 }

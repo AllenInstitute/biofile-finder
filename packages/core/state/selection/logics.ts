@@ -78,9 +78,9 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import { DatasetSources } from "../../entity/MarkdownFrontMatter";
 import { DEFAULT_COLUMN_WIDTH, FileView, isMarkdownType, Source } from "../../entity/SearchParams";
+import { CanceledError, DataSourcePreparationError } from "../../errors";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
-import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -377,13 +377,26 @@ const toggleFileFolderCollapse = createLogic({
     type: [TOGGLE_FILE_FOLDER_COLLAPSE],
 });
 
+// track current call to expandAll logic to avoid exponentially cascading dispatches
+let expandAllToken = 0;
+// store the cancellation functions for active queries triggered by expandAll logic
+const activeExpandFolderCancelFns = new Set<() => void>();
+
 /**
  * Interceptor responsible for transforming COLLAPSE_ALL_FILE_FOLDERS and EXPAND_ALL_FILE_FOLDERS
  * actions into SET_OPEN_FILE_FOLDERS actions by either setting to none or recursively
- * unpacking the directory structure
+ * unpacking the directory structure.
+ *
+ * This logic can start stacking exponentially, so the `latest` flag makes old dispatches stale/noops
  */
 const expandAllFileFolders = createLogic({
+    latest: true,
     async process(deps: ReduxLogicDeps, dispatch, done) {
+        const token = ++expandAllToken;
+        // cancel any stale queries that might still be processing from past dispatches
+        activeExpandFolderCancelFns.forEach((cancel) => cancel());
+        activeExpandFolderCancelFns.clear();
+
         const { getState } = deps;
         const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
         const annotationService = interaction.selectors.getAnnotationService(getState());
@@ -398,6 +411,7 @@ const expandAllFileFolders = createLogic({
         const openedSoFar: FileFolder[] = [];
         // Recursive helper
         async function unpackAllFileFolders(values: string[], pathSoFar: string[]) {
+            if (expandAllToken !== token) return; // stale call; stop creating new queries
             const fileFoldersToOpen: FileFolder[] = values.map(
                 (value) => new FileFolder([...pathSoFar, value] as AnnotationValue[])
             );
@@ -405,10 +419,11 @@ const expandAllFileFolders = createLogic({
             openedSoFar.push(...fileFoldersToOpen);
             dispatch(setOpenFileFolders(openedSoFar));
             for (const value of values) {
+                if (expandAllToken !== token) return; // keep checking this call hasn't gone stale
                 // At end of folder hierarchy
                 if (!!hierarchy.length && pathSoFar.length === hierarchy.length - 1) continue;
 
-                const childNodes = await findChildNodes({
+                const { promise, cancel } = findChildNodes({
                     ancestorNodes: pathSoFar,
                     currentNode: value,
                     fileSet,
@@ -417,6 +432,15 @@ const expandAllFileFolders = createLogic({
                     fileService,
                     shouldShowNullGroups,
                 });
+                if (cancel) {
+                    activeExpandFolderCancelFns.add(cancel);
+                    // once the promise resolves, no longer need the cancel function
+                    promise.finally(() => activeExpandFolderCancelFns.delete(cancel));
+                }
+                const childNodes: string[] = await promise.catch((err) => {
+                    if (err instanceof CanceledError) return [];
+                    throw err;
+                });
                 if (childNodes.length) {
                     // Not a leaf
                     unpackAllFileFolders(childNodes, [...pathSoFar, value]);
@@ -424,7 +448,7 @@ const expandAllFileFolders = createLogic({
             }
         }
 
-        const rootHierarchyValues = await findChildNodes({
+        const { promise, cancel } = findChildNodes({
             currentNode: ROOT_NODE,
             fileSet,
             hierarchy,
@@ -432,11 +456,27 @@ const expandAllFileFolders = createLogic({
             fileService,
             shouldShowNullGroups,
         });
+        if (cancel) {
+            activeExpandFolderCancelFns.add(cancel);
+            promise.finally(() => activeExpandFolderCancelFns.delete(cancel));
+        }
+        const rootHierarchyValues: string[] = await promise.catch((err) => {
+            if (err instanceof CanceledError) return [];
+            throw err;
+        });
+
+        if (expandAllToken !== token) {
+            done();
+            return;
+        }
         if (shouldShowNullGroups) {
             rootHierarchyValues.push(NO_VALUE_NODE);
         }
         await unpackAllFileFolders(rootHierarchyValues, []);
-        dispatch(interaction.actions.refresh() as AnyAction); // synchronize UI with state
+        if (expandAllToken === token) {
+            // this dispatch is still the most current one
+            dispatch(interaction.actions.refresh() as AnyAction); // synchronize UI with state
+        }
         done();
     },
     type: [EXPAND_ALL_FILE_FOLDERS],

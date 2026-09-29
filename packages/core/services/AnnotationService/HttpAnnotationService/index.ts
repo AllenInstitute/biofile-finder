@@ -8,6 +8,7 @@ import { AnnotationType, AnnotationTypeIdMap } from "../../../entity/AnnotationF
 import FileFilter from "../../../entity/FileFilter";
 import { TOP_LEVEL_FILE_ANNOTATIONS, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../constants";
 import { DEFAULT_COLUMN_WIDTH } from "../../../entity/SearchParams";
+import { CancellablePromise } from "../../../entity/types";
 
 enum QueryParam {
     EXCLUDE = "exclude",
@@ -99,10 +100,10 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         return response.data;
     }
 
-    public async fetchRootHierarchyValues(
+    public fetchRootHierarchyValues(
         hierarchy: string[],
         filters: FileFilter[]
-    ): Promise<string[]> {
+    ): CancellablePromise<string[]> {
         // It's important that we fetch values for the correct (i.e., first) level of the hierarchy.
         // But after that, sort the levels so that we can effectively cache the result
         // resorting the hierarchy underneath the first level should have no effect on the result.
@@ -120,15 +121,15 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
 
         const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}${this.pathSuffix}?${queryParams}`;
 
-        const response = await this.get<string>(requestUrl);
-        return response.data;
+        const response = this.get<string>(requestUrl);
+        return { promise: response.then((result) => result.data) };
     }
 
-    public async fetchHierarchyValuesUnderPath(
+    public fetchHierarchyValuesUnderPath(
         hierarchy: string[],
         path: string[],
         filters: FileFilter[]
-    ): Promise<string[]> {
+    ): CancellablePromise<string[]> {
         const queryParams = [
             this.buildQueryParams(QueryParam.ORDER, hierarchy),
             this.buildQueryParams(QueryParam.PATH, path),
@@ -141,8 +142,8 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
             .join("&");
         const requestUrl = `${this.fileExplorerServiceBaseUrl}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_UNDER_PATH_URL}${this.pathSuffix}?${queryParams}`;
 
-        const response = await this.get<string>(requestUrl);
-        return response.data;
+        const response = this.get<string>(requestUrl);
+        return { promise: response.then((result) => result.data) };
     }
 
     /**
