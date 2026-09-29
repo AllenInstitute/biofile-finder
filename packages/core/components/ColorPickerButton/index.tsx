@@ -6,7 +6,15 @@ import { PrimaryButton } from "../Buttons";
 
 import styles from "./ColorPickerButton.module.css";
 
-const DEFAULT_PALETTE = ["ffffff", "ff0000", "ffff00", "00ff00", "00ffff", "0000ff", "ff00ff"];
+const DEFAULT_PALETTE: { label: string; hex: string }[] = [
+    { label: "white", hex: "ffffff" },
+    { label: "red", hex: "ff0000" },
+    { label: "yellow", hex: "ffff00" },
+    { label: "green", hex: "00ff00" },
+    { label: "cyan", hex: "00ffff" },
+    { label: "blue", hex: "0000ff" },
+    { label: "magenta", hex: "ff00ff" },
+];
 
 type ColorPickerButtonProps = {
     /** Current hex color value, *not* prefixed with a `#`. */
@@ -23,10 +31,10 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
     const calloutRootRef = React.useRef<HTMLDivElement>(null);
     const colorPickerContainerRef = React.useRef<HTMLDivElement>(null);
 
-    // Handles a bug where, when clicking and dragging on the color picker,
-    // releasing the mouse while outside the color picker would cause a parent
-    // callout to dismiss. Disabling the default behavior (changing focus)
-    // when a drag exits the color picker prevents this.
+    // When clicking and dragging on the color picker, releasing the mouse while
+    // outside the color picker can cause a parent callout to dismiss. Disabling
+    // the default behavior (changing focus) when a drag exits the color picker
+    // prevents this.
     const isDraggingRef = React.useRef(false);
     const preventFocusLossRef = React.useRef(false);
 
@@ -106,13 +114,13 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
                         ></ColorPicker>
 
                         <div className={styles.swatchContainer}>
-                            {DEFAULT_PALETTE.map((color, index) => {
+                            {DEFAULT_PALETTE.map((swatch) => {
                                 return (
                                     <SwatchButton
-                                        hexColor={color}
-                                        key={index}
-                                        onClick={() => props.onChange(color)}
-                                        title={"#" + color}
+                                        hexColor={swatch.hex}
+                                        key={swatch.hex}
+                                        onClick={() => props.onChange(swatch.hex)}
+                                        ariaLabel={swatch.label}
                                     />
                                 );
                             })}
