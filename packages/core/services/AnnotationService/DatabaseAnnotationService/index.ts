@@ -1,7 +1,7 @@
 import { isNil, uniq } from "lodash";
 
 import AnnotationService, { AnnotationDetails } from "..";
-import DatabaseService, { CancellablePromise } from "../../DatabaseService";
+import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
@@ -11,6 +11,7 @@ import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH, Source } from "../../../entity/SearchParams";
 import { hasArrayBeforeLeaf } from "../../../entity/resolvePathIsArray";
 import SQLBuilder from "../../../entity/SQLBuilder";
+import { CancellablePromise } from "../../../entity/types";
 
 interface Config {
     databaseService: DatabaseService;

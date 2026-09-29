@@ -6,7 +6,6 @@ import FileService, {
     Selection,
     AnnotationNameToValuesMap,
 } from "..";
-import { CancellablePromise } from "../../DatabaseService";
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import HttpServiceBase, { ConnectionConfig } from "../../HttpServiceBase";
@@ -19,6 +18,7 @@ import FileDetail, { FmsFile } from "../../../entity/FileDetail";
 import { JSONReadyRange } from "../../../entity/NumericRange";
 import { FilterType } from "../../../entity/FileFilter";
 import { SortOrder } from "../../../entity/FileSort";
+import { CancellablePromise } from "../../../entity/types";
 
 // Interface expected by FES API
 interface FESFileSelection {
