@@ -91,7 +91,7 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
             <div className={styles.calloutContainer}>
                 <Callout
                     role="dialog"
-                    aria-label="Select color"
+                    aria-label="Color picker"
                     target={calloutRootRef.current}
                     backgroundColor="var(--primary-background-color)"
                     hidden={props.disabled || !isCalloutVisible}
