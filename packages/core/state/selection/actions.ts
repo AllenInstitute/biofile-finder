@@ -936,13 +936,24 @@ export function setSelectedDescriptionSource(source?: Source): SetSelectedDescri
 
 export interface ThumbnailChannelConfig {
     enabled: boolean;
+    /** 6-digit hex color code for the channel, with the `#` omitted. */
     hexColor: string;
 }
 
+/** Configuration options for automatic Zarr thumbnail generation. */
 export interface ThumbnailConfig {
+    /** Relative time to use for thumbnail generation, in a [0, 1] range. */
     relativeT: number;
+    /** Relative Z slice to use for thumbnail generation, in a [0, 1] range. */
     relativeZ: number;
+    /** Whether to override Omero metadata for Zarr thumbnail generation. */
     overrideOmeroMetadata: boolean;
+    /**
+     * Configuration applied to each channel, in order. For each channel `i`,
+     * the corresponding configuration is `channelConfigs[i]`.
+     *
+     * If `i >= channelConfigs.length`, that channel will not be shown.
+     */
     channelConfigs: ThumbnailChannelConfig[];
 }
 
