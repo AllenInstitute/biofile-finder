@@ -93,6 +93,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
 
                         <LabeledSlider
                             className={styles.sliceSliders}
+                            id="thumbnail-config-z-slider"
                             label={"Z%"}
                             min={0}
                             max={100}
@@ -108,6 +109,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
 
                         <LabeledSlider
                             className={styles.sliceSliders}
+                            id="thumbnail-config-t-slider"
                             label={"T%"}
                             min={0}
                             max={100}
