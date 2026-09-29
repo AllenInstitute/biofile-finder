@@ -18,6 +18,7 @@ interface Props {
     onClick?: () => void;
     text?: string;
     title?: string;
+    ariaLabel?: string;
 }
 
 /**
@@ -39,6 +40,7 @@ export default function SecondaryButton(props: Props) {
             onClick={props.onClick}
             text={props.text}
             title={props.title}
+            ariaLabel={props.ariaLabel}
         />
     );
 }

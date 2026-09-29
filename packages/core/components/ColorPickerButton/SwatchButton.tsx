@@ -10,6 +10,7 @@ type SwatchButtonProps = {
     disabled?: boolean;
     onClick?: () => void;
     title?: string;
+    ariaLabel?: string;
 };
 
 /**
@@ -30,6 +31,7 @@ export default function SwatchButton(props: SwatchButtonProps): ReactElement {
                 disabled={props.disabled}
                 text=""
                 title={props.title}
+                ariaLabel={props.ariaLabel}
             ></SecondaryButton>
         </div>
     );
