@@ -114,37 +114,34 @@ export default class DatabaseAnnotationService implements AnnotationService {
 
         let cancel: ((reason?: string) => void) | undefined;
 
-        const promise = this.fetchNameToAnnotationMap()
-            .then((nameToAnnotationMap) => {
-                const annotationNamesInFilters = new Set(filters.map((f) => f.name));
-                const hierarchyAsFilters = hierarchy
-                    // Map hierarchy annotations to filters
-                    .map((annotation, index) =>
-                        index < path.length
-                            ? new FileFilter(
-                                  annotation,
-                                  path[index],
-                                  FilterType.DEFAULT,
-                                  nameToAnnotationMap.get(annotation)?.type
-                              )
-                            : new IncludeFilter(annotation)
-                    )
-                    // Exclude any filters that already exist for these hierarchy annotations
-                    .filter((filter) => !annotationNamesInFilters.has(filter.name));
+        const promise = this.fetchNameToAnnotationMap().then((nameToAnnotationMap) => {
+            const annotationNamesInFilters = new Set(filters.map((f) => f.name));
+            const hierarchyAsFilters = hierarchy
+                // Map hierarchy annotations to filters
+                .map((annotation, index) =>
+                    index < path.length
+                        ? new FileFilter(
+                              annotation,
+                              path[index],
+                              FilterType.DEFAULT,
+                              nameToAnnotationMap.get(annotation)?.type
+                          )
+                        : new IncludeFilter(annotation)
+                )
+                // Exclude any filters that already exist for these hierarchy annotations
+                .filter((filter) => !annotationNamesInFilters.has(filter.name));
 
-                const {
-                    promise: filteredValuesPromise,
-                    cancel: filteredValuesCancel,
-                } = this.fetchFilteredValuesForAnnotation(hierarchy[path.length], [
-                    ...filters,
-                    ...hierarchyAsFilters,
-                ]);
-                cancel = filteredValuesCancel;
-                return filteredValuesPromise;
-            })
-            .then();
-
-        return { promise, cancel };
+            const {
+                promise: filteredValuesPromise,
+                cancel: filteredValuesCancel,
+            } = this.fetchFilteredValuesForAnnotation(hierarchy[path.length], [
+                ...filters,
+                ...hierarchyAsFilters,
+            ]);
+            cancel = filteredValuesCancel;
+            return filteredValuesPromise;
+        });
+        return { promise, cancel: (reason?: string) => cancel?.(reason) };
     }
 
     // Given a particular annotation in the hierarchy list, apply filters to the files in that category

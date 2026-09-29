@@ -140,5 +140,5 @@ export function findChildNodes(params: FindChildNodesParams): CancellablePromise
         }
         return filteredValuesSorted;
     })();
-    return { promise: valuesPromise, cancel: activePromiseCancel };
+    return { promise: valuesPromise, cancel: (reason?: string) => activePromiseCancel?.(reason) };
 }
