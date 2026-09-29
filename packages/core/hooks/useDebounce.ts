@@ -10,21 +10,6 @@ import { useEffect, useState } from "react";
  * @param value The value to return.
  * @param delayMs The delay, in milliseconds. 500 by default.
  * @returns The `value` once no changes have occurred for `delay` milliseconds.
- * @example
- * ```
- * const [value, setValue] = useState(0);
- * const debouncedValue = useDebounce(value, 500);
- *
- * useEffect(() => {
- *  // Some expensive operation
- * }, [debouncedValue])
- *
- * return(
- *  <div>
- *      <p>{debouncedValue}</p>
- *  </div>
- * )
- * ```
  */
 export default function useDebounce<T>(value: T, delayMs = 500): T {
     const [debouncedValue, setDebouncedValue] = useState<T>(value);
