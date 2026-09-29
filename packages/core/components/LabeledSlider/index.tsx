@@ -6,6 +6,8 @@ import styles from "./LabeledSlider.module.css";
 
 interface LabeledSliderProps {
     className?: string;
+    // TODO: use useId hook in React 18 and above instead of requiring ID
+    id: string;
     label: string;
     value: number;
     onChange: (value: number) => void;
@@ -26,12 +28,14 @@ const defaultProps = {
  */
 export default function LabeledSlider(props: LabeledSliderProps): ReactElement {
     props = { ...defaultProps, ...props };
-    const id = `labeled-slider-${(props.label ?? "").replace(/\s+/g, "-").toLowerCase()}`;
 
     const { label, value, onChange, min, max, step, labelWidth } = props;
 
     const onChangeCallback = useCallback(
         (value: number) => {
+            if (!Number.isFinite(value)) {
+                return;
+            }
             value = Math.min(Math.max(value, min), max);
             onChange(value);
         },
@@ -48,11 +52,11 @@ export default function LabeledSlider(props: LabeledSliderProps): ReactElement {
 
     return (
         <div className={classNames([styles.container, props.className])}>
-            <label htmlFor={id} style={{ width: labelWidth }}>
+            <label htmlFor={props.id} style={{ width: labelWidth }}>
                 {label}
             </label>
             <SpinButton
-                id={id}
+                id={props.id}
                 className={styles["labeled-slider-input"]}
                 value={value.toString()}
                 onChange={(_event, value) => onChangeCallback(Number(value))}
@@ -68,7 +72,6 @@ export default function LabeledSlider(props: LabeledSliderProps): ReactElement {
                         min={min}
                         max={max}
                         step={step}
-                        id={id}
                     ></Slider>
                 </ThemeProvider>
             </div>
