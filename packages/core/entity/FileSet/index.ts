@@ -4,9 +4,9 @@ import LRUCache from "lru-cache";
 import FileDetail from "../FileDetail";
 import FileFilter from "../FileFilter";
 import FileSort from "../FileSort";
-import SQLBuilder from "../SQLBuilder";
 import resolvePathIsArray from "../resolvePathIsArray";
-import { CancellablePromise } from "../../services/DatabaseService";
+import SQLBuilder from "../SQLBuilder";
+import { CancellablePromise } from "../types";
 import FileService from "../../services/FileService";
 import FileServiceNoop from "../../services/FileService/FileServiceNoop";
 

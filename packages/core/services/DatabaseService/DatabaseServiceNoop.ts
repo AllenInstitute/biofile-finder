@@ -1,5 +1,6 @@
 import { noop } from "lodash";
-import DatabaseService, { CancellablePromise } from ".";
+import DatabaseService from ".";
+import { CancellablePromise } from "../../entity/types";
 
 export default class DatabaseServiceNoop extends DatabaseService {
     public deleteSourceMetadata(): Promise<void> {

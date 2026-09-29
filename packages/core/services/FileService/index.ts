@@ -1,4 +1,3 @@
-import { CancellablePromise } from "../DatabaseService";
 import { DownloadResult } from "../FileDownloadService";
 import Annotation, { AnnotationValue } from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
@@ -7,6 +6,7 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import FileSort from "../../entity/FileSort";
 import { JSONReadyRange } from "../../entity/NumericRange";
+import { CancellablePromise } from "../../entity/types";
 
 export type PrimitiveMetadataValue = string | number | boolean;
 /**

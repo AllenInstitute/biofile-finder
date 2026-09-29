@@ -1,9 +1,5 @@
 import { uniqueId } from "lodash";
 
-import { AICS_FMS_DATA_SOURCE_NAME } from "../../../../core/constants";
-import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
-import { Source, TABULAR_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
-import { CanceledError } from "../../../../core/errors";
 import {
     Pending,
     QueryRow,
@@ -12,8 +8,12 @@ import {
     WorkerResponse,
     WorkerResType,
 } from "./types";
+import { AICS_FMS_DATA_SOURCE_NAME } from "../../../../core/constants";
+import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
+import { Source, TABULAR_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
+import { CancellablePromise } from "../../../../core/entity/types";
+import { CanceledError } from "../../../../core/errors";
 import { DatabaseService } from "../../../../core/services";
-import { CancellablePromise } from "../../../../core/services/DatabaseService";
 
 export default class DatabaseServiceWeb extends DatabaseService {
     // Initialize with AICS FMS data source name to pretend it always exists

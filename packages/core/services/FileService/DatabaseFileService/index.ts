@@ -10,7 +10,7 @@ import FileService, {
     MetadataValue,
     PrimitiveMetadataValue,
 } from "..";
-import DatabaseService, { CancellablePromise } from "../../DatabaseService";
+import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
@@ -22,6 +22,7 @@ import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
 import resolvePathIsArray from "../../../entity/resolvePathIsArray";
 import SQLBuilder from "../../../entity/SQLBuilder";
+import { CancellablePromise } from "../../../entity/types";
 
 type UnwrappedMetadataValue =
     | PrimitiveMetadataValue[]
