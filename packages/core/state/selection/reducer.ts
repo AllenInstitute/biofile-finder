@@ -115,10 +115,8 @@ export const initialState: SelectionStateBranch = {
         relativeZ: 0.5,
         overrideOmeroMetadata: false,
         channelConfigs: [
-            {
-                hexColor: "FF00FF",
-                enabled: true,
-            },
+            // High color contrast + high luminance
+            { hexColor: "FF00FF", enabled: true },
             { hexColor: "00FF00", enabled: true },
         ],
     },

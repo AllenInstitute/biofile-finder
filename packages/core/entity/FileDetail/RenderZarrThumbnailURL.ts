@@ -78,17 +78,19 @@ export async function renderZarrThumbnailURL(
                     const shape: number[] = await image.getShape(); // 0-level
                     const axesNames = image.getAxesNames();
                     const cIndex = axesNames.indexOf("c");
-                    const maxChannels = shape[cIndex];
 
-                    const hasOmeroMetadata = image.omero !== undefined;
-                    if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
-                        const channelConfigs = thumbnailConfig.channelConfigs ?? [];
-                        channels = channelConfigs
-                            .map((config) => ({
-                                color: config.hexColor,
-                                active: config.enabled,
-                            }))
-                            .filter((_, index) => index < maxChannels);
+                    if (cIndex !== -1) {
+                        const maxChannels = shape[cIndex];
+                        const hasOmeroMetadata = image.omero !== undefined;
+                        if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
+                            const channelConfigs = thumbnailConfig.channelConfigs ?? [];
+                            channels = channelConfigs
+                                .filter((_, index) => index < maxChannels)
+                                .map((config) => ({
+                                    color: config.hexColor,
+                                    active: config.enabled,
+                                }));
+                        }
                     }
 
                     const zIndex: number = axesNames.indexOf("z");
@@ -96,11 +98,11 @@ export async function renderZarrThumbnailURL(
 
                     if (zIndex !== -1 || tIndex !== -1) {
                         slices = {};
-                        if (zIndex !== -1 && thumbnailConfig) {
+                        if (zIndex !== -1) {
                             const zDim = shape[zIndex];
                             slices.z = Math.floor((zDim - 1) * thumbnailConfig.relativeZ);
                         }
-                        if (tIndex !== -1 && thumbnailConfig) {
+                        if (tIndex !== -1) {
                             const tDim = shape[tIndex];
                             slices.t = Math.floor((tDim - 1) * thumbnailConfig.relativeT);
                         }
