@@ -97,7 +97,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         // is rejected by the server (400). The hierarchy root endpoint returns the same distinct
         // values but takes the name as a query parameter, which encodes safely.
         if (annotation.includes("/")) {
-            return this.fetchRootHierarchyValues([annotation], []);
+            return this.fetchRootHierarchyValues([annotation], []).promise;
         }
 
         // Encode any special characters in the annotation as necessary
