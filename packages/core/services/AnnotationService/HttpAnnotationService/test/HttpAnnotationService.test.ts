@@ -56,6 +56,39 @@ describe("HttpAnnotationService", () => {
         });
     });
 
+    describe("fetchAnnotationValues for names containing a slash", () => {
+        it("requests the values through the hierarchy root endpoint instead of the path-based one", async () => {
+            // Arrange: a "/" cannot be sent as part of the URL path, so values must come via a query param
+            const annotation = "Shear Stress 1 target (dyn/cm2)";
+            const values = [6, 25.44, 35];
+            const httpClient = createMockHttpClient({
+                when: (config) =>
+                    !!config.url?.startsWith(
+                        `${FESBaseUrl.TEST}/${HttpAnnotationService.BASE_ANNOTATION_HIERARCHY_ROOT_URL}?order=`
+                    ),
+                respondWith: {
+                    data: {
+                        data: values,
+                    },
+                },
+            });
+            const getSpy = spy(httpClient, "get");
+            const annotationService = new HttpAnnotationService({
+                fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+                httpClient,
+            });
+
+            // Act
+            const actualValues = await annotationService.fetchValues(annotation);
+
+            // Assert
+            expect(actualValues).to.deep.equal(values);
+            const requestedUrl = getSpy.firstCall.args[0] as string;
+            expect(requestedUrl).to.include("hierarchy/root?order=");
+            expect(requestedUrl).to.not.include("/values");
+        });
+    });
+
     describe("fetchRootHierarchyValues", () => {
         it("issues a request for annotation values for the first level of the annotation hierarchy", async () => {
             const expectedValues = ["foo", "bar", "baz"];

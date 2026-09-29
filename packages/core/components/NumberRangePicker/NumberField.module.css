@@ -1,5 +1,6 @@
 .input-field {
     flex-grow: 1;
+    position: relative;
 }
 
 .input-field input {
@@ -37,5 +38,17 @@
 }
 
 .input-field > label {
-    line-height: 1.5
+    line-height: 1.5;
+}
+
+.input-field-hint {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    color: var(--secondary-text-color);
+    font-size: var(--xs-paragraph-size);
+    margin: 2px;
+    text-align: right;
 }

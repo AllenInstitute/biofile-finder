@@ -5,7 +5,7 @@ import styles from "./Tooltip.module.css";
 
 interface Props {
     children: React.ReactElement;
-    content?: string;
+    content?: string | JSX.Element;
     disabled?: boolean;
     hostClassName?: string;
 }
