@@ -50,6 +50,15 @@
     background-color: unset;
 }
 
+/* Hide the default value display on the slider */
 .slider-container :global(.ms-Slider-value) {
     display: none;
+}
+
+/* Override the default active slider track color */
+.slider-container:hover :global(.ms-Slider-slideBox) :global(.ms-Slider-active) {
+    background-color: var(--aqua);
+}
+.slider-container :global(.ms-Slider-slideBox) :global(.ms-Slider-active) {
+    background-color: var(--dark-aqua);
 }
