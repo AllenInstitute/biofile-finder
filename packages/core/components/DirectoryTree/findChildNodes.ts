@@ -118,9 +118,12 @@ export function findChildNodes(params: FindChildNodesParams): CancellablePromise
                     filter.name === annotationNameAtDepth && filter.type === FilterType.FUZZY
             );
             if (isFuzzyFilterApplied) {
+                // Multiple search values may be committed for one annotation; keep
+                // any node value that matches at least one of them
                 filteredValues = values.filter((value) =>
-                    // If a user applies a fuzzy filter to an annotation, they can't add any other filters for it
-                    value.includes(userSelectedFiltersForCurrentAnnotation[0])
+                    userSelectedFiltersForCurrentAnnotation.some((filterValue) =>
+                        value.includes(filterValue)
+                    )
                 );
             } else {
                 filteredValues = values.filter((value) =>

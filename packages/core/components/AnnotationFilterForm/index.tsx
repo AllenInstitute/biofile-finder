@@ -1,6 +1,6 @@
 import { IChoiceGroupOption } from "@fluentui/react";
 import classNames from "classnames";
-import { isNil } from "lodash";
+import { castArray, isNil } from "lodash";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -16,6 +16,7 @@ import Annotation from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import { interaction, selection } from "../../state";
 
 import styles from "./AnnotationFilterForm.module.css";
@@ -33,17 +34,10 @@ interface AnnotationFilterFormProps {
 export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
     const allFilters = useSelector(selection.selectors.getFileFilters);
-    const fuzzyFilters = useSelector(selection.selectors.getFuzzyFilters);
-    const canFuzzySearch = useSelector(selection.selectors.isQueryingAicsFms);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         props.annotation.name,
         annotationService
-    );
-
-    const fuzzySearchEnabled = React.useMemo(
-        () => !!fuzzyFilters?.some((filter) => filter.name === props.annotation.name),
-        [fuzzyFilters, props.annotation]
     );
 
     const filtersForAnnotation = React.useMemo(
@@ -59,16 +53,58 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const [filterType, setFilterType] = React.useState<FilterType>(defaultFilterType);
 
+    // Format display values once per value list. Formatting is O(n) and can be expensive
+    // (e.g. Intl date formatting), so keep it out of the memo that reacts to filter changes.
+    const formattedValues: Omit<ListItem, "selected">[] = React.useMemo(
+        () =>
+            (annotationValues || []).map((value) => ({
+                displayValue: props.annotation.getDisplayValue(value) || value,
+                value,
+            })),
+        [props.annotation, annotationValues]
+    );
+
     // Propagate regular file filter values from state into UI
     const items = React.useMemo<ListItem[]>(() => {
         const appliedFilters = new Set(filtersForAnnotation.map((filter) => String(filter.value)));
 
-        return (annotationValues || []).map((value) => ({
-            selected: appliedFilters.has(String(value)),
-            displayValue: props.annotation.getDisplayValue(value) || value,
-            value,
+        return formattedValues.map((item) => ({
+            ...item,
+            selected: appliedFilters.has(String(item.value)),
         }));
-    }, [props.annotation, annotationValues, filtersForAnnotation]);
+    }, [formattedValues, filtersForAnnotation]);
+
+    // Top-level file attributes (file name, size, uploaded, etc.) never have their values
+    // fetched (see useAnnotationValues), so there is nothing for a "Browse list" tab to show.
+    const canBrowseList = !TOP_LEVEL_FILE_ANNOTATION_NAMES.includes(props.annotation.name);
+
+    const typeHasDedicatedPicker = [
+        AnnotationType.NUMBER,
+        AnnotationType.DATE,
+        AnnotationType.DATETIME,
+    ].includes(props.annotation.type);
+
+    // "Contains" filters are only visible on the search form, not in the browse list
+    const hasFuzzyFilter = filtersForAnnotation.some((filter) => filter.type === FilterType.FUZZY);
+    // A range filter value is always formatted as "RANGE(...)". If existing filters exist
+    // but none are range-formatted, the user previously selected from the browse list.
+    const hasRangeFilter = filtersForAnnotation.some((filter) =>
+        String(filter.value).startsWith("RANGE(")
+    );
+    // Types with a dedicated form (text search, number/date range) also offer a
+    // "Browse list" tab. Short string value lists open on the list unless a "Contains"
+    // filter is applied; range pickers open on the range inputs unless the user previously
+    // selected from the list. The default depends on asynchronously loaded values, so it
+    // stays separate from the user's explicit choice (selectedTab).
+    const shouldDefaultToBrowse =
+        (props.annotation.type === AnnotationType.STRING &&
+            !hasFuzzyFilter &&
+            items.length > 0 &&
+            items.length <= 100) ||
+        (typeHasDedicatedPicker && filtersForAnnotation.length > 0 && !hasRangeFilter);
+    const defaultTab = shouldDefaultToBrowse ? "browse" : "form";
+    const [selectedTab, setSelectedTab] = React.useState<"form" | "browse">();
+    const activeTab = selectedTab ?? defaultTab;
 
     const onDeselectAll = () => {
         // remove all regular filters for this annotation
@@ -76,25 +112,51 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     const onDeselect = (item: ListItem) => {
-        dispatch(selection.actions.removeFileFilter(createFileFilter(item)));
+        const matchingFilters = filtersForAnnotation.filter(
+            (filter) => String(filter.value) === String(item.value)
+        );
+        if (matchingFilters.length) {
+            dispatch(selection.actions.removeFileFilter(matchingFilters));
+        }
     };
 
     const onSelect = (item: ListItem) => {
-        dispatch(selection.actions.changeFileFilterType(props.annotation.name, FilterType.DEFAULT));
-        dispatch(selection.actions.addFileFilter(createFileFilter(item)));
+        commitFilters(createFileFilter(item));
     };
 
     // TODO: Should this select ALL or just the visible items in list?
     const onSelectAll = () => {
-        dispatch(selection.actions.changeFileFilterType(props.annotation.name, FilterType.DEFAULT));
-        dispatch(selection.actions.addFileFilter(items.map((item) => createFileFilter(item))));
+        commitFilters(items.map((item) => createFileFilter(item)));
     };
 
     const createFileFilter = (item: ListItem) => {
         const formattedValue = props.annotation.formatter.valueOf(item.value);
         const value = isNil(formattedValue) ? item.value : formattedValue;
 
-        return new FileFilter(props.annotation.name, value, filterType, props.annotation.type);
+        return new FileFilter(
+            props.annotation.name,
+            value,
+            FilterType.DEFAULT,
+            props.annotation.type
+        );
+    };
+
+    const commitFilters = (newFilters: FileFilter | FileFilter[]) => {
+        const filtersAsArray = castArray(newFilters);
+        if (!filtersAsArray.length) {
+            return;
+        }
+        const type = filtersAsArray[0].type;
+        if (filtersForAnnotation.some((filter) => filter.type !== type)) {
+            dispatch(
+                selection.actions.setFileFilters([
+                    ...allFilters.filter((filter) => filter.name !== props.annotation.name),
+                    ...filtersAsArray,
+                ])
+            );
+        } else {
+            dispatch(selection.actions.addFileFilter(newFilters));
+        }
     };
 
     const onFilterTypeOptionChange = (option: IChoiceGroupOption | undefined) => {
@@ -131,6 +193,15 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }
     }
 
+    function onCommitSearchValue(filterValue: string, type: FilterType) {
+        if (!filterValue || !filterValue.trim()) {
+            return;
+        }
+        commitFilters(
+            new FileFilter(props.annotation.name, filterValue, type, props.annotation.type)
+        );
+    }
+
     if (isLoading) {
         return (
             <div className={styles.loadingContainer}>
@@ -141,6 +212,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const listPickerComponent = (
         <ListPicker
+            className={styles.listPicker}
             items={items}
             loading={isLoading}
             errorMessage={errorMessage}
@@ -151,12 +223,45 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         />
     );
 
-    // FILE_SIZE is excluded: range filtering is not yet supported for it in the backend.
-    const typeHasDedicatedPicker =
-        props.annotation.name !== AnnotationName.FILE_SIZE &&
-        [AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
-            props.annotation.type
+    const renderTabbedPicker = (pickerLabel: string, picker: React.ReactNode) => {
+        if (!canBrowseList) {
+            return (
+                <div className={classNames(styles.picker, styles.tabbedPicker)}>
+                    <div className={styles.modeContainer}>{picker}</div>
+                </div>
+            );
+        }
+
+        const isFormActive = activeTab === "form";
+        const tabs: { key: "form" | "browse"; label: string }[] = [
+            { key: "form", label: pickerLabel },
+            { key: "browse", label: "Browse list" },
+        ];
+        return (
+            <div className={classNames(styles.picker, styles.tabbedPicker)}>
+                <div className={styles.modeContainer}>
+                    <div className={styles.tabs} role="tablist">
+                        {tabs.map((tab) => (
+                            <button
+                                aria-selected={activeTab === tab.key}
+                                className={classNames(styles.tab, {
+                                    [styles.tabActive]: activeTab === tab.key,
+                                })}
+                                key={tab.key}
+                                onClick={() => setSelectedTab(tab.key)}
+                                role="tab"
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+                    {/* Kept mounted so draft input survives switching to the list and back */}
+                    <div className={classNames({ [styles.hidden]: !isFormActive })}>{picker}</div>
+                    {!isFormActive && listPickerComponent}
+                </div>
+            </div>
         );
+    };
 
     const searchFormType = () => {
         // Types with dedicated pickers (number, date, datetime) use their own UI.
@@ -172,43 +277,49 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         switch (props.annotation.type) {
             case AnnotationType.DATE:
             case AnnotationType.DATETIME:
-                return (
+                return renderTabbedPicker(
+                    "Range",
                     <DateRangePicker
-                        className={styles.picker}
+                        className={styles.rangePicker}
                         onSearch={onSearch}
                         onReset={onDeselectAll}
                         currentRange={filtersForAnnotation?.[0]}
                         type={props.annotation.type}
                     />
                 );
-            case AnnotationType.NUMBER:
-                return (
+            case AnnotationType.NUMBER: {
+                // We are unable to pre-fetch values for top level annotations,
+                // so must manually set a default min/max value for size
+                const isFileSize = props.annotation.name === AnnotationName.FILE_SIZE;
+                return renderTabbedPicker(
+                    "Range",
                     <NumberRangePicker
-                        className={styles.picker}
+                        className={styles.rangePicker}
                         title={props.annotation.displayName}
                         items={items}
                         loading={isLoading}
                         errorMessage={errorMessage}
+                        formatter={props.annotation.units ? props.annotation.formatter : undefined}
                         onSearch={onSearch}
+                        onReset={onDeselectAll}
                         currentRange={filtersForAnnotation?.[0]}
                         units={props.annotation.units}
+                        defaultMin={isFileSize ? "0" : undefined}
+                        fallbackMax={isFileSize ? String(Number.MAX_SAFE_INTEGER) : undefined}
                     />
                 );
+            }
             case AnnotationType.STRING:
-                // Use list picker when there are a manageable number of values; fall back to search otherwise
-                if (items.length > 0 && items.length <= 100) {
-                    return listPickerComponent;
-                }
-                return (
+                return renderTabbedPicker(
+                    "Search",
                     <SearchBoxForm
-                        className={styles.picker}
-                        onSelectAll={onSelectAll}
-                        onDeselectAll={onDeselectAll}
-                        onSearch={onSearch}
-                        fuzzySearchEnabled={fuzzySearchEnabled}
-                        fieldName={props.annotation.displayName}
-                        defaultValue={filtersForAnnotation?.[0]}
-                        hideFuzzyToggle={!canFuzzySearch}
+                        availableValues={items.map((item) => String(item.value))}
+                        filters={filtersForAnnotation}
+                        onClearAll={onDeselectAll}
+                        onRemoveFilter={(filter) =>
+                            dispatch(selection.actions.removeFileFilter(filter))
+                        }
+                        onSearch={onCommitSearchValue}
                     />
                 );
             case AnnotationType.DURATION:
@@ -219,7 +330,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     return (
-        <div>
+        <div className={styles.form}>
             <div className={classNames(styles.header)}>
                 <h3>Filter {props.annotation.displayName} by</h3>
                 <ChoiceGroup

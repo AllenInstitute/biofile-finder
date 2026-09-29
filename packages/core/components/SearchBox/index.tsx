@@ -11,30 +11,33 @@ interface Props {
     className?: string;
     defaultValue?: FileFilter | undefined;
     id?: string;
+    onBlur?: () => void;
     onChange?: (value: string) => void;
     onSearch?: (value: string) => void;
     onReset: () => void;
     placeholder?: string;
     showSubmitButton?: boolean;
+    value?: string;
 }
 
 /**
  * This component renders a simple form for searching on text values
  */
 export default function SearchBox(props: Props) {
-    const [searchValue, setSearchValue] = React.useState(props.defaultValue?.value ?? "");
+    const [internalValue, setInternalValue] = React.useState(props.defaultValue?.value ?? "");
+    const searchValue = props.value !== undefined ? props.value : internalValue;
     const showSubmitButton = props?.showSubmitButton || false;
 
     const onSearchBoxChange = (event?: React.ChangeEvent<HTMLInputElement>) => {
         if (event) {
-            setSearchValue(event.target.value);
+            setInternalValue(event.target.value);
             props.onChange?.(event.target.value);
         }
     };
 
     function onClear() {
         props.onReset();
-        setSearchValue("");
+        setInternalValue("");
     }
 
     // Autofocus into search box
@@ -54,6 +57,7 @@ export default function SearchBox(props: Props) {
             <SearchBoxComponent
                 className={classNames(props.className, styles.searchBox)}
                 id={`${props.id}-searchbox`}
+                onBlur={props.onBlur}
                 onClear={onClear}
                 onSearch={props.onSearch}
                 onChange={onSearchBoxChange}

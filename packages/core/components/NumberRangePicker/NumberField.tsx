@@ -6,6 +6,7 @@ import styles from "./NumberField.module.css";
 interface NumberFieldProps {
     className?: string;
     defaultValue?: string | number;
+    hint?: string; // formatted display value for numbers that are easier to parse after conversion
     id: string;
     label?: string;
     max?: number; // inclusive
@@ -46,6 +47,7 @@ export default function NumberField(props: NumberFieldProps) {
                 min={props?.min}
                 max={props?.max}
             />
+            {props.hint && <p className={styles.inputFieldHint}>{props.hint}</p>}
         </div>
     );
 }
