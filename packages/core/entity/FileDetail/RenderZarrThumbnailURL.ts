@@ -67,10 +67,7 @@ export async function renderZarrThumbnailURL(
     try {
         return await retryWithTimeout(
             async () => {
-                const image = await omezarr.NgffImage.load(zarrUrl, {
-                    datasetIndex: -1,
-                    attrs: undefined,
-                });
+                const image = await omezarr.NgffImage.load(zarrUrl);
                 let slices: { z?: number; t?: number } | undefined = undefined;
                 let channels: OmeroChannel[] | undefined = undefined;
 
