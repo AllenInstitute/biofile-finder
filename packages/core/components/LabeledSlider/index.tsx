@@ -56,7 +56,7 @@ export default function LabeledSlider(props: LabeledSliderProps): ReactElement {
                 {label}
             </label>
             <SpinButton
-                id={props.id}
+                inputProps={{ id: props.id }}
                 className={styles["labeled-slider-input"]}
                 value={value.toString()}
                 onChange={(_event, value) => onChangeCallback(Number(value))}
