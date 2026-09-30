@@ -17,6 +17,8 @@ const DEFAULT_PALETTE: { label: string; hex: string }[] = [
 ];
 
 type ColorPickerButtonProps = {
+    /** HTML ID for the color picker trigger button. */
+    id?: string;
     /** Current hex color value, *not* prefixed with a `#`. */
     hexColor: string;
     onChange: (hexColor: string) => void;
@@ -90,6 +92,7 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
         <>
             <div ref={calloutRootRef}>
                 <SwatchButton
+                    id={props.id}
                     hexColor={props.hexColor}
                     disabled={props.disabled}
                     onClick={() => setIsCalloutVisible(!isCalloutVisible)}
