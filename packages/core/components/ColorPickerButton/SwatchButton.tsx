@@ -5,6 +5,7 @@ import { SecondaryButton } from "../Buttons";
 import styles from "./SwatchButton.module.css";
 
 type SwatchButtonProps = {
+    id?: string;
     /** Current hex color value, *not* prefixed with a `#`. */
     hexColor: string;
     disabled?: boolean;
@@ -27,6 +28,7 @@ export default function SwatchButton(props: SwatchButtonProps): ReactElement {
         >
             <SecondaryButton
                 className={styles.colorSwatchButton}
+                id={props.id}
                 onClick={props.onClick}
                 disabled={props.disabled}
                 text=""
