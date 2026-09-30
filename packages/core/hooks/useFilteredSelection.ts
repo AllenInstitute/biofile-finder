@@ -19,7 +19,7 @@ export default function useFilteredSelection() {
     const [filteredSelection, setFilteredSelection] = React.useState(defaultSelection);
 
     React.useEffect(() => {
-        let cancel: ((reason?: string | undefined) => void) | undefined;
+        let cancelFn: ((reason?: string | undefined) => void) | undefined;
         // Fetch the file selection that matches
         if (filters.length) {
             const fetchAndSetSelection = async () => {
@@ -28,23 +28,23 @@ export default function useFilteredSelection() {
                     fileService,
                     sort: sortColumn,
                 });
-                const cancellableCount = fileSet.fetchTotalCount();
-                cancel = cancellableCount.cancel;
-                cancellableCount.promise
-                    .then((count) => {
-                        setFilteredSelection(
-                            new FileSelection([
-                                {
-                                    selection: new NumericRange(0, count - 1),
-                                    fileSet,
-                                    sortOrder: 0,
-                                },
-                            ])
-                        );
-                    })
-                    .catch((err) => {
-                        if (!(err instanceof CanceledError)) throw err;
-                    });
+                const { promise, cancel } = fileSet.fetchTotalCount();
+                cancelFn = cancel;
+                try {
+                    const count = await promise;
+                    setFilteredSelection(
+                        new FileSelection([
+                            {
+                                selection: new NumericRange(0, count - 1),
+                                fileSet,
+                                sortOrder: 0,
+                            },
+                        ])
+                    );
+                } catch (err) {
+                    // Swallow cancellation errors
+                    if (!(err instanceof CanceledError)) throw err;
+                }
             };
             fetchAndSetSelection();
         } else {
@@ -52,7 +52,7 @@ export default function useFilteredSelection() {
             setFilteredSelection(defaultSelection);
         }
         // Clean up by canceling stale query on dep change
-        return () => cancel?.(); // noop if cancel is still undefined
+        return () => cancelFn?.(); // noop if cancel is still undefined
     }, [filters, sortColumn, fileService, defaultSelection]);
 
     return filteredSelection;
