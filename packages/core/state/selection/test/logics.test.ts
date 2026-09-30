@@ -723,7 +723,7 @@ describe("Selection logics", () => {
                     hierarchy: [],
                     filters: [],
                     openFolders: [],
-                    sources: [{ name: dataSourceName, type: "csv", uri }],
+                    sources: [{ name: dataSourceName, uri }],
                 },
             };
         };
@@ -982,12 +982,9 @@ describe("Selection logics", () => {
             // Arrange
             const hierarchy = ["Cell Line"];
             const filters = [new FileFilter("Cell Line", "AICS-13")];
-            const sources: DataSource[] = [
-                { id: "Source", name: "Source", type: "csv", uri: "fake-uri.test" },
-            ];
+            const sources: DataSource[] = [{ id: "Source", name: "Source", uri: "fake-uri.test" }];
             const provenanceSource: Source = {
                 name: "Provenance",
-                type: "csv",
                 uri: "prov-uri.test",
             };
             const selectedQuery = mockQuery("Selected", {
@@ -1033,7 +1030,7 @@ describe("Selection logics", () => {
         });
 
         it("parses sources from a non-cached datasetDescriptionSource", async () => {
-            const mdSource: Source = { name: "README.md", type: "md", uri: "README.md" };
+            const mdSource: Source = { name: "README.md", uri: "README.md" };
             const selectedQuery = mockQuery("Selected", {
                 sources: [mdSource],
             });
@@ -1083,7 +1080,7 @@ describe("Selection logics", () => {
         });
 
         it("parses sources from a cached datasetDescriptionSource", async () => {
-            const mdSource: Source = { name: "README.md", type: "md", uri: "README" };
+            const mdSource: Source = { name: "README.md", uri: "README.md" };
             const selectedQuery = mockQuery("Selected", {
                 sources: [mdSource],
             });
@@ -1133,15 +1130,13 @@ describe("Selection logics", () => {
         it("overrides markdown if provenance/column description sources are provided manually", async () => {
             const provSourceFromUser: Source = {
                 name: "some-other-prov-source",
-                type: "csv",
                 uri: "some-other-prov-url.csv",
             };
             const columnDescriptionsFromUser: Source = {
                 name: "some-other-metadata-source",
-                type: "csv",
                 uri: "some-other-metadata-url.csv",
             };
-            const mdSource: Source = { name: "README.md", type: "md", uri: "README" };
+            const mdSource: Source = { name: "README.md", uri: "README.md" };
             const selectedQuery = mockQuery("Selected", {
                 sources: [mdSource],
                 provenanceSource: provSourceFromUser,

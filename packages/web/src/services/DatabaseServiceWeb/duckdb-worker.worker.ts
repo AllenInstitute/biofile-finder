@@ -9,6 +9,7 @@ import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 import { DatabaseService } from "../../../../core/services";
 import { CancellablePromise, initializeDuckDB } from "../../../../core/services/DatabaseService";
+import { SourceWithType } from "../../../../core/entity/SearchParams";
 
 declare const self: DedicatedWorkerGlobalScope & typeof globalThis;
 let databaseService: DatabaseServiceWebWorker | null = null;
@@ -235,7 +236,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
 
     // public wrapper so that the worker can access the function
     public async prepareDataSourceWorker(
-        dataSource: Source,
+        dataSource: SourceWithType,
         skipNormalization: boolean
     ): Promise<void> {
         await this.prepareDataSource(dataSource, skipNormalization);

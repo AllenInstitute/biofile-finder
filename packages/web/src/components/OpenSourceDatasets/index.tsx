@@ -9,7 +9,7 @@ import Modal from "../../../../core/components/Modal";
 import { metadata, selection } from "../../../../core/state";
 import SearchParams, {
     SearchParamsComponents,
-    getNameAndTypeFromSourceUrl,
+    getNameFromSourceUrl,
     Source,
 } from "../../../../core/entity/SearchParams";
 
@@ -55,11 +55,14 @@ export default function OpenSourceDatasets() {
 
         const dataSourceURL = datasetDetails.path;
         const url = datasetDetails?.presetQuery;
-        // if the preset query does not contain any sources, use the dataSourceUrl as the source
-        const sources = url?.sources?.length
-            ? url.sources
-            : [getNameAndTypeFromSourceUrl(dataSourceURL)];
-        openDatasetInApp(datasetDetails.name, sources, url);
+        openDatasetInApp(
+            datasetDetails.name,
+            [{
+                name: getNameFromSourceUrl(dataSourceURL),
+                uri: dataSourceURL,
+            }],
+            url
+        );
     };
 
     return (
