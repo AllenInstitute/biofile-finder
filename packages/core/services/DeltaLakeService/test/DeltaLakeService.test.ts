@@ -8,6 +8,10 @@ import { createMockHttpClient } from "../../../util/redux-utils";
 const TABLE_URL = "https://files.example.com/data/table";
 const LOG = `${TABLE_URL}/_delta_log`;
 
+/**
+ * Returns commit ID for the given version according to the
+ * pattern defined by Delta Lake.
+ */
 function commit(version: number): string {
     return `${LOG}/${String(version).padStart(20, "0")}.json`;
 }
