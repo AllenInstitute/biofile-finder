@@ -46,13 +46,12 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     let hasNullValueFile = false;
     if (shouldShowNullGroups) {
         // Check whether we should include the 'no value' folder by getting a count
-        hasNullValueFile =
-            (await fileService.getCountOfMatchingFiles(
-                new FileSet({
-                    fileService,
-                    filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
-                })
-            ).promise) > 0;
+        hasNullValueFile = await fileService.hasMatchingFiles(
+            new FileSet({
+                fileService,
+                filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
+            })
+        ).promise;
     }
     const isExcludeFilterApplied = fileSet.filters.some(
         (filter) => filter.name === annotationNameAtDepth && filter.type === FilterType.EXCLUDE

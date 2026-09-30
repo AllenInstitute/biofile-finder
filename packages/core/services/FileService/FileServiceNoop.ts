@@ -9,6 +9,10 @@ export default class FileServiceNoop implements FileService {
         return { promise: Promise.resolve(0) };
     }
 
+    public hasMatchingFiles(): CancellablePromise<boolean> {
+        return { promise: Promise.resolve(true) };
+    }
+
     public getAggregateInformation(): Promise<SelectionAggregationResult> {
         return Promise.resolve({ count: 0, size: 0 });
     }

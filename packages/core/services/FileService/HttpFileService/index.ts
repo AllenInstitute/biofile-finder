@@ -134,6 +134,13 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         return { promise };
     }
 
+    public hasMatchingFiles(fileSet: FileSet): CancellablePromise<boolean> {
+        const promise = this.getCountOfMatchingFiles(fileSet).promise.then(
+            (fileCount) => fileCount > 0
+        );
+        return { promise };
+    }
+
     public async getAggregateInformation(
         fileSelection: FileSelection
     ): Promise<SelectionAggregationResult> {

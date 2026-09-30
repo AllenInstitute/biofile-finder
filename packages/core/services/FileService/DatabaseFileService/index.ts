@@ -382,6 +382,12 @@ export default class DatabaseFileService implements FileService {
         return { promise, cancel: (reason?: string) => cancel?.(reason) };
     }
 
+    public hasMatchingFiles(fileSet: FileSet): CancellablePromise<boolean> {
+        const matchingFileCount = this.getCountOfMatchingFiles(fileSet);
+        const promise = matchingFileCount.promise.then((count) => count > 0);
+        return { promise, cancel: (reason?: string) => matchingFileCount.cancel?.(reason) };
+    }
+
     public async getAggregateInformation(
         fileSelection: FileSelection
     ): Promise<SelectionAggregationResult> {
