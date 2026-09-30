@@ -460,11 +460,12 @@ const expandAllFileFolders = createLogic({
         });
         if (cancel) activeExpandFolderCancelFns.add(cancel);
         const rootHierarchyValues: string[] = await promise.catch((err) => {
-            if (!(err instanceof CanceledError))
+            if (!(err instanceof CanceledError)) {
                 dispatch(interaction.actions.processError("expand-all", err));
-            if (cancel) activeExpandFolderCancelFns.delete(cancel);
+            }
             return [];
         });
+        if (cancel) activeExpandFolderCancelFns.delete(cancel);
 
         if (expandAllToken !== token) {
             done();
