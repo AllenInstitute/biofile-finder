@@ -152,7 +152,7 @@ export default class DatabaseServiceWeb extends DatabaseService {
     // Cancel ALL pending queries without terminating the worker itself
     public cancelAllPending() {
         for (const [id, p] of this.pending) {
-            p.reject(new CanceledError("Canceled all pending queries"));
+            p.reject(new CanceledError());
             this.worker.postMessage({
                 type: WorkerMsgType.CANCEL,
                 payload: { connectionId: p.connectionId },

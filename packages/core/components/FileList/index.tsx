@@ -209,13 +209,15 @@ export default function FileList(props: FileListProps) {
         setTotalCount(null);
         const { promise, cancel } = fileSet.fetchTotalCount();
         promise.then(setTotalCount).catch((err) => {
-            if (!(err instanceof CanceledError)) {
-                // Data source may not be prepared if the data source is taking longer to load
-                // than the component does to render. In this case, we can ignore the error.
-                // The component will re-render when the data source is prepared.
-                if (!(err as Error)?.message?.includes("Data source is not prepared")) {
-                    throw err;
-                }
+            // Data source may not be prepared if the data source is taking longer to load
+            // than the component does to render. In this case, we can ignore the error.
+            // The component will re-render when the data source is prepared.
+            // Can also ignore errors from canceling queries.
+            if (
+                !(err instanceof CanceledError) &&
+                !(err as Error)?.message?.includes("Data source is not prepared")
+            ) {
+                throw err;
             }
         });
         return () => {
