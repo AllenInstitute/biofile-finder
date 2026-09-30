@@ -432,18 +432,20 @@ const expandAllFileFolders = createLogic({
                     fileService,
                     shouldShowNullGroups,
                 });
-                if (cancel) {
-                    activeExpandFolderCancelFns.add(cancel);
-                    // once the promise resolves, no longer need the cancel function
-                    promise.finally(() => activeExpandFolderCancelFns.delete(cancel));
-                }
+                if (cancel) activeExpandFolderCancelFns.add(cancel);
                 const childNodes: string[] = await promise.catch((err) => {
-                    if (err instanceof CanceledError) return [];
-                    throw err;
+                    if (!(err instanceof CanceledError))
+                        dispatch(interaction.actions.processError("expand-all-folders", err));
+                    return [];
                 });
+                // once the promise resolves, no longer need the cancel function
+                if (cancel) activeExpandFolderCancelFns.delete(cancel);
                 if (childNodes.length) {
                     // Not a leaf
-                    unpackAllFileFolders(childNodes, [...pathSoFar, value]);
+                    unpackAllFileFolders(childNodes, [...pathSoFar, value]).catch((err) => {
+                        if (!(err instanceof CanceledError))
+                            dispatch(interaction.actions.processError("expand-all-folders", err));
+                    });
                 }
             }
         }
@@ -456,13 +458,12 @@ const expandAllFileFolders = createLogic({
             fileService,
             shouldShowNullGroups,
         });
-        if (cancel) {
-            activeExpandFolderCancelFns.add(cancel);
-            promise.finally(() => activeExpandFolderCancelFns.delete(cancel));
-        }
+        if (cancel) activeExpandFolderCancelFns.add(cancel);
         const rootHierarchyValues: string[] = await promise.catch((err) => {
-            if (err instanceof CanceledError) return [];
-            throw err;
+            if (!(err instanceof CanceledError))
+                dispatch(interaction.actions.processError("expand-all", err));
+            if (cancel) activeExpandFolderCancelFns.delete(cancel);
+            return [];
         });
 
         if (expandAllToken !== token) {
