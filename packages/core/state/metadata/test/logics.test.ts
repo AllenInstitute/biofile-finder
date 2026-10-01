@@ -81,7 +81,7 @@ describe("Metadata logics", () => {
 
             const { store, logicMiddleware, actions } = configureMockStore({
                 state: mergeState(initialState, {
-                    selection: { dataSources: [{ name: "source-a", type: "parquet" }] },
+                    selection: { dataSources: [{ name: "source-a" }] },
                     interaction: {
                         platformDependentServices: { databaseService: new SlowDatabaseService() },
                     },
@@ -93,7 +93,7 @@ describe("Metadata logics", () => {
             // Act
             store.dispatch(requestAnnotations());
             await Promise.resolve(); // let the logic reach its await
-            store.dispatch(changeDataSources([{ name: "source-b", type: "parquet" }]) as any);
+            store.dispatch(changeDataSources([{ name: "source-b" }]) as any);
             resolveFetch([
                 new Annotation({
                     annotationName: "Only On Source A",

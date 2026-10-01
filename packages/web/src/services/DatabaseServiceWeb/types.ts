@@ -1,4 +1,4 @@
-import { Source, SourceType, TABULAR_SOURCE_TYPES } from "../../../../core/entity/SearchParams";
+import { Source, SourceType } from "../../../../core/entity/SearchParams";
 
 export enum WorkerMsgType {
     ADD_SOURCE = "add datasource",
