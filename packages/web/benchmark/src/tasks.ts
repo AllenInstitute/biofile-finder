@@ -103,7 +103,8 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
     {
         name: "filter_count",
         run: (_, f) =>
-            f.getCountOfMatchingFiles(new FileSet({ filters: [new FileFilter("cell_line", 3)] })),
+            f.getCountOfMatchingFiles(new FileSet({ filters: [new FileFilter("cell_line", 3)] }))
+                .promise,
     },
     {
         name: "filter_browse",
@@ -120,7 +121,8 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
     {
         name: "null_group_count",
         run: (_, f) =>
-            f.getCountOfMatchingFiles(new FileSet({ filters: [new ExcludeFilter("cell_line")] })),
+            f.getCountOfMatchingFiles(new FileSet({ filters: [new ExcludeFilter("cell_line")] }))
+                .promise,
     },
 
     // Changing the grouping annotation — fires parallel IS NOT NULL queries, one per schema

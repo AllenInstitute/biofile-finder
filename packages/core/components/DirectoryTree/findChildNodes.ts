@@ -43,22 +43,22 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
 
     const depth = pathToNode.length;
     const annotationNameAtDepth = hierarchy[depth];
-    let noValueFileCount = 0;
+    let hasNullValueFile = false;
     if (shouldShowNullGroups) {
         // Check whether we should include the 'no value' folder by getting a count
-        noValueFileCount = await fileService.getCountOfMatchingFiles(
+        hasNullValueFile = await fileService.hasMatchingFiles(
             new FileSet({
                 fileService,
                 filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
             })
-        );
+        ).promise;
     }
     const isExcludeFilterApplied = fileSet.filters.some(
         (filter) => filter.name === annotationNameAtDepth && filter.type === FilterType.EXCLUDE
     );
     if (isExcludeFilterApplied) {
         // User does not want files with this annotation; don't return any non-null values.
-        return shouldShowNullGroups && noValueFileCount > 0 ? [NO_VALUE_NODE] : [];
+        return shouldShowNullGroups && hasNullValueFile ? [NO_VALUE_NODE] : [];
     }
 
     const userSelectedFiltersForCurrentAnnotation = fileSet.filters
@@ -113,7 +113,7 @@ export async function findChildNodes(params: FindChildNodesParams): Promise<stri
     // Don't add NO_VALUE_NODE if there are user-applied filters for the annotation
     if (
         shouldShowNullGroups &&
-        noValueFileCount > 0 &&
+        hasNullValueFile &&
         !userSelectedFiltersForCurrentAnnotation.length
     ) {
         return [...filteredValuesSorted, NO_VALUE_NODE];

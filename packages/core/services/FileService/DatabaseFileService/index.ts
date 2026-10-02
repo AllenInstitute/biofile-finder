@@ -22,6 +22,7 @@ import FileSet from "../../../entity/FileSet";
 import FileDetail from "../../../entity/FileDetail";
 import resolvePathIsArray from "../../../entity/resolvePathIsArray";
 import SQLBuilder from "../../../entity/SQLBuilder";
+import { CancellablePromise } from "../../../entity/types";
 
 type UnwrappedMetadataValue =
     | PrimitiveMetadataValue[]
@@ -343,7 +344,7 @@ export default class DatabaseFileService implements FileService {
         this.dataSourceNames = config.dataSourceNames;
     }
 
-    public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
+    public getCountOfMatchingFiles(fileSet: FileSet): CancellablePromise<number> {
         // Async DB means source may exist in query params but not in database
         const dataSourcesExistInDatabase = this.dataSourceNames.every((name) =>
             this.databaseService.hasDataSource(name)
@@ -358,20 +359,33 @@ export default class DatabaseFileService implements FileService {
             !dataSourcesExistInDatabase ||
             !aggregateExistsInDatabase
         ) {
-            throw new Error("Data source is not prepared");
+            return { promise: Promise.reject(new Error("Data source is not prepared")) };
         }
 
+        let cancel: ((reason?: string | undefined) => void) | undefined;
         const select_key = "num_files";
-        const sql = fileSet
-            .toQuerySQLBuilder(await this.fetchPathIsArrayByName())
-            .select(`COUNT(*) AS ${select_key}`)
-            .from(this.dataSourceNames)
-            // Remove sort if present
-            .removeOrderBy()
-            .toSQL();
+        const promise = this.fetchPathIsArrayByName()
+            .then((pathIsArrayByName) => {
+                const sql = fileSet
+                    .toQuerySQLBuilder(pathIsArrayByName)
+                    .select(`COUNT(*) AS ${select_key}`)
+                    .from(this.dataSourceNames)
+                    // Remove sort if present
+                    .removeOrderBy()
+                    .toSQL();
+                const cancellableQuery = this.databaseService.query(sql);
+                cancel = cancellableQuery.cancel;
+                return cancellableQuery.promise;
+            })
+            .then((rows) => parseInt(rows[0][select_key], 10));
 
-        const rows = await this.databaseService.query(sql).promise;
-        return parseInt(rows[0][select_key], 10);
+        return { promise, cancel: (reason?: string) => cancel?.(reason) };
+    }
+
+    public hasMatchingFiles(fileSet: FileSet): CancellablePromise<boolean> {
+        const matchingFileCount = this.getCountOfMatchingFiles(fileSet);
+        const promise = matchingFileCount.promise.then((count) => count > 0);
+        return { promise, cancel: (reason?: string) => matchingFileCount.cancel?.(reason) };
     }
 
     public async getAggregateInformation(
