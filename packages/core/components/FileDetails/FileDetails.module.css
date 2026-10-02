@@ -109,7 +109,8 @@
      * relative positioning for the button. 
      */
     position: relative;
-    padding-bottom: var(--padding);
+    background-color: var(--secondary-background-color);
+    margin-bottom: var(--padding);
 }
 
 .thumbnail-container {
@@ -126,7 +127,7 @@
 }
 
 .thumbnail {
-    margin: 0 auto 10px;
+    margin: 0 auto;
     max-height: 250px;
     aspect-ratio: 1 / 1;
     width: 100%;
@@ -161,7 +162,7 @@
 
 .thumbnail-config-popup-container {
     position: absolute;
-    bottom: 6px;
+    bottom: 0px;
     left: 0px;
 }
 
