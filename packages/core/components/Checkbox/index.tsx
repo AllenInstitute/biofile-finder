@@ -9,6 +9,7 @@ interface Props {
     className?: string;
     disabled?: boolean;
     initialValue?: boolean;
+    checked?: boolean;
     onChange: (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, isCheckedEv?: boolean) => void;
     label: string;
     title?: string;
@@ -18,7 +19,7 @@ interface Props {
  * Custom styled wrapper for default fluentui component
  */
 export default function Checkbox(props: Props) {
-    const [isChecked, setChecked] = React.useState(!!props.initialValue); // defaults to false
+    const [isChecked, setChecked] = React.useState(props.checked ?? !!props.initialValue); // defaults to false
     function onCheckboxChange(
         ev?: React.FormEvent<HTMLElement | HTMLInputElement>,
         isCheckedEv?: boolean
@@ -29,7 +30,7 @@ export default function Checkbox(props: Props) {
     return (
         <FluentCheckbox
             id={props.id}
-            checked={isChecked}
+            checked={props.checked ?? isChecked}
             className={classNames(props.className, {
                 [styles.disabled]: props.disabled,
                 [styles.checked]: isChecked,
