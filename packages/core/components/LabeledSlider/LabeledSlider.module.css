@@ -1,0 +1,64 @@
+.container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 6px;
+    align-items: center;
+}
+
+.labeled-slider-input,
+.labeled-slider-input > div {
+    width: fit-content;
+    min-width: unset;
+}
+
+.labeled-slider-input input {
+    background-color: var(--secondary-background-color);
+    border-radius: var(--small-border-radius);
+    color: var(--secondary-text-color);
+    border: none;
+    min-width: 45px;
+    max-width: 45px;
+}
+
+.labeled-slider-input > div::after {
+    border: 1px solid var(--border-color);
+    /* Default behavior is a 2px border with a -1 inset-- remove
+     * since we only have a 1px border. */
+    inset: 0 !important;
+}
+
+.labeled-slider-input:hover > div::after {
+    border: 1px solid var(--border-secondary-color);
+}
+
+.labeled-slider-input:focus-within > div::after {
+    border: 1px solid var(--aqua);
+}
+
+.labeled-slider-input button:hover {
+    background-color: var(--aqua);
+    color: var(--primary-text-color);
+}
+
+.slider-container {
+    width: 100%;
+}
+
+.slider-container > div {
+    background-color: unset;
+}
+
+/* Hide the default value display on the slider */
+.slider-container :global(.ms-Slider-value) {
+    display: none;
+}
+
+/* Override the default active slider track color */
+.slider-container:hover :global(.ms-Slider-slideBox) :global(.ms-Slider-active) {
+    background-color: var(--aqua);
+}
+.slider-container :global(.ms-Slider-slideBox) :global(.ms-Slider-active) {
+    background-color: var(--dark-aqua);
+}
