@@ -25,7 +25,7 @@ export default function ThumbnailChannelConfigRow(
                 <Checkbox
                     id={`channel-${props.index}-enabled`}
                     label=""
-                    initialValue={props.channelConfig.enabled}
+                    checked={props.channelConfig.enabled}
                     onChange={(_e, checked) =>
                         props.onChange({ ...props.channelConfig, enabled: !!checked })
                     }
@@ -43,6 +43,7 @@ export default function ThumbnailChannelConfigRow(
                 <TransparentIconButton
                     className={styles.deleteButton}
                     iconName="Cancel"
+                    label={`Delete channel C${props.index}`}
                     onClick={props.onDelete}
                 ></TransparentIconButton>
             )}
