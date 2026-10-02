@@ -57,7 +57,7 @@ export default function useFilteredSelection() {
         }
         // Clean up by canceling stale query on dep change
         return () => cancelFn?.(); // noop if cancel is still undefined
-    }, [filters, sortColumn, fileService, defaultSelection]);
+    }, [filters, sortColumn, fileService, defaultSelection, dispatch]);
 
     return filteredSelection;
 }
