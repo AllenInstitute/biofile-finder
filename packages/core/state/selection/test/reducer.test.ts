@@ -1,7 +1,7 @@
 import { expect } from "chai";
 
 import selection from "..";
-import { initialState } from "../..";
+import { initialState, State } from "../..";
 import { initialState as initialSelectionState } from "../reducer";
 import interaction from "../../interaction";
 import { Environment } from "../../../constants";
@@ -15,6 +15,7 @@ import FileSort, { SortOrder } from "../../../entity/FileSort";
 import NumericRange from "../../../entity/NumericRange";
 import { FileView, SearchParamsComponents } from "../../../entity/SearchParams";
 import { DataSource } from "../../../services/DataSourceService";
+import { getThumbnailConfig } from "../selectors";
 
 describe("Selection reducer", () => {
     [
@@ -722,6 +723,33 @@ describe("Selection reducer", () => {
 
             // Assert
             expect(nextState.openFileFolders).to.have.length(2);
+        });
+    });
+
+    describe("SET_THUMBNAIL_CONFIG", () => {
+        it("can set and retrieve thumbnail config", () => {
+            const state = {
+                ...selection.initialState,
+            };
+            const thumbnailConfig = {
+                relativeT: 0.5,
+                relativeZ: 0.25,
+                overrideOmeroMetadata: true,
+                channelConfigs: [
+                    {
+                        enabled: false,
+                        hexColor: "ff0000",
+                    },
+                ],
+            };
+            const nextState = selection.reducer(
+                state,
+                selection.actions.setThumbnailConfig(thumbnailConfig)
+            );
+            expect(nextState.thumbnailConfig).to.deep.equal(thumbnailConfig);
+            expect(getThumbnailConfig({ selection: nextState } as unknown as State)).to.deep.equal(
+                thumbnailConfig
+            );
         });
     });
 });
