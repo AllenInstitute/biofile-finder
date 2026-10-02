@@ -1,0 +1,43 @@
+/* Darken color picker border */
+.color-picker-container :global(.ms-ColorPicker-colorRect),
+.color-picker-container :global(.ms-ColorPicker-slider) {
+    border-color: var(--border-color);
+}
+
+/* Adjust input text + labels for dark BG  */
+.color-picker-container td,
+.color-picker-container :global(.ms-ColorPicker-input) input {
+    color: var(--primary-text-color);
+}
+
+/* Remove white background, change border color on focus */
+.color-picker-container :global(.ms-TextField-fieldGroup) {
+    background-color: transparent;
+    border-color: var(--border-color);
+}
+.color-picker-container :global(.ms-TextField-fieldGroup):focus-visible,
+.color-picker-container :global(.ms-TextField-fieldGroup):focus-within {
+    border-color: var(--aqua);
+}
+
+/* Disable default focus outline */
+.color-picker-container :global(.ms-TextField-fieldGroup)::after {
+    display: none;
+}
+
+.color-picker-done-button {
+    margin: 0 10px 10px auto;
+    max-width: 100px;
+}
+
+.swatch-container {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    margin: 0 20px 15px 20px;
+}
+
+/* Hide callout background layer that causes visual artifacts */
+.callout-container :global(.ms-Callout-beakCurtain) {
+    background-color: transparent;
+}
