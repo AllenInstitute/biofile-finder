@@ -7,6 +7,7 @@ import MetadataList from "./MetadataList";
 import Pagination from "./Pagination";
 import useThumbnailPath from "./useThumbnailPath";
 import { PrimaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
+import ThumbnailConfigPopup from "../ThumbnailConfigPopup";
 import Tooltip from "../Tooltip";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
@@ -17,6 +18,7 @@ import useDownloadFiles from "../../hooks/useDownloadFiles";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../hooks/useTruncatedString";
 import { selection } from "../../state";
+import { ThumbnailConfig } from "../../state/selection/actions";
 
 import styles from "./FileDetails.module.css";
 
@@ -86,7 +88,9 @@ export default function FileDetails(props: Props) {
 
     const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
     const debouncedThumbnailConfig = useDebounce(thumbnailConfig, 500);
-
+    const setThumbnailConfig = (newConfig: ThumbnailConfig) => {
+        dispatch(selection.actions.setThumbnailConfig(newConfig));
+    };
     const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(
         props.fileDetails,
         debouncedThumbnailConfig
@@ -166,49 +170,73 @@ export default function FileDetails(props: Props) {
                             </div>
                         </div>
                         <p className={styles.fileName}>{props.fileDetails.name}</p>
-                        <div
-                            className={classNames(styles.thumbnailContainer, {
-                                [styles.thumbnailContainerClickable]: isThumbnailClickable,
-                            })}
-                            onClick={() => isThumbnailClickable && setIsFullscreenThumbnail(true)}
-                            onKeyDown={(e) => {
-                                if ((e.key === "Enter" || e.key === " ") && isThumbnailClickable) {
-                                    e.preventDefault();
-                                    setIsFullscreenThumbnail(true);
+                        <div className={styles.thumbnailConfigContainer}>
+                            <div
+                                className={classNames(styles.thumbnailContainer, {
+                                    [styles.thumbnailContainerClickable]: isThumbnailClickable,
+                                })}
+                                onClick={() =>
+                                    isThumbnailClickable && setIsFullscreenThumbnail(true)
                                 }
-                            }}
-                            role={isThumbnailClickable ? "button" : undefined}
-                            tabIndex={isThumbnailClickable ? 0 : undefined}
-                            title={isThumbnailClickable ? "Click to enlarge" : undefined}
-                        >
-                            <FileThumbnail
-                                className={styles.thumbnail}
-                                width="100%"
-                                uri={thumbnailPath}
-                                loading={isThumbnailLoading}
-                            />
-                        </div>
-                        <Modal
-                            isOpen={isFullscreenThumbnail}
-                            onDismiss={() => setIsFullscreenThumbnail(false)}
-                            containerClassName={styles.fullscreenModalContainer}
-                            overlay={{ className: styles.fullscreenOverlay }}
-                            isBlocking={false}
-                        >
-                            <img
-                                alt={props.fileDetails?.name}
-                                className={styles.fullscreenImage}
-                                src={thumbnailPath}
-                                tabIndex={0}
-                                onClick={() => setIsFullscreenThumbnail(false)}
                                 onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
+                                    if (
+                                        (e.key === "Enter" || e.key === " ") &&
+                                        isThumbnailClickable
+                                    ) {
                                         e.preventDefault();
-                                        setIsFullscreenThumbnail(false);
+                                        setIsFullscreenThumbnail(true);
                                     }
                                 }}
-                            />
-                        </Modal>
+                                role={isThumbnailClickable ? "button" : undefined}
+                                tabIndex={isThumbnailClickable ? 0 : undefined}
+                                title={isThumbnailClickable ? "Click to enlarge" : undefined}
+                            >
+                                <FileThumbnail
+                                    className={styles.thumbnail}
+                                    width="100%"
+                                    uri={thumbnailPath}
+                                    loading={isThumbnailLoading}
+                                />
+                            </div>
+                            <div className={styles.thumbnailConfigPopupContainer}>
+                                <ThumbnailConfigPopup
+                                    renderButton={(onClick) => {
+                                        return (
+                                            <TransparentIconButton
+                                                iconName="Settings"
+                                                label="Thumbnail settings"
+                                                onClick={onClick}
+                                                title="Thumbnail settings"
+                                            ></TransparentIconButton>
+                                        );
+                                    }}
+                                    thumbnailConfig={thumbnailConfig}
+                                    setThumbnailConfig={setThumbnailConfig}
+                                />
+                            </div>
+                            <Modal
+                                isOpen={isFullscreenThumbnail}
+                                onDismiss={() => setIsFullscreenThumbnail(false)}
+                                containerClassName={styles.fullscreenModalContainer}
+                                overlay={{ className: styles.fullscreenOverlay }}
+                                isBlocking={false}
+                            >
+                                <img
+                                    alt={props.fileDetails?.name}
+                                    className={styles.fullscreenImage}
+                                    src={thumbnailPath}
+                                    tabIndex={0}
+                                    onClick={() => setIsFullscreenThumbnail(false)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault();
+                                            setIsFullscreenThumbnail(false);
+                                        }
+                                    }}
+                                />
+                            </Modal>
+                        </div>
+
                         <MetadataList file={props.fileDetails} isLoading={!!props.isLoading} />
                     </>
                 )}

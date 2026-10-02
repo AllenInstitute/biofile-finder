@@ -103,10 +103,18 @@
     width: 100%;
 }
 
+.thumbnail-config-container {
+    /* 
+     * Contains thumbnail and thumbnail config button-- allow 
+     * relative positioning for the button. 
+     */
+    position: relative;
+    padding-bottom: var(--padding);
+}
+
 .thumbnail-container {
     display: flex;
     justify-content: center;
-    padding-bottom: var(--padding);
 }
 
 .thumbnail-container-clickable {
@@ -118,15 +126,11 @@
 }
 
 .thumbnail {
-    margin: 0 auto 10px; /* --margin defined in App.module.css under .root{} */
+    margin: 0 auto 10px;
     max-height: 250px;
-    transition: width var(--transition-duration);
-}
-
-.thumbnail-skeleton {
+    aspect-ratio: 1 / 1;
     width: 100%;
-    max-height: 250px;
-    background-color: var(--primary-background-color);
+    transition: width var(--transition-duration);
 }
 
 .fullscreen-overlay {
@@ -153,6 +157,12 @@
     max-width: 95vw;
     max-height: 95vh;
     object-fit: contain;
+}
+
+.thumbnail-config-popup-container {
+    position: absolute;
+    bottom: 6px;
+    left: 0px;
 }
 
 .resize-handle {
@@ -202,7 +212,7 @@
     margin-right: 5px;
 }
 
-.open-with-button { 
+.open-with-button {
     width: fit-content;
 }
 
