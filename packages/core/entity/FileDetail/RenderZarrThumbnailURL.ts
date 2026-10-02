@@ -7,6 +7,9 @@
 // various solutions like changing Node versions, ts config settings, and package.json settings
 // I am timeboxing this issue and moving on to the next task. - Sean M 08/30/2024
 // The same issue occurs with omezarr. Applying the same workaround - Will Moore October 2025
+
+import type { ThumbnailConfig } from "../../state/selection/actions";
+
 let omezarr: any;
 const isInTest = typeof global.it === "function";
 if (isInTest) {
@@ -47,19 +50,67 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     return Promise.race([promise, timeout]);
 }
 
+export type OmeroChannel = {
+    color: string;
+    active?: boolean;
+};
+
+async function defaultNgffImageLoader(zarrUrl: string): Promise<typeof omezarr.NgffImage> {
+    return await omezarr.NgffImage.load(zarrUrl);
+}
+
 /**
  * Main function to attempt to render a usable thumbnail using the lowest
  * resolution present in a zarr image's metadata.
  */
 export async function renderZarrThumbnailURL(
     zarrUrl: string,
-    targetSize: number | undefined
+    targetSize: number,
+    thumbnailConfig?: ThumbnailConfig,
+    ngffImageLoader = defaultNgffImageLoader
 ): Promise<string | undefined> {
     try {
         return await retryWithTimeout(
             async () => {
-                // if targetSize is undefined, the smallest resolution will be used
-                return omezarr.renderThumbnail(zarrUrl, targetSize, true);
+                const image = await ngffImageLoader(zarrUrl);
+                let slices: { z?: number; t?: number } | undefined = undefined;
+                let channels: OmeroChannel[] | undefined = undefined;
+
+                if (thumbnailConfig !== undefined) {
+                    const shape: number[] = await image.getShape(); // 0-level
+                    const axesNames = image.getAxesNames();
+                    const cIndex = axesNames.indexOf("c");
+
+                    if (cIndex !== -1) {
+                        const maxChannels = shape[cIndex];
+                        const hasOmeroMetadata = image.omero !== undefined;
+                        if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
+                            const channelConfigs = thumbnailConfig.channelConfigs ?? [];
+                            channels = channelConfigs
+                                .filter((_, index) => index < maxChannels)
+                                .map((config) => ({
+                                    color: config.hexColor,
+                                    active: config.enabled,
+                                }));
+                        }
+                    }
+
+                    const zIndex: number = axesNames.indexOf("z");
+                    const tIndex: number = axesNames.indexOf("t");
+
+                    if (zIndex !== -1 || tIndex !== -1) {
+                        slices = {};
+                        if (zIndex !== -1) {
+                            const zDim = shape[zIndex];
+                            slices.z = Math.floor((zDim - 1) * thumbnailConfig.relativeZ);
+                        }
+                        if (tIndex !== -1) {
+                            const tDim = shape[tIndex];
+                            slices.t = Math.floor((tDim - 1) * thumbnailConfig.relativeT);
+                        }
+                    }
+                }
+                return image.render({ targetSize, autoBoost: true, slices, channels });
             },
             3,
             5000

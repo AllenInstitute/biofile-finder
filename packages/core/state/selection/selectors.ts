@@ -40,6 +40,7 @@ export const getShouldDisplaySmallFont = (state: State) => state.selection.shoul
 export const getShouldShowNullGroups = (state: State) => state.selection.shouldShowNullGroups;
 export const getSortColumn = (state: State) => state.selection.sortColumn;
 export const getTutorials = (state: State) => state.selection.tutorials;
+export const getThumbnailConfig = (state: State) => state.selection.thumbnailConfig;
 export const getQueries = (state: State) => state.selection.queries;
 const getPlatformDependentServices = (state: State) => state.interaction.platformDependentServices; // Importing normally creates a circular dependency
 
