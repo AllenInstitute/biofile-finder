@@ -4,8 +4,8 @@ import * as React from "react";
 import { useDispatch } from "react-redux";
 
 import PublicDataset from "../../entity/PublicDataset";
-import { interaction } from "../../../../core/state";
 import { PrimaryButton } from "../../../../core/components/Buttons";
+import { interaction } from "../../../../core/state";
 
 import styles from "./DatasetRow.module.css";
 
