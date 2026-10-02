@@ -10,6 +10,7 @@ export default (fileDetails?: FileDetail, thumbnailConfig?: ThumbnailConfig) => 
     const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
 
+    // TODO: Use AbortSignals to cancel request if dependencies change.
     React.useEffect(() => {
         if (fileDetails) {
             setIsThumbnailLoading(true);
