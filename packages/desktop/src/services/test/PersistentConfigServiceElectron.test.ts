@@ -1,10 +1,10 @@
 import { expect } from "chai";
 
-import { PersistedConfigKeys } from "../../../../core/services";
+import PersistentConfigServiceElectron from "../PersistentConfigServiceElectron";
+import { Environment, RUN_IN_RENDERER } from "../../util/constants";
 import { Environment as CoreEnvironment, OverridableService } from "../../../../core/constants";
 import { AnnotationType } from "../../../../core/entity/AnnotationFormatter";
-import { Environment, RUN_IN_RENDERER } from "../../util/constants";
-import PersistentConfigServiceElectron from "../PersistentConfigServiceElectron";
+import { PersistedConfigKeys } from "../../../../core/services";
 
 describe(`${RUN_IN_RENDERER} PersistentConfigServiceElectron`, () => {
     describe("get", () => {

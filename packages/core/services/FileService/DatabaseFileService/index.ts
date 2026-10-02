@@ -1,14 +1,14 @@
 import { castArray, isEmpty, isNil, isObject, uniqueId } from "lodash";
 
 import FileService, {
-    GetFilesRequest,
-    SelectionAggregationResult,
-    Selection,
     AnnotationNameToValuesMap,
     FmsFileAnnotation,
-    NestedMetadataValue,
+    GetFilesRequest,
     MetadataValue,
+    NestedMetadataValue,
     PrimitiveMetadataValue,
+    Selection,
+    SelectionAggregationResult,
 } from "..";
 import DatabaseService from "../../DatabaseService";
 import DatabaseServiceNoop from "../../DatabaseService/DatabaseServiceNoop";
@@ -16,10 +16,10 @@ import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import { Environment, HIDDEN_UID_ANNOTATION } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
+import FileDetail from "../../../entity/FileDetail";
 import FileFilter from "../../../entity/FileFilter";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
-import FileDetail from "../../../entity/FileDetail";
 import resolvePathIsArray from "../../../entity/resolvePathIsArray";
 import SQLBuilder from "../../../entity/SQLBuilder";
 
@@ -41,9 +41,10 @@ type FileRow = {
  * Filters out any null/undefined values, empty objects, and empty strings (or whitespace-only strings) from the results.
  * Also, trims whitespace start/end of string values.
  */
-function parseMetadata(
-    unwrappedMetadata: UnwrappedMetadataValue
-): { nested: NestedMetadataValue[]; primitives: PrimitiveMetadataValue[] } {
+function parseMetadata(unwrappedMetadata: UnwrappedMetadataValue): {
+    nested: NestedMetadataValue[];
+    primitives: PrimitiveMetadataValue[];
+} {
     // Is a single object that isn't null/undefined
     // || is array of objects that isn't empty and whose first element is an object that isn't null/undefined
     const valueAsArray = castArray<PrimitiveMetadataValue | NestedMetadataValue | null>(

@@ -1,13 +1,12 @@
-import { render, fireEvent } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import { noop } from "lodash";
 import * as React from "react";
 import sinon from "sinon";
 
+import DateRangePicker from "..";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
-
-import DateRangePicker from "..";
 
 describe("<DateRangePicker />", () => {
     it("renders inputs for start and end dates with selectable date pickers", () => {

@@ -6,13 +6,6 @@ import { render } from "react-dom";
 import { Provider } from "react-redux";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 
-import NotificationServiceWeb from "./services/NotificationServiceWeb";
-import ApplicationInfoServiceWeb from "./services/ApplicationInfoServiceWeb";
-import DatabaseServiceWeb from "./services/DatabaseServiceWeb";
-import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
-import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
-import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
-import PersistentConfigServiceWeb from "./services/PersistentConfigServiceWeb";
 import ErrorPage from "./components/ErrorPage";
 import Home from "./components/Home";
 import Layout from "./components/Layout";
@@ -20,13 +13,21 @@ import NotFound from "./components/NotFound";
 import OpenSourceDatasets from "./components/OpenSourceDatasets";
 import UserGuide from "./components/UserGuide";
 import { CONTENT } from "./components/UserGuide/content";
+import ApplicationInfoServiceWeb from "./services/ApplicationInfoServiceWeb";
+import DatabaseServiceWeb from "./services/DatabaseServiceWeb";
+import ExecutionEnvServiceWeb from "./services/ExecutionEnvServiceWeb";
+import FileDownloadServiceWeb from "./services/FileDownloadServiceWeb";
+import FileViewerServiceWeb from "./services/FileViewerServiceWeb";
+import NotificationServiceWeb from "./services/NotificationServiceWeb";
+import PersistentConfigServiceWeb from "./services/PersistentConfigServiceWeb";
 import SiteLogo from "../assets/site-logo.png";
 import FmsFileExplorer from "../../core/App";
 import S3StorageService from "../../core/services/S3StorageService";
 import { createReduxStore } from "../../core/state";
 
-import "../../core/styles/global.css";
 import styles from "./src.module.css";
+
+import "../../core/styles/global.css";
 
 const APP_ID = "biofile-finder";
 

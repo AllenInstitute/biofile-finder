@@ -1,9 +1,9 @@
 import {
     ContextualMenuItemType,
     DirectionalHint,
-    IContextualMenuItem,
     Icon,
     IconButton,
+    IContextualMenuItem,
 } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";

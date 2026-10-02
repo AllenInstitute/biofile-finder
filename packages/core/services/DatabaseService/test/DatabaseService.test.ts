@@ -6,14 +6,13 @@ import * as os from "os";
 import * as path from "path";
 import sinon from "sinon";
 
+import DatabaseService, { getParquetFileNameSelectPart } from "..";
 import DatabaseServiceNoop from "../DatabaseServiceNoop";
 import { HIDDEN_UID_ANNOTATION } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
-import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
+import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import DataSourcePreparationError from "../../../errors/DataSourcePreparationError";
-
-import DatabaseService, { getParquetFileNameSelectPart } from "..";
 
 describe("DatabaseService", () => {
     describe("fetchAnnotations", () => {

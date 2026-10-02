@@ -1,3 +1,14 @@
+import { execSync } from "child_process";
+import fs from "fs";
+import http from "http";
+import path from "path";
+import { chromium } from "playwright";
+import type { Page } from "playwright";
+
+import { buildQueryResult, DEFAULT_ITERATIONS } from "../../benchmark/src/stats";
+import { BENCHMARK_TASKS } from "../../benchmark/src/tasks";
+import { BenchmarkResults, SourceResult, TestCase } from "../../benchmark/src/types";
+
 /**
  * Shared Playwright runner used by both benchmark tools.
  *
@@ -20,16 +31,6 @@ declare global {
         __benchmarkError: string;
     }
 }
-
-import { chromium } from "playwright";
-import type { Page } from "playwright";
-import http from "http";
-import fs from "fs";
-import path from "path";
-import { execSync } from "child_process";
-import { BenchmarkResults, SourceResult, TestCase } from "../../benchmark/src/types";
-import { BENCHMARK_TASKS } from "../../benchmark/src/tasks";
-import { DEFAULT_ITERATIONS, buildQueryResult } from "../../benchmark/src/stats";
 
 const DIST_DIR = path.join(__dirname, "..", "..", "benchmark", "dist");
 const FIXTURES_DIR = path.join(__dirname, "..", "..", "fixtures");
@@ -359,9 +360,8 @@ async function injectFixtures(page: Page, testCases: TestCase[]) {
         });
         await inputHandle.setInputFiles(fixturePath);
         await page.evaluate((label) => {
-            const inputs: NodeListOf<HTMLInputElement> = document.querySelectorAll(
-                "input[type=file]"
-            );
+            const inputs: NodeListOf<HTMLInputElement> =
+                document.querySelectorAll("input[type=file]");
             const inp = inputs[inputs.length - 1];
             window.__pendingLocalFiles = window.__pendingLocalFiles || {};
             if (!inp.files) {

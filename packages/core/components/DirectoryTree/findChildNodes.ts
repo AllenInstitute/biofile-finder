@@ -1,9 +1,9 @@
 import { defaults, isEmpty, pull } from "lodash";
 
 import { NO_VALUE_NODE, ROOT_NODE } from "./directory-hierarchy-state";
-import FileSet from "../../entity/FileSet";
 import { FilterType } from "../../entity/FileFilter";
 import ExcludeFilter from "../../entity/FileFilter/ExcludeFilter";
+import FileSet from "../../entity/FileSet";
 import { AnnotationService, FileService } from "../../services";
 import { naturalComparator } from "../../util/strings";
 

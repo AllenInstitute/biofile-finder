@@ -2,7 +2,6 @@ import { isEqual, uniqBy } from "lodash";
 import { AnyAction } from "redux";
 import { createLogic } from "redux-logic";
 
-import { interaction, metadata, ReduxLogicDeps, selection } from "..";
 import {
     CREATE_ANNOTATION,
     CreateAnnotationAction,
@@ -22,13 +21,14 @@ import {
     StoreNewAnnotationAction,
 } from "./actions";
 import * as metadataSelectors from "./selectors";
+import { interaction, metadata, ReduxLogicDeps, selection } from "..";
+import { Column } from "../selection/actions";
 import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
-import { Column } from "../selection/actions";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
 /**
@@ -161,9 +161,8 @@ const receiveAnnotationsLogic = createLogic({
         }
 
         // This request should be unable to take longer than 2 seconds
-        const widthByAnnotation = await annotationService.fetchOptimalWidthForAnnotations(
-            annotations
-        );
+        const widthByAnnotation =
+            await annotationService.fetchOptimalWidthForAnnotations(annotations);
 
         const columns: Column[] = displayableAnnotations
             .map((annotation) => ({

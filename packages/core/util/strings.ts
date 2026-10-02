@@ -1,4 +1,4 @@
-import { isString, isNumber } from "lodash";
+import { isNumber, isString } from "lodash";
 import stringNaturalCompare from "string-natural-compare";
 
 /**

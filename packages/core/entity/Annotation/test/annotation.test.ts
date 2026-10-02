@@ -5,8 +5,8 @@ import Annotation from "..";
 import AnnotationName from "../AnnotationName";
 import { AnnotationType } from "../../AnnotationFormatter";
 import dateTimeFormatter from "../../AnnotationFormatter/date-time-formatter";
-import { Environment, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import FileDetail from "../../FileDetail";
+import { Environment, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 
 describe("Annotation", () => {
     const annotationResponse = Object.freeze({

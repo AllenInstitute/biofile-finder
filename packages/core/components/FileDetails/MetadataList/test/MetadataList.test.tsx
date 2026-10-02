@@ -6,8 +6,8 @@ import { Provider } from "react-redux";
 
 import MetadataList from "..";
 import { Environment, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
-import AnnotationName from "../../../../entity/Annotation/AnnotationName";
 import Annotation from "../../../../entity/Annotation";
+import AnnotationName from "../../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../../entity/AnnotationFormatter";
 import FileDetail from "../../../../entity/FileDetail";
 import ExecutionEnvServiceNoop from "../../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";

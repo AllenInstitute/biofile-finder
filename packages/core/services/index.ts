@@ -1,4 +1,5 @@
 import FrontendInsights from "@aics/frontend-insights";
+
 import ApplicationInfoService from "./ApplicationInfoService";
 import DatabaseService from "./DatabaseService";
 import ExecutionEnvService from "./ExecutionEnvService";

@@ -1,10 +1,5 @@
 import { makeReducer } from "@aics/redux-utils";
 
-import { CHANGE_DATA_SOURCES } from "../selection/actions";
-import Annotation from "../../entity/Annotation";
-import { EdgeDefinition } from "../../entity/Graph";
-import { DataSource } from "../../services/DataSourceService";
-
 import {
     RECEIVE_ANNOTATIONS,
     RECEIVE_DATA_SOURCES,
@@ -13,6 +8,10 @@ import {
     RECEIVE_PASSWORD_MAPPING,
     ReceiveEdgeDefinitions,
 } from "./actions";
+import { CHANGE_DATA_SOURCES } from "../selection/actions";
+import Annotation from "../../entity/Annotation";
+import { EdgeDefinition } from "../../entity/Graph";
+import { DataSource } from "../../services/DataSourceService";
 
 export interface MetadataStateBranch {
     annotations: Annotation[];

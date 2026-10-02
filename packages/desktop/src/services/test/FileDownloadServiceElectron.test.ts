@@ -1,21 +1,20 @@
 import * as assert from "assert";
+import { expect } from "chai";
 import * as crypto from "crypto";
+import { ipcRenderer } from "electron";
 import * as fs from "fs";
+import { noop } from "lodash";
+import nock from "nock";
 import * as os from "os";
 import * as path from "path";
+import sinon from "sinon";
 import * as util from "util";
 
-import { expect } from "chai";
-import { ipcRenderer } from "electron";
-import nock from "nock";
-import sinon from "sinon";
-
+import FileDownloadServiceElectron from "../FileDownloadServiceElectron";
+import { RUN_IN_RENDERER } from "../../util/constants";
 import { DownloadFailure } from "../../../../core/errors";
 import { DownloadResolution } from "../../../../core/services";
 import S3StorageService from "../../../../core/services/S3StorageService";
-import { RUN_IN_RENDERER } from "../../util/constants";
-import FileDownloadServiceElectron from "../FileDownloadServiceElectron";
-import { noop } from "lodash";
 
 function parseRangeHeader(rangeHeader: string): { start: number; end: number } {
     const [, range] = rangeHeader.split("=");

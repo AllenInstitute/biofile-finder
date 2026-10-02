@@ -1,18 +1,17 @@
+import { Policy } from "cockatiel";
+import { app, ipcMain, ipcRenderer } from "electron";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
 import * as path from "path";
 
-import { Policy } from "cockatiel";
-import { app, ipcMain, ipcRenderer } from "electron";
-
 import { DownloadFailure } from "../../../core/errors";
 import {
+    DownloadResolution,
     DownloadResult,
+    FileDownloadCancellationToken,
     FileDownloadService,
     FileInfo,
-    DownloadResolution,
-    FileDownloadCancellationToken,
 } from "../../../core/services";
 import { isMultiObjectFile } from "../../../core/services/S3StorageService";
 
