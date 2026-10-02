@@ -55,7 +55,7 @@ export type OmeroChannel = {
     active?: boolean;
 };
 
-async function defaultZarrLoader(zarrUrl: string): Promise<typeof omezarr.NgffImage> {
+async function defaultNgffImageLoader(zarrUrl: string): Promise<typeof omezarr.NgffImage> {
     return await omezarr.NgffImage.load(zarrUrl);
 }
 
@@ -67,12 +67,12 @@ export async function renderZarrThumbnailURL(
     zarrUrl: string,
     targetSize: number,
     thumbnailConfig?: ThumbnailConfig,
-    zarrLoader = defaultZarrLoader
+    ngffImageLoader = defaultNgffImageLoader
 ): Promise<string | undefined> {
     try {
         return await retryWithTimeout(
             async () => {
-                const image = await zarrLoader(zarrUrl);
+                const image = await ngffImageLoader(zarrUrl);
                 let slices: { z?: number; t?: number } | undefined = undefined;
                 let channels: OmeroChannel[] | undefined = undefined;
 
