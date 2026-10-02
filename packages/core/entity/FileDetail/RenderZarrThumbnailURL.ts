@@ -50,10 +50,14 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     return Promise.race([promise, timeout]);
 }
 
-type OmeroChannel = {
+export type OmeroChannel = {
     color: string;
     active?: boolean;
 };
+
+async function defaultZarrLoader(zarrUrl: string): Promise<typeof omezarr.NgffImage> {
+    return await omezarr.NgffImage.load(zarrUrl);
+}
 
 /**
  * Main function to attempt to render a usable thumbnail using the lowest
@@ -62,12 +66,13 @@ type OmeroChannel = {
 export async function renderZarrThumbnailURL(
     zarrUrl: string,
     targetSize: number,
-    thumbnailConfig?: ThumbnailConfig
+    thumbnailConfig?: ThumbnailConfig,
+    zarrLoader = defaultZarrLoader
 ): Promise<string | undefined> {
     try {
         return await retryWithTimeout(
             async () => {
-                const image = await omezarr.NgffImage.load(zarrUrl);
+                const image = await zarrLoader(zarrUrl);
                 let slices: { z?: number; t?: number } | undefined = undefined;
                 let channels: OmeroChannel[] | undefined = undefined;
 
