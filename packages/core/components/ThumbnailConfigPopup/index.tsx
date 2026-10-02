@@ -13,8 +13,8 @@ const MIN_CHANNEL_CONTROLS = 1;
 
 type ThumbnailConfigPopupProps = {
     /**
-     * Returns the button to be rendered; use the `onClick` callback to trigger
-     * the popup.
+     * Callback to render the triggering button; use the `onClick` callback to
+     * show/hide the popup.
      */
     renderButton: (onClick: () => void) => ReactElement;
     thumbnailConfig: ThumbnailConfig;
@@ -32,13 +32,19 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
     const divRef = useRef<HTMLDivElement>(null);
 
     const onAddChannel = () => {
-        const newConfig = { ...thumbnailConfig };
+        const newConfig = {
+            ...thumbnailConfig,
+            channelConfigs: [...thumbnailConfig.channelConfigs],
+        };
         newConfig.channelConfigs.push({ enabled: true, hexColor: "FFFFFF" });
         setThumbnailConfig(newConfig);
     };
 
     const onDeleteChannel = (index: number) => {
-        const newConfig = { ...thumbnailConfig };
+        const newConfig = {
+            ...thumbnailConfig,
+            channelConfigs: [...thumbnailConfig.channelConfigs],
+        };
         newConfig.channelConfigs.splice(index, 1);
         setThumbnailConfig(newConfig);
     };
@@ -47,7 +53,10 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
         index: number,
         newConfig: { enabled: boolean; hexColor: string }
     ) => {
-        const updatedConfig = { ...thumbnailConfig };
+        const updatedConfig = {
+            ...thumbnailConfig,
+            channelConfigs: [...thumbnailConfig.channelConfigs],
+        };
         updatedConfig.channelConfigs[index] = newConfig;
         setThumbnailConfig(updatedConfig);
     };
@@ -68,12 +77,13 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
     return (
         <>
             <div ref={divRef} style={{ width: "fit-content" }}>
-                {props.renderButton(() => setIsCalloutVisible(true))}
+                {props.renderButton(() => setIsCalloutVisible(!isCalloutVisible))}
             </div>
             {isCalloutVisible ? (
                 <Callout
                     className={styles.callout}
                     role="dialog"
+                    aria-label="Global thumbnail settings"
                     onDismiss={() => {
                         setIsCalloutVisible(false);
                     }}
@@ -125,16 +135,16 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
 
                         <p className={styles.channelTitle}>Channels</p>
                         <Checkbox
-                            initialValue={thumbnailConfig.overrideOmeroMetadata}
-                            onChange={function (
+                            checked={thumbnailConfig.overrideOmeroMetadata}
+                            onChange={(
                                 _ev?: React.FormEvent<HTMLElement | HTMLInputElement>,
                                 isCheckedEv?: boolean
-                            ): void {
+                            ): void =>
                                 setThumbnailConfig({
                                     ...thumbnailConfig,
                                     overrideOmeroMetadata: !!isCheckedEv,
-                                });
-                            }}
+                                })
+                            }
                             label={"Override metadata colors (.zarr)"}
                         ></Checkbox>
                         <div className={styles.channelControlList}>{channelConfigRows}</div>
