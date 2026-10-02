@@ -115,7 +115,9 @@ export const initialState: SelectionStateBranch = {
         relativeZ: 0.5,
         overrideOmeroMetadata: false,
         channelConfigs: [
-            // High color contrast + high luminance
+            // If only one channel is available, color it white
+            { hexColor: "FFFFFF", enabled: true },
+            // Additional channels get high color contrast + high luminance
             { hexColor: "FF00FF", enabled: true },
             { hexColor: "00FF00", enabled: true },
         ],
