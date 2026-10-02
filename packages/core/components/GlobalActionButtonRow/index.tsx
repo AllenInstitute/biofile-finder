@@ -3,11 +3,12 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { TertiaryButton } from "../Buttons";
+import ThumbnailConfigPopup from "../ThumbnailConfigPopup";
 import { FileView } from "../../entity/SearchParams";
 import { selection } from "../../state";
+import type { ThumbnailConfig } from "../../state/selection/actions";
 
 import styles from "./GlobalActionButtonRow.module.css";
-import ThumbnailConfigPopup from "../ThumbnailConfigPopup";
 
 interface Props {
     className?: string;
@@ -22,7 +23,8 @@ export default function GlobalActionButtonRow(props: Props) {
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
 
     const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
-    const setThumbnailConfig = dispatch(selection.actions.setThumbnailConfig);
+    const setThumbnailConfig = (config: ThumbnailConfig) =>
+        dispatch(selection.actions.setThumbnailConfig(config));
 
     return (
         <div className={classNames(styles.container, props.className)}>
