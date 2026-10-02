@@ -83,7 +83,9 @@ export async function renderZarrThumbnailURL(
 
                     if (cIndex !== -1) {
                         const maxChannels = shape[cIndex];
-                        const hasOmeroMetadata = image.omero !== undefined;
+                        const omeroChannels = image.imgAttrs?.omero?.channels;
+                        const hasOmeroMetadata =
+                            omeroChannels !== undefined && omeroChannels.length > 0;
                         if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
                             const channelConfigs = thumbnailConfig.channelConfigs ?? [];
                             channels = channelConfigs
