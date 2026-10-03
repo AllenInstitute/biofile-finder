@@ -17,7 +17,7 @@ import { findChildNodes } from "./findChildNodes";
 import FileList from "../FileList";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
-import { ValueError } from "../../errors";
+import { CanceledError, ValueError } from "../../errors";
 import { interaction, metadata, selection } from "../../state";
 
 export interface UseDirectoryHierarchyParams {
@@ -116,7 +116,8 @@ const useDirectoryHierarchy = (
     const isLeaf = !isRoot && !!hierarchy.length && ancestorNodes.length === hierarchy.length - 1;
 
     React.useEffect(() => {
-        let cancel = false;
+        let cancelFn: ((reason?: string | undefined) => void) | undefined;
+        let isCanceled = false; // prevent dispatches after unmount
 
         // nothing to do if the node is collapsed
         if (collapsed) {
@@ -133,7 +134,7 @@ const useDirectoryHierarchy = (
             if (isLeaf || hierarchy.length === 0) {
                 // if we're at the top or bottom of the hierarchy, render a FileList
                 // unless we have cancelled or there is nothing to query against
-                if (!cancel) {
+                if (!isCanceled) {
                     dispatch(
                         receiveContent(
                             <FileList
@@ -151,7 +152,7 @@ const useDirectoryHierarchy = (
                     const depth = pathToNode.length;
                     const annotationNameAtDepth = hierarchy[depth];
                     const annotationAtDepth = annotationByName.get(annotationNameAtDepth);
-                    const allChildNodes = await findChildNodes({
+                    const cancellableChildNodePromise = findChildNodes({
                         ancestorNodes,
                         currentNode,
                         fileSet,
@@ -160,6 +161,8 @@ const useDirectoryHierarchy = (
                         fileService,
                         shouldShowNullGroups,
                     });
+                    cancelFn = cancellableChildNodePromise.cancel;
+                    const allChildNodes = await cancellableChildNodePromise.promise;
                     const nodes = allChildNodes.map((value, idx) => {
                         let childNodeSortOrder: number;
                         if (isRoot) {
@@ -223,17 +226,17 @@ const useDirectoryHierarchy = (
                             />
                         );
                     });
-
-                    if (!cancel) {
+                    if (!isCanceled) {
                         dispatch(receiveContent(nodes));
                     }
                 } catch (e) {
+                    if (e instanceof CanceledError) return;
                     console.error(
                         `Something went wrong fetching next level of hierarchy underneath ${pathToNode}`,
                         e
                     );
 
-                    if (!cancel) {
+                    if (!isCanceled) {
                         dispatch(setError(e as Error, isRoot));
                     }
                 }
@@ -243,7 +246,8 @@ const useDirectoryHierarchy = (
         getContent();
 
         return function cleanUp() {
-            cancel = true;
+            isCanceled = true;
+            cancelFn?.();
         };
     }, [
         ancestorNodes,

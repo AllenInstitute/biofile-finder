@@ -105,7 +105,7 @@ describe("HttpAnnotationService", () => {
                 fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
                 httpClient,
             });
-            const values = await annotationService.fetchRootHierarchyValues(["foo"], []);
+            const values = await annotationService.fetchRootHierarchyValues(["foo"], []).promise;
             expect(values).to.equal(expectedValues);
         });
 
@@ -131,7 +131,7 @@ describe("HttpAnnotationService", () => {
             const firstCallRet = await annotationService.fetchRootHierarchyValues(
                 ["z", "a", "b", "c"],
                 []
-            ); // note order
+            ).promise; // note order
             expect(firstCallRet).to.equal(expectedValues);
             expect(getSpy.called).to.equal(true);
 
@@ -142,7 +142,7 @@ describe("HttpAnnotationService", () => {
             const secondCallRet = await annotationService.fetchRootHierarchyValues(
                 ["z", "c", "a", "b"],
                 []
-            ); // note order
+            ).promise; // note order
             expect(secondCallRet).to.equal(firstCallRet);
             expect(getSpy.called).to.equal(false);
         });
@@ -163,7 +163,8 @@ describe("HttpAnnotationService", () => {
                 httpClient,
             });
             const filter = new FileFilter("bar", "barValue");
-            const values = await annotationService.fetchRootHierarchyValues(["foo"], [filter]);
+            const values = await annotationService.fetchRootHierarchyValues(["foo"], [filter])
+                .promise;
             expect(values).to.equal(expectedValues);
         });
     });
@@ -188,7 +189,7 @@ describe("HttpAnnotationService", () => {
                 ["foo", "bar"],
                 ["baz"],
                 []
-            );
+            ).promise;
             expect(values).to.equal(expectedValues);
         });
 
@@ -212,7 +213,7 @@ describe("HttpAnnotationService", () => {
                 ["foo", "bar"],
                 ["baz"],
                 [filter]
-            );
+            ).promise;
             expect(values).to.equal(expectedValues);
         });
     });
