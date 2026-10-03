@@ -52,14 +52,14 @@ export function findChildNodes(params: FindChildNodesParams): CancellablePromise
         let hasNullValueFile = false;
         if (shouldShowNullGroups) {
             // Check whether we should include the 'no value' folder by getting a count
-            const countQuery = fileService.getCountOfMatchingFiles(
+            const hasNullValueFileQuery = fileService.hasMatchingFiles(
                 new FileSet({
                     fileService,
                     filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
                 })
             );
-            activePromiseCancel = countQuery.cancel;
-            hasNullValueFile = (await countQuery.promise) > 0; // immediately invoke
+            activePromiseCancel = hasNullValueFileQuery.cancel;
+            hasNullValueFile = await hasNullValueFileQuery.promise; // immediately invoke
             activePromiseCancel = undefined; // Unset since done querying
         }
 

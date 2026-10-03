@@ -1,13 +1,15 @@
 import * as React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { interaction, selection } from "../state";
 import FileSelection from "../entity/FileSelection";
 import FileSet from "../entity/FileSet";
 import NumericRange from "../entity/NumericRange";
 import { CanceledError } from "../errors";
+import { processError } from "../state/interaction/actions";
 
 export default function useFilteredSelection() {
+    const dispatch = useDispatch();
     const defaultSelection = useSelector(
         selection.selectors.getFileSelection,
         FileSelection.selectionsAreEqual
@@ -43,7 +45,9 @@ export default function useFilteredSelection() {
                     );
                 } catch (err) {
                     // Swallow cancellation errors
-                    if (!(err instanceof CanceledError)) throw err;
+                    if (!(err instanceof CanceledError)) {
+                        dispatch(processError("use-filtered-selection", (err as Error).message));
+                    }
                 }
             };
             fetchAndSetSelection();
@@ -53,7 +57,7 @@ export default function useFilteredSelection() {
         }
         // Clean up by canceling stale query on dep change
         return () => cancelFn?.(); // noop if cancel is still undefined
-    }, [filters, sortColumn, fileService, defaultSelection]);
+    }, [filters, sortColumn, fileService, defaultSelection, dispatch]);
 
     return filteredSelection;
 }

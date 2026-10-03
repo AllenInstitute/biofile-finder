@@ -217,13 +217,15 @@ export default function FileList(props: FileListProps) {
                 !(err instanceof CanceledError) &&
                 !(err as Error)?.message?.includes("Data source is not prepared")
             ) {
-                throw err;
+                dispatch(setError(err as Error, isRoot));
+                // Root has its own error handling
+                if (!isRoot) setLocalError(err as Error);
             }
         });
         return () => {
             cancel?.(); // no-op if cancel hasn't been returned yet
         };
-    }, [areAnnotationsLoaded, fileSet]);
+    }, [areAnnotationsLoaded, fileSet, isRoot, dispatch]);
 
     const fileFetchWrapper = React.useCallback(
         async (startIndex: number, endIndex: number) => {
