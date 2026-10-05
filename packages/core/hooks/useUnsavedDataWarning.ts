@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import { UNSAVED_DATA_WARNING } from "../constants";
 import { interaction } from "../state";
 
-
 /**
  * Hook for having the window provide a warning on exit if unsaved data is present
  */
@@ -27,4 +26,4 @@ export default () => {
             window.removeEventListener("beforeunload", beforeUnloadHandler);
         };
     }, [hasUnsavedChanges]);
-}
+};

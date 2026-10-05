@@ -6,14 +6,15 @@ import DatasetTable from "./DatasetTable";
 import DatasetDetails from "./OpenSourceDatasetDetails";
 import PublicDataset from "../../entity/PublicDataset";
 import Modal from "../../../../core/components/Modal";
-import { metadata, selection } from "../../../../core/state";
 import SearchParams, {
-    SearchParamsComponents,
     getNameAndTypeFromSourceUrl,
+    SearchParamsComponents,
     Source,
 } from "../../../../core/entity/SearchParams";
+import { metadata, selection } from "../../../../core/state";
 
 import styles from "./OpenSourceDatasets.module.css";
+
 /**
  * Page for displaying public-facing datasets
  * Currently using placeholder text and data

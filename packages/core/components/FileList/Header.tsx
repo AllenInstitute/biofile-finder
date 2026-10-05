@@ -2,7 +2,7 @@ import { Icon } from "@fluentui/react";
 import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { COLUMN_PICKER_MENU_ITEMS } from "./ColumnPicker";
 import useDragAndDropOrder from "./useDragAndDropOrder";
@@ -42,14 +42,8 @@ function Header(
         [dispatch]
     );
 
-    const {
-        draggedItem,
-        dragOverItem,
-        onDragStart,
-        onDragOver,
-        onDrop,
-        onDragEnd,
-    } = useDragAndDropOrder(allColumnNames, onReorder);
+    const { draggedItem, dragOverItem, onDragStart, onDragOver, onDrop, onDragEnd } =
+        useDragAndDropOrder(allColumnNames, onReorder);
 
     const onResize = (name: string, width?: number) => {
         dispatch(selection.actions.resizeColumn({ name, width }));

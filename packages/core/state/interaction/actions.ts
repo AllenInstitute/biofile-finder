@@ -5,9 +5,9 @@ import { ContextMenuItem, PositionReference } from "../../components/ContextMenu
 import { DataSourceType } from "../../components/DataSourcePrompt";
 import { ModalType } from "../../components/Modal";
 import { EnvironmentOverrides } from "../../constants";
-import FileFilter from "../../entity/FileFilter";
 import { AnnotationValue } from "../../entity/Annotation";
 import FileDetail from "../../entity/FileDetail";
+import FileFilter from "../../entity/FileFilter";
 import { Source } from "../../entity/SearchParams";
 import { FileInfo } from "../../services";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";

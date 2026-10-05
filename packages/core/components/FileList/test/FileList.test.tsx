@@ -6,13 +6,12 @@ import * as React from "react";
 import { Provider } from "react-redux";
 import { createSandbox } from "sinon";
 
-import FileSet from "../../../entity/FileSet";
-import { initialState, metadata, reduxLogics, reducer } from "../../../state";
-import HttpFileService from "../../../services/FileService/HttpFileService";
+import FileList from "..";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
-
-import FileList from "..";
+import FileSet from "../../../entity/FileSet";
+import HttpFileService from "../../../services/FileService/HttpFileService";
+import { initialState, metadata, reducer, reduxLogics } from "../../../state";
 
 const FILE_NAME_ANNOTATION = new Annotation({
     annotationDisplayName: "File Name",

@@ -5,9 +5,8 @@ import { range } from "lodash";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import { initialState } from "../../../state";
-
 import FilePrompt from "..";
+import { initialState } from "../../../state";
 
 // NodeJS < v20 does not provide support for the built-in File class
 interface MockFile {

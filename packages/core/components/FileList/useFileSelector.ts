@@ -1,9 +1,9 @@
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { interaction, selection } from "../../state";
 import FileSet from "../../entity/FileSet";
 import NumericRange from "../../entity/NumericRange";
+import { interaction, selection } from "../../state";
 import { hideDatasetDetailsPanel } from "../../state/interaction/actions";
 
 export interface EventParams {

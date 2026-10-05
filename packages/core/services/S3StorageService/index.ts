@@ -1,4 +1,4 @@
-import { parseS3Url, isS3Url } from "amazon-s3-url";
+import { isS3Url, parseS3Url } from "amazon-s3-url";
 import axios from "axios";
 
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";

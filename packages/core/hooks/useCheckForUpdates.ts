@@ -4,13 +4,14 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { interaction } from "../state";
 
-
-/** 
+/**
  * Hook to check for updates and dispatch an event to the state
  */
 export default () => {
     const dispatch = useDispatch();
-    const { applicationInfoService } = useSelector(interaction.selectors.getPlatformDependentServices);
+    const { applicationInfoService } = useSelector(
+        interaction.selectors.getPlatformDependentServices
+    );
 
     // Check for updates to the application on startup
     React.useEffect(() => {
@@ -32,4 +33,4 @@ export default () => {
         };
         checkForUpdates();
     }, [applicationInfoService, dispatch]);
-}
+};

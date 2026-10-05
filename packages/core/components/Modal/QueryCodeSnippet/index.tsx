@@ -1,10 +1,10 @@
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import BaseModal from "../BaseModal";
-import { interaction } from "../../../state";
 import { ModalProps } from "..";
+import BaseModal from "../BaseModal";
 import CodeSnippet from "../../CodeSnippet";
+import { interaction } from "../../../state";
 
 /**
  * Dialog meant to show the user a Code snippet of their active Query

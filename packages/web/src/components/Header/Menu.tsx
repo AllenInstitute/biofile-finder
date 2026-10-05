@@ -4,9 +4,9 @@ import * as React from "react";
 import { useDispatch } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 
+import LaunchAppMenu, { LAUNCH_APP_MENU_ITEMS } from "../LaunchAppMenu";
 import { TertiaryButton, useButtonMenu } from "../../../../core/components/Buttons";
 import useHelpOptions from "../../../../core/hooks/useHelpOptions";
-import LaunchAppMenu, { LAUNCH_APP_MENU_ITEMS } from "../LaunchAppMenu";
 
 import styles from "./Menu.module.css";
 

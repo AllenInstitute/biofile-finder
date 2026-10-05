@@ -2,7 +2,6 @@ import * as React from "react";
 
 import FileDetail from "../../entity/FileDetail";
 
-
 /**
  * Hook for async grabbing the thumbnail path for a file
  */
@@ -13,7 +12,8 @@ export default (fileDetails?: FileDetail) => {
     React.useEffect(() => {
         if (fileDetails) {
             setIsThumbnailLoading(true);
-            fileDetails.getPathToThumbnail(300)
+            fileDetails
+                .getPathToThumbnail(300)
                 .then((path) => {
                     setThumbnailPath(path);
                 })
