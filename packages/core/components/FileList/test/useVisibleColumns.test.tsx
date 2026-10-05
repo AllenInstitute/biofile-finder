@@ -4,8 +4,8 @@ import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
 
-import useVisibleColumns from "../useVisibleCells";
 import HorizontalScrollContext from "../HorizontalScrollContext";
+import useVisibleColumns from "../useVisibleCells";
 import { initialState } from "../../../state";
 import { Column } from "../../../state/selection/actions";
 

@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
 
+import DatabaseAnnotationService from "..";
 import DatabaseService from "../../../DatabaseService";
 import DatabaseServiceNoop from "../../../DatabaseService/DatabaseServiceNoop";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../../constants";
@@ -9,8 +10,6 @@ import { AnnotationType } from "../../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../../entity/FileFilter";
 import { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH } from "../../../../entity/SearchParams";
 import SQLBuilder from "../../../../entity/SQLBuilder";
-
-import DatabaseAnnotationService from "..";
 
 describe("DatabaseAnnotationService", () => {
     describe("fetchAnnotationValues", () => {

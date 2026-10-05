@@ -2,11 +2,11 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 
 import HttpFileService from "..";
+import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
 import { FESBaseUrl, FileStorageServiceBaseUrl, MMSBaseUrl } from "../../../../constants";
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
-import FileDownloadServiceNoop from "../../../FileDownloadService/FileDownloadServiceNoop";
 
 describe("HttpFileService", () => {
     const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;

@@ -1,6 +1,6 @@
+import { SpinnerSize } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { SpinnerSize } from "@fluentui/react";
 
 import LoadingIcon from "../Icons/LoadingIcon";
 import SvgIcon from "../SvgIcon";

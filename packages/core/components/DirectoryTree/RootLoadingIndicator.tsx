@@ -1,6 +1,6 @@
+import { ProgressIndicator } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
-import { ProgressIndicator } from "@fluentui/react";
 
 import styles from "./RootLoadingIndicator.module.css";
 

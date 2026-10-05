@@ -2,12 +2,11 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import { spy } from "sinon";
 
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES, FESBaseUrl } from "../../../../constants";
+import HttpAnnotationService from "..";
+import { FESBaseUrl, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import { annotationsJson } from "../../../../entity/Annotation/mocks";
 import FileFilter from "../../../../entity/FileFilter";
-
-import HttpAnnotationService from "..";
 
 describe("HttpAnnotationService", () => {
     describe("fetchAnnotations", () => {

@@ -3,9 +3,9 @@
 
 "use strict";
 
-import { BenchmarkResults } from "../benchmark/src/types";
-
 import fs from "fs";
+
+import { BenchmarkResults } from "../benchmark/src/types";
 
 const REGRESSION_WARN_PCT = 25; // ≥25% slower → ⚠️
 const REGRESSION_SEVERE_PCT = 50; // ≥50% slower → ❌

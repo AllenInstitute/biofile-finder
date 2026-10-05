@@ -1,10 +1,10 @@
 import { expect } from "chai";
 
 import FileFilter, { FilterType } from "../";
-import { AnnotationType } from "../../AnnotationFormatter";
-import IncludeFilter from "../IncludeFilter";
 import ExcludeFilter from "../ExcludeFilter";
 import FuzzyFilter from "../FuzzyFilter";
+import IncludeFilter from "../IncludeFilter";
+import { AnnotationType } from "../../AnnotationFormatter";
 
 describe("FileFilter", () => {
     describe("toSimpleWhereClause", () => {

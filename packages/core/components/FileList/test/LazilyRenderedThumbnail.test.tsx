@@ -6,11 +6,11 @@ import { Provider } from "react-redux";
 import * as sinon from "sinon";
 
 import LazilyRenderedThumbnail from "../LazilyRenderedThumbnail";
-import { initialState } from "../../../state";
-import FileSet from "../../../entity/FileSet";
-import FileDetail from "../../../entity/FileDetail";
-import { FileView } from "../../../entity/SearchParams";
 import { Environment } from "../../../constants";
+import FileDetail from "../../../entity/FileDetail";
+import FileSet from "../../../entity/FileSet";
+import { FileView } from "../../../entity/SearchParams";
+import { initialState } from "../../../state";
 
 describe("<LazilyRenderedThumbnail />", () => {
     function makeItemData() {

@@ -1,10 +1,11 @@
-import * as os from "os";
-
 import axios from "axios";
-const httpAdapter = require("axios/lib/adapters/http"); // exported from lib, but not typed (can't be fixed through typing augmentation)
+import * as os from "os";
 import gt from "semver/functions/gt";
 
 import { ApplicationInfoService } from "../../../core/services";
+
+// exported from lib, but not typed (can't be fixed through typing augmentation)
+const httpAdapter = require("axios/lib/adapters/http");
 
 export default class ApplicationInfoServiceElectron implements ApplicationInfoService {
     public static GET_APP_VERSION_IPC_CHANNEL = "get-app-version";

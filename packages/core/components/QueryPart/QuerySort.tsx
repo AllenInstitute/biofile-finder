@@ -3,9 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import QueryPart from ".";
 import AnnotationPicker from "../AnnotationPicker";
-import { metadata, selection } from "../../state";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import Tutorial from "../../entity/Tutorial";
+import { metadata, selection } from "../../state";
 
 interface Props {
     disabled?: boolean;

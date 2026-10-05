@@ -1,6 +1,6 @@
+import type Interactable from "@interactjs/core/Interactable";
+import type InteractEvent from "@interactjs/core/InteractEvent";
 import classNames from "classnames";
-import Interactable from "@interactjs/core/Interactable"; // unfortunately necessary for the typings
-import InteractEvent from "@interactjs/core/InteractEvent"; // unfortunately necessary for the typings
 import interact from "interactjs";
 import * as React from "react";
 

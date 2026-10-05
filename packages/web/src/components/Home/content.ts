@@ -4,11 +4,11 @@
  */
 import * as React from "react";
 
+import { WEB_LINKS } from "../../constants";
 import ClockGraphic from "../../../assets/home_clock_graphic.svg";
 import GroupFilterGraphic from "../../../assets/home_group_filter_graphic.png";
 import PeopleShareGraphic from "../../../assets/home_people_share_graphic.svg";
 import ThumbnailsGraphic from "../../../assets/home_thumbnails_graphic.svg";
-import { WEB_LINKS } from "../../constants";
 
 // Deep link into the app pre-loaded with a public example dataset.
 export const EXAMPLE_DATASET_URL =
@@ -41,20 +41,17 @@ export interface InfoCardContent {
 export const WHY_CARDS: InfoCardContent[] = [
     {
         heading: "Reduce time to find the right files",
-        body:
-            "Search, filter, and browse large, distributed datasets using the metadata you already maintain without digging through folders or filenames.",
+        body: "Search, filter, and browse large, distributed datasets using the metadata you already maintain without digging through folders or filenames.",
         image: { src: ClockGraphic, alt: "Clock icon", icon: true },
     },
     {
         heading: "Improve collaboration and reproducibility",
-        body:
-            "Share persistent, interactive dataset views so collaborators can open the same filtered, organized state and see the exact view you see.",
+        body: "Share persistent, interactive dataset views so collaborators can open the same filtered, organized state and see the exact view you see.",
         image: { src: PeopleShareGraphic, alt: "People sharing a dataset icon", icon: true },
     },
     {
         heading: "Dynamically organize and curate datasets",
-        body:
-            "Filter, group, and restructure collections using hierarchical views without modifying underlying metadata or breaking existing reference.",
+        body: "Filter, group, and restructure collections using hierarchical views without modifying underlying metadata or breaking existing reference.",
         image: {
             src: GroupFilterGraphic,
             alt: "Group-by and filter controls in the BioFile Finder interface",
@@ -62,8 +59,7 @@ export const WHY_CARDS: InfoCardContent[] = [
     },
     {
         heading: "Quick visual confirmation with thumbnails",
-        body:
-            "Preview responsive thumbnails designed for scale, making it easier to verify files, spot patterns, and focus on relevant data.",
+        body: "Preview responsive thumbnails designed for scale, making it easier to verify files, spot patterns, and focus on relevant data.",
         image: { src: ThumbnailsGraphic, alt: "Thumbnail previews of imaging data" },
     },
 ];
@@ -78,13 +74,11 @@ export const HOW_SUBTITLE =
 export const HOW_CARDS: InfoCardContent[] = [
     {
         heading: "Decentralized storage system",
-        body:
-            "Work from metadata while files remain distributed across local storage, shared drives, or institutional systems—no copying or setup required.",
+        body: "Work from metadata while files remain distributed across local storage, shared drives, or institutional systems—no copying or setup required.",
     },
     {
         heading: "Integrates with existing tools",
-        body:
-            "BioFile Finder serves as a lightweight entry point, connecting metadata exploration with the applications you already use.",
+        body: "BioFile Finder serves as a lightweight entry point, connecting metadata exploration with the applications you already use.",
     },
 ];
 
@@ -104,20 +98,17 @@ export interface ActionCard {
 export const NEXT_CARDS: ActionCard[] = [
     {
         title: "See how scientists use BFF",
-        body:
-            "BioFile Finder has been used across many dataset types to support the release of published datasets and ongoing work.",
+        body: "BioFile Finder has been used across many dataset types to support the release of published datasets and ongoing work.",
         cta: { text: "Explore use cases", href: LINKS.userGuideUseCases },
     },
     {
         title: "Learn more",
-        body:
-            "Visit our user guide for guidance on how to get started with your own data and other helpful resources.",
+        body: "Visit our user guide for guidance on how to get started with your own data and other helpful resources.",
         cta: { text: "Visit user guide", href: LINKS.userGuide },
     },
     {
         title: "Browse dataset collections",
-        body:
-            "Explore open-source datasets for open use or to test drive the app and its features.",
+        body: "Explore open-source datasets for open use or to test drive the app and its features.",
         cta: { text: "View datasets", href: LINKS.datasets },
     },
 ];

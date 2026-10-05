@@ -5,11 +5,11 @@ import { useSelector } from "react-redux";
 import LoadingIcon from "../Icons/LoadingIcon";
 import Tooltip from "../Tooltip";
 import SvgIcon from "../../components/SvgIcon";
-import { selection } from "../../state";
 import FileSet from "../../entity/FileSet";
-import { ERROR_ICON_PATH_DATA } from "../../icons";
 import useFileAccessContextMenu from "../../hooks/useFileAccessContextMenu";
 import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
+import { ERROR_ICON_PATH_DATA } from "../../icons";
+import { selection } from "../../state";
 
 import styles from "./DirectoryTreeNode.module.css";
 

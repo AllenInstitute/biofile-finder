@@ -2,19 +2,18 @@ import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import { identity } from "lodash";
 
-import FileSet from "../../FileSet";
-import NumericRange from "../../NumericRange";
-
 import FileSelection, { FocusDirective } from "..";
 import FileDetail from "../../FileDetail";
 import FileFilter from "../../FileFilter";
+import ExcludeFilter from "../../FileFilter/ExcludeFilter";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
 import IncludeFilter from "../../FileFilter/IncludeFilter";
-import ExcludeFilter from "../../FileFilter/ExcludeFilter";
+import FileSet from "../../FileSet";
+import NumericRange from "../../NumericRange";
 import { Environment, FESBaseUrl } from "../../../constants";
 import { IndexError, ValueError } from "../../../errors";
-import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 
 describe("FileSelection", () => {
     describe("select", () => {
