@@ -103,7 +103,8 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
     {
         name: "filter_count",
         run: (_, f) =>
-            f.getCountOfMatchingFiles(new FileSet({ filters: [new FileFilter("cell_line", 3)] })),
+            f.getCountOfMatchingFiles(new FileSet({ filters: [new FileFilter("cell_line", 3)] }))
+                .promise,
     },
     {
         name: "filter_browse",
@@ -120,7 +121,8 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
     {
         name: "null_group_count",
         run: (_, f) =>
-            f.getCountOfMatchingFiles(new FileSet({ filters: [new ExcludeFilter("cell_line")] })),
+            f.getCountOfMatchingFiles(new FileSet({ filters: [new ExcludeFilter("cell_line")] }))
+                .promise,
     },
 
     // Changing the grouping annotation — fires parallel IS NOT NULL queries, one per schema
@@ -135,7 +137,7 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
     // specific parent value (cell_line=3 → plate_id values).
     {
         name: "expand_folder",
-        run: (a) => a.fetchHierarchyValuesUnderPath(["cell_line", "plate_id"], ["3"], []),
+        run: (a) => a.fetchHierarchyValuesUnderPath(["cell_line", "plate_id"], ["3"], []).promise,
     },
 
     // Date range filter covering ~half the fixture rows (acquisition_date spans 2024-01-01

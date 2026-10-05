@@ -45,7 +45,9 @@ describe("<DatasetTable />", () => {
     it("displays 'No files found' message when no files found", async () => {
         // Arrange
         const fileService = new DatabaseFileService();
-        sandbox.replace(fileService, "getCountOfMatchingFiles", () => Promise.resolve(0));
+        sandbox.replace(fileService, "getCountOfMatchingFiles", () => {
+            return { promise: Promise.resolve(0) };
+        });
         sandbox.stub(useDatasetDetails, "default").callsFake(() => [[], false, undefined]);
 
         const { findByText } = render(

@@ -6,6 +6,7 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import FileSort from "../../entity/FileSort";
 import { JSONReadyRange } from "../../entity/NumericRange";
+import { CancellablePromise } from "../../entity/types";
 
 export type PrimitiveMetadataValue = string | number | boolean;
 /**
@@ -69,7 +70,8 @@ export default interface FileService {
         user?: string
     ): Promise<void>;
     getAggregateInformation(fileSelection: FileSelection): Promise<SelectionAggregationResult>;
-    getCountOfMatchingFiles(fileSet: FileSet): Promise<number>;
+    getCountOfMatchingFiles(fileSet: FileSet): CancellablePromise<number>;
+    hasMatchingFiles(fileSet: FileSet): CancellablePromise<boolean>;
     getFiles(request: GetFilesRequest): Promise<FileDetail[]>;
     getFileByUid(uid: string): Promise<FileDetail | undefined>;
 }

@@ -18,6 +18,7 @@ import FileDetail, { FmsFile } from "../../../entity/FileDetail";
 import { JSONReadyRange } from "../../../entity/NumericRange";
 import { FilterType } from "../../../entity/FileFilter";
 import { SortOrder } from "../../../entity/FileSort";
+import { CancellablePromise } from "../../../entity/types";
 
 // Interface expected by FES API
 interface FESFileSelection {
@@ -112,7 +113,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
         }
     }
 
-    public async getCountOfMatchingFiles(fileSet: FileSet): Promise<number> {
+    public getCountOfMatchingFiles(fileSet: FileSet): CancellablePromise<number> {
         const requestUrl = join(
             compact([
                 `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILE_COUNT_URL}${this.pathSuffix}`,
@@ -121,14 +122,23 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
             "?"
         );
 
-        const response = await this.get<number>(requestUrl);
+        const promise = this.get<number>(requestUrl).then((response) => {
+            // data is always an array, this endpoint should always return an array of length 1
+            if (response.data.length !== 1) {
+                throw new Error(
+                    `Expected response.data of ${requestUrl} to contain a single count`
+                );
+            }
+            return response.data[0];
+        });
+        return { promise };
+    }
 
-        // data is always an array, this endpoint should always return an array of length 1
-        if (response.data.length !== 1) {
-            throw new Error(`Expected response.data of ${requestUrl} to contain a single count`);
-        }
-
-        return response.data[0];
+    public hasMatchingFiles(fileSet: FileSet): CancellablePromise<boolean> {
+        const promise = this.getCountOfMatchingFiles(fileSet).promise.then(
+            (fileCount) => fileCount > 0
+        );
+        return { promise };
     }
 
     public async getAggregateInformation(

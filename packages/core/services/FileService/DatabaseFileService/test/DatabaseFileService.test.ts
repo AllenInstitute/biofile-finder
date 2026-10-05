@@ -170,7 +170,7 @@ describe("DatabaseFileService", () => {
                 downloadService: new FileDownloadServiceNoop(),
             });
             const fileSet = new FileSet();
-            const count = await fileService.getCountOfMatchingFiles(fileSet);
+            const count = await fileService.getCountOfMatchingFiles(fileSet).promise;
             expect(count).to.equal(6);
         });
     });

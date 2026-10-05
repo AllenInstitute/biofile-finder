@@ -81,7 +81,7 @@ describe("DatabaseAnnotationService", () => {
             const values = await annotationService.fetchRootHierarchyValues(
                 [mockAnnotationName],
                 []
-            );
+            ).promise;
             expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Gene2"]);
         });
 
@@ -94,7 +94,7 @@ describe("DatabaseAnnotationService", () => {
             const values = await annotationService.fetchRootHierarchyValues(
                 [mockAnnotationName],
                 [filter]
-            );
+            ).promise;
             expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Gene2"]);
         });
 
@@ -107,7 +107,7 @@ describe("DatabaseAnnotationService", () => {
             const values = await annotationService.fetchRootHierarchyValues(
                 [mockAnnotationName],
                 [filter]
-            );
+            ).promise;
             expect(values).to.deep.equal(["Cell Line0", "Is Split Scene1", "Gene2"]);
         });
     });
@@ -147,7 +147,7 @@ describe("DatabaseAnnotationService", () => {
                 ["foo", "bar"],
                 ["baz"],
                 []
-            );
+            ).promise;
             expect(values).to.deep.equal(expectedValues);
         });
 
@@ -161,7 +161,7 @@ describe("DatabaseAnnotationService", () => {
                 ["foo", "bar"],
                 ["baz"],
                 [filter]
-            );
+            ).promise;
             expect(values).to.deep.equal(["A0", "B1", "Cc2", "dD3"]);
         });
 
@@ -175,7 +175,7 @@ describe("DatabaseAnnotationService", () => {
                 ["foo", "bar"],
                 ["baz"],
                 [filter]
-            );
+            ).promise;
             expect(values).to.deep.equal(["A0", "B1", "Cc2", "dD3"]);
         });
     });
@@ -230,7 +230,7 @@ describe("DatabaseAnnotationService", () => {
                 ["foo"],
                 [], // path so far; skipping to simplify test
                 [filter1a, filter1b, filter1c, filter2a, filter2b, filter3] // user-applied filters
-            );
+            ).promise;
 
             // Construct expected regex for each set of filters
             const filter1OR = `${filterToRegex(filter1a)} OR ${filterToRegex(
@@ -267,7 +267,7 @@ describe("DatabaseAnnotationService", () => {
                 ["foo", "bar", "zip"], // annotations to group by
                 ["value1", "value2"], // path so far
                 [filter1a, filter1b] // user-applied filters
-            );
+            ).promise;
 
             // Find potential values for the current level of the grouping hierarchy (group3, not group4)
             expect(querySpy.calledWithMatch(/SELECT DISTINCT "zip"/)).to.be.true;

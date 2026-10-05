@@ -194,7 +194,7 @@ describe("DirectoryTree utilities", () => {
                 hierarchy,
                 shouldShowNullGroups: false,
                 fileSet,
-            });
+            }).promise;
             expect(childNodes.includes(NO_VALUE_NODE)).to.be.false;
             expect(childNodes).to.deep.equal(secondLevelHierarchyValues);
         });
@@ -207,7 +207,7 @@ describe("DirectoryTree utilities", () => {
                 hierarchy,
                 shouldShowNullGroups: true,
                 fileSet,
-            });
+            }).promise;
             expect(childNodes.includes(NO_VALUE_NODE)).to.be.true;
         });
         it("excludes the NO_VALUE node when no files exist for that node", async () => {
@@ -219,7 +219,7 @@ describe("DirectoryTree utilities", () => {
                 hierarchy: [firstAnn.displayName, noValueAnnotation],
                 shouldShowNullGroups: true,
                 fileSet,
-            });
+            }).promise;
             expect(childNodes.includes(NO_VALUE_NODE)).to.be.false;
         });
         it("excludes the NO_VALUE node when annotation has filter applied", async () => {
@@ -233,7 +233,7 @@ describe("DirectoryTree utilities", () => {
                 hierarchy,
                 shouldShowNullGroups: true,
                 fileSet,
-            });
+            }).promise;
             expect(childNodes.includes(NO_VALUE_NODE)).to.be.false;
             expect(childNodes).to.deep.equal([secondLevelHierarchyValues[1]]);
         });
@@ -246,7 +246,7 @@ describe("DirectoryTree utilities", () => {
                 hierarchy,
                 shouldShowNullGroups: true,
                 fileSet,
-            });
+            }).promise;
             expect(childNodes.includes(NO_VALUE_NODE)).to.be.true;
             expect(childNodes.length).to.equal(1);
         });
@@ -261,7 +261,7 @@ describe("DirectoryTree utilities", () => {
                 hierarchy: [firstAnn.displayName, numericAnn.displayName],
                 shouldShowNullGroups: false,
                 fileSet,
-            });
+            }).promise;
             expect(childNodes).to.deep.equal(numericHierarchyValues);
         });
         it("returns all values when 'include' filter is applied on hierarchy field", async () => {
@@ -273,7 +273,7 @@ describe("DirectoryTree utilities", () => {
                 hierarchy,
                 shouldShowNullGroups: false,
                 fileSet,
-            });
+            }).promise;
             expect(childNodes).to.deep.equal(secondLevelHierarchyValues);
         });
     });

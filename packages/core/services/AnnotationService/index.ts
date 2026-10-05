@@ -1,6 +1,7 @@
 import Annotation, { AnnotationResponseMms, AnnotationValue } from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
+import { CancellablePromise } from "../../entity/types";
 
 export interface AnnotationDetails {
     type: AnnotationType;
@@ -16,12 +17,15 @@ export default interface AnnotationService {
     fetchValues(annotation: string): Promise<AnnotationValue[]>;
     fetchAnnotations(): Promise<Annotation[]>;
     fetchAnnotationDetails(name: string): Promise<AnnotationDetails>;
-    fetchRootHierarchyValues(hierarchy: string[], filters: FileFilter[]): Promise<string[]>;
+    fetchRootHierarchyValues(
+        hierarchy: string[],
+        filters: FileFilter[]
+    ): CancellablePromise<string[]>;
     fetchHierarchyValuesUnderPath(
         hierarchy: string[],
         path: string[],
         filters: FileFilter[]
-    ): Promise<string[]>;
+    ): CancellablePromise<string[]>;
     fetchAvailableAnnotationsForHierarchy(annotations: string[]): Promise<string[] | null>;
     fetchOptimalWidthForAnnotations(
         annotations: Annotation[],

@@ -5,10 +5,11 @@ import { QueryRow, WorkerMsgType, WorkerReqPayload, WorkerRequest, WorkerResType
 import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
 import { Source } from "../../../../core/entity/SearchParams";
 import SQLBuilder from "../../../../core/entity/SQLBuilder";
+import { CancellablePromise } from "../../../../core/entity/types";
 import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 import { DatabaseService } from "../../../../core/services";
-import { CancellablePromise, initializeDuckDB } from "../../../../core/services/DatabaseService";
+import { initializeDuckDB } from "../../../../core/services/DatabaseService";
 
 declare const self: DedicatedWorkerGlobalScope & typeof globalThis;
 let databaseService: DatabaseServiceWebWorker | null = null;

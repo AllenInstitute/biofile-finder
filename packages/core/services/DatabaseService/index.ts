@@ -18,13 +18,9 @@ import {
     TABULAR_SOURCE_TYPES,
 } from "../../entity/SearchParams";
 import SQLBuilder from "../../entity/SQLBuilder";
+import { CancellablePromise } from "../../entity/types";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 import { isGoogleSheetUri } from "../../util/googleSheets";
-
-export interface CancellablePromise<T> {
-    promise: Promise<T>;
-    cancel?: (reason?: string) => void;
-}
 
 interface ProvenanceRow {
     child: string;
