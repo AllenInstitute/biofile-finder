@@ -13,11 +13,11 @@ import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
 import useFileSelector from "./useFileSelector";
 import { Action, setError } from "../DirectoryTree/directory-hierarchy-state";
 import EmptyFileListMessage from "../EmptyFileListMessage";
-import { FileView } from "../../entity/SearchParams";
 import FileSet from "../../entity/FileSet";
+import { FileView } from "../../entity/SearchParams";
 import { CanceledError } from "../../errors";
-import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import useFileAccessContextMenu from "../../hooks/useFileAccessContextMenu";
+import useLayoutMeasurements from "../../hooks/useLayoutMeasurements";
 import { metadata, selection } from "../../state";
 
 import styles from "./FileList.module.css";
@@ -61,9 +61,8 @@ export default function FileList(props: FileListProps) {
     const totalColumnWidth = useSelector(selection.selectors.getTotalColumnWidth);
     const columnNames = useSelector(selection.selectors.getColumnNames);
     const areAnnotationsLoaded = useSelector(metadata.selectors.areAnnotationsLoaded);
-    const [measuredNodeRef, measuredHeight, measuredWidth] = useLayoutMeasurements<
-        HTMLDivElement
-    >();
+    const [measuredNodeRef, measuredHeight, measuredWidth] =
+        useLayoutMeasurements<HTMLDivElement>();
     let defaultRowHeight = isDisplayingSmallFont ? SMALL_ROW_HEIGHT : TALL_ROW_HEIGHT;
     if (fileView !== FileView.LIST) defaultRowHeight = measuredWidth / fileGridColumnCount;
     const { className, fileSet, isRoot, rowHeight, sortOrder } = defaults({}, props, DEFAULTS, {

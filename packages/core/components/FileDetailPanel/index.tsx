@@ -8,7 +8,6 @@ import { interaction } from "../../state";
 
 import styles from "./FileDetailPanel.module.css";
 
-
 /**
  * Right-hand sidebar of application. Displays details of selected file(s).
  */
@@ -25,10 +24,8 @@ export default function FileDetailPanel() {
             fileDetails={fileDetails}
             isLoading={isLoading}
             onClose={
-                origin ?
-                    () => dispatch(interaction.actions.toggleFileDetailsPanel())
-                    : undefined
+                origin ? () => dispatch(interaction.actions.toggleFileDetailsPanel()) : undefined
             }
         />
-    )
+    );
 }

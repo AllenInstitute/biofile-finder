@@ -1,8 +1,8 @@
 import { Menu, MenuItemConstructorOptions, webContents } from "electron";
 
 import getMenuTemplate from "../menu";
-import { GlobalVariableChannels, Environment } from "../../util/constants";
 import PersistentConfigServiceElectron from "../../services/PersistentConfigServiceElectron";
+import { Environment, GlobalVariableChannels } from "../../util/constants";
 import { PersistedConfigKeys } from "../../../../core/services";
 
 const persistentConfigService = new PersistentConfigServiceElectron();

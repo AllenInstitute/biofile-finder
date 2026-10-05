@@ -2,17 +2,17 @@ import { defaults, pull, take, uniqWith, zip } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
-import DirectoryTreeNode from "./DirectoryTreeNode";
 import {
     INITIAL_STATE,
-    setError,
-    showLoadingIndicator,
-    State,
+    NO_VALUE_NODE,
     receiveContent,
     reducer,
     ROOT_NODE,
-    NO_VALUE_NODE,
+    setError,
+    showLoadingIndicator,
+    State,
 } from "./directory-hierarchy-state";
+import DirectoryTreeNode from "./DirectoryTreeNode";
 import { findChildNodes } from "./findChildNodes";
 import FileList from "../FileList";
 import FileFilter, { FilterType } from "../../entity/FileFilter";

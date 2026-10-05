@@ -10,52 +10,52 @@ import { get as _get, shuffle } from "lodash";
 import sinon from "sinon";
 
 import {
+    ADD_DATASOURCE_RELOAD_ERROR,
+    ADD_QUERY,
     addDataSourceReloadError,
     addFileFilter,
     addQuery,
+    CHANGE_DATA_SOURCES,
     changeDataSources,
     changeProvenanceSource,
     changeQuery,
+    changeSourceMetadata,
     expandAllFileFolders,
-    reorderAnnotationHierarchy,
+    Query,
     removeFileFilter,
     removeFromAnnotationHierarchy,
-    setAnnotationHierarchy,
+    reorderAnnotationHierarchy,
     selectColumns,
     selectFile,
-    setFileFilters,
     selectNearbyFile,
-    ADD_DATASOURCE_RELOAD_ERROR,
-    ADD_QUERY,
-    CHANGE_DATA_SOURCES,
     SET_ANNOTATION_HIERARCHY,
-    SET_COLUMNS,
     SET_AVAILABLE_ANNOTATIONS,
+    SET_COLUMNS,
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_OPEN_FILE_FOLDERS,
     SET_QUERIES,
-    Query,
-    changeSourceMetadata,
+    setAnnotationHierarchy,
+    setFileFilters,
     setSelectedDescriptionSource,
 } from "../actions";
+import selectionLogics from "../logics";
 import { initialState, interaction } from "../../";
 import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
-import FileFilter from "../../../entity/FileFilter";
-import selectionLogics from "../logics";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
+import FileFilter from "../../../entity/FileFilter";
 import FileFolder from "../../../entity/FileFolder";
-import FileSet from "../../../entity/FileSet";
 import FileSelection from "../../../entity/FileSelection";
+import FileSet from "../../../entity/FileSet";
 import { DatasetSources, ParsedFrontmatter } from "../../../entity/MarkdownFrontMatter";
 import NumericRange from "../../../entity/NumericRange";
 import { Source } from "../../../entity/SearchParams";
 import { DatabaseService } from "../../../services";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../../services/DataSourceService";
-import HttpFileService from "../../../services/FileService/HttpFileService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
+import HttpFileService from "../../../services/FileService/HttpFileService";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {
@@ -1303,8 +1303,7 @@ describe("Selection logics", () => {
                 },
             });
             const responseStub = {
-                when:
-                    "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=date_created&hierarchy=cell_line",
+                when: "test/file-explorer-service/1.0/annotations/hierarchy/available?hierarchy=date_created&hierarchy=cell_line",
                 respondWith: {
                     status: 500,
                 },

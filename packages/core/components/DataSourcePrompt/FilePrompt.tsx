@@ -8,8 +8,8 @@ import { useDispatch } from "react-redux";
 import MarkdownPreview from "./MarkdownPreview";
 import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
-import { Source, getNameAndTypeFromSourceUrl, isMarkdownType } from "../../entity/SearchParams";
 import { ParsedFrontmatter, processMarkdown } from "../../entity/MarkdownFrontMatter";
+import { getNameAndTypeFromSourceUrl, isMarkdownType, Source } from "../../entity/SearchParams";
 import { interaction } from "../../state";
 
 import styles from "./FilePrompt.module.css";
@@ -89,13 +89,16 @@ export default function FilePrompt(props: Props) {
 
     // Format file rejection error codes into readable messages
     const fileErrorMessage: JSX.Element | JSX.Element[] | null = React.useMemo(() => {
-        const fileRejectionMap = fileRejections.reduce((accum, { file, errors }) => {
-            // Group together files that have the same error code
-            errors.forEach((error) => {
-                accum[error.code] = [...(accum[error.code as string] || []), file.name];
-            });
-            return accum;
-        }, {} as { [errorCode: string]: string[] });
+        const fileRejectionMap = fileRejections.reduce(
+            (accum, { file, errors }) => {
+                // Group together files that have the same error code
+                errors.forEach((error) => {
+                    accum[error.code] = [...(accum[error.code as string] || []), file.name];
+                });
+                return accum;
+            },
+            {} as { [errorCode: string]: string[] }
+        );
 
         // Convert an array of strings into a list with Oxford comma formatting
         const listFormatter = new Intl.ListFormat("en", { style: "long" });

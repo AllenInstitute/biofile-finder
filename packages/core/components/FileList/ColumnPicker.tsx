@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import AnnotationPicker from "../AnnotationPicker";
 import { ContextMenuItem } from "../ContextMenu";

@@ -5,8 +5,8 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import Section from "./Section";
-import Value from "./Value";
 import useDisplayText from "./useDisplayText";
+import Value from "./Value";
 import Cell from "../../FileRow/Cell";
 import FileDetail from "../../../entity/FileDetail";
 import { MetadataValue, NestedMetadataValue } from "../../../services/FileService";

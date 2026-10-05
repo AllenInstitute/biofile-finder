@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import SearchParams, { SearchParamsComponents, FileView, Source, EMPTY_QUERY_COMPONENTS } from "..";
+import SearchParams, { EMPTY_QUERY_COMPONENTS, FileView, SearchParamsComponents, Source } from "..";
 import AnnotationName from "../../Annotation/AnnotationName";
 import FileFilter from "../../FileFilter";
 import ExcludeFilter from "../../FileFilter/ExcludeFilter";
@@ -732,7 +732,8 @@ describe("SearchParams", () => {
                 sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
                 sources: [mockSourceWithUri],
             };
-            const expectedResult = /df\.groupby\(.*\)\.query\(.*\)\.query\(.*\)\.sort_values\(.*\)/i;
+            const expectedResult =
+                /df\.groupby\(.*\)\.query\(.*\)\.query\(.*\)\.sort_values\(.*\)/i;
 
             // Act
             const result = SearchParams.convertToPython(components, mockOS);

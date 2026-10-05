@@ -1,6 +1,6 @@
 import { DefaultButton } from "@fluentui/react";
 // prettier-ignore
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, NodeProps, Position } from '@xyflow/react';
 import classNames from "classnames";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
