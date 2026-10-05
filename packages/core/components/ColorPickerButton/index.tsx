@@ -1,7 +1,8 @@
 import { Callout, ColorPicker } from "@fluentui/react";
-import React, { ReactElement, useEffect, useState } from "react";
+import React, { ReactElement, useState } from "react";
 
 import SwatchButton from "./SwatchButton";
+import useDisableFocusLossOnDrag from "./useDisableFocusLossOnDrag";
 import { PrimaryButton } from "../Buttons";
 
 import styles from "./ColorPickerButton.module.css";
@@ -33,58 +34,10 @@ export default function ColorPickerButton(props: ColorPickerButtonProps): ReactE
     const calloutRootRef = React.useRef<HTMLDivElement>(null);
     const colorPickerContainerRef = React.useRef<HTMLDivElement>(null);
 
-    // When clicking and dragging on the color picker, releasing the mouse while
-    // outside the color picker can cause a parent callout to dismiss. Disabling
-    // the default behavior (changing focus) when a drag exits the color picker
-    // prevents this.
-    const isDraggingRef = React.useRef(false);
-    const preventFocusLossRef = React.useRef(false);
-
-    useEffect(() => {
-        const handleMouseDown = () => {
-            isDraggingRef.current = true;
-        };
-        const handleMouseLeave = () => {
-            if (isDraggingRef.current) {
-                preventFocusLossRef.current = true;
-            }
-        };
-        const handleMouseEnter = () => {
-            if (isDraggingRef.current) {
-                preventFocusLossRef.current = false;
-            }
-        };
-        const handleMouseUp = (event: MouseEvent) => {
-            if (preventFocusLossRef.current) {
-                event.preventDefault();
-            }
-            if (isDraggingRef.current) {
-                isDraggingRef.current = false;
-                preventFocusLossRef.current = false;
-            }
-        };
-        const colorPickerContainer = colorPickerContainerRef.current;
-        if (colorPickerContainer) {
-            colorPickerContainer.addEventListener("mousedown", handleMouseDown);
-            colorPickerContainer.addEventListener("mouseleave", handleMouseLeave);
-            colorPickerContainer.addEventListener("mouseenter", handleMouseEnter);
-        }
-        document.body.addEventListener("mouseup", handleMouseUp, {
-            capture: true,
-        });
-        return () => {
-            if (colorPickerContainer) {
-                colorPickerContainer.removeEventListener("mousedown", handleMouseDown);
-                colorPickerContainer.removeEventListener("mouseleave", handleMouseLeave);
-                colorPickerContainer.removeEventListener("mouseenter", handleMouseEnter);
-            }
-            document.body.removeEventListener("mouseup", handleMouseUp, { capture: true });
-        };
-    }, []);
+    const onElementHidden = useDisableFocusLossOnDrag(colorPickerContainerRef);
 
     const onCalloutDismiss = () => {
-        preventFocusLossRef.current = false;
-        isDraggingRef.current = false;
+        onElementHidden();
         setIsCalloutVisible(false);
     };
 
