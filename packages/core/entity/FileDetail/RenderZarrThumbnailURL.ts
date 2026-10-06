@@ -82,6 +82,16 @@ async function defaultNgffImageLoader(
     return await omezarr.NgffImage.load(zarrUrl, options);
 }
 
+type RenderZarrThumbnailOptions = {
+    thumbnailConfig?: ThumbnailConfig;
+    /**
+     * NGFF image loader. Uses `omezarr.NgffImage.load` by default if none is
+     * provided.
+     */
+    ngffImageLoader?: (zarrUrl: string) => Promise<typeof omezarr.NgffImage>;
+    abortSignal?: AbortSignal;
+};
+
 /**
  * Main function to attempt to render a usable thumbnail using the lowest
  * resolution present in a zarr image's metadata.
@@ -89,13 +99,14 @@ async function defaultNgffImageLoader(
 export async function renderZarrThumbnailURL(
     zarrUrl: string,
     targetSize: number,
-    thumbnailConfig?: ThumbnailConfig,
-    ngffImageLoader = defaultNgffImageLoader
+    options: RenderZarrThumbnailOptions
 ): Promise<string | undefined> {
     try {
         return await retryWithTimeout(
             async () => {
-                const image = await ngffImageLoader(zarrUrl);
+                const { thumbnailConfig, abortSignal } = options;
+
+                const image = await (options.ngffImageLoader ?? defaultNgffImageLoader)(zarrUrl);
                 let slices: { z?: number; t?: number } | undefined = undefined;
                 let channels: OmeroChannel[] | undefined = undefined;
 
@@ -150,6 +161,7 @@ export async function renderZarrThumbnailURL(
                     slices,
                     // Note: missing window param
                     channels: channels as (typeof omezarr.Channel)[],
+                    signal: abortSignal,
                 });
             },
             3,
