@@ -132,6 +132,9 @@
     aspect-ratio: 1 / 1;
     width: 100%;
     transition: width var(--transition-duration);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .fullscreen-overlay {

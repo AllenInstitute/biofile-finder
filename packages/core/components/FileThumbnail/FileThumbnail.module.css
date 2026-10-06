@@ -9,7 +9,6 @@
     fill: var(--medium-grey);
     position: relative;
     left: -4px;
-    padding: 20px;
 }
 
 .no-thumbnail-selected {
