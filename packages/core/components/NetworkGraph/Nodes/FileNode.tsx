@@ -63,9 +63,15 @@ export default function FileNode(props: NodeProps<FileNodeType>) {
     // Ex. if the file is a .zarr will attempt to create a thumbnail for that.
     // If it is not available or does not work, will default to the basic thumbnail
     React.useEffect(() => {
-        file.getPathToThumbnail(THUMBNAIL_SIZE_PX, thumbnailConfig).then((thumbnail) => {
-            setThumbnail(thumbnail);
-        });
+        const controller = new AbortController();
+        file.getPathToThumbnail(THUMBNAIL_SIZE_PX, thumbnailConfig, controller.signal).then(
+            (thumbnail) => {
+                setThumbnail(thumbnail);
+            }
+        );
+        return () => {
+            controller.abort();
+        };
     }, [file, thumbnailConfig]);
 
     return (

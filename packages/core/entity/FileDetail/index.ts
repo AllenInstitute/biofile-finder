@@ -301,7 +301,8 @@ export default class FileDetail {
 
     public async getPathToThumbnail(
         targetSize: number,
-        thumbnailConfig?: ThumbnailConfig
+        thumbnailConfig?: ThumbnailConfig,
+        abortSignal?: AbortSignal
     ): Promise<string | undefined> {
         // When no thumbnail is provided, try to render one from the file path if it's a
         // zarr or a known renderable image format
@@ -316,13 +317,16 @@ export default class FileDetail {
             // Try to render a thumbnail from the zarr if the path is a zarr
             // and isn't a local file (since we can't read local zarrs in the browser)
             if (this.path.includes(".zarr") && !FileDetail.isLikelyLocalFile(this.path)) {
-                return renderZarrThumbnailURL(this.path, targetSize, thumbnailConfig);
+                return renderZarrThumbnailURL(this.path, targetSize, {
+                    thumbnailConfig,
+                    abortSignal,
+                });
             }
 
             return undefined;
         }
 
-        // If the thumbnail is a relative path on the allen drive then preprend it to
+        // If the thumbnail is a relative path on the allen drive then prepend it to
         // the AICS FMS NGINX server path
         if (this.thumbnail.startsWith("/allen")) {
             const pathWithoutDrive = this.thumbnail.replace(NAS_HOST_PREFIXES[this.env], "");
@@ -334,7 +338,10 @@ export default class FileDetail {
         // Try to render a thumbnail from the zarr if the thumbnail is a zarr
         // and isn't a local file (since we can't read local zarrs in the browser)
         if (this.thumbnail.includes(".zarr") && !FileDetail.isLikelyLocalFile(this.thumbnail)) {
-            return renderZarrThumbnailURL(this.thumbnail, targetSize, thumbnailConfig);
+            return renderZarrThumbnailURL(this.thumbnail, targetSize, {
+                thumbnailConfig,
+                abortSignal,
+            });
         }
 
         return this.thumbnail;
