@@ -12,10 +12,11 @@ export default (fileDetails?: FileDetail, thumbnailConfig?: ThumbnailConfig) => 
 
     // TODO: Use AbortSignals to cancel request if dependencies change.
     React.useEffect(() => {
+        const controller = new AbortController();
         if (fileDetails) {
             setIsThumbnailLoading(true);
             fileDetails
-                .getPathToThumbnail(300, thumbnailConfig)
+                .getPathToThumbnail(300, thumbnailConfig, controller.signal)
                 .then((path) => {
                     setThumbnailPath(path);
                 })
@@ -23,6 +24,9 @@ export default (fileDetails?: FileDetail, thumbnailConfig?: ThumbnailConfig) => 
                     setIsThumbnailLoading(false);
                 });
         }
+        return () => {
+            controller.abort();
+        };
     }, [fileDetails, thumbnailConfig]);
 
     return { isThumbnailLoading, thumbnailPath };
