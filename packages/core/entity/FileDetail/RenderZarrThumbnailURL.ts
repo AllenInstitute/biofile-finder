@@ -7,7 +7,6 @@
 // various solutions like changing Node versions, ts config settings, and package.json settings
 // I am timeboxing this issue and moving on to the next task. - Sean M 08/30/2024
 // The same issue occurs with omezarr. Applying the same workaround - Will Moore October 2025
-
 import type { ThumbnailConfig } from "../../state/selection/actions";
 
 let omezarr: any;
@@ -87,13 +86,20 @@ export async function renderZarrThumbnailURL(
                         const hasOmeroMetadata =
                             omeroChannels !== undefined && omeroChannels.length > 0;
                         if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
-                            const channelConfigs = thumbnailConfig.channelConfigs ?? [];
+                            const channelConfigs = thumbnailConfig.channelConfigs;
                             channels = channelConfigs
                                 .filter((_, index) => index < maxChannels)
                                 .map((config) => ({
                                     color: config.hexColor,
                                     active: config.enabled,
                                 }));
+                            if (
+                                channels.length === 0 ||
+                                channels.every((channel) => !channel.active)
+                            ) {
+                                // All channels are disabled; return undefined.
+                                return undefined;
+                            }
                         }
                     }
 
@@ -104,11 +110,13 @@ export async function renderZarrThumbnailURL(
                         slices = {};
                         if (zIndex !== -1) {
                             const zDim = shape[zIndex];
-                            slices.z = Math.floor((zDim - 1) * thumbnailConfig.relativeZ);
+                            const zSlice = Math.floor((zDim - 1) * thumbnailConfig.relativeZ);
+                            slices.z = Math.max(0, Math.min(zSlice, zDim - 1));
                         }
                         if (tIndex !== -1) {
                             const tDim = shape[tIndex];
-                            slices.t = Math.floor((tDim - 1) * thumbnailConfig.relativeT);
+                            const tSlice = Math.floor((tDim - 1) * thumbnailConfig.relativeT);
+                            slices.t = Math.max(0, Math.min(tSlice, tDim - 1));
                         }
                     }
                 }
