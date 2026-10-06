@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -7,6 +6,7 @@ import { Provider } from "react-redux";
 import TutorialTooltip from "..";
 import Tutorial from "../../../entity/Tutorial";
 import { initialState, reducer, reduxLogics } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 describe("<TutorialTooltip />", () => {
     it("pages through tutorial steps", () => {

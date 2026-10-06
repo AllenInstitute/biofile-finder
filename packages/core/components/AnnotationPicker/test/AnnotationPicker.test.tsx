@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
 import { noop } from "lodash";
@@ -9,6 +8,7 @@ import AnnotationPicker from "..";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import { initialState } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 describe("<AnnotationPicker />", () => {
     it("treats nested annotations with the same leaf name as distinct options", () => {

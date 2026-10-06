@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import React from "react";
@@ -12,6 +11,7 @@ import NumericRange from "../../../entity/NumericRange";
 import { SelectionAggregationResult } from "../../../services/FileService";
 import FileServiceNoop from "../../../services/FileService/FileServiceNoop";
 import { initialState, interaction, selection } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 import styles from "../Pagination.module.css";
 

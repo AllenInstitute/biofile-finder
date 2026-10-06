@@ -1,9 +1,3 @@
-import {
-    configureMockStore,
-    createMockHttpClient,
-    mergeState,
-    ResponseStub,
-} from "@aics/redux-utils";
 import { expect } from "chai";
 import { get as _get, noop } from "lodash";
 import { createSandbox } from "sinon";
@@ -61,6 +55,12 @@ import NotificationServiceNoop from "../../../services/NotificationService/Notif
 import { PersistedConfigKeys } from "../../../services/PersistentConfigService";
 import PersistentConfigServiceNoop from "../../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import S3StorageServiceNoop from "../../../services/S3StorageService/S3StorageServiceNoop";
+import {
+    configureMockStore,
+    createMockHttpClient,
+    mergeState,
+    ResponseStub,
+} from "../../../util/redux-utils";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({

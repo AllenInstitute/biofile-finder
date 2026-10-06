@@ -1,9 +1,3 @@
-import {
-    configureMockStore,
-    createMockHttpClient,
-    mergeState,
-    ResponseStub,
-} from "@aics/redux-utils";
 import axios from "axios";
 import { expect } from "chai";
 import { get as _get, shuffle } from "lodash";
@@ -56,6 +50,12 @@ import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnot
 import { DataSource } from "../../../services/DataSourceService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import HttpFileService from "../../../services/FileService/HttpFileService";
+import {
+    configureMockStore,
+    createMockHttpClient,
+    mergeState,
+    ResponseStub,
+} from "../../../util/redux-utils";
 
 describe("Selection logics", () => {
     describe("selectFile", () => {

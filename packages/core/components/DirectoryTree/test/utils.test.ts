@@ -1,4 +1,3 @@
-import { createMockHttpClient, ResponseStub } from "@aics/redux-utils";
 import { expect } from "chai";
 import { get as _get, pick } from "lodash";
 
@@ -15,6 +14,7 @@ import FileSet from "../../../entity/FileSet";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import HttpFileService from "../../../services/FileService/HttpFileService";
+import { createMockHttpClient, ResponseStub } from "../../../util/redux-utils";
 
 describe("DirectoryTree utilities", () => {
     describe("calcNodeSortOrder", () => {

@@ -1,4 +1,3 @@
-import { makeConstant } from "@aics/redux-utils";
 import { uniqueId } from "lodash";
 
 import { ContextMenuItem, PositionReference } from "../../components/ContextMenu";
@@ -11,6 +10,7 @@ import FileFilter from "../../entity/FileFilter";
 import { Source } from "../../entity/SearchParams";
 import { FileInfo } from "../../services";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
+import { makeConstant } from "../../util/redux-utils";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
 
 const STATE_BRANCH_NAME = "interaction";

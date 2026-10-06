@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
 import { createSandbox } from "sinon";
 
@@ -28,6 +27,7 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 import DatasetService, { DataSource } from "../../../services/DataSourceService";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 describe("Metadata logics", () => {
     describe("requestAnnotations", () => {

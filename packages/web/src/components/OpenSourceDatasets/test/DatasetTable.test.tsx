@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import { noop } from "lodash";
@@ -14,6 +13,7 @@ import { makePublicDatasetMock } from "../../../entity/PublicDataset/mocks";
 import FileSort, { SortOrder } from "../../../../../core/entity/FileSort";
 import DatabaseFileService from "../../../../../core/services/FileService/DatabaseFileService";
 import { initialState } from "../../../../../core/state";
+import { configureMockStore, mergeState } from "../../../../../core/util/redux-utils";
 
 describe("<DatasetTable />", () => {
     const sandbox = createSandbox();

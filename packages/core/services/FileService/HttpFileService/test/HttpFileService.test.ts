@@ -1,4 +1,3 @@
-import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 
 import HttpFileService from "..";
@@ -7,6 +6,7 @@ import { FESBaseUrl, FileStorageServiceBaseUrl, MMSBaseUrl } from "../../../../c
 import FileSelection from "../../../../entity/FileSelection";
 import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
+import { createMockHttpClient } from "../../../../util/redux-utils";
 
 describe("HttpFileService", () => {
     const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;

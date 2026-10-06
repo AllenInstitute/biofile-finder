@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -8,6 +7,7 @@ import FileDetails from "..";
 import { Environment } from "../../../constants";
 import FileDetail from "../../../entity/FileDetail";
 import { initialState } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 describe("<FileDetails />", () => {
     const makeStore = (overrides = {}) =>
