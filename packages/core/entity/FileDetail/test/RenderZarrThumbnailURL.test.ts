@@ -211,4 +211,25 @@ describe("renderZarrThumbnailURL", () => {
             DEFAULT_THUMBNAIL_CONFIG_CHANNELS[1],
         ]);
     });
+
+    it("passes abort signals to loader and renderer", async () => {
+        const controller = new AbortController();
+        const mockImage = new MockNgffImage({ tSize: 100, zSize: 100, cSize: 3 });
+
+        let loaderSignal;
+        const ngffImageLoader = (_path: string, options?: { signal?: AbortSignal }) => {
+            loaderSignal = options?.signal;
+            return Promise.resolve(mockImage);
+        };
+
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, {
+            thumbnailConfig: DEFAULT_THUMBNAIL_CONFIG,
+            ngffImageLoader,
+            abortSignal: controller.signal,
+        });
+
+        expect(loaderSignal).to.equal(controller.signal);
+        expect(mockImage.renderCallCount).to.equal(1);
+        expect(mockImage.renderOptions?.signal).to.equal(controller.signal);
+    });
 });
