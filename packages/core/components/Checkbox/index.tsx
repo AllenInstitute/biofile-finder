@@ -20,13 +20,19 @@ interface Props {
  */
 export default function Checkbox(props: Props) {
     const [isChecked, setChecked] = React.useState(!!props.initialValue); // defaults to false
+
     function onCheckboxChange(
         ev?: React.FormEvent<HTMLElement | HTMLInputElement>,
         isCheckedEv?: boolean
     ) {
-        setChecked(!!isCheckedEv);
-        props?.onChange(ev, !!isCheckedEv);
+        let checked = !!isCheckedEv;
+        if (props.indeterminate) {
+            checked = true;
+        }
+        setChecked(checked);
+        props?.onChange(ev, checked);
     }
+
     return (
         <FluentCheckbox
             checked={props.checked ?? isChecked}
