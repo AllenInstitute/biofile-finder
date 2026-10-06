@@ -43,6 +43,7 @@
 }
 
 .slider-container {
+    position: relative;
     width: 100%;
 }
 
@@ -50,15 +51,25 @@
     background-color: unset;
 }
 
-/* Hide the default value display on the slider */
-.slider-container :global(.ms-Slider-value) {
+/* Hide the default value display next to the slider */
+.slider-container div[role="slider"] + label {
     display: none;
 }
 
 /* Override the default active slider track color */
-.slider-container:hover :global(.ms-Slider-slideBox) :global(.ms-Slider-active) {
+.slider-container:hover div[role="slider"] span:nth-child(3) {
     background-color: var(--aqua);
 }
-.slider-container :global(.ms-Slider-slideBox) :global(.ms-Slider-active) {
+.slider-container div[role="slider"] > div > span:nth-child(3) {
     background-color: var(--dark-aqua);
+}
+
+/** Add range labels */
+.slider-range-label-container {
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    bottom: -8px;
+    font-size: 12px;
 }
