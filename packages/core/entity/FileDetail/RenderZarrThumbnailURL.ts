@@ -88,7 +88,7 @@ type RenderZarrThumbnailOptions = {
      * NGFF image loader. Uses `omezarr.NgffImage.load` by default if none is
      * provided.
      */
-    ngffImageLoader?: (zarrUrl: string) => Promise<typeof omezarr.NgffImage>;
+    ngffImageLoader?: typeof defaultNgffImageLoader;
     abortSignal?: AbortSignal;
 };
 
@@ -106,7 +106,8 @@ export async function renderZarrThumbnailURL(
             async () => {
                 const { thumbnailConfig, abortSignal } = options;
 
-                const image = await (options.ngffImageLoader ?? defaultNgffImageLoader)(zarrUrl);
+                const imageLoader = options.ngffImageLoader ?? defaultNgffImageLoader;
+                const image = await imageLoader(zarrUrl, { signal: abortSignal });
                 let slices: { z?: number; t?: number } | undefined = undefined;
                 let channels: OmeroChannel[] | undefined = undefined;
 
