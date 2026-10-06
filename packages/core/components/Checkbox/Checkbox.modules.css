@@ -49,21 +49,21 @@
 /**** MARK: Checked */
 
 /* Set BG color */
-.root.checked:not(.disabled) .checkbox {
+.root.checked:not(.disabled):not(.indeterminate) .checkbox {
     background-color: var(--aqua);
 }
 
 /* Hover BG color */
-.root.checked:not(.disabled):hover .checkbox {
+.root.checked:not(.disabled):not(.indeterminate):hover .checkbox {
     background-color: var(--bright-aqua);
 }
 
 /* Disabled BG color */
-.root.checked.disabled .checkbox {
+.root.checked:not(.indeterminate).disabled .checkbox {
     background-color: var(--border-color) !important;
 }
 
-/* Darken checkmark, force visible state */
+/* Darken checkmark */
 .root.checked .checkmark {
     color: var(--primary-background-color) !important;
 }
