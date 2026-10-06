@@ -10,7 +10,7 @@ class MockNgffImage {
     private zSize: number | undefined;
     private tSize: number | undefined;
     private cSize: number | undefined;
-    public omero: OmeroChannel[] | undefined;
+    private omeroChannels: OmeroChannel[] | undefined;
 
     public renderCallCount = 0;
     public renderOptions: Parameters<omezarr.NgffImage["render"]>[0] | undefined;
@@ -19,12 +19,20 @@ class MockNgffImage {
         zSize?: number;
         tSize?: number;
         cSize?: number;
-        omero?: OmeroChannel[];
+        omeroChannels?: OmeroChannel[];
     }) {
         this.zSize = params.zSize;
         this.tSize = params.tSize;
         this.cSize = params.cSize;
-        this.omero = params.omero;
+        this.omeroChannels = params.omeroChannels;
+    }
+
+    get imgAttrs() {
+        return {
+            omero: {
+                channels: this.omeroChannels,
+            },
+        };
     }
 
     async getShape(): Promise<number[]> {
@@ -63,7 +71,7 @@ function createMockLoader(image: MockNgffImage): () => Promise<any> {
 describe("renderZarrThumbnailURL", () => {
     const ZARR_URL = "https://some-url.com/my-data.ome.zarr";
     const DEFAULT_SIZE = 300;
-    const DEFAULT_THUMBNAIL_CONFIG: ThumbnailConfig = {
+    const DEFAULT_THUMBNAIL_CONFIG = {
         relativeT: 0.5,
         relativeZ: 0.5,
         overrideOmeroMetadata: false,
@@ -72,7 +80,7 @@ describe("renderZarrThumbnailURL", () => {
             { enabled: false, hexColor: "00ff00" },
             { enabled: true, hexColor: "0000ff" },
         ],
-    };
+    } satisfies ThumbnailConfig;
     const DEFAULT_THUMBNAIL_CONFIG_CHANNELS: OmeroChannel[] = [
         { color: "ff0000", active: true },
         { color: "00ff00", active: false },
@@ -155,7 +163,7 @@ describe("renderZarrThumbnailURL", () => {
             tSize: 100,
             zSize: 100,
             cSize: 3,
-            omero: DEFAULT_OMERO_CHANNELS,
+            omeroChannels: DEFAULT_OMERO_CHANNELS,
         });
         const thumbnailConfig = DEFAULT_THUMBNAIL_CONFIG;
         const loader = createMockLoader(mockImage);
@@ -180,7 +188,7 @@ describe("renderZarrThumbnailURL", () => {
             tSize: 100,
             zSize: 100,
             cSize: 3,
-            omero: DEFAULT_OMERO_CHANNELS,
+            omeroChannels: DEFAULT_OMERO_CHANNELS,
         });
         const thumbnailConfig = { ...DEFAULT_THUMBNAIL_CONFIG, overrideOmeroMetadata: true };
         const loader = createMockLoader(mockImage);
