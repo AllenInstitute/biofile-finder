@@ -53,7 +53,7 @@ export default function useDisableFocusLossOnDrag(
             }
             document.body.removeEventListener("mouseup", handleMouseUp, { capture: true });
         };
-    }, []);
+    }, [containerRef]);
 
     const reset = useCallback(() => {
         preventFocusLossRef.current = false;
