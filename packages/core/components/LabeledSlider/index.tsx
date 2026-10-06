@@ -15,6 +15,7 @@ interface LabeledSliderProps {
     max: number;
     step?: number;
     labelWidth?: string;
+    labelFormatter?: (value: number) => string;
 }
 
 const defaultProps = {
@@ -74,6 +75,10 @@ export default function LabeledSlider(props: LabeledSliderProps): ReactElement {
                         step={step}
                     ></Slider>
                 </ThemeProvider>
+                <div className={styles.sliderRangeLabelContainer}>
+                    <span>{props.labelFormatter ? props.labelFormatter(min) : min}</span>
+                    <span>{props.labelFormatter ? props.labelFormatter(max) : max}</span>
+                </div>
             </div>
         </div>
     );
