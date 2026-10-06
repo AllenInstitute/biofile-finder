@@ -105,6 +105,9 @@ export async function renderZarrThumbnailURL(
         return await retryWithTimeout(
             async () => {
                 const { thumbnailConfig, abortSignal } = options;
+                if (abortSignal?.aborted) {
+                    return undefined;
+                }
 
                 const imageLoader = options.ngffImageLoader ?? defaultNgffImageLoader;
                 const image = await imageLoader(zarrUrl, { signal: abortSignal });

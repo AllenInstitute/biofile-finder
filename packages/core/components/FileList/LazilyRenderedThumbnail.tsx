@@ -77,6 +77,9 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
         if (file) {
             file.getPathToThumbnail(targetZarrSize, thumbnailConfig, controller.signal).then(
                 (path) => {
+                    if (controller.signal.aborted) {
+                        return;
+                    }
                     setThumbnailPath(path);
                     setIsLoading(false);
                 }
