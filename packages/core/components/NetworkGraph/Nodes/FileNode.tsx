@@ -66,6 +66,9 @@ export default function FileNode(props: NodeProps<FileNodeType>) {
         const controller = new AbortController();
         file.getPathToThumbnail(THUMBNAIL_SIZE_PX, thumbnailConfig, controller.signal).then(
             (thumbnail) => {
+                if (controller.signal.aborted) {
+                    return;
+                }
                 setThumbnail(thumbnail);
             }
         );
