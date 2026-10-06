@@ -1,27 +1,32 @@
-/* Darken color picker border */
-.color-picker-container :global(.ms-ColorPicker-colorRect),
-.color-picker-container :global(.ms-ColorPicker-slider) {
+/* Darken color picker borders */
+.color-picker-container div[role="slider"] {
     border-color: var(--border-color);
 }
 
 /* Adjust input text + labels for dark BG  */
 .color-picker-container td,
-.color-picker-container :global(.ms-ColorPicker-input) input {
+.color-picker-container td input {
     color: var(--primary-text-color);
 }
 
-/* Remove white background, change border color on focus */
-.color-picker-container :global(.ms-TextField-fieldGroup) {
+/** Widen the hex cell column so all 6 digits are visible */
+.color-picker-container table thead td:first-of-type {
+    width: 30%;
+}
+
+/* Remove white background, change border color on focus for hex/RGB inputs */
+.color-picker-container table tbody div:has(input),
+.color-picker-container table tbody div:has(input):hover {
     background-color: transparent;
     border-color: var(--border-color);
 }
-.color-picker-container :global(.ms-TextField-fieldGroup):focus-visible,
-.color-picker-container :global(.ms-TextField-fieldGroup):focus-within {
+.color-picker-container table tbody div:has(input):focus-visible,
+.color-picker-container table tbody div:has(input):focus-within {
     border-color: var(--aqua);
 }
 
 /* Disable default focus outline */
-.color-picker-container :global(.ms-TextField-fieldGroup)::after {
+.color-picker-container table tbody div:has(input)::after {
     display: none;
 }
 
