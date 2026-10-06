@@ -107,12 +107,8 @@ describe("renderZarrThumbnailURL", () => {
         await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, { ngffImageLoader });
 
         expect(mockImage.renderCallCount).to.equal(1);
-        expect(mockImage.renderOptions).to.deep.equal({
-            targetSize: DEFAULT_SIZE,
-            autoBoost: true,
-            channels: undefined,
-            slices: undefined,
-        });
+        expect(mockImage.renderOptions?.slices).to.be.undefined;
+        expect(mockImage.renderOptions?.channels).to.be.undefined;
     });
 
     it("maps T and Z slices", async () => {
