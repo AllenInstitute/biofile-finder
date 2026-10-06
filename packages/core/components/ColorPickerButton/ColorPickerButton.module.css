@@ -43,6 +43,6 @@
 }
 
 /* Hide callout background layer that causes visual artifacts */
-.callout-container :global(.ms-Callout-beakCurtain) {
+.callout-container div:has(+ div[role="dialog"]) {
     background-color: transparent;
 }
