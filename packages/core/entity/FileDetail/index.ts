@@ -1,7 +1,6 @@
 import { isEmpty, isNil, isObject, uniq } from "lodash";
 
-import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
-import type { ThumbnailConfig } from "./RenderZarrThumbnailURL";
+import { renderZarrThumbnailURL, ThumbnailConfig, ZarrDims } from "./RenderZarrThumbnailURL";
 import AnnotationName from "../Annotation/AnnotationName";
 import { Environment } from "../../constants";
 import {
@@ -302,7 +301,8 @@ export default class FileDetail {
     public async getPathToThumbnail(
         targetSize: number,
         thumbnailConfig?: ThumbnailConfig,
-        abortSignal?: AbortSignal
+        abortSignal?: AbortSignal,
+        onLoad?: (shape: ZarrDims) => void
     ): Promise<string | undefined> {
         // When no thumbnail is provided, try to render one from the file path if it's a
         // zarr or a known renderable image format
@@ -320,6 +320,7 @@ export default class FileDetail {
                 return renderZarrThumbnailURL(this.path, targetSize, {
                     thumbnailConfig,
                     abortSignal,
+                    onLoad,
                 });
             }
 
@@ -341,6 +342,7 @@ export default class FileDetail {
             return renderZarrThumbnailURL(this.thumbnail, targetSize, {
                 thumbnailConfig,
                 abortSignal,
+                onLoad,
             });
         }
 

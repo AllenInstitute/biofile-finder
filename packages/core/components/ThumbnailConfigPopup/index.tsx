@@ -1,11 +1,11 @@
 import { Callout, DirectionalHint } from "@fluentui/react";
-import React, { ReactElement, useRef, useState } from "react";
+import React, { ReactElement, useEffect, useRef, useState } from "react";
 
 import ThumbnailChannelConfigRow from "./ThumbnailChannelConfigRow";
 import { SecondaryButton, TransparentIconButton } from "../Buttons";
 import Checkbox from "../Checkbox";
 import LabeledSlider from "../LabeledSlider";
-import type { ThumbnailConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
+import type { ThumbnailConfig, ZarrDims } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 
 import styles from "./ThumbnailConfigPopup.module.css";
 
@@ -19,6 +19,11 @@ type ThumbnailConfigPopupProps = {
     renderButton: (onClick: () => void) => ReactElement;
     thumbnailConfig: ThumbnailConfig;
     setThumbnailConfig: (newConfig: ThumbnailConfig) => void;
+    /**
+     * Dimensions of the Zarr array. If set, the dimensions are used to set the bounds
+     * on the thumbnail controls.
+     */
+    zarrDims?: ZarrDims;
 };
 
 /**
@@ -61,7 +66,28 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
         setThumbnailConfig(updatedConfig);
     };
 
+    const zarrDims = props.zarrDims;
+    const hasDims = zarrDims !== undefined;
+    // TODO: Disable T/Z controls when dims are loaded but undefined for that
+    // channel
+
+    useEffect(() => {
+        // Probably this should live in state/logic...
+        if (zarrDims?.c !== undefined) {
+            const channelCount = zarrDims.c;
+            const newConfig = {
+                ...thumbnailConfig,
+                channelConfigs: [...thumbnailConfig.channelConfigs],
+            };
+            while (newConfig.channelConfigs.length < channelCount) {
+                newConfig.channelConfigs.push({ enabled: false, hexColor: "FFFFFF" });
+            }
+            setThumbnailConfig(newConfig);
+        }
+    }, [zarrDims, thumbnailConfig, setThumbnailConfig]);
+
     const channelConfigRows = thumbnailConfig.channelConfigs.map((config, index) => {
+        const minChannels = zarrDims?.c ?? MIN_CHANNEL_CONTROLS;
         return (
             <ThumbnailChannelConfigRow
                 key={index}
@@ -69,7 +95,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 index={index}
                 onChange={(newConfig) => onChangeChannelConfig(index, newConfig)}
                 onDelete={() => onDeleteChannel(index)}
-                showDelete={thumbnailConfig.channelConfigs.length > MIN_CHANNEL_CONTROLS}
+                showDelete={thumbnailConfig.channelConfigs.length > minChannels}
             ></ThumbnailChannelConfigRow>
         );
     });
@@ -104,14 +130,20 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                         <LabeledSlider
                             className={styles.sliceSliders}
                             id="thumbnail-config-z-slider"
-                            label={"Z%"}
+                            label={hasDims ? "Z" : "Z%"}
+                            labelFormatter={(value) => (hasDims ? `${value}` : `${value}%`)}
                             min={0}
-                            max={100}
+                            max={zarrDims?.z !== undefined ? zarrDims.z - 1 : 100}
                             step={1}
-                            value={Math.round(thumbnailConfig.relativeZ * 100)}
+                            value={
+                                zarrDims?.z !== undefined
+                                    ? Math.round(thumbnailConfig.relativeZ * (zarrDims.z - 1))
+                                    : Math.round(thumbnailConfig.relativeZ * 100)
+                            }
                             onChange={(value) => {
+                                const max = zarrDims?.z !== undefined ? zarrDims.z - 1 : 100;
                                 if (Number.isFinite(value)) {
-                                    value = Math.min(Math.max(value, 0), 100) / 100;
+                                    value = Math.min(Math.max(value, 0), max) / max;
                                     setThumbnailConfig({ ...thumbnailConfig, relativeZ: value });
                                 }
                             }}
@@ -120,14 +152,20 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                         <LabeledSlider
                             className={styles.sliceSliders}
                             id="thumbnail-config-t-slider"
-                            label={"T%"}
+                            label={hasDims ? "T" : "T%"}
                             min={0}
-                            max={100}
+                            max={zarrDims?.t !== undefined ? zarrDims.t - 1 : 100}
+                            labelFormatter={(value) => (hasDims ? `${value}` : `${value}%`)}
                             step={1}
-                            value={Math.round(thumbnailConfig.relativeT * 100)}
+                            value={
+                                zarrDims?.t !== undefined
+                                    ? Math.round(thumbnailConfig.relativeT * (zarrDims.t - 1))
+                                    : Math.round(thumbnailConfig.relativeT * 100)
+                            }
                             onChange={(value) => {
+                                const max = zarrDims?.t !== undefined ? zarrDims.t - 1 : 100;
                                 if (Number.isFinite(value)) {
-                                    value = Math.min(Math.max(value, 0), 100) / 100;
+                                    value = Math.min(Math.max(value, 0), max) / max;
                                     setThumbnailConfig({ ...thumbnailConfig, relativeT: value });
                                 }
                             }}
