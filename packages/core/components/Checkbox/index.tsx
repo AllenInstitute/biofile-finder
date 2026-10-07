@@ -25,12 +25,8 @@ export default function Checkbox(props: Props) {
         ev?: React.FormEvent<HTMLElement | HTMLInputElement>,
         isCheckedEv?: boolean
     ) {
-        let checked = !!isCheckedEv;
-        if (props.indeterminate) {
-            checked = true;
-        }
-        setChecked(checked);
-        props?.onChange(ev, checked);
+        setChecked(!!isCheckedEv);
+        props?.onChange(ev, !!isCheckedEv);
     }
 
     return (
