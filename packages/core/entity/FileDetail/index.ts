@@ -1,6 +1,7 @@
 import { isEmpty, isNil, isObject, uniq } from "lodash";
 
 import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
+import type { ThumbnailConfig } from "./RenderZarrThumbnailURL";
 import AnnotationName from "../Annotation/AnnotationName";
 import { Environment } from "../../constants";
 import {
@@ -9,7 +10,6 @@ import {
     NestedMetadataValue,
     PrimitiveMetadataValue,
 } from "../../services/FileService";
-import { ThumbnailConfig } from "../../state/selection/actions";
 
 const RENDERABLE_IMAGE_FORMATS = [".jpg", ".jpeg", ".png", ".gif"];
 const AICS_FMS_S3_URL_PREFIX = "https://s3.us-west-2.amazonaws.com/";

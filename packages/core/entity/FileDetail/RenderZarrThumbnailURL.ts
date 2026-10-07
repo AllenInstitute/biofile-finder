@@ -7,16 +7,29 @@
 // various solutions like changing Node versions, ts config settings, and package.json settings
 // I am timeboxing this issue and moving on to the next task. - Sean M 08/30/2024
 // The same issue occurs with omezarr. Applying the same workaround - Will Moore October 2025
-import type { ThumbnailConfig } from "../../state/selection/actions";
+import * as omezarr from "ome-zarr.js";
 
-let omezarr: any;
-const isInTest = typeof global.it === "function";
-if (isInTest) {
-    omezarr = {};
-} else {
-    import("ome-zarr.js").then((module) => {
-        omezarr = module;
-    });
+export interface ThumbnailChannelConfig {
+    enabled: boolean;
+    /** 6-digit hex color code for the channel, with the `#` omitted. */
+    hexColor: string;
+}
+
+/** Configuration options for automatic Zarr thumbnail generation. */
+export interface ThumbnailConfig {
+    /** Relative time to use for thumbnail generation, in a [0, 1] range. */
+    relativeT: number;
+    /** Relative Z slice to use for thumbnail generation, in a [0, 1] range. */
+    relativeZ: number;
+    /** Whether to override Omero metadata for Zarr thumbnail generation. */
+    overrideOmeroMetadata: boolean;
+    /**
+     * Configuration applied to each channel, in order. For each channel `i`,
+     * the corresponding configuration is `channelConfigs[i]`.
+     *
+     * If `i >= channelConfigs.length`, that channel will not be shown.
+     */
+    channelConfigs: ThumbnailChannelConfig[];
 }
 
 /**
@@ -49,13 +62,13 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     return Promise.race([promise, timeout]);
 }
 
-export type OmeroChannel = {
-    color: string;
-    active?: boolean;
-};
+export type OmeroChannel = Omit<omezarr.Channel, "window">;
 
-async function defaultNgffImageLoader(zarrUrl: string): Promise<typeof omezarr.NgffImage> {
-    return await omezarr.NgffImage.load(zarrUrl);
+async function defaultNgffImageLoader(
+    zarrUrl: string,
+    options?: { signal?: AbortSignal }
+): Promise<omezarr.NgffImage> {
+    return await omezarr.NgffImage.load(zarrUrl, options);
 }
 
 /**
@@ -120,7 +133,13 @@ export async function renderZarrThumbnailURL(
                         }
                     }
                 }
-                return image.render({ targetSize, autoBoost: true, slices, channels });
+                return image.render({
+                    targetSize,
+                    autoBoost: true,
+                    slices,
+                    // Note: missing window param
+                    channels: channels as omezarr.Channel[],
+                });
             },
             3,
             5000
