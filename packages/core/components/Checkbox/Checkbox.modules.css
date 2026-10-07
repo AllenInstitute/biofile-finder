@@ -73,13 +73,14 @@
 
 /* Override base styling of the inner square for better sizing control */
 .root.indeterminate .checkbox::after {
-    position: relative;
-    top: unset;
-    left: unset;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    border: 0;
     border-radius: 1px;
-    border-width: 0;
-    width: calc(var(--checkbox-size-px) - 6px);
-    height: calc(var(--checkbox-size-px) - 6px);
+    width: calc(100% - 5px);
+    height: calc(100% - 5px);
     background-color: var(--aqua);
 }
 
