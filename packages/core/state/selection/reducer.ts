@@ -50,11 +50,11 @@ import {
     SetSortColumnAction,
     SetThumbnailConfig,
     SORT_COLUMN,
-    ThumbnailConfig,
     TOGGLE_NULL_VALUE_GROUPS,
 } from "./actions";
 import interaction from "../interaction";
 import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../constants";
+import type { ThumbnailConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 import FileFilter from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";

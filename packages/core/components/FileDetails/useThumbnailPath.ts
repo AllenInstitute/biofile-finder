@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import FileDetail from "../../entity/FileDetail";
-import type { ThumbnailConfig } from "../../state/selection/actions";
+import type { ThumbnailConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 
 /**
  * Hook for async grabbing the thumbnail path for a file

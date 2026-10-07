@@ -4,7 +4,7 @@ import type * as omezarr from "ome-zarr.js";
 import sinon from "sinon";
 
 import { OmeroChannel, renderZarrThumbnailURL } from "../RenderZarrThumbnailURL";
-import { ThumbnailConfig } from "../../../state/selection/actions";
+import type { ThumbnailConfig } from "../RenderZarrThumbnailURL";
 
 class MockNgffImage {
     private zSize: number | undefined;
