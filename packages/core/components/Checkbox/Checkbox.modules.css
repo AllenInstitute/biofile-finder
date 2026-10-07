@@ -20,18 +20,19 @@
 
 .checkbox {
     background-color: var(--primary-background-color);
-    border-width: 1.5px;
+    border-width: 1.6px;
     border-style: solid;
     border-color: var(--aqua);
     box-sizing: border-box;
     --checkbox-size-px: 18px;
     height: var(--checkbox-size-px);
     width: var(--checkbox-size-px);
+
     /* 
-  * Replace the Fluent checkbox base transition properties, which specify
-  * border/background by default and cause some visual artifacts when changing
-  * border width.
-  */
+     * Rescope the Fluent checkbox base transition properties from the full
+     * `border` / `background`  transition by default to just the color, to
+     * avoid visual artifacts when changing border width.
+     */
     transition-property: background-color, border-color;
 }
 
@@ -78,7 +79,6 @@
     left: 50%;
     transform: translate(-50%, -50%) scale(1);
     border: 0;
-    border-radius: 1px;
     width: calc(100% - 5px);
     height: calc(100% - 5px);
     background-color: var(--aqua);
