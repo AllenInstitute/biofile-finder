@@ -382,7 +382,7 @@ export default class HttpServiceBase {
         if (this.userName) {
             this.httpClient.defaults.headers.common["X-User-Id"] = this.userName;
         } else {
-            delete this.httpClient.defaults.headers.common["X-User-Id"];
+            this.httpClient.defaults.headers.common["X-User-Id"] = undefined;
         }
     }
 
@@ -391,9 +391,9 @@ export default class HttpServiceBase {
      * since they can interfere with CORS for external requests
      */
     public removeCustomHeaders() {
-        delete this.httpClient.defaults.headers.common["X-Application-Version"];
-        delete this.httpClient.defaults.headers.common["X-Client"];
-        delete this.httpClient.defaults.headers.common["X-User-Id"];
+        this.httpClient.defaults.headers.common["X-Application-Version"] = undefined;
+        this.httpClient.defaults.headers.common["X-Client"] = undefined;
+        this.httpClient.defaults.headers.common["X-User-Id"] = undefined;
     }
 
     public setFileStorageServiceBaseUrl(fileStorageServiceBaseUrl: FileStorageServiceBaseUrl) {
