@@ -1,4 +1,3 @@
-import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import { createSandbox } from "sinon";
 
@@ -13,6 +12,7 @@ import FileSort, { SortOrder } from "../../FileSort";
 import { FESBaseUrl } from "../../../constants";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import HttpFileService from "../../../services/FileService/HttpFileService";
+import { createMockHttpClient } from "../../../util/redux-utils";
 
 describe("FileSet", () => {
     const scientistEqualsJane = new FileFilter("scientist", "jane");

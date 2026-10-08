@@ -1,4 +1,3 @@
-import { configureMockStore } from "@aics/redux-utils";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -6,6 +5,7 @@ import { Provider } from "react-redux";
 
 import DataSourcePrompt from "..";
 import { initialState, reducer } from "../../../state";
+import { configureMockStore } from "../../../util/redux-utils";
 
 describe("<DataSourcePrompt />", () => {
     it("disables the load button when no files are selected", async () => {

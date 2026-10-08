@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
 import { uniqueId } from "lodash";
@@ -12,6 +11,7 @@ import { Environment } from "../../../constants";
 import FileDetail from "../../../entity/FileDetail";
 import { FmsFileAnnotation } from "../../../services/FileService";
 import { initialState } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 const mockFileDetail = (annotations: FmsFileAnnotation[] = []) =>
     new FileDetail(

@@ -27,7 +27,8 @@ type PartialDeep<T> = {
 };
 
 /**
- * A function that accepts Redux state, or some slice of it, and a Redux action and returns Redux state. Required to be a pure function and to treat state as immutable.
+ * A function that accepts Redux state, or some slice of it, and a Redux action
+ * and returns Redux state. Required to be a pure function and to treat state as immutable.
  *
  * See [[makeReducer]] for an example.
  */
@@ -118,7 +119,8 @@ export function makeReducer<State>(
 }
 
 /**
- * Fundamentally a "mergeDeep" utility that can be used to apply patch changes to a Redux initial state tree. Particularly useful in testing.
+ * Fundamentally a "mergeDeep" utility that can be used to apply patch changes
+ * to a Redux initial state tree. Particularly useful in testing.
  *
  * Example:
  * ```typescript

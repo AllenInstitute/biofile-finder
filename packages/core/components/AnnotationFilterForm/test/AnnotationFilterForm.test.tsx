@@ -1,4 +1,3 @@
-import { configureMockStore, createMockHttpClient, mergeState } from "@aics/redux-utils";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -13,6 +12,7 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import { initialState, interaction, reducer, reduxLogics, selection } from "../../../state";
+import { configureMockStore, createMockHttpClient, mergeState } from "../../../util/redux-utils";
 
 describe("<AnnotationFilterForm />", () => {
     const LISTROW_TESTID_PREFIX = "default-button-";

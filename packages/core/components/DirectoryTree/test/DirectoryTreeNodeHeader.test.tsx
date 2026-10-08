@@ -1,4 +1,3 @@
-import { configureMockStore } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
 import { noop } from "lodash";
@@ -11,6 +10,7 @@ import annotationFormatterFactory, { AnnotationType } from "../../../entity/Anno
 import FileSet from "../../../entity/FileSet";
 import * as useLayoutMeasurements from "../../../hooks/useLayoutMeasurements";
 import { initialState } from "../../../state";
+import { configureMockStore } from "../../../util/redux-utils";
 
 describe("<DirectoryTreeNodeHeader />", () => {
     // Arrange

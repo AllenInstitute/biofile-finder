@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -8,6 +7,7 @@ import ColumnPicker from "../ColumnPicker";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import { initialState, selection } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 describe("<ColumnPicker />", () => {
     const cellLine = new Annotation({

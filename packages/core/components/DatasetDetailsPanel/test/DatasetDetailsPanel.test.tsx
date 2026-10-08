@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -6,6 +5,7 @@ import { Provider } from "react-redux";
 
 import DatasetDetailsPanel, { DatasetDetail } from "..";
 import { initialState } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 describe("<DatasetDetailsPanel />", () => {
     const mockDescriptionShort = "This is a string that has 40 characters.";

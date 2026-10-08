@@ -1,9 +1,3 @@
-import {
-    configureMockStore,
-    createMockHttpClient,
-    mergeState,
-    ResponseStub,
-} from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import { get as _get } from "lodash";
@@ -19,6 +13,12 @@ import FileFilter from "../../../../entity/FileFilter";
 import FileDownloadServiceNoop from "../../../../services/FileDownloadService/FileDownloadServiceNoop";
 import HttpFileService from "../../../../services/FileService/HttpFileService";
 import { initialState, interaction, reduxLogics } from "../../../../state";
+import {
+    configureMockStore,
+    createMockHttpClient,
+    mergeState,
+    ResponseStub,
+} from "../../../../util/redux-utils";
 
 describe("<MetadataManifest />", () => {
     const fileExplorerServiceBaseUrl = FESBaseUrl.TEST;

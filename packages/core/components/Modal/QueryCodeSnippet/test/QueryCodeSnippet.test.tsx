@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -6,6 +5,7 @@ import { Provider } from "react-redux";
 
 import Modal, { ModalType } from "../..";
 import { initialState } from "../../../../state";
+import { configureMockStore, mergeState } from "../../../../util/redux-utils";
 
 describe("<CodeSnippet />", () => {
     const visibleDialogState = mergeState(initialState, {

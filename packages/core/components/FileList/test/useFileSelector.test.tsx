@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { act, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -9,6 +8,7 @@ import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
 import NumericRange from "../../../entity/NumericRange";
 import { initialState, selection } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 // Minimal test component that exposes the onSelect callback via a ref.
 function TestComponent(props: {
@@ -34,7 +34,8 @@ describe("useFileSelector", () => {
             ? mergeState(initialState, { selection: { fileSelection } })
             : initialState;
         const { store, actions } = configureMockStore({ state });
-        const onSelectRef = React.createRef<OnSelect | null>() as React.MutableRefObject<OnSelect | null>;
+        const onSelectRef =
+            React.createRef<OnSelect | null>() as React.MutableRefObject<OnSelect | null>;
 
         render(
             <Provider store={store}>

@@ -1,10 +1,4 @@
 import {
-    configureMockStore,
-    createMockHttpClient,
-    mergeState,
-    ResponseStub,
-} from "@aics/redux-utils";
-import {
     findAllByText as findAllByTextWithin,
     findByRole as findByRoleWithin,
     findByTestId,
@@ -34,6 +28,12 @@ import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileD
 import { FmsFileAnnotation } from "../../../services/FileService";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import { initialState, interaction, reducer, reduxLogics, selection } from "../../../state";
+import {
+    configureMockStore,
+    createMockHttpClient,
+    mergeState,
+    ResponseStub,
+} from "../../../util/redux-utils";
 
 import styles from "../DirectoryTreeNode.module.css";
 

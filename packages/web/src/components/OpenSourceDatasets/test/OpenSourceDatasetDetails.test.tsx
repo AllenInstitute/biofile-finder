@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import { get as _get, noop } from "lodash";
@@ -12,6 +11,7 @@ import PublicDataset, { DATASET_DISPLAY_FIELDS } from "../../../entity/PublicDat
 import { makePublicDatasetMock } from "../../../entity/PublicDataset/mocks";
 import DatabaseServiceNoop from "../../../../../core/services/DatabaseService/DatabaseServiceNoop";
 import { initialState } from "../../../../../core/state";
+import { configureMockStore, mergeState } from "../../../../../core/util/redux-utils";
 
 describe("<OpenSourceDatasetDetails />", () => {
     describe("render", () => {
