@@ -70,12 +70,15 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     return Promise.race([promise, timeout]);
 }
 
-export type OmeroChannel = Omit<omezarr.Channel, "window">;
+// TODO: This is being set to `typeof omezarr.Channel` to silence type errors
+// but should actually be `omezarr.Channel` once `ome-zarr.js` is imported
+// without the workaround.
+export type OmeroChannel = Omit<typeof omezarr.Channel, "window">;
 
 async function defaultNgffImageLoader(
     zarrUrl: string,
     options?: { signal?: AbortSignal }
-): Promise<omezarr.NgffImage> {
+): Promise<typeof omezarr.NgffImage> {
     return await omezarr.NgffImage.load(zarrUrl, options);
 }
 
@@ -146,7 +149,7 @@ export async function renderZarrThumbnailURL(
                     autoBoost: true,
                     slices,
                     // Note: missing window param
-                    channels: channels as omezarr.Channel[],
+                    channels: channels as (typeof omezarr.Channel)[],
                 });
             },
             3,
