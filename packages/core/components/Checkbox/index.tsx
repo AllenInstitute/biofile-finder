@@ -10,6 +10,8 @@ interface Props {
     initialValue?: boolean;
     onChange: (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, isCheckedEv?: boolean) => void;
     label: string;
+    checked?: boolean;
+    indeterminate?: boolean;
     title?: string;
 }
 
@@ -18,6 +20,7 @@ interface Props {
  */
 export default function Checkbox(props: Props) {
     const [isChecked, setChecked] = React.useState(!!props.initialValue); // defaults to false
+
     function onCheckboxChange(
         ev?: React.FormEvent<HTMLElement | HTMLInputElement>,
         isCheckedEv?: boolean
@@ -25,12 +28,15 @@ export default function Checkbox(props: Props) {
         setChecked(!!isCheckedEv);
         props?.onChange(ev, !!isCheckedEv);
     }
+
     return (
         <FluentCheckbox
-            checked={isChecked}
+            checked={props.checked ?? isChecked}
+            indeterminate={props.indeterminate}
             className={classNames(props.className, {
                 [styles.disabled]: props.disabled,
-                [styles.checked]: isChecked,
+                [styles.checked]: props.checked ?? isChecked,
+                [styles.indeterminate]: props.indeterminate,
             })}
             styles={{
                 label: styles.label,
