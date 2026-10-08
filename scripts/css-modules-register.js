@@ -2,9 +2,15 @@
  * Used in testing. See .mocharc.js.
  */
 
-const hook = require("css-modules-require-hook");
+const Module = require("module");
 
-hook({
-    camelCase: true,
-    generateScopedName: "[name]__[local]___[contenthash:base64:5]",
-});
+const cssProxy = new Proxy(
+    {},
+    {
+        get: (_, key) => key,
+    }
+);
+
+Module._extensions[".css"] = function (module) {
+    module.exports = cssProxy;
+};

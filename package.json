@@ -53,7 +53,6 @@
         "@typescript-eslint/eslint-plugin": "5.62.x",
         "@typescript-eslint/parser": "5.62.x",
         "chai": "4.2.x",
-        "css-modules-require-hook": "4.2.x",
         "eslint": "8.57.x",
         "eslint-config-prettier": "10.1.x",
         "eslint-plugin-react": "7.37.x",
