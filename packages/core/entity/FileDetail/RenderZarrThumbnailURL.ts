@@ -7,7 +7,15 @@
 // various solutions like changing Node versions, ts config settings, and package.json settings
 // I am timeboxing this issue and moving on to the next task. - Sean M 08/30/2024
 // The same issue occurs with omezarr. Applying the same workaround - Will Moore October 2025
-import * as omezarr from "ome-zarr.js";
+let omezarr: any;
+const isInTest = typeof global.it === "function";
+if (isInTest) {
+    omezarr = {};
+} else {
+    import("ome-zarr.js").then((module) => {
+        omezarr = module;
+    });
+}
 
 export interface ThumbnailChannelConfig {
     enabled: boolean;
