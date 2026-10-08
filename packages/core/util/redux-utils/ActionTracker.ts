@@ -97,7 +97,8 @@ export default class ActionTracker {
     private _trackedActions: AnyAction[] = [];
 
     private _actions: Actions = new (class {
-        constructor(private superThis: ActionTracker) {
+        private superThis: ActionTracker;
+        constructor(superThis: ActionTracker) {
             this.superThis = superThis;
         }
 
