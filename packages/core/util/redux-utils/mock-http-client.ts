@@ -1,9 +1,15 @@
 // Migrated from https://github.com/AllenCellSoftware/redux-utils (archived Nov 2025)
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, {
+    AxiosInstance,
+    AxiosRequestConfig,
+    AxiosResponse,
+    InternalAxiosRequestConfig,
+} from "axios";
 import { castArray, filter, isFunction, last } from "lodash";
 
 export interface ResponseStub {
     // A (string) URL to match against or a function that, given AxiosRequestConfig, returns true or false.
+    // Public-facing callback type uses looser AxiosRequestConfig rather than InternalAxiosRequestConfig
     when: string | ((config: AxiosRequestConfig) => boolean);
 
     // A whole or partial response that corresponds to the AxiosResponse interface. It is shallowly merged with a stub
@@ -43,7 +49,7 @@ export default function createMockHttpClient(
     const urlToRequestCountMap = new Map<string, number>();
 
     return axios.create({
-        adapter(config: AxiosRequestConfig) {
+        adapter(config: InternalAxiosRequestConfig) {
             return new Promise((resolve) => {
                 let response: AxiosResponse = {
                     data: [],
