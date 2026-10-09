@@ -1,5 +1,6 @@
 import { makeConstant } from "@aics/redux-utils";
 
+import type { ThumbnailConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -931,5 +932,19 @@ export function setSelectedDescriptionSource(source?: Source): SetSelectedDescri
     return {
         payload: source,
         type: SET_SELECTED_DATASET_DESCRIPTION_SOURCE,
+    };
+}
+
+export const SET_THUMBNAIL_CONFIG = makeConstant(STATE_BRANCH_NAME, "set-thumbnail-config");
+
+export interface SetThumbnailConfig {
+    payload: ThumbnailConfig;
+    type: string;
+}
+
+export function setThumbnailConfig(config: ThumbnailConfig): SetThumbnailConfig {
+    return {
+        payload: config,
+        type: SET_THUMBNAIL_CONFIG,
     };
 }

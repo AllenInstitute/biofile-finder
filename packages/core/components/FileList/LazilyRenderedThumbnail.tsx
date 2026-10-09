@@ -9,6 +9,7 @@ import FileThumbnail from "../../components/FileThumbnail";
 import FileSet from "../../entity/FileSet";
 import { FileView } from "../../entity/SearchParams";
 import useTruncatedString from "../../hooks/useTruncatedString";
+import useDebounce from "../../hooks/useDebounce";
 import { selection } from "../../state";
 
 import styles from "./LazilyRenderedThumbnail.module.css";
@@ -54,6 +55,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     const overallIndex = fileGridColCount * rowIndex + columnIndex;
     const file = fileSet.getFileByIndex(overallIndex);
     const thumbnailSize = measuredWidth / fileGridColCount - 2 * MARGIN;
+    const thumbnailConfig = useDebounce(useSelector(selection.selectors.getThumbnailConfig), 500);
 
     const isSelected = React.useMemo(() => {
         return fileSelection.isSelected(fileSet, overallIndex);
@@ -72,12 +74,12 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     const targetZarrSize = 500 / fileGridColCount; // 100px for large thumbnails, and 50px for small thumbnails
     React.useEffect(() => {
         if (file) {
-            file.getPathToThumbnail(targetZarrSize).then((path) => {
+            file.getPathToThumbnail(targetZarrSize, thumbnailConfig).then((path) => {
                 setThumbnailPath(path);
                 setIsLoading(false);
             });
         }
-    }, [file, targetZarrSize]);
+    }, [file, targetZarrSize, thumbnailConfig]);
 
     const onClick = (evt: React.MouseEvent) => {
         evt.preventDefault();

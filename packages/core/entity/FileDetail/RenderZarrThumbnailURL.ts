@@ -17,6 +17,29 @@ if (isInTest) {
     });
 }
 
+export interface ThumbnailChannelConfig {
+    enabled: boolean;
+    /** 6-digit hex color code for the channel, with the `#` omitted. */
+    hexColor: string;
+}
+
+/** Configuration options for automatic Zarr thumbnail generation. */
+export interface ThumbnailConfig {
+    /** Relative time to use for thumbnail generation, in a [0, 1] range. */
+    relativeT: number;
+    /** Relative Z slice to use for thumbnail generation, in a [0, 1] range. */
+    relativeZ: number;
+    /** Whether to override Omero metadata for Zarr thumbnail generation. */
+    overrideOmeroMetadata: boolean;
+    /**
+     * Configuration applied to each channel, in order. For each channel `i`,
+     * the corresponding configuration is `channelConfigs[i]`.
+     *
+     * If `i >= channelConfigs.length`, that channel will not be shown.
+     */
+    channelConfigs: ThumbnailChannelConfig[];
+}
+
 /**
  * Helper function to handle retry logic with timeout for async operations.
  * It retries the operation up to the specified number of times and aborts if it takes too long.
@@ -47,19 +70,87 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
     return Promise.race([promise, timeout]);
 }
 
+// TODO: This is being set to `typeof omezarr.Channel` to silence type errors
+// but should actually be `omezarr.Channel` once `ome-zarr.js` is imported
+// without the workaround.
+export type OmeroChannel = Omit<typeof omezarr.Channel, "window">;
+
+async function defaultNgffImageLoader(
+    zarrUrl: string,
+    options?: { signal?: AbortSignal }
+): Promise<typeof omezarr.NgffImage> {
+    return await omezarr.NgffImage.load(zarrUrl, options);
+}
+
 /**
  * Main function to attempt to render a usable thumbnail using the lowest
  * resolution present in a zarr image's metadata.
  */
 export async function renderZarrThumbnailURL(
     zarrUrl: string,
-    targetSize: number | undefined
+    targetSize: number,
+    thumbnailConfig?: ThumbnailConfig,
+    ngffImageLoader = defaultNgffImageLoader
 ): Promise<string | undefined> {
     try {
         return await retryWithTimeout(
             async () => {
-                // if targetSize is undefined, the smallest resolution will be used
-                return omezarr.renderThumbnail(zarrUrl, targetSize, true);
+                const image = await ngffImageLoader(zarrUrl);
+                let slices: { z?: number; t?: number } | undefined = undefined;
+                let channels: OmeroChannel[] | undefined = undefined;
+
+                if (thumbnailConfig !== undefined) {
+                    const shape: number[] = await image.getShape(); // 0-level
+                    const axesNames = image.getAxesNames();
+                    const cIndex = axesNames.indexOf("c");
+
+                    if (cIndex !== -1) {
+                        const maxChannels = shape[cIndex];
+                        const omeroChannels = image.imgAttrs?.omero?.channels;
+                        const hasOmeroMetadata =
+                            omeroChannels !== undefined && omeroChannels.length > 0;
+                        if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
+                            const channelConfigs = thumbnailConfig.channelConfigs;
+                            channels = channelConfigs
+                                .filter((_, index) => index < maxChannels)
+                                .map((config) => ({
+                                    color: config.hexColor,
+                                    active: config.enabled,
+                                }));
+                            if (
+                                channels.length === 0 ||
+                                channels.every((channel) => !channel.active)
+                            ) {
+                                // All channels are disabled; return undefined.
+                                return undefined;
+                            }
+                        }
+                    }
+
+                    const zIndex: number = axesNames.indexOf("z");
+                    const tIndex: number = axesNames.indexOf("t");
+
+                    if (zIndex !== -1 || tIndex !== -1) {
+                        slices = {};
+                        if (zIndex !== -1) {
+                            const zDim = shape[zIndex];
+                            const zSlice = Math.floor((zDim - 1) * thumbnailConfig.relativeZ);
+                            slices.z = Math.max(0, Math.min(zSlice, zDim - 1));
+                        }
+                        if (tIndex !== -1) {
+                            const tDim = shape[tIndex];
+                            const tSlice = Math.floor((tDim - 1) * thumbnailConfig.relativeT);
+                            slices.t = Math.max(0, Math.min(tSlice, tDim - 1));
+                        }
+                    }
+                }
+                return image.render({
+                    targetSize,
+                    autoBoost: true,
+                    slices,
+                    // Note: missing window param
+                    channels: channels as (typeof omezarr.Channel)[],
+                });
             },
             3,
             5000
