@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { describe, it } from "mocha";
 
 import FmsFilePath from "../FmsFilePath";
 
@@ -16,7 +17,7 @@ describe("FmsFilePath", () => {
 
         it("swaps out slashes on Windows hosts and turns the path into a UNC path", () => {
             // Arrange / Act
-            const actual = new FmsFilePath(dbPath).formatForOs("Windows_NT", "\\");
+            const actual = new FmsFilePath(dbPath).formatForOs("Windows_NT");
 
             // Assert
             expect(actual).to.equal(String.raw`\\allen\programs\allencell\fms\object.foo`);
