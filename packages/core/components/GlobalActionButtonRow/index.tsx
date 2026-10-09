@@ -4,9 +4,9 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { TertiaryButton } from "../Buttons";
 import ThumbnailConfigPopup from "../ThumbnailConfigPopup";
+import type { ThumbnailConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 import { FileView } from "../../entity/SearchParams";
 import { selection } from "../../state";
-import type { ThumbnailConfig } from "../../state/selection/actions";
 
 import styles from "./GlobalActionButtonRow.module.css";
 

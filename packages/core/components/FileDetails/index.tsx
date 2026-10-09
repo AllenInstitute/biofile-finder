@@ -12,13 +12,13 @@ import Tooltip from "../Tooltip";
 import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
 import FileDetail from "../../entity/FileDetail";
+import type { ThumbnailConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 import Tutorial from "../../entity/Tutorial";
 import useDebounce from "../../hooks/useDebounce";
 import useDownloadFiles from "../../hooks/useDownloadFiles";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../hooks/useTruncatedString";
 import { selection } from "../../state";
-import { ThumbnailConfig } from "../../state/selection/actions";
 
 import styles from "./FileDetails.module.css";
 
