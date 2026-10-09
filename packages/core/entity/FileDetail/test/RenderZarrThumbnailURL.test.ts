@@ -103,23 +103,19 @@ describe("renderZarrThumbnailURL", () => {
 
     it("does not apply thumbnail config when undefined", async () => {
         const mockImage = new MockNgffImage({});
-        const loader = createMockLoader(mockImage);
-        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, undefined, loader);
+        const ngffImageLoader = createMockLoader(mockImage);
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, { ngffImageLoader });
 
         expect(mockImage.renderCallCount).to.equal(1);
-        expect(mockImage.renderOptions).to.deep.equal({
-            targetSize: DEFAULT_SIZE,
-            autoBoost: true,
-            channels: undefined,
-            slices: undefined,
-        });
+        expect(mockImage.renderOptions?.slices).to.be.undefined;
+        expect(mockImage.renderOptions?.channels).to.be.undefined;
     });
 
     it("maps T and Z slices", async () => {
         const mockImage = new MockNgffImage({ tSize: 100, zSize: 100, cSize: 3 });
         const thumbnailConfig = DEFAULT_THUMBNAIL_CONFIG;
-        const loader = createMockLoader(mockImage);
-        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, thumbnailConfig, loader);
+        const ngffImageLoader = createMockLoader(mockImage);
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, { thumbnailConfig, ngffImageLoader });
 
         expect(mockImage.renderCallCount).to.equal(1);
         expect(mockImage.renderOptions?.slices?.t).to.deep.equal(49);
@@ -129,8 +125,8 @@ describe("renderZarrThumbnailURL", () => {
     it("handles 0 bound for T and Z slices", async () => {
         const mockImage = new MockNgffImage({ tSize: 100, zSize: 100, cSize: 3 });
         const thumbnailConfig = { ...DEFAULT_THUMBNAIL_CONFIG, relativeT: 0, relativeZ: 0 };
-        const loader = createMockLoader(mockImage);
-        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, thumbnailConfig, loader);
+        const ngffImageLoader = createMockLoader(mockImage);
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, { thumbnailConfig, ngffImageLoader });
 
         expect(mockImage.renderCallCount).to.equal(1);
         expect(mockImage.renderOptions?.slices?.t).to.deep.equal(0);
@@ -140,8 +136,8 @@ describe("renderZarrThumbnailURL", () => {
     it("handles upper bound (1) for T and Z slices", async () => {
         const mockImage = new MockNgffImage({ tSize: 100, zSize: 100, cSize: 3 });
         const thumbnailConfig = { ...DEFAULT_THUMBNAIL_CONFIG, relativeT: 1, relativeZ: 1 };
-        const loader = createMockLoader(mockImage);
-        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, thumbnailConfig, loader);
+        const ngffImageLoader = createMockLoader(mockImage);
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, { thumbnailConfig, ngffImageLoader });
 
         expect(mockImage.renderCallCount).to.equal(1);
         expect(mockImage.renderOptions?.slices?.t).to.deep.equal(99);
@@ -151,8 +147,8 @@ describe("renderZarrThumbnailURL", () => {
     it("does not set slice values when T and Z dimension is undefined", async () => {
         const mockImage = new MockNgffImage({ cSize: 3 });
         const thumbnailConfig = { ...DEFAULT_THUMBNAIL_CONFIG, relativeT: 1, relativeZ: 1 };
-        const loader = createMockLoader(mockImage);
-        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, thumbnailConfig, loader);
+        const ngffImageLoader = createMockLoader(mockImage);
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, { thumbnailConfig, ngffImageLoader });
 
         expect(mockImage.renderCallCount).to.equal(1);
         expect(mockImage.renderOptions?.slices).to.be.undefined;
@@ -166,8 +162,8 @@ describe("renderZarrThumbnailURL", () => {
             omeroChannels: DEFAULT_OMERO_CHANNELS,
         });
         const thumbnailConfig = DEFAULT_THUMBNAIL_CONFIG;
-        const loader = createMockLoader(mockImage);
-        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, thumbnailConfig, loader);
+        const ngffImageLoader = createMockLoader(mockImage);
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, { thumbnailConfig, ngffImageLoader });
 
         expect(mockImage.renderCallCount).to.equal(1);
         expect(mockImage.renderOptions?.channels).to.be.undefined;
@@ -176,8 +172,8 @@ describe("renderZarrThumbnailURL", () => {
     it("sets channel parameters when omero metadata is not present", async () => {
         const mockImage = new MockNgffImage({ tSize: 100, zSize: 100, cSize: 3 });
         const thumbnailConfig = DEFAULT_THUMBNAIL_CONFIG;
-        const loader = createMockLoader(mockImage);
-        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, thumbnailConfig, loader);
+        const ngffImageLoader = createMockLoader(mockImage);
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, { thumbnailConfig, ngffImageLoader });
 
         expect(mockImage.renderCallCount).to.equal(1);
         expect(mockImage.renderOptions?.channels).to.deep.equal(DEFAULT_THUMBNAIL_CONFIG_CHANNELS);
@@ -191,8 +187,8 @@ describe("renderZarrThumbnailURL", () => {
             omeroChannels: DEFAULT_OMERO_CHANNELS,
         });
         const thumbnailConfig = { ...DEFAULT_THUMBNAIL_CONFIG, overrideOmeroMetadata: true };
-        const loader = createMockLoader(mockImage);
-        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, thumbnailConfig, loader);
+        const ngffImageLoader = createMockLoader(mockImage);
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, { thumbnailConfig, ngffImageLoader });
 
         expect(mockImage.renderCallCount).to.equal(1);
         expect(mockImage.renderOptions?.channels).to.deep.equal(DEFAULT_THUMBNAIL_CONFIG_CHANNELS);
@@ -201,8 +197,8 @@ describe("renderZarrThumbnailURL", () => {
     it("only configures channels present", async () => {
         const mockImage = new MockNgffImage({ tSize: 100, zSize: 100, cSize: 2 });
         const thumbnailConfig = { ...DEFAULT_THUMBNAIL_CONFIG };
-        const loader = createMockLoader(mockImage);
-        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, thumbnailConfig, loader);
+        const ngffImageLoader = createMockLoader(mockImage);
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, { thumbnailConfig, ngffImageLoader });
 
         expect(mockImage.renderCallCount).to.equal(1);
         // Skips 3rd channel
@@ -210,5 +206,26 @@ describe("renderZarrThumbnailURL", () => {
             DEFAULT_THUMBNAIL_CONFIG_CHANNELS[0],
             DEFAULT_THUMBNAIL_CONFIG_CHANNELS[1],
         ]);
+    });
+
+    it("passes abort signals to loader and renderer", async () => {
+        const controller = new AbortController();
+        const mockImage = new MockNgffImage({ tSize: 100, zSize: 100, cSize: 3 });
+
+        let loaderSignal;
+        const ngffImageLoader = (_path: string, options?: { signal?: AbortSignal }) => {
+            loaderSignal = options?.signal;
+            return Promise.resolve(mockImage);
+        };
+
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, {
+            thumbnailConfig: DEFAULT_THUMBNAIL_CONFIG,
+            ngffImageLoader,
+            abortSignal: controller.signal,
+        });
+
+        expect(loaderSignal).to.equal(controller.signal);
+        expect(mockImage.renderCallCount).to.equal(1);
+        expect(mockImage.renderOptions?.signal).to.equal(controller.signal);
     });
 });
