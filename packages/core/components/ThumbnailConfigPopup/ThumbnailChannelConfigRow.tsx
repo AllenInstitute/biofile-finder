@@ -3,7 +3,7 @@ import React, { ReactElement } from "react";
 import { TransparentIconButton } from "../Buttons";
 import Checkbox from "../Checkbox";
 import ColorPickerButton from "../ColorPickerButton";
-import { ThumbnailChannelConfig } from "../../state/selection/actions";
+import type { ThumbnailChannelConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 
 import styles from "./ThumbnailChannelConfigRow.module.css";
 

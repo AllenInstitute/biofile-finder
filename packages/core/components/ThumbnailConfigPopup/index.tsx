@@ -5,7 +5,7 @@ import ThumbnailChannelConfigRow from "./ThumbnailChannelConfigRow";
 import { SecondaryButton, TransparentIconButton } from "../Buttons";
 import Checkbox from "../Checkbox";
 import LabeledSlider from "../LabeledSlider";
-import { ThumbnailConfig } from "../../state/selection/actions";
+import type { ThumbnailConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 
 import styles from "./ThumbnailConfigPopup.module.css";
 
