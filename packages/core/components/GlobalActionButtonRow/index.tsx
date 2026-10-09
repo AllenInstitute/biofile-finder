@@ -3,6 +3,8 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { TertiaryButton } from "../Buttons";
+import ThumbnailConfigPopup from "../ThumbnailConfigPopup";
+import type { ThumbnailConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 import { FileView } from "../../entity/SearchParams";
 import { selection } from "../../state";
 
@@ -19,6 +21,10 @@ export default function GlobalActionButtonRow(props: Props) {
     const dispatch = useDispatch();
     const fileView = useSelector(selection.selectors.getFileView);
     const shouldDisplaySmallFont = useSelector(selection.selectors.getShouldDisplaySmallFont);
+
+    const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
+    const setThumbnailConfig = (config: ThumbnailConfig) =>
+        dispatch(selection.actions.setThumbnailConfig(config));
 
     return (
         <div className={classNames(styles.container, props.className)}>
@@ -49,6 +55,22 @@ export default function GlobalActionButtonRow(props: Props) {
                     }}
                     title="Small thumbnail view"
                 />
+                <div className={styles.thumbnailConfigButton}>
+                    <ThumbnailConfigPopup
+                        renderButton={function (onClick: () => void) {
+                            return (
+                                <TertiaryButton
+                                    iconName="Settings"
+                                    onClick={onClick}
+                                    title="Global thumbnail settings"
+                                    // disabled={!isThumbnailView}
+                                />
+                            );
+                        }}
+                        thumbnailConfig={thumbnailConfig}
+                        setThumbnailConfig={setThumbnailConfig}
+                    ></ThumbnailConfigPopup>
+                </div>
             </div>
             <div className={styles.buttonGroup}>
                 <TertiaryButton

@@ -5,12 +5,13 @@ import * as React from "react";
 import styles from "./Checkbox.modules.css";
 
 interface Props {
+    id?: string;
     className?: string;
     disabled?: boolean;
     initialValue?: boolean;
+    checked?: boolean;
     onChange: (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, isCheckedEv?: boolean) => void;
     label: string;
-    checked?: boolean;
     indeterminate?: boolean;
     title?: string;
 }
@@ -19,8 +20,7 @@ interface Props {
  * Custom styled wrapper for default fluentui component
  */
 export default function Checkbox(props: Props) {
-    const [isChecked, setChecked] = React.useState(!!props.initialValue); // defaults to false
-
+    const [isChecked, setChecked] = React.useState(props.checked ?? !!props.initialValue); // defaults to false
     function onCheckboxChange(
         ev?: React.FormEvent<HTMLElement | HTMLInputElement>,
         isCheckedEv?: boolean
@@ -31,6 +31,7 @@ export default function Checkbox(props: Props) {
 
     return (
         <FluentCheckbox
+            id={props.id}
             checked={props.checked ?? isChecked}
             indeterminate={props.indeterminate}
             className={classNames(props.className, {
