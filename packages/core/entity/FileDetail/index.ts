@@ -1,6 +1,6 @@
 import { isEmpty, isNil, isObject, uniq } from "lodash";
 
-import { renderZarrThumbnailURL, ThumbnailConfig, ZarrDims } from "./RenderZarrThumbnailURL";
+import { renderZarrThumbnailURL, ThumbnailConfig, ZarrInfo } from "./RenderZarrThumbnailURL";
 import AnnotationName from "../Annotation/AnnotationName";
 import { Environment } from "../../constants";
 import {
@@ -302,7 +302,7 @@ export default class FileDetail {
         targetSize: number,
         thumbnailConfig?: ThumbnailConfig,
         abortSignal?: AbortSignal,
-        onLoad?: (shape: ZarrDims) => void
+        onLoad?: (shape: ZarrInfo) => void
     ): Promise<string | undefined> {
         // When no thumbnail is provided, try to render one from the file path if it's a
         // zarr or a known renderable image format

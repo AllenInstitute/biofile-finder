@@ -75,13 +75,15 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 // without the workaround.
 export type OmeroChannel = Omit<typeof omezarr.Channel, "window">;
 
-/** Dimensions of the Zarr array. */
-export type ZarrDims = {
-    x: number | undefined;
-    y: number | undefined;
-    z: number | undefined;
-    c: number | undefined;
-    t: number | undefined;
+export type ZarrInfo = {
+    /** Dimensions of the Zarr array, at the 0-level resolution. */
+    dimensions: {
+        x: number | undefined;
+        y: number | undefined;
+        z: number | undefined;
+        c: number | undefined;
+        t: number | undefined;
+    };
     channelNames: string[] | undefined;
 };
 
@@ -104,7 +106,7 @@ type RenderZarrThumbnailOptions = {
      * Callback invoked when the image is loaded; returns the Zarr array
      * dimensions.
      */
-    onLoad?: (shape: ZarrDims) => void;
+    onLoad?: (shape: ZarrInfo) => void;
 };
 
 /**
@@ -144,12 +146,14 @@ export async function renderZarrThumbnailURL(
                 const x = xIndex !== -1 ? shape[xIndex] : undefined;
                 const omeroChannels = image.imgAttrs?.omero?.channels;
 
-                const zarrShape: ZarrDims = {
-                    x,
-                    y,
-                    z,
-                    c,
-                    t,
+                const zarrShape: ZarrInfo = {
+                    dimensions: {
+                        x,
+                        y,
+                        z,
+                        c,
+                        t,
+                    },
                     channelNames: omeroChannels?.map((ch: { label: string }) => ch.label),
                 };
                 options.onLoad?.(zarrShape);
