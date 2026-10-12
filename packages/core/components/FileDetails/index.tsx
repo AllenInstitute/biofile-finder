@@ -212,7 +212,7 @@ export default function FileDetails(props: Props) {
                                     }}
                                     thumbnailConfig={thumbnailConfig}
                                     setThumbnailConfig={setThumbnailConfig}
-                                    zarrDims={zarrDims}
+                                    zarrInfo={zarrDims}
                                 />
                             </div>
                             <Modal

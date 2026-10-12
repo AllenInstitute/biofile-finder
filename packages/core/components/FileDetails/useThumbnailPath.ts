@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import FileDetail from "../../entity/FileDetail";
-import type { ThumbnailConfig, ZarrDims } from "../../entity/FileDetail/RenderZarrThumbnailURL";
+import type { ThumbnailConfig, ZarrInfo } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 
 /**
  * Hook for async grabbing the thumbnail path for a file
@@ -9,7 +9,7 @@ import type { ThumbnailConfig, ZarrDims } from "../../entity/FileDetail/RenderZa
 export default (fileDetails?: FileDetail, thumbnailConfig?: ThumbnailConfig) => {
     const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
-    const [zarrDims, setZarrDims] = React.useState<ZarrDims | undefined>();
+    const [zarrDims, setZarrDims] = React.useState<ZarrInfo | undefined>();
 
     React.useEffect(() => {
         const controller = new AbortController();

@@ -5,7 +5,7 @@ import ThumbnailChannelConfigRow from "./ThumbnailChannelConfigRow";
 import { SecondaryButton, TransparentIconButton } from "../Buttons";
 import Checkbox from "../Checkbox";
 import LabeledSlider from "../LabeledSlider";
-import type { ThumbnailConfig, ZarrDims } from "../../entity/FileDetail/RenderZarrThumbnailURL";
+import type { ThumbnailConfig, ZarrInfo } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 
 import styles from "./ThumbnailConfigPopup.module.css";
 
@@ -20,10 +20,11 @@ type ThumbnailConfigPopupProps = {
     thumbnailConfig: ThumbnailConfig;
     setThumbnailConfig: (newConfig: ThumbnailConfig) => void;
     /**
-     * Dimensions of the Zarr array. If set, the dimensions are used to set the bounds
-     * on the thumbnail controls.
+     * Information about the Zarr array. If set, the dimensions are used to set
+     * the bounds on the thumbnail controls, and the channel names are used to
+     * label the channels.
      */
-    zarrDims?: ZarrDims;
+    zarrInfo: ZarrInfo | undefined;
 };
 
 /**
@@ -66,15 +67,16 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
         setThumbnailConfig(updatedConfig);
     };
 
-    const zarrDims = props.zarrDims;
-    const hasDims = zarrDims !== undefined;
+    const zarrInfo = props.zarrInfo;
+    const zarrDims = zarrInfo?.dimensions;
+    const hasDims = zarrInfo !== undefined;
     // TODO: Disable T/Z controls when dims are loaded but undefined for that
     // channel
 
     useEffect(() => {
         // Add more channel controls if the current Zarr image has more channels
-        if (zarrDims?.c !== undefined) {
-            const channelCount = zarrDims.c;
+        if (zarrInfo?.dimensions.c !== undefined) {
+            const channelCount = zarrInfo.dimensions.c;
             if (thumbnailConfig.channelConfigs.length >= channelCount) {
                 return;
             }
@@ -87,15 +89,15 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
             }
             setThumbnailConfig(newConfig);
         }
-    }, [zarrDims, thumbnailConfig, setThumbnailConfig]);
+    }, [zarrInfo, thumbnailConfig, setThumbnailConfig]);
 
     const channelConfigRows = thumbnailConfig.channelConfigs.map((config, index) => {
         // Exit early if the channel index exceeds the number of channels in the Zarr image
-        if (zarrDims?.c !== undefined && index >= zarrDims.c) {
+        if (zarrInfo?.dimensions.c !== undefined && index >= zarrInfo.dimensions.c) {
             return null;
         }
-        const minChannels = zarrDims?.c ?? MIN_CHANNEL_CONTROLS;
-        const channelName = zarrDims?.channelNames?.[index] ?? `C${index + 1}`;
+        const minChannels = zarrInfo?.dimensions.c ?? MIN_CHANNEL_CONTROLS;
+        const channelName = zarrInfo?.channelNames?.[index] ?? `C${index + 1}`;
         return (
             <ThumbnailChannelConfigRow
                 key={index}
