@@ -7,14 +7,21 @@ import type { ThumbnailConfig, ZarrInfo } from "../../entity/FileDetail/RenderZa
 /**
  * Hook for async grabbing the thumbnail path for a file
  */
-export default (fileDetails?: FileDetail, thumbnailConfig?: ThumbnailConfig) => {
+export default (
+    fileDetails?: FileDetail,
+    thumbnailConfig?: ThumbnailConfig
+): {
+    isThumbnailLoading: boolean;
+    thumbnailPath: string | undefined;
+    zarrInfo: ZarrInfo | undefined;
+} => {
     const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
-    const [zarrDims, setZarrDims] = React.useState<ZarrInfo | undefined>();
+    const [zarrInfo, setZarrInfo] = React.useState<ZarrInfo | undefined>();
 
     useEffect(() => {
         // Clear stored zarr dimensions when file changes
-        setZarrDims(undefined);
+        setZarrInfo(undefined);
     }, [fileDetails]);
 
     useEffect(() => {
@@ -22,7 +29,7 @@ export default (fileDetails?: FileDetail, thumbnailConfig?: ThumbnailConfig) => 
         if (fileDetails) {
             setIsThumbnailLoading(true);
             fileDetails
-                .getPathToThumbnail(300, thumbnailConfig, controller.signal, setZarrDims)
+                .getPathToThumbnail(300, thumbnailConfig, controller.signal, setZarrInfo)
                 .then((path) => {
                     if (controller.signal.aborted) {
                         return;
@@ -41,5 +48,5 @@ export default (fileDetails?: FileDetail, thumbnailConfig?: ThumbnailConfig) => 
         };
     }, [fileDetails, thumbnailConfig]);
 
-    return { isThumbnailLoading, thumbnailPath, zarrDims };
+    return { isThumbnailLoading, thumbnailPath, zarrInfo: zarrInfo };
 };
