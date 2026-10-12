@@ -8,6 +8,7 @@ type ThumbnailAxisSliderRowProps = {
     className: string;
     axis: "t" | "c" | "z" | "x" | "y";
     zarrInfo?: ZarrInfo;
+    /** Relative value of the axis slider, in a [0, 1] range. */
     value: number;
     /** Returns the relative value of the axis slider, in a [0, 1] range. */
     onChange?: (value: number) => void;
@@ -15,7 +16,8 @@ type ThumbnailAxisSliderRowProps = {
 
 /**
  * Renders a slider row (slider + input) for adjusting the relative position of
- * a specific Zarr image axis.
+ * a specific Zarr image axis. When no Zarr information is available, the slider
+ * shows values as a percentage.
  */
 export default function ThumbnailAxisSliderRow(props: ThumbnailAxisSliderRowProps): ReactElement {
     const zarrDims = props.zarrInfo?.dimensions;
@@ -23,14 +25,12 @@ export default function ThumbnailAxisSliderRow(props: ThumbnailAxisSliderRowProp
     const hasDims = axisSize !== undefined;
 
     const min = 0;
-    const max = hasDims ? axisSize - 1 : 100;
-
-    const displayValue = Math.round(props.value * max);
+    const max = hasDims ? Math.max(axisSize - 1, 1) : 100;
+    const displayValue = Math.floor(props.value * max);
     const onChange = (value: number) => {
         if (!Number.isFinite(value)) {
             return;
         }
-        const max = hasDims ? axisSize - 1 : 100;
         value = Math.min(Math.max(value, 0), max) / max;
         props.onChange?.(value);
     };
@@ -39,8 +39,8 @@ export default function ThumbnailAxisSliderRow(props: ThumbnailAxisSliderRowProp
         <LabeledSlider
             className={props.className}
             id={props.id}
-            label={hasDims ? props.axis.toUpperCase() : `${props.axis.toUpperCase()}%`}
-            labelFormatter={(value) => (hasDims ? `${value}` : `${value}%`)}
+            label={props.axis.toUpperCase() + (hasDims ? "" : "%")}
+            labelFormatter={(value) => value + (hasDims ? "" : "%")}
             value={displayValue}
             onChange={onChange}
             min={min}
