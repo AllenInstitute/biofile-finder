@@ -199,21 +199,23 @@ export default function FileDetails(props: Props) {
                                 />
                             </div>
                             <div className={styles.thumbnailConfigPopupContainer}>
-                                <ThumbnailConfigPopup
-                                    renderButton={(onClick) => {
-                                        return (
-                                            <TransparentIconButton
-                                                iconName="Settings"
-                                                label="Thumbnail settings"
-                                                onClick={onClick}
-                                                title="Thumbnail settings"
-                                            ></TransparentIconButton>
-                                        );
-                                    }}
-                                    thumbnailConfig={thumbnailConfig}
-                                    setThumbnailConfig={setThumbnailConfig}
-                                    zarrInfo={zarrDims}
-                                />
+                                {zarrDims && (
+                                    <ThumbnailConfigPopup
+                                        renderButton={(onClick) => {
+                                            return (
+                                                <TransparentIconButton
+                                                    iconName="Settings"
+                                                    label="Thumbnail settings"
+                                                    onClick={onClick}
+                                                    title="Thumbnail settings"
+                                                ></TransparentIconButton>
+                                            );
+                                        }}
+                                        thumbnailConfig={thumbnailConfig}
+                                        setThumbnailConfig={setThumbnailConfig}
+                                        zarrInfo={zarrDims}
+                                    />
+                                )}
                             </div>
                             <Modal
                                 isOpen={isFullscreenThumbnail}

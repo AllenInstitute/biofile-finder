@@ -48,8 +48,8 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
     };
 
     const zarrInfo = props.zarrInfo;
-    const missingZDim = zarrInfo !== undefined && zarrInfo?.dimensions.z === undefined;
-    const missingTDim = zarrInfo !== undefined && zarrInfo?.dimensions.t === undefined;
+    const missingZDim = zarrInfo !== undefined && (zarrInfo?.dimensions.z ?? 0) <= 1;
+    const missingTDim = zarrInfo !== undefined && (zarrInfo?.dimensions.t ?? 0) <= 1;
 
     useEffect(() => {
         // Add more channel controls if the current Zarr image has more channels
@@ -95,7 +95,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 <Callout
                     className={styles.callout}
                     role="dialog"
-                    aria-label="Global Zarr thumbnail settings"
+                    aria-label="ZARR thumbnail settings"
                     onDismiss={() => {
                         setIsCalloutVisible(false);
                     }}
@@ -105,9 +105,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 >
                     <div className={styles.calloutContent}>
                         <div className={styles.calloutTitleRow}>
-                            <span className={styles.calloutTitle}>
-                                Global Zarr thumbnail settings
-                            </span>
+                            <span className={styles.calloutTitle}>ZARR thumbnail settings</span>
                             <TransparentIconButton
                                 className={styles.calloutCloseButton}
                                 iconName="Cancel"
