@@ -91,7 +91,7 @@ export default function FileDetails(props: Props) {
     const setThumbnailConfig = (newConfig: ThumbnailConfig) => {
         dispatch(selection.actions.setThumbnailConfig(newConfig));
     };
-    const { isThumbnailLoading, thumbnailPath, zarrDims } = useThumbnailPath(
+    const { isThumbnailLoading, thumbnailPath, zarrInfo } = useThumbnailPath(
         props.fileDetails,
         debouncedThumbnailConfig
     );
@@ -199,7 +199,7 @@ export default function FileDetails(props: Props) {
                                 />
                             </div>
                             <div className={styles.thumbnailConfigPopupContainer}>
-                                {zarrDims && (
+                                {zarrInfo && (
                                     <ThumbnailConfigPopup
                                         renderButton={(onClick) => {
                                             return (
@@ -213,7 +213,7 @@ export default function FileDetails(props: Props) {
                                         }}
                                         thumbnailConfig={thumbnailConfig}
                                         setThumbnailConfig={setThumbnailConfig}
-                                        zarrInfo={zarrDims}
+                                        zarrInfo={zarrInfo}
                                     />
                                 )}
                             </div>
