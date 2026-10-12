@@ -18,24 +18,24 @@ export default function ThumbnailChannelConfigRow(
 ): ReactElement {
     return (
         <div className={styles.channelControlRow}>
-            <div className={styles.channelControlContainer}>
-                <Checkbox
-                    id={`channel-${props.index}-enabled`}
-                    label=""
-                    checked={props.channelConfig.enabled}
-                    onChange={(_e, checked) =>
-                        props.onChange({ ...props.channelConfig, enabled: !!checked })
-                    }
-                ></Checkbox>
-                <ColorPickerButton
-                    hexColor={props.channelConfig.hexColor}
-                    onChange={(newColor) =>
-                        props.onChange({ ...props.channelConfig, hexColor: newColor })
-                    }
-                    disabled={!props.channelConfig.enabled}
-                ></ColorPickerButton>
-                <label htmlFor={`channel-${props.index}-enabled`}>{props.name}</label>
-            </div>
+            <label className={styles.channelLabel} htmlFor={`channel-${props.index}-enabled`}>
+                {props.name}
+            </label>
+            <Checkbox
+                id={`channel-${props.index}-enabled`}
+                label=""
+                checked={props.channelConfig.enabled}
+                onChange={(_e, checked) =>
+                    props.onChange({ ...props.channelConfig, enabled: !!checked })
+                }
+            ></Checkbox>
+            <ColorPickerButton
+                hexColor={props.channelConfig.hexColor}
+                onChange={(newColor) =>
+                    props.onChange({ ...props.channelConfig, hexColor: newColor })
+                }
+                disabled={!props.channelConfig.enabled}
+            ></ColorPickerButton>
         </div>
     );
 }

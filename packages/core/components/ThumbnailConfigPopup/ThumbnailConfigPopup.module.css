@@ -45,8 +45,9 @@
 }
 
 .channel-control-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(4, auto) 1fr;
+    column-gap: 6px;
+    row-gap: 10px;
     margin: 6px 0;
 }
