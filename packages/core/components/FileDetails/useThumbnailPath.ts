@@ -48,5 +48,5 @@ export default (
         };
     }, [fileDetails, thumbnailConfig]);
 
-    return { isThumbnailLoading, thumbnailPath, zarrInfo: zarrInfo };
+    return { isThumbnailLoading, thumbnailPath, zarrInfo };
 };

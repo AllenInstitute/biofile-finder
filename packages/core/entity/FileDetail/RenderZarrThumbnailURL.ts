@@ -147,13 +147,7 @@ export async function renderZarrThumbnailURL(
                 const omeroChannels = image.imgAttrs?.omero?.channels;
 
                 const zarrShape: ZarrInfo = {
-                    dimensions: {
-                        x,
-                        y,
-                        z,
-                        c,
-                        t,
-                    },
+                    dimensions: { x, y, z, c, t },
                     channelNames: omeroChannels?.map((ch: { label: string }) => ch.label),
                 };
                 options.onLoad?.(zarrShape);
