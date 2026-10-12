@@ -22,7 +22,7 @@
     justify-content: space-between;
     gap: 10px;
     margin-top: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 0px;
 }
 
 .callout-title {
@@ -40,7 +40,7 @@
 }
 
 .channel-title {
-    margin: 8px 0 4px 0;
+    margin: 4px 0 4px 0;
     font-weight: 600;
 }
 
