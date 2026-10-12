@@ -1,6 +1,5 @@
 import React, { ReactElement } from "react";
 
-import { TransparentIconButton } from "../Buttons";
 import Checkbox from "../Checkbox";
 import ColorPickerButton from "../ColorPickerButton";
 import type { ThumbnailChannelConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
@@ -12,8 +11,6 @@ type ThumbnailChannelConfigRowProps = {
     index: number;
     name: string;
     onChange: (newConfig: ThumbnailChannelConfig) => void;
-    onDelete: () => void;
-    showDelete: boolean;
 };
 
 export default function ThumbnailChannelConfigRow(
@@ -22,7 +19,6 @@ export default function ThumbnailChannelConfigRow(
     return (
         <div className={styles.channelControlRow}>
             <div className={styles.channelControlContainer}>
-                <label htmlFor={`channel-${props.index}-enabled`}>{props.name}</label>
                 <Checkbox
                     id={`channel-${props.index}-enabled`}
                     label=""
@@ -38,16 +34,8 @@ export default function ThumbnailChannelConfigRow(
                     }
                     disabled={!props.channelConfig.enabled}
                 ></ColorPickerButton>
+                <label htmlFor={`channel-${props.index}-enabled`}>{props.name}</label>
             </div>
-
-            {props.showDelete && (
-                <TransparentIconButton
-                    className={styles.deleteButton}
-                    iconName="Cancel"
-                    label={`Delete channel C${props.index}`}
-                    onClick={props.onDelete}
-                ></TransparentIconButton>
-            )}
         </div>
     );
 }

@@ -3,13 +3,11 @@ import React, { ReactElement, useEffect, useRef, useState } from "react";
 
 import ThumbnailAxisSliderRow from "./ThumbnailAxisSliderRow";
 import ThumbnailChannelConfigRow from "./ThumbnailChannelConfigRow";
-import { SecondaryButton, TransparentIconButton } from "../Buttons";
+import { TransparentIconButton } from "../Buttons";
 import Checkbox from "../Checkbox";
 import type { ThumbnailConfig, ZarrInfo } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 
 import styles from "./ThumbnailConfigPopup.module.css";
-
-const MIN_CHANNEL_CONTROLS = 1;
 
 type ThumbnailConfigPopupProps = {
     /**
@@ -36,24 +34,6 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
 
     const [isCalloutVisible, setIsCalloutVisible] = useState(false);
     const divRef = useRef<HTMLDivElement>(null);
-
-    const onAddChannel = () => {
-        const newConfig = {
-            ...thumbnailConfig,
-            channelConfigs: [...thumbnailConfig.channelConfigs],
-        };
-        newConfig.channelConfigs.push({ enabled: true, hexColor: "FFFFFF" });
-        setThumbnailConfig(newConfig);
-    };
-
-    const onDeleteChannel = (index: number) => {
-        const newConfig = {
-            ...thumbnailConfig,
-            channelConfigs: [...thumbnailConfig.channelConfigs],
-        };
-        newConfig.channelConfigs.splice(index, 1);
-        setThumbnailConfig(newConfig);
-    };
 
     const onChangeChannelConfig = (
         index: number,
@@ -90,11 +70,10 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
     }, [zarrInfo, thumbnailConfig, setThumbnailConfig]);
 
     const channelConfigRows = thumbnailConfig.channelConfigs.map((config, index) => {
-        // Exit early if the channel index exceeds the number of channels in the Zarr image
+        // Only show channels that exist in the Zarr image
         if (zarrInfo?.dimensions.c !== undefined && index >= zarrInfo.dimensions.c) {
             return null;
         }
-        const minChannels = zarrInfo?.dimensions.c ?? MIN_CHANNEL_CONTROLS;
         const channelName = zarrInfo?.channelNames?.[index] ?? `C${index + 1}`;
         return (
             <ThumbnailChannelConfigRow
@@ -103,8 +82,6 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 index={index}
                 name={channelName}
                 onChange={(newConfig) => onChangeChannelConfig(index, newConfig)}
-                onDelete={() => onDeleteChannel(index)}
-                showDelete={thumbnailConfig.channelConfigs.length > minChannels}
             ></ThumbnailChannelConfigRow>
         );
     });
@@ -177,11 +154,6 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                             label={"Override metadata colors (.zarr)"}
                         ></Checkbox>
                         <div className={styles.channelControlList}>{channelConfigRows}</div>
-
-                        <SecondaryButton
-                            text="+ Add Channel"
-                            onClick={onAddChannel}
-                        ></SecondaryButton>
                     </div>
                 </Callout>
             ) : null}
