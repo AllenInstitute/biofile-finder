@@ -52,7 +52,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
     const missingTDim = zarrInfo !== undefined && (zarrInfo?.dimensions.t ?? 0) <= 1;
 
     useEffect(() => {
-        // Add more channel controls if the current Zarr image has more channels
+        // Add more channel configs to match count in current Zarr image
         if (zarrInfo?.dimensions.c !== undefined) {
             const channelCount = zarrInfo.dimensions.c;
             if (thumbnailConfig.channelConfigs.length >= channelCount) {
@@ -70,7 +70,8 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
     }, [zarrInfo, thumbnailConfig, setThumbnailConfig]);
 
     const channelConfigRows = thumbnailConfig.channelConfigs.map((config, index) => {
-        // Only show channels that exist in the Zarr image
+        // Show up to the number of channels in the Zarr image when dimensions
+        // are provided.
         if (zarrInfo?.dimensions.c !== undefined && index >= zarrInfo.dimensions.c) {
             return null;
         }
@@ -95,7 +96,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 <Callout
                     className={styles.callout}
                     role="dialog"
-                    aria-label="ZARR thumbnail settings"
+                    aria-label="Zarr thumbnail settings"
                     onDismiss={() => {
                         setIsCalloutVisible(false);
                     }}
@@ -105,7 +106,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 >
                     <div className={styles.calloutContent}>
                         <div className={styles.calloutTitleRow}>
-                            <span className={styles.calloutTitle}>ZARR thumbnail settings</span>
+                            <span className={styles.calloutTitle}>Zarr thumbnail settings</span>
                             <TransparentIconButton
                                 className={styles.calloutCloseButton}
                                 iconName="Cancel"
