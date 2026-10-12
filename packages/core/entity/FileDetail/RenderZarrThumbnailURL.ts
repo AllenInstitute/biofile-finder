@@ -82,6 +82,7 @@ export type ZarrDims = {
     z: number | undefined;
     c: number | undefined;
     t: number | undefined;
+    channelNames: string[] | undefined;
 };
 
 async function defaultNgffImageLoader(
@@ -141,12 +142,20 @@ export async function renderZarrThumbnailURL(
                 const z = zIndex !== -1 ? shape[zIndex] : undefined;
                 const y = yIndex !== -1 ? shape[yIndex] : undefined;
                 const x = xIndex !== -1 ? shape[xIndex] : undefined;
-                const zarrShape: ZarrDims = { x, y, z, c, t };
+                const omeroChannels = image.imgAttrs?.omero?.channels;
+
+                const zarrShape: ZarrDims = {
+                    x,
+                    y,
+                    z,
+                    c,
+                    t,
+                    channelNames: omeroChannels?.map((ch: { label: string }) => ch.label),
+                };
                 options.onLoad?.(zarrShape);
 
                 if (thumbnailConfig !== undefined) {
                     if (c !== undefined) {
-                        const omeroChannels = image.imgAttrs?.omero?.channels;
                         const hasOmeroMetadata =
                             omeroChannels !== undefined && omeroChannels.length > 0;
                         if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
@@ -199,6 +208,7 @@ export async function renderZarrThumbnailURL(
                     // Note: missing window param
                     channels: channels as (typeof omezarr.Channel)[],
                     signal: abortSignal,
+                    maxSize: 10_000,
                 });
             },
             3,
