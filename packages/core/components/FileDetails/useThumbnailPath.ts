@@ -28,8 +28,14 @@ export default (
         const controller = new AbortController();
         if (fileDetails) {
             setIsThumbnailLoading(true);
+            const onLoad = (zarrInfo: ZarrInfo) => {
+                if (controller.signal.aborted) {
+                    return;
+                }
+                setZarrInfo(zarrInfo);
+            };
             fileDetails
-                .getPathToThumbnail(300, thumbnailConfig, controller.signal, setZarrInfo)
+                .getPathToThumbnail(300, thumbnailConfig, controller.signal, onLoad)
                 .then((path) => {
                     if (controller.signal.aborted) {
                         return;

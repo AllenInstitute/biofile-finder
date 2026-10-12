@@ -302,7 +302,7 @@ export default class FileDetail {
         targetSize: number,
         thumbnailConfig?: ThumbnailConfig,
         abortSignal?: AbortSignal,
-        onLoad?: (shape: ZarrInfo) => void
+        onLoad?: (zarrInfo: ZarrInfo) => void
     ): Promise<string | undefined> {
         // When no thumbnail is provided, try to render one from the file path if it's a
         // zarr or a known renderable image format

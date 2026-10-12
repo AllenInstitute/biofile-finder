@@ -140,7 +140,7 @@ export async function renderZarrThumbnailURL(
                 const yIndex = axesNames.indexOf("y");
                 const xIndex = axesNames.indexOf("x");
                 const t = tIndex !== -1 ? shape[tIndex] : undefined;
-                const c = cIndex !== -1 ? shape[cIndex] : undefined;
+                const c = cIndex !== -1 ? shape[cIndex] : 1;
                 const z = zIndex !== -1 ? shape[zIndex] : undefined;
                 const y = yIndex !== -1 ? shape[yIndex] : undefined;
                 const x = xIndex !== -1 ? shape[xIndex] : undefined;
