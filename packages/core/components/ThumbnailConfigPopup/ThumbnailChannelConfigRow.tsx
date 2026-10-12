@@ -10,6 +10,7 @@ import styles from "./ThumbnailChannelConfigRow.module.css";
 type ThumbnailChannelConfigRowProps = {
     channelConfig: ThumbnailChannelConfig;
     index: number;
+    name: string;
     onChange: (newConfig: ThumbnailChannelConfig) => void;
     onDelete: () => void;
     showDelete: boolean;
@@ -21,7 +22,7 @@ export default function ThumbnailChannelConfigRow(
     return (
         <div className={styles.channelControlRow}>
             <div className={styles.channelControlContainer}>
-                <label htmlFor={`channel-${props.index}-enabled`}>C{props.index}</label>
+                <label htmlFor={`channel-${props.index}-enabled`}>{props.name}</label>
                 <Checkbox
                     id={`channel-${props.index}-enabled`}
                     label=""

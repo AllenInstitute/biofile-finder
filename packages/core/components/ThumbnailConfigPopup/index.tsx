@@ -72,9 +72,12 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
     // channel
 
     useEffect(() => {
-        // Probably this should live in state/logic...
+        // Add more channel controls if the current Zarr image has more channels
         if (zarrDims?.c !== undefined) {
             const channelCount = zarrDims.c;
+            if (thumbnailConfig.channelConfigs.length >= channelCount) {
+                return;
+            }
             const newConfig = {
                 ...thumbnailConfig,
                 channelConfigs: [...thumbnailConfig.channelConfigs],
@@ -87,12 +90,18 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
     }, [zarrDims, thumbnailConfig, setThumbnailConfig]);
 
     const channelConfigRows = thumbnailConfig.channelConfigs.map((config, index) => {
+        // Exit early if the channel index exceeds the number of channels in the Zarr image
+        if (zarrDims?.c !== undefined && index >= zarrDims.c) {
+            return null;
+        }
         const minChannels = zarrDims?.c ?? MIN_CHANNEL_CONTROLS;
+        const channelName = zarrDims?.channelNames?.[index] ?? `C${index + 1}`;
         return (
             <ThumbnailChannelConfigRow
                 key={index}
                 channelConfig={config}
                 index={index}
+                name={channelName}
                 onChange={(newConfig) => onChangeChannelConfig(index, newConfig)}
                 onDelete={() => onDeleteChannel(index)}
                 showDelete={thumbnailConfig.channelConfigs.length > minChannels}
