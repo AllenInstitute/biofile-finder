@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useEffect } from "react";
 
 import FileDetail from "../../entity/FileDetail";
 import type { ThumbnailConfig, ZarrInfo } from "../../entity/FileDetail/RenderZarrThumbnailURL";
@@ -11,7 +12,12 @@ export default (fileDetails?: FileDetail, thumbnailConfig?: ThumbnailConfig) => 
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
     const [zarrDims, setZarrDims] = React.useState<ZarrInfo | undefined>();
 
-    React.useEffect(() => {
+    useEffect(() => {
+        // Clear stored zarr dimensions when file changes
+        setZarrDims(undefined);
+    }, [fileDetails]);
+
+    useEffect(() => {
         const controller = new AbortController();
         if (fileDetails) {
             setIsThumbnailLoading(true);
