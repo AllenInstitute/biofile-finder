@@ -144,6 +144,19 @@ export async function renderZarrThumbnailURL(
                         }
                     }
                 }
+
+                if (image.omero && "channels" in image.omero) {
+                    // Remove start and end values from omero channel window so
+                    // min and max get recalculated; adapted from old API in
+                    // https://github.com/BioNGFF/ome-zarr.js/blob/main/src/api.ts#L37-L48
+                    for (const channel of image.omero.channels) {
+                        if ("window" in channel) {
+                            channel.window.start = undefined;
+                            channel.window.end = undefined;
+                        }
+                    }
+                }
+
                 return image.render({
                     targetSize,
                     autoBoost: true,
