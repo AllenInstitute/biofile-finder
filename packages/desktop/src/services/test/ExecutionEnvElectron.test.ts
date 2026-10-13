@@ -50,6 +50,7 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
             ? path.resolve(tmpDir, "ImageJTest.app")
             : path.resolve(tmpDir, "ImageJTest");
 
+        let fileDescriptor: number | null = null;
         beforeEach(() => {
             if (runningOnMacOS) {
                 // !!! IMPLEMENTATION DETAIL !!!
@@ -58,13 +59,17 @@ describe(`${RUN_IN_RENDERER} ExecutionEnvServiceElectron`, () => {
                 // bundle extension ".app" & is a directory
                 fs.mkdirSync(executablePath, { recursive: true });
             } else {
-                fs.openSync(executablePath, "w", 0o777);
+                fileDescriptor = fs.openSync(executablePath, "w", 0o777);
             }
         });
 
         afterEach(() => {
             sandbox.restore();
             fs.rmSync(executablePath, { recursive: true });
+            if (fileDescriptor !== null) {
+                fs.closeSync(fileDescriptor);
+                fileDescriptor = null;
+            }
         });
 
         it("returns executable as selected", async () => {

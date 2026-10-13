@@ -45,22 +45,23 @@ export default class FmsFilePath {
      *
      * The parameter `os` should be the output of `os.type()`.
      */
-    public formatForOs(os: string, pathSeparator = path.sep): string {
+    public formatForOs(os: string): string {
         // If `mountPoint` is defined, replace /<server>/<fileShare> within
         // the original path.
-        let pathToFormat = this.posixFilePath;
+        let posixPathToFormat = this.posixFilePath;
         if (this.mountPoint) {
             const pathWithoutMount = path.posix.relative(
                 this.assumedFileSystemMount,
                 this.posixFilePath
             );
-            pathToFormat = path.join(this.mountPoint, pathWithoutMount);
+            posixPathToFormat = path.posix.join(this.mountPoint, pathWithoutMount);
         }
 
         // Assumption: file paths are persisted as POSIX paths
-        const split = pathToFormat.split(path.posix.sep);
+        const split = posixPathToFormat.split(path.posix.sep);
 
         // Rejoin using `pathSeparator`
+        const pathSeparator = os === "Windows_NT" ? "\\" : path.posix.sep;
         const formatted = split.join(pathSeparator);
 
         if (os === "Windows_NT") {
