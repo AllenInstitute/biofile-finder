@@ -144,6 +144,8 @@ export async function renderZarrThumbnailURL(
                 const yIndex = axesNames.indexOf("y");
                 const xIndex = axesNames.indexOf("x");
                 const t = tIndex !== -1 ? shape[tIndex] : undefined;
+                // Fallback, since an image with no channels technically
+                // still has one.
                 const c = cIndex !== -1 ? shape[cIndex] : 1;
                 const z = zIndex !== -1 ? shape[zIndex] : undefined;
                 const y = yIndex !== -1 ? shape[yIndex] : undefined;
@@ -161,24 +163,19 @@ export async function renderZarrThumbnailURL(
                 options.onLoad?.(zarrInfo);
 
                 if (thumbnailConfig !== undefined) {
-                    if (c !== undefined) {
-                        const hasOmeroMetadata =
-                            omeroChannels !== undefined && omeroChannels.length > 0;
-                        if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
-                            const channelConfigs = thumbnailConfig.channelConfigs;
-                            channels = channelConfigs
-                                .filter((_, index) => index < c)
-                                .map((config) => ({
-                                    color: config.hexColor,
-                                    active: config.enabled,
-                                }));
-                            if (
-                                channels.length === 0 ||
-                                channels.every((channel) => !channel.active)
-                            ) {
-                                // All channels are disabled; return undefined.
-                                return undefined;
-                            }
+                    const hasOmeroMetadata =
+                        omeroChannels !== undefined && omeroChannels.length > 0;
+                    if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
+                        const channelConfigs = thumbnailConfig.channelConfigs;
+                        channels = channelConfigs
+                            .filter((_, index) => index < c)
+                            .map((config) => ({
+                                color: config.hexColor,
+                                active: config.enabled,
+                            }));
+                        if (channels.length === 0 || channels.every((channel) => !channel.active)) {
+                            // All channels are disabled; return undefined.
+                            return undefined;
                         }
                     }
 
