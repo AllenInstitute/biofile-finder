@@ -9,6 +9,8 @@ import type { ThumbnailConfig, ZarrInfo } from "../../entity/FileDetail/RenderZa
 
 import styles from "./ThumbnailConfigPopup.module.css";
 
+const DEFAULT_CHANNEL_COLOR = "FFFFFF";
+
 type ThumbnailConfigPopupProps = {
     /**
      * Callback to render the triggering button; use the `onClick` callback to
@@ -49,22 +51,14 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
 
     const zarrInfo = props.zarrInfo;
     const channelColors = zarrInfo?.metadata.channelColor;
-    const hasColorMetadata =
-        channelColors !== undefined &&
-        channelColors.length > 0 &&
-        channelColors.every((color) => color !== undefined);
     const channelActive = zarrInfo?.metadata.channelActive;
-    const hasChannelActive =
-        channelActive !== undefined &&
-        channelActive.length > 0 &&
-        channelActive.every((active) => active !== undefined);
-    const hasOmeroChannelMetadata = hasColorMetadata && hasChannelActive;
+    const hasOmeroChannelMetadata = channelColors !== undefined && channelColors.length > 0;
 
     const missingZDim = zarrInfo !== undefined && (zarrInfo?.dimensions.z ?? 0) <= 1;
     const missingTDim = zarrInfo !== undefined && (zarrInfo?.dimensions.t ?? 0) <= 1;
 
+    // Add more channel configs to match count in current Zarr image
     useEffect(() => {
-        // Add more channel configs to match count in current Zarr image
         if (zarrInfo?.dimensions.c !== undefined) {
             const channelCount = zarrInfo.dimensions.c;
             if (thumbnailConfig.channelConfigs.length >= channelCount) {
@@ -75,7 +69,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 channelConfigs: [...thumbnailConfig.channelConfigs],
             };
             while (newConfig.channelConfigs.length < channelCount) {
-                newConfig.channelConfigs.push({ enabled: false, hexColor: "FFFFFF" });
+                newConfig.channelConfigs.push({ enabled: false, hexColor: DEFAULT_CHANNEL_COLOR });
             }
             setThumbnailConfig(newConfig);
         }
@@ -92,7 +86,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
         if (hasOmeroChannelMetadata && !thumbnailConfig.overrideOmeroMetadata) {
             config = { ...config };
             config.enabled = channelActive?.[index] ?? config.enabled;
-            let color = channelColors?.[index] ?? config.hexColor;
+            let color = channelColors?.[index] ?? DEFAULT_CHANNEL_COLOR;
             if (color.startsWith("#")) {
                 color = color.substring(1);
             }

@@ -151,6 +151,7 @@ export async function renderZarrThumbnailURL(
                 const y = yIndex !== -1 ? shape[yIndex] : undefined;
                 const x = xIndex !== -1 ? shape[xIndex] : undefined;
                 const omeroChannels = image.imgAttrs?.omero?.channels;
+                const hasOmeroMetadata = omeroChannels !== undefined && omeroChannels.length > 0;
 
                 const zarrInfo: ZarrInfo = {
                     dimensions: { x, y, z, c, t },
@@ -163,8 +164,6 @@ export async function renderZarrThumbnailURL(
                 options.onLoad?.(zarrInfo);
 
                 if (thumbnailConfig !== undefined) {
-                    const hasOmeroMetadata =
-                        omeroChannels !== undefined && omeroChannels.length > 0;
                     if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
                         const channelConfigs = thumbnailConfig.channelConfigs;
                         channels = channelConfigs
