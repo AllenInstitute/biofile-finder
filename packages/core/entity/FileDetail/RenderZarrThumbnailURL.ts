@@ -84,7 +84,11 @@ export type ZarrInfo = {
         c: number | undefined;
         t: number | undefined;
     };
-    channelNames: string[] | undefined;
+    metadata: {
+        channelNames: string[] | undefined;
+        channelColor: string[] | undefined;
+        channelActive: boolean[] | undefined;
+    };
 };
 
 async function defaultNgffImageLoader(
@@ -146,11 +150,15 @@ export async function renderZarrThumbnailURL(
                 const x = xIndex !== -1 ? shape[xIndex] : undefined;
                 const omeroChannels = image.imgAttrs?.omero?.channels;
 
-                const zarrShape: ZarrInfo = {
+                const zarrInfo: ZarrInfo = {
                     dimensions: { x, y, z, c, t },
-                    channelNames: omeroChannels?.map((ch: { label: string }) => ch.label),
+                    metadata: {
+                        channelNames: omeroChannels?.map((ch: { label: string }) => ch.label),
+                        channelColor: omeroChannels?.map((ch: { color: string }) => ch.color),
+                        channelActive: omeroChannels?.map((ch: { active: boolean }) => ch.active),
+                    },
                 };
-                options.onLoad?.(zarrShape);
+                options.onLoad?.(zarrInfo);
 
                 if (thumbnailConfig !== undefined) {
                     if (c !== undefined) {

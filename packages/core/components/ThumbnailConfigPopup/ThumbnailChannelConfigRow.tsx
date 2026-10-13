@@ -10,6 +10,7 @@ type ThumbnailChannelConfigRowProps = {
     channelConfig: ThumbnailChannelConfig;
     index: number;
     name: string;
+    disabled: boolean;
     onChange: (newConfig: ThumbnailChannelConfig) => void;
 };
 
@@ -28,13 +29,14 @@ export default function ThumbnailChannelConfigRow(
                 onChange={(_e, checked) =>
                     props.onChange({ ...props.channelConfig, enabled: !!checked })
                 }
+                disabled={props.disabled}
             ></Checkbox>
             <ColorPickerButton
                 hexColor={props.channelConfig.hexColor}
                 onChange={(newColor) =>
                     props.onChange({ ...props.channelConfig, hexColor: newColor })
                 }
-                disabled={!props.channelConfig.enabled}
+                disabled={!props.channelConfig.enabled || props.disabled}
             ></ColorPickerButton>
         </div>
     );
