@@ -81,15 +81,15 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
         }
     }, [zarrInfo, thumbnailConfig, setThumbnailConfig]);
 
+    // Show up to the number of channels in the Zarr image when dimensions are
+    // provided. If OMERO metadata is provided and not overridden, it will be
+    // used to populate the channel configs so they display the current
+    // metadata.
     const channelConfigRows = thumbnailConfig.channelConfigs.map((config, index) => {
-        // Show up to the number of channels in the Zarr image when dimensions
-        // are provided.
         if (zarrInfo?.dimensions.c !== undefined && index >= zarrInfo.dimensions.c) {
             return null;
         }
         if (hasOmeroChannelMetadata && !thumbnailConfig.overrideOmeroMetadata) {
-            // Override the config with the current Omero channel metadata, when
-            // the Omero channel metadata is not being overridden.
             config = { ...config };
             config.enabled = channelActive?.[index] ?? config.enabled;
             let color = channelColors?.[index] ?? config.hexColor;
