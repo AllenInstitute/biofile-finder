@@ -111,7 +111,7 @@ export const initialState: SelectionStateBranch = {
     shouldDisplaySmallFont: false,
     shouldShowNullGroups: true,
     thumbnailConfig: {
-        relativeT: 0.5,
+        relativeT: 0,
         relativeZ: 0.5,
         overrideOmeroMetadata: false,
         channelConfigs: [
