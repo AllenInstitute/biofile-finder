@@ -48,6 +48,18 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
     };
 
     const zarrInfo = props.zarrInfo;
+    const channelColors = zarrInfo?.metadata.channelColor;
+    const hasColorMetadata =
+        channelColors !== undefined &&
+        channelColors.length > 0 &&
+        channelColors.every((color) => color !== undefined);
+    const channelActive = zarrInfo?.metadata.channelActive;
+    const hasChannelActive =
+        channelActive !== undefined &&
+        channelActive.length > 0 &&
+        channelActive.every((active) => active !== undefined);
+    const hasOmeroChannelMetadata = hasColorMetadata && hasChannelActive;
+
     const missingZDim = zarrInfo !== undefined && (zarrInfo?.dimensions.z ?? 0) <= 1;
     const missingTDim = zarrInfo !== undefined && (zarrInfo?.dimensions.t ?? 0) <= 1;
 
@@ -75,13 +87,25 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
         if (zarrInfo?.dimensions.c !== undefined && index >= zarrInfo.dimensions.c) {
             return null;
         }
-        const channelName = zarrInfo?.channelNames?.[index] ?? `C${index + 1}`;
+        if (hasOmeroChannelMetadata && !thumbnailConfig.overrideOmeroMetadata) {
+            // Override the config with the current Omero channel metadata, when
+            // the Omero channel metadata is not being overridden.
+            config = { ...config };
+            config.enabled = channelActive?.[index] ?? config.enabled;
+            let color = channelColors?.[index] ?? config.hexColor;
+            if (color.startsWith("#")) {
+                color = color.substring(1);
+            }
+            config.hexColor = color;
+        }
+        const channelName = zarrInfo?.metadata.channelNames?.[index] ?? `C${index + 1}`;
         return (
             <ThumbnailChannelConfigRow
                 key={index}
                 channelConfig={config}
                 index={index}
                 name={channelName}
+                disabled={hasOmeroChannelMetadata && !thumbnailConfig.overrideOmeroMetadata}
                 onChange={(newConfig) => onChangeChannelConfig(index, newConfig)}
             ></ThumbnailChannelConfigRow>
         );
