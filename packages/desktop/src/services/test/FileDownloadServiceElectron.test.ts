@@ -112,7 +112,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const fileInfo = {
                 id: "abc123",
                 name: fileName,
-                path: path.join(downloadHost, filePath),
+                path: path.posix.join(downloadHost, filePath),
                 size: (await fs.promises.stat(sourceFile)).size,
             };
 
@@ -151,7 +151,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const fileInfo = {
                 id: "abc123",
                 name: fileName,
-                path: path.join(downloadHost, filePath),
+                path: path.posix.join(downloadHost, filePath),
                 size: (await fs.promises.stat(sourceFile)).size,
             };
 
@@ -191,7 +191,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const fileInfo = {
                 id: "abc123",
                 name: fileName,
-                path: path.join(downloadHost, filePath),
+                path: path.posix.join(downloadHost, filePath),
                 size: (await fs.promises.stat(sourceFile)).size,
             };
 
@@ -242,7 +242,7 @@ describe(`${RUN_IN_RENDERER} FileDownloadServiceElectron`, () => {
             const fileInfo = {
                 id: "abc123",
                 name: fileName,
-                path: path.join(downloadHost, filePath),
+                path: path.posix.join(downloadHost, filePath),
             };
 
             // Act

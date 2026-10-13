@@ -1,48 +1,100 @@
 .label {
-  align-items: center;
+    align-items: center;
 }
 
-.root .label > span, .root:hover .label > span, .root:focus .label > span {
-  color: var(--primary-text-color) !important;
+.root .label > span,
+.root:hover .label > span,
+.root:focus .label > span {
+    color: var(--primary-text-color);
 }
 
-/* Unchecked checkbox */
-.checkbox, .checkbox:hover {
-  background-color: var(--primary-background-color);
-  border-width: 1px;
-  border-style: solid;
-  border-color: var(--aqua) !important;
-  height: 16px;
-  width: 16px;
+/* All checkboxes when disabled */
+.root.disabled .checkbox {
+    border-color: var(--border-color);
 }
 
-/* Unchecked checkbox on hover */
-.root:not(.checked):hover .checkbox {
-  background-color: var(--primary-background-color);
+/* All checkboxes on hover */
+.root:not(.disabled):hover .checkbox {
+    border-color: var(--bright-aqua);
 }
 
-/* Checked checkbox */
-.checked .checkbox {
-  background-color: var(--aqua);
+.checkbox {
+    background-color: var(--primary-background-color);
+    border-width: 1.6px;
+    border-style: solid;
+    border-color: var(--aqua);
+    box-sizing: border-box;
+    --checkbox-size-px: 18px;
+    height: var(--checkbox-size-px);
+    width: var(--checkbox-size-px);
+
+    /* 
+     * Rescope the Fluent checkbox base transition properties from the full
+     * `border` / `background`  transition by default to just the color, to
+     * avoid visual artifacts when changing border width.
+     */
+    transition-property: background-color, border-color;
 }
 
-/* Checked checkbox on hover */
-.checked:hover .checkbox {
-  background-color: var(--primary-background-color);
+/**** MARK: Unchecked */
+
+/** Thicken border on checkbox hover */
+.root:not(.checked):not(.disabled):not(.indeterminate):hover .checkbox {
+    border-width: 2px;
 }
 
-/* Unchecked checkmark */
-.checkmark {
-  color: var(--aqua) !important;
+/* Do not show checkmark on hover */
+.root:not(.checked):hover .checkmark {
+    opacity: 0;
 }
 
-/* Checked checkmark */
-.checked .checkmark {
-  color: var(--primary-background-color) !important;
+/**** MARK: Checked */
+
+/* Set BG color */
+.root.checked:not(.disabled):not(.indeterminate) .checkbox {
+    background-color: var(--aqua);
 }
 
-/* Checked checkmark on hover */
-.checked:hover .checkmark {
-  display: none;
+/* Hover BG color */
+.root.checked:not(.disabled):not(.indeterminate):hover .checkbox {
+    background-color: var(--bright-aqua);
 }
 
+/* Disabled BG color */
+.root.checked:not(.indeterminate).disabled .checkbox {
+    background-color: var(--border-color);
+}
+
+/* Darken checkmark */
+.root.checked .checkmark {
+    color: var(--primary-background-color);
+}
+
+/**** MARK: Indeterminate */
+
+/* Override base styling of the inner square for better sizing control */
+.root.indeterminate .checkbox::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    border: 0;
+    width: calc(100% - 5px);
+    height: calc(100% - 5px);
+    background-color: var(--aqua);
+}
+
+/* Hover BG color*/
+.root.indeterminate:not(.disabled):hover .checkbox::after {
+    background-color: var(--bright-aqua);
+}
+
+/* Disabled BG color */
+.root.indeterminate.disabled .checkbox::after {
+    background-color: var(--border-color);
+}
+
+/* Always hide checkmark */
+.root.indeterminate .checkbox .checkmark {
+    display: none;
+}
