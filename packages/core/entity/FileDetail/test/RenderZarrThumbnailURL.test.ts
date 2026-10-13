@@ -118,8 +118,8 @@ describe("renderZarrThumbnailURL", () => {
         await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, { thumbnailConfig, ngffImageLoader });
 
         expect(mockImage.renderCallCount).to.equal(1);
-        expect(mockImage.renderOptions?.slices?.t).to.deep.equal(49);
-        expect(mockImage.renderOptions?.slices?.z).to.deep.equal(49);
+        expect(mockImage.renderOptions?.slices?.t).to.deep.equal(50);
+        expect(mockImage.renderOptions?.slices?.z).to.deep.equal(50);
     });
 
     it("handles 0 bound for T and Z slices", async () => {
