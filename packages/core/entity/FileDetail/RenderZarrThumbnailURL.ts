@@ -182,11 +182,11 @@ export async function renderZarrThumbnailURL(
                     if (z !== undefined || t !== undefined) {
                         slices = {};
                         if (z !== undefined) {
-                            const zSlice = Math.floor((z - 1) * thumbnailConfig.relativeZ);
+                            const zSlice = Math.round((z - 1) * thumbnailConfig.relativeZ);
                             slices.z = Math.max(0, Math.min(zSlice, z - 1));
                         }
                         if (t !== undefined) {
-                            const tSlice = Math.floor((t - 1) * thumbnailConfig.relativeT);
+                            const tSlice = Math.round((t - 1) * thumbnailConfig.relativeT);
                             slices.t = Math.max(0, Math.min(tSlice, t - 1));
                         }
                     }

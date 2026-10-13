@@ -26,7 +26,7 @@ export default function ThumbnailAxisSliderRow(props: ThumbnailAxisSliderRowProp
 
     const min = 0;
     const max = hasDims ? Math.max(axisSize - 1, 1) : 100;
-    const displayValue = Math.floor(props.value * max);
+    const displayValue = Math.round(props.value * max);
     const onChange = (value: number) => {
         if (!Number.isFinite(value)) {
             return;

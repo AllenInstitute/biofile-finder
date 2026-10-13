@@ -4,7 +4,7 @@ import type * as omezarr from "ome-zarr.js";
 import sinon from "sinon";
 
 import { OmeroChannel, renderZarrThumbnailURL } from "../RenderZarrThumbnailURL";
-import type { ThumbnailConfig } from "../RenderZarrThumbnailURL";
+import type { ThumbnailConfig, ZarrInfo } from "../RenderZarrThumbnailURL";
 
 class MockNgffImage {
     private zSize: number | undefined;
@@ -87,9 +87,9 @@ describe("renderZarrThumbnailURL", () => {
         { color: "0000ff", active: true },
     ];
     const DEFAULT_OMERO_CHANNELS: OmeroChannel[] = [
-        { color: "ffff00", active: false },
-        { color: "ff00ff", active: true },
-        { color: "00ffff", active: false },
+        { label: "Channel 1", color: "ffff00", active: false },
+        { label: "Channel 2", color: "ff00ff", active: true },
+        { label: "Channel 3", color: "00ffff", active: false },
     ];
 
     // Mock timeout
@@ -227,5 +227,72 @@ describe("renderZarrThumbnailURL", () => {
         expect(loaderSignal).to.equal(controller.signal);
         expect(mockImage.renderCallCount).to.equal(1);
         expect(mockImage.renderOptions?.signal).to.equal(controller.signal);
+    });
+
+    it("reports zarr info via onLoad callback", async () => {
+        const mockImage = new MockNgffImage({ tSize: 100, zSize: 100, cSize: 3 });
+
+        const ngffImageLoader = (_path: string) => {
+            return Promise.resolve(mockImage);
+        };
+        let reportedZarrInfo;
+        const onLoad = (zarrInfo: any) => {
+            reportedZarrInfo = zarrInfo;
+        };
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, {
+            thumbnailConfig: DEFAULT_THUMBNAIL_CONFIG,
+            ngffImageLoader,
+            onLoad,
+        });
+        expect(reportedZarrInfo).to.deep.equal({
+            dimensions: {
+                t: 100,
+                z: 100,
+                c: 3,
+                x: 20,
+                y: 30,
+            },
+            metadata: {
+                channelNames: undefined,
+                channelColor: undefined,
+                channelActive: undefined,
+            },
+        } satisfies ZarrInfo);
+    });
+
+    it("reports zarr info and omero metadata via onLoad callback", async () => {
+        const mockImage = new MockNgffImage({
+            tSize: 100,
+            zSize: 100,
+            cSize: 3,
+            omeroChannels: DEFAULT_OMERO_CHANNELS,
+        });
+
+        const ngffImageLoader = (_path: string) => {
+            return Promise.resolve(mockImage);
+        };
+        let reportedZarrInfo;
+        const onLoad = (zarrInfo: any) => {
+            reportedZarrInfo = zarrInfo;
+        };
+        await renderZarrThumbnailURL(ZARR_URL, DEFAULT_SIZE, {
+            thumbnailConfig: DEFAULT_THUMBNAIL_CONFIG,
+            ngffImageLoader,
+            onLoad,
+        });
+        expect(reportedZarrInfo).to.deep.equal({
+            dimensions: {
+                t: 100,
+                z: 100,
+                c: 3,
+                x: 20,
+                y: 30,
+            },
+            metadata: {
+                channelNames: ["Channel 1", "Channel 2", "Channel 3"],
+                channelColor: ["ffff00", "ff00ff", "00ffff"],
+                channelActive: [false, true, false],
+            },
+        } satisfies ZarrInfo);
     });
 });
