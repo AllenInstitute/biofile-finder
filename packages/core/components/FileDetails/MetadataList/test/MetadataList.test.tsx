@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -12,6 +11,7 @@ import { AnnotationType } from "../../../../entity/AnnotationFormatter";
 import FileDetail from "../../../../entity/FileDetail";
 import ExecutionEnvServiceNoop from "../../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { initialState } from "../../../../state";
+import { configureMockStore, mergeState } from "../../../../util/redux-utils";
 
 describe("<MetadataList />", () => {
     describe("file path representation", () => {

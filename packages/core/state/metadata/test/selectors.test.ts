@@ -1,10 +1,10 @@
-import { mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
 
 import metadata from "..";
 import { initialState } from "../..";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
+import { mergeState } from "../../../util/redux-utils";
 
 describe("Metadata selectors", () => {
     describe("getAnnotationNameToAnnotationMap", () => {

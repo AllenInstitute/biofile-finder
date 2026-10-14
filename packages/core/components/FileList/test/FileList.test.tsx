@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
 import { noop } from "lodash";
@@ -12,6 +11,7 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileSet from "../../../entity/FileSet";
 import HttpFileService from "../../../services/FileService/HttpFileService";
 import { initialState, metadata, reducer, reduxLogics } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 const FILE_NAME_ANNOTATION = new Annotation({
     annotationDisplayName: "File Name",

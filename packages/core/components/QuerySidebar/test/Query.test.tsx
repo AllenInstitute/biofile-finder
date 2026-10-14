@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import { noop } from "lodash";
@@ -12,6 +11,7 @@ import FileFilter from "../../../entity/FileFilter";
 import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
 import { initialState, interaction, selection } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 describe("<Query />", () => {
     it("expands and collapses when clicked", async () => {

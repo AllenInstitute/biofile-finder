@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -12,6 +11,7 @@ import FileSet from "../../../../entity/FileSet";
 import NumericRange from "../../../../entity/NumericRange";
 import * as useFilteredSelection from "../../../../hooks/useFilteredSelection";
 import { initialState } from "../../../../state";
+import { configureMockStore, mergeState } from "../../../../util/redux-utils";
 
 describe("<EditMetadata />", () => {
     const visibleDialogState = mergeState(initialState, {

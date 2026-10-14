@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -11,6 +10,7 @@ import FileDetail from "../../../entity/FileDetail";
 import FileSet from "../../../entity/FileSet";
 import { FileView } from "../../../entity/SearchParams";
 import { initialState } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 describe("<LazilyRenderedThumbnail />", () => {
     function makeItemData() {

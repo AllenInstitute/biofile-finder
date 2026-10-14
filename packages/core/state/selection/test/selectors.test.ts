@@ -1,4 +1,3 @@
-import { mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
 
 import selection from "..";
@@ -10,6 +9,7 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import { mergeState } from "../../../util/redux-utils";
 
 describe("Selection selectors", () => {
     describe("getGroupedByFilterName", () => {

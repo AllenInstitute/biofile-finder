@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render, waitFor } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -13,6 +12,7 @@ import FileDetail, { FmsFile } from "../../../../entity/FileDetail";
 import ExecutionEnvServiceNoop from "../../../../services/ExecutionEnvService/ExecutionEnvServiceNoop";
 import { MetadataValue, NestedMetadataValue } from "../../../../services/FileService";
 import { initialState } from "../../../../state";
+import { configureMockStore, mergeState } from "../../../../util/redux-utils";
 
 // Helper component that exercises the hook and renders the result
 function TestComponent(props: {

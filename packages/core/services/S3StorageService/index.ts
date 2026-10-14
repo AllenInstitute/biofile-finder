@@ -184,7 +184,8 @@ export default class S3StorageService extends HttpServiceBase {
     private async getHttpObjectSize(url: string): Promise<number> {
         try {
             const response = await axios.head(url);
-            return parseInt(response.headers["content-length"] || "0", 10);
+            // parse from AxiosHeaderValue (AxiosHeaders | string | string[] | number | boolean | null)
+            return parseInt(String(response.headers["content-length"] ?? "0"), 10);
         } catch (err) {
             console.error(`Failed to get file size (content-length): ${err}`);
             throw err;

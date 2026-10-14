@@ -1,5 +1,4 @@
 import FrontendInsights from "@aics/frontend-insights";
-import { makeReducer } from "@aics/redux-utils";
 import { filter, sortBy, uniqueId } from "lodash";
 
 import {
@@ -56,6 +55,7 @@ import FileViewerServiceNoop from "../../services/FileViewerService/FileViewerSe
 import NotificationServiceNoop from "../../services/NotificationService/NotificationServiceNoop";
 import { UserSelectedApplication } from "../../services/PersistentConfigService";
 import PersistentConfigServiceNoop from "../../services/PersistentConfigService/PersistentConfigServiceNoop";
+import { makeReducer } from "../../util/redux-utils";
 import PublicDataset from "../../../web/src/entity/PublicDataset";
 
 export interface InteractionStateBranch {
