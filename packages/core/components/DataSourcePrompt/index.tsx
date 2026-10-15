@@ -178,7 +178,9 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
             {showDescriptorOptions && (
                 <>
                     <div className={styles.advancedOptionsButtons}>
-                        <p>Describe columns with supplemental metadata (optional):</p>
+                        <p className={styles.advancedOptionsLabel}>
+                            Describe columns with supplemental metadata (optional):
+                        </p>
                         {!showMetadataPrompt && (
                             <LinkLikeButton
                                 className={styles.advancedOptionsButton}
@@ -186,6 +188,9 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
                                 text="Add a column descriptor file"
                                 title="Select a file that describes your metadata columns"
                             />
+                        )}
+                        {!showMetadataPrompt && !showProvenancePrompt && (
+                            <span className={styles.advancedOptionsDivider} aria-hidden="true" />
                         )}
                         {!showProvenancePrompt && (
                             <LinkLikeButton
