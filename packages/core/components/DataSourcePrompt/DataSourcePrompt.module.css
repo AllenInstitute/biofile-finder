@@ -24,8 +24,20 @@
     display: flex;
 }
 
+.advanced-options-label {
+    flex-basis: 100%;
+    margin: 0 0 4px;
+}
+
 .advanced-options-button {
-    padding: 0 8px;
+    padding: 0;
+}
+
+.advanced-options-divider {
+    align-self: stretch;
+    background-color: var(--border-color);
+    margin: 8px 12px;
+    width: 1px;
 }
 
 .advanced-options-buttons {
