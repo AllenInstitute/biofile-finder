@@ -22,7 +22,6 @@ import {
     SET_HAS_USER_SELECTED_COLUMNS,
 } from "../../selection/actions";
 import Annotation from "../../../entity/Annotation";
-import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
@@ -230,15 +229,9 @@ describe("Metadata logics", () => {
                 state: initialState,
                 logics: metadataLogics,
             });
-            const fileNameAnnotation = new Annotation({
-                annotationDisplayName: "File Name",
-                annotationName: AnnotationName.FILE_NAME,
-                description: "",
-                type: AnnotationType.STRING,
-            });
 
             // act
-            store.dispatch(receiveAnnotations([...mockAnnotations, fileNameAnnotation]));
+            store.dispatch(receiveAnnotations(mockAnnotations));
             await logicMiddleware.whenComplete();
 
             // assert: all annotations should be shown as columns, plus a "File Name" column prepended
@@ -246,9 +239,50 @@ describe("Metadata logics", () => {
             const matchingAction = actions.list
                 .filter((action) => action.type === SET_COLUMNS)
                 .at(0);
-            // 3 mock annotations + 1 prepended "File Name" column
-            expect(matchingAction?.payload.length).to.equal(mockAnnotations.length + 1);
-            expect(matchingAction?.payload[0].name).to.equal(AnnotationName.FILE_NAME);
+            // 3 mock annotations
+            expect(matchingAction?.payload.length).to.equal(mockAnnotations.length);
+        });
+
+        it("orders default columns by their source order rather than alphabetically", async () => {
+            // arrange: annotations provided in a non-alphabetical source order
+            const unorderedAnnotations: Annotation[] = [
+                new Annotation({
+                    annotationDisplayName: "Charlie",
+                    annotationName: "Charlie",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+                new Annotation({
+                    annotationDisplayName: "Alpha",
+                    annotationName: "Alpha",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+                new Annotation({
+                    annotationDisplayName: "Bravo",
+                    annotationName: "Bravo",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+            ];
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: initialState,
+                logics: metadataLogics,
+            });
+
+            // act
+            store.dispatch(receiveAnnotations(unorderedAnnotations));
+            await logicMiddleware.whenComplete();
+
+            // assert: columns follow the source order, not an alphabetical sort
+            const matchingAction = actions.list
+                .filter((action) => action.type === SET_COLUMNS)
+                .at(0);
+            expect(matchingAction?.payload.map((col: { name: string }) => col.name)).to.deep.equal([
+                "Charlie",
+                "Alpha",
+                "Bravo",
+            ]);
         });
 
         it("adds all new annotations as columns to existing ones", async () => {
