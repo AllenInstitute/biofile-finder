@@ -7,11 +7,7 @@ import {
     getDataSources,
     getEdgeDefinitions,
 } from "../metadata/selectors";
-import {
-    getPythonConversion,
-    getSelectedDataSources,
-    getSelectedSourceMetadata,
-} from "../selection/selectors";
+import { getSelectedDataSources, getSelectedSourceMetadata } from "../selection/selectors";
 import { ModalType } from "../../components/Modal";
 import {
     AICS_FMS_DATA_SOURCE_NAME,
@@ -25,14 +21,11 @@ import {
     VolEBaseUrl,
 } from "../../constants";
 import Graph from "../../entity/Graph";
-import { isMarkdownType } from "../../entity/SearchParams";
+import { isMarkdownSource } from "../../entity/SearchParams";
 import { AnnotationService, FileService } from "../../services";
 import DatabaseAnnotationService from "../../services/AnnotationService/DatabaseAnnotationService";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
-import DatasetService, {
-    DataSource,
-    PythonicDataAccessSnippet,
-} from "../../services/DataSourceService";
+import DatasetService, { DataSource } from "../../services/DataSourceService";
 import DatabaseFileService from "../../services/FileService/DatabaseFileService";
 import HttpFileService from "../../services/FileService/HttpFileService";
 import PipelineService from "../../services/PipelineService";
@@ -165,16 +158,6 @@ export const getExtractMetadataPythonSnippet = (state: State) =>
 
 export const getConvertFilesSnippet = (state: State) => state.interaction.convertFilesSnippet;
 
-export const getPythonSnippet = createSelector(
-    [getPythonConversion],
-    (pythonQuery): PythonicDataAccessSnippet => {
-        const setup = `pip install \"pandas>=1.5\"`;
-        const code = `${pythonQuery}`;
-
-        return { setup, code };
-    }
-);
-
 export const getUserName = createSelector(
     [getPlatformDependentServices],
     (platformDependentServices) => {
@@ -274,7 +257,7 @@ export const getAnnotationService = createSelector(
                 databaseService: platformDependentServices.databaseService,
                 // Don't try to get annotations from markdown files
                 dataSourceNames: dataSources
-                    .filter((source) => !isMarkdownType(source.type))
+                    .filter((source) => !isMarkdownSource(source))
                     .map((source) => source.name),
                 metadataSource,
             });

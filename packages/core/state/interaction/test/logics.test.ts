@@ -1226,7 +1226,7 @@ describe("Interaction logics", () => {
 
             const { actions, store, logicMiddleware } = configureMockStore({
                 state: mergeState(initialState, {
-                    selection: { dataSources: [{ name: "source-a", type: "parquet" }] },
+                    selection: { dataSources: [{ name: "source-a" }] },
                 }),
                 reducer,
                 logics: interactionLogics,
@@ -1235,7 +1235,7 @@ describe("Interaction logics", () => {
             // Act
             store.dispatch(refresh());
             await Promise.resolve(); // let the logic reach its await
-            store.dispatch(changeDataSources([{ name: "source-b", type: "parquet" }]) as any);
+            store.dispatch(changeDataSources([{ name: "source-b" }]) as any);
             resolveFetch(annotations);
             await logicMiddleware.whenComplete();
 

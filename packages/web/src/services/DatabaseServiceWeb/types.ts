@@ -1,4 +1,4 @@
-import { ACCEPTED_SOURCE_TYPES, Source } from "../../../../core/entity/SearchParams";
+import { Source, SourceType } from "../../../../core/entity/SearchParams";
 
 export enum WorkerMsgType {
     ADD_SOURCE = "add datasource",
@@ -65,7 +65,7 @@ export type WorkerReqPayload<T extends WorkerMsgType> = {
     };
     [WorkerMsgType.ADD_SOURCE]: {
         name: string;
-        type: typeof ACCEPTED_SOURCE_TYPES[number];
+        type: SourceType;
         uri: string | File;
         skipNormalization?: boolean;
     };

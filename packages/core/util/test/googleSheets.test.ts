@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { isGoogleSheetUri, parseGoogleSheetUrl } from "../googleSheets";
+import { isGoogleSheetUri, parseGoogleSheetName, parseGoogleSheetUrl } from "../googleSheets";
 
 describe("googleSheets", () => {
     const SHEET_ID = "1DcolQrEYpy4AKAxJLa7OYjoKpsS-fUqv4vZrGlsONRM";
@@ -15,7 +15,7 @@ describe("googleSheets", () => {
             const result = parseGoogleSheetUrl(url);
 
             // assert
-            expect(result?.csvUrl).to.equal(`${EXPORT_BASE}&gid=2073732512`);
+            expect(result).to.equal(`${EXPORT_BASE}&gid=2073732512`);
         });
 
         it("reads the tab out of the URL fragment when it is not in the query string", () => {
@@ -26,7 +26,7 @@ describe("googleSheets", () => {
             const result = parseGoogleSheetUrl(url);
 
             // assert
-            expect(result?.csvUrl).to.equal(`${EXPORT_BASE}&gid=1234`);
+            expect(result).to.equal(`${EXPORT_BASE}&gid=1234`);
         });
 
         it("omits the tab when the URL does not name one", () => {
@@ -37,7 +37,7 @@ describe("googleSheets", () => {
             const result = parseGoogleSheetUrl(url);
 
             // assert
-            expect(result?.csvUrl).to.equal(EXPORT_BASE);
+            expect(result).to.equal(EXPORT_BASE);
         });
 
         it("handles URLs from a multi-account session", () => {
@@ -48,7 +48,7 @@ describe("googleSheets", () => {
             const result = parseGoogleSheetUrl(url);
 
             // assert
-            expect(result?.csvUrl).to.equal(`${EXPORT_BASE}&gid=0`);
+            expect(result).to.equal(`${EXPORT_BASE}&gid=0`);
         });
 
         it("handles a bare document link with no action segment", () => {
@@ -59,7 +59,7 @@ describe("googleSheets", () => {
             const result = parseGoogleSheetUrl(url);
 
             // assert
-            expect(result?.csvUrl).to.equal(EXPORT_BASE);
+            expect(result).to.equal(EXPORT_BASE);
         });
 
         it("is idempotent for a URL that already requests CSV", () => {
@@ -70,7 +70,7 @@ describe("googleSheets", () => {
             const result = parseGoogleSheetUrl(url);
 
             // assert
-            expect(result?.csvUrl).to.equal(url);
+            expect(result).to.equal(url);
         });
 
         it("converts an export requested in another format to CSV", () => {
@@ -81,7 +81,7 @@ describe("googleSheets", () => {
             const result = parseGoogleSheetUrl(url);
 
             // assert
-            expect(result?.csvUrl).to.equal(`${EXPORT_BASE}&gid=55`);
+            expect(result).to.equal(`${EXPORT_BASE}&gid=55`);
         });
 
         it("uses the published endpoint for a published-to-web sheet", () => {
@@ -93,9 +93,17 @@ describe("googleSheets", () => {
             const result = parseGoogleSheetUrl(url);
 
             // assert
-            expect(result?.csvUrl).to.equal(
-                `https://docs.google.com/spreadsheets/d/e/${publishedId}/pub?output=csv&gid=99&single=true`
+            // Compared by parts: the order the query is assembled in is an
+            // implementation detail Google does not care about.
+            const parsed = new URL(result as string);
+            expect(`${parsed.origin}${parsed.pathname}`).to.equal(
+                `https://docs.google.com/spreadsheets/d/e/${publishedId}/pub`
             );
+            expect(Object.fromEntries(parsed.searchParams)).to.deep.equal({
+                output: "csv",
+                gid: "99",
+                single: "true",
+            });
         });
 
         it("leaves a deliberately chosen Google Charts CSV URL alone", () => {
@@ -106,7 +114,7 @@ describe("googleSheets", () => {
             const result = parseGoogleSheetUrl(url);
 
             // assert
-            expect(result?.csvUrl).to.equal(url);
+            expect(result).to.equal(url);
         });
 
         it("names the source after the sheet and tab, since the title is not in the URL", () => {
@@ -114,10 +122,10 @@ describe("googleSheets", () => {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?gid=2073732512`;
 
             // act
-            const result = parseGoogleSheetUrl(url);
+            const result = parseGoogleSheetName(url);
 
             // assert
-            expect(result?.displayName).to.equal("Google Sheet 1DcolQrE.2073732512");
+            expect(result).to.equal("Google Sheet 1DcolQrE.2073732512");
         });
 
         [

@@ -7,7 +7,7 @@ import DatasetDetails from "./OpenSourceDatasetDetails";
 import PublicDataset from "../../entity/PublicDataset";
 import Modal from "../../../../core/components/Modal";
 import SearchParams, {
-    getNameAndTypeFromSourceUrl,
+    getNameFromSourceUrl,
     SearchParamsComponents,
     Source,
 } from "../../../../core/entity/SearchParams";
@@ -59,7 +59,7 @@ export default function OpenSourceDatasets() {
         // if the preset query does not contain any sources, use the dataSourceUrl as the source
         const sources = url?.sources?.length
             ? url.sources
-            : [getNameAndTypeFromSourceUrl(dataSourceURL)];
+            : [{ name: getNameFromSourceUrl(dataSourceURL), uri: dataSourceURL }];
         openDatasetInApp(datasetDetails.name, sources, url);
     };
 
