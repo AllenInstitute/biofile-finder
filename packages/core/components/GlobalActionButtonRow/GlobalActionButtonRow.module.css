@@ -6,12 +6,13 @@
 
 .button-group {
     display: flex;
-}
-
-.button-group > *:not(:first-child) {
-    margin-left: 3px;
+    gap: 3px;
 }
 
 .list-view-button i {
     transform: translateX(-1px);
+}
+
+.thumbnail-config-button {
+    margin-left: 10px;
 }
