@@ -153,6 +153,96 @@
   width: fit-content;
 }
 
+.template-dropdown :global(.ms-Dropdown) {
+  background-color: var(--secondary-background-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--small-border-radius);
+}
+
+.template-dropdown :global(.ms-Dropdown-title) {
+  background-color: var(--secondary-background-color);
+  color: var(--primary-text-color);
+  border: none;
+}
+
+.template-dropdown :global(.ms-Dropdown-caretDownWrapper i) {
+  color: var(--secondary-text-color);
+}
+
+.template-dropdown :global(.ms-Dropdown:hover) {
+  border-color: var(--aqua);
+}
+
+.template-dropdown :global(.ms-Dropdown:hover .ms-Dropdown-title) {
+  color: var(--primary-text-color);
+}
+
+.template-dropdown :global(.ms-Dropdown:hover .ms-Dropdown-caretDownWrapper i) {
+  color: var(--primary-text-color);
+}
+
+/* Callout styles (rendered via portal, applied via Dropdown `styles.callout`) */
+.template-callout {
+  background-color: var(--primary-background-color);
+  border-radius: var(--small-border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.template-callout :global(.ms-Dropdown-item) {
+  color: var(--primary-text-color);
+  background-color: var(--primary-background-color);
+}
+
+.template-callout :global(.ms-Dropdown-item:hover) {
+  background-color: var(--highlight-background-color);
+  color: var(--highlight-text-color);
+}
+
+.template-callout :global(.ms-Dropdown-item.is-selected) {
+  background-color: var(--secondary-dark);
+  color: var(--highlight-text-color);
+}
+
+/* ===== Template info panel ===== */
+.template-info {
+  border: 1px solid var(--border-color);
+  border-radius: var(--small-border-radius);
+  padding: 10px 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.template-description {
+  font-size: 12px;
+  color: var(--secondary-text-color);
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+.template-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.template-column-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-text-color);
+}
+
+.template-column-desc {
+  font-size: 11px;
+  color: var(--secondary-text-color);
+  line-height: 1.3;
+}
+
 .download-done {
   font-size: 13px;
   color: var(--success-text-color, #107c10);
@@ -160,6 +250,63 @@
   align-items: center;
   gap: 6px;
   margin: 0;
+}
+
+/* ===== CSV preview ===== */
+.csv-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.csv-preview-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.csv-preview-count {
+  font-size: 11px;
+  color: var(--secondary-text-color);
+}
+
+.csv-preview-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--small-border-radius);
+}
+
+.csv-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.csv-preview-table th,
+.csv-preview-table td {
+  padding: 4px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.csv-preview-table th {
+  font-weight: 600;
+  color: var(--primary-text-color);
+  background-color: var(--secondary-background-color);
+  position: sticky;
+  top: 0;
+}
+
+.csv-preview-table td {
+  color: var(--secondary-text-color);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.csv-preview-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 /* ===== Footer ===== */
