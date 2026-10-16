@@ -1,0 +1,48 @@
+/* Darken color picker borders */
+.color-picker-container div[role="slider"] {
+    border-color: var(--border-color);
+}
+
+/* Adjust input text + labels for dark BG  */
+.color-picker-container td,
+.color-picker-container td input {
+    color: var(--primary-text-color);
+}
+
+/** Widen the hex cell column so all 6 digits are visible */
+.color-picker-container table thead td:first-of-type {
+    width: 30%;
+}
+
+/* Remove white background, change border color on focus for hex/RGB inputs */
+.color-picker-container table tbody div:has(input),
+.color-picker-container table tbody div:has(input):hover {
+    background-color: transparent;
+    border-color: var(--border-color);
+}
+.color-picker-container table tbody div:has(input):focus-visible,
+.color-picker-container table tbody div:has(input):focus-within {
+    border-color: var(--aqua);
+}
+
+/* Disable default focus outline */
+.color-picker-container table tbody div:has(input)::after {
+    display: none;
+}
+
+.color-picker-done-button {
+    margin: 0 10px 10px auto;
+    max-width: 100px;
+}
+
+.swatch-container {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    margin: 0 20px 15px 20px;
+}
+
+/* Hide callout background layer that causes visual artifacts */
+.callout-container div:has(+ div[role="dialog"]) {
+    background-color: transparent;
+}
