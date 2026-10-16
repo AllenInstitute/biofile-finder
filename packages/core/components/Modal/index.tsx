@@ -8,6 +8,7 @@ import DataSource from "./DataSource";
 import EditMetadata from "./EditMetadata";
 import EnvironmentSwitch from "./EnvironmentSwitch";
 import ExtractMetadataCodeSnippet from "./ExtractMetadataCodeSnippet";
+import GenerateDataSource from "./GenerateDataSource";
 import MetadataManifest from "./MetadataManifest";
 import QueryCodeSnippet from "./QueryCodeSnippet";
 import SmallScreenWarning from "./SmallScreenWarning";
@@ -30,6 +31,7 @@ export enum ModalType {
     ConvertFiles = 9,
     ComputePipeline = 10,
     EnvironmentSwitch = 11,
+    GenerateDataSource = 12,
 }
 
 /**
@@ -66,6 +68,8 @@ export default function Modal() {
             return <ConvertFiles onDismiss={onDismiss} />;
         case ModalType.EnvironmentSwitch:
             return <EnvironmentSwitch onDismiss={onDismiss} />;
+        case ModalType.GenerateDataSource:
+            return <GenerateDataSource onDismiss={onDismiss} />;
         default:
             return null;
     }

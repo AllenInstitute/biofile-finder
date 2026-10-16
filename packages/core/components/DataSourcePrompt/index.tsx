@@ -1,3 +1,4 @@
+import { DefaultButton } from "@fluentui/react";
 import classNames from "classnames";
 import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,6 +9,7 @@ import { LinkLikeButton, TransparentIconButton } from "../Buttons";
 import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
+import { ModalType } from "../Modal";
 
 import styles from "./DataSourcePrompt.module.css";
 
@@ -250,6 +252,22 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
                 </div>
                 {showMetadataPrompt && metadataDescriptorPrompt}
                 {showProvenancePrompt && provenanceFilePrompt}
+                <div className={styles.generateFromFolder}>
+                    <hr className={styles.divider} />
+                    <p className={styles.text}>Don&apos;t have a data source yet?</p>
+                    <DefaultButton
+                        className={styles.generateButton}
+                        iconProps={{ iconName: "FolderSearch" }}
+                        onClick={() =>
+                            dispatch(
+                                interaction.actions.setVisibleModal(ModalType.GenerateDataSource)
+                            )
+                        }
+                        title="Generate a Python script that inventories a folder and creates a CSV data source"
+                    >
+                        Generate data source from folder
+                    </DefaultButton>
+                </div>
             </>
         </DataSourcePromptTemplate>
     );
