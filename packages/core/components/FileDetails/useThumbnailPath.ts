@@ -1,19 +1,21 @@
 import * as React from "react";
 
 import FileDetail from "../../entity/FileDetail";
+import type { ThumbnailConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 
 /**
  * Hook for async grabbing the thumbnail path for a file
  */
-export default (fileDetails?: FileDetail) => {
+export default (fileDetails?: FileDetail, thumbnailConfig?: ThumbnailConfig) => {
     const [isThumbnailLoading, setIsThumbnailLoading] = React.useState(true);
     const [thumbnailPath, setThumbnailPath] = React.useState<string | undefined>();
 
+    // TODO: Use AbortSignals to cancel request if dependencies change.
     React.useEffect(() => {
         if (fileDetails) {
             setIsThumbnailLoading(true);
             fileDetails
-                .getPathToThumbnail(300)
+                .getPathToThumbnail(300, thumbnailConfig)
                 .then((path) => {
                     setThumbnailPath(path);
                 })
@@ -21,7 +23,7 @@ export default (fileDetails?: FileDetail) => {
                     setIsThumbnailLoading(false);
                 });
         }
-    }, [fileDetails, setIsThumbnailLoading, setThumbnailPath]);
+    }, [fileDetails, thumbnailConfig]);
 
     return { isThumbnailLoading, thumbnailPath };
 };

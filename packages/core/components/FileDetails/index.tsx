@@ -12,6 +12,7 @@ import { ROOT_ELEMENT_ID } from "../../App";
 import FileThumbnail from "../../components/FileThumbnail";
 import FileDetail from "../../entity/FileDetail";
 import Tutorial from "../../entity/Tutorial";
+import useDebounce from "../../hooks/useDebounce";
 import useDownloadFiles from "../../hooks/useDownloadFiles";
 import useOpenWithMenuItems from "../../hooks/useOpenWithMenuItems";
 import useTruncatedString from "../../hooks/useTruncatedString";
@@ -82,7 +83,15 @@ export default function FileDetails(props: Props) {
 
     const openWithMenuItems = useOpenWithMenuItems(props.fileDetails);
     const truncatedFileName = useTruncatedString(props.fileDetails?.name || "", 30);
-    const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(props.fileDetails);
+
+    const thumbnailConfig = useSelector(selection.selectors.getThumbnailConfig);
+    const debouncedThumbnailConfig = useDebounce(thumbnailConfig, 500);
+
+    const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(
+        props.fileDetails,
+        debouncedThumbnailConfig
+    );
+
     const { isDownloadDisabled, disabledDownloadReason, onDownload } = useDownloadFiles(
         props.fileDetails
     );
