@@ -2,11 +2,10 @@
  * Treats a Delta Lake table as a collection of parquet files
  * by traversing the transaction log and grabbing relevant .parquet
  * files.
- * 
+ *
  * This is a stopgap until DuckDB-wasm supports Delta Lake natively.
  */
 export default class DeltaLakeService {
-
     /**
      * True if the URL points at the root of a Delta Lake table.
      *
