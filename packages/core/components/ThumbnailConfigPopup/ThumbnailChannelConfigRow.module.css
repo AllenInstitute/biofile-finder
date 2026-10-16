@@ -1,18 +1,16 @@
 .channel-control-row {
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-column: 1 / 4;
+    grid-template-columns: subgrid;
+
     align-items: center;
     justify-content: space-between;
 }
 
-.channel-control-container {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
+.channel-control-row > * {
+    align-self: center;
 }
 
-.delete-button {
-    max-height: 28px;
-    max-width: 28px;
+.channel-label {
+    margin-right: 6px;
 }

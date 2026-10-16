@@ -1,15 +1,15 @@
 import { Callout, DirectionalHint } from "@fluentui/react";
-import React, { ReactElement, useRef, useState } from "react";
+import React, { ReactElement, useEffect, useRef, useState } from "react";
 
+import ThumbnailAxisSliderRow from "./ThumbnailAxisSliderRow";
 import ThumbnailChannelConfigRow from "./ThumbnailChannelConfigRow";
-import { SecondaryButton, TransparentIconButton } from "../Buttons";
+import { TransparentIconButton } from "../Buttons";
 import Checkbox from "../Checkbox";
-import LabeledSlider from "../LabeledSlider";
-import type { ThumbnailConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
+import type { ThumbnailConfig, ZarrInfo } from "../../entity/FileDetail/RenderZarrThumbnailURL";
 
 import styles from "./ThumbnailConfigPopup.module.css";
 
-const MIN_CHANNEL_CONTROLS = 1;
+const DEFAULT_CHANNEL_COLOR = "FFFFFF";
 
 type ThumbnailConfigPopupProps = {
     /**
@@ -19,6 +19,12 @@ type ThumbnailConfigPopupProps = {
     renderButton: (onClick: () => void) => ReactElement;
     thumbnailConfig: ThumbnailConfig;
     setThumbnailConfig: (newConfig: ThumbnailConfig) => void;
+    /**
+     * Information about the Zarr array. If set, the dimensions are used to set
+     * the bounds on the thumbnail controls, and the channel names are used to
+     * label the channels.
+     */
+    zarrInfo: ZarrInfo | undefined;
 };
 
 /**
@@ -30,24 +36,6 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
 
     const [isCalloutVisible, setIsCalloutVisible] = useState(false);
     const divRef = useRef<HTMLDivElement>(null);
-
-    const onAddChannel = () => {
-        const newConfig = {
-            ...thumbnailConfig,
-            channelConfigs: [...thumbnailConfig.channelConfigs],
-        };
-        newConfig.channelConfigs.push({ enabled: true, hexColor: "FFFFFF" });
-        setThumbnailConfig(newConfig);
-    };
-
-    const onDeleteChannel = (index: number) => {
-        const newConfig = {
-            ...thumbnailConfig,
-            channelConfigs: [...thumbnailConfig.channelConfigs],
-        };
-        newConfig.channelConfigs.splice(index, 1);
-        setThumbnailConfig(newConfig);
-    };
 
     const onChangeChannelConfig = (
         index: number,
@@ -61,15 +49,58 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
         setThumbnailConfig(updatedConfig);
     };
 
+    const zarrInfo = props.zarrInfo;
+    const channelColors = zarrInfo?.metadata.channelColor;
+    const channelActive = zarrInfo?.metadata.channelActive;
+    const hasOmeroChannelMetadata = channelColors !== undefined && channelColors.length > 0;
+
+    const missingZDim = zarrInfo !== undefined && (zarrInfo?.dimensions.z ?? 0) <= 1;
+    const missingTDim = zarrInfo !== undefined && (zarrInfo?.dimensions.t ?? 0) <= 1;
+
+    // Add more channel configs to match count in current Zarr image
+    useEffect(() => {
+        if (zarrInfo?.dimensions.c !== undefined) {
+            const channelCount = zarrInfo.dimensions.c;
+            if (thumbnailConfig.channelConfigs.length >= channelCount) {
+                return;
+            }
+            const newConfig = {
+                ...thumbnailConfig,
+                channelConfigs: [...thumbnailConfig.channelConfigs],
+            };
+            while (newConfig.channelConfigs.length < channelCount) {
+                newConfig.channelConfigs.push({ enabled: false, hexColor: DEFAULT_CHANNEL_COLOR });
+            }
+            setThumbnailConfig(newConfig);
+        }
+    }, [zarrInfo, thumbnailConfig, setThumbnailConfig]);
+
+    // Show up to the number of channels in the Zarr image when dimensions are
+    // provided. If OMERO metadata is provided and not overridden, it will be
+    // used to populate the channel configs so they display the current
+    // metadata.
     const channelConfigRows = thumbnailConfig.channelConfigs.map((config, index) => {
+        if (zarrInfo?.dimensions.c !== undefined && index >= zarrInfo.dimensions.c) {
+            return null;
+        }
+        if (hasOmeroChannelMetadata && !thumbnailConfig.overrideOmeroMetadata) {
+            config = { ...config };
+            config.enabled = channelActive?.[index] ?? config.enabled;
+            let color = channelColors?.[index] ?? DEFAULT_CHANNEL_COLOR;
+            if (color.startsWith("#")) {
+                color = color.substring(1);
+            }
+            config.hexColor = color;
+        }
+        const channelName = zarrInfo?.metadata.channelNames?.[index] ?? `C${index + 1}`;
         return (
             <ThumbnailChannelConfigRow
                 key={index}
                 channelConfig={config}
                 index={index}
+                name={channelName}
+                disabled={hasOmeroChannelMetadata && !thumbnailConfig.overrideOmeroMetadata}
                 onChange={(newConfig) => onChangeChannelConfig(index, newConfig)}
-                onDelete={() => onDeleteChannel(index)}
-                showDelete={thumbnailConfig.channelConfigs.length > MIN_CHANNEL_CONTROLS}
             ></ThumbnailChannelConfigRow>
         );
     });
@@ -83,7 +114,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 <Callout
                     className={styles.callout}
                     role="dialog"
-                    aria-label="Global thumbnail settings"
+                    aria-label="Zarr thumbnail settings"
                     onDismiss={() => {
                         setIsCalloutVisible(false);
                     }}
@@ -93,7 +124,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 >
                     <div className={styles.calloutContent}>
                         <div className={styles.calloutTitleRow}>
-                            <span className={styles.calloutTitle}>Global thumbnail settings</span>
+                            <span className={styles.calloutTitle}>Zarr thumbnail settings</span>
                             <TransparentIconButton
                                 className={styles.calloutCloseButton}
                                 iconName="Cancel"
@@ -101,37 +132,31 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                             ></TransparentIconButton>
                         </div>
 
-                        <LabeledSlider
-                            className={styles.sliceSliders}
-                            id="thumbnail-config-z-slider"
-                            label={"Z%"}
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={Math.round(thumbnailConfig.relativeZ * 100)}
-                            onChange={(value) => {
-                                if (Number.isFinite(value)) {
-                                    value = Math.min(Math.max(value, 0), 100) / 100;
-                                    setThumbnailConfig({ ...thumbnailConfig, relativeZ: value });
+                        {!missingTDim && (
+                            <ThumbnailAxisSliderRow
+                                className={styles.sliceSliders}
+                                id="thumbnail-config-t-slider"
+                                axis="t"
+                                value={thumbnailConfig.relativeT}
+                                onChange={(relativeT) =>
+                                    setThumbnailConfig({ ...thumbnailConfig, relativeT })
                                 }
-                            }}
-                        ></LabeledSlider>
+                                zarrInfo={props.zarrInfo}
+                            ></ThumbnailAxisSliderRow>
+                        )}
 
-                        <LabeledSlider
-                            className={styles.sliceSliders}
-                            id="thumbnail-config-t-slider"
-                            label={"T%"}
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={Math.round(thumbnailConfig.relativeT * 100)}
-                            onChange={(value) => {
-                                if (Number.isFinite(value)) {
-                                    value = Math.min(Math.max(value, 0), 100) / 100;
-                                    setThumbnailConfig({ ...thumbnailConfig, relativeT: value });
+                        {!missingZDim && (
+                            <ThumbnailAxisSliderRow
+                                className={styles.sliceSliders}
+                                id="thumbnail-config-z-slider"
+                                axis="z"
+                                value={thumbnailConfig.relativeZ}
+                                onChange={(relativeZ) =>
+                                    setThumbnailConfig({ ...thumbnailConfig, relativeZ })
                                 }
-                            }}
-                        ></LabeledSlider>
+                                zarrInfo={props.zarrInfo}
+                            ></ThumbnailAxisSliderRow>
+                        )}
 
                         <p className={styles.channelTitle}>Channels</p>
                         <Checkbox
@@ -145,14 +170,9 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                                     overrideOmeroMetadata: !!isCheckedEv,
                                 })
                             }
-                            label={"Override metadata colors (.zarr)"}
+                            label={"Override OMERO metadata"}
                         ></Checkbox>
                         <div className={styles.channelControlList}>{channelConfigRows}</div>
-
-                        <SecondaryButton
-                            text="+ Add Channel"
-                            onClick={onAddChannel}
-                        ></SecondaryButton>
                     </div>
                 </Callout>
             ) : null}

@@ -1,6 +1,5 @@
 import React, { ReactElement } from "react";
 
-import { TransparentIconButton } from "../Buttons";
 import Checkbox from "../Checkbox";
 import ColorPickerButton from "../ColorPickerButton";
 import type { ThumbnailChannelConfig } from "../../entity/FileDetail/RenderZarrThumbnailURL";
@@ -10,9 +9,9 @@ import styles from "./ThumbnailChannelConfigRow.module.css";
 type ThumbnailChannelConfigRowProps = {
     channelConfig: ThumbnailChannelConfig;
     index: number;
+    name: string;
+    disabled: boolean;
     onChange: (newConfig: ThumbnailChannelConfig) => void;
-    onDelete: () => void;
-    showDelete: boolean;
 };
 
 export default function ThumbnailChannelConfigRow(
@@ -20,33 +19,25 @@ export default function ThumbnailChannelConfigRow(
 ): ReactElement {
     return (
         <div className={styles.channelControlRow}>
-            <div className={styles.channelControlContainer}>
-                <label htmlFor={`channel-${props.index}-enabled`}>C{props.index}</label>
-                <Checkbox
-                    id={`channel-${props.index}-enabled`}
-                    label=""
-                    checked={props.channelConfig.enabled}
-                    onChange={(_e, checked) =>
-                        props.onChange({ ...props.channelConfig, enabled: !!checked })
-                    }
-                ></Checkbox>
-                <ColorPickerButton
-                    hexColor={props.channelConfig.hexColor}
-                    onChange={(newColor) =>
-                        props.onChange({ ...props.channelConfig, hexColor: newColor })
-                    }
-                    disabled={!props.channelConfig.enabled}
-                ></ColorPickerButton>
-            </div>
-
-            {props.showDelete && (
-                <TransparentIconButton
-                    className={styles.deleteButton}
-                    iconName="Cancel"
-                    label={`Delete channel C${props.index}`}
-                    onClick={props.onDelete}
-                ></TransparentIconButton>
-            )}
+            <label className={styles.channelLabel} htmlFor={`channel-${props.index}-enabled`}>
+                {props.name}
+            </label>
+            <Checkbox
+                id={`channel-${props.index}-enabled`}
+                label=""
+                checked={props.channelConfig.enabled}
+                onChange={(_e, checked) =>
+                    props.onChange({ ...props.channelConfig, enabled: !!checked })
+                }
+                disabled={props.disabled}
+            ></Checkbox>
+            <ColorPickerButton
+                hexColor={props.channelConfig.hexColor}
+                onChange={(newColor) =>
+                    props.onChange({ ...props.channelConfig, hexColor: newColor })
+                }
+                disabled={!props.channelConfig.enabled || props.disabled}
+            ></ColorPickerButton>
         </div>
     );
 }

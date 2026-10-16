@@ -91,7 +91,7 @@ export default function FileDetails(props: Props) {
     const setThumbnailConfig = (newConfig: ThumbnailConfig) => {
         dispatch(selection.actions.setThumbnailConfig(newConfig));
     };
-    const { isThumbnailLoading, thumbnailPath } = useThumbnailPath(
+    const { isThumbnailLoading, thumbnailPath, zarrInfo } = useThumbnailPath(
         props.fileDetails,
         debouncedThumbnailConfig
     );
@@ -199,20 +199,23 @@ export default function FileDetails(props: Props) {
                                 />
                             </div>
                             <div className={styles.thumbnailConfigPopupContainer}>
-                                <ThumbnailConfigPopup
-                                    renderButton={(onClick) => {
-                                        return (
-                                            <TransparentIconButton
-                                                iconName="Settings"
-                                                label="Thumbnail settings"
-                                                onClick={onClick}
-                                                title="Thumbnail settings"
-                                            ></TransparentIconButton>
-                                        );
-                                    }}
-                                    thumbnailConfig={thumbnailConfig}
-                                    setThumbnailConfig={setThumbnailConfig}
-                                />
+                                {zarrInfo && (
+                                    <ThumbnailConfigPopup
+                                        renderButton={(onClick) => {
+                                            return (
+                                                <TransparentIconButton
+                                                    iconName="Settings"
+                                                    label="Thumbnail settings"
+                                                    onClick={onClick}
+                                                    title="Thumbnail settings"
+                                                ></TransparentIconButton>
+                                            );
+                                        }}
+                                        thumbnailConfig={thumbnailConfig}
+                                        setThumbnailConfig={setThumbnailConfig}
+                                        zarrInfo={zarrInfo}
+                                    />
+                                )}
                             </div>
                             <Modal
                                 isOpen={isFullscreenThumbnail}
