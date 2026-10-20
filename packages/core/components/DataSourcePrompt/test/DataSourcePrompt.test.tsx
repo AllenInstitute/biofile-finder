@@ -52,15 +52,15 @@ describe("<DataSourcePrompt />", () => {
                 <DataSourcePrompt />
             </Provider>
         );
-        expect(queryByText(/Column descriptor file/)).to.be.null;
-        expect(queryByText(/Provenance descriptor file/)).to.be.null;
+        expect(queryByText(/Add a column descriptor file/)).to.be.null;
+        expect(queryByText(/Add a provenance descriptor file/)).to.be.null;
 
         fireEvent.change(getByRole("textbox"), { target: { value: "testFile.csv" } });
         fireEvent.submit(getByTestId("urlform-file-prompt-main"));
 
         expect(queryByText(/Describe columns with supplemental metadata/)).to.exist;
-        expect(queryByText(/Column descriptor file/)).to.exist;
-        expect(queryByText(/Provenance descriptor file/)).to.exist;
+        expect(queryByText(/Add a column descriptor file/)).to.exist;
+        expect(queryByText(/Add a provenance descriptor file/)).to.exist;
     });
 
     it("can distinguish between all FilePrompt components when descriptor files are added", () => {
@@ -76,8 +76,8 @@ describe("<DataSourcePrompt />", () => {
         fireEvent.submit(getByTestId("urlform-file-prompt-main"));
 
         // Open both descriptor prompts
-        fireEvent.click(getByText(/Column descriptor file/));
-        fireEvent.click(getByText(/Provenance descriptor file/));
+        fireEvent.click(getByText(/Add a column descriptor file/));
+        fireEvent.click(getByText(/Add a provenance descriptor file/));
 
         // Primary prompt is replaced by its selected file; the two descriptor prompts render
         expect(getAllByText(/click to browse/).length).to.equal(2);

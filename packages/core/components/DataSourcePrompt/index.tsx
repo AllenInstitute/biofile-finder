@@ -175,7 +175,7 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
                                 <LinkLikeButton
                                     className={styles.advancedOptionsButton}
                                     onClick={() => setShowMetadataPrompt(true)}
-                                    text="Column descriptor file"
+                                    text="Add a column descriptor file"
                                 />
                             </Tooltip>
                         )}
@@ -184,7 +184,7 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
                                 <LinkLikeButton
                                     className={styles.advancedOptionsButton}
                                     onClick={() => setShowProvenancePrompt(true)}
-                                    text="Provenance descriptor file"
+                                    text="Add a provenance descriptor file"
                                 />
                             </Tooltip>
                         )}
