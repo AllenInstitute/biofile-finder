@@ -15,22 +15,22 @@ import styles from "./DataSource.module.css";
 export default function DataSource(props: ModalProps) {
     const dataSourceInfo = useSelector(interaction.selectors.getDataSourceInfoForVisibleModal);
     const { sourceType = DataSourceType.default } = dataSourceInfo || ({} as DataSourcePromptInfo);
-    const dataSourceTypeToString = (sourceType: DataSourceType) => {
+    const getTitle = (sourceType: DataSourceType) => {
         switch (sourceType) {
             case DataSourceType.metadata:
-                return "metadata description source";
+                return "Provide a column descriptor file";
             case DataSourceType.provenance:
-                return "provenance source";
+                return "Provide a provenance descriptor file";
             case DataSourceType.default:
             default:
-                return "data source";
+                return "Provide a metadata file";
         }
     };
 
     return (
         <BaseModal
             body={<DataSourcePrompt className={styles.content} isModal />}
-            title={`Choose a ${dataSourceTypeToString(sourceType)}`}
+            title={getTitle(sourceType)}
             onDismiss={props.onDismiss}
         />
     );
