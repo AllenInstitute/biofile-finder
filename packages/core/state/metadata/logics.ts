@@ -151,9 +151,6 @@ const receiveAnnotationsLogic = createLogic({
             }
             return [fullName === column.name ? column : { ...column, name: fullName }];
         });
-        if (!isEqual(currentColumns, storedColumns)) {
-            dispatch(selection.actions.setColumns(currentColumns));
-        }
         if (columnsNotFound.length > 0) {
             const quantityString = formatQuantityString(
                 columnsNotFound.length,
@@ -177,7 +174,7 @@ const receiveAnnotationsLogic = createLogic({
             validUserSelectedColumns.length &&
             !hasSelectedEveryAnnotation
         ) {
-            if (!isEqual(validUserSelectedColumns, currentColumns)) {
+            if (!isEqual(validUserSelectedColumns, storedColumns)) {
                 dispatch(selection.actions.setColumns(validUserSelectedColumns));
             }
             done();
@@ -227,7 +224,7 @@ const receiveAnnotationsLogic = createLogic({
             });
 
         // Only dispatch if at least one column actually changed
-        if (!isEqual(columns, currentColumns)) {
+        if (!isEqual(columns, storedColumns)) {
             dispatch(selection.actions.setColumns(columns));
         }
 
