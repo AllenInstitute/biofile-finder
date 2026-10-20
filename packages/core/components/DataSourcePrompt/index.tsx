@@ -52,10 +52,10 @@ export default function DataSourcePrompt(props: Props) {
 
     if (sourceType === DataSourceType.metadata) {
         let description =
-            "Load a CSV, Parquet, or JSON file containing metadata descriptors associated with the columns in your data source.\n";
+            "Provide a column descriptor file (CSV, Parquet, or JSON) describing your metadata columns.\n";
         if (source) {
             description = description.concat(
-                `\nUploading a new file will replace the current metadata source (${source.name}).`
+                `\nUploading a new file will replace the current column descriptor file (${source.name}).`
             );
         }
         return (
@@ -75,10 +75,10 @@ export default function DataSourcePrompt(props: Props) {
         );
     } else if (sourceType === DataSourceType.provenance) {
         let description =
-            "Load a CSV, Parquet, or JSON file describing provenance relationships associated with the columns in your data source.\n";
+            "Provide a provenance descriptor file (CSV, Parquet, or JSON) describing file and metadata relationships.\n";
         if (source) {
             description = description.concat(
-                `\nUploading a new file will replace the current provenance source (${source.name}).`
+                `\nUploading a new file will replace the current provenance descriptor file (${source.name}).`
             );
         }
         return (

@@ -132,13 +132,12 @@ export default function QueryDataSource(props: Props) {
                               key: "Optional descriptor file",
                               text: "Optional descriptor file",
                               iconProps: { iconName: "NewFolder" },
-                              title:
-                                  "Add a file that describes data source metadata or provenance relationships",
+                              title: "Add a file that describes your metadata columns or file and metadata relationships",
                               subMenuProps: {
                                   items: [
                                       {
-                                          key: "Metadata descriptor source",
-                                          text: "Add metadata descriptor source",
+                                          key: "Column descriptor file",
+                                          text: "Add column descriptor file",
                                           onClick: () => {
                                               dispatch(
                                                   interaction.actions.promptForDataSource({
@@ -151,8 +150,8 @@ export default function QueryDataSource(props: Props) {
                                           },
                                       },
                                       {
-                                          key: "Provenance descriptor source",
-                                          text: "Add provenance descriptor source",
+                                          key: "Provenance descriptor file",
+                                          text: "Add provenance descriptor file",
                                           onClick: () => {
                                               dispatch(
                                                   interaction.actions.promptForDataSource({
