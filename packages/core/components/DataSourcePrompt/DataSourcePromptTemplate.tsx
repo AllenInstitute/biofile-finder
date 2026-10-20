@@ -53,6 +53,7 @@ export default function DataSourcePromptTemplate(
                     selectedFile={props.selectedFile}
                     parentId={`file-prompt-${props.isModal ? "modal" : "main"}`}
                     lightBackground={props.isModal}
+                    sideBySide
                 />
                 {props.children}
                 <div className={styles.loadButtonContainer}>

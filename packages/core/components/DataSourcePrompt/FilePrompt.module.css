@@ -10,12 +10,62 @@
     margin: 0 auto 0 auto;
 }
 
+/* Lets the options below respond to the width available here, not the viewport */
+.actions-container.actions-container-side-by-side {
+    container-type: inline-size;
+    width: 100%;
+}
+
+/* Without side-by-side the options lay out directly in the container */
+.options {
+    display: contents;
+}
+
+/* Stacked by default: URL field, OR, then dropzone */
+.options-side-by-side {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+/* Named children, since `> *` is too weak to override their own margins */
+.options-side-by-side > :is(.url-form, .or-divider, .dropzone) {
+    margin: 0;
+}
+
+.options-side-by-side > .url-form,
+.options-side-by-side > .dropzone {
+    width: 100%;
+}
+
+/* Room for two halves, the OR, and the gaps; items stay vertically centered */
+@container (min-width: 400px) {
+    .options-side-by-side {
+        align-items: center;
+        flex-direction: row;
+        gap: 16px;
+    }
+
+    .options-side-by-side > .url-form,
+    .options-side-by-side > .dropzone {
+        flex: 1 1 0;
+        width: auto;
+    }
+}
+
+.actions-container-side-by-side > .file-selection-error {
+    margin-top: 12px;
+}
+
 .dropzone {
     width: 100%;
     border: 1px dashed var(--border-color);
     text-align: center;
-    padding: 5px 0 19px;
-    min-height: 105px;
+    box-sizing: border-box;
+    height: 52px;
+    padding: 0 8px;
     font-size: var(--s-paragraph-size);
     cursor: pointer;
     display: flex;
@@ -40,15 +90,17 @@
     justify-content: center;
 }
 
-.dropzone-button {
-    width: fit-content;
-    display: flex;
+.dropzone p {
+    margin: 0;
 }
 
-.dropzone-button:hover, .dropzone:hover > .dropzone-button {
-    background-color: var(--aqua-secondary-hover) !important;
-    color: var(--bright-aqua) !important;
-    border-color: var(--bright-aqua);
+.browse-link {
+    color: var(--aqua);
+}
+
+.dropzone:hover .browse-link {
+    color: var(--bright-aqua);
+    text-decoration: underline;
 }
 
 .dropzone-icon {
@@ -59,7 +111,6 @@
 
 .or-divider {
     display: flex;
-    font-weight: 600;
     justify-content: center;
     margin: 10px 0 10px 0;
 }
@@ -117,6 +168,7 @@
     width: 100%;
     border-radius: var(--small-border-radius);
     display: flex;
+    align-items: center;
 }
 
 .url-form > div:first-of-type {
@@ -138,6 +190,7 @@
 }
 
 .url-form input::placeholder {
+    color: var(--secondary-text-color);
     font-style: italic;
 }
 
@@ -145,18 +198,20 @@
     display: none;
 }
 
+/* Field border, hover, and focus ring match the Edit metadata text fields */
 .url-form > div > div > div {
     background-color: unset;
-    border-radius: var(--small-border-radius)
+    border: 1px solid var(--border-color);
+    border-radius: var(--small-border-radius);
 }
 
 .url-form > div > div > div:hover {
-    border: 1px solid var(--accent-dark);
+    border: 1px solid var(--border-color);
 }
 
 .url-form > div > div > div::after {
     border: 1px solid var(--aqua);
-    border-radius: var(--small-border-radius)
+    border-radius: var(--small-border-radius);
 }
 
 .url-form > .cancel-icon:hover {
