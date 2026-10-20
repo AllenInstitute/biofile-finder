@@ -22,13 +22,13 @@ import {
 } from "./actions";
 import * as metadataSelectors from "./selectors";
 import { interaction, metadata, ReduxLogicDeps, selection } from "..";
-import { Column } from "../selection/actions";
 import Annotation, { AnnotationResponseMms } from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationFormatter";
 import FileFilter from "../../entity/FileFilter";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
+import { Column } from "../../entity/SearchParams/ColumnCoder";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 
 /**

@@ -1,17 +1,13 @@
+import ColumnCoder, { Column, DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH } from "./ColumnCoder";
 import AnnotationName from "../Annotation/AnnotationName";
 import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
 import type { DatasetSources } from "../MarkdownFrontMatter";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
-import { Column } from "../../state/selection/actions";
 import { parseGoogleSheetUrl } from "../../util/googleSheets";
 
-// Somewhat arbitrary default column width in pixels;
-// used as a fallback when calculating column widths based on content,
-// and as the default width when resetting column widths
-export const DEFAULT_COLUMN_WIDTH = 150;
-export const MINIMUM_COLUMN_WIDTH = 50; // px; somewhat arbitrary;
+export { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH };
 
 // These values CANNOT change otherwise it would break compatibility
 // with any existing URLs that use these in the encoding
@@ -30,7 +26,7 @@ export function isMarkdownType(type?: string): boolean {
 
 export interface Source {
     name: string;
-    type?: typeof ACCEPTED_SOURCE_TYPES[number];
+    type?: (typeof ACCEPTED_SOURCE_TYPES)[number];
     uri?: string | File;
 }
 
@@ -103,7 +99,7 @@ export const getNameAndTypeFromSourceUrl = (dataSourceURL: string) => {
     if (googleSheet) {
         return {
             name: `${googleSheet.displayName} (${timestamp})`,
-            type: "csv" as typeof ACCEPTED_SOURCE_TYPES[number],
+            type: "csv" as (typeof ACCEPTED_SOURCE_TYPES)[number],
             uri: googleSheet.csvUrl,
         };
     }
@@ -130,55 +126,6 @@ enum URLQueryArgShorthands {
     PROVENANCE_ORIGIN_ID = "p",
 }
 
-class ColumnCoder {
-    private static readonly COLUMN_DELIMITER = ",";
-    private static readonly VALUE_DELIMITER = ":";
-    private static readonly COLUMN_VALUE_PRECISION = 10; // The divisor used when encoding column widths to shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths
-    // Arbitrary URL length limit; default columns beyond this regenerate on load anyway
-    private static readonly DEFAULT_COLUMN_LIMIT = 6;
-
-    public static encode(columns: Column[], areColumnsUserSelected = false): string {
-        return (
-            columns
-                // Encode width as divided by COLUMN_VALUE_PRECISION to shorten the resulting URL;
-                // this is an arbitrary choice to balance URL length with precision of column widths
-                .map(
-                    (column) =>
-                        `${column.name}${ColumnCoder.VALUE_DELIMITER}${Math.ceil(
-                            column.width / ColumnCoder.COLUMN_VALUE_PRECISION
-                        )}`
-                )
-                .slice(
-                    0,
-                    areColumnsUserSelected ? columns.length : ColumnCoder.DEFAULT_COLUMN_LIMIT
-                )
-                .join(ColumnCoder.COLUMN_DELIMITER)
-        );
-    }
-
-    public static decode(encoded: string): Column[] {
-        return encoded
-            .split(ColumnCoder.COLUMN_DELIMITER)
-            .filter((unparsedColumn) => !!unparsedColumn)
-            .map((unparsedColumn) => {
-                const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMITER);
-                const parsedWidth = parseFloat(widthAsStr);
-                // The column width was previously encoded as a number between 0 and 1 representing the percentage of available
-                // space the column should take up, but this was difficult to work with and unintuitive for users.
-                // Now we encode the actual pixel width, which is more straightforward to understand and work with when manually editing URLs.
-                // To maintain backwards compatibility with existing URLs, we continue to support previously encoded widths as percentages,
-                // but we default them to a default column width in pixels in the decoding process.
-                // Also, multiply the parsedWidth by COLUMN_VALUE_PRECISION because it is encoded as the actual width divided by COLUMN_VALUE_PRECISION to
-                // shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths.
-                const width =
-                    parsedWidth <= 1
-                        ? DEFAULT_COLUMN_WIDTH
-                        : parsedWidth * ColumnCoder.COLUMN_VALUE_PRECISION;
-                return { name, width };
-            });
-    }
-}
-
 /**
  * This represents a system for encoding application state information in a way
  * that allows users to copy, share, and paste the result back into the app and have the
@@ -198,10 +145,13 @@ export default class SearchParams {
     ): string {
         const params = new URLSearchParams();
         if (urlComponents.columns?.length) {
-            params.append(
-                URLQueryArgShorthands.COLUMNS,
-                ColumnCoder.encode(urlComponents.columns, urlComponents.hasUserSelectedColumns)
+            const encodedColumns = ColumnCoder.encode(
+                urlComponents.columns,
+                !!urlComponents.hasUserSelectedColumns
             );
+            if (encodedColumns) {
+                params.append(URLQueryArgShorthands.COLUMNS, encodedColumns);
+            }
             if (urlComponents.hasUserSelectedColumns) {
                 params.append(URLQueryArgShorthands.HAS_USER_SELECTED_COLUMNS, "true");
             }

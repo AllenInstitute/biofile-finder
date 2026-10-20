@@ -12,6 +12,7 @@ import {
     SearchParamsComponents,
     Source,
 } from "../../entity/SearchParams";
+import { Column } from "../../entity/SearchParams/ColumnCoder";
 import Tutorial from "../../entity/Tutorial";
 
 const STATE_BRANCH_NAME = "selection";
@@ -136,11 +137,6 @@ export function setSortColumn(fileSort?: FileSort): SetSortColumnAction {
         payload: fileSort,
         type: SET_SORT_COLUMN,
     };
-}
-
-export interface Column {
-    name: string;
-    width: number; // width in pixels
 }
 
 /**

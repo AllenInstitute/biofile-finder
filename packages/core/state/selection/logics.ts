@@ -28,7 +28,6 @@ import {
     ChangeQuery,
     changeSourceMetadata,
     ChangeSourceMetadataAction,
-    Column,
     EXPAND_ALL_FILE_FOLDERS,
     REMOVE_DATASOURCE_RELOAD_ERROR,
     REMOVE_FILE_FILTER,
@@ -78,6 +77,7 @@ import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import { DatasetSources } from "../../entity/MarkdownFrontMatter";
 import { DEFAULT_COLUMN_WIDTH, FileView, isMarkdownType, Source } from "../../entity/SearchParams";
+import { Column } from "../../entity/SearchParams/ColumnCoder";
 import { CanceledError, DataSourcePreparationError } from "../../errors";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
 import { DataSource } from "../../services/DataSourceService";
