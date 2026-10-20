@@ -28,8 +28,9 @@ import { AnnotationType, AnnotationTypeIdMap } from "../../entity/AnnotationForm
 import FileFilter from "../../entity/FileFilter";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import { DEFAULT_COLUMN_WIDTH } from "../../entity/SearchParams";
-import { Column } from "../../entity/SearchParams/ColumnCoder";
+import ColumnCoder, { Column } from "../../entity/SearchParams/ColumnCoder";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
+import { formatQuantityString } from "../../util/strings";
 
 /**
  * Interceptor responsible for turning REQUEST_ANNOTATIONS action into a network call for available annotations. Outputs
@@ -88,7 +89,7 @@ const receiveAnnotationsLogic = createLogic({
         );
         const annotationService = interaction.selectors.getAnnotationService(deps.getState());
         const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
-        const currentColumns = selection.selectors.getColumns(deps.getState());
+        const storedColumns = selection.selectors.getColumns(deps.getState());
         const hasUserSelectedColumns = selection.selectors.getHasUserSelectedColumns(
             deps.getState()
         );
@@ -135,6 +136,34 @@ const receiveAnnotationsLogic = createLogic({
         const displayableAnnotationNames = new Set(
             displayableAnnotations.map((annotation) => annotation.name)
         );
+
+        // Decoded columns may be shortened into prefixes (e.g., Well.Dose -> We~.Do~)
+        // Expand them back into full annotation names before they get used anywhere
+        const resolveColumnPrefixFn = ColumnCoder.createPrefixResolver(
+            displayableAnnotations.map((annotation) => annotation.path)
+        );
+        const columnsNotFound: string[] = [];
+        const currentColumns = storedColumns.flatMap((column) => {
+            const fullName = resolveColumnPrefixFn(column.name);
+            if (fullName === undefined) {
+                columnsNotFound.push(column.name);
+                return [];
+            }
+            return [fullName === column.name ? column : { ...column, name: fullName }];
+        });
+        if (!isEqual(currentColumns, storedColumns)) {
+            dispatch(selection.actions.setColumns(currentColumns));
+        }
+        if (columnsNotFound.length > 0) {
+            const quantityString = formatQuantityString(
+                columnsNotFound.length,
+                "column",
+                "columns"
+            );
+            const columnsWarning = `Unable to resolve ${quantityString} from the URL. 
+                Dropping the following from display: ${columnsNotFound.join(", ")}`;
+            dispatch(interaction.actions.processWarning("resolveColumnsWarning", columnsWarning));
+        }
 
         // Respect the user's selection; only drop columns unavailable in this data source.
         const validUserSelectedColumns = currentColumns.filter((column) =>

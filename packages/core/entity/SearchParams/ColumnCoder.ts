@@ -92,8 +92,12 @@ export default class ColumnCoder {
             if (node.children.size === 0) {
                 // at leaf
                 const fullAnnotationName = path.join(".");
-                // To do: Will have dots in annotation names cause problems?
-                prefixMap.set(fullAnnotationName, segmentPrefixes.join("."));
+                // if any segment in the path contains a ".", it'll cause problems at decode, so use full name
+                const segmentHasDot = path.some((segment) => segment.includes("."));
+                prefixMap.set(
+                    fullAnnotationName,
+                    segmentHasDot ? fullAnnotationName : segmentPrefixes.join(".")
+                );
                 return;
             }
             const siblingPrefixes = ColumnCoder.buildColumnPrefixes([...node.children.keys()]);

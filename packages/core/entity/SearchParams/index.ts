@@ -7,6 +7,7 @@ import type { DatasetSources } from "../MarkdownFrontMatter";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import { parseGoogleSheetUrl } from "../../util/googleSheets";
 
+// Re-exported so imports in other files keep working
 export { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH };
 
 // These values CANNOT change otherwise it would break compatibility
@@ -138,16 +139,20 @@ export default class SearchParams {
      * Ideally the format this is in would be independent of the format/inner-workings
      * of our application state. As in, the names / system we track data in can change
      * without breaking an existing SearchParams.
+     * @param columnPrefixes Map of full annotation names to shortened url tokens. When
+     * omitted, encodes full names
      * */
     public static encode(
         urlComponents: Partial<SearchParamsComponents>,
-        cachedSourcesFromDescription?: DatasetSources
+        cachedSourcesFromDescription?: DatasetSources,
+        columnPrefixes?: Map<string, string>
     ): string {
         const params = new URLSearchParams();
         if (urlComponents.columns?.length) {
             const encodedColumns = ColumnCoder.encode(
                 urlComponents.columns,
-                !!urlComponents.hasUserSelectedColumns
+                !!urlComponents.hasUserSelectedColumns,
+                columnPrefixes
             );
             if (encodedColumns) {
                 params.append(URLQueryArgShorthands.COLUMNS, encodedColumns);
