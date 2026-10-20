@@ -98,20 +98,31 @@ const PARQUET_MAGIC = "PAR1";
 
 /**
  * Whether the resource at a URL is a parquet file, judged by its leading magic
- * bytes rather than its name. Reads at most the first chunk of the response,
- * so servers that ignore Range requests don't cost a full download.
+ * bytes rather than its name. Reads chunks until four bytes or EOF, then
+ * cancels the stream to avoid a full download when servers ignore Range requests.
  */
 async function hasParquetMagicBytes(url: string): Promise<boolean> {
     try {
         const response = await fetch(url, { headers: { Range: "bytes=0-3" } });
         if (!response.ok || !response.body) return false;
         const reader = response.body.getReader();
-        const { value } = await reader.read();
-        reader.cancel().catch(() => undefined);
-        return (
-            !!value &&
-            new TextDecoder().decode(value.slice(0, PARQUET_MAGIC.length)) === PARQUET_MAGIC
-        );
+        const magicBytes = new Uint8Array(PARQUET_MAGIC.length);
+        let bytesRead = 0;
+        try {
+            while (bytesRead < magicBytes.length) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                const bytes = value.subarray(0, magicBytes.length - bytesRead);
+                magicBytes.set(bytes, bytesRead);
+                bytesRead += bytes.length;
+            }
+            return (
+                bytesRead === magicBytes.length &&
+                new TextDecoder().decode(magicBytes) === PARQUET_MAGIC
+            );
+        } finally {
+            reader.cancel().catch(() => undefined);
+        }
     } catch (err) {
         // Unreachable, CORS-blocked, etc. Fall back to the other detection methods
         return false;
