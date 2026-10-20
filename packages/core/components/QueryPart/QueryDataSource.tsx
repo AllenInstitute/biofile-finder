@@ -137,7 +137,7 @@ export default function QueryDataSource(props: Props) {
                                   items: [
                                       {
                                           key: "Column descriptor file",
-                                          text: "Add column descriptor file",
+                                          text: "Add a column descriptor file",
                                           onClick: () => {
                                               dispatch(
                                                   interaction.actions.promptForDataSource({
@@ -151,7 +151,7 @@ export default function QueryDataSource(props: Props) {
                                       },
                                       {
                                           key: "Provenance descriptor file",
-                                          text: "Add provenance descriptor file",
+                                          text: "Add a provenance descriptor file",
                                           onClick: () => {
                                               dispatch(
                                                   interaction.actions.promptForDataSource({
