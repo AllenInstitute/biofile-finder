@@ -1,9 +1,3 @@
-import {
-    configureMockStore,
-    createMockHttpClient,
-    mergeState,
-    ResponseStub,
-} from "@aics/redux-utils";
 import { expect } from "chai";
 import { get as _get, noop } from "lodash";
 import { createSandbox } from "sinon";
@@ -61,6 +55,12 @@ import NotificationServiceNoop from "../../../services/NotificationService/Notif
 import { PersistedConfigKeys } from "../../../services/PersistentConfigService";
 import PersistentConfigServiceNoop from "../../../services/PersistentConfigService/PersistentConfigServiceNoop";
 import S3StorageServiceNoop from "../../../services/S3StorageService/S3StorageServiceNoop";
+import {
+    configureMockStore,
+    createMockHttpClient,
+    mergeState,
+    ResponseStub,
+} from "../../../util/redux-utils";
 
 describe("Interaction logics", () => {
     const fileSelection = new FileSelection().select({
@@ -1226,7 +1226,7 @@ describe("Interaction logics", () => {
 
             const { actions, store, logicMiddleware } = configureMockStore({
                 state: mergeState(initialState, {
-                    selection: { dataSources: [{ name: "source-a", type: "parquet" }] },
+                    selection: { dataSources: [{ name: "source-a" }] },
                 }),
                 reducer,
                 logics: interactionLogics,
@@ -1235,7 +1235,7 @@ describe("Interaction logics", () => {
             // Act
             store.dispatch(refresh());
             await Promise.resolve(); // let the logic reach its await
-            store.dispatch(changeDataSources([{ name: "source-b", type: "parquet" }]) as any);
+            store.dispatch(changeDataSources([{ name: "source-b" }]) as any);
             resolveFetch(annotations);
             await logicMiddleware.whenComplete();
 

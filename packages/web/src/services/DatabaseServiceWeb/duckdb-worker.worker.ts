@@ -4,7 +4,7 @@ import { isEmpty } from "lodash";
 import { QueryRow, WorkerMsgType, WorkerReqPayload, WorkerRequest, WorkerResType } from "./types";
 import { HIDDEN_UID_ANNOTATION } from "../../../../core/constants";
 import Annotation, { AnnotationResponse } from "../../../../core/entity/Annotation";
-import { Source } from "../../../../core/entity/SearchParams";
+import { Source, SourceWithType } from "../../../../core/entity/SearchParams";
 import SQLBuilder from "../../../../core/entity/SQLBuilder";
 import { CancellablePromise } from "../../../../core/entity/types";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
@@ -234,7 +234,7 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
 
     // public wrapper so that the worker can access the function
     public async prepareDataSourceWorker(
-        dataSource: Source,
+        dataSource: SourceWithType,
         skipNormalization: boolean
     ): Promise<void> {
         await this.prepareDataSource(dataSource, skipNormalization);

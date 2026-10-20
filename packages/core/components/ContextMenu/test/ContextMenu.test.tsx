@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -6,6 +5,7 @@ import { Provider } from "react-redux";
 
 import ContextMenu, { ContextMenuItem } from "..";
 import { initialState, interaction, reducer } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 describe("<ContextMenu />", () => {
     const items: ContextMenuItem[] = [

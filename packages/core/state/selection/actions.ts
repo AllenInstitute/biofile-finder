@@ -1,5 +1,3 @@
-import { makeConstant } from "@aics/redux-utils";
-
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
@@ -14,6 +12,7 @@ import {
 } from "../../entity/SearchParams";
 import { Column } from "../../entity/SearchParams/ColumnCoder";
 import Tutorial from "../../entity/Tutorial";
+import { makeConstant } from "../../util/redux-utils";
 
 const STATE_BRANCH_NAME = "selection";
 

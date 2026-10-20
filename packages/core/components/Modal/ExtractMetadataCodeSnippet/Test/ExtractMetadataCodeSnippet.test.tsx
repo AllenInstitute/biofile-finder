@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -7,6 +6,7 @@ import { createSandbox } from "sinon";
 
 import Modal, { ModalType } from "../..";
 import { initialState, interaction, selection } from "../../../../state";
+import { configureMockStore, mergeState } from "../../../../util/redux-utils";
 
 describe("<ExtractMetadata />", () => {
     const sandbox = createSandbox();

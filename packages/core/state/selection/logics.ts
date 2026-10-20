@@ -76,7 +76,12 @@ import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSet from "../../entity/FileSet";
 import { DatasetSources } from "../../entity/MarkdownFrontMatter";
-import { DEFAULT_COLUMN_WIDTH, FileView, isMarkdownType, Source } from "../../entity/SearchParams";
+import {
+    DEFAULT_COLUMN_WIDTH,
+    FileView,
+    isMarkdownSource,
+    Source,
+} from "../../entity/SearchParams";
 import { Column } from "../../entity/SearchParams/ColumnCoder";
 import { CanceledError, DataSourcePreparationError } from "../../errors";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
@@ -735,7 +740,7 @@ const changeDataSourceLogic = createLogic({
         // markdown files may be present when changeDataSource is called directly from an existing query
         const selectedDataSources = action.payload as Source[];
         const datasetDescriptionSource = selectedDataSources.find((source) =>
-            isMarkdownType(source.type)
+            isMarkdownSource(source)
         );
         if (!datasetDescriptionSource) {
             return next(action);
@@ -771,8 +776,7 @@ const changeDataSourceLogic = createLogic({
                 payload: [
                     // avoid duplicates and remove the markdown file
                     ...selectedDataSources.filter(
-                        (source) =>
-                            !isMarkdownType(source.type) && source.name !== mainDatasource.name
+                        (source) => !isMarkdownSource(source) && source.name !== mainDatasource.name
                     ),
                     mainDatasource,
                 ],
@@ -1059,7 +1063,7 @@ const changeQueryLogic = createLogic({
             let provenanceSource = parts.provenanceSource;
             let columnDescriptionSource = parts.sourceMetadata;
             const datasetDescriptionSource = parts.sources.find((source) => {
-                return isMarkdownType(source.type);
+                return isMarkdownSource(source);
             });
             if (datasetDescriptionSource) {
                 let parsedMetadata: DatasetSources | undefined;
@@ -1094,7 +1098,7 @@ const changeQueryLogic = createLogic({
                         mainSources = [
                             ...parts.sources.filter(
                                 (source) =>
-                                    source.name !== mainSource?.name && !isMarkdownType(source.type)
+                                    source.name !== mainSource?.name && !isMarkdownSource(source)
                             ),
                             mainSource,
                         ];

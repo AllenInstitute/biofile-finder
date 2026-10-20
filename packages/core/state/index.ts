@@ -1,4 +1,3 @@
-import { configureStore, mergeState } from "@aics/redux-utils";
 import axios, { AxiosInstance } from "axios";
 import { AnyAction, combineReducers, Middleware } from "redux";
 import { createLogicMiddleware } from "redux-logic";
@@ -12,6 +11,7 @@ import FileFolder from "../entity/FileFolder";
 import FileSort from "../entity/FileSort";
 import { PlatformDependentServices } from "../services";
 import { PersistedConfig, PersistedConfigKeys } from "../services/PersistentConfigService";
+import { configureStore, mergeState } from "../util/redux-utils";
 
 export { interaction, metadata, selection };
 

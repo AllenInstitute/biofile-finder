@@ -1,4 +1,3 @@
-import { makeReducer } from "@aics/redux-utils";
 import { castArray, uniq, uniqBy } from "lodash";
 
 import {
@@ -59,6 +58,7 @@ import { DEFAULT_COLUMN_WIDTH, FileView, Source } from "../../entity/SearchParam
 import { Column } from "../../entity/SearchParams/ColumnCoder";
 import Tutorial from "../../entity/Tutorial";
 import Tutorials from "../../hooks/useHelpOptions/Tutorials";
+import { makeReducer } from "../../util/redux-utils";
 
 // TODO: Restructure annotationHierarchy, availableAnnotationsForHierarchy, and recentAnnotations
 // to store annotation paths (string[][]) instead of concatenated dotted strings.

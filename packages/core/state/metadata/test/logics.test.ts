@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { expect } from "chai";
 import { createSandbox } from "sinon";
 
@@ -28,6 +27,7 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 import DatasetService, { DataSource } from "../../../services/DataSourceService";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 describe("Metadata logics", () => {
     describe("requestAnnotations", () => {
@@ -81,7 +81,7 @@ describe("Metadata logics", () => {
 
             const { store, logicMiddleware, actions } = configureMockStore({
                 state: mergeState(initialState, {
-                    selection: { dataSources: [{ name: "source-a", type: "parquet" }] },
+                    selection: { dataSources: [{ name: "source-a" }] },
                     interaction: {
                         platformDependentServices: { databaseService: new SlowDatabaseService() },
                     },
@@ -93,7 +93,7 @@ describe("Metadata logics", () => {
             // Act
             store.dispatch(requestAnnotations());
             await Promise.resolve(); // let the logic reach its await
-            store.dispatch(changeDataSources([{ name: "source-b", type: "parquet" }]) as any);
+            store.dispatch(changeDataSources([{ name: "source-b" }]) as any);
             resolveFetch([
                 new Annotation({
                     annotationName: "Only On Source A",
@@ -361,7 +361,6 @@ describe("Metadata logics", () => {
             {
                 id: "123414",
                 name: "Microscopy Set",
-                type: "csv",
                 version: 1,
                 uri: "",
             },

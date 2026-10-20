@@ -1,4 +1,3 @@
-import { configureMockStore } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import { noop } from "lodash";
@@ -9,6 +8,7 @@ import sinon from "sinon";
 import ListPicker from "..";
 import { ListItem } from "../ListRow";
 import { initialState } from "../../../state";
+import { configureMockStore } from "../../../util/redux-utils";
 
 describe("<ListPicker />", () => {
     const LISTROW_TESTID_PREFIX = "default-button-";

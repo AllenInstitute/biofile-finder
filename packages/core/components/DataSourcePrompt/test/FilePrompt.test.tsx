@@ -1,4 +1,3 @@
-import { configureMockStore } from "@aics/redux-utils";
 import { fireEvent, render } from "@testing-library/react";
 import { expect } from "chai";
 import { range } from "lodash";
@@ -7,6 +6,7 @@ import { Provider } from "react-redux";
 
 import FilePrompt from "..";
 import { initialState } from "../../../state";
+import { configureMockStore } from "../../../util/redux-utils";
 
 // NodeJS < v20 does not provide support for the built-in File class
 interface MockFile {

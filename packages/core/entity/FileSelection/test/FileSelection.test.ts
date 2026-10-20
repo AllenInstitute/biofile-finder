@@ -1,4 +1,3 @@
-import { createMockHttpClient } from "@aics/redux-utils";
 import { expect } from "chai";
 import { identity } from "lodash";
 
@@ -14,6 +13,7 @@ import { Environment, FESBaseUrl } from "../../../constants";
 import { IndexError, ValueError } from "../../../errors";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import HttpFileService from "../../../services/FileService/HttpFileService";
+import { createMockHttpClient } from "../../../util/redux-utils";
 
 describe("FileSelection", () => {
     describe("select", () => {

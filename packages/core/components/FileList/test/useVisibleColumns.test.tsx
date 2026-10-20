@@ -1,4 +1,3 @@
-import { configureMockStore, mergeState } from "@aics/redux-utils";
 import { render } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
@@ -8,6 +7,7 @@ import HorizontalScrollContext from "../HorizontalScrollContext";
 import useVisibleColumns from "../useVisibleCells";
 import { Column } from "../../../entity/SearchParams/ColumnCoder";
 import { initialState } from "../../../state";
+import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 /**
  * Test harness that renders the hook's output as data attributes for assertion.
