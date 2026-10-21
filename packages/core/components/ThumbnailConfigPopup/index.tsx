@@ -117,7 +117,7 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 <Callout
                     className={styles.callout}
                     role="dialog"
-                    aria-label="Zarr thumbnail settings"
+                    aria-label="Global Zarr thumbnail settings"
                     onDismiss={() => {
                         setIsCalloutVisible(false);
                     }}
@@ -127,7 +127,9 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
                 >
                     <div className={styles.calloutContent}>
                         <div className={styles.calloutTitleRow}>
-                            <span className={styles.calloutTitle}>Zarr thumbnail settings</span>
+                            <span className={styles.calloutTitle}>
+                                Global Zarr thumbnail settings
+                            </span>
                             <TransparentIconButton
                                 className={styles.calloutCloseButton}
                                 iconName="Cancel"

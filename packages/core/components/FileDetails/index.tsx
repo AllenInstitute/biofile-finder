@@ -205,9 +205,9 @@ export default function FileDetails(props: Props) {
                                             return (
                                                 <TransparentIconButton
                                                     iconName="Settings"
-                                                    label="Thumbnail settings"
+                                                    label="Global Zarr thumbnail settings"
                                                     onClick={onClick}
-                                                    title="Thumbnail settings"
+                                                    title="Global Zarr thumbnail settings"
                                                 ></TransparentIconButton>
                                             );
                                         }}
