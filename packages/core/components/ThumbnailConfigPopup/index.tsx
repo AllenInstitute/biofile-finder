@@ -50,9 +50,10 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
     };
 
     const zarrInfo = props.zarrInfo;
-    const channelColors = zarrInfo?.metadata.channelColor;
-    const channelActive = zarrInfo?.metadata.channelActive;
-    const hasOmeroChannelMetadata = channelColors !== undefined && channelColors.length > 0;
+    const metadataChannelColors = zarrInfo?.metadata.channelColor;
+    const metadataActiveChannels = zarrInfo?.metadata.channelActive;
+    const hasOmeroChannelMetadata =
+        metadataChannelColors !== undefined && metadataChannelColors.length > 0;
 
     const missingZDim = zarrInfo !== undefined && (zarrInfo?.dimensions.z ?? 0) <= 1;
     const missingTDim = zarrInfo !== undefined && (zarrInfo?.dimensions.t ?? 0) <= 1;
@@ -83,10 +84,12 @@ export default function ThumbnailConfigPopup(props: ThumbnailConfigPopupProps): 
         if (zarrInfo?.dimensions.c !== undefined && index >= zarrInfo.dimensions.c) {
             return null;
         }
+        // When metadata is present and not overridden, display the metadata
+        // values.
         if (hasOmeroChannelMetadata && !thumbnailConfig.overrideOmeroMetadata) {
             config = { ...config };
-            config.enabled = channelActive?.[index] ?? config.enabled;
-            let color = channelColors?.[index] ?? DEFAULT_CHANNEL_COLOR;
+            config.enabled = metadataActiveChannels?.[index] ?? config.enabled;
+            let color = metadataChannelColors?.[index] ?? DEFAULT_CHANNEL_COLOR;
             if (color.startsWith("#")) {
                 color = color.substring(1);
             }

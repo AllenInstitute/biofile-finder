@@ -78,11 +78,11 @@ export type OmeroChannel = Omit<typeof omezarr.Channel, "window">;
 export type ZarrInfo = {
     /** Dimensions of the Zarr array, at the 0-level resolution. */
     dimensions: {
-        x: number | undefined;
-        y: number | undefined;
-        z: number | undefined;
-        c: number | undefined;
         t: number | undefined;
+        c: number | undefined;
+        z: number | undefined;
+        y: number | undefined;
+        x: number | undefined;
     };
     metadata: {
         channelNames: string[] | undefined;

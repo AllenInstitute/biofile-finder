@@ -24,14 +24,13 @@ export default function ThumbnailAxisSliderRow(props: ThumbnailAxisSliderRowProp
     const axisSize = zarrDims?.[props.axis];
     const hasDims = axisSize !== undefined;
 
-    const min = 0;
-    const max = hasDims ? Math.max(axisSize - 1, 1) : 100;
-    const displayValue = Math.round(props.value * max);
+    // Bounds are [0, axisSize - 1] if axis size is known, otherwise [0, 100]
+    // and displayed as a percentage.
+    const minBound = 0;
+    const maxBound = hasDims ? Math.max(axisSize - 1, 1) : 100;
+    const displayValue = Math.round(props.value * maxBound);
     const onChange = (value: number) => {
-        if (!Number.isFinite(value)) {
-            return;
-        }
-        value = Math.min(Math.max(value, 0), max) / max;
+        value = Math.min(Math.max(value, 0), maxBound) / maxBound;
         props.onChange?.(value);
     };
 
@@ -43,8 +42,8 @@ export default function ThumbnailAxisSliderRow(props: ThumbnailAxisSliderRowProp
             labelFormatter={(value) => value + (hasDims ? "" : "%")}
             value={displayValue}
             onChange={onChange}
-            min={min}
-            max={max}
+            min={minBound}
+            max={maxBound}
             step={1}
         ></LabeledSlider>
     );
