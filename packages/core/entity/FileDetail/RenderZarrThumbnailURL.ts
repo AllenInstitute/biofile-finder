@@ -210,7 +210,6 @@ export async function renderZarrThumbnailURL(
                     // Note: missing window param
                     channels: channels as (typeof omezarr.Channel)[],
                     signal: abortSignal,
-                    maxSize: 10_000,
                 });
             },
             3,
