@@ -1,0 +1,16 @@
+.channel-control-row {
+    display: grid;
+    grid-column: 1 / 4;
+    grid-template-columns: subgrid;
+
+    align-items: center;
+    justify-content: space-between;
+}
+
+.channel-control-row > * {
+    align-self: center;
+}
+
+.channel-label {
+    margin-right: 6px;
+}
