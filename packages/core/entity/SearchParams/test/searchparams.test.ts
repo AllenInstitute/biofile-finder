@@ -384,8 +384,6 @@ describe("SearchParams", () => {
             const resultFull = SearchParams.encode(components, undefined);
             const resultShortened = SearchParams.encode(components, undefined, columnPrefixes);
 
-            console.info("resultSHortened", resultShortened, resultShortened.length);
-
             // Assert
             expect(resultFull.length).to.be.greaterThan(resultShortened.length);
         });

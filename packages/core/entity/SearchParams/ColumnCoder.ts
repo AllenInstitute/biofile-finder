@@ -87,6 +87,15 @@ export default class ColumnCoder {
             });
     }
 
+    /**
+     * Given a list of full annotation paths, maps each annotation name to a shortened prefix that can
+     * uniquely identify that annotation. For nested annotations, performs a tree walk to compare each
+     * segment of a path to its siblings, rather than to the entire set of annotations.
+     * For example,  [["Well", "Dose", "Unit"], ["Well", "Description"], ["Description"]] becomes
+     *  {"w~.do~.u~", "w~.de~", "d~"}, because "Description" is uniquely identifiable as "d~" at the parent
+     *  level, but has to be distinguished from "Dose" at the sibling level.
+     * @returns a map of each full annotation name to its shortened prefix form.
+     */
     public static buildPrefixesFromFullPaths(paths: string[][]): Map<string, string> {
         const prefixMap = new Map<string, string>();
         if (!paths.length) return prefixMap;
@@ -169,9 +178,9 @@ export default class ColumnCoder {
 
     /**
      * Builds a tree of annotation paths and creates a function to resolve column prefixes.
-     * Only gets called once each time a set of annotations are loaded from a data source
-     * @param paths
-     * @returns a function that maps a column prefix back to full annotation name
+     * Only has to be called once each time a set of annotations are loaded from a data source
+     * @param paths list of annotations' full paths (e..g, [["Cell line"], ["Well", "ID"]])
+     * @returns a function that maps a column prefix back to a full annotation name
      */
     public static createPrefixResolver(paths: string[][]): (prefix: string) => string | undefined {
         const root = buildPathTree(paths);
