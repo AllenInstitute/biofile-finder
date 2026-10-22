@@ -75,6 +75,22 @@ async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 // without the workaround.
 export type OmeroChannel = Omit<typeof omezarr.Channel, "window">;
 
+export type ZarrInfo = {
+    /** Dimensions of the Zarr array, at the 0-level resolution. */
+    dimensions: {
+        t: number | undefined;
+        c: number | undefined;
+        z: number | undefined;
+        y: number | undefined;
+        x: number | undefined;
+    };
+    metadata: {
+        channelNames: string[] | undefined;
+        channelColor: string[] | undefined;
+        channelActive: boolean[] | undefined;
+    };
+};
+
 async function defaultNgffImageLoader(
     zarrUrl: string,
     options?: { signal?: AbortSignal }
@@ -90,6 +106,11 @@ type RenderZarrThumbnailOptions = {
      */
     ngffImageLoader?: typeof defaultNgffImageLoader;
     abortSignal?: AbortSignal;
+    /**
+     * Callback invoked when the image is loaded; returns the Zarr array
+     * dimensions.
+     */
+    onLoad?: (shape: ZarrInfo) => void;
 };
 
 /**
@@ -114,48 +135,58 @@ export async function renderZarrThumbnailURL(
                 let slices: { z?: number; t?: number } | undefined = undefined;
                 let channels: OmeroChannel[] | undefined = undefined;
 
-                if (thumbnailConfig !== undefined) {
-                    const shape: number[] = await image.getShape(); // 0-level
-                    const axesNames = image.getAxesNames();
-                    const cIndex = axesNames.indexOf("c");
+                // Get and report Zarr dimensions
+                const shape: number[] = await image.getShape(); // 0-level
+                const axesNames = image.getAxesNames();
+                const tIndex = axesNames.indexOf("t");
+                const cIndex = axesNames.indexOf("c");
+                const zIndex = axesNames.indexOf("z");
+                const yIndex = axesNames.indexOf("y");
+                const xIndex = axesNames.indexOf("x");
+                const t = tIndex !== -1 ? shape[tIndex] : undefined;
+                // Fallback, since an image with no channels technically
+                // still has one.
+                const c = cIndex !== -1 ? shape[cIndex] : 1;
+                const z = zIndex !== -1 ? shape[zIndex] : undefined;
+                const y = yIndex !== -1 ? shape[yIndex] : undefined;
+                const x = xIndex !== -1 ? shape[xIndex] : undefined;
+                const omeroChannels = image.imgAttrs?.omero?.channels;
+                const hasOmeroMetadata = omeroChannels !== undefined && omeroChannels.length > 0;
 
-                    if (cIndex !== -1) {
-                        const maxChannels = shape[cIndex];
-                        const omeroChannels = image.imgAttrs?.omero?.channels;
-                        const hasOmeroMetadata =
-                            omeroChannels !== undefined && omeroChannels.length > 0;
-                        if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
-                            const channelConfigs = thumbnailConfig.channelConfigs;
-                            channels = channelConfigs
-                                .filter((_, index) => index < maxChannels)
-                                .map((config) => ({
-                                    color: config.hexColor,
-                                    active: config.enabled,
-                                }));
-                            if (
-                                channels.length === 0 ||
-                                channels.every((channel) => !channel.active)
-                            ) {
-                                // All channels are disabled; return undefined.
-                                return undefined;
-                            }
+                const zarrInfo: ZarrInfo = {
+                    dimensions: { x, y, z, c, t },
+                    metadata: {
+                        channelNames: omeroChannels?.map((ch: { label: string }) => ch.label),
+                        channelColor: omeroChannels?.map((ch: { color: string }) => ch.color),
+                        channelActive: omeroChannels?.map((ch: { active: boolean }) => ch.active),
+                    },
+                };
+                options.onLoad?.(zarrInfo);
+
+                if (thumbnailConfig !== undefined) {
+                    if (!hasOmeroMetadata || thumbnailConfig.overrideOmeroMetadata) {
+                        const channelConfigs = thumbnailConfig.channelConfigs;
+                        channels = channelConfigs
+                            .filter((_, index) => index < c)
+                            .map((config) => ({
+                                color: config.hexColor,
+                                active: config.enabled,
+                            }));
+                        if (channels.length === 0 || channels.every((channel) => !channel.active)) {
+                            // All channels are disabled; return undefined.
+                            return undefined;
                         }
                     }
 
-                    const zIndex: number = axesNames.indexOf("z");
-                    const tIndex: number = axesNames.indexOf("t");
-
-                    if (zIndex !== -1 || tIndex !== -1) {
+                    if (z !== undefined || t !== undefined) {
                         slices = {};
-                        if (zIndex !== -1) {
-                            const zDim = shape[zIndex];
-                            const zSlice = Math.floor((zDim - 1) * thumbnailConfig.relativeZ);
-                            slices.z = Math.max(0, Math.min(zSlice, zDim - 1));
+                        if (z !== undefined) {
+                            const zSlice = Math.round((z - 1) * thumbnailConfig.relativeZ);
+                            slices.z = Math.max(0, Math.min(zSlice, z - 1));
                         }
-                        if (tIndex !== -1) {
-                            const tDim = shape[tIndex];
-                            const tSlice = Math.floor((tDim - 1) * thumbnailConfig.relativeT);
-                            slices.t = Math.max(0, Math.min(tSlice, tDim - 1));
+                        if (t !== undefined) {
+                            const tSlice = Math.round((t - 1) * thumbnailConfig.relativeT);
+                            slices.t = Math.max(0, Math.min(tSlice, t - 1));
                         }
                     }
                 }
