@@ -271,6 +271,32 @@ describe("DatabaseService", () => {
         });
     });
 
+    describe("prepareDataSources", () => {
+        it("detects parquet from its magic bytes when the URL has no extension", async () => {
+            const originalFetch = global.fetch;
+            global.fetch = (() =>
+                Promise.resolve(new Response(new TextEncoder().encode("PAR1")))) as any;
+            let type;
+            class TestService extends DatabaseService {
+                protected addDataSource(_name: string, sourceType: string): Promise<void> {
+                    type = sourceType;
+                    return Promise.resolve();
+                }
+            }
+
+            try {
+                await new TestService().prepareDataSources(
+                    [{ name: "x", uri: "https://example.com/api/?id=1" }],
+                    true
+                );
+            } finally {
+                global.fetch = originalFetch;
+            }
+
+            expect(type).to.equal("parquet");
+        });
+    });
+
     describe("prepareDataSources parquet aggregation", () => {
         class MockAggregateParquetDatabaseService extends DatabaseService {
             public executedSQL: string[] = [];
