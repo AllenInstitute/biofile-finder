@@ -48,4 +48,37 @@ describe("Metadata selectors", () => {
             expect(map.get("Unit")).to.equal(simple);
         });
     });
+
+    describe("getAnnotationPrefixes", () => {
+        it("skips parent annotations", () => {
+            // arrange
+            const parent = new Annotation({
+                annotationName: ["Well"],
+                description: "Well",
+                type: AnnotationType.NESTED,
+            });
+            const nested = new Annotation({
+                annotationName: ["Well", "Dose", "Unit"],
+                description: "Dose unit",
+                type: AnnotationType.STRING,
+                pathIsArray: [true, false, false],
+            });
+            const simple = new Annotation({
+                annotationName: ["Color"],
+                description: "Color",
+                type: AnnotationType.STRING,
+            });
+
+            const state = mergeState(initialState, {
+                metadata: { annotations: [parent, nested, simple] },
+            });
+
+            // act
+            const map = metadata.selectors.getAnnotationPrefixes(state);
+
+            expect(map.get("Well")).to.be.undefined;
+            expect(map.get("Well.Dose.Unit")).to.equal("w~.d~.u~");
+            expect(map.get(simple.name)).to.equal("c~");
+        });
+    });
 });

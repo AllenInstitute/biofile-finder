@@ -61,7 +61,10 @@ export default class ColumnCoder {
         return candidateColumns.join(ColumnCoder.COLUMN_DELIMITER);
     }
 
-    public static decode(encoded: string): Column[] {
+    public static decode(
+        encoded: string,
+        prefixResolver?: (prefix: string) => string | undefined
+    ): Column[] {
         return encoded
             .split(ColumnCoder.COLUMN_DELIMITER)
             .filter((unparsedColumn) => !!unparsedColumn)
@@ -79,7 +82,8 @@ export default class ColumnCoder {
                     parsedWidth <= 1
                         ? DEFAULT_COLUMN_WIDTH
                         : parsedWidth * ColumnCoder.COLUMN_VALUE_PRECISION;
-                return { name, width };
+                const resolvedName = prefixResolver?.(name) ?? name;
+                return { name: resolvedName, width };
             });
     }
 

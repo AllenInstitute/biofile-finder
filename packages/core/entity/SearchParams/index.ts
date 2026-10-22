@@ -275,12 +275,15 @@ export default class SearchParams {
      * Decode a previously encoded SearchParams into components that can be rehydrated into the
      * application state
      */
-    public static decode(encodedURL: string): SearchParamsComponents {
+    public static decode(
+        encodedURL: string,
+        columnResolver?: (prefix: string) => string | undefined
+    ): SearchParamsComponents {
         const params = new URLSearchParams(encodedURL.trim());
         if (params.getAll("url").length > 0) {
             return SearchParams.decodeSimpleParams(params);
         }
-        return SearchParams.decodeComplexParams(params);
+        return SearchParams.decodeComplexParams(params, columnResolver);
     }
 
     private static decodeSimpleParams(params: URLSearchParams): SearchParamsComponents {
@@ -294,7 +297,10 @@ export default class SearchParams {
         };
     }
 
-    private static decodeComplexParams(params: URLSearchParams): SearchParamsComponents {
+    private static decodeComplexParams(
+        params: URLSearchParams,
+        columnResolver?: (prefix: string) => string | undefined
+    ): SearchParamsComponents {
         const unparsedSourceMetadata = params.get("sourceMetadata");
         const unparsedSourceProvenance = params.get("prov");
         const unparsedOpenFolders = params.getAll("openFolder");
@@ -326,7 +332,7 @@ export default class SearchParams {
         return {
             fileView,
             hierarchy,
-            columns: ColumnCoder.decode(unparsedColumns),
+            columns: ColumnCoder.decode(unparsedColumns, columnResolver),
             hasUserSelectedColumns,
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))

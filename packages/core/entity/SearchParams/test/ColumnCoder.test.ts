@@ -48,6 +48,18 @@ describe("ColumnCoder", () => {
             });
         });
 
+        // TO DO: This might actually be an existing bug that needs addressing
+        it.skip("differentiates between nested paths and flat paths containing dots", () => {
+            const columnNames = [["Well", "ID"], ["Well.ID"]];
+
+            // act
+            const actualPrefixMap = ColumnCoder.buildPrefixesFromFullPaths(columnNames);
+
+            // assert
+            // TO DO: Currently these override each other and end up mapping to the same thing. Should they?
+            expect(actualPrefixMap.get("Well.ID")).to.equal("Well.ID");
+        });
+
         it("makes appropriate prefixes for similarly-named columns at different levels of nesting", () => {
             // arrange
             const overlappingNames = [
@@ -156,6 +168,17 @@ describe("ColumnCoder", () => {
             );
         });
 
+        it("resolves correctly when columns are already using full names instead of prefixes", () => {
+            const prefixResolver = ColumnCoder.createPrefixResolver(mockAnnotationPaths);
+
+            expect(prefixResolver("Gene")).to.equal("Gene");
+            expect(prefixResolver("Cell line")).to.equal("Cell line");
+            expect(prefixResolver("Solution Concentration")).to.equal("Solution Concentration");
+            expect(prefixResolver("Solution Concentration Units")).to.equal(
+                "Solution Concentration Units"
+            );
+        });
+
         it("resolves to nested annotation paths", () => {
             const mockNestedAnnotationPaths = [
                 ["Well", "Dose", "Color"],
@@ -170,6 +193,8 @@ describe("ColumnCoder", () => {
             expect(prefixResolver("we~.de~")).to.equal("Well.Description");
             expect(prefixResolver("we~.do~.con~")).to.equal("Well.Dose.Concentration");
             expect(prefixResolver("we~.ID")).to.equal("Well.ID");
+            // Resolves a nested path that isn't using prefixes
+            expect(prefixResolver("Whatever.Else")).to.equal("Whatever.Else");
         });
 
         it("returns undefined if no matches exist", () => {
