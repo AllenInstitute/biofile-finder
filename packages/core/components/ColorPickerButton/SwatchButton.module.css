@@ -1,0 +1,33 @@
+/* Make a square color picker button with a colored inset square */
+.color-swatch-button {
+    --size-px: 28px;
+    --padding-px: 5px;
+    height: var(--size-px);
+    width: var(--size-px);
+    min-width: unset;
+    min-height: unset;
+    border-radius: 4px;
+    padding: var(--padding-px);
+    overflow: hidden;
+}
+
+.color-swatch-button:disabled {
+    cursor: not-allowed;
+    border: 1px solid var(--border-color);
+}
+
+/* Add colored inset square */
+.color-swatch-button > span {
+    height: 100%;
+    width: 100%;
+    max-height: calc(var(--size-px) - 2 * var(--padding-px));
+    max-width: calc(var(--size-px) - 2 * var(--padding-px));
+    /* Set by JS via inline styling */
+    background-color: var(--color-picker-color);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.color-swatch-button:disabled > span {
+    opacity: 0.5;
+}
