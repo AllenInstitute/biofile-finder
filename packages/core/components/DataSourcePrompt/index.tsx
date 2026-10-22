@@ -163,6 +163,38 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
         showMetadataPrompt ||
         showProvenancePrompt;
 
+    const descriptorPrompts = [
+        {
+            kind: "metadata" as const,
+            onClose: () => setShowMetadataPrompt(false),
+            onSelectFile: setMetadataSource,
+            selectedFile: metadataSource,
+            show: showMetadataPrompt,
+        },
+        {
+            kind: "provenance" as const,
+            onClose: () => setShowProvenancePrompt(false),
+            onSelectFile: setProvenanceSource,
+            selectedFile: provenanceSource,
+            show: showProvenancePrompt,
+        },
+    ];
+
+    // Chosen descriptor files list right under the main file; empty prompts stay below the options
+    const renderDescriptorPrompts = (hasSelectedFile: boolean) =>
+        descriptorPrompts
+            .filter((prompt) => prompt.show && !!prompt.selectedFile === hasSelectedFile)
+            .map((prompt) => (
+                <DescriptorFilePrompt
+                    isModal={props.isModal}
+                    key={prompt.kind}
+                    kind={prompt.kind}
+                    onClose={prompt.onClose}
+                    onSelectFile={prompt.onSelectFile}
+                    selectedFile={prompt.selectedFile}
+                />
+            ));
+
     return (
         <DataSourcePromptTemplate
             className={props.className}
@@ -177,10 +209,13 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
         >
             {showDescriptorOptions && (
                 <>
+                    {renderDescriptorPrompts(true)}
                     <div className={styles.advancedOptionsButtons}>
-                        <p className={styles.advancedOptionsLabel}>
-                            Describe columns with supplemental metadata (optional):
-                        </p>
+                        {!metadataSource && !provenanceSource && (
+                            <p className={styles.advancedOptionsLabel}>
+                                Describe columns with supplemental metadata (optional):
+                            </p>
+                        )}
                         {!showMetadataPrompt && (
                             <LinkLikeButton
                                 className={styles.advancedOptionsButton}
@@ -201,24 +236,7 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
                             />
                         )}
                     </div>
-                    {showMetadataPrompt && (
-                        <DescriptorFilePrompt
-                            isModal={props.isModal}
-                            kind="metadata"
-                            onClose={() => setShowMetadataPrompt(false)}
-                            onSelectFile={setMetadataSource}
-                            selectedFile={metadataSource}
-                        />
-                    )}
-                    {showProvenancePrompt && (
-                        <DescriptorFilePrompt
-                            isModal={props.isModal}
-                            kind="provenance"
-                            onClose={() => setShowProvenancePrompt(false)}
-                            onSelectFile={setProvenanceSource}
-                            selectedFile={provenanceSource}
-                        />
-                    )}
+                    {renderDescriptorPrompts(false)}
                 </>
             )}
         </DataSourcePromptTemplate>
@@ -260,6 +278,7 @@ function DescriptorFilePrompt(props: DescriptorFilePromptProps) {
                 <FilePrompt
                     className={classNames(styles.filePrompt, styles.filePromptWide)}
                     onSelectFile={onSelectFile}
+                    sideBySide
                     selectedFile={selectedFile}
                     parentId={`file-prompt-${kind}-${props.isModal ? "modal" : "main"}`}
                     fileLabel={`${fileLabel}: `}
