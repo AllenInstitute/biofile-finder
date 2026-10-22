@@ -94,6 +94,41 @@ function sourceTypeFromExtension(nameOrUrl: string): SourceType | undefined {
     return ACCEPTED_SOURCE_TYPES.find((accepted) => accepted === extension);
 }
 
+const PARQUET_MAGIC = "PAR1";
+
+/**
+ * Whether the resource at a URL is a parquet file, judged by its leading magic
+ * bytes rather than its name. Reads chunks until four bytes or EOF, then
+ * cancels the stream to avoid a full download when servers ignore Range requests.
+ */
+async function hasParquetMagicBytes(url: string): Promise<boolean> {
+    try {
+        const response = await fetch(url, { headers: { Range: "bytes=0-3" } });
+        if (!response.ok || !response.body) return false;
+        const reader = response.body.getReader();
+        const magicBytes = new Uint8Array(PARQUET_MAGIC.length);
+        let bytesRead = 0;
+        try {
+            while (bytesRead < magicBytes.length) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                const bytes = value.subarray(0, magicBytes.length - bytesRead);
+                magicBytes.set(bytes, bytesRead);
+                bytesRead += bytes.length;
+            }
+            return (
+                bytesRead === magicBytes.length &&
+                new TextDecoder().decode(magicBytes) === PARQUET_MAGIC
+            );
+        } finally {
+            reader.cancel().catch(() => undefined);
+        }
+    } catch (err) {
+        // Unreachable, CORS-blocked, etc. Fall back to the other detection methods
+        return false;
+    }
+}
+
 // Render file handles as a DuckDB list literal, e.g. ARRAY['a', 'b'].
 function handleArrayLiteral(handles: string[]): string {
     return `ARRAY[${handles.map((handle) => `'${handle}'`).join(", ")}]`;
@@ -766,6 +801,12 @@ export default abstract class DatabaseService {
         if (type) return type;
 
         if (uri instanceof File) return "csv";
+
+        // The name doesn't say (e.g. an API endpoint), so look at the content
+        if (await hasParquetMagicBytes(uri)) {
+            this.resolvedTypeByUri.set(uri, "parquet");
+            return "parquet";
+        }
 
         // Default to CSV if unable to determine if source is a Delta Lake table
         const deltaOrCsv = (await this.deltaLakeService.isDeltaTable(uri)) ? "delta" : "csv";
