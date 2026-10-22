@@ -19,7 +19,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--border-color);
-    border: 5px var(--primary-background-color);
+    background-color: var(--secondary-background-color);
     margin: auto;
 }

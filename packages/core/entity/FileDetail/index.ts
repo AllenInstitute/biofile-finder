@@ -1,6 +1,6 @@
 import { isEmpty, isNil, isObject, uniq } from "lodash";
 
-import { renderZarrThumbnailURL } from "./RenderZarrThumbnailURL";
+import { renderZarrThumbnailURL, ThumbnailConfig, ZarrInfo } from "./RenderZarrThumbnailURL";
 import AnnotationName from "../Annotation/AnnotationName";
 import { Environment } from "../../constants";
 import {
@@ -298,7 +298,12 @@ export default class FileDetail {
         return this.getAnnotation(annotationName)?.[0];
     }
 
-    public async getPathToThumbnail(targetSize?: number): Promise<string | undefined> {
+    public async getPathToThumbnail(
+        targetSize: number,
+        thumbnailConfig?: ThumbnailConfig,
+        abortSignal?: AbortSignal,
+        onLoad?: (zarrInfo: ZarrInfo) => void
+    ): Promise<string | undefined> {
         // When no thumbnail is provided, try to render one from the file path if it's a
         // zarr or a known renderable image format
         if (!this.thumbnail) {
@@ -312,13 +317,17 @@ export default class FileDetail {
             // Try to render a thumbnail from the zarr if the path is a zarr
             // and isn't a local file (since we can't read local zarrs in the browser)
             if (this.path.includes(".zarr") && !FileDetail.isLikelyLocalFile(this.path)) {
-                return renderZarrThumbnailURL(this.path, targetSize);
+                return renderZarrThumbnailURL(this.path, targetSize, {
+                    thumbnailConfig,
+                    abortSignal,
+                    onLoad,
+                });
             }
 
             return undefined;
         }
 
-        // If the thumbnail is a relative path on the allen drive then preprend it to
+        // If the thumbnail is a relative path on the allen drive then prepend it to
         // the AICS FMS NGINX server path
         if (this.thumbnail.startsWith("/allen")) {
             const pathWithoutDrive = this.thumbnail.replace(NAS_HOST_PREFIXES[this.env], "");
@@ -330,7 +339,11 @@ export default class FileDetail {
         // Try to render a thumbnail from the zarr if the thumbnail is a zarr
         // and isn't a local file (since we can't read local zarrs in the browser)
         if (this.thumbnail.includes(".zarr") && !FileDetail.isLikelyLocalFile(this.thumbnail)) {
-            return renderZarrThumbnailURL(this.thumbnail, targetSize);
+            return renderZarrThumbnailURL(this.thumbnail, targetSize, {
+                thumbnailConfig,
+                abortSignal,
+                onLoad,
+            });
         }
 
         return this.thumbnail;

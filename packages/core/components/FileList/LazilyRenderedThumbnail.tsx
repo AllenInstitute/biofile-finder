@@ -8,6 +8,7 @@ import Tooltip from "../Tooltip";
 import FileThumbnail from "../../components/FileThumbnail";
 import FileSet from "../../entity/FileSet";
 import { FileView } from "../../entity/SearchParams";
+import useDebounce from "../../hooks/useDebounce";
 import useTruncatedString from "../../hooks/useTruncatedString";
 import { selection } from "../../state";
 
@@ -54,6 +55,7 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     const overallIndex = fileGridColCount * rowIndex + columnIndex;
     const file = fileSet.getFileByIndex(overallIndex);
     const thumbnailSize = measuredWidth / fileGridColCount - 2 * MARGIN;
+    const thumbnailConfig = useDebounce(useSelector(selection.selectors.getThumbnailConfig), 500);
 
     const isSelected = React.useMemo(() => {
         return fileSelection.isSelected(fileSet, overallIndex);
@@ -71,13 +73,22 @@ export default function LazilyRenderedThumbnail(props: LazilyRenderedThumbnailPr
     //     (e.g., should not re-render for every window resize)
     const targetZarrSize = 500 / fileGridColCount; // 100px for large thumbnails, and 50px for small thumbnails
     React.useEffect(() => {
+        const controller = new AbortController();
         if (file) {
-            file.getPathToThumbnail(targetZarrSize).then((path) => {
-                setThumbnailPath(path);
-                setIsLoading(false);
-            });
+            file.getPathToThumbnail(targetZarrSize, thumbnailConfig, controller.signal).then(
+                (path) => {
+                    if (controller.signal.aborted) {
+                        return;
+                    }
+                    setThumbnailPath(path);
+                    setIsLoading(false);
+                }
+            );
         }
-    }, [file, targetZarrSize]);
+        return () => {
+            controller.abort();
+        };
+    }, [file, targetZarrSize, thumbnailConfig]);
 
     const onClick = (evt: React.MouseEvent) => {
         evt.preventDefault();
