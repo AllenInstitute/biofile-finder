@@ -131,13 +131,11 @@ export default class DatabaseAnnotationService implements AnnotationService {
                 // Exclude any filters that already exist for these hierarchy annotations
                 .filter((filter) => !annotationNamesInFilters.has(filter.name));
 
-            const {
-                promise: filteredValuesPromise,
-                cancel: filteredValuesCancel,
-            } = this.fetchFilteredValuesForAnnotation(hierarchy[path.length], [
-                ...filters,
-                ...hierarchyAsFilters,
-            ]);
+            const { promise: filteredValuesPromise, cancel: filteredValuesCancel } =
+                this.fetchFilteredValuesForAnnotation(hierarchy[path.length], [
+                    ...filters,
+                    ...hierarchyAsFilters,
+                ]);
             cancel = filteredValuesCancel;
             return filteredValuesPromise;
         });

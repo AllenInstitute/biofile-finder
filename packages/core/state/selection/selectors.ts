@@ -4,6 +4,7 @@ import { createSelector } from "reselect";
 import { State } from "../";
 import {
     getAnnotationNameToAnnotationMap,
+    getAnnotationPrefixes,
     getAnnotations,
     getEdgeDefinitions,
 } from "../metadata/selectors";
@@ -154,9 +155,9 @@ export const getDatasetSourcesFromMarkdown = createSelector(
 );
 
 export const getEncodedSearchParams = createSelector(
-    [getCurrentQueryParts, getDatasetSourcesFromMarkdown],
-    (queryParts, datasetSources): string => {
-        return SearchParams.encode(queryParts, datasetSources);
+    [getCurrentQueryParts, getDatasetSourcesFromMarkdown, getAnnotationPrefixes],
+    (queryParts, datasetSources, columnPrefixes): string => {
+        return SearchParams.encode(queryParts, datasetSources, columnPrefixes);
     }
 );
 
