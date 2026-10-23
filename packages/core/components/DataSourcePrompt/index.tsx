@@ -180,7 +180,6 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
         },
     ];
 
-    // Chosen descriptor files list right under the main file; empty prompts stay below the options
     const renderDescriptorPrompts = (hasSelectedFile: boolean) =>
         descriptorPrompts
             .filter((prompt) => prompt.show && !!prompt.selectedFile === hasSelectedFile)
@@ -278,7 +277,6 @@ function DescriptorFilePrompt(props: DescriptorFilePromptProps) {
                 <FilePrompt
                     className={classNames(styles.filePrompt, styles.filePromptWide)}
                     onSelectFile={onSelectFile}
-                    sideBySide
                     selectedFile={selectedFile}
                     parentId={`file-prompt-${kind}-${props.isModal ? "modal" : "main"}`}
                     fileLabel={`${fileLabel}: `}

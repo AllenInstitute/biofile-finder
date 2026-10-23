@@ -4,25 +4,15 @@
     flex-direction: column;
     justify-content: center;
     margin-top: 20px;
+    container-type: inline-size;
+    width: 100%;
 }
 
 .actions-container > * {
     margin: 0 auto 0 auto;
 }
 
-/* Lets the options below respond to the width available here, not the viewport */
-.actions-container.actions-container-side-by-side {
-    container-type: inline-size;
-    width: 100%;
-}
-
-/* Without side-by-side the options lay out directly in the container */
 .options {
-    display: contents;
-}
-
-/* Stacked by default: URL field, OR, then dropzone */
-.options-side-by-side {
     align-items: center;
     display: flex;
     flex-direction: column;
@@ -30,32 +20,19 @@
     width: 100%;
 }
 
-/* Named children, since `> *` is too weak to override their own margins */
-.options-side-by-side > :is(.url-form, .or-divider, .dropzone) {
-    margin: 0;
-}
-
-.options-side-by-side > .url-form,
-.options-side-by-side > .dropzone {
-    width: 100%;
-}
-
-/* Room for two halves, the OR, and the gaps; items stay vertically centered */
 @container (min-width: 400px) {
-    .options-side-by-side {
-        align-items: center;
+    .options {
         flex-direction: row;
         gap: 16px;
     }
 
-    .options-side-by-side > .url-form,
-    .options-side-by-side > .dropzone {
+    .options > .url-form,
+    .options > .dropzone {
         flex: 1 1 0;
-        width: auto;
     }
 }
 
-.actions-container-side-by-side > .file-selection-error {
+.actions-container > .file-selection-error {
     margin-top: 12px;
 }
 
@@ -73,7 +50,6 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-bottom: 16px;
 }
 
 .dropzone-active, .dropzone:hover {
@@ -112,7 +88,6 @@
 .or-divider {
     display: flex;
     justify-content: center;
-    margin: 10px 0 10px 0;
 }
 
 .selected-file {
@@ -126,7 +101,8 @@
 }
 
 .selected-file-button {
-    margin-left: 10px;
+    /* Full-size click target without adding row height */
+    margin: -8px 0 -8px 10px;
 }
 
 .selected-files {
@@ -182,12 +158,10 @@
     min-width: 32px;
 }
 
-/* Default disabled background matches the card behind it, so set one that shows on any surface */
 .url-form .enter-button:disabled {
     background-color: var(--accent-dark);
 }
 
-/* Aqua once a URL is entered, following the primary button's colors */
 .url-form .enter-button:not(:disabled) {
     background-color: var(--highlight-background-color);
 }
@@ -199,11 +173,6 @@
 .url-form .enter-button:not(:disabled):hover,
 .url-form .enter-button:not(:disabled):focus {
     background-color: var(--highlight-hover-background-color);
-}
-
-.url-form .enter-button:not(:disabled):hover i,
-.url-form .enter-button:not(:disabled):focus i {
-    color: var(--highlight-hover-text-color);
 }
 
 .url-form :is(input, input::placeholder) {
@@ -219,7 +188,6 @@
     font-style: italic;
 }
 
-/* Hide the hint once the user clicks into the field */
 .url-form input:focus::placeholder {
     color: transparent;
 }
@@ -228,7 +196,6 @@
     display: none;
 }
 
-/* Field border and focus ring match the Edit metadata text fields; hover uses accent-dark */
 .url-form > div > div > div {
     background-color: unset;
     border: 1px solid var(--border-color);

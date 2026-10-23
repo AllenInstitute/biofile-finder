@@ -22,7 +22,6 @@ interface DataSourceTemplateProps {
 export default function DataSourcePromptTemplate(
     props: React.PropsWithChildren<DataSourceTemplateProps>
 ) {
-    // Once a file is chosen the modal already sits on its own surface, so only the start screen gets a card
     const showCard = !props.isModal && !!props.selectedFile;
 
     return (
@@ -52,6 +51,7 @@ export default function DataSourcePromptTemplate(
             <div
                 className={classNames(styles.filePromptOuterWrapper, {
                     [styles.filePromptCard]: showCard,
+                    [styles.filePromptSelectedInModal]: props.isModal && !!props.selectedFile,
                 })}
             >
                 {showCard && <h2 className={styles.cardTitle}>Loading files</h2>}
@@ -61,7 +61,6 @@ export default function DataSourcePromptTemplate(
                     selectedFile={props.selectedFile}
                     parentId={`file-prompt-${props.isModal ? "modal" : "main"}`}
                     lightBackground={props.isModal}
-                    sideBySide
                 />
                 {props.children}
                 <div className={styles.loadButtonContainer}>
