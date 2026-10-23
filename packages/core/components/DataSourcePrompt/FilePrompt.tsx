@@ -21,7 +21,6 @@ interface Props {
     onSelectFile: (file?: Source) => void;
     parentId: string; // Distinguish between multiple file prompt elements
     selectedFile?: Source;
-    sideBySide?: boolean; // Row when the container is wide enough, otherwise stacked
 }
 
 /**
@@ -131,7 +130,7 @@ export default function FilePrompt(props: Props) {
         return (
             <div className={styles.selectedFileContainer}>
                 <div className={styles.selectedFiles}>
-                    <Tooltip content={props.selectedFile.name}>
+                    <Tooltip content={`${props.selectedFile.name}.${props.selectedFile.type}`}>
                         <p className={styles.selectedFile}>
                             {props?.fileLabel}
                             {props.selectedFile.name}.{props.selectedFile.type}
@@ -151,16 +150,8 @@ export default function FilePrompt(props: Props) {
     }
 
     return (
-        <div
-            className={classNames(props.className, styles.actionsContainer, {
-                [styles.actionsContainerSideBySide]: props.sideBySide,
-            })}
-        >
-            <div
-                className={classNames(styles.options, {
-                    [styles.optionsSideBySide]: props.sideBySide,
-                })}
-            >
+        <div className={classNames(props.className, styles.actionsContainer)}>
+            <div className={styles.options}>
                 <form
                     className={styles.urlForm}
                     data-testid={`urlform-${props.parentId}`}
@@ -207,7 +198,7 @@ export default function FilePrompt(props: Props) {
                         <p>Drop here</p>
                     ) : (
                         <p>
-                            <Icon className={styles.dropzoneIcon} iconName="CloudUpload" />
+                            <Icon className={styles.dropzoneIcon} iconName="Move" />
                             Drag and drop or <span className={styles.browseLink}>browse</span>
                         </p>
                     )}
