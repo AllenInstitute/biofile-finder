@@ -26,17 +26,21 @@
 
 .advanced-options-label {
     flex-basis: 100%;
+    font-size: var(--s-paragraph-size);
+    font-weight: 300;
     margin: 0 0 4px;
 }
 
 .advanced-options-button {
+    /* Fit the 34px button's layout height to its text, keeping the full click target */
+    margin: -5px 0;
     padding: 0;
 }
 
 .advanced-options-divider {
     align-self: stretch;
     background-color: var(--border-color);
-    margin: 8px 12px;
+    margin: 4px 12px;
     width: 1px;
 }
 
@@ -55,30 +59,32 @@
 }
 
 .file-prompt-outer-wrapper {
+    --selected-file-gap: 0;
+    gap: 20px;
     width: 100%;
     margin-bottom: 32px;
     min-width: var(--min-width);
     max-width: var(--max-width);
 }
 
-/* Start screen after a file is chosen: a raised card holding the file, options, and LOAD */
+.file-prompt-outer-wrapper .load-button-container {
+    margin-top: 0;
+}
+
+.file-prompt-selected-in-modal {
+    margin-top: 20px;
+}
+
 .file-prompt-card {
-    --selected-file-gap: 0; /* spacing comes from the card's gap instead */
     align-items: flex-start;
     background-color: var(--primary-dark);
     border-radius: var(--small-border-radius);
     box-sizing: border-box;
-    gap: 20px;
     padding: 24px;
 }
 
-/* 4px plus the card's 20px gap puts 24px below the title */
 .card-title {
     margin: 0 0 4px;
-}
-
-.file-prompt-card .load-button-container {
-    margin-top: 0;
 }
 
 .file-prompt {
@@ -121,9 +127,6 @@
 
 .datasource-subhead {
     margin-bottom: 13px !important;
-    text-align: left;
-    max-width: var(--max-width);
-    min-width: var(--min-width);
 }
 
 .text {
@@ -150,7 +153,6 @@
     text-align: center;
 }
 
-/* Heading and subheading span the same width as the content below and align to its left edge */
 .title, .datasource-subhead {
     box-sizing: border-box;
     max-width: var(--max-width);
