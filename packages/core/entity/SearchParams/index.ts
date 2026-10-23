@@ -43,7 +43,6 @@ export type SourceType = (typeof ACCEPTED_SOURCE_TYPES)[number];
 
 export interface Source {
     name: string;
-    type?: (typeof ACCEPTED_SOURCE_TYPES)[number];
     uri?: string | File;
 }
 

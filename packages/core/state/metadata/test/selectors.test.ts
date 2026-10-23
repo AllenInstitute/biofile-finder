@@ -76,6 +76,7 @@ describe("Metadata selectors", () => {
             // act
             const map = metadata.selectors.getAnnotationPrefixes(state);
 
+            // assert
             expect(map.get("Well")).to.be.undefined;
             expect(map.get("Well.Dose.Unit")).to.equal("w~.d~.u~");
             expect(map.get(simple.name)).to.equal("c~");

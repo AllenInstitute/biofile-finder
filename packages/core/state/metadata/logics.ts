@@ -137,7 +137,7 @@ const receiveAnnotationsLogic = createLogic({
             displayableAnnotations.map((annotation) => annotation.name)
         );
 
-        // Decoded columns may be shortened into prefixes (e.g., Well.Dose -> We~.Do~)
+        // Decoded columns may be shortened into prefixes (e.g., Well.Dose -> we~.do~)
         // Expand them back into full annotation names before they get used anywhere
         const resolveColumnPrefixFn = ColumnCoder.createPrefixResolver(
             displayableAnnotations.map((annotation) => annotation.path)
