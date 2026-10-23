@@ -4,25 +4,52 @@
     flex-direction: column;
     justify-content: center;
     margin-top: 20px;
+    container-type: inline-size;
+    width: 100%;
 }
 
 .actions-container > * {
     margin: 0 auto 0 auto;
 }
 
+.options {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+@container (min-width: 400px) {
+    .options {
+        flex-direction: row;
+        gap: 16px;
+    }
+
+    .options > .url-form,
+    .options > .dropzone {
+        flex: 1 1 0;
+    }
+}
+
+.actions-container > .file-selection-error {
+    margin-top: 12px;
+}
+
 .dropzone {
     width: 100%;
     border: 1px dashed var(--border-color);
+    border-radius: var(--small-border-radius);
     text-align: center;
-    padding: 5px 0 19px;
-    min-height: 105px;
+    box-sizing: border-box;
+    height: 50px;
+    padding: 0 8px;
     font-size: var(--s-paragraph-size);
     cursor: pointer;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-bottom: 16px;
 }
 
 .dropzone-active, .dropzone:hover {
@@ -40,15 +67,16 @@
     justify-content: center;
 }
 
-.dropzone-button {
-    width: fit-content;
-    display: flex;
+.dropzone p {
+    margin: 0;
 }
 
-.dropzone-button:hover, .dropzone:hover > .dropzone-button {
-    background-color: var(--aqua-secondary-hover) !important;
-    color: var(--bright-aqua) !important;
-    border-color: var(--bright-aqua);
+.browse-link {
+    color: var(--aqua);
+}
+
+.dropzone:hover .browse-link {
+    color: var(--bright-aqua);
 }
 
 .dropzone-icon {
@@ -59,9 +87,7 @@
 
 .or-divider {
     display: flex;
-    font-weight: 600;
     justify-content: center;
-    margin: 10px 0 10px 0;
 }
 
 .selected-file {
@@ -75,13 +101,14 @@
 }
 
 .selected-file-button {
-    margin-left: 10px;
+    /* Full-size click target without adding row height */
+    margin: -8px 0 -8px 10px;
 }
 
 .selected-files {
     align-items: center;
     display: flex;
-    padding-bottom: 10px
+    padding-bottom: var(--selected-file-gap, 10px);
 }
 
 .selected-file-container {
@@ -117,6 +144,8 @@
     width: 100%;
     border-radius: var(--small-border-radius);
     display: flex;
+    align-items: center;
+    gap: 2px;
 }
 
 .url-form > div:first-of-type {
@@ -129,6 +158,23 @@
     min-width: 32px;
 }
 
+.url-form .enter-button:disabled {
+    background-color: var(--accent-dark);
+}
+
+.url-form .enter-button:not(:disabled) {
+    background-color: var(--highlight-background-color);
+}
+
+.url-form .enter-button:not(:disabled) i {
+    color: var(--highlight-text-color);
+}
+
+.url-form .enter-button:not(:disabled):hover,
+.url-form .enter-button:not(:disabled):focus {
+    background-color: var(--highlight-hover-background-color);
+}
+
 .url-form :is(input, input::placeholder) {
     background-color: var(--secondary-background-color);
     border: none;
@@ -138,7 +184,12 @@
 }
 
 .url-form input::placeholder {
+    color: var(--secondary-text-color);
     font-style: italic;
+}
+
+.url-form input:focus::placeholder {
+    color: transparent;
 }
 
 .url-form input::after {
@@ -147,7 +198,8 @@
 
 .url-form > div > div > div {
     background-color: unset;
-    border-radius: var(--small-border-radius)
+    border: 1px solid var(--border-color);
+    border-radius: var(--small-border-radius);
 }
 
 .url-form > div > div > div:hover {
@@ -156,7 +208,7 @@
 
 .url-form > div > div > div::after {
     border: 1px solid var(--aqua);
-    border-radius: var(--small-border-radius)
+    border-radius: var(--small-border-radius);
 }
 
 .url-form > .cancel-icon:hover {

@@ -80,7 +80,7 @@ describe("<DataSourcePrompt />", () => {
         fireEvent.click(getByText(/Add a provenance descriptor file/));
 
         // Primary prompt is replaced by its selected file; the two descriptor prompts render
-        expect(getAllByText(/click to browse/).length).to.equal(2);
+        expect(getAllByText("browse").length).to.equal(2);
         expect(getByTestId("urlform-file-prompt-metadata-main")).to.exist;
         expect(getByTestId("urlform-file-prompt-provenance-main")).to.exist;
 
@@ -89,7 +89,7 @@ describe("<DataSourcePrompt />", () => {
         fireEvent.submit(getByTestId("urlform-file-prompt-metadata-main"));
 
         // Only the provenance prompt still renders
-        expect(getAllByText(/click to browse/).length).to.equal(1);
+        expect(getAllByText("browse").length).to.equal(1);
         expect(queryByTestId("urlform-file-prompt-metadata-main")).to.be.null;
         expect(getByTestId("urlform-file-prompt-provenance-main")).to.exist;
     });

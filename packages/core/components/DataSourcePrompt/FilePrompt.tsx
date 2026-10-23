@@ -6,7 +6,7 @@ import { useDropzone } from "react-dropzone";
 import { useDispatch } from "react-redux";
 
 import MarkdownPreview from "./MarkdownPreview";
-import { SecondaryButton, TertiaryButton, TransparentIconButton } from "../Buttons";
+import { TertiaryButton, TransparentIconButton } from "../Buttons";
 import Tooltip from "../Tooltip";
 import { ParsedFrontmatter, processMarkdown } from "../../entity/MarkdownFrontMatter";
 import { getNameAndTypeFromSourceUrl, isMarkdownType, Source } from "../../entity/SearchParams";
@@ -130,7 +130,7 @@ export default function FilePrompt(props: Props) {
         return (
             <div className={styles.selectedFileContainer}>
                 <div className={styles.selectedFiles}>
-                    <Tooltip content={props.selectedFile.name}>
+                    <Tooltip content={`${props.selectedFile.name}.${props.selectedFile.type}`}>
                         <p className={styles.selectedFile}>
                             {props?.fileLabel}
                             {props.selectedFile.name}.{props.selectedFile.type}
@@ -151,64 +151,58 @@ export default function FilePrompt(props: Props) {
 
     return (
         <div className={classNames(props.className, styles.actionsContainer)}>
-            <form
-                className={styles.urlForm}
-                data-testid={`urlform-${props.parentId}`}
-                onSubmit={onEnterURL}
-            >
-                <TextField
-                    iconProps={{
-                        className: classNames(styles.cancelIcon, {
-                            [styles.hidden]: !dataSourceURL,
+            <div className={styles.options}>
+                <form
+                    className={styles.urlForm}
+                    data-testid={`urlform-${props.parentId}`}
+                    onSubmit={onEnterURL}
+                >
+                    <TextField
+                        iconProps={{
+                            className: classNames(styles.cancelIcon, {
+                                [styles.hidden]: !dataSourceURL,
+                            }),
+                            iconName: "Cancel",
+                            onClick: () => {
+                                dataSourceURL.length > 0 ? setDataSourceURL("") : undefined;
+                            },
+                        }}
+                        onChange={(_, newValue) => setDataSourceURL(newValue || "")}
+                        placeholder="Paste URL (i.e. S3, Azure, Google Sheets)..."
+                        value={dataSourceURL}
+                    />
+                    <TertiaryButton
+                        className={styles.enterButton}
+                        disabled={!dataSourceURL}
+                        iconName="ReturnKey"
+                        onClick={() => onEnterURL()}
+                        title="Select URL"
+                    />
+                </form>
+                <div className={styles.orDivider}>OR</div>
+                <div
+                    {...getRootProps({
+                        "data-testid": "dropzone",
+                        name: `data-source-selector-${props.parentId}`,
+                        className: classNames(styles.dropzone, {
+                            [styles.dropzoneDark]: props.lightBackground,
+                            [styles.dropzoneActive]: isDragActive && !props.lightBackground,
+                            [styles.dropzoneActiveDark]: isDragActive && props.lightBackground,
                         }),
-                        iconName: "Cancel",
-                        onClick: () => {
-                            dataSourceURL.length > 0 ? setDataSourceURL("") : undefined;
-                        },
-                    }}
-                    onChange={(_, newValue) => setDataSourceURL(newValue || "")}
-                    placeholder="Paste URL (i.e. S3, Azure, Google Sheets)..."
-                    value={dataSourceURL}
-                />
-                <TertiaryButton
-                    className={styles.enterButton}
-                    disabled={!dataSourceURL}
-                    iconName="ReturnKey"
-                    onClick={() => onEnterURL()}
-                    title="Select URL"
-                />
-            </form>
-            <div className={styles.orDivider}>OR</div>
-            <div
-                {...getRootProps({
-                    "data-testid": "dropzone",
-                    name: `data-source-selector-${props.parentId}`,
-                    className: classNames(styles.dropzone, {
-                        [styles.dropzoneDark]: props.lightBackground,
-                        [styles.dropzoneActive]: isDragActive && !props.lightBackground,
-                        [styles.dropzoneActiveDark]: isDragActive && props.lightBackground,
-                    }),
-                })}
-            >
-                <input
-                    {...getInputProps({ name: `data-source-selector-input-${props.parentId}` })}
-                />
-                {isDragActive ? (
-                    <p>Drop here</p>
-                ) : (
-                    <>
+                    })}
+                >
+                    <input
+                        {...getInputProps({ name: `data-source-selector-input-${props.parentId}` })}
+                    />
+                    {isDragActive ? (
+                        <p>Drop here</p>
+                    ) : (
                         <p>
-                            <Icon className={styles.dropzoneIcon} iconName="CloudUpload" />
-                            Drag and drop or click to browse
+                            <Icon className={styles.dropzoneIcon} iconName="Move" />
+                            Drag and drop or <span className={styles.browseLink}>browse</span>
                         </p>
-                        <SecondaryButton
-                            className={styles.dropzoneButton}
-                            iconName=""
-                            text="Choose file"
-                            title=""
-                        />
-                    </>
-                )}
+                    )}
+                </div>
             </div>
             {fileRejections.length > 0 && fileErrorMessage}
         </div>
