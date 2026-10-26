@@ -32,7 +32,11 @@
     }
 }
 
-.actions-container > .file-selection-error {
+.actions-container > .cancel-icon:focus-visible {
+    outline: 2px solid var(--aqua);
+}
+
+.file-selection-error {
     margin-top: 12px;
 }
 
@@ -50,6 +54,12 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+.dropzone:focus-visible {
+    border: 1px dashed var(--aqua);
+    outline: 2px solid var(--aqua);
+    outline-offset: 2px;
 }
 
 .dropzone-active, .dropzone:hover {
@@ -140,7 +150,6 @@
 }
 
 .url-form {
-    background-color: var(--secondary-background-color);
     width: 100%;
     border-radius: var(--small-border-radius);
     display: flex;

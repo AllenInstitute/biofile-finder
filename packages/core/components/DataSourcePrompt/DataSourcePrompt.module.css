@@ -182,3 +182,8 @@
     color: var(--bright-aqua);
     text-decoration: underline;
 }
+
+/* Focused programmatically when the prompt opens; not interactive, so no focus ring */
+.advanced-options-header > h4:focus {
+    outline: none;
+}
