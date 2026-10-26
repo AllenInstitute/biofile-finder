@@ -28,6 +28,14 @@ interface Props {
     selectedFile?: Source;
 }
 
+// Selectors for the controls focus is handed to when this component swaps its contents
+const REMOVE_BUTTON_SELECTOR = "button";
+const URL_INPUT_SELECTOR = "input[type=text]";
+
+function focusWithin(container: HTMLElement | null, selector: string) {
+    container?.querySelector<HTMLElement>(selector)?.focus();
+}
+
 /**
  * Component for asking a user for a file or URL
  */
@@ -45,9 +53,9 @@ export default function FilePrompt(props: Props) {
     // would otherwise drop keyboard focus onto the body
     React.useEffect(() => {
         if (hasSelectedFile) {
-            containerRef.current?.querySelector<HTMLElement>("button")?.focus();
+            focusWithin(containerRef.current, REMOVE_BUTTON_SELECTOR);
         } else if (hasMounted.current) {
-            containerRef.current?.querySelector<HTMLElement>("input[type=text]")?.focus();
+            focusWithin(containerRef.current, URL_INPUT_SELECTOR);
         }
         hasMounted.current = true;
     }, [hasSelectedFile]);

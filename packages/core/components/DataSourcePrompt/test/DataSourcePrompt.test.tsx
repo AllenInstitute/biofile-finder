@@ -107,4 +107,102 @@ describe("<DataSourcePrompt />", () => {
         );
         expect(link?.getAttribute("target")).to.equal("_blank");
     });
+
+    describe("accessibility", () => {
+        function renderWithPrimaryFile() {
+            const { store } = configureMockStore({ state: initialState, reducer });
+            const utils = render(
+                <Provider store={store}>
+                    <DataSourcePrompt />
+                </Provider>
+            );
+            fireEvent.change(utils.getByRole("textbox"), { target: { value: "primary.csv" } });
+            fireEvent.submit(utils.getByTestId("urlform-file-prompt-main"));
+            return utils;
+        }
+
+        it("labels the dropzone, URL field and clear button", () => {
+            const { store } = configureMockStore({ state: initialState });
+            const { getByRole, getByTestId } = render(
+                <Provider store={store}>
+                    <DataSourcePrompt />
+                </Provider>
+            );
+
+            expect(getByRole("textbox", { name: "Data source URL" })).to.exist;
+            expect(getByTestId("dropzone").getAttribute("role")).to.equal("button");
+            expect(getByTestId("dropzone").getAttribute("aria-label")).to.contain("Browse");
+
+            fireEvent.change(getByRole("textbox"), { target: { value: "a.csv" } });
+            expect(getByRole("button", { name: "Clear URL" })).to.exist;
+        });
+
+        it("clears the URL from the keyboard", () => {
+            const { store } = configureMockStore({ state: initialState });
+            const { getByRole } = render(
+                <Provider store={store}>
+                    <DataSourcePrompt />
+                </Provider>
+            );
+            fireEvent.change(getByRole("textbox"), { target: { value: "a.csv" } });
+
+            fireEvent.keyDown(getByRole("button", { name: "Clear URL" }), { key: "Enter" });
+
+            expect(getByRole<HTMLInputElement>("textbox").value).to.equal("");
+        });
+
+        it("moves focus to the remove button once a file is selected, then back to the URL field", () => {
+            const { getByRole } = renderWithPrimaryFile();
+
+            const removeButton = getByRole("button", { name: "Remove file" });
+            expect(document.activeElement).to.equal(removeButton);
+
+            fireEvent.click(removeButton);
+
+            expect(document.activeElement).to.equal(
+                getByRole("textbox", { name: "Data source URL" })
+            );
+        });
+
+        it("focuses the title of a descriptor prompt when opened, not its URL field", () => {
+            const { getByText, getByRole } = renderWithPrimaryFile();
+
+            fireEvent.click(getByText(/Add a column descriptor file/));
+
+            const title = getByRole("heading", { name: "Column descriptor file" });
+            expect(document.activeElement).to.equal(title);
+        });
+
+        it("returns focus to the opening button when a descriptor prompt is closed", () => {
+            const { getByText, getByRole } = renderWithPrimaryFile();
+            fireEvent.click(getByText(/Add a column descriptor file/));
+
+            fireEvent.click(getByRole("button", { name: /Close column descriptor file prompt/i }));
+
+            expect(document.activeElement).to.equal(
+                getByText(/Add a column descriptor file/).closest("button")
+            );
+        });
+
+        it("announces file rejection errors", async () => {
+            const { store } = configureMockStore({ state: initialState });
+            const { findByRole, getByTestId } = render(
+                <Provider store={store}>
+                    <DataSourcePrompt />
+                </Provider>
+            );
+            const file = { name: "test.png", type: "image/png" };
+
+            fireEvent.drop(getByTestId("dropzone"), {
+                dataTransfer: {
+                    files: [file],
+                    items: [{ kind: "file", type: file.type, getAsFile: () => file }],
+                    types: ["Files"],
+                },
+            });
+
+            const alert = await findByRole("alert");
+            expect(alert.textContent).to.contain("Invalid file type");
+        });
+    });
 });
