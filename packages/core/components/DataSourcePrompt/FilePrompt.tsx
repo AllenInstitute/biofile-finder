@@ -162,7 +162,7 @@ export default function FilePrompt(props: Props) {
         return (
             <div className={styles.selectedFileContainer} ref={containerRef}>
                 <div className={styles.selectedFiles}>
-                    <Tooltip content={`${props.selectedFile.name}.${props.selectedFile.type}`}>
+                    <Tooltip content={props.selectedFile.name}>
                         <p className={styles.selectedFile}>
                             {props?.fileLabel}
                             {props.selectedFile.name}
