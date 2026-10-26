@@ -36,7 +36,21 @@ export default function FilePrompt(props: Props) {
     const [dataSourceURL, setDataSourceURL] = React.useState("");
     const [mdFrontmatter, setMdFrontmatter] = React.useState<ParsedFrontmatter>();
     const [shouldHaveFrontmatter, setShouldHaveFrontmatter] = React.useState(false);
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const hasMounted = React.useRef(false);
     const { onSelectFile } = props;
+    const hasSelectedFile = !!props.selectedFile;
+
+    // This component swaps its contents when a file is selected or removed, which
+    // would otherwise drop keyboard focus onto the body
+    React.useEffect(() => {
+        if (hasSelectedFile) {
+            containerRef.current?.querySelector<HTMLElement>("button")?.focus();
+        } else if (hasMounted.current) {
+            containerRef.current?.querySelector<HTMLElement>("input[type=text]")?.focus();
+        }
+        hasMounted.current = true;
+    }, [hasSelectedFile]);
 
     // Parse markdown files to provide a preview of the metadata we're able to find.
     const handleMarkdownSource = React.useCallback(
@@ -108,12 +122,14 @@ export default function FilePrompt(props: Props) {
         const listFormatter = new Intl.ListFormat("en", { style: "long" });
 
         return Object.keys(fileRejectionMap).map((errorCode) => (
-            <div className={styles.fileSelectionError} key={errorCode}>
+            <div className={styles.fileSelectionError} key={errorCode} role="alert">
                 {listFormatter.format(fileRejectionMap[errorCode])} could not be selected:{" "}
                 {errorCode === "too-many-files" ? "Too many files" : "Invalid file type"}.
             </div>
         ));
     }, [fileRejections]);
+
+    const clearURL = () => setDataSourceURL("");
 
     const onEnterURL = throttle(
         (evt?: React.FormEvent) => {
@@ -136,7 +152,7 @@ export default function FilePrompt(props: Props) {
 
     if (props.selectedFile) {
         return (
-            <div className={styles.selectedFileContainer}>
+            <div className={styles.selectedFileContainer} ref={containerRef}>
                 <div className={styles.selectedFiles}>
                     <Tooltip content={`${props.selectedFile.name}.${props.selectedFile.type}`}>
                         <p className={styles.selectedFile}>
@@ -147,18 +163,20 @@ export default function FilePrompt(props: Props) {
                     <TransparentIconButton
                         className={styles.selectedFileButton}
                         iconName="Cancel"
-                        title="Remove file"
+                        label="Remove file"
                         onClick={() => props.onSelectFile(undefined)}
                     />
                 </div>
-                {shouldHaveFrontmatter && <MarkdownPreview mdFrontmatter={mdFrontmatter} />}
+                <div role="status">
+                    {shouldHaveFrontmatter && <MarkdownPreview mdFrontmatter={mdFrontmatter} />}
+                </div>
                 {fileRejections.length > 0 && fileErrorMessage}
             </div>
         );
     }
 
     return (
-        <div className={classNames(props.className, styles.actionsContainer)}>
+        <div className={classNames(props.className, styles.actionsContainer)} ref={containerRef}>
             <div className={styles.options}>
                 <form
                     className={styles.urlForm}
@@ -171,10 +189,18 @@ export default function FilePrompt(props: Props) {
                                 [styles.hidden]: !dataSourceURL,
                             }),
                             iconName: "Cancel",
-                            onClick: () => {
-                                dataSourceURL.length > 0 ? setDataSourceURL("") : undefined;
+                            onClick: clearURL,
+                            onKeyDown: (evt: React.KeyboardEvent) => {
+                                if (evt.key === "Enter" || evt.key === " ") {
+                                    evt.preventDefault();
+                                    clearURL();
+                                }
                             },
+                            role: "button",
+                            tabIndex: 0,
+                            "aria-label": "Clear URL",
                         }}
+                        ariaLabel="Data source URL"
                         onChange={(_, newValue) => setDataSourceURL(newValue || "")}
                         placeholder="Paste URL (i.e. S3, Azure, Google Sheets)..."
                         value={dataSourceURL}
@@ -184,7 +210,7 @@ export default function FilePrompt(props: Props) {
                         disabled={!dataSourceURL}
                         iconName="ReturnKey"
                         onClick={() => onEnterURL()}
-                        title="Select URL"
+                        title="Apply URL"
                     />
                 </form>
                 <div className={styles.orDivider}>OR</div>
@@ -192,6 +218,8 @@ export default function FilePrompt(props: Props) {
                     {...getRootProps({
                         "data-testid": "dropzone",
                         name: `data-source-selector-${props.parentId}`,
+                        role: "button",
+                        "aria-label": "Browse for a file, or drag and drop one here",
                         className: classNames(styles.dropzone, {
                             [styles.dropzoneDark]: props.lightBackground,
                             [styles.dropzoneActive]: isDragActive && !props.lightBackground,
