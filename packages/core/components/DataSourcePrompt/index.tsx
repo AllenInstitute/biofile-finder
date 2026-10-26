@@ -204,7 +204,7 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
     return (
         <DataSourcePromptTemplate
             className={props.className}
-            description="Provide a metadata file (CSV, Parquet, or JSON) describing your dataset. Once loaded, it becomes a searchable data source that you can query, filter, and explore."
+            description="Provide a file (CSV, Parquet, or JSON) describing your dataset. Once loaded, it becomes a searchable data source that you can query, filter, and explore."
             isModal={props.isModal}
             onSubmit={onSubmit}
             onSelectFile={setDataSource}
