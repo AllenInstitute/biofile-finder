@@ -148,7 +148,7 @@ describe("<DataSourcePrompt />", () => {
 
             fireEvent.keyDown(getByRole("button", { name: "Clear URL" }), { key: "Enter" });
 
-            expect(getByRole<HTMLInputElement>("textbox").value).to.equal("");
+            expect(screen.getByRole<HTMLInputElement>("textbox").value).to.equal("");
         });
 
         it("moves focus to the remove button once a file is selected, then back to the URL field", () => {
