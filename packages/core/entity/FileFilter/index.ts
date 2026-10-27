@@ -1,4 +1,4 @@
-import { isEqual } from "lodash";
+import { isEqual, partition } from "lodash";
 
 import { AnnotationType } from "../AnnotationFormatter";
 import resolvePathIsArray, { hasArrayBeforeLeaf, isLeafAnArray } from "../resolvePathIsArray";
@@ -21,6 +21,8 @@ export enum MatchStyle {
 
 // These also correspond to query param names
 export enum FilterType {
+    // Like DEFAULT, but multiple values for the same annotation must ALL match (AND instead of OR)
+    ALL = "all",
     // "include" and "exclude" are the wire names for "has any value" and "has no value";
     // they are kept as-is so shared URLs and file-explorer-service params keep working
     ANY_VALUE = "include",
@@ -36,6 +38,7 @@ export enum FilterType {
  */
 const FILTER_TYPE_TRAITS: Record<FilterType, { matchStyle: MatchStyle }> = {
     [FilterType.DEFAULT]: { matchStyle: MatchStyle.EXACT },
+    [FilterType.ALL]: { matchStyle: MatchStyle.EXACT },
     [FilterType.FUZZY]: { matchStyle: MatchStyle.CONTAINS },
     [FilterType.ANY_VALUE]: { matchStyle: MatchStyle.EXACT },
     [FilterType.NO_VALUE]: { matchStyle: MatchStyle.EXACT },
@@ -97,15 +100,14 @@ export default class FileFilter {
                 independentByName.set(f.name, bucket);
             }
             for (const sameAnnotation of independentByName.values()) {
-                clauses.push(
-                    sameAnnotation
-                        .map((f) =>
-                            f.toSimpleWhereClause(
-                                resolvePathIsArray(f.name, f.path.length, pathIsArrayByName)
-                            )
-                        )
-                        .join(" OR ")
-                );
+                const toClause = (f: FileFilter) =>
+                    f.toSimpleWhereClause(
+                        resolvePathIsArray(f.name, f.path.length, pathIsArrayByName)
+                    );
+                // "ALL OF" filters each become their own AND'd clause
+                const [allOf, anyOf] = partition(sameAnnotation, (f) => f.type === FilterType.ALL);
+                if (anyOf.length) clauses.push(anyOf.map(toClause).join(" OR "));
+                clauses.push(...allOf.map(toClause));
             }
             if (correlatable.length > 0) {
                 // Lambda variable name for the root array element in the correlated query

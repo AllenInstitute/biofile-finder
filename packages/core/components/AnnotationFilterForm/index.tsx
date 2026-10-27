@@ -138,7 +138,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         return new FileFilter(
             props.annotation.name,
             value,
-            FilterType.DEFAULT,
+            filterType === FilterType.ALL ? FilterType.ALL : FilterType.DEFAULT,
             props.annotation.type
         );
     };
@@ -360,6 +360,10 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                             text: `Some value${items.length > 0 ? "(s)" : ""}`,
                         },
                         {
+                            key: FilterType.ALL,
+                            text: "All values",
+                        },
+                        {
                             key: FilterType.ANY_VALUE,
                             text: "Any value",
                         },
@@ -371,7 +375,9 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     onChange={(_, option) => onFilterTypeOptionChange(option)}
                 />
             </div>
-            {filterType === FilterType.DEFAULT || filterType === FilterType.FUZZY ? (
+            {filterType === FilterType.DEFAULT ||
+            filterType === FilterType.ALL ||
+            filterType === FilterType.FUZZY ? (
                 searchFormType()
             ) : (
                 <div className={styles.footer}>

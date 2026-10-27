@@ -398,6 +398,18 @@ describe("FileFilter", () => {
             ]);
         });
 
+        it("ANDs multiple ALL-type values for the same annotation", () => {
+            const filters = [
+                new FileFilter("Phenotype", "small cells", FilterType.ALL, AnnotationType.STRING),
+                new FileFilter("Phenotype", "low fraction", FilterType.ALL, AnnotationType.STRING),
+            ];
+            const clauses = FileFilter.toListOfWhereClauses(filters, new Map());
+            expect(clauses).to.have.length(2);
+            expect(clauses[0]).to.contain("small");
+            expect(clauses[1]).to.contain("low");
+            expect(clauses.some((c) => c.includes("OR"))).to.be.false;
+        });
+
         // Nested annotations absent from the schema map are a programming error: we throw
         // rather than guess (a wrong guess emits list ops against a possibly-scalar struct).
         it("throws when a nested filter's annotation is missing from the map", () => {
