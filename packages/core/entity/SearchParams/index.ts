@@ -1,5 +1,5 @@
 import AnnotationName from "../Annotation/AnnotationName";
-import FileFilter from "../FileFilter";
+import FileFilter, { FilterType } from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
 import type { DatasetSources } from "../MarkdownFrontMatter";
@@ -42,7 +42,7 @@ export function isMarkdownSource(source: Source): boolean {
 
 // A source's type is derived from its uri when it loads, never persisted, so
 // nothing here is part of what a shareable URL carries.
-export type SourceType = typeof ACCEPTED_SOURCE_TYPES[number];
+export type SourceType = (typeof ACCEPTED_SOURCE_TYPES)[number];
 
 export interface Source {
     name: string;
@@ -426,16 +426,21 @@ export default class SearchParams {
                 ?.map((annotation) => this.convertGroupByToPython(annotation))
                 .join("") || "";
 
-        // Group filters by name and use OR to concatenate same filter values
+        // Group filters by name and use OR to concatenate same filter values,
+        // or AND when every value is required ("all values" filters)
         const filterGroups = new Map();
         urlComponents.filters?.forEach((filter) => {
             const pythonQueryString = filterGroups.get(filter.name);
             if (!pythonQueryString) {
                 filterGroups.set(filter.name, this.convertFilterToPython(filter));
             } else {
+                const isAllOf =
+                    filter.type === FilterType.ALL || filter.type === FilterType.FUZZY_ALL;
                 filterGroups.set(
                     filter.name,
-                    pythonQueryString.concat(` | ${this.convertFilterToPython(filter)}`)
+                    pythonQueryString.concat(
+                        ` ${isAllOf ? "&" : "|"} ${this.convertFilterToPython(filter)}`
+                    )
                 );
             }
         });

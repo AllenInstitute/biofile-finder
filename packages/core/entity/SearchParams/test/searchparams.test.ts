@@ -9,7 +9,7 @@ import SearchParams, {
     Source,
 } from "..";
 import AnnotationName from "../../Annotation/AnnotationName";
-import FileFilter from "../../FileFilter";
+import FileFilter, { FilterType } from "../../FileFilter";
 import AnyValueFilter from "../../FileFilter/AnyValueFilter";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
 import NoValueFilter from "../../FileFilter/NoValueFilter";
@@ -684,6 +684,26 @@ describe("SearchParams", () => {
 
             // Assert
             expect(result).to.contain(expectedResult);
+        });
+
+        it("ANDs the values of an 'all values' filter and ORs the values of a default one", () => {
+            const toQueries = (type: FilterType) => {
+                const components: Partial<SearchParamsComponents> = {
+                    filters: ["small", "low"].map(
+                        (value) => new FileFilter("Phenotype", value, type)
+                    ),
+                    sources: [mockSourceWithUri],
+                };
+                return SearchParams.convertToPython(components, mockOS);
+            };
+
+            expect(toQueries(FilterType.ALL)).to.contain(
+                `.query('\`Phenotype\`=="small" & \`Phenotype\`=="low"')`
+            );
+            expect(toQueries(FilterType.FUZZY_ALL)).to.contain(" & ");
+            expect(toQueries(FilterType.DEFAULT)).to.contain(
+                `.query('\`Phenotype\`=="small" | \`Phenotype\`=="low"')`
+            );
         });
 
         it("converts filters", () => {

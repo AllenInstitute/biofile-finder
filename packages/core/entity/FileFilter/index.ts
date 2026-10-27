@@ -81,14 +81,17 @@ export default class FileFilter {
         const clauses: string[] = [];
         for (const [root, group] of byRoot) {
             const correlatable: FileFilter[] = [];
+            const correlatedAllOf: FileFilter[] = [];
             const independent: FileFilter[] = [];
             for (const f of group) {
                 const pathIsArray = resolvePathIsArray(f.name, f.path.length, pathIsArrayByName);
                 const isNested = f.path.length > 1;
                 const hasArray = hasArrayBeforeLeaf(pathIsArray);
-                const hasValueAwareFilter = f.type === FilterType.DEFAULT;
-                if (isNested && hasValueAwareFilter && hasArray) {
+                const isInArray = isNested && hasArray;
+                if (isInArray && f.type === FilterType.DEFAULT) {
                     correlatable.push(f);
+                } else if (isInArray && f.type === FilterType.ALL) {
+                    correlatedAllOf.push(f);
                 } else {
                     independent.push(f);
                 }
@@ -115,17 +118,26 @@ export default class FileFilter {
                 if (anyOf.length) clauses.push(anyOf.map(toClause).join(" OR "));
                 clauses.push(...allOf.map(toClause));
             }
-            if (correlatable.length > 0) {
-                // Lambda variable name for the root array element in the correlated query
-                // does not need to match any other lambda variables outside this function
-                const nestedLambdaVar = `__e0`;
-                const inner = FileFilter.buildNestedConditions(
-                    correlatable,
+            // Lambda variable name for the root array element in the correlated query
+            // does not need to match any other lambda variables outside this function
+            const nestedLambdaVar = `__e0`;
+            const correlatedClause = (filtersInSameElement: FileFilter[]) =>
+                SQLBuilder.listFilter(
+                    `"${root}"`,
                     nestedLambdaVar,
-                    0,
-                    pathIsArrayByName
+                    FileFilter.buildNestedConditions(
+                        filtersInSameElement,
+                        nestedLambdaVar,
+                        0,
+                        pathIsArrayByName
+                    )
                 );
-                clauses.push(SQLBuilder.listFilter(`"${root}"`, nestedLambdaVar, inner));
+            if (correlatedAllOf.length > 0) {
+                // Each required value needs an element that also satisfies the sibling filters,
+                // same as a single value would, so the sibling filters are part of every clause
+                clauses.push(...correlatedAllOf.map((f) => correlatedClause([f, ...correlatable])));
+            } else if (correlatable.length > 0) {
+                clauses.push(correlatedClause(correlatable));
             }
         }
         return clauses;

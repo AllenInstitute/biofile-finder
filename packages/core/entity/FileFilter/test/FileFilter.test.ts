@@ -493,6 +493,52 @@ describe("FileFilter", () => {
             expect(new Set(strings).size).to.equal(3);
         });
 
+        // Switching one value to ALL must not widen what a single value matched: the sibling
+        // filter has to hold in the same element as each required value
+        it("requires each ALL value to share an array element with sibling filters", () => {
+            const pathIsArrayByName = new Map([
+                ["Items.Color", [true, false]],
+                ["Items.Size", [true, false]],
+            ]);
+            const sibling = new FileFilter(["Items", "Size"], "Large");
+            const allColors = ["blue", "red"].map(
+                (color) => new FileFilter(["Items", "Color"], color, FilterType.ALL)
+            );
+
+            const clauses = FileFilter.toListOfWhereClauses(
+                [...allColors, sibling],
+                pathIsArrayByName
+            );
+
+            // One clause per required value, each with the sibling filter in the same element
+            expect(clauses).to.deep.equal(
+                ["blue", "red"].map(
+                    (color) =>
+                        FileFilter.toListOfWhereClauses(
+                            [new FileFilter(["Items", "Color"], color), sibling],
+                            pathIsArrayByName
+                        )[0]
+                )
+            );
+            expect(clauses).to.have.length(2);
+            clauses.forEach((clause) => expect(clause).to.contain("Size"));
+        });
+
+        it("does not repeat the sibling filter on its own when ALL clauses already include it", () => {
+            const pathIsArrayByName = new Map([
+                ["Items.Color", [true, false]],
+                ["Items.Size", [true, false]],
+            ]);
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    new FileFilter(["Items", "Color"], "blue", FilterType.ALL),
+                    new FileFilter(["Items", "Size"], "Large"),
+                ],
+                pathIsArrayByName
+            );
+            expect(clauses).to.have.length(1);
+        });
+
         // Nested annotations absent from the schema map are a programming error: we throw
         // rather than guess (a wrong guess emits list ops against a possibly-scalar struct).
         it("throws when a nested filter's annotation is missing from the map", () => {
