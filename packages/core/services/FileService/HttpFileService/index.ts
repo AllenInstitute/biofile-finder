@@ -51,7 +51,11 @@ interface Config extends ConnectionConfig {
  * Once we move away from this API (soon) or implement support for it, this can go away
  */
 function assertNoAllFilters(filters: FileFilter[]) {
-    if (filters.some((filter) => filter.type === FilterType.ALL)) {
+    if (
+        filters.some(
+            (filter) => filter.type === FilterType.ALL || filter.type === FilterType.FUZZY_ALL
+        )
+    ) {
         throw new Error('"All values" filters are not supported by this data source');
     }
 }

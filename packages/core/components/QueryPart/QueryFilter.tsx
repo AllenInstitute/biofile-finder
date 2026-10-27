@@ -60,6 +60,8 @@ export default function QueryFilter(props: Props) {
                 else if (filters[0].type === FilterType.NO_VALUE) operator = "NO VALUE";
                 else if (filters[0].type === FilterType.FUZZY)
                     operator = filters.length > 1 ? "CONTAINS ONE OF" : "CONTAINS";
+                else if (filters[0].type === FilterType.FUZZY_ALL)
+                    operator = filters.length > 1 ? "CONTAINS ALL OF" : "CONTAINS";
                 else if (filters.length > 1)
                     // Multiple values are either all required (ALL) or alternatives (DEFAULT)
                     operator = filters[0].type === FilterType.ALL ? "ALL OF" : "ONE OF";

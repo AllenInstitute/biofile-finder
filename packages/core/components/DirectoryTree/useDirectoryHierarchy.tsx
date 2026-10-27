@@ -201,6 +201,7 @@ const useDirectoryHierarchy = (
                         const nonHierarchyFilters = selectedFileFilters.filter(
                             (f) =>
                                 f.type === FilterType.ALL ||
+                                f.type === FilterType.FUZZY_ALL ||
                                 !take(hierarchy, depth + 1).includes(f.name)
                         );
                         const filters = uniqWith(

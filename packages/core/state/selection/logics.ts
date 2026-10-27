@@ -265,6 +265,17 @@ const setAvailableAnnotationsLogic = createLogic({
 });
 
 /**
+ * The type a filter has once its annotation's mode changes to `target`. Switching between
+ * "some value(s)" (default) and "all values" keeps contains filters as contains filters.
+ */
+function convertFilterType(current: FilterType, target: FilterType): FilterType {
+    const isContains = current === FilterType.FUZZY || current === FilterType.FUZZY_ALL;
+    if (isContains && target === FilterType.ALL) return FilterType.FUZZY_ALL;
+    if (isContains && target === FilterType.DEFAULT) return FilterType.FUZZY;
+    return target;
+}
+
+/**
  * Interceptor responsible for transforming ADD_FILE_FILTER, REMOVE_FILE_FILTER, and CHANGE_FILE_FILTER_TYPE
  * actions into a concrete list of ordered FileFilters that can be stored directly in
  * application state under `selections.filters`.
@@ -300,21 +311,16 @@ const modifyFileFilters = createLogic({
                         newFilter,
                     ];
                     break;
-                // For all/default/fuzzy, toggle the type for existing all/default/fuzzy filters but keep
-                // their value, and fully remove include/exclude filters. Switching to "all" also
-                // removes fuzzy filters since "contains" terms can't be required together
+                // For all/default/fuzzy, toggle the type for existing filters but keep their value
+                // (and whether it is an exact or contains match), and fully remove include/exclude
+                // filters
                 case FilterType.ALL:
                 case FilterType.FUZZY:
                 default:
                     nextFilters = previousFilters
                         .filter(
                             (filter) =>
-                                !(
-                                    filter.name === payload.annotationName &&
-                                    (!filter.hasValue ||
-                                        (payload.type === FilterType.ALL &&
-                                            filter.type === FilterType.FUZZY))
-                                )
+                                !(filter.name === payload.annotationName && !filter.hasValue)
                         )
                         .map((filter) =>
                             filter.name !== payload.annotationName
@@ -322,7 +328,7 @@ const modifyFileFilters = createLogic({
                                 : new FileFilter(
                                       filter.name,
                                       filter.value,
-                                      payload.type,
+                                      convertFilterType(filter.type, payload.type),
                                       filter.valueType
                                   )
                         );

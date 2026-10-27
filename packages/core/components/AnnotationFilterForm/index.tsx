@@ -59,7 +59,8 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const defaultFilterType = React.useMemo(() => {
         const type = filtersForAnnotation?.[0]?.type;
         if (!type || type === FilterType.FUZZY) return FilterType.DEFAULT;
-        if (type === FilterType.ALL && !canOfferAllValues) return FilterType.DEFAULT;
+        const isAllValues = type === FilterType.ALL || type === FilterType.FUZZY_ALL;
+        if (isAllValues) return canOfferAllValues ? FilterType.ALL : FilterType.DEFAULT;
         return type;
     }, [filtersForAnnotation, canOfferAllValues]);
 
@@ -190,7 +191,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         // which waits for a value; its only clean-up is converting existing "all values"
         // filters so their values are preserved.
         const hasAllValuesFilter = filtersForAnnotation.some(
-            (filter) => filter.type === FilterType.ALL
+            (filter) => filter.type === FilterType.ALL || filter.type === FilterType.FUZZY_ALL
         );
         if (option.key !== FilterType.DEFAULT || hasAllValuesFilter) {
             dispatch(
@@ -217,7 +218,8 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         if (!filterValue || !filterValue.trim()) {
             return;
         }
-        const type = isFuzzy ? FilterType.FUZZY : filterType;
+        const fuzzyType = filterType === FilterType.ALL ? FilterType.FUZZY_ALL : FilterType.FUZZY;
+        const type = isFuzzy ? fuzzyType : filterType;
         commitFilters(
             new FileFilter(props.annotation.name, filterValue, type, props.annotation.type)
         );

@@ -1404,7 +1404,7 @@ describe("Selection logics", () => {
             ).to.be.true;
         });
 
-        it("removes fuzzy filters when changing to ALL, keeping default values", async () => {
+        it("converts exact and contains filters to their ALL forms when changing to ALL", async () => {
             const { store, logicMiddleware, actions } = configureMockStore({
                 logics: selectionLogics,
                 state: {
@@ -1412,7 +1412,7 @@ describe("Selection logics", () => {
                     selection: {
                         ...initialState.selection,
                         filters: [
-                            new FileFilter("foo", 1),
+                            new FileFilter("foo", "xx"),
                             new FileFilter("foo", "ba", FilterType.FUZZY),
                             new FileFilter("bar", "ba", FilterType.FUZZY),
                         ],
@@ -1428,7 +1428,37 @@ describe("Selection logics", () => {
                     type: SET_FILE_FILTERS,
                     payload: [
                         new FileFilter("bar", "ba", FilterType.FUZZY),
-                        new FileFilter("foo", 1, FilterType.ALL),
+                        new FileFilter("foo", "ba", FilterType.FUZZY_ALL),
+                        new FileFilter("foo", "xx", FilterType.ALL),
+                    ],
+                })
+            ).to.be.true;
+        });
+
+        it("converts ALL and FUZZY_ALL filters back when changing to DEFAULT", async () => {
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [
+                            new FileFilter("foo", "xx", FilterType.ALL),
+                            new FileFilter("foo", "ba", FilterType.FUZZY_ALL),
+                        ],
+                    },
+                },
+            });
+
+            store.dispatch(changeFileFilterType("foo", FilterType.DEFAULT));
+            await logicMiddleware.whenComplete();
+
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [
+                        new FileFilter("foo", "ba", FilterType.FUZZY),
+                        new FileFilter("foo", "xx", FilterType.DEFAULT),
                     ],
                 })
             ).to.be.true;

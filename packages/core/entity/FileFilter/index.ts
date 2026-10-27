@@ -28,6 +28,8 @@ export enum FilterType {
     ANY_VALUE = "include",
     NO_VALUE = "exclude",
     FUZZY = "fuzzy",
+    // Like FUZZY, but multiple values for the same annotation must ALL be contained (AND instead of OR)
+    FUZZY_ALL = "fuzzyAll",
     DEFAULT = "default",
 }
 
@@ -40,6 +42,7 @@ const FILTER_TYPE_TRAITS: Record<FilterType, { matchStyle: MatchStyle }> = {
     [FilterType.DEFAULT]: { matchStyle: MatchStyle.EXACT },
     [FilterType.ALL]: { matchStyle: MatchStyle.EXACT },
     [FilterType.FUZZY]: { matchStyle: MatchStyle.CONTAINS },
+    [FilterType.FUZZY_ALL]: { matchStyle: MatchStyle.CONTAINS },
     [FilterType.ANY_VALUE]: { matchStyle: MatchStyle.EXACT },
     [FilterType.NO_VALUE]: { matchStyle: MatchStyle.EXACT },
 };
@@ -105,7 +108,10 @@ export default class FileFilter {
                         resolvePathIsArray(f.name, f.path.length, pathIsArrayByName)
                     );
                 // "ALL OF" filters each become their own AND'd clause
-                const [allOf, anyOf] = partition(sameAnnotation, (f) => f.type === FilterType.ALL);
+                const [allOf, anyOf] = partition(
+                    sameAnnotation,
+                    (f) => f.type === FilterType.ALL || f.type === FilterType.FUZZY_ALL
+                );
                 if (anyOf.length) clauses.push(anyOf.map(toClause).join(" OR "));
                 clauses.push(...allOf.map(toClause));
             }
@@ -167,6 +173,8 @@ export default class FileFilter {
             case FilterType.FUZZY:
                 if (this.value === "") return `fuzzy=${name}`;
                 return `${name}=${this.value}&fuzzy=${name}`;
+            case FilterType.FUZZY_ALL:
+                return `all=${name}&${name}=${this.value}&fuzzy=${name}`;
             case FilterType.ALL:
                 // Must differ from DEFAULT so AND-ed and OR-ed filter sets never share a cache key
                 return `all=${name}&${name}=${this.value}`;

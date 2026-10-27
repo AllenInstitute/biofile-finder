@@ -444,6 +444,55 @@ describe("FileFilter", () => {
             clauses.forEach((clause) => expect(clause).to.not.include(" OR "));
         });
 
+        it("emits one AND-ed contains clause per value for FUZZY_ALL", () => {
+            const fuzzyAll = (value: string) =>
+                new FileFilter("Phenotype", value, FilterType.FUZZY_ALL, AnnotationType.STRING);
+            const clauses = FileFilter.toListOfWhereClauses(
+                [fuzzyAll("sm"), fuzzyAll("lo")],
+                new Map()
+            );
+            expect(clauses).to.deep.equal([
+                new FuzzyFilter("Phenotype", "sm").toSimpleWhereClause([false]),
+                new FuzzyFilter("Phenotype", "lo").toSimpleWhereClause([false]),
+            ]);
+        });
+
+        it("keeps FUZZY values OR-ed together", () => {
+            const clauses = FileFilter.toListOfWhereClauses(
+                [new FuzzyFilter("Phenotype", "sm"), new FuzzyFilter("Phenotype", "lo")],
+                new Map()
+            );
+            expect(clauses).to.have.length(1);
+            expect(clauses[0]).to.contain(" OR ");
+        });
+
+        it("requires each FUZZY_ALL value to be contained in a list-valued nested field", () => {
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    new FileFilter(["Image", "Tags"], "x", FilterType.FUZZY_ALL),
+                    new FileFilter(["Image", "Tags"], "y", FilterType.FUZZY_ALL),
+                ],
+                new Map([["Image.Tags", [false, true]]])
+            );
+            expect(clauses).to.deep.equal([
+                new FileFilter(["Image", "Tags"], "x", FilterType.FUZZY).toSimpleWhereClause([
+                    false,
+                    true,
+                ]),
+                new FileFilter(["Image", "Tags"], "y", FilterType.FUZZY).toSimpleWhereClause([
+                    false,
+                    true,
+                ]),
+            ]);
+        });
+
+        it("uses distinct query strings for FUZZY, ALL and FUZZY_ALL", () => {
+            const strings = [FilterType.FUZZY, FilterType.ALL, FilterType.FUZZY_ALL].map((type) =>
+                new FileFilter("A", "1", type).toQueryString()
+            );
+            expect(new Set(strings).size).to.equal(3);
+        });
+
         // Nested annotations absent from the schema map are a programming error: we throw
         // rather than guess (a wrong guess emits list ops against a possibly-scalar struct).
         it("throws when a nested filter's annotation is missing from the map", () => {

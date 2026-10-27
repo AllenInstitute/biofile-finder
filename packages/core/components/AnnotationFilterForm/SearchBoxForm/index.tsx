@@ -50,18 +50,18 @@ interface SearchBoxFormProps {
  */
 export default function SearchBoxForm(props: SearchBoxFormProps) {
     const committedType = props.filters[0]?.type;
+    const isCommittedContains =
+        committedType === FilterType.FUZZY || committedType === FilterType.FUZZY_ALL;
     const [searchText, setSearchText] = React.useState("");
     const [hasBlurred, setHasBlurred] = React.useState(false);
     const [isFuzzy, setIsFuzzy] = React.useState(
-        committedType === undefined || committedType === FilterType.FUZZY
+        committedType === undefined || isCommittedContains
     );
     const selectedOperator = isFuzzy ? FUZZY_OPTION : EXACT_OPTION;
-    const committedOperator = committedType === FilterType.FUZZY ? FUZZY_OPTION : EXACT_OPTION;
+    const committedOperator = isCommittedContains ? FUZZY_OPTION : EXACT_OPTION;
     const trimmedSearchText = searchText.trim();
     const willReplaceResults =
-        !!trimmedSearchText &&
-        committedType !== undefined &&
-        isFuzzy !== (committedType === FilterType.FUZZY);
+        !!trimmedSearchText && committedType !== undefined && isFuzzy !== isCommittedContains;
     const valueNotFound =
         !!trimmedSearchText &&
         !!props.availableValues?.length &&
