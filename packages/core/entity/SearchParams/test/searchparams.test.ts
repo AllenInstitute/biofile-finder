@@ -8,6 +8,7 @@ import SearchParams, {
     SearchParamsComponents,
     Source,
 } from "..";
+import ColumnCoder, { Column, DEFAULT_COLUMN_WIDTH } from "../ColumnCoder";
 import AnnotationName from "../../Annotation/AnnotationName";
 import FileFilter from "../../FileFilter";
 import ExcludeFilter from "../../FileFilter/ExcludeFilter";
@@ -337,6 +338,7 @@ describe("SearchParams", () => {
             expect(result).to.not.contain("non-matching-uri");
             expect(result).to.contain(colDescrSourceUri);
         });
+
         it("round-trips a directory-style source URL", () => {
             // Arrange
             const source: Source = {
@@ -357,6 +359,33 @@ describe("SearchParams", () => {
 
             // Assert
             expect(result.sources).to.deep.equal([source]);
+        });
+
+        // sanity/regression check
+        it("generates a shorter string when using column prefixes", () => {
+            // Arrange
+            const columns = [
+                { name: "Cell Line", width: 100 },
+                { name: "Cas9", width: 150 },
+                { name: "Donor Plasmid", width: 200 },
+                { name: "Gene", width: 250 },
+                { name: "Well.Dose.Unit", width: 150 },
+                { name: "Well.Dose.Concentration", width: 300 },
+            ];
+            const components: SearchParamsComponents = {
+                ...EMPTY_QUERY_COMPONENTS,
+                columns,
+            };
+            const columnPrefixes = ColumnCoder.buildPrefixesFromFullPaths(
+                columns.map((col) => col.name.split("."))
+            );
+
+            // Act
+            const resultFull = SearchParams.encode(components, undefined);
+            const resultShortened = SearchParams.encode(components, undefined, columnPrefixes);
+
+            // Assert
+            expect(resultFull.length).to.be.greaterThan(resultShortened.length);
         });
     });
 
@@ -417,7 +446,7 @@ describe("SearchParams", () => {
             });
         });
 
-        it("Decodes encoded URL", () => {
+        it("decodes encoded URL", () => {
             // Arrange
             const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid", "Balls?"];
             const expectedFilters = [
@@ -471,7 +500,7 @@ describe("SearchParams", () => {
             expect(result).to.deep.equal(components);
         });
 
-        it("Decodes to empty app state", () => {
+        it("decodes to empty app state", () => {
             // Arrange
             const components: SearchParamsComponents = {
                 columns: [],
@@ -496,7 +525,7 @@ describe("SearchParams", () => {
             expect(result).to.deep.equal(components);
         });
 
-        it("Round-trips every column when the columns are the user's selection", () => {
+        it("round-trips every column when the columns are the user's selection", () => {
             // Arrange
             const columns = [
                 { name: "Cell Line", width: 100 },
@@ -519,6 +548,165 @@ describe("SearchParams", () => {
             // Assert
             expect(result.hasUserSelectedColumns).to.be.true;
             expect(result.columns).to.deep.equal(columns);
+        });
+
+        it("round-trips every column when shortening with column prefixes", () => {
+            // Arrange
+            const columns = [
+                { name: "Cell Line", width: 100 },
+                { name: "Cas9", width: 150 },
+                { name: "Donor Plasmid", width: 200 },
+                { name: "Gene", width: 250 },
+                { name: "Plate Barcode", width: 300 },
+            ];
+            const columnPrefixes = ColumnCoder.buildPrefixesFromFullPaths(
+                columns.map((col) => [col.name])
+            );
+            const components: SearchParamsComponents = {
+                ...EMPTY_QUERY_COMPONENTS,
+                columns,
+                hasUserSelectedColumns: true,
+            };
+            const prefixResolver = ColumnCoder.createPrefixResolver(
+                columns.map((col) => [col.name])
+            );
+
+            // Act
+            const result = SearchParams.decode(
+                SearchParams.encode(components, undefined, columnPrefixes),
+                prefixResolver
+            );
+
+            // Assert
+            expect(result.hasUserSelectedColumns).to.be.true;
+            expect(result.columns).to.deep.equal(columns);
+        });
+
+        it("round-trips every nested column when shortening with column prefixes", () => {
+            // Arrange
+            const wellUnitPath = ["Well", "Dose", "Unit"];
+            const wellConcentrationPath = ["Well", "Dose", "Concentration"];
+            const wellDescriptionPath = ["Well", "Description", "Concentration"];
+            const solutionPath = ["Solution", "Concentration"];
+            const solutionIndexPath = ["Solution index"]; // consistency check: non-nested path
+            const columnPaths = [
+                wellUnitPath,
+                wellConcentrationPath,
+                wellDescriptionPath,
+                solutionPath,
+                solutionIndexPath,
+            ];
+
+            const columns: Column[] = columnPaths.map((path) => {
+                return {
+                    name: path.join("."),
+                    width: DEFAULT_COLUMN_WIDTH,
+                };
+            });
+            const columnPrefixes = ColumnCoder.buildPrefixesFromFullPaths(columnPaths);
+            const components: SearchParamsComponents = {
+                ...EMPTY_QUERY_COMPONENTS,
+                columns,
+                hasUserSelectedColumns: true,
+            };
+            const prefixResolver = ColumnCoder.createPrefixResolver(columnPaths);
+
+            // Act
+            const result = SearchParams.decode(
+                SearchParams.encode(components, undefined, columnPrefixes),
+                prefixResolver
+            );
+
+            // Assert
+            expect(result.hasUserSelectedColumns).to.be.true;
+            expect(result.columns).to.deep.equal(columns);
+        });
+
+        // Regression test; the resolver sometimes needs to be used OUTSIDE of SearchParams.decode
+        // if annotations haven't been loaded/parsed yet at decode time (e.g., in receiveAnnotationsLogic),
+        // so returns prefixes instead of full names by default
+        it("returns shortened column prefixes when no prefix resolver is provided", () => {
+            // Arrange
+            const columnPaths = [
+                ["Cell Line"],
+                ["Cas9"],
+                ["Gene"],
+                ["Well", "Dose", "Unit"],
+                ["Well", "Description"],
+            ];
+            const columns = columnPaths.map((path) => {
+                return {
+                    name: path.join("."),
+                    width: DEFAULT_COLUMN_WIDTH,
+                };
+            });
+            const columnPrefixes = ColumnCoder.buildPrefixesFromFullPaths(columnPaths);
+            const components: SearchParamsComponents = {
+                ...EMPTY_QUERY_COMPONENTS,
+                columns,
+                hasUserSelectedColumns: true,
+            };
+
+            // Act
+            const result = SearchParams.decode(
+                SearchParams.encode(components, undefined, columnPrefixes)
+            );
+
+            // Assert
+            expect(result.hasUserSelectedColumns).to.be.true;
+            expect(result.columns?.length).to.equal(columns.length);
+            columnPrefixes.forEach((prefix) => {
+                expect(result.columns?.some((column) => column.name === prefix)).to.be.true;
+            });
+        });
+
+        it("decodes a legacy (non-prefix-shortened) URL even when a prefix resolver is passed in", () => {
+            const columnPaths = [
+                ["Cell Line"],
+                ["Cas9"],
+                ["Gene"],
+                ["Well", "Dose", "Unit"],
+                ["Well", "Description"],
+            ];
+            const columns = columnPaths.map((path) => {
+                return {
+                    name: path.join("."),
+                    width: DEFAULT_COLUMN_WIDTH,
+                };
+            });
+            const expectedAnnotationNames = ["Plate Barcode", "Donor Plasmid"];
+            const expectedFilters = [
+                { name: "Cas9", value: "spCas9" },
+                { name: "Donor Plasmid", value: "ACTB-mEGFP" },
+            ];
+            const expectedOpenFolders = [["3500000654"], ["3500000654", "ACTB-mEGFP"]];
+            const components: SearchParamsComponents = {
+                columns,
+                fileView: FileView.LIST,
+                hasUserSelectedColumns: true,
+                hierarchy: expectedAnnotationNames,
+                filters: [...expectedFilters.map(({ name, value }) => new FileFilter(name, value))],
+                openFolders: expectedOpenFolders.map((folder) => new FileFolder(folder)),
+                showNoValueGroups: false,
+                sortColumn: new FileSort(AnnotationName.UPLOADED, SortOrder.DESC),
+                sourceMetadata: undefined,
+                provenanceSource: undefined,
+                provOriginId: undefined,
+                sources: [mockSource],
+            };
+            // Not providing a prefix map, so should use full names
+            const encodedWithoutPrefixes = SearchParams.encode(components);
+
+            const prefixResolver = ColumnCoder.createPrefixResolver(columnPaths);
+            // Shouldn't actually need to use the resolver even though it's passed in
+            const result = SearchParams.decode(encodedWithoutPrefixes, prefixResolver);
+
+            // Assert
+            expect(result).to.deep.equal(components);
+            // equivalent check as the deep equal, but just to be rigorous/explicit
+            expect(
+                columns.forEach((fullName) => result.columns?.some((column) => column === fullName))
+            );
         });
 
         it("Truncates columns when displaying every available annotation", () => {

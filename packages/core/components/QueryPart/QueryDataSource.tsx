@@ -132,8 +132,7 @@ export default function QueryDataSource(props: Props) {
                               key: "Optional descriptor file",
                               text: "Optional descriptor file",
                               iconProps: { iconName: "NewFolder" },
-                              title:
-                                  "Add a file that describes data source metadata or provenance relationships",
+                              title: "Add a file that describes data source metadata or provenance relationships",
                               subMenuProps: {
                                   items: [
                                       {

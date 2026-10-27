@@ -1,17 +1,14 @@
+import ColumnCoder, { Column, DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH } from "./ColumnCoder";
 import AnnotationName from "../Annotation/AnnotationName";
 import FileFilter from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
 import type { DatasetSources } from "../MarkdownFrontMatter";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
-import { Column } from "../../state/selection/actions";
 import { parseGoogleSheetName } from "../../util/googleSheets";
 
-// Somewhat arbitrary default column width in pixels;
-// used as a fallback when calculating column widths based on content,
-// and as the default width when resetting column widths
-export const DEFAULT_COLUMN_WIDTH = 150;
-export const MINIMUM_COLUMN_WIDTH = 50; // px; somewhat arbitrary;
+// Re-exported so imports in other files keep working
+export { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH };
 
 // These values CANNOT change otherwise it would break compatibility
 // with any existing URLs that use these in the encoding
@@ -42,7 +39,7 @@ export function isMarkdownSource(source: Source): boolean {
 
 // A source's type is derived from its uri when it loads, never persisted, so
 // nothing here is part of what a shareable URL carries.
-export type SourceType = typeof ACCEPTED_SOURCE_TYPES[number];
+export type SourceType = (typeof ACCEPTED_SOURCE_TYPES)[number];
 
 export interface Source {
     name: string;
@@ -142,55 +139,6 @@ enum URLQueryArgShorthands {
     PROVENANCE_ORIGIN_ID = "p",
 }
 
-class ColumnCoder {
-    private static readonly COLUMN_DELIMITER = ",";
-    private static readonly VALUE_DELIMITER = ":";
-    private static readonly COLUMN_VALUE_PRECISION = 10; // The divisor used when encoding column widths to shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths
-    // Arbitrary URL length limit; default columns beyond this regenerate on load anyway
-    private static readonly DEFAULT_COLUMN_LIMIT = 6;
-
-    public static encode(columns: Column[], areColumnsUserSelected = false): string {
-        return (
-            columns
-                // Encode width as divided by COLUMN_VALUE_PRECISION to shorten the resulting URL;
-                // this is an arbitrary choice to balance URL length with precision of column widths
-                .map(
-                    (column) =>
-                        `${column.name}${ColumnCoder.VALUE_DELIMITER}${Math.ceil(
-                            column.width / ColumnCoder.COLUMN_VALUE_PRECISION
-                        )}`
-                )
-                .slice(
-                    0,
-                    areColumnsUserSelected ? columns.length : ColumnCoder.DEFAULT_COLUMN_LIMIT
-                )
-                .join(ColumnCoder.COLUMN_DELIMITER)
-        );
-    }
-
-    public static decode(encoded: string): Column[] {
-        return encoded
-            .split(ColumnCoder.COLUMN_DELIMITER)
-            .filter((unparsedColumn) => !!unparsedColumn)
-            .map((unparsedColumn) => {
-                const [name, widthAsStr] = unparsedColumn.split(ColumnCoder.VALUE_DELIMITER);
-                const parsedWidth = parseFloat(widthAsStr);
-                // The column width was previously encoded as a number between 0 and 1 representing the percentage of available
-                // space the column should take up, but this was difficult to work with and unintuitive for users.
-                // Now we encode the actual pixel width, which is more straightforward to understand and work with when manually editing URLs.
-                // To maintain backwards compatibility with existing URLs, we continue to support previously encoded widths as percentages,
-                // but we default them to a default column width in pixels in the decoding process.
-                // Also, multiply the parsedWidth by COLUMN_VALUE_PRECISION because it is encoded as the actual width divided by COLUMN_VALUE_PRECISION to
-                // shorten the resulting URL; this is an arbitrary choice to balance URL length with precision of column widths.
-                const width =
-                    parsedWidth <= 1
-                        ? DEFAULT_COLUMN_WIDTH
-                        : parsedWidth * ColumnCoder.COLUMN_VALUE_PRECISION;
-                return { name, width };
-            });
-    }
-}
-
 /**
  * This represents a system for encoding application state information in a way
  * that allows users to copy, share, and paste the result back into the app and have the
@@ -203,17 +151,24 @@ export default class SearchParams {
      * Ideally the format this is in would be independent of the format/inner-workings
      * of our application state. As in, the names / system we track data in can change
      * without breaking an existing SearchParams.
+     * @param columnPrefixes Map of full annotation names to shortened url tokens. When
+     * omitted, encodes full names
      * */
     public static encode(
         urlComponents: Partial<SearchParamsComponents>,
-        cachedSourcesFromDescription?: DatasetSources
+        cachedSourcesFromDescription?: DatasetSources,
+        columnPrefixes?: Map<string, string>
     ): string {
         const params = new URLSearchParams();
         if (urlComponents.columns?.length) {
-            params.append(
-                URLQueryArgShorthands.COLUMNS,
-                ColumnCoder.encode(urlComponents.columns, urlComponents.hasUserSelectedColumns)
+            const encodedColumns = ColumnCoder.encode(
+                urlComponents.columns,
+                !!urlComponents.hasUserSelectedColumns,
+                columnPrefixes
             );
+            if (encodedColumns) {
+                params.append(URLQueryArgShorthands.COLUMNS, encodedColumns);
+            }
             if (urlComponents.hasUserSelectedColumns) {
                 params.append(URLQueryArgShorthands.HAS_USER_SELECTED_COLUMNS, "true");
             }
@@ -319,12 +274,15 @@ export default class SearchParams {
      * Decode a previously encoded SearchParams into components that can be rehydrated into the
      * application state
      */
-    public static decode(encodedURL: string): SearchParamsComponents {
+    public static decode(
+        encodedURL: string,
+        columnResolver?: (prefix: string) => string | undefined
+    ): SearchParamsComponents {
         const params = new URLSearchParams(encodedURL.trim());
         if (params.getAll("url").length > 0) {
             return SearchParams.decodeSimpleParams(params);
         }
-        return SearchParams.decodeComplexParams(params);
+        return SearchParams.decodeComplexParams(params, columnResolver);
     }
 
     private static decodeSimpleParams(params: URLSearchParams): SearchParamsComponents {
@@ -338,7 +296,10 @@ export default class SearchParams {
         };
     }
 
-    private static decodeComplexParams(params: URLSearchParams): SearchParamsComponents {
+    private static decodeComplexParams(
+        params: URLSearchParams,
+        columnResolver?: (prefix: string) => string | undefined
+    ): SearchParamsComponents {
         const unparsedSourceMetadata = params.get("sourceMetadata");
         const unparsedSourceProvenance = params.get("prov");
         const unparsedOpenFolders = params.getAll("openFolder");
@@ -370,7 +331,7 @@ export default class SearchParams {
         return {
             fileView,
             hierarchy,
-            columns: ColumnCoder.decode(unparsedColumns),
+            columns: ColumnCoder.decode(unparsedColumns, columnResolver),
             hasUserSelectedColumns,
             filters: unparsedFilters
                 .map((unparsedFilter) => JSON.parse(unparsedFilter))

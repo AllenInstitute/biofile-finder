@@ -1,6 +1,7 @@
 import { Environment, EnvironmentOverrides } from "../../constants";
 import { AnnotationResponse } from "../../entity/Annotation";
-import { Column, Query } from "../../state/selection/actions";
+import { Column } from "../../entity/SearchParams/ColumnCoder";
+import { Query } from "../../state/selection/actions";
 
 /**
  * Keys for the data saved by this service
