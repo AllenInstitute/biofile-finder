@@ -59,7 +59,9 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
     const committedOperator = committedType === FilterType.FUZZY ? FUZZY_OPTION : EXACT_OPTION;
     const trimmedSearchText = searchText.trim();
     const willReplaceResults =
-        !!trimmedSearchText && isFuzzy !== (committedType === FilterType.FUZZY);
+        !!trimmedSearchText &&
+        committedType !== undefined &&
+        isFuzzy !== (committedType === FilterType.FUZZY);
     const valueNotFound =
         !!trimmedSearchText &&
         !!props.availableValues?.length &&

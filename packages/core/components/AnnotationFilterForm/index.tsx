@@ -48,11 +48,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         [allFilters, props.annotation]
     );
 
-    // Assume all filters use same type
-    const defaultFilterType = React.useMemo(
-        () => filtersForAnnotation?.[0]?.type ?? FilterType.DEFAULT,
-        [filtersForAnnotation]
-    );
+    // Assume all filters use same type. "Contains" is a way of searching for some value(s),
+    // not a mode of its own, so it never becomes the type new filters are created with
+    const defaultFilterType = React.useMemo(() => {
+        const type = filtersForAnnotation?.[0]?.type;
+        return !type || type === FilterType.FUZZY ? FilterType.DEFAULT : type;
+    }, [filtersForAnnotation]);
 
     const [filterType, setFilterType] = React.useState<FilterType>(defaultFilterType);
 
@@ -224,6 +225,8 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const listPickerComponent = (
         <ListPicker
+            // The list caches its rows, so remount to give them the current filter type
+            key={filterType}
             className={styles.listPicker}
             items={items}
             loading={isLoading}
@@ -347,10 +350,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                 <h3>Filter {props.annotation.displayName} by</h3>
                 <ChoiceGroup
                     className={styles.choiceGroup}
-                    // Fuzzy is not in choice group
-                    defaultSelectedKey={
-                        filterType !== FilterType.FUZZY ? filterType : FilterType.DEFAULT
-                    }
+                    defaultSelectedKey={filterType}
                     options={[
                         {
                             key: FilterType.DEFAULT,
@@ -371,9 +371,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     onChange={(_, option) => onFilterTypeOptionChange(option)}
                 />
             </div>
-            {filterType === FilterType.DEFAULT ||
-            filterType === FilterType.ALL ||
-            filterType === FilterType.FUZZY ? (
+            {filterType === FilterType.DEFAULT || filterType === FilterType.ALL ? (
                 searchFormType()
             ) : (
                 <div className={styles.footer}>
