@@ -48,12 +48,20 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         [allFilters, props.annotation]
     );
 
+    const canOfferAllValues =
+        canSupportAdvancedFilters &&
+        ![AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
+            props.annotation.type
+        );
+
     // Assume all filters use same type. "Contains" is a way of searching for some value(s),
     // not a mode of its own, so it never becomes the type new filters are created with
     const defaultFilterType = React.useMemo(() => {
         const type = filtersForAnnotation?.[0]?.type;
-        return !type || type === FilterType.FUZZY ? FilterType.DEFAULT : type;
-    }, [filtersForAnnotation]);
+        if (!type || type === FilterType.FUZZY) return FilterType.DEFAULT;
+        if (type === FilterType.ALL && !canOfferAllValues) return FilterType.DEFAULT;
+        return type;
+    }, [filtersForAnnotation, canOfferAllValues]);
 
     const [filterType, setFilterType] = React.useState<FilterType>(defaultFilterType);
 
@@ -356,9 +364,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                             key: FilterType.DEFAULT,
                             text: `Some value${items.length > 0 ? "(s)" : ""}`,
                         },
-                        ...(canSupportAdvancedFilters && !typeHasDedicatedPicker
-                            ? [{ key: FilterType.ALL, text: "All values" }]
-                            : []),
+                        ...(canOfferAllValues ? [{ key: FilterType.ALL, text: "All values" }] : []),
                         {
                             key: FilterType.ANY_VALUE,
                             text: "Any value",

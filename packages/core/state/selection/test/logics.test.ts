@@ -1373,6 +1373,67 @@ describe("Selection logics", () => {
             ).to.be.true;
         });
 
+        it("converts ALL filters back to default filters, keeping their values", async () => {
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [
+                            new FileFilter("foo", 1, FilterType.ALL),
+                            new FileFilter("foo", 2, FilterType.ALL),
+                            new FileFilter("bar", 3, FilterType.ALL),
+                        ],
+                    },
+                },
+            });
+
+            store.dispatch(changeFileFilterType("foo", FilterType.DEFAULT));
+            await logicMiddleware.whenComplete();
+
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [
+                        new FileFilter("bar", 3, FilterType.ALL),
+                        new FileFilter("foo", 1, FilterType.DEFAULT),
+                        new FileFilter("foo", 2, FilterType.DEFAULT),
+                    ],
+                })
+            ).to.be.true;
+        });
+
+        it("removes fuzzy filters when changing to ALL, keeping default values", async () => {
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [
+                            new FileFilter("foo", 1),
+                            new FileFilter("foo", "ba", FilterType.FUZZY),
+                            new FileFilter("bar", "ba", FilterType.FUZZY),
+                        ],
+                    },
+                },
+            });
+
+            store.dispatch(changeFileFilterType("foo", FilterType.ALL));
+            await logicMiddleware.whenComplete();
+
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [
+                        new FileFilter("bar", "ba", FilterType.FUZZY),
+                        new FileFilter("foo", 1, FilterType.ALL),
+                    ],
+                })
+            ).to.be.true;
+        });
+
         it("removes a FileFilter from state", async () => {
             // setup
             const filterToRemove = new FileFilter("foo", 2);

@@ -93,7 +93,7 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
                         placeholder=""
                         options={OPERATOR_OPTIONS}
                         rootClassName={styles.operatorDropdownControl}
-                        selectedKey={selectedOperator?.key}
+                        selectedKey={selectedOperator.key}
                         onChange={(option) => option && setIsFuzzy(option.key === FUZZY_OPTION.key)}
                     />
                 </Tooltip>

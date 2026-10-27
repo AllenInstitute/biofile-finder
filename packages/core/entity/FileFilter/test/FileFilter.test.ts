@@ -426,6 +426,24 @@ describe("FileFilter", () => {
             expect(clauses.filter((c) => c.includes(" OR "))).to.have.length(1);
         });
 
+        it("emits one AND-ed clause per ALL-type value for a nested multi-value annotation", () => {
+            const pathIsArrayByName = new Map([["files.type", [true, false]]]);
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    new FileFilter("files.type", "a", FilterType.ALL),
+                    new FileFilter("files.type", "b", FilterType.ALL),
+                ],
+                pathIsArrayByName
+            );
+
+            expect(clauses).to.deep.equal([
+                new FileFilter("files.type", "a").toSimpleWhereClause([true, false]),
+                new FileFilter("files.type", "b").toSimpleWhereClause([true, false]),
+            ]);
+            expect(clauses).to.have.length(2);
+            clauses.forEach((clause) => expect(clause).to.not.include(" OR "));
+        });
+
         // Nested annotations absent from the schema map are a programming error: we throw
         // rather than guess (a wrong guess emits list ops against a possibly-scalar struct).
         it("throws when a nested filter's annotation is missing from the map", () => {

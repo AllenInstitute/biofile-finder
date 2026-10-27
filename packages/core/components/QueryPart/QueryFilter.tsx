@@ -61,7 +61,7 @@ export default function QueryFilter(props: Props) {
                 else if (filters[0].type === FilterType.FUZZY)
                     operator = filters.length > 1 ? "CONTAINS ONE OF" : "CONTAINS";
                 else if (filters.length > 1)
-                    // Either "ALL" or "DEFAULT" (one of) depending on the filter type
+                    // Multiple values are either all required (ALL) or alternatives (DEFAULT)
                     operator = filters[0].type === FilterType.ALL ? "ALL OF" : "ONE OF";
 
                 const annotation = annotationNameToAnnotationMap.get(annotationName);
