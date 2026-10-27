@@ -10,30 +10,30 @@ import FileFilter, { FilterType } from "../../../entity/FileFilter";
 
 import styles from "./SearchBoxForm.module.css";
 
-const OPERATOR_OPTIONS = [
-    {
-        key: FilterType.DEFAULT,
-        text: "Exactly matches",
-        data: {
-            tooltip: (
-                <>
-                    Finds only values <strong>identical</strong> to your input
-                </>
-            ),
-        },
+const FUZZY_OPTION = {
+    key: "fuzzy",
+    text: "Contains",
+    data: {
+        tooltip: (
+            <>
+                Find all values that <strong>include</strong> your input
+            </>
+        ),
     },
-    {
-        key: FilterType.FUZZY,
-        text: "Contains",
-        data: {
-            tooltip: (
-                <>
-                    Find all values that <strong>include</strong> your input
-                </>
-            ),
-        },
+};
+const EXACT_OPTION = {
+    key: "exact",
+    text: "Exactly matches",
+    data: {
+        tooltip: (
+            <>
+                Finds only values <strong>identical</strong> to your input
+            </>
+        ),
     },
-];
+};
+
+const OPERATOR_OPTIONS = [EXACT_OPTION, FUZZY_OPTION];
 
 interface SearchBoxFormProps {
     availableValues?: string[];
@@ -41,7 +41,7 @@ interface SearchBoxFormProps {
     filters: FileFilter[];
     onClearAll: () => void;
     onRemoveFilter: (filter: FileFilter) => void;
-    onSearch: (filterValue: string, type: FilterType) => void;
+    onSearch: (filterValue: string, isFuzzy: boolean) => void;
 }
 
 /**
@@ -50,22 +50,20 @@ interface SearchBoxFormProps {
  */
 export default function SearchBoxForm(props: SearchBoxFormProps) {
     const committedType = props.filters[0]?.type;
-    const [filterType, setFilterType] = React.useState<FilterType>(
-        committedType === FilterType.DEFAULT ? FilterType.DEFAULT : FilterType.FUZZY
-    );
     const [searchText, setSearchText] = React.useState("");
     const [hasBlurred, setHasBlurred] = React.useState(false);
-    const selectedOperator = OPERATOR_OPTIONS.find((option) => option.key === filterType);
-    const committedOperator =
-        OPERATOR_OPTIONS.find((option) => option.key === committedType) ?? OPERATOR_OPTIONS[0];
+    const [isFuzzy, setIsFuzzy] = React.useState(
+        committedType === undefined || committedType === FilterType.FUZZY
+    );
+    const selectedOperator = isFuzzy ? FUZZY_OPTION : EXACT_OPTION;
+    const committedOperator = committedType === FilterType.FUZZY ? FUZZY_OPTION : EXACT_OPTION;
     const trimmedSearchText = searchText.trim();
     const willReplaceResults =
-        !!trimmedSearchText && props.filters.some((filter) => filter.type !== filterType);
-    const isExactMatch = filterType === FilterType.DEFAULT;
+        !!trimmedSearchText && isFuzzy !== (committedType === FilterType.FUZZY);
     const valueNotFound =
         !!trimmedSearchText &&
         !!props.availableValues?.length &&
-        (isExactMatch
+        (!isFuzzy
             ? !props.availableValues.includes(trimmedSearchText)
             : !props.availableValues.some((value) =>
                   value.toLowerCase().includes(trimmedSearchText.toLowerCase())
@@ -76,7 +74,7 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
             setHasBlurred(true);
             return;
         }
-        props.onSearch(value, filterType);
+        props.onSearch(value, isFuzzy);
         setSearchText("");
         setHasBlurred(false);
     }
@@ -93,8 +91,8 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
                         placeholder=""
                         options={OPERATOR_OPTIONS}
                         rootClassName={styles.operatorDropdownControl}
-                        selectedKey={filterType}
-                        onChange={(option) => option && setFilterType(option.key as FilterType)}
+                        selectedKey={selectedOperator?.key}
+                        onChange={(option) => option && setIsFuzzy(option.key === FUZZY_OPTION.key)}
                     />
                 </Tooltip>
                 <SearchBox
@@ -117,9 +115,9 @@ export default function SearchBoxForm(props: SearchBoxFormProps) {
             {hasBlurred && valueNotFound ? (
                 <div className={styles.error}>
                     <Icon iconName="Warning" />
-                    {isExactMatch
-                        ? "No files found with exactly matching value"
-                        : "No files found containing this value"}
+                    {isFuzzy
+                        ? "No files found containing this value"
+                        : "No files found with exactly matching value"}
                 </div>
             ) : (
                 willReplaceResults && (

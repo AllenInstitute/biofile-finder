@@ -35,6 +35,9 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
     const allFilters = useSelector(selection.selectors.getFileFilters);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
+    const canSupportAdvancedFilters = useSelector(
+        interaction.selectors.getCanSupportAdvancedFilters
+    );
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         props.annotation.name,
         annotationService
@@ -135,12 +138,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         const formattedValue = props.annotation.formatter.valueOf(item.value);
         const value = isNil(formattedValue) ? item.value : formattedValue;
 
-        return new FileFilter(
-            props.annotation.name,
-            value,
-            filterType === FilterType.ALL ? FilterType.ALL : FilterType.DEFAULT,
-            props.annotation.type
-        );
+        return new FileFilter(props.annotation.name, value, filterType, props.annotation.type);
     };
 
     const commitFilters = (newFilters: FileFilter | FileFilter[]) => {
@@ -175,25 +173,23 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     const onFilterTypeOptionChange = (option: IChoiceGroupOption | undefined) => {
-        // Verify that filter type is changing to avoid dispatching unnecessary clean-up actions
-        if (!!option?.key && option?.key !== filterType) {
-            setFilterType(option.key as FilterType);
-            // Selecting ANY or NONE should automatically re-trigger search and re-render dom,
-            // but selecting SOME shouldn't trigger anything until a value is selected
-            // or a search term is entered
-            switch (option.key) {
-                case FilterType.DEFAULT:
-                    return; // No further action needed, dispatch on search instead
-                case FilterType.NO_VALUE:
-                case FilterType.ANY_VALUE:
-                default:
-                    dispatch(
-                        selection.actions.changeFileFilterType(
-                            props.annotation.name,
-                            option.key as FilterType
-                        )
-                    );
-            }
+        // Only act when the type actually changes, to avoid unnecessary clean-up dispatches
+        if (!option?.key || option.key === filterType) return;
+        setFilterType(option.key as FilterType);
+
+        // Every type is a complete filter as soon as it's selected except "some value(s)",
+        // which waits for a value; its only clean-up is converting existing "all values"
+        // filters so their values are preserved.
+        const hasAllValuesFilter = filtersForAnnotation.some(
+            (filter) => filter.type === FilterType.ALL
+        );
+        if (option.key !== FilterType.DEFAULT || hasAllValuesFilter) {
+            dispatch(
+                selection.actions.changeFileFilterType(
+                    props.annotation.name,
+                    option.key as FilterType
+                )
+            );
         }
     };
 
@@ -208,10 +204,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }
     }
 
-    function onCommitSearchValue(filterValue: string, type: FilterType) {
+    function onCommitSearchValue(filterValue: string, isFuzzy: boolean) {
         if (!filterValue || !filterValue.trim()) {
             return;
         }
+        const type = isFuzzy ? FilterType.FUZZY : filterType;
         commitFilters(
             new FileFilter(props.annotation.name, filterValue, type, props.annotation.type)
         );
@@ -359,10 +356,9 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                             key: FilterType.DEFAULT,
                             text: `Some value${items.length > 0 ? "(s)" : ""}`,
                         },
-                        {
-                            key: FilterType.ALL,
-                            text: "All values",
-                        },
+                        ...(canSupportAdvancedFilters && !typeHasDedicatedPicker
+                            ? [{ key: FilterType.ALL, text: "All values" }]
+                            : []),
                         {
                             key: FilterType.ANY_VALUE,
                             text: "Any value",

@@ -167,6 +167,9 @@ export default class FileFilter {
             case FilterType.FUZZY:
                 if (this.value === "") return `fuzzy=${name}`;
                 return `${name}=${this.value}&fuzzy=${name}`;
+            case FilterType.ALL:
+                // Must differ from DEFAULT so AND-ed and OR-ed filter sets never share a cache key
+                return `all=${name}&${name}=${this.value}`;
         }
         return `${name}=${this.value}`;
     }

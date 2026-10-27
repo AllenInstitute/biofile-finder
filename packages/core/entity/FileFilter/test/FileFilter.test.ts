@@ -398,16 +398,32 @@ describe("FileFilter", () => {
             ]);
         });
 
-        it("ANDs multiple ALL-type values for the same annotation", () => {
-            const filters = [
-                new FileFilter("Phenotype", "small cells", FilterType.ALL, AnnotationType.STRING),
-                new FileFilter("Phenotype", "low fraction", FilterType.ALL, AnnotationType.STRING),
-            ];
-            const clauses = FileFilter.toListOfWhereClauses(filters, new Map());
-            expect(clauses).to.have.length(2);
-            expect(clauses[0]).to.contain("small");
-            expect(clauses[1]).to.contain("low");
-            expect(clauses.some((c) => c.includes("OR"))).to.be.false;
+        it("emits one AND-ed clause per value for an ALL-type annotation", () => {
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    new FileFilter("Phenotype", "small cells", FilterType.ALL),
+                    new FileFilter("Phenotype", "low", FilterType.ALL),
+                ],
+                new Map()
+            );
+            expect(clauses).to.deep.equal([
+                new FileFilter("Phenotype", "small cells").toSimpleWhereClause([false]),
+                new FileFilter("Phenotype", "low").toSimpleWhereClause([false]),
+            ]);
+        });
+
+        it("ANDs ALL-type values while still ORing default values for other annotations", () => {
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    new FileFilter("Phenotype", "a", FilterType.ALL),
+                    new FileFilter("Phenotype", "b", FilterType.ALL),
+                    new FileFilter("Color", "red"),
+                    new FileFilter("Color", "blue"),
+                ],
+                new Map()
+            );
+            expect(clauses).to.have.length(3);
+            expect(clauses.filter((c) => c.includes(" OR "))).to.have.length(1);
         });
 
         // Nested annotations absent from the schema map are a programming error: we throw

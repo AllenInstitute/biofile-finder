@@ -11,6 +11,7 @@ import {
     addQuery,
     CHANGE_DATA_SOURCES,
     changeDataSources,
+    changeFileFilterType,
     changeProvenanceSource,
     changeQuery,
     changeSourceMetadata,
@@ -38,7 +39,7 @@ import { initialState, interaction } from "../../";
 import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import FileFolder from "../../../entity/FileFolder";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
@@ -1344,6 +1345,32 @@ describe("Selection logics", () => {
                     payload: [filter, ...currentFilters],
                 })
             ).to.equal(true);
+        });
+
+        it("converts default filters to ALL, keeping their values", async () => {
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [new FileFilter("foo", 1), new FileFilter("foo", 2)],
+                    },
+                },
+            });
+
+            store.dispatch(changeFileFilterType("foo", FilterType.ALL));
+            await logicMiddleware.whenComplete();
+
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [
+                        new FileFilter("foo", 1, FilterType.ALL),
+                        new FileFilter("foo", 2, FilterType.ALL),
+                    ],
+                })
+            ).to.be.true;
         });
 
         it("removes a FileFilter from state", async () => {

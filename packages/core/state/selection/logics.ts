@@ -300,8 +300,9 @@ const modifyFileFilters = createLogic({
                         newFilter,
                     ];
                     break;
-                // For default/fuzzy, toggle the type for existing default/fuzzy filters but keep their value,
+                // For all/default/fuzzy, toggle the type for existing default/fuzzy filters but keep their value,
                 // and fully remove include/exclude filters
+                case FilterType.ALL:
                 case FilterType.FUZZY:
                 default:
                     nextFilters = previousFilters
