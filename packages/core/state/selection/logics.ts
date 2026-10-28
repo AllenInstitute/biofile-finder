@@ -307,11 +307,7 @@ const modifyFileFilters = createLogic({
                     nextFilters = previousFilters
                         .filter(
                             (filter) =>
-                                !(
-                                    filter.name === payload.annotationName &&
-                                    (filter.type === FilterType.ANY_VALUE ||
-                                        filter.type === FilterType.NO_VALUE)
-                                )
+                                !(filter.name === payload.annotationName && !filter.hasValue)
                         )
                         .map((filter) =>
                             filter.name !== payload.annotationName
