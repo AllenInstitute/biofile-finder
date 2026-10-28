@@ -251,6 +251,48 @@ describe("Metadata logics", () => {
             expect(matchingAction?.payload[0].name).to.equal(AnnotationName.FILE_NAME);
         });
 
+        it("orders default columns by their source order rather than alphabetically", async () => {
+            // arrange: annotations provided in a non-alphabetical source order
+            const unorderedAnnotations: Annotation[] = [
+                new Annotation({
+                    annotationDisplayName: "Charlie",
+                    annotationName: "Charlie",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+                new Annotation({
+                    annotationDisplayName: "Alpha",
+                    annotationName: "Alpha",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+                new Annotation({
+                    annotationDisplayName: "Bravo",
+                    annotationName: "Bravo",
+                    description: "",
+                    type: AnnotationType.STRING,
+                }),
+            ];
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: initialState,
+                logics: metadataLogics,
+            });
+
+            // act
+            store.dispatch(receiveAnnotations(unorderedAnnotations));
+            await logicMiddleware.whenComplete();
+
+            // assert: columns follow the source order, not an alphabetical sort
+            const matchingAction = actions.list
+                .filter((action) => action.type === SET_COLUMNS)
+                .at(0);
+            expect(matchingAction?.payload.map((col: { name: string }) => col.name)).to.deep.equal([
+                "Charlie",
+                "Alpha",
+                "Bravo",
+            ]);
+        });
+
         it("adds all new annotations as columns to existing ones", async () => {
             // arrange: some existing columns
             const existingColumns = [{ name: mockAnnotations[0].name, width: 300 }];
