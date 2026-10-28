@@ -3,6 +3,7 @@ import axios from "axios";
 import { isEmpty, isNil, mapKeys, mapValues, uniq, uniqBy } from "lodash";
 
 import DeltaLakeService, { DeltaAction } from "../DeltaLakeService";
+import S3StorageService from "../S3StorageService";
 import { AICS_FMS_DATA_SOURCE_NAME, HIDDEN_UID_ANNOTATION } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
@@ -25,6 +26,51 @@ import SQLBuilder from "../../entity/SQLBuilder";
 import { CancellablePromise } from "../../entity/types";
 import DataSourcePreparationError from "../../errors/DataSourcePreparationError";
 import { isGoogleSheetUri, parseGoogleSheetUrl } from "../../util/googleSheets";
+
+/**
+ * The ordered steps a data source goes through on its way to being queryable. Reported as
+ * preparation proceeds so the UI can say what is happening rather than just spinning.
+ */
+export enum DataSourceLoadStage {
+    DOWNLOADING = "downloading",
+    IMPORTING = "importing",
+    NORMALIZING = "normalizing",
+    VALIDATING = "validating",
+    FINALIZING = "finalizing",
+    AGGREGATING = "aggregating",
+}
+
+export interface DataSourceLoadProgress {
+    sourceName: string;
+    stage: DataSourceLoadStage;
+    fraction: number;
+    bytesTotal?: number;
+}
+
+// Only the download stage's progress can be measured exactly; others are rough estimates
+// and download is generally the longest time for remote sources.
+const STAGE_WEIGHTS: Record<DataSourceLoadStage, number> = {
+    [DataSourceLoadStage.DOWNLOADING]: 0.55,
+    [DataSourceLoadStage.IMPORTING]: 0.2,
+    [DataSourceLoadStage.NORMALIZING]: 0.08,
+    [DataSourceLoadStage.VALIDATING]: 0.1,
+    [DataSourceLoadStage.FINALIZING]: 0.07,
+    [DataSourceLoadStage.AGGREGATING]: 0,
+};
+
+// The per-source stages, in the order `prepareDataSource` runs them.
+const STAGE_ORDER: readonly DataSourceLoadStage[] = [
+    DataSourceLoadStage.DOWNLOADING,
+    DataSourceLoadStage.IMPORTING,
+    DataSourceLoadStage.NORMALIZING,
+    DataSourceLoadStage.VALIDATING,
+    DataSourceLoadStage.FINALIZING,
+];
+
+function clampFraction(value: number): number {
+    if (!Number.isFinite(value)) return 0;
+    return Math.min(1, Math.max(0, value));
+}
 
 interface ProvenanceRow {
     child: string;
@@ -241,6 +287,7 @@ export default abstract class DatabaseService {
     public sourceProvenanceName?: string;
     private currentAggregateSource?: string;
     protected deltaLakeService: DeltaLakeService;
+    protected s3StorageService: S3StorageService;
     // Initialize with AICS FMS data source name to pretend it always exists
     protected readonly existingDataSources = new Set([AICS_FMS_DATA_SOURCE_NAME]);
     protected readonly dataSourceToAnnotationsMap: Map<string, Annotation[]> = new Map();
@@ -258,13 +305,51 @@ export default abstract class DatabaseService {
 
     protected database: duckdb.AsyncDuckDB | undefined;
 
-    constructor(deltaLakeService?: DeltaLakeService) {
+    private readonly progressListeners = new Set<(progress: DataSourceLoadProgress) => void>();
+    private readonly sourceSizes = new Map<string, number>();
+
+    constructor(deltaLakeService?: DeltaLakeService, s3StorageService?: S3StorageService) {
         this.readDeltaCheckpoint = this.readDeltaCheckpoint.bind(this);
         this.deltaLakeService =
             deltaLakeService ?? new DeltaLakeService(axios.create(), this.readDeltaCheckpoint);
+        this.s3StorageService = s3StorageService ?? new S3StorageService();
         this.addDataSource = this.addDataSource.bind(this);
         this.execute = this.execute.bind(this);
         this.query = this.query.bind(this);
+    }
+
+    /**
+     * Report how far along a stage of the data source preparation is.
+     */
+    protected reportProgress(
+        sourceName: string,
+        stage: DataSourceLoadStage,
+        withinStage = 0, // from 0 to 1 within the current stage
+        bytesTotal?: number
+    ): void {
+        if (bytesTotal !== undefined) {
+            this.sourceSizes.set(sourceName, bytesTotal);
+        } else if (stage === DataSourceLoadStage.DOWNLOADING && withinStage === 0) {
+            // Forget any size left over from a previous read of this source
+            this.sourceSizes.delete(sourceName);
+        }
+
+        const stageIndex = STAGE_ORDER.indexOf(stage);
+        const completedStages =
+            stageIndex < 0
+                ? 0
+                : STAGE_ORDER.slice(0, stageIndex).reduce(
+                      (total, priorStage) => total + STAGE_WEIGHTS[priorStage],
+                      0
+                  );
+        const stageWeight = stageIndex < 0 ? 1 : STAGE_WEIGHTS[stage];
+
+        this.emitProgress({
+            sourceName,
+            stage,
+            fraction: clampFraction(completedStages + stageWeight * clampFraction(withinStage)),
+            bytesTotal: bytesTotal ?? this.sourceSizes.get(sourceName),
+        });
     }
 
     public async saveQuery(
@@ -354,20 +439,27 @@ export default abstract class DatabaseService {
         }
 
         const handle = fileHandleName(name);
+        let importFinished = false;
 
         if (uri instanceof File) {
+            // DuckDB reads a local file through the browser lazily, so there is nothing to count;
+            // report the size we do know so the UI can say how much data is being read.
+            this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 0, uri.size);
             await this.database.registerFileHandle(
                 handle,
                 uri,
                 duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
                 true
             );
+        } else if (uri.startsWith("s3")) {
+            await this.database.registerFileURL(handle, uri, duckdb.DuckDBDataProtocol.S3, false);
         } else {
-            const protocol = uri.startsWith("s3")
-                ? duckdb.DuckDBDataProtocol.S3
-                : duckdb.DuckDBDataProtocol.HTTP;
-
-            await this.database.registerFileURL(handle, uri, protocol, false);
+            this.s3StorageService.getHttpObjectSize(uri, 5000).then((bytesTotal) => {
+                if (!importFinished && bytesTotal !== undefined) {
+                    this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 0, bytesTotal);
+                }
+            });
+            await this.database.registerFileURL(handle, uri, duckdb.DuckDBDataProtocol.HTTP, false);
         }
 
         if (type === "parquet") {
@@ -393,6 +485,9 @@ export default abstract class DatabaseService {
                 );
             }
         }
+        importFinished = true;
+        this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 1);
+        this.reportProgress(name, DataSourceLoadStage.IMPORTING, 1);
     }
 
     /**
@@ -781,7 +876,10 @@ export default abstract class DatabaseService {
         // preparing a table ahead of time that is the aggregate of the data sources is most optimal
         // should look toward some way of reducing the memory footprint if that becomes an issue.
         if (sourcesToPrepare.length > 1) {
+            const aggregateName = DatabaseService.combineSourceNames(sourcesToPrepare);
+            this.reportProgress(aggregateName, DataSourceLoadStage.AGGREGATING, 0);
             await this.aggregateDataSources(sourcesToPrepare); // Leave markdown files out of the aggregate source
+            this.reportProgress(aggregateName, DataSourceLoadStage.AGGREGATING, 1);
         }
     }
 
@@ -920,6 +1018,7 @@ export default abstract class DatabaseService {
         }
 
         // Add the data source as a table on the database
+        this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 0);
         await this.addDataSource(name, type, uri);
 
         // Add data source name to in-memory set
@@ -930,19 +1029,25 @@ export default abstract class DatabaseService {
         // for querying with the expected columns & uniqueness constraints
         if (!skipNormalization) {
             if (!isParquetBacked(type)) {
+                this.reportProgress(name, DataSourceLoadStage.NORMALIZING, 0);
                 await this.normalizeDataSourceColumnNames(name);
+                this.reportProgress(name, DataSourceLoadStage.NORMALIZING, 0.5);
                 await this.renameNonprintableCharColumns(name);
             }
 
+            this.reportProgress(name, DataSourceLoadStage.VALIDATING, 0);
             const error = await this.checkDataSourceForErrors(name);
             if (error !== null) {
                 throw new DataSourcePreparationError(error, name);
             }
 
             if (!isParquetBacked(type)) {
+                this.reportProgress(name, DataSourceLoadStage.FINALIZING, 0);
                 await this.addRequiredColumns(name);
             }
         }
+
+        this.reportProgress(name, DataSourceLoadStage.FINALIZING, 1);
     }
 
     protected async getDataSourcesFromMarkdown(dataSource: SourceWithType): Promise<Source> {
@@ -1046,6 +1151,35 @@ export default abstract class DatabaseService {
         // Avoid trying to delete a file that doesn't exist
         if (this.sourceMetadataName) await this.deleteDataSource(this.sourceMetadataName);
         this.dataSourceToAnnotationsMap.clear();
+    }
+
+    /**
+     * Subscribe to progress updates while data sources are being prepared.
+     *
+     * Returns a callback that removes the subscription.
+     */
+    public onDataSourceLoadProgress(
+        listener: (progress: DataSourceLoadProgress) => void
+    ): () => void {
+        this.progressListeners.add(listener);
+        return () => {
+            this.progressListeners.delete(listener);
+        };
+    }
+
+    /**
+     * Hand a progress update to whoever is listening. Overridden where preparation happens off the
+     * main thread so the update can be forwarded across the worker boundary first.
+     */
+    protected emitProgress(progress: DataSourceLoadProgress): void {
+        for (const listener of this.progressListeners) {
+            try {
+                listener(progress);
+            } catch (err) {
+                // A misbehaving listener must not fail the data source load it is reporting on.
+                console.error("Error in data source load progress listener", err);
+            }
+        }
     }
 
     protected async deleteDataSource(dataSource: string): Promise<void> {

@@ -12,6 +12,7 @@ import {
     ChangeProvenanceOriginId,
     ChangeProvenanceSource,
     ChangeQuery,
+    CLEAR_DATA_SOURCE_LOAD_PROGRESS,
     COLLAPSE_ALL_FILE_FOLDERS,
     Column,
     Query,
@@ -26,6 +27,7 @@ import {
     SET_ANNOTATION_HIERARCHY,
     SET_AVAILABLE_ANNOTATIONS,
     SET_COLUMNS,
+    SET_DATA_SOURCE_LOAD_PROGRESS,
     SET_FILE_FILTERS,
     SET_FILE_SELECTION,
     SET_FILE_VIEW,
@@ -39,6 +41,7 @@ import {
     SET_THUMBNAIL_CONFIG,
     SetAvailableAnnotationsAction,
     SetColumns,
+    SetDataSourceLoadProgress,
     SetFileFiltersAction,
     SetFileSelection,
     SetFileView,
@@ -61,6 +64,7 @@ import FileSort, { SortOrder } from "../../entity/FileSort";
 import { DEFAULT_COLUMN_WIDTH, FileView, Source } from "../../entity/SearchParams";
 import Tutorial from "../../entity/Tutorial";
 import Tutorials from "../../hooks/useHelpOptions/Tutorials";
+import { DataSourceLoadProgress } from "../../services/DatabaseService";
 import { makeReducer } from "../../util/redux-utils";
 
 // TODO: Restructure annotationHierarchy, availableAnnotationsForHierarchy, and recentAnnotations
@@ -70,6 +74,7 @@ export interface SelectionStateBranch {
     availableAnnotationsForHierarchy: string[] | null;
     availableAnnotationsForHierarchyLoading: boolean;
     columns: Column[];
+    dataSourceLoadProgress: Record<string, DataSourceLoadProgress>;
     datasetDescriptionSource?: Source;
     dataSources: Source[];
     fileSelection: FileSelection;
@@ -98,6 +103,7 @@ export const initialState: SelectionStateBranch = {
     availableAnnotationsForHierarchy: [],
     availableAnnotationsForHierarchyLoading: true,
     columns: [],
+    dataSourceLoadProgress: {},
     dataSources: [],
     fileSelection: new FileSelection(),
     fileView: FileView.LIST,
@@ -155,7 +161,18 @@ export default makeReducer<SelectionStateBranch>(
         }),
         [SET_IS_LOADING_DATA_SOURCE]: (state, action) => ({
             ...state,
-            isLoadingDataSource: action.payload,
+            isLoadingDataSource: action.payload.isLoading,
+        }),
+        [SET_DATA_SOURCE_LOAD_PROGRESS]: (state, action: SetDataSourceLoadProgress) => ({
+            ...state,
+            dataSourceLoadProgress: {
+                ...state.dataSourceLoadProgress,
+                [action.payload.sourceName]: action.payload,
+            },
+        }),
+        [CLEAR_DATA_SOURCE_LOAD_PROGRESS]: (state) => ({
+            ...state,
+            dataSourceLoadProgress: {},
         }),
         [SORT_COLUMN]: (state, action) => {
             if (state.sortColumn?.annotationName === action.payload) {

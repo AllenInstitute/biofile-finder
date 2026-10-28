@@ -6,11 +6,13 @@ import {
     getAnnotationNameToAnnotationMap,
     getAnnotations,
     getEdgeDefinitions,
+    getIsLoadingAnnotations,
 } from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import SearchParams, { FileView, SearchParamsComponents, Source } from "../../entity/SearchParams";
+import { DataSourceLoadProgress, DataSourceLoadStage } from "../../services/DatabaseService";
 import { PythonicDataAccessSnippet } from "../../services/DataSourceService";
 
 // BASIC SELECTORS
@@ -20,6 +22,7 @@ export const getAvailableAnnotationsForHierarchy = (state: State) =>
 export const getAvailableAnnotationsForHierarchyLoading = (state: State) =>
     state.selection.availableAnnotationsForHierarchyLoading;
 export const getColumns = (state: State) => state.selection.columns;
+export const getDataSourceLoadProgress = (state: State) => state.selection.dataSourceLoadProgress;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getFileView = (state: State) => state.selection.fileView;
@@ -164,10 +167,85 @@ export const getLoadingNewQuery = createSelector([getQueries], (queries): boolea
     queries.some((q) => q.loading)
 );
 
-export const getLoadingQueryOrSource = createSelector(
-    [getLoadingNewQuery, getIsLoadingSource],
-    (loadingQueries, loadingSources): boolean => {
-        return loadingQueries || loadingSources;
+/**
+ * Whether the file list's columns are still on their way.
+ */
+export const getIsLoadingColumns = createSelector(
+    [getLoadingNewQuery, getIsLoadingSource, getIsLoadingAnnotations, hasQuerySelected],
+    (isLoadingNewQuery, isLoadingSource, isLoadingAnnotations, isQuerySelected): boolean =>
+        isLoadingNewQuery || isLoadingSource || isLoadingAnnotations || !isQuerySelected
+);
+
+const STAGE_DESCRIPTIONS: Record<DataSourceLoadStage, string> = {
+    [DataSourceLoadStage.DOWNLOADING]: "Reading data source",
+    [DataSourceLoadStage.IMPORTING]: "Loading into database",
+    [DataSourceLoadStage.NORMALIZING]: "Normalizing columns",
+    [DataSourceLoadStage.VALIDATING]: "Validating data source",
+    [DataSourceLoadStage.FINALIZING]: "Preparing for queries",
+    [DataSourceLoadStage.AGGREGATING]: "Combining data sources",
+};
+
+// Arbitrary fraction of the whole wait to avoid saying 100% when inaccurate
+const COLUMNS_STAGE_START = 0.92;
+
+// Share of source preparation held for combining sources, when there is more than one
+const AGGREGATION_SHARE = 0.1;
+
+export interface DataSourceLoadStatus {
+    fraction?: number;
+    description: string;
+    bytesTotal?: number;
+}
+
+/**
+ * Summarize the wait for loading data sources and their columns.
+ */
+export const getDataSourceLoadStatus = createSelector(
+    [getDataSourceLoadProgress, hasQuerySelected, getIsLoadingAnnotations],
+    (progressBySource, isQuerySelected, isLoadingAnnotations): DataSourceLoadStatus | undefined => {
+        const entries: DataSourceLoadProgress[] = Object.values(progressBySource);
+        if (!entries.length) {
+            if (!isQuerySelected) return { fraction: 0, description: "Preparing query" };
+            if (isLoadingAnnotations)
+                return { fraction: COLUMNS_STAGE_START, description: "Loading columns" };
+            return undefined;
+        }
+
+        // Aggregation runs after every source is prepared, so it is a stage of its own
+        const aggregate = entries.find((entry) => entry.stage === DataSourceLoadStage.AGGREGATING);
+        const sources = entries.filter((entry) => entry !== aggregate);
+        const hasAggregation = !!aggregate || sources.length > 1;
+        const sourcesSpan = hasAggregation ? 1 - AGGREGATION_SHARE : 1;
+
+        // Present "fraction" as the average completion across sources.
+        // and the description corresponds to the least complete source.
+        const sourcesFraction = sources.length
+            ? sources.reduce((total, entry) => total + entry.fraction, 0) / sources.length
+            : 1;
+        const leastComplete = aggregate
+            ? aggregate
+            : sources.reduce((slowest, entry) =>
+                  entry.fraction < slowest.fraction ? entry : slowest
+              );
+        const fraction = aggregate
+            ? sourcesSpan + AGGREGATION_SHARE * aggregate.fraction
+            : sourcesFraction * sourcesSpan;
+
+        // Compute the total size across all measurable sources.
+        const measured = sources.filter((entry) => entry.bytesTotal !== undefined);
+        const bytesTotal = measured.length
+            ? measured.reduce((total, entry) => total + (entry.bytesTotal ?? 0), 0)
+            : undefined;
+
+        const isReading = leastComplete.stage === DataSourceLoadStage.DOWNLOADING;
+
+        return {
+            // Preparation is everything up to reading the columns, so scale it into that span
+            // rather than letting it reach 100% with work still to go.
+            fraction: isReading ? undefined : fraction * COLUMNS_STAGE_START,
+            description: STAGE_DESCRIPTIONS[leastComplete.stage],
+            bytesTotal,
+        };
     }
 );
 
