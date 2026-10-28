@@ -120,6 +120,14 @@ export default class FileFilter {
         return this.path.join(".");
     }
 
+    /**
+     * Whether this filter compares against `value`. False for "any value" and "no value"
+     * filters, which only check whether the annotation is present and carry a blank value.
+     */
+    public get hasValue(): boolean {
+        return this.type !== FilterType.ANY_VALUE && this.type !== FilterType.NO_VALUE;
+    }
+
     public toQueryString(): string {
         // Use the dotted name (not the JSON path array): this string is sent to the FES HTTP
         // API and used in FileSet cache keys, both of which expect `annotation=value` form.

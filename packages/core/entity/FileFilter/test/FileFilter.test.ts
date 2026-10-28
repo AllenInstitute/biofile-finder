@@ -7,6 +7,15 @@ import NoValueFilter from "../NoValueFilter";
 import { AnnotationType } from "../../AnnotationFormatter";
 
 describe("FileFilter", () => {
+    describe("hasValue", () => {
+        it("is false only for any value and no value filters", () => {
+            expect(new AnyValueFilter("A").hasValue).to.equal(false);
+            expect(new NoValueFilter("A").hasValue).to.equal(false);
+            expect(new FileFilter("A", "x").hasValue).to.equal(true);
+            expect(new FuzzyFilter("A", "x").hasValue).to.equal(true);
+        });
+    });
+
     describe("toSimpleWhereClause", () => {
         const NESTED_LIST = `list_transform("Well", x -> x."Dose"."Unit")`;
         const WELL_DOSE_UNIT_PATH_IS_ARRAY = [true, false, false];
