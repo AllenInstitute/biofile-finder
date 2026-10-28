@@ -9,6 +9,7 @@ import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
 import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import { DataSourceLoadStage } from "../../../services/DatabaseService";
 import { mergeState } from "../../../util/redux-utils";
 
 describe("Selection selectors", () => {
@@ -48,6 +49,110 @@ describe("Selection selectors", () => {
 
             // Assert
             expect(setup).to.equal('pip install "pandas>=1.5" "deltalake"');
+        });
+    });
+
+    describe("getDataSourceLoadStatus", () => {
+        it("describes the stage and size for a single source", () => {
+            const state = mergeState(initialState, {
+                selection: {
+                    dataSourceLoadProgress: {
+                        "a.csv": {
+                            sourceName: "a.csv",
+                            stage: DataSourceLoadStage.DOWNLOADING,
+                            fraction: 0.25,
+                            bytesTotal: 1000,
+                        },
+                    },
+                },
+            });
+
+            const status = selection.selectors.getDataSourceLoadStatus(state);
+
+            expect(status?.fraction).to.be.undefined;
+            expect(status?.description).to.equal("Reading data source");
+            expect(status?.bytesTotal).to.equal(1000);
+        });
+
+        it("averages across sources and names the one furthest from done", () => {
+            const state = mergeState(initialState, {
+                selection: {
+                    dataSourceLoadProgress: {
+                        "a.csv": {
+                            sourceName: "a.csv",
+                            stage: DataSourceLoadStage.FINALIZING,
+                            fraction: 1,
+                        },
+                        "b.csv": {
+                            sourceName: "b.csv",
+                            stage: DataSourceLoadStage.DOWNLOADING,
+                            fraction: 0.5,
+                        },
+                    },
+                },
+            });
+
+            const status = selection.selectors.getDataSourceLoadStatus(state);
+
+            expect(status?.fraction).to.be.undefined;
+            expect(status?.description).to.equal("Reading data source");
+        });
+
+        it("reports a measured fraction once no source is being read", () => {
+            const state = mergeState(initialState, {
+                selection: {
+                    dataSourceLoadProgress: {
+                        "a.csv": {
+                            sourceName: "a.csv",
+                            stage: DataSourceLoadStage.VALIDATING,
+                            fraction: 0.8,
+                        },
+                    },
+                },
+            });
+
+            const status = selection.selectors.getDataSourceLoadStatus(state);
+
+            expect(status?.fraction).to.be.closeTo(0.8 * 0.92, 1e-9);
+            expect(status?.description).to.equal("Validating data source");
+        });
+    });
+
+    describe("getIsLoadingColumns", () => {
+        it("is true before a query from the URL has been applied", () => {
+            // arrange / act / assert
+            expect(selection.selectors.getIsLoadingColumns(initialState)).to.equal(true);
+        });
+
+        it("is true while a data source is being prepared", () => {
+            // arrange
+            const state = mergeState(initialState, {
+                selection: { isLoadingDataSource: true, selectedQuery: "Test query" },
+            });
+
+            // act / assert
+            expect(selection.selectors.getIsLoadingColumns(state)).to.equal(true);
+        });
+
+        it("is true while the selected query's columns are being read", () => {
+            // arrange
+            const state = mergeState(initialState, {
+                metadata: { isLoadingAnnotations: true },
+                selection: { selectedQuery: "Test query" },
+            });
+
+            // act / assert
+            expect(selection.selectors.getIsLoadingColumns(state)).to.equal(true);
+        });
+
+        it("is false once a query is selected and its columns have loaded", () => {
+            // arrange
+            const state = mergeState(initialState, {
+                selection: { selectedQuery: "Test query" },
+            });
+
+            // act / assert
+            expect(selection.selectors.getIsLoadingColumns(state)).to.equal(false);
         });
     });
 
