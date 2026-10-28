@@ -28,6 +28,7 @@ import {
     ChangeQuery,
     changeSourceMetadata,
     ChangeSourceMetadataAction,
+    clearDataSourceLoadProgress,
     Column,
     EXPAND_ALL_FILE_FOLDERS,
     REMOVE_DATASOURCE_RELOAD_ERROR,
@@ -54,6 +55,7 @@ import {
     SetAnnotationHierarchyAction,
     setAvailableAnnotations,
     setColumns,
+    setDataSourceLoadProgress,
     setFileFilters,
     setFileSelection,
     setFileView,
@@ -85,7 +87,28 @@ import {
 } from "../../entity/SearchParams";
 import { CanceledError, DataSourcePreparationError } from "../../errors";
 import HttpAnnotationService from "../../services/AnnotationService/HttpAnnotationService";
+import DatabaseService from "../../services/DatabaseService";
 import { DataSource } from "../../services/DataSourceService";
+
+/**
+ * Forward data source load progress to the Redux state while a preparation is in progress.
+ */
+async function withLoadProgress(
+    databaseService: DatabaseService,
+    dispatch: (action: AnyAction) => void,
+    prepare: () => Promise<void>
+): Promise<void> {
+    dispatch(clearDataSourceLoadProgress());
+    const unsubscribe = databaseService.onDataSourceLoadProgress((progress) =>
+        dispatch(setDataSourceLoadProgress(progress))
+    );
+    try {
+        await prepare();
+    } finally {
+        unsubscribe();
+        dispatch(clearDataSourceLoadProgress());
+    }
+}
 
 /**
  * Interceptor responsible for transforming payload of SELECT_FILE actions to account for whether the intention is to
@@ -842,7 +865,9 @@ const changeDataSourceLogic = createLogic({
 
         // Prepare the data sources ahead of querying against them below
         try {
-            await databaseService.prepareDataSources(selectedDataSources);
+            await withLoadProgress(databaseService, dispatch, () =>
+                databaseService.prepareDataSources(selectedDataSources)
+            );
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
@@ -978,9 +1003,13 @@ const addQueryLogic = createLogic({
             deps.getState()
         );
 
+        dispatch(setIsLoadingSource(true));
+
         // Prepare the data sources ahead of querying against them below
         try {
-            await databaseService.prepareDataSources(newQuery.parts.sources);
+            await withLoadProgress(databaseService, dispatch, () =>
+                databaseService.prepareDataSources(newQuery.parts.sources)
+            );
             if (newQuery.parts.sourceMetadata) {
                 await databaseService.prepareSourceMetadata(newQuery.parts.sourceMetadata);
             } else {
@@ -1001,10 +1030,11 @@ const addQueryLogic = createLogic({
             } else {
                 dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
+        } finally {
+            dispatch(changeQuery(deps.action.payload));
+            dispatch(setIsLoadingSource(false));
+            done();
         }
-
-        dispatch(changeQuery(deps.action.payload));
-        done();
     },
     transform(deps: ReduxLogicDeps, next) {
         const queries = selectionSelectors.getQueries(deps.getState());
@@ -1181,9 +1211,13 @@ const replaceDataSourceLogic = createLogic({
             deps.getState()
         );
 
+        dispatch(setIsLoadingSource(true));
+
         // Prepare the data sources ahead of querying against them below
         try {
-            await databaseService.prepareDataSources([replacementSource]);
+            await withLoadProgress(databaseService, dispatch, () =>
+                databaseService.prepareDataSources([replacementSource])
+            );
             // Hide warning pop-up if present and remove datasource error from state
             dispatch(removeDataSourceReloadError());
         } catch (err) {
@@ -1194,6 +1228,8 @@ const replaceDataSourceLogic = createLogic({
             } else {
                 dispatch(interaction.actions.processError("dataSourcePreparationError", errMsg));
             }
+        } finally {
+            dispatch(setIsLoadingSource(false));
         }
 
         dispatch(interaction.actions.refresh() as AnyAction);

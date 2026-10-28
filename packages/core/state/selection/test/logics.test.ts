@@ -14,6 +14,7 @@ import {
     changeProvenanceSource,
     changeQuery,
     changeSourceMetadata,
+    CLEAR_DATA_SOURCE_LOAD_PROGRESS,
     expandAllFileFolders,
     Query,
     removeFileFilter,
@@ -687,6 +688,25 @@ describe("Selection logics", () => {
                     type: interaction.actions.REFRESH,
                 })
             ).to.be.true;
+        });
+
+        it("discards load progress once preparation settles", async () => {
+            // Arrange: the loading indicator stays up past preparation while the columns load,
+            // so leftover stage text from the source that just finished must not caption it.
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: initialState,
+                logics: selectionLogics,
+            });
+
+            // Act
+            store.dispatch(changeDataSources([{}] as any[]));
+            await logicMiddleware.whenComplete();
+
+            // Assert: cleared on the way in and again on the way out
+            const clears = actions.list.filter(
+                (action) => action.type === CLEAR_DATA_SOURCE_LOAD_PROGRESS
+            );
+            expect(clears.length).to.equal(2);
         });
     });
 
