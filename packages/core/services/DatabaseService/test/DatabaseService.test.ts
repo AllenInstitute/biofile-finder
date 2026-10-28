@@ -6,12 +6,13 @@ import * as os from "os";
 import * as path from "path";
 import sinon from "sinon";
 
-import DatabaseService, { getParquetFileNameSelectPart } from "..";
+import DatabaseService, { DataSourceLoadProgress, getParquetFileNameSelectPart } from "..";
 import DatabaseServiceNoop from "../DatabaseServiceNoop";
 import { HIDDEN_UID_ANNOTATION } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
+import { Source } from "../../../entity/SearchParams";
 import DataSourcePreparationError from "../../../errors/DataSourcePreparationError";
 
 describe("DatabaseService", () => {
@@ -294,6 +295,55 @@ describe("DatabaseService", () => {
             }
 
             expect(type).to.equal("parquet");
+        });
+
+        describe("data source load progress", () => {
+            const source: Source = { name: "a.csv", uri: "https://example.com/a.csv" };
+            class ProgressReportingDatabaseService extends DatabaseService {
+                protected addDataSource(_name: string): Promise<void> {
+                    return Promise.resolve();
+                }
+
+                public execute(): Promise<void> {
+                    return Promise.resolve();
+                }
+
+                // Report a valid, minimal table so prep can proceed
+                public query(sql: string): { promise: Promise<any> } {
+                    if (/column_name/.test(sql)) {
+                        return {
+                            promise: Promise.resolve([
+                                { column_name: "File Path", data_type: "VARCHAR" },
+                            ]),
+                        };
+                    }
+                    return { promise: Promise.resolve([]) };
+                }
+            }
+
+            it("reports progress for the source, ending at complete", async () => {
+                const service = new ProgressReportingDatabaseService();
+                const reported: DataSourceLoadProgress[] = [];
+                service.onDataSourceLoadProgress((progress) => reported.push(progress));
+
+                await service.prepareDataSources([source]);
+
+                expect(reported.every((p) => p.sourceName === source.name)).to.equal(true);
+                expect(reported[reported.length - 1].fraction).to.equal(1);
+            });
+
+            it("stops reporting to a listener once it unsubscribes", async () => {
+                const service = new ProgressReportingDatabaseService();
+                const reported: DataSourceLoadProgress[] = [];
+                const unsubscribe = service.onDataSourceLoadProgress((progress) =>
+                    reported.push(progress)
+                );
+
+                unsubscribe();
+                await service.prepareDataSources([source]);
+
+                expect(reported).to.be.empty;
+            });
         });
     });
 
