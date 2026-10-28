@@ -83,6 +83,7 @@ describe("<FileList />", () => {
         // Arrange: initialState has no columns selected
         const state = mergeState(initialState, {
             metadata: { annotations: [FILE_NAME_ANNOTATION] },
+            selection: { selectedQuery: "Test query" },
         });
         const { store } = configureMockStore({ state });
 
@@ -104,6 +105,36 @@ describe("<FileList />", () => {
         await findByText("No columns selected");
         expect(queryByText("Select at least one column above to display the file list.")).to.exist;
         expect(queryByText("Click here to select columns")).to.exist;
+    });
+
+    it("displays placeholder columns instead of 'No columns selected' while loading", async () => {
+        // Arrange: the data source is still being prepared, so there are no columns to show yet
+        const state = mergeState(initialState, {
+            metadata: { annotations: [FILE_NAME_ANNOTATION] },
+            selection: { isLoadingDataSource: true, selectedQuery: "Test query" },
+        });
+        const { store } = configureMockStore({ state });
+
+        const sandbox = createSandbox();
+        const fileService = new HttpFileService();
+        sandbox.replace(fileService, "getCountOfMatchingFiles", () => {
+            return { promise: Promise.resolve(999) };
+        });
+        const fileSet = new FileSet({ fileService });
+
+        // Act
+        const { findByLabelText, queryByText } = render(
+            <Provider store={store}>
+                <FileList fileSet={fileSet} isRoot={false} sortOrder={4} dispatch={noop} />
+            </Provider>
+        );
+
+        // Assert
+        await findByLabelText("Loading data source columns");
+        expect(queryByText("No columns selected")).to.equal(null);
+        expect(queryByText("Select at least one column above to display the file list.")).to.equal(
+            null
+        );
     });
 
     it("waits for annotations to load before fetching files", async () => {

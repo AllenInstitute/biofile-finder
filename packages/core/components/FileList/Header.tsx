@@ -5,6 +5,7 @@ import * as React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { COLUMN_PICKER_MENU_ITEMS } from "./ColumnPicker";
+import { LoadingBar, PLACEHOLDER_COLUMN_WIDTHS } from "./LoadingPlaceholder";
 import useDragAndDropOrder from "./useDragAndDropOrder";
 import useVisibleColumns from "./useVisibleCells";
 import { ContextMenuItem } from "../ContextMenu";
@@ -15,6 +16,15 @@ import Tutorial from "../../entity/Tutorial";
 import { interaction, metadata, selection } from "../../state";
 
 import styles from "./Header.module.css";
+
+// Which columns exist isn't known until the data source has been prepared and read, so stand in
+// for them rather than inviting the user to pick from a set that doesn't exist yet.
+const LOADING_HEADER_CELLS: CellConfig[] = PLACEHOLDER_COLUMN_WIDTHS.map((width, index) => ({
+    className: styles.loadingHeaderCell,
+    columnKey: `loading-column-${index}`,
+    displayValue: <LoadingBar className={styles.loadingHeaderBar} />,
+    width,
+}));
 
 /**
  * The FileList table header. Its cells are determined by the annotations the user has selected to display. It is rendered directly into the virtualized list within the FileList component
@@ -33,6 +43,7 @@ function Header(
     );
     const { columns: visibleColumns, padding } = useVisibleColumns();
     const allColumnNames = useSelector(selection.selectors.getColumnNames);
+    const isLoadingColumns = useSelector(selection.selectors.getIsLoadingColumns);
     const sortColumn = useSelector(selection.selectors.getSortColumn);
 
     const onReorder = React.useCallback(
@@ -94,6 +105,7 @@ function Header(
 
     const onHeaderContextMenu = (evt: React.MouseEvent) => {
         evt.preventDefault();
+        if (isLoadingColumns && !allColumnNames.length) return;
         dispatch(interaction.actions.showContextMenu([modifyColumnsMenuItem], evt.nativeEvent));
     };
 
@@ -126,6 +138,12 @@ function Header(
             width: 0,
         },
     ];
+
+    function getHeaderCells(): CellConfig[] {
+        if (allColumnNames.length) return headerCells;
+        if (isLoadingColumns) return LOADING_HEADER_CELLS;
+        return emptyHeaderCells;
+    }
 
     const headerCells: CellConfig[] = map(visibleColumns, (column) => {
         return {
@@ -203,11 +221,16 @@ function Header(
             >
                 <div className={styles.headerContextMenuTarget}>
                     <FileRow
-                        cells={allColumnNames.length ? headerCells : emptyHeaderCells}
+                        cells={getHeaderCells()}
                         className={classNames(styles.header, {
-                            [styles.emptyHeader]: !allColumnNames.length,
+                            [styles.emptyHeader]: !allColumnNames.length && !isLoadingColumns,
+                            [styles.loadingHeader]: !allColumnNames.length && isLoadingColumns,
                         })}
-                        onClick={allColumnNames.length ? undefined : onEmptyHeaderClick}
+                        onClick={
+                            allColumnNames.length || isLoadingColumns
+                                ? undefined
+                                : onEmptyHeaderClick
+                        }
                         onResize={allColumnNames.length ? onResize : undefined}
                         padding={padding}
                     />
