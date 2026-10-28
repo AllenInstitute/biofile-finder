@@ -5,7 +5,7 @@ import HttpAnnotationService from "..";
 import { FESBaseUrl, TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../../../constants";
 import Annotation from "../../../../entity/Annotation";
 import { annotationsJson } from "../../../../entity/Annotation/mocks";
-import FileFilter from "../../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../../entity/FileFilter";
 import { createMockHttpClient } from "../../../../util/redux-utils";
 
 describe("HttpAnnotationService", () => {
@@ -165,6 +165,26 @@ describe("HttpAnnotationService", () => {
             const values = await annotationService.fetchRootHierarchyValues(["foo"], [filter])
                 .promise;
             expect(values).to.equal(expectedValues);
+        });
+    });
+
+    describe("all values filters", () => {
+        // The service can't require several values at once, so it must not quietly OR them
+        const annotationService = new HttpAnnotationService({
+            fileExplorerServiceBaseUrl: FESBaseUrl.TEST,
+            httpClient: createMockHttpClient([]),
+        });
+
+        [FilterType.ALL, FilterType.FUZZY_ALL].forEach((type) => {
+            it(`rejects ${type} filters when fetching hierarchy values`, () => {
+                const filters = [new FileFilter("foo", "a", type)];
+                expect(() => annotationService.fetchRootHierarchyValues(["foo"], filters)).to.throw(
+                    /not supported/
+                );
+                expect(() =>
+                    annotationService.fetchHierarchyValuesUnderPath(["foo", "bar"], ["a"], filters)
+                ).to.throw(/not supported/);
+            });
         });
     });
 

@@ -1,5 +1,5 @@
 import AnnotationName from "../Annotation/AnnotationName";
-import FileFilter from "../FileFilter";
+import FileFilter, { CombineMode, MatchStyle } from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
 import type { DatasetSources } from "../MarkdownFrontMatter";
@@ -42,7 +42,7 @@ export function isMarkdownSource(source: Source): boolean {
 
 // A source's type is derived from its uri when it loads, never persisted, so
 // nothing here is part of what a shareable URL carries.
-export type SourceType = typeof ACCEPTED_SOURCE_TYPES[number];
+export type SourceType = (typeof ACCEPTED_SOURCE_TYPES)[number];
 
 export interface Source {
     name: string;
@@ -426,24 +426,39 @@ export default class SearchParams {
                 ?.map((annotation) => this.convertGroupByToPython(annotation))
                 .join("") || "";
 
-        // Group filters by name and use OR to concatenate same filter values
-        const filterGroups = new Map();
+        // Group filters by name and use OR to concatenate same filter values,
+        // or AND when every value is required ("all values" filters)
+        const filterGroups = new Map<string, string>();
+        // Names of annotations whose query needs pandas' python engine (for `.str` methods)
+        const pythonEngineGroups = new Set<string>();
+        // "All values" filters with values that can't be written into the query text safely
+        const unsupportedFilterNames = new Set<string>();
         urlComponents.filters?.forEach((filter) => {
-            const pythonQueryString = filterGroups.get(filter.name);
-            if (!pythonQueryString) {
-                filterGroups.set(filter.name, this.convertFilterToPython(filter));
-            } else {
-                filterGroups.set(
-                    filter.name,
-                    pythonQueryString.concat(` | ${this.convertFilterToPython(filter)}`)
-                );
+            const isAllOf = filter.combineMode === CombineMode.ALL;
+            const predicate = isAllOf
+                ? this.convertAllOfFilterToPython(filter)
+                : this.convertFilterToPython(filter);
+            if (isAllOf) {
+                if (!predicate) {
+                    unsupportedFilterNames.add(filter.name);
+                    return;
+                }
+                pythonEngineGroups.add(filter.name);
             }
+            const pythonQueryString = filterGroups.get(filter.name);
+            filterGroups.set(
+                filter.name,
+                pythonQueryString
+                    ? pythonQueryString.concat(` ${isAllOf ? "&" : "|"} ${predicate}`)
+                    : `${predicate}`
+            );
         });
 
         // Chain the filters together
         let filterQueryString = "";
-        filterGroups.forEach((value) => {
-            filterQueryString = filterQueryString.concat(`.query('${value}')`);
+        filterGroups.forEach((value, name) => {
+            const engine = pythonEngineGroups.has(name) ? ", engine='python'" : "";
+            filterQueryString = filterQueryString.concat(`.query('${value}'${engine})`);
         });
 
         const sortQueryString = urlComponents.sortColumn
@@ -454,7 +469,12 @@ export default class SearchParams {
         const hasQueryElements = groupByQueryString || filterQueryString || sortQueryString;
         const imports = "import pandas as pd\n\n";
         const comment = hasQueryElements ? "#Query on dataframe df" : "#No options selected";
-        const fullQueryString = `${comment}${
+        const unsupportedComment = unsupportedFilterNames.size
+            ? `\n# Not exported (values with quotes aren't supported in "all values" filters on): ${[
+                  ...unsupportedFilterNames,
+              ].join(", ")}`
+            : "";
+        const fullQueryString = `${comment}${unsupportedComment}${
             hasQueryElements &&
             `\ndf_queried = df${groupByQueryString}${filterQueryString}${sortQueryString}`
         }`;
@@ -469,6 +489,22 @@ export default class SearchParams {
 
     private static convertGroupByToPython(annotation: string) {
         return `.groupby('${annotation}', group_keys=True).apply(lambda x: x)`;
+    }
+
+    private static convertAllOfFilterToPython(filter: FileFilter) {
+        const value = String(filter.value);
+        if (/['"]/.test(value) || value.includes("RANGE")) return;
+        // The query text is itself written inside a Python string, so backslashes are doubled
+        const toSource = (text: string) => text.replace(/\\/g, "\\\\");
+        if (filter.matchStyle === MatchStyle.CONTAINS) {
+            return `\`${filter.name}\`.str.contains("${toSource(
+                value
+            )}", case=False, regex=False, na=False)`;
+        }
+        const escaped = value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+        // Non-capturing groups: pandas warns when `str.contains` is given capture groups
+        const regex = `(?:,\\s*${escaped}\\s*,)|(?:^\\s*${escaped}\\s*,)|(?:,\\s*${escaped}\\s*$)|(?:^\\s*${escaped}\\s*$)`;
+        return `\`${filter.name}\`.str.contains(r"${toSource(regex)}", na=False)`;
     }
 
     private static convertFilterToPython(filter: FileFilter) {
