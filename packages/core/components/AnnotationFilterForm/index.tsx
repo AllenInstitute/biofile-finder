@@ -16,7 +16,7 @@ import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
-import FileFilter, { FilterType } from "../../entity/FileFilter";
+import FileFilter, { FilterType, MatchStyle } from "../../entity/FileFilter";
 import { interaction, selection } from "../../state";
 
 import styles from "./AnnotationFilterForm.module.css";
@@ -85,7 +85,9 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     ].includes(props.annotation.type);
 
     // "Contains" filters are only visible on the search form, not in the browse list
-    const hasFuzzyFilter = filtersForAnnotation.some((filter) => filter.type === FilterType.FUZZY);
+    const hasFuzzyFilter = filtersForAnnotation.some(
+        (filter) => filter.matchStyle === MatchStyle.CONTAINS
+    );
     // A range filter value is always formatted as "RANGE(...)". If existing filters exist
     // but none are range-formatted, the user previously selected from the browse list.
     const hasRangeFilter = filtersForAnnotation.some((filter) =>
