@@ -1,9 +1,9 @@
-import { IShimmerColors, Shimmer } from "@fluentui/react";
 import classNames from "classnames";
 import { map } from "lodash";
 import * as React from "react";
 import { useSelector } from "react-redux";
 
+import { LoadingBar, placeholderBarWidth } from "./LoadingPlaceholder";
 import { OnSelect } from "./useFileSelector";
 import useVisibleColumns from "./useVisibleCells";
 import FileRow from "../../components/FileRow";
@@ -48,17 +48,15 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
 
     const file = fileSet.getFileByIndex(index);
 
-    const isSelected = React.useMemo(() => fileSelection.isSelected(fileSet, index), [
-        fileSelection,
-        fileSet,
-        index,
-    ]);
+    const isSelected = React.useMemo(
+        () => fileSelection.isSelected(fileSet, index),
+        [fileSelection, fileSet, index]
+    );
 
-    const isFocused = React.useMemo(() => fileSelection.isFocused(fileSet, index), [
-        fileSelection,
-        fileSet,
-        index,
-    ]);
+    const isFocused = React.useMemo(
+        () => fileSelection.isFocused(fileSet, index),
+        [fileSelection, fileSet, index]
+    );
 
     let content: React.ReactElement;
     if (file) {
@@ -77,16 +75,17 @@ export default function LazilyRenderedRow(props: LazilyRenderedRowProps) {
             />
         );
     } else {
-        // Unable to convince FluentUI to style the shimmer wave pattern accurately
-        // with pure css so have to rely on extracting the colors from the global document
-        // here and then applying them directly
-        const globalStyle = getComputedStyle(document.body);
-        const shimmerColors: IShimmerColors = {
-            background: globalStyle.getPropertyValue("--primary-dark"),
-            shimmer: globalStyle.getPropertyValue("--primary-dark"),
-            shimmerWave: globalStyle.getPropertyValue("--aqua"),
-        };
-        content = <Shimmer className={styles.shimmer} shimmerColors={shimmerColors} />;
+        content = (
+            <FileRow
+                cells={map(visibleColumns, (column, columnIndex) => ({
+                    className: styles.loadingCell,
+                    columnKey: column.name,
+                    displayValue: <LoadingBar width={placeholderBarWidth(index, columnIndex)} />,
+                    width: column.width,
+                }))}
+                padding={padding}
+            />
+        );
     }
 
     return (

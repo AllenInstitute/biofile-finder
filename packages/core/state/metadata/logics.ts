@@ -16,6 +16,7 @@ import {
     REQUEST_DATASET_MANIFEST,
     REQUEST_PASSWORD_MAPPING,
     RequestDatasetManifest,
+    setIsLoadingAnnotations,
     STORE_NEW_ANNOTATION,
     storeNewAnnotation,
     StoreNewAnnotationAction,
@@ -66,6 +67,8 @@ const requestAnnotations = createLogic({
                         .join(", ")}. ${err}`
                 )
             );
+            // Normally handled by receiveAnnotationsLogic
+            dispatch(setIsLoadingAnnotations(false));
         } finally {
             done();
         }
@@ -143,66 +146,69 @@ const receiveAnnotationsLogic = createLogic({
         // A selection of every displayable annotation is equivalent to the default
         const hasSelectedEveryAnnotation =
             validUserSelectedColumns.length === displayableAnnotationNames.size;
-        if (
-            hasUserSelectedColumns &&
-            validUserSelectedColumns.length &&
-            !hasSelectedEveryAnnotation
-        ) {
-            if (!isEqual(validUserSelectedColumns, currentColumns)) {
-                dispatch(selection.actions.setColumns(validUserSelectedColumns));
+        // Default to the existing columns so the no-op early-return path leaves them untouched.
+        let columns: Column[] = currentColumns;
+        try {
+            if (
+                hasUserSelectedColumns &&
+                validUserSelectedColumns.length &&
+                !hasSelectedEveryAnnotation
+            ) {
+                if (!isEqual(validUserSelectedColumns, currentColumns)) {
+                    columns = validUserSelectedColumns;
+                }
+                return;
             }
+
+            // Fall back to all annotations.
+            if (hasUserSelectedColumns) {
+                dispatch(selection.actions.setHasUserSelectedColumns(false) as AnyAction);
+            }
+
+            // This request should be unable to take longer than 2 seconds
+            const widthByAnnotation =
+                await annotationService.fetchOptimalWidthForAnnotations(annotations);
+
+            columns = displayableAnnotations
+                .map((annotation) => ({
+                    annotation: annotation,
+                    currentColumnIndex: currentColumns.findIndex(
+                        (column) => column.name === annotation.name
+                    ),
+                }))
+                .sort((a, b) => {
+                    const { annotation: annotationA, currentColumnIndex: indexA } = a;
+                    const { annotation: annotationB, currentColumnIndex: indexB } = b;
+                    // Move columns that were already selected for display to the front, in their existing order
+                    if (indexA !== -1 && indexB !== -1) {
+                        return indexA - indexB;
+                    }
+                    if (indexA !== -1) return -1;
+                    if (indexB !== -1) return 1;
+
+                    // Move "File Name" to the front then sort alphabetically
+                    if (annotationA.displayName === "File Name") return -1;
+                    if (annotationB.displayName === "File Name") return 1;
+                    return annotationA.name.localeCompare(annotationB.name);
+                })
+                .map(({ annotation, currentColumnIndex }) => {
+                    // If the column for this annotation already exists, keep its current width
+                    if (currentColumnIndex !== -1) {
+                        return currentColumns[currentColumnIndex];
+                    }
+                    return {
+                        name: annotation.name,
+                        width: widthByAnnotation.get(annotation.name) ?? DEFAULT_COLUMN_WIDTH,
+                    };
+                });
+        } finally {
+            // Only dispatch if at least one column actually changed
+            if (!isEqual(columns, currentColumns)) {
+                dispatch(selection.actions.setColumns(columns));
+            }
+            dispatch(setIsLoadingAnnotations(false) as AnyAction);
             done();
-            return;
         }
-
-        // Fall back to all annotations.
-        if (hasUserSelectedColumns) {
-            dispatch(selection.actions.setHasUserSelectedColumns(false) as AnyAction);
-        }
-
-        // This request should be unable to take longer than 2 seconds
-        const widthByAnnotation =
-            await annotationService.fetchOptimalWidthForAnnotations(annotations);
-
-        const columns: Column[] = displayableAnnotations
-            .map((annotation) => ({
-                annotation: annotation,
-                currentColumnIndex: currentColumns.findIndex(
-                    (column) => column.name === annotation.name
-                ),
-            }))
-            .sort((a, b) => {
-                const { annotation: annotationA, currentColumnIndex: indexA } = a;
-                const { annotation: annotationB, currentColumnIndex: indexB } = b;
-                // Move columns that were already selected for display to the front, in their existing order
-                if (indexA !== -1 && indexB !== -1) {
-                    return indexA - indexB;
-                }
-                if (indexA !== -1) return -1;
-                if (indexB !== -1) return 1;
-
-                // Move "File Name" to the front then sort alphabetically
-                if (annotationA.displayName === "File Name") return -1;
-                if (annotationB.displayName === "File Name") return 1;
-                return annotationA.name.localeCompare(annotationB.name);
-            })
-            .map(({ annotation, currentColumnIndex }) => {
-                // If the column for this annotation already exists, keep its current width
-                if (currentColumnIndex !== -1) {
-                    return currentColumns[currentColumnIndex];
-                }
-                return {
-                    name: annotation.name,
-                    width: widthByAnnotation.get(annotation.name) ?? DEFAULT_COLUMN_WIDTH,
-                };
-            });
-
-        // Only dispatch if at least one column actually changed
-        if (!isEqual(columns, currentColumns)) {
-            dispatch(selection.actions.setColumns(columns));
-        }
-
-        done();
     },
     type: RECEIVE_ANNOTATIONS,
 });

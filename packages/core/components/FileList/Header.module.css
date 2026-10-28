@@ -1,134 +1,154 @@
 .header-wrapper {
-  --inner-header-size: 30px;
-  --inner-header-padding: 6px;
+    --inner-header-size: 30px;
+    --inner-header-padding: 6px;
 
-  position: sticky;
-  top: 0;
+    position: sticky;
+    top: 0;
 
-  /* NOTE! If this changes, you must also update a corresponding constant regarding the
+    /* NOTE! If this changes, you must also update a corresponding constant regarding the
   height of the header used to determine whether the currectly focused item is visible
   (in ./index.tsx). */
-  height: calc(var(--inner-header-size) + 10px);
-  z-index: 1000;
+    height: calc(var(--inner-header-size) + 10px);
+    z-index: 1000;
 
-  /* Makes the gradient not prevent clicking the first file */
-  pointer-events: none;
+    /* Makes the gradient not prevent clicking the first file */
+    pointer-events: none;
 }
 
 .header-wrapper > * {
-  pointer-events: auto;
+    pointer-events: auto;
 }
 
 .header-context-menu-target {
-  height: var(--inner-header-size);
+    height: var(--inner-header-size);
 }
 
 .header {
-  background-color: var(--primary-background-color);
-  border-radius: var(--small-border-radius);
-  box-shadow: var(--box-shadow);
+    background-color: var(--primary-background-color);
+    border-radius: var(--small-border-radius);
+    box-shadow: var(--box-shadow);
 }
 
 .header:hover {
-  background-color: var(--accent-dark);
+    background-color: var(--accent-dark);
 }
 
 .empty-header {
-  cursor: pointer;
-  height: var(--inner-header-size);
+    cursor: pointer;
+    height: var(--inner-header-size);
+}
+
+.loading-header {
+    cursor: default;
+    height: var(--inner-header-size);
+}
+
+.loading-header:hover {
+    background-color: var(--primary-background-color);
+}
+
+.header .loading-header-cell {
+    align-items: center;
+    display: inline-flex;
+    height: var(--inner-header-size);
+    padding-bottom: 0;
+    padding-top: 0;
+}
+
+.loading-header-bar {
+    height: 10px;
+    width: 70%;
 }
 
 .empty-header-prompt {
-  color: var(--secondary-text-color);
-  padding: var(--inner-header-padding);
+    color: var(--secondary-text-color);
+    padding: var(--inner-header-padding);
 }
 
 .header > div {
-  height: unset;
+    height: unset;
 }
 
 .header-click-target {
-  display: flex;
-  flex-direction: row;
-  max-height: 21.5px;
-  min-width: 0;
-  overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    max-height: 21.5px;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .header-tooltip-wrapper {
-  display: block;
-  flex: 1 1 auto;
-  width: 100%;
-  min-width: 0;
-  overflow: hidden;
+    display: block;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .header-title {
-  display: block;
-  max-width: 100%;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  vertical-align: middle;
+    display: block;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    vertical-align: middle;
 }
 
 .header-title-prefix {
-  opacity: 0.55;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: inline-block;
-  max-width: 50%;
-  padding-right: 2px;
-  vertical-align: bottom;
-  white-space: nowrap;
+    opacity: 0.55;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 50%;
+    padding-right: 2px;
+    vertical-align: bottom;
+    white-space: nowrap;
 }
 
 .header-cell {
-  cursor: pointer;
-  background-color: inherit;
-  color: var(--primary-text-color);
-  padding: var(--inner-header-padding) 0;
+    cursor: pointer;
+    background-color: inherit;
+    color: var(--primary-text-color);
+    padding: var(--inner-header-padding) 0;
 }
 
 .drag-over {
-  color: var(--aqua);
+    color: var(--aqua);
 }
 
 .dragging {
-  opacity: 0.5;
+    opacity: 0.5;
 }
 
 .header-drag-area {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  cursor: grab;
-  overflow: hidden;
-  min-width: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    cursor: grab;
+    overflow: hidden;
+    min-width: 0;
 }
 
 /* The first cell should have rounded corners on the left side */
 .header-cell:first-of-type {
-  border-top-left-radius: var(--small-border-radius);
-  border-bottom-left-radius: var(--small-border-radius);
+    border-top-left-radius: var(--small-border-radius);
+    border-bottom-left-radius: var(--small-border-radius);
 }
 
 /* Only highlight text when hovering the title itself */
 .header-title:hover {
-  color: var(--highlight-text-color);
+    color: var(--highlight-text-color);
 }
 
 .sort-icon {
-  font-size: 12px;
-  font-weight: bold;
-  margin: auto 0.25em;
+    font-size: 12px;
+    font-weight: bold;
+    margin: auto 0.25em;
 }
 
 .list-parent {
-  /* bizarrely necessary in order to not have the first list item initially render underneath the header */
-  transform: translateY(0px);
-  margin-top: 5px; /* small space between header and first item of list */
+    /* bizarrely necessary in order to not have the first list item initially render underneath the header */
+    transform: translateY(0px);
+    margin-top: 5px; /* small space between header and first item of list */
 }
-
-

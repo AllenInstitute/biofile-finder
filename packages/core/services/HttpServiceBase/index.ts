@@ -220,6 +220,21 @@ export default class HttpServiceBase {
         return new RestServiceResponse(response.data);
     }
 
+    /**
+     * Best effort size in bytes of a remote object, read from a HEAD request's Content-Length.
+     * Returns undefined when the server will not say.
+     */
+    public async getHttpObjectSize(url: string): Promise<number | undefined> {
+        try {
+            const response = await this.httpClient.head(url);
+            // AxiosHeaderValue can be AxiosHeaders | string | string[] | number | boolean | null
+            const length = Number(response.headers["content-length"]);
+            return Number.isFinite(length) && length > 0 ? length : undefined;
+        } catch (err) {
+            return undefined;
+        }
+    }
+
     public async rawPost<T>(url: string, body: string): Promise<T> {
         const encodedUrl = HttpServiceBase.encodeURI(url);
         const config = { headers: { "Content-Type": "application/json" } };

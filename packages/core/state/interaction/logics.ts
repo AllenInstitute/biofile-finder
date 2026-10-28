@@ -755,6 +755,8 @@ const refresh = createLogic({
         const sources = selection.selectors.getSelectedDataSources(getState());
         const isStale = () => selection.selectors.getSelectedDataSources(getState()) !== sources;
 
+        dispatch(metadata.actions.setIsLoadingAnnotations(true));
+
         try {
             const hierarchy = selection.selectors.getAnnotationHierarchy(getState());
             const annotationService = interactionSelectors.getAnnotationService(getState());
@@ -777,6 +779,8 @@ const refresh = createLogic({
                     annotations.map((a) => a.name)
                 ) as AnyAction
             );
+            // Normally this would be handled by the receiveAnnotationsLogic
+            dispatch(metadata.actions.setIsLoadingAnnotations(false));
         } finally {
             done();
         }

@@ -6,11 +6,13 @@ import {
     getAnnotationNameToAnnotationMap,
     getAnnotations,
     getEdgeDefinitions,
+    getIsLoadingAnnotations,
 } from "../metadata/selectors";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import SearchParams, { FileView, SearchParamsComponents, Source } from "../../entity/SearchParams";
+import { DataSourceLoadProgress, DataSourceLoadStage } from "../../services/DatabaseService";
 import { PythonicDataAccessSnippet } from "../../services/DataSourceService";
 
 // BASIC SELECTORS
@@ -20,6 +22,7 @@ export const getAvailableAnnotationsForHierarchy = (state: State) =>
 export const getAvailableAnnotationsForHierarchyLoading = (state: State) =>
     state.selection.availableAnnotationsForHierarchyLoading;
 export const getColumns = (state: State) => state.selection.columns;
+export const getDataSourceLoadProgress = (state: State) => state.selection.dataSourceLoadProgress;
 export const getFileFilters = (state: State) => state.selection.filters;
 export const getFileSelection = (state: State) => state.selection.fileSelection;
 export const getFileView = (state: State) => state.selection.fileView;
@@ -164,10 +167,68 @@ export const getLoadingNewQuery = createSelector([getQueries], (queries): boolea
     queries.some((q) => q.loading)
 );
 
-export const getLoadingQueryOrSource = createSelector(
-    [getLoadingNewQuery, getIsLoadingSource],
-    (loadingQueries, loadingSources): boolean => {
-        return loadingQueries || loadingSources;
+/**
+ * Whether the file list's columns are still on their way.
+ */
+export const getIsLoadingColumns = createSelector(
+    [getLoadingNewQuery, getIsLoadingSource, getIsLoadingAnnotations, hasQuerySelected],
+    (isLoadingNewQuery, isLoadingSource, isLoadingAnnotations, isQuerySelected): boolean =>
+        isLoadingNewQuery || isLoadingSource || isLoadingAnnotations || !isQuerySelected
+);
+
+const STAGE_DESCRIPTIONS: Record<DataSourceLoadStage, string> = {
+    [DataSourceLoadStage.DOWNLOADING]: "Reading data source",
+    [DataSourceLoadStage.IMPORTING]: "Loading into database",
+    [DataSourceLoadStage.NORMALIZING]: "Normalizing columns",
+    [DataSourceLoadStage.VALIDATING]: "Validating data source",
+    [DataSourceLoadStage.FINALIZING]: "Preparing for queries",
+    [DataSourceLoadStage.AGGREGATING]: "Combining data sources",
+};
+
+// Arbitrary fraction of the whole wait to avoid saying 100% when inaccurate
+const COLUMNS_STAGE_START = 0.92;
+
+export interface DataSourceLoadStatus {
+    fraction: number;
+    description: string;
+    bytesTotal?: number;
+}
+
+/**
+ * Summarize the wait for loading data sources and their columns.
+ */
+export const getDataSourceLoadStatus = createSelector(
+    [getDataSourceLoadProgress, hasQuerySelected, getIsLoadingAnnotations],
+    (progressBySource, isQuerySelected, isLoadingAnnotations): DataSourceLoadStatus | undefined => {
+        const entries: DataSourceLoadProgress[] = Object.values(progressBySource);
+        if (!entries.length) {
+            if (!isQuerySelected) return { fraction: 0, description: "Preparing query" };
+            if (isLoadingAnnotations)
+                return { fraction: COLUMNS_STAGE_START, description: "Loading columns" };
+            return undefined;
+        }
+
+        // Present "fraction" as the average completion across sources.
+        // and the description corresponds to the least complete source.
+        const fraction =
+            entries.reduce((total, entry) => total + entry.fraction, 0) / entries.length;
+        const leastComplete = entries.reduce((slowest, entry) =>
+            entry.fraction < slowest.fraction ? entry : slowest
+        );
+
+        // Compute the total size across all measurable sources.
+        const measured = entries.filter((entry) => entry.bytesTotal !== undefined);
+        const bytesTotal = measured.length
+            ? measured.reduce((total, entry) => total + (entry.bytesTotal ?? 0), 0)
+            : undefined;
+
+        return {
+            // Preparation is everything up to reading the columns, so scale it into that span
+            // rather than letting it reach 100% with work still to go.
+            fraction: fraction * COLUMNS_STAGE_START,
+            description: STAGE_DESCRIPTIONS[leastComplete.stage],
+            bytesTotal,
+        };
     }
 );
 
