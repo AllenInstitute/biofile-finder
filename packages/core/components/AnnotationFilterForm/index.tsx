@@ -12,11 +12,11 @@ import LoadingIcon from "../Icons/LoadingIcon";
 import ListPicker from "../ListPicker";
 import { ListItem } from "../ListPicker/ListRow";
 import NumberRangePicker from "../NumberRangePicker";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import { interaction, selection } from "../../state";
 
 import styles from "./AnnotationFilterForm.module.css";
@@ -151,6 +151,19 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             dispatch(
                 selection.actions.setFileFilters([
                     ...allFilters.filter((filter) => filter.name !== props.annotation.name),
+                    ...filtersAsArray,
+                ])
+            );
+        } else if (hasRangeFilter) {
+            // Range filters are considered the same "FilterType" (default) as explicit
+            // chosen values so we need to remove any existing range filters before adding new ones
+            dispatch(
+                selection.actions.setFileFilters([
+                    ...allFilters.filter(
+                        (filter) =>
+                            filter.name !== props.annotation.name ||
+                            !String(filter.value).startsWith("RANGE(")
+                    ),
                     ...filtersAsArray,
                 ])
             );
