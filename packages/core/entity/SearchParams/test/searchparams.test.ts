@@ -686,28 +686,40 @@ describe("SearchParams", () => {
             expect(result).to.contain(expectedResult);
         });
 
-        it("leaves out 'all values' filters and says so, but still ORs default values", () => {
-            const toPython = (type: FilterType) =>
+        describe("'all values' filters", () => {
+            const toPython = (type: FilterType, values = ["small", "low"], name = "Phenotype") =>
                 SearchParams.convertToPython(
                     {
-                        filters: ["small", "low"].map(
-                            (value) => new FileFilter("Phenotype", value, type)
-                        ),
+                        filters: values.map((value) => new FileFilter(name, value, type)),
                         sources: [mockSourceWithUri],
                     },
                     mockOS
                 );
+            const countOf = (text: string, part: string) => text.split(part).length - 1;
 
-            [FilterType.ALL, FilterType.FUZZY_ALL].forEach((type) => {
-                const result = toPython(type);
-                expect(result).to.not.contain(".query(");
-                expect(result).to.contain('unsupported "all values" filters on): Phenotype');
+            it("ANDs one whole-entry match per value for ALL filters", () => {
+                const result = toPython(FilterType.ALL);
+                expect(countOf(result, '.str.contains(r"')).to.equal(2);
+                expect(countOf(result, " & ")).to.equal(1);
+                expect(result).to.contain(".query('`Phenotype`.str.contains(r\"(?:,");
+                expect(result).to.contain(", engine='python')");
+                expect(result).to.not.contain("Not exported");
             });
-            const defaultResult = toPython(FilterType.DEFAULT);
-            expect(defaultResult).to.contain(
-                `.query('\`Phenotype\`=="small" | \`Phenotype\`=="low"')`
-            );
-            expect(defaultResult).to.not.contain("unsupported");
+
+            it("leaves out values with quotes and says so", () => {
+                const result = toPython(FilterType.ALL, ["it's"]);
+                expect(result).to.not.contain(".query(");
+                expect(result).to.contain("Not exported");
+                expect(result).to.contain("Phenotype");
+            });
+
+            it("still ORs default values without the python engine", () => {
+                const result = toPython(FilterType.DEFAULT);
+                expect(result).to.contain(
+                    `.query('\`Phenotype\`=="small" | \`Phenotype\`=="low"')`
+                );
+                expect(result).to.not.contain("engine=");
+            });
         });
 
         it("converts filters", () => {
