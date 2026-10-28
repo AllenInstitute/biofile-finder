@@ -196,13 +196,11 @@ const useDirectoryHierarchy = (
                         // If we are grouping by a field (e.g., barcode)
                         // and also have filters applied for that field (e.g., barcode=1234, barcode=1357),
                         // then at the barcode=1234 group we should remove the barcode=1357 filter
-                        // Unless, the filter type is "ALL" in which case each value in the filters
-                        // and the group have to be satisfied.
+                        // Unless the filter must hold for every file in the group (e.g. "ALL"),
+                        // in which case it and the group's value both have to be satisfied.
                         const nonHierarchyFilters = selectedFileFilters.filter(
                             (f) =>
-                                f.type === FilterType.ALL ||
-                                f.type === FilterType.FUZZY_ALL ||
-                                !take(hierarchy, depth + 1).includes(f.name)
+                                f.appliesToEachGroup || !take(hierarchy, depth + 1).includes(f.name)
                         );
                         const filters = uniqWith(
                             [...hierarchyFilters, ...nonHierarchyFilters],

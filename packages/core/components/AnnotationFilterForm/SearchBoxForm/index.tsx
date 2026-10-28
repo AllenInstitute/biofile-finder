@@ -6,7 +6,7 @@ import { TransparentIconButton } from "../../Buttons";
 import ComboBox from "../../ComboBox";
 import SearchBox from "../../SearchBox";
 import Tooltip from "../../Tooltip";
-import FileFilter, { FilterType } from "../../../entity/FileFilter";
+import FileFilter, { MatchStyle } from "../../../entity/FileFilter";
 
 import styles from "./SearchBoxForm.module.css";
 
@@ -49,19 +49,19 @@ interface SearchBoxFormProps {
  * substring. Committed values render as removable chips below the input.
  */
 export default function SearchBoxForm(props: SearchBoxFormProps) {
-    const committedType = props.filters[0]?.type;
-    const isCommittedContains =
-        committedType === FilterType.FUZZY || committedType === FilterType.FUZZY_ALL;
+    const committedStyle = props.filters[0]?.matchStyle;
     const [searchText, setSearchText] = React.useState("");
     const [hasBlurred, setHasBlurred] = React.useState(false);
     const [isFuzzy, setIsFuzzy] = React.useState(
-        committedType === undefined || isCommittedContains
+        committedStyle === undefined || committedStyle === MatchStyle.CONTAINS
     );
     const selectedOperator = isFuzzy ? FUZZY_OPTION : EXACT_OPTION;
-    const committedOperator = isCommittedContains ? FUZZY_OPTION : EXACT_OPTION;
+    const committedOperator = committedStyle === MatchStyle.CONTAINS ? FUZZY_OPTION : EXACT_OPTION;
     const trimmedSearchText = searchText.trim();
     const willReplaceResults =
-        !!trimmedSearchText && committedType !== undefined && isFuzzy !== isCommittedContains;
+        !!trimmedSearchText &&
+        committedStyle !== undefined &&
+        isFuzzy !== (committedStyle === MatchStyle.CONTAINS);
     const valueNotFound =
         !!trimmedSearchText &&
         !!props.availableValues?.length &&

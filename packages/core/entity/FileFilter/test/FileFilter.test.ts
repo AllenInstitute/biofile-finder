@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import FileFilter, { FilterType, MatchStyle } from "../";
+import FileFilter, { CombineMode, FilterType, MatchStyle } from "../";
 import AnyValueFilter from "../AnyValueFilter";
 import FuzzyFilter from "../FuzzyFilter";
 import NoValueFilter from "../NoValueFilter";
@@ -12,16 +12,71 @@ describe("FileFilter", () => {
             expect(new AnyValueFilter("A").hasValue).to.equal(false);
             expect(new NoValueFilter("A").hasValue).to.equal(false);
             expect(new FileFilter("A", "x").hasValue).to.equal(true);
+            expect(new FileFilter("A", "x", FilterType.ALL).hasValue).to.equal(true);
             expect(new FuzzyFilter("A", "x").hasValue).to.equal(true);
+        });
+    });
+
+    describe("combineMode", () => {
+        it("is ALL for the all-of types and ANY for every other type", () => {
+            expect(new FileFilter("A", "x", FilterType.ALL).combineMode).to.equal(CombineMode.ALL);
+            expect(new FileFilter("A", "x", FilterType.FUZZY_ALL).combineMode).to.equal(
+                CombineMode.ALL
+            );
+            expect(new FileFilter("A", "x").combineMode).to.equal(CombineMode.ANY);
+            expect(new FuzzyFilter("A", "x").combineMode).to.equal(CombineMode.ANY);
+            expect(new AnyValueFilter("A").combineMode).to.equal(CombineMode.ANY);
+            expect(new NoValueFilter("A").combineMode).to.equal(CombineMode.ANY);
         });
     });
 
     describe("matchStyle", () => {
         it("is CONTAINS only for fuzzy filters", () => {
             expect(new FuzzyFilter("A", "x").matchStyle).to.equal(MatchStyle.CONTAINS);
+            expect(new FileFilter("A", "x", FilterType.FUZZY_ALL).matchStyle).to.equal(
+                MatchStyle.CONTAINS
+            );
             expect(new FileFilter("A", "x").matchStyle).to.equal(MatchStyle.EXACT);
-            expect(new AnyValueFilter("A").matchStyle).to.equal(MatchStyle.EXACT);
-            expect(new NoValueFilter("A").matchStyle).to.equal(MatchStyle.EXACT);
+            expect(new FileFilter("A", "x", FilterType.ALL).matchStyle).to.equal(MatchStyle.EXACT);
+        });
+    });
+
+    describe("typeFor", () => {
+        it("maps each supported style and mode to its filter type", () => {
+            expect(FileFilter.typeFor(MatchStyle.EXACT, CombineMode.ANY)).to.equal(
+                FilterType.DEFAULT
+            );
+            expect(FileFilter.typeFor(MatchStyle.EXACT, CombineMode.ALL)).to.equal(FilterType.ALL);
+            expect(FileFilter.typeFor(MatchStyle.CONTAINS, CombineMode.ANY)).to.equal(
+                FilterType.FUZZY
+            );
+            expect(FileFilter.typeFor(MatchStyle.CONTAINS, CombineMode.ALL)).to.equal(
+                FilterType.FUZZY_ALL
+            );
+        });
+
+        it("throws for a combination with no filter type", () => {
+            expect(() => FileFilter.typeFor("bogus" as MatchStyle, CombineMode.ANY)).to.throw();
+        });
+
+        it("round-trips every value-bearing filter type through its traits", () => {
+            [FilterType.DEFAULT, FilterType.ALL, FilterType.FUZZY, FilterType.FUZZY_ALL].forEach(
+                (type) => {
+                    const filter = new FileFilter("A", "x", type);
+                    expect(FileFilter.typeFor(filter.matchStyle, filter.combineMode)).to.equal(
+                        type
+                    );
+                }
+            );
+        });
+    });
+
+    describe("appliesToEachGroup", () => {
+        it("is true only for ALL filters", () => {
+            expect(new FileFilter("A", "x", FilterType.ALL).appliesToEachGroup).to.equal(true);
+            expect(new FileFilter("A", "x").appliesToEachGroup).to.equal(false);
+            expect(new FuzzyFilter("A", "x").appliesToEachGroup).to.equal(false);
+            expect(new NoValueFilter("A").appliesToEachGroup).to.equal(false);
         });
     });
 

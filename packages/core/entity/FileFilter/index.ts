@@ -12,6 +12,14 @@ export interface FileFilterJson {
 }
 
 /**
+ * How several filters on the same annotation combine
+ */
+export enum CombineMode {
+    ANY = "any", // a file may match any one of the values (OR)
+    ALL = "all", // a file must match every value (AND)
+}
+
+/**
  * How a filter's value is compared to the annotation's value(s).
  */
 export enum MatchStyle {
@@ -19,7 +27,15 @@ export enum MatchStyle {
     CONTAINS = "contains", // the annotation's value includes the filter's value
 }
 
-// These also correspond to query param names
+/**
+ * What a filter checks, and so which combinations of MatchStyle and CombineMode exist:
+ *
+ *                      any of (OR)   all of (AND)
+ *   exactly matches    DEFAULT       ALL
+ *   contains           FUZZY         FUZZY_ALL
+ *   has any value      ANY_VALUE (takes no values, so there is nothing to combine)
+ *   has no value       NO_VALUE  (takes no values, so there is nothing to combine)
+ */
 export enum FilterType {
     // Like DEFAULT, but multiple values for the same annotation must ALL match (AND instead of OR)
     ALL = "all",
@@ -34,18 +50,20 @@ export enum FilterType {
 }
 
 /**
- * What each FilterType means in terms of matching. Code that cares about how a value is matched
- * should use `FileFilter.matchStyle` rather than comparing against individual filter types.
- * "Any value" and "no value" filters take no value, so they have nothing to match.
+ * What each FilterType means in terms of matching and combining. Code that cares about
+ * either (SQL building, forms, labels) should use `FileFilter.matchStyle` / `combineMode`
+ * or `FileFilter.typeFor` rather than comparing against individual filter types.
+ * "Any value" and "no value" filters take no value, so they have nothing to match or combine.
  */
-const FILTER_TYPE_TRAITS: Record<FilterType, { matchStyle: MatchStyle }> = {
-    [FilterType.DEFAULT]: { matchStyle: MatchStyle.EXACT },
-    [FilterType.ALL]: { matchStyle: MatchStyle.EXACT },
-    [FilterType.FUZZY]: { matchStyle: MatchStyle.CONTAINS },
-    [FilterType.FUZZY_ALL]: { matchStyle: MatchStyle.CONTAINS },
-    [FilterType.ANY_VALUE]: { matchStyle: MatchStyle.EXACT },
-    [FilterType.NO_VALUE]: { matchStyle: MatchStyle.EXACT },
-};
+const FILTER_TYPE_TRAITS: Record<FilterType, { matchStyle: MatchStyle; combineMode: CombineMode }> =
+    {
+        [FilterType.DEFAULT]: { matchStyle: MatchStyle.EXACT, combineMode: CombineMode.ANY },
+        [FilterType.ALL]: { matchStyle: MatchStyle.EXACT, combineMode: CombineMode.ALL },
+        [FilterType.FUZZY]: { matchStyle: MatchStyle.CONTAINS, combineMode: CombineMode.ANY },
+        [FilterType.FUZZY_ALL]: { matchStyle: MatchStyle.CONTAINS, combineMode: CombineMode.ALL },
+        [FilterType.ANY_VALUE]: { matchStyle: MatchStyle.EXACT, combineMode: CombineMode.ANY },
+        [FilterType.NO_VALUE]: { matchStyle: MatchStyle.EXACT, combineMode: CombineMode.ANY },
+    };
 
 /**
  * Stub for a filter used to constrain a listing of files to those that match a particular condition. Should be
@@ -113,7 +131,7 @@ export default class FileFilter {
                 // "ALL OF" filters each become their own AND'd clause
                 const [allOf, anyOf] = partition(
                     sameAnnotation,
-                    (f) => f.type === FilterType.ALL || f.type === FilterType.FUZZY_ALL
+                    (f) => f.combineMode === CombineMode.ALL
                 );
                 if (anyOf.length) clauses.push(anyOf.map(toClause).join(" OR "));
                 clauses.push(...allOf.map(toClause));
@@ -177,8 +195,42 @@ export default class FileFilter {
         return this.type !== FilterType.ANY_VALUE && this.type !== FilterType.NO_VALUE;
     }
 
+    /**
+     * Whether this filter keeps constraining the files inside a group-by folder for its
+     * annotation. Other filters on a grouped annotation are replaced by the folder's own value,
+     * but each "all values" filter must still hold for every file in the folder.
+     */
+    public get appliesToEachGroup(): boolean {
+        return this.combineMode !== CombineMode.ANY;
+    }
+
+    public get combineMode(): CombineMode {
+        return FILTER_TYPE_TRAITS[this.type].combineMode;
+    }
+
     public get matchStyle(): MatchStyle {
         return FILTER_TYPE_TRAITS[this.type].matchStyle;
+    }
+
+    /**
+     * The value-bearing FilterType that matches values in the given style and combines them in
+     * the given mode. Throws for combinations that aren't supported (see FilterType).
+     */
+    public static typeFor(matchStyle: MatchStyle, combineMode: CombineMode): FilterType {
+        const valueTypes = [
+            FilterType.DEFAULT,
+            FilterType.ALL,
+            FilterType.FUZZY,
+            FilterType.FUZZY_ALL,
+        ];
+        const type = valueTypes.find(
+            (candidate) =>
+                FILTER_TYPE_TRAITS[candidate].matchStyle === matchStyle &&
+                FILTER_TYPE_TRAITS[candidate].combineMode === combineMode
+        );
+        if (type) return type;
+
+        throw new Error(`Filtering is not supported for ${matchStyle} + ${combineMode}`);
     }
 
     public toQueryString(): string {
