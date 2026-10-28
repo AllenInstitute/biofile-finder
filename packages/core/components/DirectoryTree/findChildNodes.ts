@@ -1,7 +1,7 @@
 import { defaults, isEmpty, pull } from "lodash";
 
 import { NO_VALUE_NODE, ROOT_NODE } from "./directory-hierarchy-state";
-import { FilterType } from "../../entity/FileFilter";
+import { FilterType, MatchStyle } from "../../entity/FileFilter";
 import NoValueFilter from "../../entity/FileFilter/NoValueFilter";
 import FileSet from "../../entity/FileSet";
 import { CancellablePromise } from "../../entity/types";
@@ -115,7 +115,8 @@ export function findChildNodes(params: FindChildNodesParams): CancellablePromise
         if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
             const isFuzzyFilterApplied = fileSet.filters.some(
                 (filter) =>
-                    filter.name === annotationNameAtDepth && filter.type === FilterType.FUZZY
+                    filter.name === annotationNameAtDepth &&
+                    filter.matchStyle === MatchStyle.CONTAINS
             );
             if (isFuzzyFilterApplied) {
                 // Multiple search values may be committed for one annotation; keep
