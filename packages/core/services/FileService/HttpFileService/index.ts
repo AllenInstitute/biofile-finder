@@ -67,11 +67,11 @@ function simplifyCsvSelection(selections: Selection[]): FESFileSelection[] {
             "name"
         ).flat(),
         exclude: map(
-            filter(selection.filters, (filter) => filter.type === FilterType.EXCLUDE),
+            filter(selection.filters, (filter) => filter.type === FilterType.NO_VALUE),
             "name"
         ).flat(),
         include: map(
-            filter(selection.filters, (filter) => filter.type === FilterType.ANY),
+            filter(selection.filters, (filter) => filter.type === FilterType.ANY_VALUE),
             "name"
         ).flat(),
     }));

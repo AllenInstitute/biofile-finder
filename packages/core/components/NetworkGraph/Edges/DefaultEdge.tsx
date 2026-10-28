@@ -8,7 +8,7 @@ import { useButtonMenu } from "../../Buttons";
 import MarkdownText from "../../MarkdownText";
 import Tooltip from "../../Tooltip";
 import FileFilter from "../../../entity/FileFilter";
-import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import AnyValueFilter from "../../../entity/FileFilter/AnyValueFilter";
 import { AnnotationEdge } from "../../../entity/Graph";
 import SearchParams from "../../../entity/SearchParams";
 import { selection } from "../../../state";
@@ -66,7 +66,7 @@ const DefaultEdge: FC<EdgeProps<Edge<AnnotationEdge>>> = ({
                         // Filter empty filters out
                         // this would be the case for any "self" type edges
                         .filter((value) => !isEmpty(value))
-                        .map((value) => new IncludeFilter(value));
+                        .map((value) => new AnyValueFilter(value));
                     newUrl = SearchParams.encode({
                         ...currentQuery,
                         filters,

@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { TertiaryButton } from "../Buttons";
 import { ModalType } from "../Modal";
-import IncludeFilter from "../../entity/FileFilter/IncludeFilter";
+import AnyValueFilter from "../../entity/FileFilter/AnyValueFilter";
 import { SearchParamsComponents } from "../../entity/SearchParams";
 import Tutorial from "../../entity/Tutorial";
 import useSaveMetadataOptions from "../../hooks/useSaveMetadataOptions";
@@ -30,7 +30,7 @@ export default function QueryFooter(props: Props) {
     const url = useSelector(selection.selectors.getEncodedSearchParams);
     const combinedFilters = React.useMemo(() => {
         const groupByFilters = props.queryComponents.hierarchy.map(
-            (annotationName) => new IncludeFilter(annotationName)
+            (annotationName) => new AnyValueFilter(annotationName)
         );
         return [...props.queryComponents.filters, ...groupByFilters];
     }, [props.queryComponents.filters, props.queryComponents.hierarchy]);
