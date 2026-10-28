@@ -78,7 +78,12 @@ export function findChildNodes(params: FindChildNodesParams): CancellablePromise
                     !filter.value.toString().includes("RANGE") && // 'RANGE' filters are handled by the value fetching endpoint
                     filter.type !== FilterType.ANY // 'Include' filters have a blank value and shouldn't be counted here
             )
-            .map((filter) => filter.value);
+            // Filter values may be numbers (e.g. from a URL) while node values are strings
+            .map((filter) => String(filter.value));
+        const isRangeFilterApplied = fileSet.filters.some(
+            (filter) =>
+                filter.name === annotationNameAtDepth && String(filter.value).includes("RANGE")
+        );
 
         if (shouldShowNullGroups) {
             // Fetch all values under current node, ignoring past hierarchy
@@ -112,7 +117,8 @@ export function findChildNodes(params: FindChildNodesParams): CancellablePromise
         // If the annotation is in 'includeFilters' or if no filters are applied, we can use all the values
         let filteredValues = values;
         // If specific value filter(s) are selected for this annotation, we should only use the selected values
-        if (!isEmpty(userSelectedFiltersForCurrentAnnotation)) {
+        // unless a range is also applied, in which case values within the range are valid too
+        if (!isEmpty(userSelectedFiltersForCurrentAnnotation) && !isRangeFilterApplied) {
             const isFuzzyFilterApplied = fileSet.filters.some(
                 (filter) =>
                     filter.name === annotationNameAtDepth && filter.type === FilterType.FUZZY
