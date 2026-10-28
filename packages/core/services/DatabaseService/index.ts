@@ -454,7 +454,7 @@ export default abstract class DatabaseService {
         } else if (uri.startsWith("s3")) {
             await this.database.registerFileURL(handle, uri, duckdb.DuckDBDataProtocol.S3, false);
         } else {
-            this.s3StorageService.getHttpObjectSize(uri).then((bytesTotal) => {
+            this.s3StorageService.getHttpObjectSize(uri, 5000).then((bytesTotal) => {
                 if (!importFinished && bytesTotal !== undefined) {
                     this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 0, bytesTotal);
                 }
