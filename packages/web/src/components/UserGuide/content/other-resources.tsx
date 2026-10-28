@@ -8,8 +8,7 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
     {
         slug: PageSlug.StorageOptions,
         title: "Storage options",
-        intro:
-            "Whether cloud, local, or network storage, BioFile Finder (BFF) is agnostic of where your files live. The only requirement is that the metadata file is accessible to the browser running BFF.",
+        intro: "Whether cloud, local, or network storage, BioFile Finder (BFF) is agnostic of where your files live. The only requirement is that the metadata file is accessible to the browser running BFF.",
         sections: [
             {
                 heading: SectionHeading.CloudStorage,
@@ -183,8 +182,7 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
     {
         slug: PageSlug.AvoidingCORSErrors,
         title: "Avoiding CORS errors",
-        intro:
-            "You may need to set up CORS permissions on your cloud bucket to enable bff.allencell.org to access your files. The same will be true for any web-based image viewers — for example vole.allencell.org — that you want to use to view your data.",
+        intro: "You may need to set up CORS permissions on your cloud bucket to enable bff.allencell.org to access your files. The same will be true for any web-based image viewers — for example vole.allencell.org — that you want to use to view your data.",
         sections: [
             {
                 heading: "Setting up CORS permissions",
@@ -206,6 +204,25 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
                                 <Icon iconName="OpenInNewWindow" className="ug-icon-sm" />
                             </a>
                             .
+                        </p>
+                        <h3>Recommended configuration</h3>
+                        <p>
+                            BFF needs both <code>GET</code> and <code>HEAD</code> listed as allowed
+                            methods, and <code>AllowedHeaders</code> must be set. Omitting any of
+                            these can cause CORS errors. Example (XML format) for AWS S3:
+                        </p>
+                        <pre>
+                            <code>{`<CORSConfiguration>
+  <CORSRule>
+    <AllowedOrigin>https://bff.allencell.org</AllowedOrigin>
+    <AllowedMethod>GET</AllowedMethod>
+    <AllowedMethod>HEAD</AllowedMethod>
+  </CORSRule>
+</CORSConfiguration>`}</code>
+                        </pre>
+                        <p>
+                            To also allow web-based viewers such as vole.allencell.org, add an{" "}
+                            <code>AllowedOrigin</code> entry for each additional origin.
                         </p>
                     </>
                 ),
