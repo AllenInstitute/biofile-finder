@@ -22,6 +22,7 @@ import {
     SET_HAS_USER_SELECTED_COLUMNS,
 } from "../../selection/actions";
 import Annotation from "../../../entity/Annotation";
+import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
@@ -229,9 +230,15 @@ describe("Metadata logics", () => {
                 state: initialState,
                 logics: metadataLogics,
             });
+            const fileNameAnnotation = new Annotation({
+                annotationDisplayName: "File Name",
+                annotationName: AnnotationName.FILE_NAME,
+                description: "",
+                type: AnnotationType.STRING,
+            });
 
             // act
-            store.dispatch(receiveAnnotations(mockAnnotations));
+            store.dispatch(receiveAnnotations([...mockAnnotations, fileNameAnnotation]));
             await logicMiddleware.whenComplete();
 
             // assert: all annotations should be shown as columns, plus a "File Name" column prepended
@@ -239,8 +246,9 @@ describe("Metadata logics", () => {
             const matchingAction = actions.list
                 .filter((action) => action.type === SET_COLUMNS)
                 .at(0);
-            // 3 mock annotations
-            expect(matchingAction?.payload.length).to.equal(mockAnnotations.length);
+            // 3 mock annotations + 1 prepended "File Name" column
+            expect(matchingAction?.payload.length).to.equal(mockAnnotations.length + 1);
+            expect(matchingAction?.payload[0].name).to.equal(AnnotationName.FILE_NAME);
         });
 
         it("orders default columns by their source order rather than alphabetically", async () => {

@@ -182,6 +182,10 @@ const receiveAnnotationsLogic = createLogic({
                 if (indexA !== -1) return -1;
                 if (indexB !== -1) return 1;
 
+                // Move "File Name" to the front
+                if (annotationA.name === AnnotationName.FILE_NAME) return -1;
+                if (annotationB.name === AnnotationName.FILE_NAME) return 1;
+
                 // compare indexes preserving the original index from the source, uses map of indexes
                 // in case order in array has changed between the original source and the current state
                 return (
