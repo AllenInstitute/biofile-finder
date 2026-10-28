@@ -8,8 +8,8 @@ import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter from "../../../entity/FileFilter";
-import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
-import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import AnyValueFilter from "../../../entity/FileFilter/AnyValueFilter";
+import NoValueFilter from "../../../entity/FileFilter/NoValueFilter";
 import FileSet from "../../../entity/FileSet";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -238,7 +238,7 @@ describe("DirectoryTree utilities", () => {
             expect(childNodes).to.deep.equal([secondLevelHierarchyValues[1]]);
         });
         it("returns only the NO_VALUE node when annotation has exclude filter applied and NO_VALUE has files", async () => {
-            const fileSet = new FileSet({ filters: [new ExcludeFilter(secondAnn.displayName)] });
+            const fileSet = new FileSet({ filters: [new NoValueFilter(secondAnn.displayName)] });
             const childNodes = await findChildNodes({
                 annotationService,
                 fileService,
@@ -265,7 +265,7 @@ describe("DirectoryTree utilities", () => {
             expect(childNodes).to.deep.equal(numericHierarchyValues);
         });
         it("returns all values when 'include' filter is applied on hierarchy field", async () => {
-            const fileSet = new FileSet({ filters: [new IncludeFilter(secondAnn.displayName)] });
+            const fileSet = new FileSet({ filters: [new AnyValueFilter(secondAnn.displayName)] });
             const childNodes = await findChildNodes({
                 annotationService,
                 fileService,

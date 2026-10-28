@@ -5,8 +5,8 @@ import FileFilter, { FilterType } from "../FileFilter";
  * should exclude a file from the fileset regardless of value;
  * e.g., only return files that have null/blank values for this annotation.
  */
-export default class ExcludeFilter extends FileFilter {
+export default class NoValueFilter extends FileFilter {
     constructor(annotationName: string) {
-        super(annotationName, "", FilterType.EXCLUDE);
+        super(annotationName, "", FilterType.NO_VALUE);
     }
 }

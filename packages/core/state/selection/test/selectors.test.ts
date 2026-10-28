@@ -7,8 +7,8 @@ import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
-import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
-import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import AnyValueFilter from "../../../entity/FileFilter/AnyValueFilter";
+import NoValueFilter from "../../../entity/FileFilter/NoValueFilter";
 import { mergeState } from "../../../util/redux-utils";
 
 describe("Selection selectors", () => {
@@ -65,10 +65,10 @@ describe("Selection selectors", () => {
                 }),
             ];
             const filters = [
-                new ExcludeFilter("IsTestAnnotation"), // boolean
-                new IncludeFilter(AnnotationName.UPLOADED), // date
-                new ExcludeFilter(AnnotationName.FILE_SIZE), // number
-                new IncludeFilter(AnnotationName.FILE_NAME), // string
+                new NoValueFilter("IsTestAnnotation"), // boolean
+                new AnyValueFilter(AnnotationName.UPLOADED), // date
+                new NoValueFilter(AnnotationName.FILE_SIZE), // number
+                new AnyValueFilter(AnnotationName.FILE_NAME), // string
             ];
             const state = mergeState(initialState, {
                 metadata: {

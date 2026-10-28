@@ -4,9 +4,9 @@ import { identity } from "lodash";
 import FileSelection, { FocusDirective } from "..";
 import FileDetail from "../../FileDetail";
 import FileFilter from "../../FileFilter";
-import ExcludeFilter from "../../FileFilter/ExcludeFilter";
+import AnyValueFilter from "../../FileFilter/AnyValueFilter";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
-import IncludeFilter from "../../FileFilter/IncludeFilter";
+import NoValueFilter from "../../FileFilter/NoValueFilter";
 import FileSet from "../../FileSet";
 import NumericRange from "../../NumericRange";
 import { Environment, FESBaseUrl } from "../../../constants";
@@ -723,8 +723,8 @@ describe("FileSelection", () => {
                     new FileFilter("filterName", "filterValue"),
                     new FuzzyFilter(fuzzyFilterNames[0], fuzzyFilterValues[0]),
                     new FuzzyFilter(fuzzyFilterNames[1], fuzzyFilterValues[1]),
-                    new IncludeFilter(includeFilterName),
-                    new ExcludeFilter(excludeFilterName),
+                    new AnyValueFilter(includeFilterName),
+                    new NoValueFilter(excludeFilterName),
                 ],
             });
             const selection = new FileSelection()

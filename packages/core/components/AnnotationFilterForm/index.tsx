@@ -12,11 +12,11 @@ import LoadingIcon from "../Icons/LoadingIcon";
 import ListPicker from "../ListPicker";
 import { ListItem } from "../ListPicker/ListRow";
 import NumberRangePicker from "../NumberRangePicker";
+import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
-import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import { interaction, selection } from "../../state";
 
 import styles from "./AnnotationFilterForm.module.css";
@@ -169,8 +169,8 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             switch (option.key) {
                 case FilterType.DEFAULT:
                     return; // No further action needed, dispatch on search instead
-                case FilterType.EXCLUDE:
-                case FilterType.ANY:
+                case FilterType.NO_VALUE:
+                case FilterType.ANY_VALUE:
                 default:
                     dispatch(
                         selection.actions.changeFileFilterType(
@@ -345,11 +345,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                             text: `Some value${items.length > 0 ? "(s)" : ""}`,
                         },
                         {
-                            key: FilterType.ANY,
+                            key: FilterType.ANY_VALUE,
                             text: "Any value",
                         },
                         {
-                            key: FilterType.EXCLUDE,
+                            key: FilterType.NO_VALUE,
                             text: "No value",
                         },
                     ]}
@@ -360,7 +360,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                 searchFormType()
             ) : (
                 <div className={styles.footer}>
-                    All files with {filterType === FilterType.EXCLUDE ? "no " : "any "}
+                    All files with {filterType === FilterType.NO_VALUE ? "no " : "any "}
                     value for {props.annotation.displayName}
                 </div>
             )}

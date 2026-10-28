@@ -24,7 +24,7 @@
 import DatabaseServiceWebWorker from "../../src/services/DatabaseServiceWeb/duckdb-worker.worker";
 import { AnnotationType } from "../../../core/entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../core/entity/FileFilter";
-import ExcludeFilter from "../../../core/entity/FileFilter/ExcludeFilter";
+import NoValueFilter from "../../../core/entity/FileFilter/NoValueFilter";
 import FileSet from "../../../core/entity/FileSet";
 import FileSort, { SortOrder } from "../../../core/entity/FileSort";
 import DatabaseAnnotationService from "../../../core/services/AnnotationService/DatabaseAnnotationService";
@@ -121,7 +121,7 @@ export const BENCHMARK_TASKS: BenchmarkTask[] = [
     {
         name: "null_group_count",
         run: (_, f) =>
-            f.getCountOfMatchingFiles(new FileSet({ filters: [new ExcludeFilter("cell_line")] }))
+            f.getCountOfMatchingFiles(new FileSet({ filters: [new NoValueFilter("cell_line")] }))
                 .promise,
     },
 
