@@ -11,6 +11,14 @@ export interface FileFilterJson {
     type?: FilterType;
 }
 
+/**
+ * How a filter's value is compared to the annotation's value(s).
+ */
+export enum MatchStyle {
+    EXACT = "exact", // the annotation's value is identical to the filter's value
+    CONTAINS = "contains", // the annotation's value includes the filter's value
+}
+
 // These also correspond to query param names
 export enum FilterType {
     // "include" and "exclude" are the wire names for "has any value" and "has no value";
@@ -20,6 +28,18 @@ export enum FilterType {
     FUZZY = "fuzzy",
     DEFAULT = "default",
 }
+
+/**
+ * What each FilterType means in terms of matching. Code that cares about how a value is matched
+ * should use `FileFilter.matchStyle` rather than comparing against individual filter types.
+ * "Any value" and "no value" filters take no value, so they have nothing to match.
+ */
+const FILTER_TYPE_TRAITS: Record<FilterType, { matchStyle: MatchStyle }> = {
+    [FilterType.DEFAULT]: { matchStyle: MatchStyle.EXACT },
+    [FilterType.FUZZY]: { matchStyle: MatchStyle.CONTAINS },
+    [FilterType.ANY_VALUE]: { matchStyle: MatchStyle.EXACT },
+    [FilterType.NO_VALUE]: { matchStyle: MatchStyle.EXACT },
+};
 
 /**
  * Stub for a filter used to constrain a listing of files to those that match a particular condition. Should be
@@ -128,6 +148,10 @@ export default class FileFilter {
         return this.type !== FilterType.ANY_VALUE && this.type !== FilterType.NO_VALUE;
     }
 
+    public get matchStyle(): MatchStyle {
+        return FILTER_TYPE_TRAITS[this.type].matchStyle;
+    }
+
     public toQueryString(): string {
         // Use the dotted name (not the JSON path array): this string is sent to the FES HTTP
         // API and used in FileSet cache keys, both of which expect `annotation=value` form.
@@ -160,7 +184,7 @@ export default class FileFilter {
             if (this.type === FilterType.ANY_VALUE) return `len(${columnExpr}) > 0`;
             if (this.type === FilterType.NO_VALUE)
                 return `("${this.path[0]}" IS NULL OR len(${columnExpr}) = 0)`;
-            if (this.type === FilterType.FUZZY) {
+            if (this.matchStyle === MatchStyle.CONTAINS) {
                 const boolList = SQLBuilder.buildNestedAccessExpression(
                     this.path,
                     pathIsArray,
@@ -187,7 +211,7 @@ export default class FileFilter {
             if (this.type === FilterType.ANY_VALUE) return `len(${columnExpr}) > 0`;
             if (this.type === FilterType.NO_VALUE)
                 return `("${this.path[0]}" IS NULL OR len(${columnExpr}) = 0)`;
-            if (this.type === FilterType.FUZZY)
+            if (this.matchStyle === MatchStyle.CONTAINS)
                 return SQLBuilder.listRegexContains(columnExpr, this.value);
             return SQLBuilder.listContains(columnExpr, this.value);
         }
@@ -196,7 +220,8 @@ export default class FileFilter {
         // (or an IS NULL / IS NOT NULL check for ANY/EXCLUDE)
         if (this.type === FilterType.ANY_VALUE) return `${columnExpr} IS NOT NULL`;
         if (this.type === FilterType.NO_VALUE) return `${columnExpr} IS NULL`;
-        if (this.type === FilterType.FUZZY) return SQLBuilder.regexContains(columnExpr, this.value);
+        if (this.matchStyle === MatchStyle.CONTAINS)
+            return SQLBuilder.regexContains(columnExpr, this.value);
         return SQLBuilder.matchByType(
             columnExpr,
             this.value,

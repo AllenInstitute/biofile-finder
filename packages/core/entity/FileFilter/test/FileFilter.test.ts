@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import FileFilter, { FilterType } from "../";
+import FileFilter, { FilterType, MatchStyle } from "../";
 import AnyValueFilter from "../AnyValueFilter";
 import FuzzyFilter from "../FuzzyFilter";
 import NoValueFilter from "../NoValueFilter";
@@ -13,6 +13,15 @@ describe("FileFilter", () => {
             expect(new NoValueFilter("A").hasValue).to.equal(false);
             expect(new FileFilter("A", "x").hasValue).to.equal(true);
             expect(new FuzzyFilter("A", "x").hasValue).to.equal(true);
+        });
+    });
+
+    describe("matchStyle", () => {
+        it("is CONTAINS only for fuzzy filters", () => {
+            expect(new FuzzyFilter("A", "x").matchStyle).to.equal(MatchStyle.CONTAINS);
+            expect(new FileFilter("A", "x").matchStyle).to.equal(MatchStyle.EXACT);
+            expect(new AnyValueFilter("A").matchStyle).to.equal(MatchStyle.EXACT);
+            expect(new NoValueFilter("A").matchStyle).to.equal(MatchStyle.EXACT);
         });
     });
 
