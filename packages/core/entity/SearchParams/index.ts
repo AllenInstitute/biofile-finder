@@ -426,21 +426,24 @@ export default class SearchParams {
                 ?.map((annotation) => this.convertGroupByToPython(annotation))
                 .join("") || "";
 
-        // Group filters by name and use OR to concatenate same filter values,
-        // or AND when every value is required ("all values" filters)
+        // Group filters by name and use OR to concatenate same filter values
         const filterGroups = new Map();
+        // "All values" filters can't be written as the plain equality checks used here (values
+        // like "small,low" hold several entries, and "contains" isn't an equality), so they are
+        // left out and flagged rather than exported as a different query
+        const unsupportedFilterNames = new Set<string>();
         urlComponents.filters?.forEach((filter) => {
+            if (filter.type === FilterType.ALL || filter.type === FilterType.FUZZY_ALL) {
+                unsupportedFilterNames.add(filter.name);
+                return;
+            }
             const pythonQueryString = filterGroups.get(filter.name);
             if (!pythonQueryString) {
                 filterGroups.set(filter.name, this.convertFilterToPython(filter));
             } else {
-                const isAllOf =
-                    filter.type === FilterType.ALL || filter.type === FilterType.FUZZY_ALL;
                 filterGroups.set(
                     filter.name,
-                    pythonQueryString.concat(
-                        ` ${isAllOf ? "&" : "|"} ${this.convertFilterToPython(filter)}`
-                    )
+                    pythonQueryString.concat(` | ${this.convertFilterToPython(filter)}`)
                 );
             }
         });
@@ -459,7 +462,12 @@ export default class SearchParams {
         const hasQueryElements = groupByQueryString || filterQueryString || sortQueryString;
         const imports = "import pandas as pd\n\n";
         const comment = hasQueryElements ? "#Query on dataframe df" : "#No options selected";
-        const fullQueryString = `${comment}${
+        const unsupportedComment = unsupportedFilterNames.size
+            ? `\n# Not exported (unsupported "all values" filters on): ${[
+                  ...unsupportedFilterNames,
+              ].join(", ")}`
+            : "";
+        const fullQueryString = `${comment}${unsupportedComment}${
             hasQueryElements &&
             `\ndf_queried = df${groupByQueryString}${filterQueryString}${sortQueryString}`
         }`;

@@ -132,11 +132,20 @@ export default class FileFilter {
                         pathIsArrayByName
                     )
                 );
-            if (correlatedAllOf.length > 0) {
-                // Each required value needs an element that also satisfies the sibling filters,
-                // same as a single value would, so the sibling filters are part of every clause
-                clauses.push(...correlatedAllOf.map((f) => correlatedClause([f, ...correlatable])));
-            } else if (correlatable.length > 0) {
+            // Each required value needs an element that also satisfies the filters on the other
+            // annotations (as one value would on its own), so those are part of every clause.
+            // Filters on the SAME annotation are left out: they would be OR'd with the value.
+            const siblings = [...correlatable, ...correlatedAllOf];
+            clauses.push(
+                ...correlatedAllOf.map((f) =>
+                    correlatedClause([f, ...siblings.filter((sibling) => sibling.name !== f.name)])
+                )
+            );
+            // Filters left out of an ALL clause for sharing its annotation still need their own
+            const hasLeftOut = correlatable.some((c) =>
+                correlatedAllOf.some((a) => a.name === c.name)
+            );
+            if (correlatable.length > 0 && (correlatedAllOf.length === 0 || hasLeftOut)) {
                 clauses.push(correlatedClause(correlatable));
             }
         }

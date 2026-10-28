@@ -686,24 +686,28 @@ describe("SearchParams", () => {
             expect(result).to.contain(expectedResult);
         });
 
-        it("ANDs the values of an 'all values' filter and ORs the values of a default one", () => {
-            const toQueries = (type: FilterType) => {
-                const components: Partial<SearchParamsComponents> = {
-                    filters: ["small", "low"].map(
-                        (value) => new FileFilter("Phenotype", value, type)
-                    ),
-                    sources: [mockSourceWithUri],
-                };
-                return SearchParams.convertToPython(components, mockOS);
-            };
+        it("leaves out 'all values' filters and says so, but still ORs default values", () => {
+            const toPython = (type: FilterType) =>
+                SearchParams.convertToPython(
+                    {
+                        filters: ["small", "low"].map(
+                            (value) => new FileFilter("Phenotype", value, type)
+                        ),
+                        sources: [mockSourceWithUri],
+                    },
+                    mockOS
+                );
 
-            expect(toQueries(FilterType.ALL)).to.contain(
-                `.query('\`Phenotype\`=="small" & \`Phenotype\`=="low"')`
-            );
-            expect(toQueries(FilterType.FUZZY_ALL)).to.contain(" & ");
-            expect(toQueries(FilterType.DEFAULT)).to.contain(
+            [FilterType.ALL, FilterType.FUZZY_ALL].forEach((type) => {
+                const result = toPython(type);
+                expect(result).to.not.contain(".query(");
+                expect(result).to.contain('unsupported "all values" filters on): Phenotype');
+            });
+            const defaultResult = toPython(FilterType.DEFAULT);
+            expect(defaultResult).to.contain(
                 `.query('\`Phenotype\`=="small" | \`Phenotype\`=="low"')`
             );
+            expect(defaultResult).to.not.contain("unsupported");
         });
 
         it("converts filters", () => {

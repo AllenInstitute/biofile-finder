@@ -524,6 +524,71 @@ describe("FileFilter", () => {
             clauses.forEach((clause) => expect(clause).to.contain("Size"));
         });
 
+        // e.g. grouping by Items.Color adds a folder filter (blue) beside ALL blue and red filters
+        it("does not merge a same-annotation filter into the ALL clauses as an alternative", () => {
+            const pathIsArrayByName = new Map([["Items.Color", [true, false]]]);
+            const color = (value: string, type: FilterType) =>
+                new FileFilter(["Items", "Color"], value, type);
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    color("blue", FilterType.ALL),
+                    color("red", FilterType.ALL),
+                    color("blue", FilterType.DEFAULT),
+                ],
+                pathIsArrayByName
+            );
+
+            // blue, red, and the folder's own blue: nothing is OR'd with anything
+            expect(clauses).to.deep.equal([
+                FileFilter.toListOfWhereClauses(
+                    [color("blue", FilterType.DEFAULT)],
+                    pathIsArrayByName
+                )[0],
+                FileFilter.toListOfWhereClauses(
+                    [color("red", FilterType.DEFAULT)],
+                    pathIsArrayByName
+                )[0],
+                FileFilter.toListOfWhereClauses(
+                    [color("blue", FilterType.DEFAULT)],
+                    pathIsArrayByName
+                )[0],
+            ]);
+            clauses.forEach((clause) => expect(clause).to.not.include(" OR "));
+        });
+
+        it("keeps ALL filters on sibling annotations in the same array element", () => {
+            const pathIsArrayByName = new Map([
+                ["Items.Color", [true, false]],
+                ["Items.Size", [true, false]],
+            ]);
+            const color = (value: string) =>
+                new FileFilter(["Items", "Color"], value, FilterType.ALL);
+            const size = (value: string) =>
+                new FileFilter(["Items", "Size"], value, FilterType.ALL);
+
+            // One value each: same as the equivalent default filters, one element with both
+            const single = FileFilter.toListOfWhereClauses(
+                [color("blue"), size("Large")],
+                pathIsArrayByName
+            );
+            expect(single).to.have.length(2);
+            single.forEach((clause) => {
+                expect(clause).to.contain("Color");
+                expect(clause).to.contain("Size");
+            });
+
+            // Several values: each required value pairs with the other annotation's alternatives
+            const several = FileFilter.toListOfWhereClauses(
+                [color("blue"), color("red"), size("Large"), size("Small")],
+                pathIsArrayByName
+            );
+            expect(several).to.have.length(4);
+            several.forEach((clause) => {
+                expect(clause).to.contain("Color");
+                expect(clause).to.contain("Size");
+            });
+        });
+
         it("does not repeat the sibling filter on its own when ALL clauses already include it", () => {
             const pathIsArrayByName = new Map([
                 ["Items.Color", [true, false]],
