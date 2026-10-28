@@ -1,4 +1,4 @@
-import { isEqual } from "lodash";
+import { isEqual, partition } from "lodash";
 
 import { AnnotationType } from "../AnnotationFormatter";
 import resolvePathIsArray, { hasArrayBeforeLeaf, isLeafAnArray } from "../resolvePathIsArray";
@@ -12,6 +12,14 @@ export interface FileFilterJson {
 }
 
 /**
+ * How several filters on the same annotation combine
+ */
+export enum CombineMode {
+    ANY = "any", // a file may match any one of the values (OR)
+    ALL = "all", // a file must match every value (AND)
+}
+
+/**
  * How a filter's value is compared to the annotation's value(s).
  */
 export enum MatchStyle {
@@ -19,27 +27,43 @@ export enum MatchStyle {
     CONTAINS = "contains", // the annotation's value includes the filter's value
 }
 
-// These also correspond to query param names
+/**
+ * What a filter checks, and so which combinations of MatchStyle and CombineMode exist:
+ *
+ *                      any of (OR)   all of (AND)
+ *   exactly matches    DEFAULT       ALL
+ *   contains           FUZZY         FUZZY_ALL
+ *   has any value      ANY_VALUE (takes no values, so there is nothing to combine)
+ *   has no value       NO_VALUE  (takes no values, so there is nothing to combine)
+ */
 export enum FilterType {
+    // Like DEFAULT, but multiple values for the same annotation must ALL match (AND instead of OR)
+    ALL = "all",
     // "include" and "exclude" are the wire names for "has any value" and "has no value";
     // they are kept as-is so shared URLs and file-explorer-service params keep working
     ANY_VALUE = "include",
     NO_VALUE = "exclude",
     FUZZY = "fuzzy",
+    // Like FUZZY, but multiple values for the same annotation must ALL be contained (AND instead of OR)
+    FUZZY_ALL = "fuzzyAll",
     DEFAULT = "default",
 }
 
 /**
- * What each FilterType means in terms of matching. Code that cares about how a value is matched
- * should use `FileFilter.matchStyle` rather than comparing against individual filter types.
- * "Any value" and "no value" filters take no value, so they have nothing to match.
+ * What each FilterType means in terms of matching and combining. Code that cares about
+ * either (SQL building, forms, labels) should use `FileFilter.matchStyle` / `combineMode`
+ * rather than comparing against individual filter types.
+ * "Any value" and "no value" filters take no value, so they have nothing to match or combine.
  */
-const FILTER_TYPE_TRAITS: Record<FilterType, { matchStyle: MatchStyle }> = {
-    [FilterType.DEFAULT]: { matchStyle: MatchStyle.EXACT },
-    [FilterType.FUZZY]: { matchStyle: MatchStyle.CONTAINS },
-    [FilterType.ANY_VALUE]: { matchStyle: MatchStyle.EXACT },
-    [FilterType.NO_VALUE]: { matchStyle: MatchStyle.EXACT },
-};
+const FILTER_TYPE_TRAITS: Record<FilterType, { matchStyle: MatchStyle; combineMode: CombineMode }> =
+    {
+        [FilterType.DEFAULT]: { matchStyle: MatchStyle.EXACT, combineMode: CombineMode.ANY },
+        [FilterType.ALL]: { matchStyle: MatchStyle.EXACT, combineMode: CombineMode.ALL },
+        [FilterType.FUZZY]: { matchStyle: MatchStyle.CONTAINS, combineMode: CombineMode.ANY },
+        [FilterType.FUZZY_ALL]: { matchStyle: MatchStyle.CONTAINS, combineMode: CombineMode.ALL },
+        [FilterType.ANY_VALUE]: { matchStyle: MatchStyle.EXACT, combineMode: CombineMode.ANY },
+        [FilterType.NO_VALUE]: { matchStyle: MatchStyle.EXACT, combineMode: CombineMode.ANY },
+    };
 
 /**
  * Stub for a filter used to constrain a listing of files to those that match a particular condition. Should be
@@ -75,14 +99,17 @@ export default class FileFilter {
         const clauses: string[] = [];
         for (const [root, group] of byRoot) {
             const correlatable: FileFilter[] = [];
+            const correlatedAllOf: FileFilter[] = [];
             const independent: FileFilter[] = [];
             for (const f of group) {
                 const pathIsArray = resolvePathIsArray(f.name, f.path.length, pathIsArrayByName);
                 const isNested = f.path.length > 1;
                 const hasArray = hasArrayBeforeLeaf(pathIsArray);
-                const hasValueAwareFilter = f.type === FilterType.DEFAULT;
-                if (isNested && hasValueAwareFilter && hasArray) {
+                const isInArray = isNested && hasArray;
+                if (isInArray && f.type === FilterType.DEFAULT) {
                     correlatable.push(f);
+                } else if (isInArray && f.type === FilterType.ALL) {
+                    correlatedAllOf.push(f);
                 } else {
                     independent.push(f);
                 }
@@ -97,27 +124,47 @@ export default class FileFilter {
                 independentByName.set(f.name, bucket);
             }
             for (const sameAnnotation of independentByName.values()) {
-                clauses.push(
-                    sameAnnotation
-                        .map((f) =>
-                            f.toSimpleWhereClause(
-                                resolvePathIsArray(f.name, f.path.length, pathIsArrayByName)
-                            )
-                        )
-                        .join(" OR ")
+                const toClause = (f: FileFilter) =>
+                    f.toSimpleWhereClause(
+                        resolvePathIsArray(f.name, f.path.length, pathIsArrayByName)
+                    );
+                // "ALL OF" filters each become their own AND'd clause
+                const [allOf, anyOf] = partition(
+                    sameAnnotation,
+                    (f) => f.combineMode === CombineMode.ALL
                 );
+                if (anyOf.length) clauses.push(anyOf.map(toClause).join(" OR "));
+                clauses.push(...allOf.map(toClause));
             }
-            if (correlatable.length > 0) {
-                // Lambda variable name for the root array element in the correlated query
-                // does not need to match any other lambda variables outside this function
-                const nestedLambdaVar = `__e0`;
-                const inner = FileFilter.buildNestedConditions(
-                    correlatable,
+            // Lambda variable name for the root array element in the correlated query
+            // does not need to match any other lambda variables outside this function
+            const nestedLambdaVar = `__e0`;
+            const correlatedClause = (filtersInSameElement: FileFilter[]) =>
+                SQLBuilder.listFilter(
+                    `"${root}"`,
                     nestedLambdaVar,
-                    0,
-                    pathIsArrayByName
+                    FileFilter.buildNestedConditions(
+                        filtersInSameElement,
+                        nestedLambdaVar,
+                        0,
+                        pathIsArrayByName
+                    )
                 );
-                clauses.push(SQLBuilder.listFilter(`"${root}"`, nestedLambdaVar, inner));
+            // Each required value needs an element that also satisfies the filters on the other
+            // annotations (as one value would on its own), so those are part of every clause.
+            // Filters on the SAME annotation are left out: they would be OR'd with the value.
+            const siblings = [...correlatable, ...correlatedAllOf];
+            clauses.push(
+                ...correlatedAllOf.map((f) =>
+                    correlatedClause([f, ...siblings.filter((sibling) => sibling.name !== f.name)])
+                )
+            );
+            // Filters left out of an ALL clause for sharing its annotation still need their own
+            const hasLeftOut = correlatable.some((c) =>
+                correlatedAllOf.some((a) => a.name === c.name)
+            );
+            if (correlatable.length > 0 && (correlatedAllOf.length === 0 || hasLeftOut)) {
+                clauses.push(correlatedClause(correlatable));
             }
         }
         return clauses;
@@ -148,6 +195,19 @@ export default class FileFilter {
         return this.type !== FilterType.ANY_VALUE && this.type !== FilterType.NO_VALUE;
     }
 
+    /**
+     * Whether this filter keeps constraining the files inside a group-by folder for its
+     * annotation. Other filters on a grouped annotation are replaced by the folder's own value,
+     * but each "all values" filter must still hold for every file in the folder.
+     */
+    public get appliesToEachGroup(): boolean {
+        return this.combineMode !== CombineMode.ANY;
+    }
+
+    public get combineMode(): CombineMode {
+        return FILTER_TYPE_TRAITS[this.type].combineMode;
+    }
+
     public get matchStyle(): MatchStyle {
         return FILTER_TYPE_TRAITS[this.type].matchStyle;
     }
@@ -165,6 +225,11 @@ export default class FileFilter {
             case FilterType.FUZZY:
                 if (this.value === "") return `fuzzy=${name}`;
                 return `${name}=${this.value}&fuzzy=${name}`;
+            case FilterType.FUZZY_ALL:
+                return `all=${name}&${name}=${this.value}&fuzzy=${name}`;
+            case FilterType.ALL:
+                // Must differ from DEFAULT so AND-ed and OR-ed filter sets never share a cache key
+                return `all=${name}&${name}=${this.value}`;
         }
         return `${name}=${this.value}`;
     }

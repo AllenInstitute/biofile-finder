@@ -35,7 +35,7 @@ describe("<SearchBoxForm/>", () => {
         submitSearch(getByRole("searchbox"), "bar");
 
         // Assert
-        expect(onSearch.calledOnceWith("bar", FilterType.FUZZY)).to.equal(true);
+        expect(onSearch.calledOnceWith("bar", true)).to.equal(true);
     });
 
     it("seeds the exact match operator from committed exact filters", () => {
@@ -55,7 +55,7 @@ describe("<SearchBoxForm/>", () => {
         submitSearch(getByRole("searchbox"), "bar");
 
         // Assert
-        expect(onSearch.calledOnceWith("bar", FilterType.DEFAULT)).to.equal(true);
+        expect(onSearch.calledOnceWith("bar", false)).to.equal(true);
     });
 
     it("clears the search input after a search is submitted", () => {
@@ -89,7 +89,7 @@ describe("<SearchBoxForm/>", () => {
         submitSearch(getByRole("searchbox"), "bar");
 
         // Assert
-        expect(onSearch.calledOnceWith("bar", FilterType.FUZZY)).to.equal(true);
+        expect(onSearch.calledOnceWith("bar", true)).to.equal(true);
     });
 
     it("renders committed values as removable chips with a clear all", () => {
@@ -223,7 +223,7 @@ describe("<SearchBoxForm/>", () => {
         submitSearch(getByRole("searchbox"), "ba");
 
         // Assert
-        expect(onSearch.calledOnceWith("ba", FilterType.FUZZY)).to.equal(true);
+        expect(onSearch.calledOnceWith("ba", true)).to.equal(true);
         expect((getByRole("searchbox") as HTMLInputElement).value).to.equal("");
     });
 
@@ -253,7 +253,7 @@ describe("<SearchBoxForm/>", () => {
         submitSearch(getByRole("searchbox"), "baz");
 
         // Assert: committed and cleared as usual
-        expect(onSearch.calledOnceWith("baz", FilterType.DEFAULT)).to.equal(true);
+        expect(onSearch.calledOnceWith("baz", false)).to.equal(true);
         expect((getByRole("searchbox") as HTMLInputElement).value).to.equal("");
         expect(queryByText(errorText)).to.equal(null);
     });
