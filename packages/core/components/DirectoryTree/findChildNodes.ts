@@ -129,7 +129,8 @@ export function findChildNodes(params: FindChildNodesParams): CancellablePromise
                 // any node value that matches at least one of them
                 filteredValues = values.filter((value) =>
                     userSelectedFiltersForCurrentAnnotation.some((filterValue) =>
-                        value.includes(filterValue)
+                        // Same as the filter itself, which matches case-insensitively
+                        value.toLowerCase().includes(String(filterValue).toLowerCase())
                     )
                 );
             } else {

@@ -1,5 +1,5 @@
 import AnnotationName from "../Annotation/AnnotationName";
-import FileFilter, { FilterType } from "../FileFilter";
+import FileFilter, { CombineMode } from "../FileFilter";
 import FileFolder from "../FileFolder";
 import FileSort, { SortOrder } from "../FileSort";
 import type { DatasetSources } from "../MarkdownFrontMatter";
@@ -433,7 +433,7 @@ export default class SearchParams {
         // left out and flagged rather than exported as a different query
         const unsupportedFilterNames = new Set<string>();
         urlComponents.filters?.forEach((filter) => {
-            if (filter.type === FilterType.ALL || filter.type === FilterType.FUZZY_ALL) {
+            if (filter.combineMode === CombineMode.ALL) {
                 unsupportedFilterNames.add(filter.name);
                 return;
             }

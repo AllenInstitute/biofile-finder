@@ -52,7 +52,7 @@ export enum FilterType {
 /**
  * What each FilterType means in terms of matching and combining. Code that cares about
  * either (SQL building, forms, labels) should use `FileFilter.matchStyle` / `combineMode`
- * or `FileFilter.typeFor` rather than comparing against individual filter types.
+ * rather than comparing against individual filter types.
  * "Any value" and "no value" filters take no value, so they have nothing to match or combine.
  */
 const FILTER_TYPE_TRAITS: Record<FilterType, { matchStyle: MatchStyle; combineMode: CombineMode }> =
@@ -210,27 +210,6 @@ export default class FileFilter {
 
     public get matchStyle(): MatchStyle {
         return FILTER_TYPE_TRAITS[this.type].matchStyle;
-    }
-
-    /**
-     * The value-bearing FilterType that matches values in the given style and combines them in
-     * the given mode. Throws for combinations that aren't supported (see FilterType).
-     */
-    public static typeFor(matchStyle: MatchStyle, combineMode: CombineMode): FilterType {
-        const valueTypes = [
-            FilterType.DEFAULT,
-            FilterType.ALL,
-            FilterType.FUZZY,
-            FilterType.FUZZY_ALL,
-        ];
-        const type = valueTypes.find(
-            (candidate) =>
-                FILTER_TYPE_TRAITS[candidate].matchStyle === matchStyle &&
-                FILTER_TYPE_TRAITS[candidate].combineMode === combineMode
-        );
-        if (type) return type;
-
-        throw new Error(`Filtering is not supported for ${matchStyle} + ${combineMode}`);
     }
 
     public toQueryString(): string {

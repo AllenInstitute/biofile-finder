@@ -41,36 +41,6 @@ describe("FileFilter", () => {
         });
     });
 
-    describe("typeFor", () => {
-        it("maps each supported style and mode to its filter type", () => {
-            expect(FileFilter.typeFor(MatchStyle.EXACT, CombineMode.ANY)).to.equal(
-                FilterType.DEFAULT
-            );
-            expect(FileFilter.typeFor(MatchStyle.EXACT, CombineMode.ALL)).to.equal(FilterType.ALL);
-            expect(FileFilter.typeFor(MatchStyle.CONTAINS, CombineMode.ANY)).to.equal(
-                FilterType.FUZZY
-            );
-            expect(FileFilter.typeFor(MatchStyle.CONTAINS, CombineMode.ALL)).to.equal(
-                FilterType.FUZZY_ALL
-            );
-        });
-
-        it("throws for a combination with no filter type", () => {
-            expect(() => FileFilter.typeFor("bogus" as MatchStyle, CombineMode.ANY)).to.throw();
-        });
-
-        it("round-trips every value-bearing filter type through its traits", () => {
-            [FilterType.DEFAULT, FilterType.ALL, FilterType.FUZZY, FilterType.FUZZY_ALL].forEach(
-                (type) => {
-                    const filter = new FileFilter("A", "x", type);
-                    expect(FileFilter.typeFor(filter.matchStyle, filter.combineMode)).to.equal(
-                        type
-                    );
-                }
-            );
-        });
-    });
-
     describe("appliesToEachGroup", () => {
         it("is true only for ALL filters", () => {
             expect(new FileFilter("A", "x", FilterType.ALL).appliesToEachGroup).to.equal(true);

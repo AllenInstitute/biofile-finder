@@ -15,6 +15,7 @@ import {
 import DirectoryTreeNode from "./DirectoryTreeNode";
 import { findChildNodes } from "./findChildNodes";
 import FileList from "../FileList";
+import Annotation from "../../entity/Annotation";
 import FileFilter, { FilterType } from "../../entity/FileFilter";
 import FileSet from "../../entity/FileSet";
 import { CanceledError, ValueError } from "../../errors";
@@ -37,6 +38,38 @@ const DEFAULTS = {
     ancestorNodes: [],
     currentNode: ROOT_NODE,
 };
+
+/**
+ * The filters for the files under a node of the hierarchy: the filters at that node's path in
+ * the hierarchy combined with any user-selected filters.
+ */
+export function getChildNodeFilters({
+    hierarchy,
+    pathToChildNode,
+    selectedFileFilters,
+    annotationByName,
+}: {
+    hierarchy: string[];
+    pathToChildNode: string[];
+    selectedFileFilters: FileFilter[];
+    annotationByName: Map<string, Annotation>;
+}): FileFilter[] {
+    const depth = pathToChildNode.length - 1;
+    const hierarchyAtNode = take(hierarchy, depth + 1);
+    const hierarchyFilters = zip<string, string>(hierarchyAtNode, pathToChildNode).map((pair) => {
+        const [name, value] = pair as [string, string];
+        return new FileFilter(name, value, FilterType.DEFAULT, annotationByName.get(name)?.type);
+    });
+    // If we are grouping by a field (e.g., barcode)
+    // and also have filters applied for that field (e.g., barcode=1234, barcode=1357),
+    // then at the barcode=1234 group we should remove the barcode=1357 filter
+    // Unless the filter must hold for every file in the group (e.g. "ALL"),
+    // in which case it and the group's value both have to be satisfied.
+    const nonHierarchyFilters = selectedFileFilters.filter(
+        (f) => f.appliesToEachGroup || !hierarchyAtNode.includes(f.name)
+    );
+    return uniqWith([...hierarchyFilters, ...nonHierarchyFilters], (a, b) => a.equals(b));
+}
 
 /**
  * Calculate a float sort order for a DirectoryTreeNode.
@@ -178,34 +211,12 @@ const useDirectoryHierarchy = (
                         }
 
                         const pathToChildNode = [...pathToNode, value];
-                        // Filters are a combination of any user-selected filters and the filters
-                        // at a particular path in the hierarchy.
-                        const hierarchyFilters: FileFilter[] = zip<string, string>(
-                            take(hierarchy, depth + 1),
-                            take(pathToChildNode, depth + 1)
-                        ).map((pair) => {
-                            const [name, value] = pair as [string, string];
-                            const annotationMeta = annotationByName.get(name);
-                            return new FileFilter(
-                                name,
-                                value,
-                                FilterType.DEFAULT,
-                                annotationMeta?.type
-                            );
+                        const filters = getChildNodeFilters({
+                            hierarchy,
+                            pathToChildNode,
+                            selectedFileFilters,
+                            annotationByName,
                         });
-                        // If we are grouping by a field (e.g., barcode)
-                        // and also have filters applied for that field (e.g., barcode=1234, barcode=1357),
-                        // then at the barcode=1234 group we should remove the barcode=1357 filter
-                        // Unless the filter must hold for every file in the group (e.g. "ALL"),
-                        // in which case it and the group's value both have to be satisfied.
-                        const nonHierarchyFilters = selectedFileFilters.filter(
-                            (f) =>
-                                f.appliesToEachGroup || !take(hierarchy, depth + 1).includes(f.name)
-                        );
-                        const filters = uniqWith(
-                            [...hierarchyFilters, ...nonHierarchyFilters],
-                            (a, b) => a.equals(b)
-                        );
 
                         const childNodeFileSet = new FileSet({
                             fileService,
