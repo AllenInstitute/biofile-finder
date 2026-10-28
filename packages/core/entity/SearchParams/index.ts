@@ -498,7 +498,7 @@ export default class SearchParams {
         const toSource = (text: string) => text.replace(/\\/g, "\\\\");
         if (filter.matchStyle === MatchStyle.CONTAINS) {
             return `\`${filter.name}\`.str.contains("${toSource(
-                value
+                toSource(value)
             )}", case=False, regex=False, na=False)`;
         }
         const escaped = value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
