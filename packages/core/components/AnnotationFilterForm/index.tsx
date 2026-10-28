@@ -187,13 +187,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         if (!option?.key || option.key === filterType) return;
         setFilterType(option.key as FilterType);
 
-        // Every type is a complete filter as soon as it's selected except "some value(s)",
-        // which waits for a value; its only clean-up is converting existing "all values"
-        // filters so their values are preserved.
-        const hasAllValuesFilter = filtersForAnnotation.some(
-            (filter) => filter.type === FilterType.ALL || filter.type === FilterType.FUZZY_ALL
-        );
-        if (option.key !== FilterType.DEFAULT || hasAllValuesFilter) {
+        // "Any value" and "no value" are complete filters as soon as they're selected. "Some
+        // value(s)" and "all values" wait for a value, so there is only something to do if
+        // existing values need converting; otherwise the current filter stays (keeping its row
+        // and edit menu open) until the first value replaces it.
+        const waitsForValue = option.key === FilterType.DEFAULT || option.key === FilterType.ALL;
+        if (!waitsForValue || filtersForAnnotation.some((filter) => filter.hasValue)) {
             dispatch(
                 selection.actions.changeFileFilterType(
                     props.annotation.name,
