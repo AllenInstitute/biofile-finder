@@ -285,8 +285,8 @@ const modifyFileFilters = createLogic({
             switch (payload.type) {
                 // For include/exclude, remove all previous filters for this annotation
                 // and replace with a new single filter
-                case FilterType.ANY:
-                case FilterType.EXCLUDE:
+                case FilterType.ANY_VALUE:
+                case FilterType.NO_VALUE:
                     const newFilter = new FileFilter(
                         payload.annotationName,
                         "",
@@ -309,8 +309,8 @@ const modifyFileFilters = createLogic({
                             (filter) =>
                                 !(
                                     filter.name === payload.annotationName &&
-                                    (filter.type === FilterType.ANY ||
-                                        filter.type === FilterType.EXCLUDE)
+                                    (filter.type === FilterType.ANY_VALUE ||
+                                        filter.type === FilterType.NO_VALUE)
                                 )
                         )
                         .map((filter) =>

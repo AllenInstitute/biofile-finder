@@ -13,8 +13,10 @@ export interface FileFilterJson {
 
 // These also correspond to query param names
 export enum FilterType {
-    ANY = "include",
-    EXCLUDE = "exclude",
+    // "include" and "exclude" are the wire names for "has any value" and "has no value";
+    // they are kept as-is so shared URLs and file-explorer-service params keep working
+    ANY_VALUE = "include",
+    NO_VALUE = "exclude",
     FUZZY = "fuzzy",
     DEFAULT = "default",
 }
@@ -110,7 +112,7 @@ export default class FileFilter {
     ) {
         this.path = Array.isArray(annotationName) ? annotationName : annotationName.split(".");
         this.value = value;
-        this.type = value === NO_VALUE_NODE ? FilterType.EXCLUDE : type;
+        this.type = value === NO_VALUE_NODE ? FilterType.NO_VALUE : type;
         this.valueType = valueType;
     }
 
@@ -124,9 +126,9 @@ export default class FileFilter {
         // URL-sharing serialization uses toJSON()/path instead.
         const name = this.name;
         switch (this.type) {
-            case FilterType.ANY:
+            case FilterType.ANY_VALUE:
                 return `include=${name}`;
-            case FilterType.EXCLUDE:
+            case FilterType.NO_VALUE:
                 return `exclude=${name}`;
             case FilterType.FUZZY:
                 if (this.value === "") return `fuzzy=${name}`;
@@ -147,8 +149,8 @@ export default class FileFilter {
 
         // If nested and an intermediate segment is an array, match by correlating with an inner query that filters the unnested root.
         if (isNested && hasArrayBeforeLeaf(pathIsArray)) {
-            if (this.type === FilterType.ANY) return `len(${columnExpr}) > 0`;
-            if (this.type === FilterType.EXCLUDE)
+            if (this.type === FilterType.ANY_VALUE) return `len(${columnExpr}) > 0`;
+            if (this.type === FilterType.NO_VALUE)
                 return `("${this.path[0]}" IS NULL OR len(${columnExpr}) = 0)`;
             if (this.type === FilterType.FUZZY) {
                 const boolList = SQLBuilder.buildNestedAccessExpression(
@@ -174,8 +176,8 @@ export default class FileFilter {
 
         // If nested and leaf is an array match by nested list filtering
         if (isNested && isLeafAnArray(pathIsArray)) {
-            if (this.type === FilterType.ANY) return `len(${columnExpr}) > 0`;
-            if (this.type === FilterType.EXCLUDE)
+            if (this.type === FilterType.ANY_VALUE) return `len(${columnExpr}) > 0`;
+            if (this.type === FilterType.NO_VALUE)
                 return `("${this.path[0]}" IS NULL OR len(${columnExpr}) = 0)`;
             if (this.type === FilterType.FUZZY)
                 return SQLBuilder.listRegexContains(columnExpr, this.value);
@@ -184,8 +186,8 @@ export default class FileFilter {
 
         // Otherwise, simplest case, match by a scalar condition on the column
         // (or an IS NULL / IS NOT NULL check for ANY/EXCLUDE)
-        if (this.type === FilterType.ANY) return `${columnExpr} IS NOT NULL`;
-        if (this.type === FilterType.EXCLUDE) return `${columnExpr} IS NULL`;
+        if (this.type === FilterType.ANY_VALUE) return `${columnExpr} IS NOT NULL`;
+        if (this.type === FilterType.NO_VALUE) return `${columnExpr} IS NULL`;
         if (this.type === FilterType.FUZZY) return SQLBuilder.regexContains(columnExpr, this.value);
         return SQLBuilder.matchByType(
             columnExpr,

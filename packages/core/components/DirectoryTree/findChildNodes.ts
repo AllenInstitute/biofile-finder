@@ -2,7 +2,7 @@ import { defaults, isEmpty, pull } from "lodash";
 
 import { NO_VALUE_NODE, ROOT_NODE } from "./directory-hierarchy-state";
 import { FilterType } from "../../entity/FileFilter";
-import ExcludeFilter from "../../entity/FileFilter/ExcludeFilter";
+import NoValueFilter from "../../entity/FileFilter/NoValueFilter";
 import FileSet from "../../entity/FileSet";
 import { CancellablePromise } from "../../entity/types";
 import { AnnotationService, FileService } from "../../services";
@@ -55,7 +55,7 @@ export function findChildNodes(params: FindChildNodesParams): CancellablePromise
             const hasNullValueFileQuery = fileService.hasMatchingFiles(
                 new FileSet({
                     fileService,
-                    filters: [...fileSet.filters, new ExcludeFilter(annotationNameAtDepth)],
+                    filters: [...fileSet.filters, new NoValueFilter(annotationNameAtDepth)],
                 })
             );
             activePromiseCancel = hasNullValueFileQuery.cancel;
@@ -64,7 +64,7 @@ export function findChildNodes(params: FindChildNodesParams): CancellablePromise
         }
 
         const isExcludeFilterApplied = fileSet.filters.some(
-            (filter) => filter.name === annotationNameAtDepth && filter.type === FilterType.EXCLUDE
+            (filter) => filter.name === annotationNameAtDepth && filter.type === FilterType.NO_VALUE
         );
         if (isExcludeFilterApplied) {
             // User does not want files with this annotation; don't return any non-null values.
@@ -76,7 +76,7 @@ export function findChildNodes(params: FindChildNodesParams): CancellablePromise
                 (filter) =>
                     filter.name === annotationNameAtDepth &&
                     !filter.value.toString().includes("RANGE") && // 'RANGE' filters are handled by the value fetching endpoint
-                    filter.type !== FilterType.ANY // 'Include' filters have a blank value and shouldn't be counted here
+                    filter.type !== FilterType.ANY_VALUE // 'Include' filters have a blank value and shouldn't be counted here
             )
             // Filter values may be numbers (e.g. from a URL) while node values are strings
             .map((filter) => String(filter.value));
