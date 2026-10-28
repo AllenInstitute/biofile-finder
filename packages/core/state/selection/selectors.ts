@@ -216,10 +216,9 @@ export const getGroupedByFilterName = createSelector(
         const filters = map(globalFilters, (filter: FileFilter) => ({
             name: filter.name,
             value: filter.value,
-            displayValue:
-                filter.type === FilterType.ANY_VALUE || filter.type === FilterType.NO_VALUE
-                    ? ""
-                    : nameToAnnotationMap.get(filter.name)?.getDisplayValue(filter.value),
+            displayValue: filter.hasValue
+                ? nameToAnnotationMap.get(filter.name)?.getDisplayValue(filter.value)
+                : "",
             type: filter?.type || FilterType.DEFAULT,
         })).filter((filter) => filter.displayValue !== undefined);
         return groupBy(filters, (filter) => filter.name);

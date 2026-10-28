@@ -76,7 +76,7 @@ export function findChildNodes(params: FindChildNodesParams): CancellablePromise
                 (filter) =>
                     filter.name === annotationNameAtDepth &&
                     !filter.value.toString().includes("RANGE") && // 'RANGE' filters are handled by the value fetching endpoint
-                    filter.type !== FilterType.ANY_VALUE // 'Include' filters have a blank value and shouldn't be counted here
+                    filter.hasValue // "any value" filters have a blank value and shouldn't be counted here
             )
             // Filter values may be numbers (e.g. from a URL) while node values are strings
             .map((filter) => String(filter.value));
