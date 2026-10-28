@@ -188,8 +188,11 @@ const STAGE_DESCRIPTIONS: Record<DataSourceLoadStage, string> = {
 // Arbitrary fraction of the whole wait to avoid saying 100% when inaccurate
 const COLUMNS_STAGE_START = 0.92;
 
+// Share of source preparation held for combining sources, when there is more than one
+const AGGREGATION_SHARE = 0.1;
+
 export interface DataSourceLoadStatus {
-    fraction: number;
+    fraction?: number;
     description: string;
     bytesTotal?: number;
 }
@@ -208,24 +211,38 @@ export const getDataSourceLoadStatus = createSelector(
             return undefined;
         }
 
+        // Aggregation runs after every source is prepared, so it is a stage of its own
+        const aggregate = entries.find((entry) => entry.stage === DataSourceLoadStage.AGGREGATING);
+        const sources = entries.filter((entry) => entry !== aggregate);
+        const hasAggregation = !!aggregate || sources.length > 1;
+        const sourcesSpan = hasAggregation ? 1 - AGGREGATION_SHARE : 1;
+
         // Present "fraction" as the average completion across sources.
         // and the description corresponds to the least complete source.
-        const fraction =
-            entries.reduce((total, entry) => total + entry.fraction, 0) / entries.length;
-        const leastComplete = entries.reduce((slowest, entry) =>
-            entry.fraction < slowest.fraction ? entry : slowest
-        );
+        const sourcesFraction = sources.length
+            ? sources.reduce((total, entry) => total + entry.fraction, 0) / sources.length
+            : 1;
+        const leastComplete = aggregate
+            ? aggregate
+            : sources.reduce((slowest, entry) =>
+                  entry.fraction < slowest.fraction ? entry : slowest
+              );
+        const fraction = aggregate
+            ? sourcesSpan + AGGREGATION_SHARE * aggregate.fraction
+            : sourcesFraction * sourcesSpan;
 
         // Compute the total size across all measurable sources.
-        const measured = entries.filter((entry) => entry.bytesTotal !== undefined);
+        const measured = sources.filter((entry) => entry.bytesTotal !== undefined);
         const bytesTotal = measured.length
             ? measured.reduce((total, entry) => total + (entry.bytesTotal ?? 0), 0)
             : undefined;
 
+        const isReading = leastComplete.stage === DataSourceLoadStage.DOWNLOADING;
+
         return {
             // Preparation is everything up to reading the columns, so scale it into that span
             // rather than letting it reach 100% with work still to go.
-            fraction: fraction * COLUMNS_STAGE_START,
+            fraction: isReading ? undefined : fraction * COLUMNS_STAGE_START,
             description: STAGE_DESCRIPTIONS[leastComplete.stage],
             bytesTotal,
         };

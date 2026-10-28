@@ -69,7 +69,7 @@ describe("Selection selectors", () => {
 
             const status = selection.selectors.getDataSourceLoadStatus(state);
 
-            expect(status?.fraction).to.be.closeTo(0.25 * 0.92, 1e-9);
+            expect(status?.fraction).to.be.undefined;
             expect(status?.description).to.equal("Reading data source");
             expect(status?.bytesTotal).to.equal(1000);
         });
@@ -94,8 +94,27 @@ describe("Selection selectors", () => {
 
             const status = selection.selectors.getDataSourceLoadStatus(state);
 
-            expect(status?.fraction).to.be.closeTo(0.75 * 0.92, 1e-9);
+            expect(status?.fraction).to.be.undefined;
             expect(status?.description).to.equal("Reading data source");
+        });
+
+        it("reports a measured fraction once no source is being read", () => {
+            const state = mergeState(initialState, {
+                selection: {
+                    dataSourceLoadProgress: {
+                        "a.csv": {
+                            sourceName: "a.csv",
+                            stage: DataSourceLoadStage.VALIDATING,
+                            fraction: 0.8,
+                        },
+                    },
+                },
+            });
+
+            const status = selection.selectors.getDataSourceLoadStatus(state);
+
+            expect(status?.fraction).to.be.closeTo(0.8 * 0.92, 1e-9);
+            expect(status?.description).to.equal("Validating data source");
         });
     });
 

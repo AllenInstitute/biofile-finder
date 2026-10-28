@@ -439,11 +439,12 @@ export default abstract class DatabaseService {
         }
 
         const handle = fileHandleName(name);
+        let importFinished = false;
 
         if (uri instanceof File) {
             // DuckDB reads a local file through the browser lazily, so there is nothing to count;
             // report the size we do know so the UI can say how much data is being read.
-            this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 1, uri.size);
+            this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 0, uri.size);
             await this.database.registerFileHandle(
                 handle,
                 uri,
@@ -453,12 +454,14 @@ export default abstract class DatabaseService {
         } else if (uri.startsWith("s3")) {
             await this.database.registerFileURL(handle, uri, duckdb.DuckDBDataProtocol.S3, false);
         } else {
-            const bytesTotal = await this.s3StorageService.getHttpObjectSize(uri);
-            this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 1, bytesTotal);
+            this.s3StorageService.getHttpObjectSize(uri).then((bytesTotal) => {
+                if (!importFinished && bytesTotal !== undefined) {
+                    this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 0, bytesTotal);
+                }
+            });
             await this.database.registerFileURL(handle, uri, duckdb.DuckDBDataProtocol.HTTP, false);
         }
 
-        this.reportProgress(name, DataSourceLoadStage.IMPORTING, 0);
         if (type === "parquet") {
             await this.createParquetDirectView(name);
         } else if (type === "json") {
@@ -482,6 +485,8 @@ export default abstract class DatabaseService {
                 );
             }
         }
+        importFinished = true;
+        this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 1);
         this.reportProgress(name, DataSourceLoadStage.IMPORTING, 1);
     }
 

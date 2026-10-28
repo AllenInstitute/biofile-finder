@@ -90,6 +90,7 @@ const receiveAnnotationsLogic = createLogic({
             annotations.map((annotation) => [annotation.name, annotation])
         );
         const annotationService = interaction.selectors.getAnnotationService(deps.getState());
+        const sources = selection.selectors.getSelectedDataSources(deps.getState());
         const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
         const currentColumns = selection.selectors.getColumns(deps.getState());
         const hasUserSelectedColumns = selection.selectors.getHasUserSelectedColumns(
@@ -206,7 +207,9 @@ const receiveAnnotationsLogic = createLogic({
             if (!isEqual(columns, currentColumns)) {
                 dispatch(selection.actions.setColumns(columns));
             }
-            dispatch(setIsLoadingAnnotations(false) as AnyAction);
+            if (selection.selectors.getSelectedDataSources(deps.getState()) === sources) {
+                dispatch(setIsLoadingAnnotations(false));
+            }
             done();
         }
     },
