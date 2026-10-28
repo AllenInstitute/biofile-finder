@@ -224,9 +224,9 @@ export default class HttpServiceBase {
      * Best effort size in bytes of a remote object, read from a HEAD request's Content-Length.
      * Returns undefined when the server will not say.
      */
-    public async getHttpObjectSize(url: string): Promise<number | undefined> {
+    public async getHttpObjectSize(url: string, timeout?: number): Promise<number | undefined> {
         try {
-            const response = await this.httpClient.head(url);
+            const response = await this.httpClient.head(url, { timeout });
             // AxiosHeaderValue can be AxiosHeaders | string | string[] | number | boolean | null
             const length = Number(response.headers["content-length"]);
             return Number.isFinite(length) && length > 0 ? length : undefined;
