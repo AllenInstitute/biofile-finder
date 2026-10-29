@@ -1,5 +1,5 @@
 .root {
-    --max-width: 640px;
+    --max-width: 800px;
     --min-width: 80%;
     display: flex;
     flex-direction: column;
@@ -8,8 +8,8 @@
 
 .advanced-options-empty {
     border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 30px;
+    border-radius: var(--small-border-radius);
+    padding: 24px;
 }
 
 .advanced-options-filled {
@@ -24,8 +24,24 @@
     display: flex;
 }
 
+.advanced-options-label {
+    flex-basis: 100%;
+    font-size: var(--s-paragraph-size);
+    font-weight: 300;
+    margin: 0 0 4px;
+}
+
 .advanced-options-button {
-    padding: 0 8px;
+    /* Fit the 34px button's layout height to its text, keeping the full click target */
+    margin: -5px 0;
+    padding: 0;
+}
+
+.advanced-options-divider {
+    align-self: stretch;
+    background-color: var(--border-color);
+    margin: 4px 12px;
+    width: 1px;
 }
 
 .advanced-options-buttons {
@@ -43,10 +59,32 @@
 }
 
 .file-prompt-outer-wrapper {
+    --selected-file-gap: 0;
+    gap: 20px;
     width: 100%;
     margin-bottom: 32px;
     min-width: var(--min-width);
     max-width: var(--max-width);
+}
+
+.file-prompt-outer-wrapper .load-button-container {
+    margin-top: 0;
+}
+
+.file-prompt-selected-in-modal {
+    margin-top: 20px;
+}
+
+.file-prompt-card {
+    align-items: flex-start;
+    background-color: var(--primary-dark);
+    border-radius: var(--small-border-radius);
+    box-sizing: border-box;
+    padding: 24px;
+}
+
+.card-title {
+    margin: 0 0 4px;
 }
 
 .file-prompt {
@@ -89,9 +127,6 @@
 
 .datasource-subhead {
     margin-bottom: 13px !important;
-    text-align: left;
-    max-width: var(--max-width);
-    min-width: var(--min-width);
 }
 
 .text {
@@ -118,6 +153,14 @@
     text-align: center;
 }
 
+.title, .datasource-subhead {
+    box-sizing: border-box;
+    max-width: var(--max-width);
+    min-width: var(--min-width);
+    text-align: left;
+    width: 100%;
+}
+
 .warning {
     background-color: var(--error-background-color);
     border-radius: 4px;
@@ -138,4 +181,9 @@
 .guidance-link:hover {
     color: var(--bright-aqua);
     text-decoration: underline;
+}
+
+/* Focused programmatically when the prompt opens; not interactive, so no focus ring */
+.advanced-options-header > h4:focus {
+    outline: none;
 }
