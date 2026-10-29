@@ -45,62 +45,66 @@ describe("<DataSourcePrompt />", () => {
         expect(loadButton?.hasAttribute("disabled")).to.be.false;
     });
 
-    it("can distinguish between all FilePrompt components when advanced options are open", () => {
+    it("only offers descriptor files after a primary file is selected", () => {
         const { store } = configureMockStore({ state: initialState, reducer });
-        const { getByText, getByTestId, getAllByText, getAllByRole } = render(
+        const { getByRole, getByTestId, queryByText } = render(
+            <Provider store={store}>
+                <DataSourcePrompt />
+            </Provider>
+        );
+        expect(queryByText(/Add a column descriptor file/)).to.be.null;
+        expect(queryByText(/Add a provenance descriptor file/)).to.be.null;
+
+        fireEvent.change(getByRole("textbox"), { target: { value: "testFile.csv" } });
+        fireEvent.submit(getByTestId("urlform-file-prompt-main"));
+
+        expect(queryByText(/Describe columns with supplemental metadata/)).to.exist;
+        expect(queryByText(/Add a column descriptor file/)).to.exist;
+        expect(queryByText(/Add a provenance descriptor file/)).to.exist;
+    });
+
+    it("can distinguish between all FilePrompt components when descriptor files are added", () => {
+        const { store } = configureMockStore({ state: initialState, reducer });
+        const { getByText, getByTestId, getAllByText, getAllByRole, queryByTestId } = render(
             <Provider store={store}>
                 <DataSourcePrompt />
             </Provider>
         );
 
-        // Expand advanced options
-        fireEvent.click(getByText(/Metadata descriptor file/));
-        fireEvent.click(getByText(/Provenance descriptor file/));
+        // Select the primary file so descriptor options appear
+        fireEvent.change(getAllByRole("textbox")[0], { target: { value: "primary.csv" } });
+        fireEvent.submit(getByTestId("urlform-file-prompt-main"));
 
-        // Two separate prompts render
-        expect(getAllByText(/click to browse/).length).to.equal(3);
-        expect(getByTestId("urlform-file-prompt-main")).to.exist;
+        // Open both descriptor prompts
+        fireEvent.click(getByText(/Add a column descriptor file/));
+        fireEvent.click(getByText(/Add a provenance descriptor file/));
+
+        // Primary prompt is replaced by its selected file; the two descriptor prompts render
+        expect(getAllByText(/click to browse/).length).to.equal(2);
         expect(getByTestId("urlform-file-prompt-metadata-main")).to.exist;
         expect(getByTestId("urlform-file-prompt-provenance-main")).to.exist;
 
-        const urlForm = getAllByRole("textbox").at(1);
-        // Enter values in the second form
-        if (urlForm) {
-            // Existence check is necessary in order to fire event
-            fireEvent.change(urlForm, {
-                target: {
-                    value: "testFile.csv",
-                },
-            });
-            fireEvent.submit(urlForm);
-        }
+        // Select a column descriptor file
+        fireEvent.change(getAllByRole("textbox")[0], { target: { value: "testFile.csv" } });
+        fireEvent.submit(getByTestId("urlform-file-prompt-metadata-main"));
 
-        // Only the first prompt still renders
-        expect(getAllByText(/click to browse/).length).to.equal(2);
-        expect(getByTestId("urlform-file-prompt-main")).to.exist;
+        // Only the provenance prompt still renders
+        expect(getAllByText(/click to browse/).length).to.equal(1);
+        expect(queryByTestId("urlform-file-prompt-metadata-main")).to.be.null;
         expect(getByTestId("urlform-file-prompt-provenance-main")).to.exist;
-        expect(() => getByTestId("urlform-file-prompt-metadata-main")).to.throw;
     });
 
-    it("hides the advanced guidance info by default", () => {
+    it("links to the user guide in a new tab", () => {
         const { store } = configureMockStore({ state: initialState, reducer });
         const { getByText } = render(
             <Provider store={store}>
                 <DataSourcePrompt />
             </Provider>
         );
-        expect(() => getByText(/Advanced/)).to.throw;
-    });
-
-    it("shows the advanced guidance info when expanded", () => {
-        const { store } = configureMockStore({ state: initialState, reducer });
-        const { getByText } = render(
-            <Provider store={store}>
-                <DataSourcePrompt />
-            </Provider>
+        const link = getByText("Read full guidance").closest("a");
+        expect(link?.getAttribute("href")).to.equal(
+            "https://bff.allencell.org/user-guide/getting-started/creating-a-metadata-file"
         );
-        const expandInfoButton = getByText("Show more");
-        fireEvent.click(expandInfoButton);
-        expect(getByText(/Advanced/)).to.exist;
+        expect(link?.getAttribute("target")).to.equal("_blank");
     });
 });
