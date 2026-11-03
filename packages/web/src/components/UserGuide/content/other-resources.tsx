@@ -217,6 +217,7 @@ export const OTHER_RESOURCES_CONTENT: Page[] = [
     <AllowedOrigin>https://bff.allencell.org</AllowedOrigin>
     <AllowedMethod>GET</AllowedMethod>
     <AllowedMethod>HEAD</AllowedMethod>
+    <AllowedHeaders>*</AllowedHeaders>
   </CORSRule>
 </CORSConfiguration>`}</code>
                         </pre>
