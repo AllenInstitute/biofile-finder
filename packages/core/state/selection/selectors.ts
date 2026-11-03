@@ -74,14 +74,6 @@ export const getFileGridColCount = createSelector(
     (fileView): number => FILE_VIEW_TO_COL_COUNT[fileView]
 );
 
-export const getAnnotationsFilteredOut = createSelector([getFileFilters], (filters): FileFilter[] =>
-    filters.filter((filter) => filter.type === FilterType.EXCLUDE)
-);
-
-export const getAnnotationsRequired = createSelector([getFileFilters], (filters): FileFilter[] =>
-    filters.filter((filter) => filter.type === FilterType.ANY)
-);
-
 export const getDefaultFileFilters = createSelector([getFileFilters], (filters): FileFilter[] =>
     filters.filter((filter) => filter.type === FilterType.DEFAULT)
 );
@@ -215,10 +207,9 @@ export const getGroupedByFilterName = createSelector(
         const filters = map(globalFilters, (filter: FileFilter) => ({
             name: filter.name,
             value: filter.value,
-            displayValue:
-                filter.type === FilterType.ANY || filter.type === FilterType.EXCLUDE
-                    ? ""
-                    : nameToAnnotationMap.get(filter.name)?.getDisplayValue(filter.value),
+            displayValue: filter.hasValue
+                ? nameToAnnotationMap.get(filter.name)?.getDisplayValue(filter.value)
+                : "",
             type: filter?.type || FilterType.DEFAULT,
         })).filter((filter) => filter.displayValue !== undefined);
         return groupBy(filters, (filter) => filter.name);

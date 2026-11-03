@@ -11,13 +11,35 @@ export interface FileFilterJson {
     type?: FilterType;
 }
 
+/**
+ * How a filter's value is compared to the annotation's value(s).
+ */
+export enum MatchStyle {
+    EXACT = "exact", // the annotation's value is identical to the filter's value
+    CONTAINS = "contains", // the annotation's value includes the filter's value
+}
+
 // These also correspond to query param names
 export enum FilterType {
-    ANY = "include",
-    EXCLUDE = "exclude",
+    // "include" and "exclude" are the wire names for "has any value" and "has no value";
+    // they are kept as-is so shared URLs and file-explorer-service params keep working
+    ANY_VALUE = "include",
+    NO_VALUE = "exclude",
     FUZZY = "fuzzy",
     DEFAULT = "default",
 }
+
+/**
+ * What each FilterType means in terms of matching. Code that cares about how a value is matched
+ * should use `FileFilter.matchStyle` rather than comparing against individual filter types.
+ * "Any value" and "no value" filters take no value, so they have nothing to match.
+ */
+const FILTER_TYPE_TRAITS: Record<FilterType, { matchStyle: MatchStyle }> = {
+    [FilterType.DEFAULT]: { matchStyle: MatchStyle.EXACT },
+    [FilterType.FUZZY]: { matchStyle: MatchStyle.CONTAINS },
+    [FilterType.ANY_VALUE]: { matchStyle: MatchStyle.EXACT },
+    [FilterType.NO_VALUE]: { matchStyle: MatchStyle.EXACT },
+};
 
 /**
  * Stub for a filter used to constrain a listing of files to those that match a particular condition. Should be
@@ -110,12 +132,24 @@ export default class FileFilter {
     ) {
         this.path = Array.isArray(annotationName) ? annotationName : annotationName.split(".");
         this.value = value;
-        this.type = value === NO_VALUE_NODE ? FilterType.EXCLUDE : type;
+        this.type = value === NO_VALUE_NODE ? FilterType.NO_VALUE : type;
         this.valueType = valueType;
     }
 
     public get name(): string {
         return this.path.join(".");
+    }
+
+    /**
+     * Whether this filter compares against `value`. False for "any value" and "no value"
+     * filters, which only check whether the annotation is present and carry a blank value.
+     */
+    public get hasValue(): boolean {
+        return this.type !== FilterType.ANY_VALUE && this.type !== FilterType.NO_VALUE;
+    }
+
+    public get matchStyle(): MatchStyle {
+        return FILTER_TYPE_TRAITS[this.type].matchStyle;
     }
 
     public toQueryString(): string {
@@ -124,9 +158,9 @@ export default class FileFilter {
         // URL-sharing serialization uses toJSON()/path instead.
         const name = this.name;
         switch (this.type) {
-            case FilterType.ANY:
+            case FilterType.ANY_VALUE:
                 return `include=${name}`;
-            case FilterType.EXCLUDE:
+            case FilterType.NO_VALUE:
                 return `exclude=${name}`;
             case FilterType.FUZZY:
                 if (this.value === "") return `fuzzy=${name}`;
@@ -147,10 +181,10 @@ export default class FileFilter {
 
         // If nested and an intermediate segment is an array, match by correlating with an inner query that filters the unnested root.
         if (isNested && hasArrayBeforeLeaf(pathIsArray)) {
-            if (this.type === FilterType.ANY) return `len(${columnExpr}) > 0`;
-            if (this.type === FilterType.EXCLUDE)
+            if (this.type === FilterType.ANY_VALUE) return `len(${columnExpr}) > 0`;
+            if (this.type === FilterType.NO_VALUE)
                 return `("${this.path[0]}" IS NULL OR len(${columnExpr}) = 0)`;
-            if (this.type === FilterType.FUZZY) {
+            if (this.matchStyle === MatchStyle.CONTAINS) {
                 const boolList = SQLBuilder.buildNestedAccessExpression(
                     this.path,
                     pathIsArray,
@@ -174,19 +208,20 @@ export default class FileFilter {
 
         // If nested and leaf is an array match by nested list filtering
         if (isNested && isLeafAnArray(pathIsArray)) {
-            if (this.type === FilterType.ANY) return `len(${columnExpr}) > 0`;
-            if (this.type === FilterType.EXCLUDE)
+            if (this.type === FilterType.ANY_VALUE) return `len(${columnExpr}) > 0`;
+            if (this.type === FilterType.NO_VALUE)
                 return `("${this.path[0]}" IS NULL OR len(${columnExpr}) = 0)`;
-            if (this.type === FilterType.FUZZY)
+            if (this.matchStyle === MatchStyle.CONTAINS)
                 return SQLBuilder.listRegexContains(columnExpr, this.value);
             return SQLBuilder.listContains(columnExpr, this.value);
         }
 
         // Otherwise, simplest case, match by a scalar condition on the column
         // (or an IS NULL / IS NOT NULL check for ANY/EXCLUDE)
-        if (this.type === FilterType.ANY) return `${columnExpr} IS NOT NULL`;
-        if (this.type === FilterType.EXCLUDE) return `${columnExpr} IS NULL`;
-        if (this.type === FilterType.FUZZY) return SQLBuilder.regexContains(columnExpr, this.value);
+        if (this.type === FilterType.ANY_VALUE) return `${columnExpr} IS NOT NULL`;
+        if (this.type === FilterType.NO_VALUE) return `${columnExpr} IS NULL`;
+        if (this.matchStyle === MatchStyle.CONTAINS)
+            return SQLBuilder.regexContains(columnExpr, this.value);
         return SQLBuilder.matchByType(
             columnExpr,
             this.value,

@@ -7,7 +7,7 @@ import { TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation, { AnnotationValue } from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileFilter, { FilterType } from "../../../entity/FileFilter";
-import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import AnyValueFilter from "../../../entity/FileFilter/AnyValueFilter";
 import { hasArrayBeforeLeaf } from "../../../entity/resolvePathIsArray";
 import { DEFAULT_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH, Source } from "../../../entity/SearchParams";
 import SQLBuilder from "../../../entity/SQLBuilder";
@@ -126,18 +126,16 @@ export default class DatabaseAnnotationService implements AnnotationService {
                               FilterType.DEFAULT,
                               nameToAnnotationMap.get(annotation)?.type
                           )
-                        : new IncludeFilter(annotation)
+                        : new AnyValueFilter(annotation)
                 )
                 // Exclude any filters that already exist for these hierarchy annotations
                 .filter((filter) => !annotationNamesInFilters.has(filter.name));
 
-            const {
-                promise: filteredValuesPromise,
-                cancel: filteredValuesCancel,
-            } = this.fetchFilteredValuesForAnnotation(hierarchy[path.length], [
-                ...filters,
-                ...hierarchyAsFilters,
-            ]);
+            const { promise: filteredValuesPromise, cancel: filteredValuesCancel } =
+                this.fetchFilteredValuesForAnnotation(hierarchy[path.length], [
+                    ...filters,
+                    ...hierarchyAsFilters,
+                ]);
             cancel = filteredValuesCancel;
             return filteredValuesPromise;
         });

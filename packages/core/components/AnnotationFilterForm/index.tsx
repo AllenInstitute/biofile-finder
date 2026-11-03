@@ -16,7 +16,7 @@ import { TOP_LEVEL_FILE_ANNOTATION_NAMES } from "../../constants";
 import Annotation from "../../entity/Annotation";
 import AnnotationName from "../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../entity/AnnotationFormatter";
-import FileFilter, { FilterType } from "../../entity/FileFilter";
+import FileFilter, { FilterType, MatchStyle } from "../../entity/FileFilter";
 import { interaction, selection } from "../../state";
 
 import styles from "./AnnotationFilterForm.module.css";
@@ -85,7 +85,9 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     ].includes(props.annotation.type);
 
     // "Contains" filters are only visible on the search form, not in the browse list
-    const hasFuzzyFilter = filtersForAnnotation.some((filter) => filter.type === FilterType.FUZZY);
+    const hasFuzzyFilter = filtersForAnnotation.some(
+        (filter) => filter.matchStyle === MatchStyle.CONTAINS
+    );
     // A range filter value is always formatted as "RANGE(...)". If existing filters exist
     // but none are range-formatted, the user previously selected from the browse list.
     const hasRangeFilter = filtersForAnnotation.some((filter) =>
@@ -182,8 +184,8 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
             switch (option.key) {
                 case FilterType.DEFAULT:
                     return; // No further action needed, dispatch on search instead
-                case FilterType.EXCLUDE:
-                case FilterType.ANY:
+                case FilterType.NO_VALUE:
+                case FilterType.ANY_VALUE:
                 default:
                     dispatch(
                         selection.actions.changeFileFilterType(
@@ -358,11 +360,11 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                             text: `Some value${items.length > 0 ? "(s)" : ""}`,
                         },
                         {
-                            key: FilterType.ANY,
+                            key: FilterType.ANY_VALUE,
                             text: "Any value",
                         },
                         {
-                            key: FilterType.EXCLUDE,
+                            key: FilterType.NO_VALUE,
                             text: "No value",
                         },
                     ]}
@@ -373,7 +375,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                 searchFormType()
             ) : (
                 <div className={styles.footer}>
-                    All files with {filterType === FilterType.EXCLUDE ? "no " : "any "}
+                    All files with {filterType === FilterType.NO_VALUE ? "no " : "any "}
                     value for {props.annotation.displayName}
                 </div>
             )}
