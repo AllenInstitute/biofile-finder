@@ -26,9 +26,11 @@ interface DataSourceTemplateProps {
 export default function DataSourcePromptTemplate(
     props: React.PropsWithChildren<DataSourceTemplateProps>
 ) {
+    const showCard = !props.isModal && !!props.selectedFile;
+
     return (
         <div className={classNames(props.className, styles.root)}>
-            {!props.isModal && <h2 className={styles.title}>{props.title}</h2>}
+            {!props.isModal && <h1 className={styles.title}>{props.title}</h1>}
             <p
                 className={classNames(styles.text, {
                     [styles.datasourceSubhead]: !props?.isModal,
@@ -49,7 +51,13 @@ export default function DataSourcePromptTemplate(
                     </>
                 )}
             </p>
-            <div className={styles.filePromptOuterWrapper}>
+            <div
+                className={classNames(styles.filePromptOuterWrapper, {
+                    [styles.filePromptCard]: showCard,
+                    [styles.filePromptSelectedInModal]: props.isModal && !!props.selectedFile,
+                })}
+            >
+                {showCard && <h2 className={styles.cardTitle}>Loading files</h2>}
                 <FilePrompt
                     className={styles.filePrompt}
                     onSelectFile={props.onSelectFile}
