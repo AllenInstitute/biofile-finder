@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import FileFilter, { FilterType, MatchStyle } from "../";
+import FileFilter, { CombineMode, FilterType, MatchStyle } from "../";
 import AnyValueFilter from "../AnyValueFilter";
 import FuzzyFilter from "../FuzzyFilter";
 import NoValueFilter from "../NoValueFilter";
@@ -12,16 +12,41 @@ describe("FileFilter", () => {
             expect(new AnyValueFilter("A").hasValue).to.equal(false);
             expect(new NoValueFilter("A").hasValue).to.equal(false);
             expect(new FileFilter("A", "x").hasValue).to.equal(true);
+            expect(new FileFilter("A", "x", FilterType.ALL).hasValue).to.equal(true);
             expect(new FuzzyFilter("A", "x").hasValue).to.equal(true);
+        });
+    });
+
+    describe("combineMode", () => {
+        it("is ALL for the all-of types and ANY for every other type", () => {
+            expect(new FileFilter("A", "x", FilterType.ALL).combineMode).to.equal(CombineMode.ALL);
+            expect(new FileFilter("A", "x", FilterType.FUZZY_ALL).combineMode).to.equal(
+                CombineMode.ALL
+            );
+            expect(new FileFilter("A", "x").combineMode).to.equal(CombineMode.ANY);
+            expect(new FuzzyFilter("A", "x").combineMode).to.equal(CombineMode.ANY);
+            expect(new AnyValueFilter("A").combineMode).to.equal(CombineMode.ANY);
+            expect(new NoValueFilter("A").combineMode).to.equal(CombineMode.ANY);
         });
     });
 
     describe("matchStyle", () => {
         it("is CONTAINS only for fuzzy filters", () => {
             expect(new FuzzyFilter("A", "x").matchStyle).to.equal(MatchStyle.CONTAINS);
+            expect(new FileFilter("A", "x", FilterType.FUZZY_ALL).matchStyle).to.equal(
+                MatchStyle.CONTAINS
+            );
             expect(new FileFilter("A", "x").matchStyle).to.equal(MatchStyle.EXACT);
-            expect(new AnyValueFilter("A").matchStyle).to.equal(MatchStyle.EXACT);
-            expect(new NoValueFilter("A").matchStyle).to.equal(MatchStyle.EXACT);
+            expect(new FileFilter("A", "x", FilterType.ALL).matchStyle).to.equal(MatchStyle.EXACT);
+        });
+    });
+
+    describe("appliesToEachGroup", () => {
+        it("is true only for ALL filters", () => {
+            expect(new FileFilter("A", "x", FilterType.ALL).appliesToEachGroup).to.equal(true);
+            expect(new FileFilter("A", "x").appliesToEachGroup).to.equal(false);
+            expect(new FuzzyFilter("A", "x").appliesToEachGroup).to.equal(false);
+            expect(new NoValueFilter("A").appliesToEachGroup).to.equal(false);
         });
     });
 
@@ -396,6 +421,212 @@ describe("FileFilter", () => {
                 `CAST("Dataset"."Name" AS VARCHAR) = 'cardio' OR CAST("Dataset"."Name" AS VARCHAR) = 'drug perturbation dataset'`,
                 `"Dataset"."Id" IS NOT NULL`,
             ]);
+        });
+
+        it("emits one AND-ed clause per value for an ALL-type annotation", () => {
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    new FileFilter("Phenotype", "small cells", FilterType.ALL),
+                    new FileFilter("Phenotype", "low", FilterType.ALL),
+                ],
+                new Map()
+            );
+            expect(clauses).to.deep.equal([
+                new FileFilter("Phenotype", "small cells").toSimpleWhereClause([false]),
+                new FileFilter("Phenotype", "low").toSimpleWhereClause([false]),
+            ]);
+        });
+
+        it("ANDs ALL-type values while still ORing default values for other annotations", () => {
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    new FileFilter("Phenotype", "a", FilterType.ALL),
+                    new FileFilter("Phenotype", "b", FilterType.ALL),
+                    new FileFilter("Color", "red"),
+                    new FileFilter("Color", "blue"),
+                ],
+                new Map()
+            );
+            expect(clauses).to.have.length(3);
+            expect(clauses.filter((c) => c.includes(" OR "))).to.have.length(1);
+        });
+
+        it("emits one AND-ed clause per ALL-type value for a nested multi-value annotation", () => {
+            const pathIsArrayByName = new Map([["files.type", [true, false]]]);
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    new FileFilter("files.type", "a", FilterType.ALL),
+                    new FileFilter("files.type", "b", FilterType.ALL),
+                ],
+                pathIsArrayByName
+            );
+
+            expect(clauses).to.deep.equal([
+                new FileFilter("files.type", "a").toSimpleWhereClause([true, false]),
+                new FileFilter("files.type", "b").toSimpleWhereClause([true, false]),
+            ]);
+            expect(clauses).to.have.length(2);
+            clauses.forEach((clause) => expect(clause).to.not.include(" OR "));
+        });
+
+        it("emits one AND-ed contains clause per value for FUZZY_ALL", () => {
+            const fuzzyAll = (value: string) =>
+                new FileFilter("Phenotype", value, FilterType.FUZZY_ALL, AnnotationType.STRING);
+            const clauses = FileFilter.toListOfWhereClauses(
+                [fuzzyAll("sm"), fuzzyAll("lo")],
+                new Map()
+            );
+            expect(clauses).to.deep.equal([
+                new FuzzyFilter("Phenotype", "sm").toSimpleWhereClause([false]),
+                new FuzzyFilter("Phenotype", "lo").toSimpleWhereClause([false]),
+            ]);
+        });
+
+        it("keeps FUZZY values OR-ed together", () => {
+            const clauses = FileFilter.toListOfWhereClauses(
+                [new FuzzyFilter("Phenotype", "sm"), new FuzzyFilter("Phenotype", "lo")],
+                new Map()
+            );
+            expect(clauses).to.have.length(1);
+            expect(clauses[0]).to.contain(" OR ");
+        });
+
+        it("requires each FUZZY_ALL value to be contained in a list-valued nested field", () => {
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    new FileFilter(["Image", "Tags"], "x", FilterType.FUZZY_ALL),
+                    new FileFilter(["Image", "Tags"], "y", FilterType.FUZZY_ALL),
+                ],
+                new Map([["Image.Tags", [false, true]]])
+            );
+            expect(clauses).to.deep.equal([
+                new FileFilter(["Image", "Tags"], "x", FilterType.FUZZY).toSimpleWhereClause([
+                    false,
+                    true,
+                ]),
+                new FileFilter(["Image", "Tags"], "y", FilterType.FUZZY).toSimpleWhereClause([
+                    false,
+                    true,
+                ]),
+            ]);
+        });
+
+        it("uses distinct query strings for FUZZY, ALL and FUZZY_ALL", () => {
+            const strings = [FilterType.FUZZY, FilterType.ALL, FilterType.FUZZY_ALL].map((type) =>
+                new FileFilter("A", "1", type).toQueryString()
+            );
+            expect(new Set(strings).size).to.equal(3);
+        });
+
+        // Switching one value to ALL must not widen what a single value matched: the sibling
+        // filter has to hold in the same element as each required value
+        it("requires each ALL value to share an array element with sibling filters", () => {
+            const pathIsArrayByName = new Map([
+                ["Items.Color", [true, false]],
+                ["Items.Size", [true, false]],
+            ]);
+            const sibling = new FileFilter(["Items", "Size"], "Large");
+            const allColors = ["blue", "red"].map(
+                (color) => new FileFilter(["Items", "Color"], color, FilterType.ALL)
+            );
+
+            const clauses = FileFilter.toListOfWhereClauses(
+                [...allColors, sibling],
+                pathIsArrayByName
+            );
+
+            // One clause per required value, each with the sibling filter in the same element
+            expect(clauses).to.deep.equal(
+                ["blue", "red"].map(
+                    (color) =>
+                        FileFilter.toListOfWhereClauses(
+                            [new FileFilter(["Items", "Color"], color), sibling],
+                            pathIsArrayByName
+                        )[0]
+                )
+            );
+            expect(clauses).to.have.length(2);
+            clauses.forEach((clause) => expect(clause).to.contain("Size"));
+        });
+
+        // e.g. grouping by Items.Color adds a folder filter (blue) beside ALL blue and red filters
+        it("does not merge a same-annotation filter into the ALL clauses as an alternative", () => {
+            const pathIsArrayByName = new Map([["Items.Color", [true, false]]]);
+            const color = (value: string, type: FilterType) =>
+                new FileFilter(["Items", "Color"], value, type);
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    color("blue", FilterType.ALL),
+                    color("red", FilterType.ALL),
+                    color("blue", FilterType.DEFAULT),
+                ],
+                pathIsArrayByName
+            );
+
+            // blue, red, and the folder's own blue: nothing is OR'd with anything
+            expect(clauses).to.deep.equal([
+                FileFilter.toListOfWhereClauses(
+                    [color("blue", FilterType.DEFAULT)],
+                    pathIsArrayByName
+                )[0],
+                FileFilter.toListOfWhereClauses(
+                    [color("red", FilterType.DEFAULT)],
+                    pathIsArrayByName
+                )[0],
+                FileFilter.toListOfWhereClauses(
+                    [color("blue", FilterType.DEFAULT)],
+                    pathIsArrayByName
+                )[0],
+            ]);
+            clauses.forEach((clause) => expect(clause).to.not.include(" OR "));
+        });
+
+        it("keeps ALL filters on sibling annotations in the same array element", () => {
+            const pathIsArrayByName = new Map([
+                ["Items.Color", [true, false]],
+                ["Items.Size", [true, false]],
+            ]);
+            const color = (value: string) =>
+                new FileFilter(["Items", "Color"], value, FilterType.ALL);
+            const size = (value: string) =>
+                new FileFilter(["Items", "Size"], value, FilterType.ALL);
+
+            // One value each: same as the equivalent default filters, one element with both
+            const single = FileFilter.toListOfWhereClauses(
+                [color("blue"), size("Large")],
+                pathIsArrayByName
+            );
+            expect(single).to.have.length(2);
+            single.forEach((clause) => {
+                expect(clause).to.contain("Color");
+                expect(clause).to.contain("Size");
+            });
+
+            // Several values: each required value pairs with the other annotation's alternatives
+            const several = FileFilter.toListOfWhereClauses(
+                [color("blue"), color("red"), size("Large"), size("Small")],
+                pathIsArrayByName
+            );
+            expect(several).to.have.length(4);
+            several.forEach((clause) => {
+                expect(clause).to.contain("Color");
+                expect(clause).to.contain("Size");
+            });
+        });
+
+        it("does not repeat the sibling filter on its own when ALL clauses already include it", () => {
+            const pathIsArrayByName = new Map([
+                ["Items.Color", [true, false]],
+                ["Items.Size", [true, false]],
+            ]);
+            const clauses = FileFilter.toListOfWhereClauses(
+                [
+                    new FileFilter(["Items", "Color"], "blue", FilterType.ALL),
+                    new FileFilter(["Items", "Size"], "Large"),
+                ],
+                pathIsArrayByName
+            );
+            expect(clauses).to.have.length(1);
         });
 
         // Nested annotations absent from the schema map are a programming error: we throw

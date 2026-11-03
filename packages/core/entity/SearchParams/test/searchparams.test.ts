@@ -9,7 +9,7 @@ import SearchParams, {
     Source,
 } from "..";
 import AnnotationName from "../../Annotation/AnnotationName";
-import FileFilter from "../../FileFilter";
+import FileFilter, { FilterType } from "../../FileFilter";
 import AnyValueFilter from "../../FileFilter/AnyValueFilter";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
 import NoValueFilter from "../../FileFilter/NoValueFilter";
@@ -684,6 +684,42 @@ describe("SearchParams", () => {
 
             // Assert
             expect(result).to.contain(expectedResult);
+        });
+
+        describe("'all values' filters", () => {
+            const toPython = (type: FilterType, values = ["small", "low"], name = "Phenotype") =>
+                SearchParams.convertToPython(
+                    {
+                        filters: values.map((value) => new FileFilter(name, value, type)),
+                        sources: [mockSourceWithUri],
+                    },
+                    mockOS
+                );
+            const countOf = (text: string, part: string) => text.split(part).length - 1;
+
+            it("ANDs one whole-entry match per value for ALL filters", () => {
+                const result = toPython(FilterType.ALL);
+                expect(countOf(result, '.str.contains(r"')).to.equal(2);
+                expect(countOf(result, " & ")).to.equal(1);
+                expect(result).to.contain(".query('`Phenotype`.str.contains(r\"(?:,");
+                expect(result).to.contain(", engine='python')");
+                expect(result).to.not.contain("Not exported");
+            });
+
+            it("leaves out values with quotes and says so", () => {
+                const result = toPython(FilterType.ALL, ["it's"]);
+                expect(result).to.not.contain(".query(");
+                expect(result).to.contain("Not exported");
+                expect(result).to.contain("Phenotype");
+            });
+
+            it("still ORs default values without the python engine", () => {
+                const result = toPython(FilterType.DEFAULT);
+                expect(result).to.contain(
+                    `.query('\`Phenotype\`=="small" | \`Phenotype\`=="low"')`
+                );
+                expect(result).to.not.contain("engine=");
+            });
         });
 
         it("converts filters", () => {
