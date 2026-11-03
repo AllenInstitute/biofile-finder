@@ -441,6 +441,35 @@ export default abstract class DatabaseService {
         const handle = fileHandleName(name);
         let importFinished = false;
 
+        try {
+            await this.importDataSource(name, type, uri, handle, () => importFinished);
+        } finally {
+            // Settle the flag whether or not the import succeeded. A size probe that resolves
+            // after a failed import would otherwise report this source at zero progress, and
+            // since the status is an average across sources, that stale entry would show the
+            // next load as further behind than it is.
+            importFinished = true;
+        }
+
+        this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 1);
+        this.reportProgress(name, DataSourceLoadStage.IMPORTING, 1);
+    }
+
+    /**
+     * Register a source with DuckDB and read it into a table. Split out so that `addDataSource`
+     * can settle its size probe in a `finally` around the whole of it.
+     */
+    private async importDataSource(
+        name: string,
+        type: SourceType,
+        uri: string | File,
+        handle: string,
+        isImportFinished: () => boolean
+    ): Promise<void> {
+        if (!this.database) {
+            throw new Error("Database failed to initialize");
+        }
+
         if (uri instanceof File) {
             // DuckDB reads a local file through the browser lazily, so there is nothing to count;
             // report the size we do know so the UI can say how much data is being read.
@@ -455,7 +484,7 @@ export default abstract class DatabaseService {
             await this.database.registerFileURL(handle, uri, duckdb.DuckDBDataProtocol.S3, false);
         } else {
             this.s3StorageService.getHttpObjectSize(uri, 5000).then((bytesTotal) => {
-                if (!importFinished && bytesTotal !== undefined) {
+                if (!isImportFinished() && bytesTotal !== undefined) {
                     this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 0, bytesTotal);
                 }
             });
@@ -485,9 +514,6 @@ export default abstract class DatabaseService {
                 );
             }
         }
-        importFinished = true;
-        this.reportProgress(name, DataSourceLoadStage.DOWNLOADING, 1);
-        this.reportProgress(name, DataSourceLoadStage.IMPORTING, 1);
     }
 
     /**
@@ -866,6 +892,18 @@ export default abstract class DatabaseService {
             "name"
         );
 
+        // Aggregation is reported as its own entry, and the status shown to the user is an
+        // average across entries. Claim its share before the sources are prepared rather than
+        // when it starts: introducing a fresh entry at zero once the others had reached the top
+        // would drag the average — and so the displayed figure — backwards.
+        const aggregateName =
+            sourcesToPrepare.length > 1
+                ? DatabaseService.combineSourceNames(sourcesToPrepare)
+                : undefined;
+        if (aggregateName) {
+            this.reportProgress(aggregateName, DataSourceLoadStage.AGGREGATING, 0);
+        }
+
         await Promise.all(
             sourcesToPrepare
                 .filter((dataSource) => !this.hasDataSource(dataSource.name))
@@ -875,9 +913,7 @@ export default abstract class DatabaseService {
         // Because when querying multiple data sources column differences can complicate the queries
         // preparing a table ahead of time that is the aggregate of the data sources is most optimal
         // should look toward some way of reducing the memory footprint if that becomes an issue.
-        if (sourcesToPrepare.length > 1) {
-            const aggregateName = DatabaseService.combineSourceNames(sourcesToPrepare);
-            this.reportProgress(aggregateName, DataSourceLoadStage.AGGREGATING, 0);
+        if (aggregateName) {
             await this.aggregateDataSources(sourcesToPrepare); // Leave markdown files out of the aggregate source
             this.reportProgress(aggregateName, DataSourceLoadStage.AGGREGATING, 1);
         }
