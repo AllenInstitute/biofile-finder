@@ -74,15 +74,6 @@ export const getFileGridColCount = createSelector(
     (fileView): number => FILE_VIEW_TO_COL_COUNT[fileView]
 );
 
-export const getAnnotationsWithNoValue = createSelector([getFileFilters], (filters): FileFilter[] =>
-    filters.filter((filter) => filter.type === FilterType.NO_VALUE)
-);
-
-export const getAnnotationsWithAnyValue = createSelector(
-    [getFileFilters],
-    (filters): FileFilter[] => filters.filter((filter) => filter.type === FilterType.ANY_VALUE)
-);
-
 export const getDefaultFileFilters = createSelector([getFileFilters], (filters): FileFilter[] =>
     filters.filter((filter) => filter.type === FilterType.DEFAULT)
 );
