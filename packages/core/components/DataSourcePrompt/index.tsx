@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import DataSourcePromptTemplate from "./DataSourcePromptTemplate";
 import FilePrompt from "./FilePrompt";
 import { LinkLikeButton, TransparentIconButton } from "../Buttons";
+import Tooltip from "../Tooltip";
 import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
@@ -23,6 +24,10 @@ interface PropsDefaultType extends Props {
     setProvenanceSource: (file?: Source) => void;
     onDismiss: () => void;
 }
+
+const COLUMN_DESCRIPTOR_TOOLTIP = "Select a file that describes your metadata columns";
+const PROVENANCE_DESCRIPTOR_TOOLTIP =
+    "Select a file that describes file and metadata relationships";
 
 export enum DataSourceType {
     default = 0,
@@ -47,10 +52,10 @@ export default function DataSourcePrompt(props: Props) {
 
     if (sourceType === DataSourceType.metadata) {
         let description =
-            "Load a CSV, Parquet, or JSON file containing metadata descriptors associated with the columns in your data source.\n";
+            "Provide a column descriptor file (CSV, Parquet, or JSON) describing your metadata columns.\n";
         if (source) {
             description = description.concat(
-                `\nUploading a new file will replace the current metadata source (${source.name}).`
+                `\nUploading a new file will replace the current column descriptor file (${source.name}).`
             );
         }
         return (
@@ -70,10 +75,10 @@ export default function DataSourcePrompt(props: Props) {
         );
     } else if (sourceType === DataSourceType.provenance) {
         let description =
-            "Load a CSV, Parquet, or JSON file describing provenance relationships associated with the columns in your data source.\n";
+            "Provide a provenance descriptor file (CSV, Parquet, or JSON) describing file and metadata relationships.\n";
         if (source) {
             description = description.concat(
-                `\nUploading a new file will replace the current provenance source (${source.name}).`
+                `\nUploading a new file will replace the current provenance descriptor file (${source.name}).`
             );
         }
         return (
@@ -149,108 +154,108 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
         props.onDismiss();
     };
 
-    const metadataDescriptorPrompt = (
-        <div
-            className={classNames(
-                styles.fullWidth,
-                metadataSource ? styles.advancedOptionsFilled : styles.advancedOptionsEmpty
-            )}
-        >
-            {!metadataSource && (
-                <div className={styles.advancedOptionsHeader}>
-                    <h4 className={styles.fullWidth}>Add metadata descriptor file (optional)</h4>
-                    <TransparentIconButton
-                        className={styles.iconButton}
-                        iconName="Cancel"
-                        onClick={() => {
-                            setMetadataSource(undefined);
-                            setShowMetadataPrompt(false);
-                        }}
-                    />
-                </div>
-            )}
-            <div className={styles.filePromptWrapper}>
-                <FilePrompt
-                    className={classNames(styles.filePrompt, styles.filePromptWide)}
-                    onSelectFile={setMetadataSource}
-                    selectedFile={metadataSource}
-                    parentId={`file-prompt-metadata-${props.isModal ? "modal" : "main"}`}
-                    fileLabel={"Metadata descriptor file: "}
-                    lightBackground={props.isModal}
-                />
-            </div>
-        </div>
-    );
-
-    const provenanceFilePrompt = (
-        <div
-            className={classNames(
-                styles.fullWidth,
-                provenanceSource ? styles.advancedOptionsFilled : styles.advancedOptionsEmpty
-            )}
-        >
-            {!provenanceSource && (
-                <div className={styles.advancedOptionsHeader}>
-                    <h4 className={styles.fullWidth}>Add provenance descriptor file (optional)</h4>
-                    <TransparentIconButton
-                        className={styles.iconButton}
-                        iconName="Cancel"
-                        onClick={() => {
-                            setProvenanceSource(undefined);
-                            setShowProvenancePrompt(false);
-                        }}
-                    />
-                </div>
-            )}
-            <div className={styles.filePromptWrapper}>
-                <FilePrompt
-                    className={classNames(styles.filePrompt, styles.filePromptWide)}
-                    onSelectFile={setProvenanceSource}
-                    selectedFile={provenanceSource}
-                    parentId={`file-prompt-provenance-${props.isModal ? "modal" : "main"}`}
-                    fileLabel={"Provenance descriptor file: "}
-                    lightBackground={props.isModal}
-                />
-            </div>
-        </div>
-    );
-
     return (
         <DataSourcePromptTemplate
             className={props.className}
-            description="Load a CSV, Parquet, or JSON file containing the metadata key-value pairs (annotations) associated with your files."
+            description="Provide a metadata file (CSV, Parquet, or JSON) describing your dataset. Once loaded, it becomes a searchable data source that you can query, filter, and explore."
             isModal={props.isModal}
             onSubmit={onSubmit}
             onSelectFile={setDataSource}
             selectedFile={dataSource}
             submitDisabled={!dataSource}
-            showAdvancedOptions
-            title="Choose a data source"
+            showGuidanceLink
+            title="Provide a metadata file"
         >
-            <>
-                <div className={styles.advancedOptionsButtons}>
-                    {!(showMetadataPrompt && showProvenancePrompt) && <p>Optional includes: </p>}
-                    {!showMetadataPrompt && (
-                        <LinkLikeButton
-                            className={styles.advancedOptionsButton}
-                            onClick={() => setShowMetadataPrompt(!showMetadataPrompt)}
-                            text="Metadata descriptor file"
-                            title="Select a file that describes your metadata columns"
+            {dataSource && (
+                <>
+                    <div className={styles.advancedOptionsButtons}>
+                        <p>Describe columns with supplemental metadata (optional):</p>
+                        {!showMetadataPrompt && (
+                            <Tooltip content={COLUMN_DESCRIPTOR_TOOLTIP}>
+                                <LinkLikeButton
+                                    className={styles.advancedOptionsButton}
+                                    onClick={() => setShowMetadataPrompt(true)}
+                                    text="Add a column descriptor file"
+                                />
+                            </Tooltip>
+                        )}
+                        {!showProvenancePrompt && (
+                            <Tooltip content={PROVENANCE_DESCRIPTOR_TOOLTIP}>
+                                <LinkLikeButton
+                                    className={styles.advancedOptionsButton}
+                                    onClick={() => setShowProvenancePrompt(true)}
+                                    text="Add a provenance descriptor file"
+                                />
+                            </Tooltip>
+                        )}
+                    </div>
+                    {showMetadataPrompt && (
+                        <DescriptorFilePrompt
+                            fileLabel="Column descriptor file"
+                            isModal={props.isModal}
+                            kind="metadata"
+                            onClose={() => setShowMetadataPrompt(false)}
+                            onSelectFile={setMetadataSource}
+                            selectedFile={metadataSource}
                         />
                     )}
-                    {!(showMetadataPrompt || showProvenancePrompt) && <p>|</p>}
-                    {!showProvenancePrompt && (
-                        <LinkLikeButton
-                            className={styles.advancedOptionsButton}
-                            onClick={() => setShowProvenancePrompt(!showProvenancePrompt)}
-                            text="Provenance descriptor file"
-                            title="Select a file that describes provenance relationships"
+                    {showProvenancePrompt && (
+                        <DescriptorFilePrompt
+                            fileLabel="Provenance descriptor file"
+                            isModal={props.isModal}
+                            kind="provenance"
+                            onClose={() => setShowProvenancePrompt(false)}
+                            onSelectFile={setProvenanceSource}
+                            selectedFile={provenanceSource}
                         />
                     )}
-                </div>
-                {showMetadataPrompt && metadataDescriptorPrompt}
-                {showProvenancePrompt && provenanceFilePrompt}
-            </>
+                </>
+            )}
         </DataSourcePromptTemplate>
+    );
+}
+
+interface DescriptorFilePromptProps {
+    fileLabel: string;
+    isModal?: boolean;
+    kind: "metadata" | "provenance";
+    onClose: () => void;
+    onSelectFile: (file?: Source) => void;
+    selectedFile?: Source;
+}
+
+function DescriptorFilePrompt(props: DescriptorFilePromptProps) {
+    const { fileLabel, kind, onClose, onSelectFile, selectedFile } = props;
+    return (
+        <div
+            className={classNames(
+                styles.fullWidth,
+                selectedFile ? styles.advancedOptionsFilled : styles.advancedOptionsEmpty
+            )}
+        >
+            {!selectedFile && (
+                <div className={styles.advancedOptionsHeader}>
+                    <h4 className={styles.fullWidth}>{fileLabel}</h4>
+                    <TransparentIconButton
+                        className={styles.iconButton}
+                        iconName="Cancel"
+                        onClick={() => {
+                            onSelectFile(undefined);
+                            onClose();
+                        }}
+                    />
+                </div>
+            )}
+            <div className={styles.filePromptWrapper}>
+                <FilePrompt
+                    className={classNames(styles.filePrompt, styles.filePromptWide)}
+                    onSelectFile={onSelectFile}
+                    selectedFile={selectedFile}
+                    parentId={`file-prompt-${kind}-${props.isModal ? "modal" : "main"}`}
+                    fileLabel={`${fileLabel}: `}
+                    lightBackground={props.isModal}
+                />
+            </div>
+        </div>
     );
 }
