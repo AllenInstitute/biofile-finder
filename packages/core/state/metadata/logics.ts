@@ -86,6 +86,9 @@ const receiveAnnotationsLogic = createLogic({
         const annotationByName = new Map(
             annotations.map((annotation) => [annotation.name, annotation])
         );
+        const annotationIndexByName = new Map(
+            annotations.map((annotation, index) => [annotation.name, index])
+        );
         const annotationService = interaction.selectors.getAnnotationService(deps.getState());
         const currentSortColumn = selection.selectors.getSortColumn(deps.getState());
         const currentColumns = selection.selectors.getColumns(deps.getState());
@@ -175,16 +178,20 @@ const receiveAnnotationsLogic = createLogic({
                 const { annotation: annotationA, currentColumnIndex: indexA } = a;
                 const { annotation: annotationB, currentColumnIndex: indexB } = b;
                 // Move columns that were already selected for display to the front, in their existing order
-                if (indexA !== -1 && indexB !== -1) {
-                    return indexA - indexB;
-                }
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
                 if (indexA !== -1) return -1;
                 if (indexB !== -1) return 1;
 
-                // Move "File Name" to the front then sort alphabetically
+                // Move "File Name" to the front
                 if (annotationA.displayName === "File Name") return -1;
                 if (annotationB.displayName === "File Name") return 1;
-                return annotationA.name.localeCompare(annotationB.name);
+
+                // compare indexes preserving the original index from the source, uses map of indexes
+                // in case order in array has changed between the original source and the current state
+                return (
+                    (annotationIndexByName.get(annotationA.name) || 0) -
+                    (annotationIndexByName.get(annotationB.name) || 0)
+                );
             })
             .map(({ annotation, currentColumnIndex }) => {
                 // If the column for this annotation already exists, keep its current width
