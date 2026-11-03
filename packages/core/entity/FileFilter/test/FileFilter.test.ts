@@ -1,12 +1,30 @@
 import { expect } from "chai";
 
-import FileFilter, { FilterType } from "../";
-import ExcludeFilter from "../ExcludeFilter";
+import FileFilter, { FilterType, MatchStyle } from "../";
+import AnyValueFilter from "../AnyValueFilter";
 import FuzzyFilter from "../FuzzyFilter";
-import IncludeFilter from "../IncludeFilter";
+import NoValueFilter from "../NoValueFilter";
 import { AnnotationType } from "../../AnnotationFormatter";
 
 describe("FileFilter", () => {
+    describe("hasValue", () => {
+        it("is false only for any value and no value filters", () => {
+            expect(new AnyValueFilter("A").hasValue).to.equal(false);
+            expect(new NoValueFilter("A").hasValue).to.equal(false);
+            expect(new FileFilter("A", "x").hasValue).to.equal(true);
+            expect(new FuzzyFilter("A", "x").hasValue).to.equal(true);
+        });
+    });
+
+    describe("matchStyle", () => {
+        it("is CONTAINS only for fuzzy filters", () => {
+            expect(new FuzzyFilter("A", "x").matchStyle).to.equal(MatchStyle.CONTAINS);
+            expect(new FileFilter("A", "x").matchStyle).to.equal(MatchStyle.EXACT);
+            expect(new AnyValueFilter("A").matchStyle).to.equal(MatchStyle.EXACT);
+            expect(new NoValueFilter("A").matchStyle).to.equal(MatchStyle.EXACT);
+        });
+    });
+
     describe("toSimpleWhereClause", () => {
         const NESTED_LIST = `list_transform("Well", x -> x."Dose"."Unit")`;
         const WELL_DOSE_UNIT_PATH_IS_ARRAY = [true, false, false];
@@ -72,9 +90,11 @@ describe("FileFilter", () => {
 
         it("checks for a non-empty extracted list for an ANY (include) filter", () => {
             expect(
-                new FileFilter(["Well", "Dose", "Unit"], "", FilterType.ANY).toSimpleWhereClause(
-                    WELL_DOSE_UNIT_PATH_IS_ARRAY
-                )
+                new FileFilter(
+                    ["Well", "Dose", "Unit"],
+                    "",
+                    FilterType.ANY_VALUE
+                ).toSimpleWhereClause(WELL_DOSE_UNIT_PATH_IS_ARRAY)
             ).to.equal(`len(${NESTED_LIST}) > 0`);
         });
 
@@ -83,7 +103,7 @@ describe("FileFilter", () => {
                 new FileFilter(
                     ["Well", "Dose", "Unit"],
                     "",
-                    FilterType.EXCLUDE
+                    FilterType.NO_VALUE
                 ).toSimpleWhereClause(WELL_DOSE_UNIT_PATH_IS_ARRAY)
             ).to.equal(`("Well" IS NULL OR len(${NESTED_LIST}) = 0)`);
         });
@@ -176,14 +196,14 @@ describe("FileFilter", () => {
                     new FileFilter(
                         ["Image QC", "Focus Score"],
                         "",
-                        FilterType.ANY
+                        FilterType.ANY_VALUE
                     ).toSimpleWhereClause(SCALAR)
                 ).to.equal(`"Image QC"."Focus Score" IS NOT NULL`);
                 expect(
                     new FileFilter(
                         ["Image QC", "Focus Score"],
                         "",
-                        FilterType.EXCLUDE
+                        FilterType.NO_VALUE
                     ).toSimpleWhereClause(SCALAR)
                 ).to.equal(`"Image QC"."Focus Score" IS NULL`);
             });
@@ -228,15 +248,17 @@ describe("FileFilter", () => {
 
             it("uses len-based checks for ANY / EXCLUDE", () => {
                 expect(
-                    new FileFilter(["Image QC", "Tags"], "", FilterType.ANY).toSimpleWhereClause(
-                        LEAF_ARRAY
-                    )
+                    new FileFilter(
+                        ["Image QC", "Tags"],
+                        "",
+                        FilterType.ANY_VALUE
+                    ).toSimpleWhereClause(LEAF_ARRAY)
                 ).to.equal(`len("Image QC"."Tags") > 0`);
                 expect(
                     new FileFilter(
                         ["Image QC", "Tags"],
                         "",
-                        FilterType.EXCLUDE
+                        FilterType.NO_VALUE
                     ).toSimpleWhereClause(LEAF_ARRAY)
                 ).to.equal(`("Image QC" IS NULL OR len("Image QC"."Tags") = 0)`);
             });
@@ -298,7 +320,7 @@ describe("FileFilter", () => {
 
         it("emits non-correlatable filters as a separate clause from the correlated one", () => {
             const filters = [
-                new FileFilter(["Items", "Color"], "", FilterType.ANY),
+                new FileFilter(["Items", "Color"], "", FilterType.ANY_VALUE),
                 new FileFilter(["Items", "Size"], "Large"),
             ];
             const pathIsArrayByName = new Map([
@@ -364,7 +386,7 @@ describe("FileFilter", () => {
             const filters = [
                 new FileFilter(["Dataset", "Name"], "cardio"),
                 new FileFilter(["Dataset", "Name"], "drug perturbation dataset"),
-                new FileFilter(["Dataset", "Id"], "", FilterType.ANY),
+                new FileFilter(["Dataset", "Id"], "", FilterType.ANY_VALUE),
             ];
             const pathIsArrayByName = new Map([
                 ["Dataset.Name", [false, false]],
@@ -401,11 +423,11 @@ describe("FileFilter", () => {
         });
         it("returns true for include filter subtype and parent class", () => {
             // Arrange
-            const fileFilterIncludeConstructor = new IncludeFilter("Annotation name");
+            const fileFilterIncludeConstructor = new AnyValueFilter("Annotation name");
             const fileFilterParentConstructor = new FileFilter(
                 "Annotation name",
                 "",
-                FilterType.ANY
+                FilterType.ANY_VALUE
             );
 
             // Act/Assert
@@ -413,11 +435,11 @@ describe("FileFilter", () => {
         });
         it("returns true for exclude filter subtype and parent class", () => {
             // Arrange
-            const fileFilterExcludeConstructor = new ExcludeFilter("Annotation name");
+            const fileFilterExcludeConstructor = new NoValueFilter("Annotation name");
             const fileFilterParentConstructor = new FileFilter(
                 "Annotation name",
                 "",
-                FilterType.EXCLUDE
+                FilterType.NO_VALUE
             );
 
             // Act/Assert
@@ -445,8 +467,8 @@ describe("FileFilter", () => {
                 "Annotation name",
                 "annotation value"
             );
-            const fileFilterExcludeConstructor = new ExcludeFilter("Annotation name");
-            const fileFilterIncludeConstructor = new IncludeFilter("Annotation name");
+            const fileFilterExcludeConstructor = new NoValueFilter("Annotation name");
+            const fileFilterIncludeConstructor = new AnyValueFilter("Annotation name");
 
             // Act/Assert
             expect(fileFilterFuzzyConstructor.equals(fileFilter)).to.be.false;
