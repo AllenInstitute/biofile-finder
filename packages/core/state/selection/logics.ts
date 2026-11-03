@@ -93,20 +93,33 @@ import { DataSource } from "../../services/DataSourceService";
 /**
  * Forward data source load progress to the Redux state while a preparation is in progress.
  */
+// Preparations overlap whenever a query changes while one is still running, and they share the
+// one database service. Only the newest may speak for the progress in state: an older one that
+// settles later would otherwise clear its replacement's stage and byte count, leaving the user
+// watching a load that reports nothing until its next update.
+let latestLoadId = 0;
+
 async function withLoadProgress(
     databaseService: DatabaseService,
     dispatch: (action: AnyAction) => void,
     prepare: () => Promise<void>
 ): Promise<void> {
+    const loadId = ++latestLoadId;
+    const isCurrentLoad = () => loadId === latestLoadId;
+
     dispatch(clearDataSourceLoadProgress());
-    const unsubscribe = databaseService.onDataSourceLoadProgress((progress) =>
-        dispatch(setDataSourceLoadProgress(progress))
-    );
+    const unsubscribe = databaseService.onDataSourceLoadProgress((progress) => {
+        if (isCurrentLoad()) {
+            dispatch(setDataSourceLoadProgress(progress));
+        }
+    });
     try {
         await prepare();
     } finally {
         unsubscribe();
-        dispatch(clearDataSourceLoadProgress());
+        if (isCurrentLoad()) {
+            dispatch(clearDataSourceLoadProgress());
+        }
     }
 }
 

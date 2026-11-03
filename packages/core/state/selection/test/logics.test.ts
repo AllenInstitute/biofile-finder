@@ -48,6 +48,7 @@ import NumericRange from "../../../entity/NumericRange";
 import { Source } from "../../../entity/SearchParams";
 import { DatabaseService } from "../../../services";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
+import DatabaseServiceNoop from "../../../services/DatabaseService/DatabaseServiceNoop";
 import { DataSource } from "../../../services/DataSourceService";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
 import HttpFileService from "../../../services/FileService/HttpFileService";
@@ -707,6 +708,47 @@ describe("Selection logics", () => {
                 (action) => action.type === CLEAR_DATA_SOURCE_LOAD_PROGRESS
             );
             expect(clears.length).to.equal(2);
+        });
+
+        it("lets only the newest preparation clear progress", async () => {
+            // Arrange: a service whose first preparation we settle by hand, so that one load can
+            // be superseded by another while it is still in flight.
+            let settleFirstLoad: () => void = () => undefined;
+            let preparations = 0;
+            class SupersededDatabaseService extends DatabaseServiceNoop {
+                public prepareDataSources(): Promise<void> {
+                    preparations += 1;
+                    if (preparations === 1) {
+                        return new Promise<void>((resolve) => {
+                            settleFirstLoad = resolve;
+                        });
+                    }
+                    return Promise.resolve();
+                }
+            }
+            const { store, logicMiddleware, actions } = configureMockStore({
+                state: mergeState(initialState, {
+                    interaction: {
+                        platformDependentServices: {
+                            databaseService: new SupersededDatabaseService(),
+                        },
+                    },
+                }),
+                logics: selectionLogics,
+            });
+
+            // Act: start a load, supersede it, then let the first one finish last
+            store.dispatch(changeDataSources([{ name: "first" }] as any[]));
+            store.dispatch(changeDataSources([{ name: "second" }] as any[]));
+            settleFirstLoad();
+            await logicMiddleware.whenComplete();
+
+            // Assert: both loads clear on the way in, but only the newest clears on the way out.
+            // A fourth clear would mean the superseded load had wiped its replacement's progress.
+            const clears = actions.list.filter(
+                (action) => action.type === CLEAR_DATA_SOURCE_LOAD_PROGRESS
+            );
+            expect(clears.length).to.equal(3);
         });
     });
 
