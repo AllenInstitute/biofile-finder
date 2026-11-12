@@ -9,7 +9,10 @@ import SQLBuilder from "../../../../core/entity/SQLBuilder";
 import { CancellablePromise } from "../../../../core/entity/types";
 import DataSourcePreparationError from "../../../../core/errors/DataSourcePreparationError";
 import { DatabaseService } from "../../../../core/services";
-import { initializeDuckDB } from "../../../../core/services/DatabaseService";
+import {
+    DataSourceLoadProgress,
+    initializeDuckDB,
+} from "../../../../core/services/DatabaseService";
 
 declare const self: DedicatedWorkerGlobalScope & typeof globalThis;
 let databaseService: DatabaseServiceWebWorker | null = null;
@@ -230,6 +233,11 @@ export default class DatabaseServiceWebWorker extends DatabaseService {
             await connection.close();
             activeConnections.delete(connectionId);
         }
+    }
+
+    protected emitProgress(progress: DataSourceLoadProgress): void {
+        // Listeners that care about progress are in main thread
+        self.postMessage({ type: WorkerResType.SOURCE_PROGRESS, payload: progress });
     }
 
     // public wrapper so that the worker can access the function

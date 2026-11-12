@@ -285,6 +285,11 @@ export default class DatabaseServiceWeb extends DatabaseService {
                 this.pending.delete(id);
                 return;
             }
+            case WorkerResType.SOURCE_PROGRESS: {
+                // Preparation runs in the worker; its progress belongs to listeners registered here.
+                this.emitProgress(data.payload as WorkerResPayload<WorkerResType.SOURCE_PROGRESS>);
+                return;
+            }
             case WorkerResType.SOURCE_RESOLVED: {
                 const { dataSourceName, added } =
                     data.payload as WorkerResPayload<WorkerResType.SOURCE_RESOLVED>;

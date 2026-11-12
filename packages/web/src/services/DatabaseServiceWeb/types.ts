@@ -1,4 +1,5 @@
 import { Source, SourceType } from "../../../../core/entity/SearchParams";
+import { DataSourceLoadProgress } from "../../../../core/services/DatabaseService";
 
 export enum WorkerMsgType {
     ADD_SOURCE = "add datasource",
@@ -16,6 +17,7 @@ export enum WorkerResType {
     ERROR = "error",
     READY = "db ready",
     RESULT = "query result",
+    SOURCE_PROGRESS = "source load progress",
     SOURCE_RESOLVED = "source added or deleted",
     STARTED = "query started",
 }
@@ -85,6 +87,7 @@ export type WorkerResPayload<T extends WorkerResType> = {
         id: string;
         result: QueryRow[];
     };
+    [WorkerResType.SOURCE_PROGRESS]: DataSourceLoadProgress;
     [WorkerResType.SOURCE_RESOLVED]: {
         dataSourceName: string;
         added: boolean;
