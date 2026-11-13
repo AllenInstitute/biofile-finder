@@ -211,6 +211,14 @@ export const getFileService = createSelector(
     }
 );
 
+/**
+ * Determines if the current file service can support advanced filters.
+ */
+export const getCanSupportAdvancedFilters = createSelector(
+    [getFileService],
+    (fileService) => fileService instanceof DatabaseFileService
+);
+
 export const getS3StorageService = createSelector([], () => new S3StorageService());
 
 /**

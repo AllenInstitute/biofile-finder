@@ -11,6 +11,7 @@ import {
     addQuery,
     CHANGE_DATA_SOURCES,
     changeDataSources,
+    changeFileFilterType,
     changeProvenanceSource,
     changeQuery,
     changeSourceMetadata,
@@ -38,7 +39,7 @@ import { initialState, interaction } from "../../";
 import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import { annotationsJson } from "../../../entity/Annotation/mocks";
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import FileFolder from "../../../entity/FileFolder";
 import FileSelection from "../../../entity/FileSelection";
 import FileSet from "../../../entity/FileSet";
@@ -1344,6 +1345,123 @@ describe("Selection logics", () => {
                     payload: [filter, ...currentFilters],
                 })
             ).to.equal(true);
+        });
+
+        it("converts default filters to ALL, keeping their values", async () => {
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [new FileFilter("foo", 1), new FileFilter("foo", 2)],
+                    },
+                },
+            });
+
+            store.dispatch(changeFileFilterType("foo", FilterType.ALL));
+            await logicMiddleware.whenComplete();
+
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [
+                        new FileFilter("foo", 1, FilterType.ALL),
+                        new FileFilter("foo", 2, FilterType.ALL),
+                    ],
+                })
+            ).to.be.true;
+        });
+
+        it("converts ALL filters back to default filters, keeping their values", async () => {
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [
+                            new FileFilter("foo", 1, FilterType.ALL),
+                            new FileFilter("foo", 2, FilterType.ALL),
+                            new FileFilter("bar", 3, FilterType.ALL),
+                        ],
+                    },
+                },
+            });
+
+            store.dispatch(changeFileFilterType("foo", FilterType.DEFAULT));
+            await logicMiddleware.whenComplete();
+
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [
+                        new FileFilter("bar", 3, FilterType.ALL),
+                        new FileFilter("foo", 1, FilterType.DEFAULT),
+                        new FileFilter("foo", 2, FilterType.DEFAULT),
+                    ],
+                })
+            ).to.be.true;
+        });
+
+        it("converts exact and contains filters to their ALL forms when changing to ALL", async () => {
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [
+                            new FileFilter("foo", "xx"),
+                            new FileFilter("foo", "ba", FilterType.FUZZY),
+                            new FileFilter("bar", "ba", FilterType.FUZZY),
+                        ],
+                    },
+                },
+            });
+
+            store.dispatch(changeFileFilterType("foo", FilterType.ALL));
+            await logicMiddleware.whenComplete();
+
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [
+                        new FileFilter("bar", "ba", FilterType.FUZZY),
+                        new FileFilter("foo", "ba", FilterType.FUZZY_ALL),
+                        new FileFilter("foo", "xx", FilterType.ALL),
+                    ],
+                })
+            ).to.be.true;
+        });
+
+        it("converts ALL and FUZZY_ALL filters back when changing to DEFAULT", async () => {
+            const { store, logicMiddleware, actions } = configureMockStore({
+                logics: selectionLogics,
+                state: {
+                    ...initialState,
+                    selection: {
+                        ...initialState.selection,
+                        filters: [
+                            new FileFilter("foo", "xx", FilterType.ALL),
+                            new FileFilter("foo", "ba", FilterType.FUZZY_ALL),
+                        ],
+                    },
+                },
+            });
+
+            store.dispatch(changeFileFilterType("foo", FilterType.DEFAULT));
+            await logicMiddleware.whenComplete();
+
+            expect(
+                actions.includes({
+                    type: SET_FILE_FILTERS,
+                    payload: [
+                        new FileFilter("foo", "ba", FilterType.FUZZY),
+                        new FileFilter("foo", "xx", FilterType.DEFAULT),
+                    ],
+                })
+            ).to.be.true;
         });
 
         it("removes a FileFilter from state", async () => {
