@@ -144,7 +144,7 @@ export default function QueryDataSource(props: Props) {
                                                       query: selectedQuery,
                                                       // Current metadata file, if there is one
                                                       source: props.sourceMetadata,
-                                                      sourceType: DataSourceType.metadata,
+                                                      sourceType: DataSourceType.columnDescriptor,
                                                   })
                                               );
                                           },

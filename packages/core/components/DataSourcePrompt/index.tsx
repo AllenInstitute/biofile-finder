@@ -36,7 +36,7 @@ const DESCRIPTOR_FILE_LABELS = {
 
 export enum DataSourceType {
     default = 0,
-    metadata = 1,
+    columnDescriptor = 1,
     provenance = 2,
 }
 
@@ -55,7 +55,7 @@ export default function DataSourcePrompt(props: Props) {
         dispatch(interaction.actions.hideVisibleModal());
     };
 
-    if (sourceType === DataSourceType.metadata) {
+    if (sourceType === DataSourceType.columnDescriptor) {
         let description =
             "Provide a column descriptor file (CSV, Parquet, or JSON) describing your metadata columns.\n";
         if (source) {

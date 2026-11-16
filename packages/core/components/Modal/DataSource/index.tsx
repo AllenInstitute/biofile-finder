@@ -17,7 +17,7 @@ export default function DataSource(props: ModalProps) {
     const { sourceType = DataSourceType.default } = dataSourceInfo || ({} as DataSourcePromptInfo);
     const getTitle = (sourceType: DataSourceType) => {
         switch (sourceType) {
-            case DataSourceType.metadata:
+            case DataSourceType.columnDescriptor:
                 return "Provide a column descriptor file";
             case DataSourceType.provenance:
                 return "Provide a provenance descriptor file";
