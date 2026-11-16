@@ -7,10 +7,6 @@ import { Source } from "../../entity/SearchParams";
 
 import styles from "./DataSourcePrompt.module.css";
 
-// Absolute since this component is shared with the desktop app, where relative paths do not resolve
-const USER_GUIDE_METADATA_FILE_URL =
-    "https://bff.allencell.org/user-guide/getting-started/creating-a-metadata-file";
-
 interface DataSourceTemplateProps {
     description: string;
     onSelectFile: (file?: Source) => void;
@@ -38,9 +34,10 @@ export default function DataSourcePromptTemplate(
                 {props.showGuidanceLink && (
                     <>
                         {" "}
+                        {/* Absolute since this component is shared with the desktop app, where relative paths do not resolve */}
                         <a
                             className={styles.guidanceLink}
-                            href={USER_GUIDE_METADATA_FILE_URL}
+                            href="https://bff.allencell.org/user-guide/getting-started/creating-a-metadata-file"
                             target="_blank"
                             rel="noreferrer"
                         >
