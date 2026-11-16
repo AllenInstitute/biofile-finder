@@ -37,6 +37,26 @@ const registerIpcHandlers = () => {
     NotificationServiceElectron.registerIpcHandlers();
 };
 
+/**
+ * Image viewers re-fetch image data our renderer may have already cached, so they each need
+ * their own cache partition; see usage below. Returns the partition to use, or undefined for
+ * URLs that should keep using the default session.
+ *
+ * Partitions are keyed by host so that, e.g., staging and production Vol-E stay isolated from
+ * each other, and are in-memory (no "persist:" prefix) so each run starts with an empty cache.
+ *
+ * Without partitions, CORS errors may occur when the renderer tries to reuse cached responses
+ * for cross-origin requests.
+ */
+const getPartition = (url: string): string | undefined => {
+    try {
+        const { host } = new URL(url);
+        return host;
+    } catch {
+        return undefined;
+    }
+};
+
 const createMainWindow = () => {
     mainWindow = new BrowserWindow({
         height: 1000,
@@ -88,7 +108,11 @@ const createMainWindow = () => {
     // and any other web page with an "unsaved changes" alert
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
         // Creating a new BrowserWindow allows us to set event handlers on child windows
-        const childWindow = new BrowserWindow({ parent: mainWindow });
+        const childWindow = new BrowserWindow({
+            parent: mainWindow,
+            // Give image viewers their own HTTP cache, separate from this window's.
+            webPreferences: { partition: getPartition(url) },
+        });
         childWindow.loadURL(url);
         // Catch 'beforeunload' events from web page since Electron handles these differently from browser
         childWindow.webContents.on(
