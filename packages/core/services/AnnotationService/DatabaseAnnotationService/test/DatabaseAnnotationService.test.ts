@@ -102,7 +102,11 @@ describe("DatabaseAnnotationService", () => {
                 dataSourceNames: [mockDataSourceName],
                 databaseService,
             });
-            const filter = new FileFilter("annotationName", "annotationValue", FilterType.ANY);
+            const filter = new FileFilter(
+                "annotationName",
+                "annotationValue",
+                FilterType.ANY_VALUE
+            );
             const values = await annotationService.fetchRootHierarchyValues(
                 [mockAnnotationName],
                 [filter]

@@ -8,8 +8,8 @@ import QuerySidebar from "..";
 import Query from "../Query";
 import { AICS_FMS_DATA_SOURCE_NAME } from "../../../constants";
 import FileFilter from "../../../entity/FileFilter";
-import ExcludeFilter from "../../../entity/FileFilter/ExcludeFilter";
-import IncludeFilter from "../../../entity/FileFilter/IncludeFilter";
+import AnyValueFilter from "../../../entity/FileFilter/AnyValueFilter";
+import NoValueFilter from "../../../entity/FileFilter/NoValueFilter";
 import { initialState, interaction, selection } from "../../../state";
 import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
@@ -328,8 +328,8 @@ describe("<Query />", () => {
             const includeFilterName = "Filter A";
             const excludeFilterName = "Filter B";
             const filters = [
-                new IncludeFilter(includeFilterName),
-                new ExcludeFilter(excludeFilterName),
+                new AnyValueFilter(includeFilterName),
+                new NoValueFilter(excludeFilterName),
             ];
 
             // Act
