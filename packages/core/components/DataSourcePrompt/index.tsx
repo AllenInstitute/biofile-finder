@@ -24,10 +24,6 @@ interface PropsDefaultType extends Props {
     onDismiss: () => void;
 }
 
-const COLUMN_DESCRIPTOR_TOOLTIP = "Select a file that describes your metadata columns";
-const PROVENANCE_DESCRIPTOR_TOOLTIP =
-    "Select a file that describes file and metadata relationships";
-
 const DESCRIPTOR_FILE_LABELS = {
     metadata: "Column descriptor file",
     provenance: "Provenance descriptor file",
@@ -179,7 +175,7 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
                                 className={styles.advancedOptionsButton}
                                 onClick={() => setShowMetadataPrompt(true)}
                                 text="Add a column descriptor file"
-                                title={COLUMN_DESCRIPTOR_TOOLTIP}
+                                title="Select a file that describes your metadata columns"
                             />
                         )}
                         {!showProvenancePrompt && (
@@ -187,7 +183,7 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
                                 className={styles.advancedOptionsButton}
                                 onClick={() => setShowProvenancePrompt(true)}
                                 text="Add a provenance descriptor file"
-                                title={PROVENANCE_DESCRIPTOR_TOOLTIP}
+                                title="Select a file that describes file and metadata relationships"
                             />
                         )}
                     </div>
