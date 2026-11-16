@@ -18,6 +18,11 @@
     position: relative;
 }
 
+.loading-placeholder {
+    margin-top: 5px;
+    padding: 0 3px;
+}
+
 .no-columns-message {
     position: absolute;
     top: 40px;

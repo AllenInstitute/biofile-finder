@@ -4,7 +4,9 @@ import * as React from "react";
 import { Provider } from "react-redux";
 
 import Header from "../Header";
+import { PLACEHOLDER_COLUMN_WIDTHS } from "../LoadingPlaceholder";
 import { ContextMenuItem } from "../../ContextMenu";
+import { NON_RESIZEABLE_CELL_TEST_ID } from "../../FileRow/Cell";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
 import FileSort, { SortOrder } from "../../../entity/FileSort";
@@ -194,7 +196,9 @@ describe("<Header />", () => {
 
     it("opens the column picker when the header is clicked while no columns are displayed", () => {
         // Arrange
-        const state = mergeState(initialState, { selection: { columns: [] } });
+        const state = mergeState(initialState, {
+            selection: { columns: [], selectedQuery: "Test query" },
+        });
         const { actions, store } = configureMockStore({ state });
         const { container } = render(
             <Provider store={store}>
@@ -218,7 +222,9 @@ describe("<Header />", () => {
 
     it("renders a prompt to select columns when none are displayed", () => {
         // Arrange
-        const state = mergeState(initialState, { selection: { columns: [] } });
+        const state = mergeState(initialState, {
+            selection: { columns: [], selectedQuery: "Test query" },
+        });
         const { store } = configureMockStore({ state });
 
         // Act
@@ -230,6 +236,34 @@ describe("<Header />", () => {
 
         // Assert
         expect(getByText("Click here to select columns")).to.exist;
+    });
+
+    it("renders placeholder columns instead of a prompt while the data source is loading", () => {
+        // Arrange
+        const state = mergeState(initialState, {
+            selection: {
+                columns: [],
+                isLoadingDataSource: true,
+                selectedQuery: "Test query",
+            },
+        });
+        const { store } = configureMockStore({ state });
+
+        // Act
+        const { container, queryByText } = render(
+            <Provider store={store}>
+                <Header />
+            </Provider>
+        );
+
+        // Assert
+        expect(queryByText("Click here to select columns")).to.equal(null);
+        const renderedWidths = Array.from(
+            container.querySelectorAll<HTMLElement>(
+                `#${Tutorial.COLUMN_HEADERS_ID} [data-testid="${NON_RESIZEABLE_CELL_TEST_ID}"]`
+            )
+        ).map((cell) => cell.style.width);
+        expect(renderedWidths).to.eql(PLACEHOLDER_COLUMN_WIDTHS.map((width) => `${width}px`));
     });
 
     it("dispatches reorderColumns with reordered columns when column is dragged to new position", () => {

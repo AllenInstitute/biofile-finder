@@ -18,25 +18,12 @@
     background-color: var(--primary-background-color);
 }
 
-.row > div, .row > div > div {
+.row > div,
+.row > div > div {
     height: 100%;
 }
 
-.shimmer {
-    background-color: var(--secondary-background-color);
-    border-radius: var(--small-border-radius);
-    height: 18px !important;
-}
-
-.small-font .shimmer {
-    height: 15px !important;
-}
-
-.shimmer > div {
-    border-radius: var(--small-border-radius);
-}
-
-/* Hides strange little white pixel rendered by shimmer due to border radius */
-.shimmer svg:last-of-type {
-    display: none;
+.row .loading-cell {
+    align-items: center;
+    display: inline-flex;
 }

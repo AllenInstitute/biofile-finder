@@ -1,0 +1,21 @@
+.placeholder {
+    overflow: hidden;
+    width: 100%;
+}
+
+.row {
+    align-items: center;
+    display: flex;
+    white-space: nowrap;
+}
+
+.cell {
+    flex: 0 0 auto;
+    padding-right: 8px;
+}
+
+.bar {
+    background-color: color-mix(in srgb, var(--primary-text-color) 18%, var(--primary-background-color));
+    border-radius: var(--small-border-radius);
+    height: 8px;
+}

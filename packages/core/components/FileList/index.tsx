@@ -10,6 +10,7 @@ import Header from "./Header";
 import HorizontalScrollContext from "./HorizontalScrollContext";
 import LazilyRenderedRow from "./LazilyRenderedRow";
 import LazilyRenderedThumbnail from "./LazilyRenderedThumbnail";
+import LoadingPlaceholder from "./LoadingPlaceholder";
 import useFileSelector from "./useFileSelector";
 import { Action, setError } from "../DirectoryTree/directory-hierarchy-state";
 import EmptyFileListMessage from "../EmptyFileListMessage";
@@ -61,6 +62,7 @@ export default function FileList(props: FileListProps) {
     const totalColumnWidth = useSelector(selection.selectors.getTotalColumnWidth);
     const columnNames = useSelector(selection.selectors.getColumnNames);
     const areAnnotationsLoaded = useSelector(metadata.selectors.areAnnotationsLoaded);
+    const isLoadingColumns = useSelector(selection.selectors.getIsLoadingColumns);
     const [measuredNodeRef, measuredHeight, measuredWidth] =
         useLayoutMeasurements<HTMLDivElement>();
     let defaultRowHeight = isDisplayingSmallFont ? SMALL_ROW_HEIGHT : TALL_ROW_HEIGHT;
@@ -273,11 +275,19 @@ export default function FileList(props: FileListProps) {
         content = (
             <>
                 <Header />
-                <div className={styles.noColumnsMessage}>
-                    <EmptyFileListMessage hideIcon title="No columns selected">
-                        <div>Select at least one column above to display the file list.</div>
-                    </EmptyFileListMessage>
-                </div>
+                {isLoadingColumns ? (
+                    <LoadingPlaceholder
+                        className={styles.loadingPlaceholder}
+                        height={height}
+                        rowHeight={rowHeight}
+                    />
+                ) : (
+                    <div className={styles.noColumnsMessage}>
+                        <EmptyFileListMessage hideIcon title="No columns selected">
+                            <div>Select at least one column above to display the file list.</div>
+                        </EmptyFileListMessage>
+                    </div>
+                )}
             </>
         );
     } else {

@@ -5,24 +5,63 @@
     height: 100%;
     width: 100%;
     z-index: 1000;
-    background-color: var(--secondary-background-color);
-    opacity: 0.7;
 
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.indeterminate-progress-bar {
-    flex: 1 1 auto;
+.loading-indicator::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: var(--secondary-background-color);
+    opacity: 0.7;
+}
+
+.progress-bar {
+    position: relative;
+    z-index: 1;
+
+    width: 100%;
+    max-width: 480px;
+    margin: 0 var(--margin);
+}
+
+.progress-bar > div > div:first-child {
+    background: var(--primary-text-color);
+    border-radius: 3px;
+    opacity: 0.15;
+}
+
+.progress-bar > div > div:last-child {
+    background: var(--highlight-background-color);
+    border-radius: 3px;
+    transition: none;
 }
 
 .indeterminate-progress-bar > div > div:first-child {
     background: var(--primary-text-color);
+    opacity: 1;
 }
 
 .indeterminate-progress-bar > div > div:last-child {
-    background: linear-gradient(to right, var(--primary-text-color) 0%, var(--secondary-background-color) 25%, var(--secondary-background-color) 75%, var(--primary-text-color) 100%);
+    background: linear-gradient(
+        to right,
+        var(--primary-text-color) 0%,
+        var(--secondary-background-color) 25%,
+        var(--secondary-background-color) 75%,
+        var(--primary-text-color) 100%
+    );
+}
+
+.progress-bar div[class*="itemDescription"] {
+    color: var(--primary-text-color);
+    font-size: var(--s-paragraph-size);
+    text-align: center;
 }
 
 .hidden {
