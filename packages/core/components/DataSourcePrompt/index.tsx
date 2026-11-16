@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 import DataSourcePromptTemplate from "./DataSourcePromptTemplate";
 import FilePrompt from "./FilePrompt";
 import { LinkLikeButton, TransparentIconButton } from "../Buttons";
-import Tooltip from "../Tooltip";
 import { Source } from "../../entity/SearchParams";
 import { interaction, selection } from "../../state";
 import { DataSourcePromptInfo } from "../../state/interaction/actions";
@@ -176,22 +175,20 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
                     <div className={styles.advancedOptionsButtons}>
                         <p>Describe columns with supplemental metadata (optional):</p>
                         {!showMetadataPrompt && (
-                            <Tooltip content={COLUMN_DESCRIPTOR_TOOLTIP}>
-                                <LinkLikeButton
-                                    className={styles.advancedOptionsButton}
-                                    onClick={() => setShowMetadataPrompt(true)}
-                                    text="Add a column descriptor file"
-                                />
-                            </Tooltip>
+                            <LinkLikeButton
+                                className={styles.advancedOptionsButton}
+                                onClick={() => setShowMetadataPrompt(true)}
+                                text="Add a column descriptor file"
+                                title={COLUMN_DESCRIPTOR_TOOLTIP}
+                            />
                         )}
                         {!showProvenancePrompt && (
-                            <Tooltip content={PROVENANCE_DESCRIPTOR_TOOLTIP}>
-                                <LinkLikeButton
-                                    className={styles.advancedOptionsButton}
-                                    onClick={() => setShowProvenancePrompt(true)}
-                                    text="Add a provenance descriptor file"
-                                />
-                            </Tooltip>
+                            <LinkLikeButton
+                                className={styles.advancedOptionsButton}
+                                onClick={() => setShowProvenancePrompt(true)}
+                                text="Add a provenance descriptor file"
+                                title={PROVENANCE_DESCRIPTOR_TOOLTIP}
+                            />
                         )}
                     </div>
                     {showMetadataPrompt && (
