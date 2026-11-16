@@ -1,5 +1,4 @@
 import { isS3Url, parseS3Url } from "amazon-s3-url";
-import axios from "axios";
 import { isEmpty } from "lodash";
 
 import HttpServiceBase, { ConnectionConfig } from "../HttpServiceBase";
@@ -214,22 +213,6 @@ export default class S3StorageService extends HttpServiceBase {
         } while (continuationToken);
 
         return { size: totalSize, parsedUrl };
-    }
-
-    /**
-     * Attempt to retrieve file size from an http object using a HEAD request.
-     *
-     * Returns bytes (octet)
-     */
-    private async getHttpObjectSize(url: string): Promise<number> {
-        try {
-            const response = await axios.head(url);
-            // parse from AxiosHeaderValue (AxiosHeaders | string | string[] | number | boolean | null)
-            return parseInt(String(response.headers["content-length"] ?? "0"), 10);
-        } catch (err) {
-            console.error(`Failed to get file size (content-length): ${err}`);
-            throw err;
-        }
     }
 
     /**
