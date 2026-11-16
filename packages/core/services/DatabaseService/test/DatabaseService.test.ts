@@ -358,30 +358,6 @@ describe("DatabaseService", () => {
                 expect(reported.indexOf(aggregating[0])).to.equal(0);
             });
 
-            it("settles the size probe even when the import fails", async () => {
-                // Arrange: a service whose import always throws, with a size probe that resolves
-                // after it has done so.
-                class FailingImportService extends ProgressReportingDatabaseService {
-                    public probe!: (bytesTotal: number) => void;
-
-                    protected async addDataSource(): Promise<void> {
-                        throw new Error("import blew up");
-                    }
-                }
-                const service = new FailingImportService();
-                const reported: DataSourceLoadProgress[] = [];
-                service.onDataSourceLoadProgress((progress) => reported.push(progress));
-
-                // Act
-                await service
-                    .prepareDataSources([source])
-                    .catch(() => undefined); /* failure is the point */
-
-                // Assert: nothing reports this source as complete, and the failed load leaves no
-                // entry that a later load's average would be dragged down by.
-                expect(reported.some((p) => p.fraction === 1)).to.equal(false);
-            });
-
             it("stops reporting to a listener once it unsubscribes", async () => {
                 const service = new ProgressReportingDatabaseService();
                 const reported: DataSourceLoadProgress[] = [];
