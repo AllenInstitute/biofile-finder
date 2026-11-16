@@ -29,6 +29,11 @@ const COLUMN_DESCRIPTOR_TOOLTIP = "Select a file that describes your metadata co
 const PROVENANCE_DESCRIPTOR_TOOLTIP =
     "Select a file that describes file and metadata relationships";
 
+const DESCRIPTOR_FILE_LABELS = {
+    metadata: "Column descriptor file",
+    provenance: "Provenance descriptor file",
+};
+
 export enum DataSourceType {
     default = 0,
     metadata = 1,
@@ -191,7 +196,6 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
                     </div>
                     {showMetadataPrompt && (
                         <DescriptorFilePrompt
-                            fileLabel="Column descriptor file"
                             isModal={props.isModal}
                             kind="metadata"
                             onClose={() => setShowMetadataPrompt(false)}
@@ -201,7 +205,6 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
                     )}
                     {showProvenancePrompt && (
                         <DescriptorFilePrompt
-                            fileLabel="Provenance descriptor file"
                             isModal={props.isModal}
                             kind="provenance"
                             onClose={() => setShowProvenancePrompt(false)}
@@ -216,7 +219,6 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
 }
 
 interface DescriptorFilePromptProps {
-    fileLabel: string;
     isModal?: boolean;
     kind: "metadata" | "provenance";
     onClose: () => void;
@@ -225,7 +227,8 @@ interface DescriptorFilePromptProps {
 }
 
 function DescriptorFilePrompt(props: DescriptorFilePromptProps) {
-    const { fileLabel, kind, onClose, onSelectFile, selectedFile } = props;
+    const { kind, onClose, onSelectFile, selectedFile } = props;
+    const fileLabel = DESCRIPTOR_FILE_LABELS[kind];
     return (
         <div
             className={classNames(
