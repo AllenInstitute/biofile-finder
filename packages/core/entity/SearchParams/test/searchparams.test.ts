@@ -10,9 +10,9 @@ import SearchParams, {
 } from "..";
 import AnnotationName from "../../Annotation/AnnotationName";
 import FileFilter from "../../FileFilter";
-import ExcludeFilter from "../../FileFilter/ExcludeFilter";
+import AnyValueFilter from "../../FileFilter/AnyValueFilter";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
-import IncludeFilter from "../../FileFilter/IncludeFilter";
+import NoValueFilter from "../../FileFilter/NoValueFilter";
 import FileFolder from "../../FileFolder";
 import FileSort, { SortOrder } from "../../FileSort";
 
@@ -106,10 +106,10 @@ describe("SearchParams", () => {
                         (fuzzyFilter) => new FuzzyFilter(fuzzyFilter.annotationName)
                     ),
                     ...expectedExcludeFilters.map(
-                        (excludeFilter) => new ExcludeFilter(excludeFilter.annotationName)
+                        (excludeFilter) => new NoValueFilter(excludeFilter.annotationName)
                     ),
                     ...expectedIncludeFilters.map(
-                        (includeFilter) => new IncludeFilter(includeFilter.annotationName)
+                        (includeFilter) => new AnyValueFilter(includeFilter.annotationName)
                     ),
                 ],
                 openFolders: [],
@@ -446,10 +446,10 @@ describe("SearchParams", () => {
                         (fuzzyFilter) => new FuzzyFilter(fuzzyFilter.annotationName)
                     ),
                     ...expectedExcludeFilters.map(
-                        (excludeFilter) => new ExcludeFilter(excludeFilter.annotationName)
+                        (excludeFilter) => new NoValueFilter(excludeFilter.annotationName)
                     ),
                     ...expectedIncludeFilters.map(
-                        (includeFilter) => new IncludeFilter(includeFilter.annotationName)
+                        (includeFilter) => new AnyValueFilter(includeFilter.annotationName)
                     ),
                 ],
                 hasUserSelectedColumns: false,
