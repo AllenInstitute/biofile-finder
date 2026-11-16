@@ -5,8 +5,11 @@ import {
     RECEIVE_EDGE_DEFINITIONS,
     RECEIVE_PASSWORD_MAPPING,
     ReceiveEdgeDefinitions,
+    REQUEST_ANNOTATIONS,
+    SET_IS_LOADING_ANNOTATIONS,
+    SetIsLoadingAnnotations,
 } from "./actions";
-import { CHANGE_DATA_SOURCES } from "../selection/actions";
+import { CHANGE_DATA_SOURCES, CHANGE_QUERY } from "../selection/actions";
 import Annotation from "../../entity/Annotation";
 import { EdgeDefinition } from "../../entity/Graph";
 import { DataSource } from "../../services/DataSourceService";
@@ -15,6 +18,7 @@ import { makeReducer } from "../../util/redux-utils";
 export interface MetadataStateBranch {
     annotations: Annotation[];
     dataSources: DataSource[];
+    isLoadingAnnotations: boolean;
     datasetManifestSource?: DataSource;
     edgeDefinitions: EdgeDefinition[];
     passwordToProgramMap?: Record<string, string>;
@@ -23,6 +27,7 @@ export interface MetadataStateBranch {
 export const initialState = {
     annotations: [],
     dataSources: [],
+    isLoadingAnnotations: false,
     datasetManifestSource: undefined,
     edgeDefinitions: [],
 };
@@ -33,9 +38,22 @@ export default makeReducer<MetadataStateBranch>(
             ...state,
             annotations: action.payload,
         }),
+        [REQUEST_ANNOTATIONS]: (state) => ({
+            ...state,
+            isLoadingAnnotations: true,
+        }),
+        [SET_IS_LOADING_ANNOTATIONS]: (state, action: SetIsLoadingAnnotations) => ({
+            ...state,
+            isLoadingAnnotations: action.payload.isLoading,
+        }),
         [CHANGE_DATA_SOURCES]: (state) => ({
             ...state,
             annotations: [],
+            isLoadingAnnotations: true,
+        }),
+        [CHANGE_QUERY]: (state, action) => ({
+            ...state,
+            isLoadingAnnotations: !!action.payload,
         }),
         [RECEIVE_DATA_SOURCES]: (state, action) => ({
             ...state,

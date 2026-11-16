@@ -12,6 +12,7 @@ import {
     Source,
 } from "../../entity/SearchParams";
 import Tutorial from "../../entity/Tutorial";
+import { DataSourceLoadProgress } from "../../services/DatabaseService";
 import { makeConstant } from "../../util/redux-utils";
 
 const STATE_BRANCH_NAME = "selection";
@@ -903,14 +904,56 @@ export const SET_IS_LOADING_DATA_SOURCE = makeConstant(
 );
 
 export interface SetIsLoadingSource {
-    payload: boolean;
+    payload: { isLoading: boolean };
     type: string;
 }
 
 export function setIsLoadingSource(isLoading: boolean): SetIsLoadingSource {
     return {
-        payload: isLoading,
+        payload: { isLoading },
         type: SET_IS_LOADING_DATA_SOURCE,
+    };
+}
+
+/**
+ * SET_DATA_SOURCE_LOAD_PROGRESS
+ * Intention to record how far along the preparation of a data source is
+ */
+export const SET_DATA_SOURCE_LOAD_PROGRESS = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-data-source-load-progress"
+);
+
+export interface SetDataSourceLoadProgress {
+    payload: DataSourceLoadProgress;
+    type: string;
+}
+
+export function setDataSourceLoadProgress(
+    progress: DataSourceLoadProgress
+): SetDataSourceLoadProgress {
+    return {
+        payload: progress,
+        type: SET_DATA_SOURCE_LOAD_PROGRESS,
+    };
+}
+
+/**
+ * CLEAR_DATA_SOURCE_LOAD_PROGRESS
+ * Intention to discard progress recorded for a previous data source load
+ */
+export const CLEAR_DATA_SOURCE_LOAD_PROGRESS = makeConstant(
+    STATE_BRANCH_NAME,
+    "clear-data-source-load-progress"
+);
+
+export interface ClearDataSourceLoadProgress {
+    type: string;
+}
+
+export function clearDataSourceLoadProgress(): ClearDataSourceLoadProgress {
+    return {
+        type: CLEAR_DATA_SOURCE_LOAD_PROGRESS,
     };
 }
 

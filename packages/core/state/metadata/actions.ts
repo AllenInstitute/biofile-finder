@@ -43,6 +43,34 @@ export function requestAnnotations(): RequestAnnotationAction {
 }
 
 /**
+ * SET_IS_LOADING_ANNOTATIONS
+ *
+ * Intention to record whether the annotations are currently being fetched.
+ * Tracked explicitly rather than inferred from an empty annotation list so that
+ * a failed fetch doesn't leave the UI loading forever.
+ */
+export const SET_IS_LOADING_ANNOTATIONS = makeConstant(
+    STATE_BRANCH_NAME,
+    "set-is-loading-annotations"
+);
+
+export interface SetIsLoadingAnnotations {
+    payload: {
+        isLoading: boolean;
+    };
+    type: string;
+}
+
+export function setIsLoadingAnnotations(isLoading: boolean): SetIsLoadingAnnotations {
+    return {
+        payload: {
+            isLoading,
+        },
+        type: SET_IS_LOADING_ANNOTATIONS,
+    };
+}
+
+/**
  * CREATE_ANNOTATION
  *
  * Intention to create a new annotation in the data service that will become available for grouping, filtering, and sorting files.

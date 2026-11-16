@@ -44,7 +44,7 @@ export default function DirectoryTree(props: FileListProps) {
     const visibleModal = useSelector(interaction.selectors.getVisibleModal);
     // If user is loading a new data source, show root loading state in file list
     // since it may take time for the view to update with new query results
-    const isLoadingNewQueryOrSource = useSelector(selection.selectors.getLoadingQueryOrSource);
+    const isLoadingColumns = useSelector(selection.selectors.getIsLoadingColumns);
     const fileSet = React.useMemo(() => {
         return new FileSet({
             fileService: fileService,
@@ -79,12 +79,12 @@ export default function DirectoryTree(props: FileListProps) {
     useSelectAll();
 
     const {
-        state: { content, error, isLoading },
+        state: { content, error, isLoading: isTreeLoading },
     } = useDirectoryHierarchy({ collapsed: false, fileSet, sortOrder: 0 });
 
     return (
         <div className={classNames(props.className, styles.container)}>
-            <RootLoadingIndicator visible={isLoading || isLoadingNewQueryOrSource} />
+            <RootLoadingIndicator visible={isTreeLoading || isLoadingColumns} />
             <div className={styles.verticalGradient} />
             <ul
                 className={styles.scrollContainer}
@@ -94,7 +94,7 @@ export default function DirectoryTree(props: FileListProps) {
             >
                 {!error && Array.isArray(content) && !content.length && <EmptyFileListMessage />}
                 {!error && content}
-                {error && !(isLoading || isLoadingNewQueryOrSource) && (
+                {error && !(isTreeLoading || isLoadingColumns) && (
                     <aside className={styles.errorMessage}>
                         <h2>Whoops! Something went wrong:</h2>
                         <h2>{error.message ?? error}</h2>
