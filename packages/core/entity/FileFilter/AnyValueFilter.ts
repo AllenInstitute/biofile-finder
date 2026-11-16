@@ -5,8 +5,8 @@ import FileFilter, { FilterType } from "../FileFilter";
  * be included in the fileset regardless of value;
  * e.g., return files that have any non-null value for this annnotation.
  */
-export default class IncludeFilter extends FileFilter {
+export default class AnyValueFilter extends FileFilter {
     constructor(annotationName: string) {
-        super(annotationName, "", FilterType.ANY);
+        super(annotationName, "", FilterType.ANY_VALUE);
     }
 }

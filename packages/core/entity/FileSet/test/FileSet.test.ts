@@ -5,9 +5,9 @@ import FileSet from "../";
 import { AnnotationType } from "../../AnnotationFormatter";
 import { makeFileDetailMock } from "../../FileDetail/mocks";
 import FileFilter, { FilterType } from "../../FileFilter";
-import ExcludeFilter from "../../FileFilter/ExcludeFilter";
+import AnyValueFilter from "../../FileFilter/AnyValueFilter";
 import FuzzyFilter from "../../FileFilter/FuzzyFilter";
-import IncludeFilter from "../../FileFilter/IncludeFilter";
+import NoValueFilter from "../../FileFilter/NoValueFilter";
 import FileSort, { SortOrder } from "../../FileSort";
 import { FESBaseUrl } from "../../../constants";
 import FileDownloadServiceNoop from "../../../services/FileDownloadService/FileDownloadServiceNoop";
@@ -26,10 +26,10 @@ describe("FileSet", () => {
     const dateCreatedDescending = new FileSort("date_created", SortOrder.DESC);
     const fuzzyFileName = new FuzzyFilter("file_name");
     const fuzzyFilePath = new FuzzyFilter("file_path");
-    const anyGene = new IncludeFilter("gene");
-    const anyKind = new IncludeFilter("kind");
-    const noCellLine = new ExcludeFilter("cell_line");
-    const noCellBatch = new ExcludeFilter("cell_batch");
+    const anyGene = new AnyValueFilter("gene");
+    const anyKind = new AnyValueFilter("kind");
+    const noCellLine = new NoValueFilter("cell_line");
+    const noCellBatch = new NoValueFilter("cell_batch");
 
     describe("toQueryString", () => {
         it("returns an empty string if file set represents a query with no filters and no sorting applied", () => {
