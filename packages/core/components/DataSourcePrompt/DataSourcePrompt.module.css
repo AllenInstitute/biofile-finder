@@ -36,12 +36,6 @@
     align-self: flex-start;
 }
 
-.divider {
-    background-color: var(--border-color) !important;
-    border: none;
-    height: 1px !important;
-}
-
 .file-prompt-wrapper, .file-prompt-outer-wrapper {
     align-items: center;
     display: flex;
@@ -70,11 +64,6 @@
     max-width: none;
 }
 
-.guidance {
-    align-self: flex-start;
-    width: 100%;
-}
-
 .icon-button {
     top: -6px;
 }
@@ -90,56 +79,8 @@
     width: 100%;
 }
 
-.link-like-button {
-    background: none;
-    color: var(--highlight-background-color);
-    border: none;
-    font-size: small;
-    padding: 0;
-}
-
-.link-like-button span {
-    font-weight: unset;
-    margin: 0;
-}
-
-.link-like-button:hover, .link-like-button:focus {
-    background-color: unset;
-    color: var(--highlight-hover-background-color);
-}
-
-.left-align {
-    justify-content: left;
-}
-
-.table-example, .full-width {
+.full-width {
     width: 100%;
-}
-
-.table-example > thead {
-    background-color: var(--primary-background-color);
-}
-
-.table-example.dark-header > thead {
-    background-color: var(--accent-dark);
-}
-
-.table-example tr > :is(th) {
-    font-weight: 600 !important;
-    text-align: left;
-}
-
-.table-example, .table-example tr > :is(th, td) {
-    border: 1px solid var(--border-color);
-    border-collapse: collapse;
-}
-
-.table-example tr > :is(th, td) {
-    padding: 8px;
-}
-
-.light-border.table-example, .light-border.table-example tr > :is(th, td) {
-    border: 1px solid var(--border-color);
 }
 
 .title {
@@ -160,30 +101,9 @@
     white-space: pre-line;
 }
 
-.title, .details, .warning > p {
+.title, .warning > p {
     padding: 2px 0;
     line-height: 1.5;
-}
-
-.details, .details-list {
-    margin-bottom: 0;
-    margin-top: 0;
-}
-
-.details-list {
-    margin: 0;
-    padding-left: 16px;
-    line-height: 1.5;
-}
-
-h4.subheader {
-    line-height: 26px;
-    margin: 16px 0 12px;
-}
-
-h4.details {
-    font-size: 14px;
-    margin-top: 5px;
 }
 
 .hidden {
@@ -209,4 +129,13 @@ h4.details {
 .warning > h4 {
     margin: 0 0 4px 0;
     padding: 0;
+}
+
+.guidance-link {
+    color: var(--aqua);
+}
+
+.guidance-link:hover {
+    color: var(--bright-aqua);
+    text-decoration: underline;
 }
