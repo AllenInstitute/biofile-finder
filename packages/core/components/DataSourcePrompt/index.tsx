@@ -120,6 +120,19 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
     const [dataSource, setDataSource] = React.useState<Source>();
     const [showMetadataPrompt, setShowMetadataPrompt] = React.useState(false);
     const [showProvenancePrompt, setShowProvenancePrompt] = React.useState(false);
+    const prevShown = React.useRef({ metadata: false, provenance: false });
+
+    // Closing a descriptor prompt removes the focused control, so hand focus back to the
+    // button that opened it
+    React.useEffect(() => {
+        const prev = prevShown.current;
+        if (prev.metadata && !showMetadataPrompt) {
+            document.getElementById("add-metadata-descriptor-button")?.focus();
+        } else if (prev.provenance && !showProvenancePrompt) {
+            document.getElementById("add-provenance-descriptor-button")?.focus();
+        }
+        prevShown.current = { metadata: showMetadataPrompt, provenance: showProvenancePrompt };
+    }, [showMetadataPrompt, showProvenancePrompt]);
 
     const onSubmit = () => {
         if (!dataSource) return;
@@ -163,10 +176,41 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
         showMetadataPrompt ||
         showProvenancePrompt;
 
+    const descriptorPrompts = [
+        {
+            kind: "metadata" as const,
+            onClose: () => setShowMetadataPrompt(false),
+            onSelectFile: setMetadataSource,
+            selectedFile: metadataSource,
+            show: showMetadataPrompt,
+        },
+        {
+            kind: "provenance" as const,
+            onClose: () => setShowProvenancePrompt(false),
+            onSelectFile: setProvenanceSource,
+            selectedFile: provenanceSource,
+            show: showProvenancePrompt,
+        },
+    ];
+
+    const renderDescriptorPrompts = (hasSelectedFile: boolean) =>
+        descriptorPrompts
+            .filter((prompt) => prompt.show && !!prompt.selectedFile === hasSelectedFile)
+            .map((prompt) => (
+                <DescriptorFilePrompt
+                    isModal={props.isModal}
+                    key={prompt.kind}
+                    kind={prompt.kind}
+                    onClose={prompt.onClose}
+                    onSelectFile={prompt.onSelectFile}
+                    selectedFile={prompt.selectedFile}
+                />
+            ));
+
     return (
         <DataSourcePromptTemplate
             className={props.className}
-            description="Provide a metadata file (CSV, Parquet, or JSON) describing your dataset. Once loaded, it becomes a searchable data source that you can query, filter, and explore."
+            description="Provide a file (CSV, Parquet, or JSON) describing your dataset. Once loaded, it becomes a searchable data source that you can query, filter, and explore."
             isModal={props.isModal}
             onSubmit={onSubmit}
             onSelectFile={setDataSource}
@@ -177,43 +221,36 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
         >
             {showDescriptorOptions && (
                 <>
+                    {renderDescriptorPrompts(true)}
                     <div className={styles.advancedOptionsButtons}>
-                        <p>Describe columns with supplemental metadata (optional):</p>
+                        {!metadataSource && !provenanceSource && (
+                            <p className={styles.advancedOptionsLabel}>
+                                Describe columns with supplemental metadata (optional):
+                            </p>
+                        )}
                         {!showMetadataPrompt && (
                             <LinkLikeButton
                                 className={styles.advancedOptionsButton}
+                                id="add-metadata-descriptor-button"
                                 onClick={() => setShowMetadataPrompt(true)}
                                 text="Add a column descriptor file"
                                 title="Select a file that describes your metadata columns"
                             />
                         )}
+                        {!showMetadataPrompt && !showProvenancePrompt && (
+                            <span className={styles.advancedOptionsDivider} aria-hidden="true" />
+                        )}
                         {!showProvenancePrompt && (
                             <LinkLikeButton
                                 className={styles.advancedOptionsButton}
+                                id="add-provenance-descriptor-button"
                                 onClick={() => setShowProvenancePrompt(true)}
                                 text="Add a provenance descriptor file"
                                 title="Select a file that describes file and metadata relationships"
                             />
                         )}
                     </div>
-                    {showMetadataPrompt && (
-                        <DescriptorFilePrompt
-                            isModal={props.isModal}
-                            kind="metadata"
-                            onClose={() => setShowMetadataPrompt(false)}
-                            onSelectFile={setMetadataSource}
-                            selectedFile={metadataSource}
-                        />
-                    )}
-                    {showProvenancePrompt && (
-                        <DescriptorFilePrompt
-                            isModal={props.isModal}
-                            kind="provenance"
-                            onClose={() => setShowProvenancePrompt(false)}
-                            onSelectFile={setProvenanceSource}
-                            selectedFile={provenanceSource}
-                        />
-                    )}
+                    {renderDescriptorPrompts(false)}
                 </>
             )}
         </DataSourcePromptTemplate>
@@ -231,6 +268,16 @@ interface DescriptorFilePromptProps {
 function DescriptorFilePrompt(props: DescriptorFilePromptProps) {
     const { kind, onClose, onSelectFile, selectedFile } = props;
     const fileLabel = DESCRIPTOR_FILE_LABELS[kind];
+    const titleRef = React.useRef<HTMLHeadingElement>(null);
+
+    // Opening (or re-emptying) this prompt unmounts whatever had focus; start at the title
+    // rather than the URL field so the field isn't active by default
+    React.useEffect(() => {
+        titleRef.current?.focus();
+        // Only on mount; FilePrompt manages focus after that
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <div
             className={classNames(
@@ -240,10 +287,13 @@ function DescriptorFilePrompt(props: DescriptorFilePromptProps) {
         >
             {!selectedFile && (
                 <div className={styles.advancedOptionsHeader}>
-                    <h4 className={styles.fullWidth}>{fileLabel}</h4>
+                    <h4 className={styles.fullWidth} ref={titleRef} tabIndex={-1}>
+                        {fileLabel}
+                    </h4>
                     <TransparentIconButton
                         className={styles.iconButton}
                         iconName="Cancel"
+                        label={`Close ${fileLabel.toLowerCase()} prompt`}
                         onClick={() => {
                             onSelectFile(undefined);
                             onClose();
