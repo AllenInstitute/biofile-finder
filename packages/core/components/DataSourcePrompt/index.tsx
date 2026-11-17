@@ -154,6 +154,15 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
         props.onDismiss();
     };
 
+    // Hidden on the initial view, but once a file has been chosen the options stay put, even if
+    // the primary file is later removed, so descriptor files the user already added don't vanish
+    const showDescriptorOptions =
+        !!dataSource ||
+        !!metadataSource ||
+        !!provenanceSource ||
+        showMetadataPrompt ||
+        showProvenancePrompt;
+
     return (
         <DataSourcePromptTemplate
             className={props.className}
@@ -166,7 +175,7 @@ function DataSourcePromptDefault(props: PropsDefaultType) {
             showGuidanceLink
             title="Provide a metadata file"
         >
-            {dataSource && (
+            {showDescriptorOptions && (
                 <>
                     <div className={styles.advancedOptionsButtons}>
                         <p>Describe columns with supplemental metadata (optional):</p>

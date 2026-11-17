@@ -63,6 +63,34 @@ describe("<DataSourcePrompt />", () => {
         expect(queryByText(/Add a provenance descriptor file/)).to.exist;
     });
 
+    it("keeps descriptor options visible when the primary file is removed", () => {
+        const { store } = configureMockStore({ state: initialState, reducer });
+        const { getByText, getByTestId, getAllByRole, queryByText } = render(
+            <Provider store={store}>
+                <DataSourcePrompt />
+            </Provider>
+        );
+
+        // Select the primary file, then add a provenance descriptor file
+        fireEvent.change(getAllByRole("textbox")[0], { target: { value: "primary.csv" } });
+        fireEvent.submit(getByTestId("urlform-file-prompt-main"));
+        fireEvent.click(getByText(/Add a provenance descriptor file/));
+        fireEvent.change(getAllByRole("textbox")[0], { target: { value: "provenance.csv" } });
+        fireEvent.submit(getByTestId("urlform-file-prompt-provenance-main"));
+
+        // Remove the primary file (the first selected file's remove button)
+        fireEvent.click(getAllByRole("button", { name: "Cancel" })[0]);
+
+        // Descriptor options and the already-selected descriptor file are still there
+        expect(queryByText(/Describe columns with supplemental metadata/)).to.exist;
+        expect(queryByText(/Add a column descriptor file/)).to.exist;
+        expect(queryByText(/Provenance descriptor file:/)).to.exist;
+
+        // The primary file is required to load
+        const loadButton = getByText(/LOAD/).closest("button");
+        expect(loadButton?.hasAttribute("disabled")).to.be.true;
+    });
+
     it("can distinguish between all FilePrompt components when descriptor files are added", () => {
         const { store } = configureMockStore({ state: initialState, reducer });
         const { getByText, getByTestId, getAllByText, getAllByRole, queryByTestId } = render(
