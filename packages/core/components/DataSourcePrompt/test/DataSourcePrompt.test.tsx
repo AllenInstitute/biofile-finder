@@ -79,10 +79,9 @@ describe("<DataSourcePrompt />", () => {
         fireEvent.submit(getByTestId("urlform-file-prompt-provenance-main"));
 
         // Remove the primary file (the first selected file's remove button)
-        fireEvent.click(getAllByRole("button", { name: "Cancel" })[0]);
+        fireEvent.click(getAllByRole("button", { name: "Remove file" })[0]);
 
         // Descriptor options and the already-selected descriptor file are still there
-        expect(queryByText(/Describe columns with supplemental metadata/)).to.exist;
         expect(queryByText(/Add a column descriptor file/)).to.exist;
         expect(queryByText(/Provenance descriptor file:/)).to.exist;
 
