@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { expect } from "chai";
 import * as React from "react";
 import { Provider } from "react-redux";
@@ -78,8 +78,12 @@ describe("<DataSourcePrompt />", () => {
         fireEvent.change(getAllByRole("textbox")[0], { target: { value: "provenance.csv" } });
         fireEvent.submit(getByTestId("urlform-file-prompt-provenance-main"));
 
-        // Remove the primary file (the first selected file's remove button)
-        fireEvent.click(getAllByRole("button", { name: "Cancel" })[0]);
+        // Remove the primary file using the remove button within its own selected-file row
+        let primaryRow = getByText(/primary\.csv/, { selector: "p" }).parentElement;
+        while (primaryRow && within(primaryRow).queryAllByRole("button").length === 0) {
+            primaryRow = primaryRow.parentElement;
+        }
+        fireEvent.click(within(primaryRow as HTMLElement).getByRole("button"));
 
         // Descriptor options and the already-selected descriptor file are still there
         expect(queryByText(/Describe columns with supplemental metadata/)).to.exist;
