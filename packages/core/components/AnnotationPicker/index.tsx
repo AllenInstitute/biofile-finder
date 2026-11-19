@@ -61,6 +61,7 @@ export default function AnnotationPicker(props: Props) {
         const disabled =
             !selected &&
             props.disableUnavailableAnnotations &&
+            !areAvailableAnnotationLoading &&
             unavailableAnnotations?.has(annotation.name);
         return {
             disabled,
