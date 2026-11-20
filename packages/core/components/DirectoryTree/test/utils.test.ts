@@ -3,12 +3,13 @@ import { get as _get, pick } from "lodash";
 
 import { NO_VALUE_NODE } from "../directory-hierarchy-state";
 import { findChildNodes } from "../findChildNodes";
-import { calcNodeSortOrder } from "../useDirectoryHierarchy";
+import { calcNodeSortOrder, getChildNodeFilters } from "../useDirectoryHierarchy";
 import { FESBaseUrl } from "../../../constants";
 import Annotation from "../../../entity/Annotation";
 import { AnnotationType } from "../../../entity/AnnotationFormatter";
-import FileFilter from "../../../entity/FileFilter";
+import FileFilter, { FilterType } from "../../../entity/FileFilter";
 import AnyValueFilter from "../../../entity/FileFilter/AnyValueFilter";
+import FuzzyFilter from "../../../entity/FileFilter/FuzzyFilter";
 import NoValueFilter from "../../../entity/FileFilter/NoValueFilter";
 import FileSet from "../../../entity/FileSet";
 import HttpAnnotationService from "../../../services/AnnotationService/HttpAnnotationService";
@@ -72,6 +73,49 @@ describe("DirectoryTree utilities", () => {
             });
         });
     });
+    describe("getChildNodeFilters", () => {
+        const color = new Annotation({
+            annotationDisplayName: "Color",
+            annotationName: "Color",
+            description: "",
+            type: AnnotationType.STRING,
+        });
+        const annotationByName = new Map([[color.name, color]]);
+        const filtersFor = (selectedFileFilters: FileFilter[]) =>
+            getChildNodeFilters({
+                hierarchy: ["Color"],
+                pathToChildNode: ["blue"],
+                selectedFileFilters,
+                annotationByName,
+            }).map((filter) => `${filter.value}:${filter.type}`);
+
+        it("replaces selected filters on a grouped annotation with the folder's value", () => {
+            expect(
+                filtersFor([new FileFilter("Color", "blue"), new FileFilter("Color", "red")])
+            ).to.deep.equal(["blue:default"]);
+        });
+
+        it("keeps selected filters on other annotations", () => {
+            expect(filtersFor([new FileFilter("Size", "Large")])).to.deep.equal([
+                "blue:default",
+                "Large:default",
+            ]);
+        });
+
+        // Every file in the "blue" folder must still have red, so the ALL filters stay as
+        // constraints beside the folder's own value instead of being replaced by it
+        [FilterType.ALL, FilterType.FUZZY_ALL].forEach((type) => {
+            it(`keeps ${type} filters on a grouped annotation beside the folder's value`, () => {
+                expect(
+                    filtersFor([
+                        new FileFilter("Color", "blue", type),
+                        new FileFilter("Color", "red", type),
+                    ])
+                ).to.deep.equal(["blue:default", `blue:${type}`, `red:${type}`]);
+            });
+        });
+    });
+
     describe("findChildNodes", () => {
         // Create mock annotations and hierarchy
         const firstAnn = new Annotation({
@@ -264,6 +308,19 @@ describe("DirectoryTree utilities", () => {
             }).promise;
             expect(childNodes).to.deep.equal(numericHierarchyValues);
         });
+        it("matches contains filters against child nodes case-insensitively", async () => {
+            const fileSet = new FileSet({ filters: [new FuzzyFilter(secondAnn.displayName, "B")] });
+            const childNodes = await findChildNodes({
+                annotationService,
+                fileService,
+                currentNode: firstAnn.displayName,
+                hierarchy,
+                shouldShowNullGroups: false,
+                fileSet,
+            }).promise;
+            expect(childNodes).to.deep.equal(["b"]);
+        });
+
         it("returns all values when 'include' filter is applied on hierarchy field", async () => {
             const fileSet = new FileSet({ filters: [new AnyValueFilter(secondAnn.displayName)] });
             const childNodes = await findChildNodes({

@@ -3,6 +3,7 @@ import { map } from "lodash";
 import IMMUTABLE_ANNOTATION_NAMES from "./immutableAnnotationNames";
 import AnnotationService, { AnnotationDetails } from "..";
 import HttpServiceBase from "../../HttpServiceBase";
+import assertNoAllOfFilters from "../../HttpServiceBase/assertNoAllOfFilters";
 import { TOP_LEVEL_FILE_ANNOTATION_NAMES, TOP_LEVEL_FILE_ANNOTATIONS } from "../../../constants";
 import Annotation, { AnnotationResponseMms, AnnotationValue } from "../../../entity/Annotation";
 import { AnnotationType, AnnotationTypeIdMap } from "../../../entity/AnnotationFormatter";
@@ -112,6 +113,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         hierarchy: string[],
         filters: FileFilter[]
     ): CancellablePromise<string[]> {
+        assertNoAllOfFilters(filters);
         // It's important that we fetch values for the correct (i.e., first) level of the hierarchy.
         // But after that, sort the levels so that we can effectively cache the result
         // resorting the hierarchy underneath the first level should have no effect on the result.
@@ -138,6 +140,7 @@ export default class HttpAnnotationService extends HttpServiceBase implements An
         path: string[],
         filters: FileFilter[]
     ): CancellablePromise<string[]> {
+        assertNoAllOfFilters(filters);
         const queryParams = [
             this.buildQueryParams(QueryParam.ORDER, hierarchy),
             this.buildQueryParams(QueryParam.PATH, path),

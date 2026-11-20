@@ -9,6 +9,7 @@ import FileService, {
 import FileDownloadService, { DownloadResult } from "../../FileDownloadService";
 import FileDownloadServiceNoop from "../../FileDownloadService/FileDownloadServiceNoop";
 import HttpServiceBase, { ConnectionConfig } from "../../HttpServiceBase";
+import assertNoAllOfFilters from "../../HttpServiceBase/assertNoAllOfFilters";
 import Annotation from "../../../entity/Annotation";
 import AnnotationName from "../../../entity/Annotation/AnnotationName";
 import FileDetail, { FmsFile } from "../../../entity/FileDetail";
@@ -44,6 +45,7 @@ interface Config extends ConnectionConfig {
 }
 
 function simplifyCsvSelection(selections: Selection[]): FESFileSelection[] {
+    selections.forEach((selection) => assertNoAllOfFilters(selection.filters));
     return selections.map((selection) => ({
         filters: filter(
             selection.filters,
@@ -114,6 +116,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
     }
 
     public getCountOfMatchingFiles(fileSet: FileSet): CancellablePromise<number> {
+        assertNoAllOfFilters(fileSet.filters);
         const requestUrl = join(
             compact([
                 `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILE_COUNT_URL}${this.pathSuffix}`,
@@ -170,6 +173,7 @@ export default class HttpFileService extends HttpServiceBase implements FileServ
      */
     public async getFiles(request: GetFilesRequest): Promise<FileDetail[]> {
         const { from, limit, fileSet } = request;
+        assertNoAllOfFilters(fileSet.filters);
 
         const base = `${this.fileExplorerServiceBaseUrl}/${HttpFileService.BASE_FILES_URL}${this.pathSuffix}?from=${from}&limit=${limit}`;
         const requestUrl = join(compact([base, fileSet.toQueryString()]), "&");

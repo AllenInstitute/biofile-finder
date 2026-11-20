@@ -35,6 +35,9 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     const dispatch = useDispatch();
     const allFilters = useSelector(selection.selectors.getFileFilters);
     const annotationService = useSelector(interaction.selectors.getAnnotationService);
+    const canSupportAdvancedFilters = useSelector(
+        interaction.selectors.getCanSupportAdvancedFilters
+    );
     const [annotationValues, isLoading, errorMessage] = useAnnotationValues(
         props.annotation.name,
         annotationService
@@ -45,11 +48,21 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         [allFilters, props.annotation]
     );
 
-    // Assume all filters use same type
-    const defaultFilterType = React.useMemo(
-        () => filtersForAnnotation?.[0]?.type ?? FilterType.DEFAULT,
-        [filtersForAnnotation]
-    );
+    const canOfferAllValues =
+        canSupportAdvancedFilters &&
+        ![AnnotationType.NUMBER, AnnotationType.DATE, AnnotationType.DATETIME].includes(
+            props.annotation.type
+        );
+
+    // Assume all filters use same type. "Contains" is a way of searching for some value(s),
+    // not a mode of its own, so it never becomes the type new filters are created with
+    const defaultFilterType = React.useMemo(() => {
+        const type = filtersForAnnotation?.[0]?.type;
+        if (!type || type === FilterType.FUZZY) return FilterType.DEFAULT;
+        const isAllValues = type === FilterType.ALL || type === FilterType.FUZZY_ALL;
+        if (isAllValues) return canOfferAllValues ? FilterType.ALL : FilterType.DEFAULT;
+        return type;
+    }, [filtersForAnnotation, canOfferAllValues]);
 
     const [filterType, setFilterType] = React.useState<FilterType>(defaultFilterType);
 
@@ -135,12 +148,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         const formattedValue = props.annotation.formatter.valueOf(item.value);
         const value = isNil(formattedValue) ? item.value : formattedValue;
 
-        return new FileFilter(
-            props.annotation.name,
-            value,
-            FilterType.DEFAULT,
-            props.annotation.type
-        );
+        return new FileFilter(props.annotation.name, value, filterType, props.annotation.type);
     };
 
     const commitFilters = (newFilters: FileFilter | FileFilter[]) => {
@@ -175,25 +183,22 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
     };
 
     const onFilterTypeOptionChange = (option: IChoiceGroupOption | undefined) => {
-        // Verify that filter type is changing to avoid dispatching unnecessary clean-up actions
-        if (!!option?.key && option?.key !== filterType) {
-            setFilterType(option.key as FilterType);
-            // Selecting ANY or NONE should automatically re-trigger search and re-render dom,
-            // but selecting SOME shouldn't trigger anything until a value is selected
-            // or a search term is entered
-            switch (option.key) {
-                case FilterType.DEFAULT:
-                    return; // No further action needed, dispatch on search instead
-                case FilterType.NO_VALUE:
-                case FilterType.ANY_VALUE:
-                default:
-                    dispatch(
-                        selection.actions.changeFileFilterType(
-                            props.annotation.name,
-                            option.key as FilterType
-                        )
-                    );
-            }
+        // Only act when the type actually changes, to avoid unnecessary clean-up dispatches
+        if (!option?.key || option.key === filterType) return;
+        setFilterType(option.key as FilterType);
+
+        // "Any value" and "no value" are complete filters as soon as they're selected. "Some
+        // value(s)" and "all values" wait for a value, so there is only something to do if
+        // existing values need converting; otherwise the current filter stays (keeping its row
+        // and edit menu open) until the first value replaces it.
+        const waitsForValue = option.key === FilterType.DEFAULT || option.key === FilterType.ALL;
+        if (!waitsForValue || filtersForAnnotation.some((filter) => filter.hasValue)) {
+            dispatch(
+                selection.actions.changeFileFilterType(
+                    props.annotation.name,
+                    option.key as FilterType
+                )
+            );
         }
     };
 
@@ -208,10 +213,12 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
         }
     }
 
-    function onCommitSearchValue(filterValue: string, type: FilterType) {
+    function onCommitSearchValue(filterValue: string, isFuzzy: boolean) {
         if (!filterValue || !filterValue.trim()) {
             return;
         }
+        const fuzzyType = filterType === FilterType.ALL ? FilterType.FUZZY_ALL : FilterType.FUZZY;
+        const type = isFuzzy ? fuzzyType : filterType;
         commitFilters(
             new FileFilter(props.annotation.name, filterValue, type, props.annotation.type)
         );
@@ -227,6 +234,8 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
 
     const listPickerComponent = (
         <ListPicker
+            // The list caches its rows, so remount to give them the current filter type
+            key={filterType}
             className={styles.listPicker}
             items={items}
             loading={isLoading}
@@ -350,15 +359,13 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                 <h3>Filter {props.annotation.displayName} by</h3>
                 <ChoiceGroup
                     className={styles.choiceGroup}
-                    // Fuzzy is not in choice group
-                    defaultSelectedKey={
-                        filterType !== FilterType.FUZZY ? filterType : FilterType.DEFAULT
-                    }
+                    defaultSelectedKey={filterType}
                     options={[
                         {
                             key: FilterType.DEFAULT,
                             text: `Some value${items.length > 0 ? "(s)" : ""}`,
                         },
+                        ...(canOfferAllValues ? [{ key: FilterType.ALL, text: "All values" }] : []),
                         {
                             key: FilterType.ANY_VALUE,
                             text: "Any value",
@@ -371,7 +378,7 @@ export default function AnnotationFilterForm(props: AnnotationFilterFormProps) {
                     onChange={(_, option) => onFilterTypeOptionChange(option)}
                 />
             </div>
-            {filterType === FilterType.DEFAULT || filterType === FilterType.FUZZY ? (
+            {filterType === FilterType.DEFAULT || filterType === FilterType.ALL ? (
                 searchFormType()
             ) : (
                 <div className={styles.footer}>

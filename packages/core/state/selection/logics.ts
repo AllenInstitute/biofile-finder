@@ -265,6 +265,17 @@ const setAvailableAnnotationsLogic = createLogic({
 });
 
 /**
+ * The type a filter has once its annotation's mode changes to `target`. Switching between
+ * "some value(s)" (default) and "all values" keeps contains filters as contains filters.
+ */
+function convertFilterType(current: FilterType, target: FilterType): FilterType {
+    const isContains = current === FilterType.FUZZY || current === FilterType.FUZZY_ALL;
+    if (isContains && target === FilterType.ALL) return FilterType.FUZZY_ALL;
+    if (isContains && target === FilterType.DEFAULT) return FilterType.FUZZY;
+    return target;
+}
+
+/**
  * Interceptor responsible for transforming ADD_FILE_FILTER, REMOVE_FILE_FILTER, and CHANGE_FILE_FILTER_TYPE
  * actions into a concrete list of ordered FileFilters that can be stored directly in
  * application state under `selections.filters`.
@@ -300,8 +311,10 @@ const modifyFileFilters = createLogic({
                         newFilter,
                     ];
                     break;
-                // For default/fuzzy, toggle the type for existing default/fuzzy filters but keep their value,
-                // and fully remove include/exclude filters
+                // For all/default/fuzzy, toggle the type for existing filters but keep their value
+                // (and whether it is an exact or contains match), and fully remove include/exclude
+                // filters
+                case FilterType.ALL:
                 case FilterType.FUZZY:
                 default:
                     nextFilters = previousFilters
@@ -315,7 +328,7 @@ const modifyFileFilters = createLogic({
                                 : new FileFilter(
                                       filter.name,
                                       filter.value,
-                                      payload.type,
+                                      convertFilterType(filter.type, payload.type),
                                       filter.valueType
                                   )
                         );
