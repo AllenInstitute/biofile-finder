@@ -11,6 +11,7 @@ import {
     SearchParamsComponents,
     Source,
 } from "../../entity/SearchParams";
+import { Column } from "../../entity/SearchParams/ColumnCoder";
 import Tutorial from "../../entity/Tutorial";
 import { makeConstant } from "../../util/redux-utils";
 
@@ -136,11 +137,6 @@ export function setSortColumn(fileSort?: FileSort): SetSortColumnAction {
         payload: fileSort,
         type: SET_SORT_COLUMN,
     };
-}
-
-export interface Column {
-    name: string;
-    width: number; // width in pixels
 }
 
 /**

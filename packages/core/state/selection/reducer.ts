@@ -13,7 +13,6 @@ import {
     ChangeProvenanceSource,
     ChangeQuery,
     COLLAPSE_ALL_FILE_FOLDERS,
-    Column,
     Query,
     REMOVE_QUERY,
     RemoveQuery,
@@ -59,6 +58,7 @@ import FileFolder from "../../entity/FileFolder";
 import FileSelection from "../../entity/FileSelection";
 import FileSort, { SortOrder } from "../../entity/FileSort";
 import { DEFAULT_COLUMN_WIDTH, FileView, Source } from "../../entity/SearchParams";
+import { Column } from "../../entity/SearchParams/ColumnCoder";
 import Tutorial from "../../entity/Tutorial";
 import Tutorials from "../../hooks/useHelpOptions/Tutorials";
 import { makeReducer } from "../../util/redux-utils";

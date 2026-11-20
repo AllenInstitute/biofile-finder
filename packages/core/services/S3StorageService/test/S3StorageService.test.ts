@@ -6,9 +6,11 @@ describe("S3StorageService", () => {
     // This uses an external package, so is mostly just a consistency check
     describe("formatAsHttpResource", () => {
         const s3StorageService = new S3StorageService();
-        ((s3StorageService as unknown) as {
-            httpClient: { head: (url: string) => Promise<{ status: number }> };
-        }).httpClient = {
+        (
+            s3StorageService as unknown as {
+                httpClient: { head: (url: string) => Promise<{ status: number }> };
+            }
+        ).httpClient = {
             head: async () => ({ status: 200 }),
         };
 
@@ -97,9 +99,11 @@ describe("S3StorageService", () => {
         function serviceProbing(head: () => Promise<{ status: number }>) {
             const service = new S3StorageService();
             const probed: string[] = [];
-            ((service as unknown) as {
-                httpClient: { head: (url: string) => Promise<{ status: number }> };
-            }).httpClient = {
+            (
+                service as unknown as {
+                    httpClient: { head: (url: string) => Promise<{ status: number }> };
+                }
+            ).httpClient = {
                 head: async (url: string) => {
                     probed.push(url);
                     return head();
@@ -160,9 +164,11 @@ describe("S3StorageService", () => {
             };
 
             let callCount = 0;
-            ((s3StorageService as unknown) as {
-                httpClient: { get: (url: string) => Promise<{ data: string }> };
-            }).httpClient = {
+            (
+                s3StorageService as unknown as {
+                    httpClient: { get: (url: string) => Promise<{ data: string }> };
+                }
+            ).httpClient = {
                 get: async () => {
                     callCount += 1;
                     if (callCount === 1) {

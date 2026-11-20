@@ -5,8 +5,8 @@ import { Provider } from "react-redux";
 
 import HorizontalScrollContext from "../HorizontalScrollContext";
 import useVisibleColumns from "../useVisibleCells";
+import { Column } from "../../../entity/SearchParams/ColumnCoder";
 import { initialState } from "../../../state";
-import { Column } from "../../../state/selection/actions";
 import { configureMockStore, mergeState } from "../../../util/redux-utils";
 
 /**
